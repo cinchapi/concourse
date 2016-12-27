@@ -34,10 +34,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.sun.nio.file.SensitivityWatchEventModifier;
@@ -49,71 +52,6 @@ import com.sun.nio.file.SensitivityWatchEventModifier;
  * @author Jeff Nelson
  */
 public class FileOps {
-
-    /**
-     * A service that watches directories for operations on files.
-     * <p>
-     * Java's {@link WatchService} API is designed to handle directories instead
-     * of individual files. So, when {@link #awaitChange(String)} is called, we
-     * register the parent path (e.g. the housing directory) with the watch
-     * service and check the {@link WatchEvent watch event's}
-     * {@link WatchEvent#context() context} to determine whether an individual
-     * file has changed.
-     * </p>
-     */
-    private static final WatchService FILE_CHANGE_WATCHER;
-    static {
-        try {
-            FILE_CHANGE_WATCHER = FileSystems.getDefault().newWatchService();
-            Thread t = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            WatchKey key;
-                            try {
-                                key = FILE_CHANGE_WATCHER.take();
-                                for (WatchEvent<?> event : key.pollEvents()) {
-                                    Path parent = (Path) key.watchable();
-                                    WatchEvent.Kind<?> kind = event.kind();
-                                    if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                        Path abspath = parent
-                                                .resolve((Path) event.context())
-                                                .toAbsolutePath();
-                                        String sync = abspath.toString()
-                                                .intern();
-                                        synchronized (sync) {
-                                            sync.notifyAll();
-                                        }
-                                    }
-                                }
-                                key.reset();
-                            }
-                            catch (InterruptedException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-                    }
-                    finally {
-                        try {
-                            FILE_CHANGE_WATCHER.close();
-                        }
-                        catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
-                    }
-                }
-
-            });
-            t.setDaemon(true);
-            t.start();
-
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-    }
 
     /**
      * Write the String {@code content} to the end of the {@code file},
@@ -138,30 +76,40 @@ public class FileOps {
      * @param file the path to a regular file
      */
     public static void awaitChange(String file) {
-        try {
-            Path path = Paths.get(expandPath(file));
-            Preconditions
-                    .checkArgument(java.nio.file.Files.isRegularFile(path));
-            WatchEvent.Kind<?>[] kinds = {
-                    StandardWatchEventKinds.ENTRY_MODIFY };
-            SensitivityWatchEventModifier[] modifiers = {
-                    SensitivityWatchEventModifier.HIGH };
-            Watchable parent = path.getParent();
-            if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
-                parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
-                REGISTERED_WATCHER_PATHS.add(parent);
-            }
-            String sync = path.toString().intern();
-            try {
-                synchronized (sync) {
-                    sync.wait();
+        Path path = Paths.get(expandPath(file));
+        Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
+        WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
+        SensitivityWatchEventModifier[] modifiers = {
+                SensitivityWatchEventModifier.HIGH };
+        Watchable parent = path.getParent();
+        if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
+            for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
+                WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
+                try {
+                    parent.register(watcher, kinds, modifiers);
+                    break;
+                }
+                catch (IOException e) {
+                    // If an error occurs while trying to register a path with a
+                    // watch service, cycle through the list in order to see if
+                    // we can find one that will accept it.
+                    if(i < FILE_CHANGE_WATCHERS.size()) {
+                        continue;
+                    }
+                    else {
+                        throw CheckedExceptions.throwAsRuntimeException(e);
+                    }
                 }
             }
-            catch (InterruptedException e) {
-                throw Throwables.propagate(e);
+            REGISTERED_WATCHER_PATHS.add(parent);
+        }
+        String sync = path.toString().intern();
+        try {
+            synchronized (sync) {
+                sync.wait();
             }
         }
-        catch (IOException e) {
+        catch (InterruptedException e) {
             throw Throwables.propagate(e);
         }
     }
@@ -214,6 +162,17 @@ public class FileOps {
     }
 
     /**
+     * Return {@code true} if the specified {@code path} is that of a directory
+     * and not a flat file.
+     * 
+     * @param path the path to check
+     * @return {@code true} if the {@code path} is that of a directory
+     */
+    public static boolean isDirectory(String path) {
+        return java.nio.file.Files.isDirectory(Paths.get(path));
+    }
+
+    /**
      * Create the directories named by {@code path}, including any necessary,
      * but nonexistent parent directories.
      * <p>
@@ -231,17 +190,6 @@ public class FileOps {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
-    }
-
-    /**
-     * Return {@code true} if the specified {@code path} is that of a directory
-     * and not a flat file.
-     * 
-     * @param path the path to check
-     * @return {@code true} if the {@code path} is that of a directory
-     */
-    public static boolean isDirectory(String path) {
-        return java.nio.file.Files.isDirectory(Paths.get(path));
     }
 
     /**
@@ -392,6 +340,18 @@ public class FileOps {
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        return tempFile(null, prefix, suffix);
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
      * @param dir the directory in which the temp file should be created
      * @param prefix the prefix for the temp file
      * @param suffix the suffix for the temp file
@@ -405,6 +365,9 @@ public class FileOps {
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
+            if(dir != null) {
+                FileOps.mkdirs(dir);
+            }
             return dir == null
                     ? java.nio.file.Files.createTempFile(prefix, suffix)
                             .toAbsolutePath().toString()
@@ -415,18 +378,6 @@ public class FileOps {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
-    }
-
-    /**
-     * Create a temporary file that is likely to be deleted some time after this
-     * JVM terminates, but definitely not before.
-     * 
-     * @param prefix the prefix for the temp file
-     * @param suffix the suffix for the temp file
-     * @return the absolute path where the temp file is stored
-     */
-    public static String tempFile(String prefix, String suffix) {
-        return tempFile(null, prefix, suffix);
     }
 
     /**
@@ -478,7 +429,81 @@ public class FileOps {
         }
     }
 
-    protected FileOps() {/* noop */}
+    /**
+     * Configure the watch {@code service} to notify listeners about changes to
+     * any of the {@link #REGISTERED_WATCHER_PATHS} that have been sent to the
+     * service.
+     * 
+     * @param service the {@link WatchService} to setup
+     */
+    private static void setupWatchService(WatchService service) {
+        Thread t = new Thread(() -> {
+            try {
+                while (true) {
+                    WatchKey key;
+                    try {
+                        key = service.take();
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            Path parent = (Path) key.watchable();
+                            WatchEvent.Kind<?> kind = event.kind();
+                            if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                Path abspath = parent
+                                        .resolve((Path) event.context())
+                                        .toAbsolutePath();
+                                String sync = abspath.toString().intern();
+                                synchronized (sync) {
+                                    sync.notifyAll();
+                                }
+                            }
+                        }
+                        key.reset();
+                    }
+                    catch (InterruptedException e) {
+                        throw Throwables.propagate(e);
+                    }
+                }
+            }
+            finally {
+                try {
+                    service.close();
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * A service that watches directories for operations on files.
+     * <p>
+     * Java's {@link WatchService} API is designed to handle directories instead
+     * of individual files. So, when {@link #awaitChange(String)} is called, we
+     * register the parent path (e.g. the housing directory) with the watch
+     * service and check the {@link WatchEvent watch event's}
+     * {@link WatchEvent#context() context} to determine whether an individual
+     * file has changed.
+     * </p>
+     */
+    private static List<WatchService> FILE_CHANGE_WATCHERS = Lists
+            .newArrayListWithCapacity(2);
+    static {
+        try {
+            FILE_CHANGE_WATCHERS
+                    .add(FileSystems.getDefault().newWatchService());
+            FILE_CHANGE_WATCHERS.add(
+                    Reflection.newInstance("sun.nio.fs.PollingWatchService"));
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        FILE_CHANGE_WATCHERS.forEach((watcher) -> {
+            setupWatchService(watcher);
+        });
+    }
 
     /**
      * A collection of {@link Watchable} paths that have already been registered
@@ -504,5 +529,7 @@ public class FileOps {
      */
     private static Path BASE_PATH = FileSystems.getDefault()
             .getPath(WORKING_DIRECTORY);
+
+    protected FileOps() {/* noop */}
 
 }
