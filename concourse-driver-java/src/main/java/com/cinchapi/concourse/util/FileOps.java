@@ -88,7 +88,13 @@ public class FileOps {
             for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
                 WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
                 try {
-                    parent.register(watcher, kinds, modifiers);
+                    if(watcher instanceof PollingWatchService) {
+                        ((PollingWatchService) watcher).register((Path) parent,
+                                kinds, modifiers);
+                    }
+                    else {
+                        parent.register(watcher, kinds, modifiers);
+                    }
                     break;
                 }
                 catch (IOException e) {
