@@ -501,6 +501,9 @@ public class FileOps {
     static {
         try {
             if(!Platform.isLinux()) {
+                // NOTE: Seems like there are problems when inotify actually
+                // working on Linux, so for now, don't set it as a possible
+                // watch service...
                 FILE_CHANGE_WATCHERS
                         .add(FileSystems.getDefault().newWatchService());
             }
