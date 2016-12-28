@@ -504,9 +504,15 @@ public class FileOps {
                 FILE_CHANGE_WATCHERS
                         .add(FileSystems.getDefault().newWatchService());
             }
-            FILE_CHANGE_WATCHERS.add(new PollingWatchService(
+            // Add a PollingWatchService to use as a backup in case the default
+            // watch service is causing issues (i.e. on Linux the max number of
+            // inotify watches may be reached, in which case we can use the
+            // backup as a fail safe.)
+            PollingWatchService backup = new PollingWatchService(
                     Runtime.getRuntime().availableProcessors(), 1,
-                    TimeUnit.SECONDS));
+                    TimeUnit.SECONDS);
+            backup.start();
+            FILE_CHANGE_WATCHERS.add(backup);
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
