@@ -205,7 +205,9 @@ public final class SharedMemory {
      * An {@link Executor} dedicated to detecting and fixing race conditions.
      */
     private final ExecutorService raceConditionDetector = Executors
-            .newSingleThreadExecutor();
+            .newSingleThreadExecutor(new ThreadFactoryBuilder()
+                    .setNameFormat("shared-memory-race-condition-detector")
+                    .setDaemon(true).build());
 
     /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
@@ -611,7 +613,7 @@ public final class SharedMemory {
         try {
             return channel.lock(READ_LOCK_POSITION, 1, false);
         }
-        catch(OverlappingFileLockException e){
+        catch (OverlappingFileLockException e) {
             Thread.yield();
             return readLock();
         }
@@ -653,7 +655,7 @@ public final class SharedMemory {
         try {
             return channel.lock(WRITE_LOCK_POSITION, 1, false);
         }
-        catch(OverlappingFileLockException e){
+        catch (OverlappingFileLockException e) {
             Thread.yield();
             return writeLock();
         }
