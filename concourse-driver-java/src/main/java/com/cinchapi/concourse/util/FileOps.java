@@ -494,8 +494,10 @@ public class FileOps {
             .newArrayListWithCapacity(2);
     static {
         try {
-            FILE_CHANGE_WATCHERS
-                    .add(FileSystems.getDefault().newWatchService());
+            if(!Platform.isLinux()) {
+                FILE_CHANGE_WATCHERS
+                        .add(FileSystems.getDefault().newWatchService());
+            }
             FILE_CHANGE_WATCHERS.add(new PollingWatchService(
                     Runtime.getRuntime().availableProcessors(), 1,
                     TimeUnit.SECONDS));
