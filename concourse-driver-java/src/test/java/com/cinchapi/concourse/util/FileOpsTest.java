@@ -57,7 +57,7 @@ public class FileOpsTest extends ConcourseBaseTest {
         done.set(true);
     }
 
-    @Test
+    @Test(timeout = 5000)
     public void testAwaitChangeDoesNotRegisterPathMoreThanOnce()
             throws InterruptedException {
         // NOTE: Do not change this test to use a CountDownLatch or some other
