@@ -710,7 +710,7 @@ public class ManagedConcourseServer {
      */
     private List<String> execute(String cli, String... args) {
         try {
-            String command = "sh " + cli;
+            String command = "bash " + cli;
             for (String arg : args) {
                 command += " " + arg;
             }
