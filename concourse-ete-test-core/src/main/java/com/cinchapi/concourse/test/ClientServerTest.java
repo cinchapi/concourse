@@ -87,12 +87,12 @@ public abstract class ClientServerTest {
 
         @Override
         protected void failed(Throwable t, Description description) {
-            System.out.println("TEST FAILURE in " + description.getMethodName()
+            System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
-            System.out.println("---");
-            System.out.println(Variables.dump());
-            System.out.println("");
-            System.out.println("Printing relevant server logs...");
+            System.err.println("---");
+            System.err.println(Variables.dump());
+            System.err.println("");
+            System.err.println("Printing relevant server logs...");
             server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
                     LogLevel.DEBUG);
             server.printLog("console");
