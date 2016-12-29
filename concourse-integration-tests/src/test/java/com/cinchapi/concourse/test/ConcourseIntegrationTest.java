@@ -91,11 +91,11 @@ public abstract class ConcourseIntegrationTest {
 
         @Override
         protected void failed(Throwable t, Description description) {
-            System.out.println("TEST FAILURE in " + description.getMethodName()
+            System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
-            System.out.println("---");
-            System.out.println(Variables.dump());
-            System.out.println("");
+            System.err.println("---");
+            System.err.println(Variables.dump());
+            System.err.println("");
             stop();
             afterEachTest();
         }

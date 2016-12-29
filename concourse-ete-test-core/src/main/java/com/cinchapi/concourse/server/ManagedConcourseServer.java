@@ -577,12 +577,12 @@ public class ManagedConcourseServer {
         String logdir = Paths.get(installDirectory, "log").toString();
         String file = Paths.get(logdir, name + ".log").toString();
         String content = FileOps.read(file);
-        System.out.println(file);
+        System.err.println(file);
         for (int i = 0; i < file.length(); ++i) {
-            System.out.print('-');
+            System.err.print('-');
         }
-        System.out.println();
-        System.out.println(content);
+        System.err.println();
+        System.err.println(content);
 
     }
 
