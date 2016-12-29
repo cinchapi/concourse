@@ -83,7 +83,7 @@ public class FileOps {
         WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
         SensitivityWatchEventModifier[] modifiers = {
                 SensitivityWatchEventModifier.HIGH };
-        Watchable parent = path.getParent();
+        Watchable parent = path.getParent().toAbsolutePath();
         if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
             for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
                 WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
