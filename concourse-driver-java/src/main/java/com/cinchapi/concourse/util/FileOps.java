@@ -500,6 +500,15 @@ public class FileOps {
             .newArrayListWithCapacity(2);
     static {
         try {
+            // Add a PollingWatchService to use as a backup in case the default
+            // watch service is causing issues (i.e. on Linux the max number of
+            // inotify watches may be reached, in which case we can use the
+            // backup as a fail safe.)
+            PollingWatchService pollingWatchService = new PollingWatchService(
+                    Runtime.getRuntime().availableProcessors(), 500,
+                    TimeUnit.MILLISECONDS);
+            pollingWatchService.start();
+            FILE_CHANGE_WATCHERS.add(pollingWatchService);
             if(!Platform.isLinux()) {
                 // NOTE: Seems like there are problems when inotify actually
                 // working on Linux, so for now, don't set it as a possible
@@ -507,15 +516,6 @@ public class FileOps {
                 FILE_CHANGE_WATCHERS
                         .add(FileSystems.getDefault().newWatchService());
             }
-            // Add a PollingWatchService to use as a backup in case the default
-            // watch service is causing issues (i.e. on Linux the max number of
-            // inotify watches may be reached, in which case we can use the
-            // backup as a fail safe.)
-            PollingWatchService backup = new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 1,
-                    TimeUnit.SECONDS);
-            backup.start();
-            FILE_CHANGE_WATCHERS.add(backup);
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
