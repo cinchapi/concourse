@@ -35,7 +35,7 @@ The **describe** methods give a summary containing all the populated keys in a o
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2016 Cinchapi Inc.
+Copyright (c) 2013-2017 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
