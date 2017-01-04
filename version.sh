@@ -72,7 +72,7 @@ if [ -z "$1" ] ; then
 	echo $VERSION$EXTRA
 else
 	NEW_VERSION=$1
-	if [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]] ; then
+	if [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
 		echo $NEW_VERSION > $BASE_VERSION_FILE
 		rm $COUNTER_FILE 2>/dev/null
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
