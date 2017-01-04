@@ -140,6 +140,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2016 Cinchapi Inc.
+Copyright © 2013-2017 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -577,12 +577,12 @@ public class ManagedConcourseServer {
         String logdir = Paths.get(installDirectory, "log").toString();
         String file = Paths.get(logdir, name + ".log").toString();
         String content = FileOps.read(file);
-        System.out.println(file);
+        System.err.println(file);
         for (int i = 0; i < file.length(); ++i) {
-            System.out.print('-');
+            System.err.print('-');
         }
-        System.out.println();
-        System.out.println(content);
+        System.err.println();
+        System.err.println(content);
 
     }
 

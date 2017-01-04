@@ -29,7 +29,7 @@ The **add** methods allow you to *append* a value to a field without overwriting
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2016 Cinchapi Inc.
+Copyright (c) 2013-2017 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />

@@ -3,7 +3,7 @@
  ==============================================================================
 
                                 Concourse
-                    Copyright 2013-2016 Cinchapi Inc.
+                    Copyright 2013-2017 Cinchapi Inc.
 
   1. Includes software developed at Cinchapi (https://cinchapi.com).
 
@@ -377,6 +377,19 @@
       - Added integration with Guava library for JSON serialization.
       - Added integration with Concourse data routing and access controls.
 
+      Pollingwatchservice (BSD 2-Clause License)
+      ------------------------------------------
+      Pollingwatchservice is a pure Java library providing a watch service
+      (i.e. a WatchService implementation) that polls for changes.
+
+      https://www.imca.aps.anl.gov/~jlmuir/sw/pollingwatchservice.html
+      Copyright (c) J. Lewis Muir
+
+      Changes:
+      - Specify a custom thread factory that sets a thread name and configures
+        each thread as a daemon thread for the executors used in the
+        PollingWatchService class
+
   5. Includes software, released under other licenses:
 
       Servlet API (GPL w/ Classpath Exception)
@@ -481,13 +494,6 @@
 
       http://openjdk.java.net/
       Copyright (c) 2010, 2013, Oracle and/or its affiliates.
-
-      Pollingwatchservice (BSD 2-Clause License)
-      ------------------------------------------
-      Pollingwatchservice is a pure Java library providing a watch service (i.e. a WatchService implementation) that polls for changes.
-
-      https://www.imca.aps.anl.gov/~jlmuir/sw/pollingwatchservice.html
-      Copyright (c) J. Lewis Muir
 
   6. Includes software, that is not distributed but is used to help produce
      various artifacts that are distributed:

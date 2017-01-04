@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,12 +83,18 @@ public class FileOps {
         WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
         SensitivityWatchEventModifier[] modifiers = {
                 SensitivityWatchEventModifier.HIGH };
-        Watchable parent = path.getParent();
+        Watchable parent = path.getParent().toAbsolutePath();
         if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
             for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
                 WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
                 try {
-                    parent.register(watcher, kinds, modifiers);
+                    if(watcher instanceof PollingWatchService) {
+                        ((PollingWatchService) watcher).register((Path) parent,
+                                kinds, modifiers);
+                    }
+                    else {
+                        parent.register(watcher, kinds, modifiers);
+                    }
                     break;
                 }
                 catch (IOException e) {
@@ -494,13 +500,22 @@ public class FileOps {
             .newArrayListWithCapacity(2);
     static {
         try {
+            // Add a PollingWatchService to use as a backup in case the default
+            // watch service is causing issues (i.e. on Linux the max number of
+            // inotify watches may be reached, in which case we can use the
+            // backup as a fail safe.)
+            PollingWatchService pollingWatchService = new PollingWatchService(
+                    Runtime.getRuntime().availableProcessors(), 500,
+                    TimeUnit.MILLISECONDS);
+            pollingWatchService.start();
+            FILE_CHANGE_WATCHERS.add(pollingWatchService);
             if(!Platform.isLinux()) {
+                // NOTE: Seems like there are problems when inotify actually
+                // working on Linux, so for now, don't set it as a possible
+                // watch service...
                 FILE_CHANGE_WATCHERS
                         .add(FileSystems.getDefault().newWatchService());
             }
-            FILE_CHANGE_WATCHERS.add(new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 1,
-                    TimeUnit.SECONDS));
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the

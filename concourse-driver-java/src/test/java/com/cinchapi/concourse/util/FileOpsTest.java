@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class FileOpsTest extends ConcourseBaseTest {
         done.set(true);
     }
 
-    @Test
+    @Test(timeout = 5000)
     public void testAwaitChangeDoesNotRegisterPathMoreThanOnce()
             throws InterruptedException {
         // NOTE: Do not change this test to use a CountDownLatch or some other

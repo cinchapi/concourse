@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,12 +87,12 @@ public abstract class ClientServerTest {
 
         @Override
         protected void failed(Throwable t, Description description) {
-            System.out.println("TEST FAILURE in " + description.getMethodName()
+            System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
-            System.out.println("---");
-            System.out.println(Variables.dump());
-            System.out.println("");
-            System.out.println("Printing relevant server logs...");
+            System.err.println("---");
+            System.err.println(Variables.dump());
+            System.err.println("");
+            System.err.println("Printing relevant server logs...");
             server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
                     LogLevel.DEBUG);
             server.printLog("console");
