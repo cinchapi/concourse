@@ -98,6 +98,7 @@ public class FileOps {
                     break;
                 }
                 catch (IOException e) {
+                    e.printStackTrace();
                     // If an error occurs while trying to register a path with a
                     // watch service, cycle through the list in order to see if
                     // we can find one that will accept it.
@@ -509,13 +510,13 @@ public class FileOps {
                     TimeUnit.MILLISECONDS);
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
-//            if(!Platform.isLinux()) {
-//                // NOTE: Seems like there are problems with inotify actually
-//                // working on Linux, so for now, don't set it as a possible
-//                // watch service...
-//                FILE_CHANGE_WATCHERS
-//                        .add(FileSystems.getDefault().newWatchService());
-//            }
+            if(!Platform.isLinux()) {
+                // NOTE: Seems like there are problems with inotify actually
+                // working on Linux, so for now, don't set it as a possible
+                // watch service...
+                FILE_CHANGE_WATCHERS
+                        .add(FileSystems.getDefault().newWatchService());
+            }
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
