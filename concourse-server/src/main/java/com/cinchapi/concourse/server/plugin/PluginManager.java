@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -538,7 +539,8 @@ public class PluginManager {
                 String filename = jars.next().getFileName().toString();
                 Path path = lib.resolve(filename);
                 URL url = new File(path.toString()).toURI().toURL();
-                if(!SYSTEM_JARS.contains(filename) || type.mightRequireHooks()) {
+                if(!SYSTEM_JARS.contains(filename)
+                        || type.mightRequireHooks()) {
                     // NOTE: by checking for exact name matches, we will
                     // accidentally include system jars that contain different
                     // versions.
@@ -751,6 +753,14 @@ public class PluginManager {
                 Logger.warn("Standard Error for {}: {}", plugin,
                         StringUtils.join(errLines, System.lineSeparator()));
                 Logger.warn("Restarting {} now...", plugin);
+                Iterator<Entry<String, String>> it = aliases.entrySet()
+                        .iterator();
+                while (it.hasNext()) {
+                    Entry<String, String> entry = it.next();
+                    if(entry.getValue().equals(plugin.getName())) {
+                        it.remove();
+                    }
+                }
                 // TODO: it would be nice to just restart the same JavaApp
                 // instance (e.g. app.restart();)
                 launch(bundle, prefs, plugin, classpath);
