@@ -80,45 +80,46 @@ public class FileOps {
     public static void awaitChange(String file) {
         Path path = Paths.get(expandPath(file));
         Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
-        WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
-        SensitivityWatchEventModifier[] modifiers = {
-                SensitivityWatchEventModifier.HIGH };
-        Watchable parent = path.getParent().toAbsolutePath();
-        if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
-            for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
-                WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
-                try {
-                    if(watcher instanceof PollingWatchService) {
-                        ((PollingWatchService) watcher).register((Path) parent,
-                                kinds, modifiers);
+        String mutex = path.toString().intern();
+        synchronized (mutex) {
+            WatchEvent.Kind<?>[] kinds = {
+                    StandardWatchEventKinds.ENTRY_MODIFY };
+            SensitivityWatchEventModifier[] modifiers = {
+                    SensitivityWatchEventModifier.HIGH };
+            Watchable parent = path.getParent().toAbsolutePath();
+            if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
+                for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
+                    WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
+                    try {
+                        if(watcher instanceof PollingWatchService) {
+                            ((PollingWatchService) watcher)
+                                    .register((Path) parent, kinds, modifiers);
+                        }
+                        else {
+                            parent.register(watcher, kinds, modifiers);
+                        }
+                        break;
                     }
-                    else {
-                        parent.register(watcher, kinds, modifiers);
+                    catch (IOException e) {
+                        // If an error occurs while trying to register a path
+                        // with a watch service, cycle through the list in order
+                        // to see if we can find one that will accept it.
+                        if(i < FILE_CHANGE_WATCHERS.size()) {
+                            continue;
+                        }
+                        else {
+                            throw CheckedExceptions.throwAsRuntimeException(e);
+                        }
                     }
-                    break;
                 }
-                catch (IOException e) {
-                    // If an error occurs while trying to register a path with a
-                    // watch service, cycle through the list in order to see if
-                    // we can find one that will accept it.
-                    if(i < FILE_CHANGE_WATCHERS.size()) {
-                        continue;
-                    }
-                    else {
-                        throw CheckedExceptions.throwAsRuntimeException(e);
-                    }
-                }
+                REGISTERED_WATCHER_PATHS.add(parent);
             }
-            REGISTERED_WATCHER_PATHS.add(parent);
-        }
-        String sync = path.toString().intern();
-        try {
-            synchronized (sync) {
-                sync.wait();
+            try {
+                mutex.wait();
             }
-        }
-        catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            catch (InterruptedException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 
@@ -505,7 +506,7 @@ public class FileOps {
             // inotify watches may be reached, in which case we can use the
             // backup as a fail safe.)
             PollingWatchService pollingWatchService = new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 500,
+                    Runtime.getRuntime().availableProcessors(), 100,
                     TimeUnit.MILLISECONDS);
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
