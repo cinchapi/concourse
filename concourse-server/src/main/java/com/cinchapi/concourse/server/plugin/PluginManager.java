@@ -850,7 +850,7 @@ public class PluginManager {
 
             }
 
-        });
+        }, "plugin-event-loop-"+id);
         loop.setDaemon(true);
         loop.start();
         return loop;
