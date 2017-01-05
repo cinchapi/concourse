@@ -458,6 +458,7 @@ public class FileOps {
                         for (WatchEvent<?> event : key.pollEvents()) {
                             Path parent = (Path) key.watchable();
                             WatchEvent.Kind<?> kind = event.kind();
+                            System.out.println("The watch event kind is "+kind);
                             if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                                 Path abspath = parent
                                         .resolve((Path) event.context())
