@@ -92,9 +92,11 @@ public class FileOps {
                     if(watcher instanceof PollingWatchService) {
                         ((PollingWatchService) watcher).register((Path) parent,
                                 kinds, modifiers);
+                        System.out.println("Using "+watcher.getClass()+" for "+path);
                     }
                     else {
                         parent.register(watcher, kinds, modifiers);
+                        System.out.println("Using "+watcher.getClass()+" for "+path);
                     }
                     break;
                 }
