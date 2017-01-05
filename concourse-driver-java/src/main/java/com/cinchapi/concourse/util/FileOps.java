@@ -79,6 +79,7 @@ public class FileOps {
      */
     public static void awaitChange(String file) {
         Path path = Paths.get(expandPath(file));
+        System.out.println("Awaiting change for "+path);
         Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
         WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
         SensitivityWatchEventModifier[] modifiers = {
