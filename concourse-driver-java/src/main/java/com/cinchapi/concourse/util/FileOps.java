@@ -510,7 +510,7 @@ public class FileOps {
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
 //            if(!Platform.isLinux()) {
-//                // NOTE: Seems like there are problems when inotify actually
+//                // NOTE: Seems like there are problems with inotify actually
 //                // working on Linux, so for now, don't set it as a possible
 //                // watch service...
 //                FILE_CHANGE_WATCHERS
