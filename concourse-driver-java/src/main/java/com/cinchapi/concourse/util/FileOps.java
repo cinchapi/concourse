@@ -79,7 +79,6 @@ public class FileOps {
      */
     public static void awaitChange(String file) {
         Path path = Paths.get(expandPath(file));
-        System.out.println("Awaiting change for "+path);
         Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
         WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
         SensitivityWatchEventModifier[] modifiers = {
@@ -92,16 +91,13 @@ public class FileOps {
                     if(watcher instanceof PollingWatchService) {
                         ((PollingWatchService) watcher).register((Path) parent,
                                 kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
                     }
                     else {
                         parent.register(watcher, kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
                     }
                     break;
                 }
                 catch (IOException e) {
-                    e.printStackTrace();
                     // If an error occurs while trying to register a path with a
                     // watch service, cycle through the list in order to see if
                     // we can find one that will accept it.
@@ -458,7 +454,6 @@ public class FileOps {
                         for (WatchEvent<?> event : key.pollEvents()) {
                             Path parent = (Path) key.watchable();
                             WatchEvent.Kind<?> kind = event.kind();
-                            System.out.println("The watch event kind is "+kind);
                             if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                                 Path abspath = parent
                                         .resolve((Path) event.context())
@@ -515,7 +510,7 @@ public class FileOps {
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
             if(!Platform.isLinux()) {
-                // NOTE: Seems like there are problems with inotify actually
+                // NOTE: Seems like there are problems when inotify actually
                 // working on Linux, so for now, don't set it as a possible
                 // watch service...
                 FILE_CHANGE_WATCHERS
