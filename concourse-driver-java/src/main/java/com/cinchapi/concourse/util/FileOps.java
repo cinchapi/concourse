@@ -33,7 +33,14 @@ import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.imca_cat.pollingwatchservice.PollingWatchService;
 
@@ -45,6 +52,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
 /**
@@ -71,6 +79,39 @@ public class FileOps {
         }
     }
 
+    private static ConcurrentMap<Path, AtomicLong> WATCHED_FILES = new ConcurrentHashMap<>();
+    private static ScheduledExecutorService FILE_WATCHER_DAEMON = Executors
+            .newSingleThreadScheduledExecutor(
+                    new ThreadFactoryBuilder().setDaemon(true).build());
+    private static ExecutorService FILE_WATCHER_WORKERS = Executors
+            .newCachedThreadPool(
+                    new ThreadFactoryBuilder().setDaemon(true).build());
+    static {
+        FILE_WATCHER_DAEMON.scheduleAtFixedRate(() -> {
+            List<Future<?>> futures = Lists.newArrayList();
+            WATCHED_FILES.forEach((path, modified) -> {
+                futures.add(FILE_WATCHER_WORKERS.submit(() -> {
+                    try {
+                        if(java.nio.file.Files.getLastModifiedTime(path)
+                                .toMillis() > modified.get()) {
+                            String sync = path.toString().intern();
+                            synchronized (sync) {
+                                sync.notifyAll();
+                            }
+                            modified.set(java.nio.file.Files
+                                    .getLastModifiedTime(path).toMillis());
+                        }
+                    }
+                    catch (IOException e) {
+                        throw CheckedExceptions.throwAsRuntimeException(e);
+                    }
+
+                }));
+            });
+
+        }, 100, 100, TimeUnit.MILLISECONDS);
+    }
+
     /**
      * Cause the current thread to block while waiting for a change to
      * {@code file}.
@@ -79,41 +120,16 @@ public class FileOps {
      */
     public static void awaitChange(String file) {
         Path path = Paths.get(expandPath(file));
-        System.out.println("Awaiting change for "+path);
         Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
-        WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
-        SensitivityWatchEventModifier[] modifiers = {
-                SensitivityWatchEventModifier.HIGH };
-        Watchable parent = path.getParent().toAbsolutePath();
-        if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
-            for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
-                WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
-                try {
-                    if(watcher instanceof PollingWatchService) {
-                        ((PollingWatchService) watcher).register((Path) parent,
-                                kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
-                    }
-                    else {
-                        parent.register(watcher, kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
-                    }
-                    break;
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    // If an error occurs while trying to register a path with a
-                    // watch service, cycle through the list in order to see if
-                    // we can find one that will accept it.
-                    if(i < FILE_CHANGE_WATCHERS.size()) {
-                        continue;
-                    }
-                    else {
-                        throw CheckedExceptions.throwAsRuntimeException(e);
-                    }
-                }
+        if(!WATCHED_FILES.containsKey(path)) {
+            try {
+                AtomicLong timestamp = new AtomicLong(java.nio.file.Files
+                        .getLastModifiedTime(path).toMillis());
+                WATCHED_FILES.putIfAbsent(path, timestamp);
             }
-            REGISTERED_WATCHER_PATHS.add(parent);
+            catch (IOException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
         }
         String sync = path.toString().intern();
         try {
@@ -124,6 +140,43 @@ public class FileOps {
         catch (InterruptedException e) {
             throw Throwables.propagate(e);
         }
+//        WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
+//        SensitivityWatchEventModifier[] modifiers = {
+//                SensitivityWatchEventModifier.HIGH };
+//        Watchable parent = path.getParent().toAbsolutePath();
+//        if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
+//            for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
+//                WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
+//                try {
+//                    if(watcher instanceof PollingWatchService) {
+//                        ((PollingWatchService) watcher).register((Path) parent,
+//                                kinds, modifiers);
+//                        System.out.println(
+//                                "Using " + watcher.getClass() + " for " + path);
+//                    }
+//                    else {
+//                        parent.register(watcher, kinds, modifiers);
+//                        System.out.println(
+//                                "Using " + watcher.getClass() + " for " + path);
+//                    }
+//                    break;
+//                }
+//                catch (IOException e) {
+//                    e.printStackTrace();
+//                    // If an error occurs while trying to register a path with a
+//                    // watch service, cycle through the list in order to see if
+//                    // we can find one that will accept it.
+//                    if(i < FILE_CHANGE_WATCHERS.size()) {
+//                        continue;
+//                    }
+//                    else {
+//                        throw CheckedExceptions.throwAsRuntimeException(e);
+//                    }
+//                }
+//            }
+//            REGISTERED_WATCHER_PATHS.add(parent);
+//        }
+
     }
 
     /**
@@ -458,7 +511,8 @@ public class FileOps {
                         for (WatchEvent<?> event : key.pollEvents()) {
                             Path parent = (Path) key.watchable();
                             WatchEvent.Kind<?> kind = event.kind();
-                            System.out.println("The watch event kind is "+kind);
+                            System.out
+                                    .println("The watch event kind is " + kind);
                             if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                                 Path abspath = parent
                                         .resolve((Path) event.context())
