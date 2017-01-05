@@ -509,13 +509,13 @@ public class FileOps {
                     TimeUnit.MILLISECONDS);
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
-            if(!Platform.isLinux()) {
-                // NOTE: Seems like there are problems when inotify actually
-                // working on Linux, so for now, don't set it as a possible
-                // watch service...
-                FILE_CHANGE_WATCHERS
-                        .add(FileSystems.getDefault().newWatchService());
-            }
+//            if(!Platform.isLinux()) {
+//                // NOTE: Seems like there are problems when inotify actually
+//                // working on Linux, so for now, don't set it as a possible
+//                // watch service...
+//                FILE_CHANGE_WATCHERS
+//                        .add(FileSystems.getDefault().newWatchService());
+//            }
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
