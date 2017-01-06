@@ -79,50 +79,47 @@ public class FileOps {
      */
     public static void awaitChange(String file) {
         Path path = Paths.get(expandPath(file));
-        System.out.println("Awaiting change for "+path);
         Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
-        WatchEvent.Kind<?>[] kinds = { StandardWatchEventKinds.ENTRY_MODIFY };
-        SensitivityWatchEventModifier[] modifiers = {
-                SensitivityWatchEventModifier.HIGH };
-        Watchable parent = path.getParent().toAbsolutePath();
-        if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
-            for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
-                WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
-                try {
-                    if(watcher instanceof PollingWatchService) {
-                        ((PollingWatchService) watcher).register((Path) parent,
-                                kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
+        String mutex = path.toString().intern();
+        synchronized (mutex) {
+            WatchEvent.Kind<?>[] kinds = {
+                    StandardWatchEventKinds.ENTRY_MODIFY };
+            SensitivityWatchEventModifier[] modifiers = {
+                    SensitivityWatchEventModifier.HIGH };
+            Watchable parent = path.getParent().toAbsolutePath();
+            if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
+                for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
+                    WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
+                    try {
+                        if(watcher instanceof PollingWatchService) {
+                            ((PollingWatchService) watcher)
+                                    .register((Path) parent, kinds, modifiers);
+                        }
+                        else {
+                            parent.register(watcher, kinds, modifiers);
+                        }
+                        break;
                     }
-                    else {
-                        parent.register(watcher, kinds, modifiers);
-                        System.out.println("Using "+watcher.getClass()+" for "+path);
+                    catch (IOException e) {
+                        // If an error occurs while trying to register a path
+                        // with a watch service, cycle through the list in order
+                        // to see if we can find one that will accept it.
+                        if(i < FILE_CHANGE_WATCHERS.size()) {
+                            continue;
+                        }
+                        else {
+                            throw CheckedExceptions.throwAsRuntimeException(e);
+                        }
                     }
-                    break;
                 }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    // If an error occurs while trying to register a path with a
-                    // watch service, cycle through the list in order to see if
-                    // we can find one that will accept it.
-                    if(i < FILE_CHANGE_WATCHERS.size()) {
-                        continue;
-                    }
-                    else {
-                        throw CheckedExceptions.throwAsRuntimeException(e);
-                    }
-                }
+                REGISTERED_WATCHER_PATHS.add(parent);
             }
-            REGISTERED_WATCHER_PATHS.add(parent);
-        }
-        String sync = path.toString().intern();
-        try {
-            synchronized (sync) {
-                sync.wait();
+            try {
+                mutex.wait();
             }
-        }
-        catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            catch (InterruptedException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 
@@ -458,7 +455,6 @@ public class FileOps {
                         for (WatchEvent<?> event : key.pollEvents()) {
                             Path parent = (Path) key.watchable();
                             WatchEvent.Kind<?> kind = event.kind();
-                            System.out.println("The watch event kind is "+kind);
                             if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                                 Path abspath = parent
                                         .resolve((Path) event.context())
@@ -510,17 +506,12 @@ public class FileOps {
             // inotify watches may be reached, in which case we can use the
             // backup as a fail safe.)
             PollingWatchService pollingWatchService = new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 500,
+                    Runtime.getRuntime().availableProcessors(), 100,
                     TimeUnit.MILLISECONDS);
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
-            if(!Platform.isLinux()) {
-                // NOTE: Seems like there are problems with inotify actually
-                // working on Linux, so for now, don't set it as a possible
-                // watch service...
-                FILE_CHANGE_WATCHERS
-                        .add(FileSystems.getDefault().newWatchService());
-            }
+            FILE_CHANGE_WATCHERS
+                    .add(FileSystems.getDefault().newWatchService());
         }
         catch (Exception e) {
             // NOTE: Cannot re-throw the exception because it will prevent the
