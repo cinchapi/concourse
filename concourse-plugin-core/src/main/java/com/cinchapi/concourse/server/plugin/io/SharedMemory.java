@@ -353,6 +353,7 @@ public final class SharedMemory {
                 // #nextRead and touch the #location if a write did come in when
                 // the race condition happened.
                 while (parentThread.getState() == State.RUNNABLE) {
+                    Thread.yield();
                     continue;
                 }
                 if(nextRead.get() >= 0) {
