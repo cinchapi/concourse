@@ -604,6 +604,7 @@ public class PollingWatchService implements PathWatchService {
                     result.put(each.getFileName(), readAttributes(each));
                 }
                 catch (IOException e) {
+                    e.printStackTrace();
                     /*
                      * IGNORED: The entry may have been deleted, or a number of
                      * other
@@ -613,6 +614,7 @@ public class PollingWatchService implements PathWatchService {
             }
         }
         catch (DirectoryIteratorException | IOException e) {
+            e.printStackTrace();
             /*
              * IGNORED: Various problems could occur while creating a new
              * directory
