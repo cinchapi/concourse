@@ -135,7 +135,7 @@ public abstract class Plugin {
         this.log = Logger.builder().name(this.getClass().getName())
                 .level(getConfig().getLogLevel()).directory(logDir.toString())
                 .build();
-        
+
         // Redirect System.out and System.err to a console.log file
         Path consoleLog = logDir.resolve("console.log");
         try {
@@ -144,8 +144,14 @@ public abstract class Plugin {
             FileOutputStream fos = new FileOutputStream(consoleLogFile);
             TeeOutputStream out = new TeeOutputStream(System.out, fos);
             TeeOutputStream err = new TeeOutputStream(System.err, fos);
-            System.setOut(new PrintStream(out));
-            System.setErr(new PrintStream(err));
+            PrintStream consoleOut = new PrintStream(out, true);
+            PrintStream consoleErr = new PrintStream(err, true);
+            System.setOut(consoleOut);
+            System.setErr(consoleErr);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                consoleOut.close();
+                consoleErr.close();
+            }));
         }
         catch (IOException e) {
             throw CheckedExceptions.throwAsRuntimeException(e);
