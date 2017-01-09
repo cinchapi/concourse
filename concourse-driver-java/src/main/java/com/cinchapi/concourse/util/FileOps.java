@@ -516,6 +516,7 @@ public class FileOps {
             }
 
         });
+        t.setName("watch-service-daemon-" + service.getClass());
         t.setDaemon(true);
         t.start();
     }
