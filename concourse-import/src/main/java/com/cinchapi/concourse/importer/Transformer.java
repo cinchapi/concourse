@@ -36,6 +36,7 @@ import com.cinchapi.concourse.util.KeyValue;
  * 
  * @author Jeff Nelson
  */
+@FunctionalInterface
 public interface Transformer {
 
     /**
