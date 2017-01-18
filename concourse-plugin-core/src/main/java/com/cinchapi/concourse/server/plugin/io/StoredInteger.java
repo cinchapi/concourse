@@ -21,8 +21,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -69,12 +69,6 @@ public final class StoredInteger {
      * represented value in stored form.
      */
     private final MappedByteBuffer storage;
-
-    /**
-     * A flag that indicates whether the integer is being used. This helps to
-     * ensure the safety of atomic updates.
-     */
-    private AtomicBoolean using = new AtomicBoolean(false);
 
     /**
      * Construct a new instance.
@@ -173,12 +167,19 @@ public final class StoredInteger {
      * @return the current value
      */
     public int get() {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
         FileLock lock = null;
         try {
-            lock = channel.lock(position, 4, true);
+            boolean retry = true;
+            while (retry) {
+                try {
+                    retry = false;
+                    lock = channel.lock(position, 4, true);
+                }
+                catch (OverlappingFileLockException e) {
+                    Thread.yield();
+                    retry = true;
+                }
+            }
             return getUnsafe();
         }
         catch (IOException e) {
@@ -186,7 +187,6 @@ public final class StoredInteger {
         }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
     }
 
@@ -210,12 +210,19 @@ public final class StoredInteger {
      * @param value the new value
      */
     public void set(int value) {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
         FileLock lock = null;
         try {
-            lock = channel.lock(position, 4, false);
+            boolean retry = true;
+            while (retry) {
+                try {
+                    retry = false;
+                    lock = channel.lock(position, 4, true);
+                }
+                catch (OverlappingFileLockException e) {
+                    Thread.yield();
+                    retry = true;
+                }
+            }
             setUnsafe(value);
         }
         catch (IOException e) {
@@ -223,7 +230,6 @@ public final class StoredInteger {
         }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
     }
 
@@ -234,12 +240,19 @@ public final class StoredInteger {
      * @param value the new value
      */
     public void setAndSync(int value) {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
         FileLock lock = null;
         try {
-            lock = channel.lock(position, 4, false);
+            boolean retry = true;
+            while (retry) {
+                try {
+                    retry = false;
+                    lock = channel.lock(position, 4, true);
+                }
+                catch (OverlappingFileLockException e) {
+                    Thread.yield();
+                    retry = true;
+                }
+            }
             setUnsafe(value);
             sync();
         }
@@ -248,7 +261,6 @@ public final class StoredInteger {
         }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
     }
 
