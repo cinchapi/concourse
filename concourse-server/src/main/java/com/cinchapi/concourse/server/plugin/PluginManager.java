@@ -843,6 +843,13 @@ public class PluginManager {
                                 request);
                         Thread worker = new RemoteInvocationThread(request,
                                 outgoing, server, true, fromPluginResponses);
+                        worker.setUncaughtExceptionHandler(
+                                (thread, throwable) -> {
+                                    Logger.error(
+                                            "While processing request '{}' from '{}', the following "
+                                                    + "non-recoverable error occurred:",
+                                            request, id, throwable);
+                                });
                         worker.start();
                     }
                     else if(message.type() == RemoteMessage.Type.RESPONSE) {
