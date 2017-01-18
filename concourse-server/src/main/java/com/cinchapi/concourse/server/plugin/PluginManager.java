@@ -770,6 +770,19 @@ public class PluginManager {
             }
         });
 
+        // Ensure that the Plugin is ready to run before adding it to the
+        // registry to avoid premature invocations
+        Path readyCheck = com.cinchapi.common.io.Files
+                .getHashedFilePath(serviceToken);
+        try {
+            while (!Files.deleteIfExists(readyCheck)) {
+                Thread.sleep(1000);
+                continue;
+            }
+            Logger.info("Plugin '{}' is ready", plugin);
+        }
+        catch (IOException | InterruptedException e) {}
+
         // Store metadata about the Plugin
         String id = launchClass;
         registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
@@ -781,16 +794,6 @@ public class PluginManager {
         registry.put(id, RegistryData.APP_INSTANCE, app);
         registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
-        Path ready = com.cinchapi.common.io.Files
-                .getHashedFilePath(serviceToken);
-        try {
-            while (!Files.deleteIfExists(ready)) {
-                Thread.sleep(1000);
-                continue;
-            }
-            Logger.info("Plugin '{}' is ready", plugin);
-        }
-        catch (IOException | InterruptedException e) {}
     }
 
     /**
