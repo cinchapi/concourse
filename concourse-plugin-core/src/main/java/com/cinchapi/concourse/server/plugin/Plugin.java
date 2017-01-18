@@ -29,6 +29,7 @@ import javax.annotation.concurrent.Immutable;
 import org.apache.commons.io.output.TeeOutputStream;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.Files;
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
@@ -174,6 +175,7 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
+        setReadyState();
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
@@ -221,6 +223,21 @@ public abstract class Plugin {
      */
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration();
+    }
+
+    /**
+     * Signal that the plugin is ready for operations.
+     */
+    private void setReadyState() {
+        try {
+            File ready = Files
+                    .getHashedFilePath(System
+                            .getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY))
+                    .toFile();
+            ready.getParentFile().mkdirs();
+            ready.createNewFile();
+        }
+        catch (IOException e) {}
     }
 
     /**

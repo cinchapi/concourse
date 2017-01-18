@@ -781,6 +781,16 @@ public class PluginManager {
         registry.put(id, RegistryData.APP_INSTANCE, app);
         registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+        Path ready = com.cinchapi.common.io.Files
+                .getHashedFilePath(serviceToken);
+        try {
+            while (!Files.deleteIfExists(ready)) {
+                Thread.sleep(1000);
+                continue;
+            }
+            Logger.info("Plugin '{}' is ready", plugin);
+        }
+        catch (IOException | InterruptedException e) {}
     }
 
     /**
@@ -850,7 +860,7 @@ public class PluginManager {
 
             }
 
-        }, "plugin-event-loop-"+id);
+        }, "plugin-event-loop-" + id);
         loop.setDaemon(true);
         loop.start();
         return loop;
