@@ -117,6 +117,11 @@ public abstract class Plugin {
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
 
     /**
+     * A boolean that tracks whether the ready state has been set.
+     */
+    private boolean inReadyState = false;
+
+    /**
      * Construct a new instance.
      * 
      * @param fromServer the location where Concourse Server places messages to
@@ -229,15 +234,18 @@ public abstract class Plugin {
      * Signal that the plugin is ready for operations.
      */
     private void setReadyState() {
-        try {
-            File ready = Files
-                    .getHashedFilePath(System
-                            .getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY))
-                    .toFile();
-            ready.getParentFile().mkdirs();
-            ready.createNewFile();
+        if(!inReadyState) {
+            try {
+                File ready = Files
+                        .getHashedFilePath(System
+                                .getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY))
+                        .toFile();
+                ready.getParentFile().mkdirs();
+                ready.createNewFile();
+                inReadyState = true;
+            }
+            catch (IOException e) {}
         }
-        catch (IOException e) {}
     }
 
     /**

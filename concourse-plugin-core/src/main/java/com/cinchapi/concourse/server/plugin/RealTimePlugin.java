@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 
@@ -55,6 +56,7 @@ abstract class RealTimePlugin extends Plugin {
 
     @Override
     public final void run() {
+        Reflection.call(this, "setReadyState");
         // For a RealTimePlugin, the first fromServer message contains the
         // address for the stream channel
         ByteBuffer data = fromServer.read();
