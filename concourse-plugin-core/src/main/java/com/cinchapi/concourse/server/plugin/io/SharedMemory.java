@@ -268,7 +268,7 @@ public final class SharedMemory {
     }
 
     /**
-     * Run compact on the {@link SharedMemory} to occupy how much space is
+     * Run compact on the {@link SharedMemory} to optimize how much space is
      * utilized by removing garbage.
      */
     public void compact() {
