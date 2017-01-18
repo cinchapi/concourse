@@ -588,14 +588,22 @@ public final class SharedMemory {
         ByteBuffer data = doReadFromCurrentPosition(length);
         int mark = memory.position();
         int next = -1;
-        try { // Peek at the next 4 bytes to see if it is > 0, which
-              // indicates that there is a next message to read.
-            int peek = memory.getInt();
-            if(peek > 0) {
-                next = mark;
+        boolean retry = true;
+        while (retry) {
+            retry = false;
+            try { // Peek at the next 4 bytes to see if it is > 0, which
+                  // indicates that there is a next message to read.
+                int peek = memory.getInt();
+                if(peek > 0) {
+                    next = mark;
+                }
+            }
+            catch (BufferUnderflowException e) {
+                growUnsafe();
+                retry = true;
             }
         }
-        catch (BufferUnderflowException e) {/* no-op */}
+
         memory.position(mark);
         nextRead.setAndSync(next);
         return data;

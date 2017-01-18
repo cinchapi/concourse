@@ -316,5 +316,27 @@ public class SharedMemoryTest {
         latch.await();
         Assert.assertTrue(read.get());
     }
-    
+
+    @Test
+    public void testReadPeekNewMessageWhenAtBufferCapacity() { // bug repro
+        String file = FileOps.tempFile();
+        SharedMemory sm1 = new SharedMemory(file, 4);
+        SharedMemory sm2 = new SharedMemory(file, 4);
+        ByteBuffer message = ByteBuffer.allocate(4);
+        message.putInt(1);
+        message.flip();
+        sm1.write(message);
+        message = ByteBuffer.allocate(4);
+        message.putInt(2);
+        message.flip();
+        sm1.write(message);
+        message = ByteBuffer.allocate(4);
+        message.putInt(3);
+        message.flip();
+        sm1.write(message);
+        Assert.assertEquals(1, sm2.read().getInt());
+        Assert.assertEquals(2, sm2.read().getInt());
+        Assert.assertEquals(3, sm2.read().getInt());
+    }
+
 }
