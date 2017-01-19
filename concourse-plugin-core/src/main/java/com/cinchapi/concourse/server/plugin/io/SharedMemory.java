@@ -385,6 +385,7 @@ public final class SharedMemory {
                     compact();
                 });
             }
+            ++readCount;
         }
     }
 
