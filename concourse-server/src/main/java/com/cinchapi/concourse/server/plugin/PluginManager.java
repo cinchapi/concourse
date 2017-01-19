@@ -718,8 +718,6 @@ public class PluginManager {
         String tempDir = getPluginTempDirectory(launchClass);
         String fromServer = FileSystem.tempFile(tempDir, "FS-", ".shm");
         String fromPlugin = FileSystem.tempFile(tempDir, "FP-", ".shm");
-        System.out.println("LOOK: " + fromServer);
-        System.out.println("LOOK: " + fromPlugin);
         String source = pluginLaunchClassTemplate
                 .replace("INSERT_PROCESS_NAME", processName)
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
