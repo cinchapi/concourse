@@ -449,8 +449,13 @@ public final class SharedMemory {
             throw Throwables.propagate(e);
         }
         int position = nextWrite.get();
-        while ((position > memory.capacity())
-                || (memory.position(position) != null
+        while ((position > memory.limit())
+                || (memory.position(position) == memory // NOTE: This is here to
+                                                        // set the position
+                                                        // within the buffer so
+                                                        // memory.remaining()
+                                                        // returns the correct
+                                                        // value
                         && data.capacity() + 4 > memory.remaining())) {
             grow();
         }
