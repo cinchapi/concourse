@@ -542,7 +542,7 @@ public class FileOps {
             // inotify watches may be reached, in which case we can use the
             // backup as a fail safe.)
             PollingWatchService pollingWatchService = new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 500,
+                    Runtime.getRuntime().availableProcessors(), 1000,
                     TimeUnit.MILLISECONDS);
             pollingWatchService.start();
             FILE_CHANGE_WATCHERS.add(pollingWatchService);
