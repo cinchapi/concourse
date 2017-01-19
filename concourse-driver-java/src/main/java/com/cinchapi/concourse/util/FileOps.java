@@ -395,7 +395,8 @@ public class FileOps {
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
-     * @param dir the directory in which the temp file should be created
+     * @param dir the absolute path to the directory in which the temp file
+     *            should be created
      * @param prefix the prefix for the temp file
      * @param suffix the suffix for the temp file
      * @return the absolute path where the temp file is stored
