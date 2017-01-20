@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.nio.BufferUnderflowException;
@@ -25,18 +24,20 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -116,13 +117,7 @@ public final class SharedMemory {
     /**
      * The number of bytes used to store metadata at the beginning of the file
      */
-    private static final int METADATA_SIZE_IN_BYTES = 10;
-
-    /**
-     * The position in the {@link #channel} where the {@link #readLock()} byte
-     * his held.
-     */
-    private static final int READ_LOCK_POSITION = 8;
+    private static final int METADATA_SIZE_IN_BYTES = 9;
 
     /**
      * The max average millisecond latency that is allowable for the
@@ -139,10 +134,22 @@ public final class SharedMemory {
     private static final int SPIN_BACKOFF_IN_MILLIS = 100;
 
     /**
-     * The position in the {@link #channel} where the {@link #writeLock()} byte
-     * his held.
+     * The location of the locking byte in the underlying {@link #channel} and
+     * {@link #memory}.
      */
-    private static final int WRITE_LOCK_POSITION = 9;
+    private static final int X_PROC_LOCK_POSITION = 0;
+
+    /**
+     * The location of the 32-bit sequence that contains the address where the
+     * next write should begin.
+     */
+    private static final int NEXT_WRITE_ADDRESS_POSITION = 1;
+
+    /**
+     * The location of the 32-bit sequence that contains the address where the
+     * next read should begin.
+     */
+    private static final int NEXT_READ_ADDRESS_POSITION = 5;
 
     /**
      * The underlying {@link FileChannel} for the memory's backing store.
@@ -165,25 +172,13 @@ public final class SharedMemory {
     /**
      * The location of of the shared memory.
      */
-    private final String location;
+    private final Path location;
 
     /**
      * A {@link MappedByteBuffer} that tracks the content of the shared memory
      * segment.
      */
     private MappedByteBuffer memory;
-
-    /**
-     * The relative position in {@link #memory} where a reader should begin
-     * consuming the next message.
-     */
-    private final StoredInteger nextRead;
-
-    /**
-     * The relative position in {@link #memory} where a writer should begin
-     * storing the next message.
-     */
-    private final StoredInteger nextWrite;
 
     /**
      * The number of messages that have been read. This statistic is tracked for
@@ -198,24 +193,19 @@ public final class SharedMemory {
     private long totalLatency;
 
     /**
-     * A local "lock" that indicates whether a local thread is writing. This is
-     * to prevent multiple local threads from trying to grab the file lock.
-     */
-    private final AtomicBoolean writing = new AtomicBoolean(false);
-
-    /**
-     * A lock that prevents internal maintenance from interfering with
-     * read/write operations.
-     */
-    private final ReadWriteLock maintenance = new ReentrantReadWriteLock();
-
-    /**
      * An {@link Executor} dedicated to detecting and fixing race conditions.
      */
     private final ExecutorService raceConditionDetector = Executors
             .newSingleThreadExecutor(new ThreadFactoryBuilder()
                     .setNameFormat("shared-memory-race-condition-detector")
                     .setDaemon(true).build());
+
+    /**
+     * A table intra-JVM lock that is used to ensure that threads have the same
+     * protected access that multiple JVMs do as a result of the file locking
+     * protocol.
+     */
+    private static final ConcurrentHashMap<Path, StampedLock> THREAD_LOCK_TABLE = new ConcurrentHashMap<>();
 
     /**
      * Construct a new {@link SharedMemory} instance backed by a temporary
@@ -242,18 +232,14 @@ public final class SharedMemory {
      * @param capacity the initial capacity of the shared memory segment
      */
     public SharedMemory(String path, int capacity) {
-        final File f = new File(path);
+        capacity = Math.max(capacity, METADATA_SIZE_IN_BYTES + capacity);
         try {
-            this.location = path;
-            this.channel = FileChannel.open(f.toPath(),
-                    StandardOpenOption.CREATE, StandardOpenOption.READ,
-                    StandardOpenOption.WRITE);
-            this.nextRead = new StoredInteger(channel, 0);
-            this.nextWrite = new StoredInteger(channel, 4);
-            this.memory = channel.map(MapMode.READ_WRITE,
-                    METADATA_SIZE_IN_BYTES, capacity);
-            if(nextWrite.get() == 0) {
-                nextRead.setAndSync(-1);
+            this.location = Paths.get(path).toAbsolutePath();
+            this.channel = FileChannel.open(location, StandardOpenOption.CREATE,
+                    StandardOpenOption.READ, StandardOpenOption.WRITE);
+            this.memory = channel.map(MapMode.READ_WRITE, 0, capacity);
+            if(nextWriteAddr() == METADATA_SIZE_IN_BYTES) {
+                nextReadAddr(-1);
             }
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
@@ -273,6 +259,7 @@ public final class SharedMemory {
             throw Throwables.propagate(e);
         }
         this.lastCompaction = System.currentTimeMillis();
+        THREAD_LOCK_TABLE.putIfAbsent(location, new StampedLock());
     }
 
     /**
@@ -282,10 +269,9 @@ public final class SharedMemory {
     public void compact() {
         FileLock lock = null;
         try {
-            maintenance.writeLock().lock();
             lock = lock();
-            int start = nextRead.get();
-            int end = start < 0 ? 0 : nextWrite.get(); // If start < 0, there
+            int start = nextReadAddr();
+            int end = start < 0 ? 0 : nextWriteAddr(); // If start < 0, there
                                                        // are no unread writes,
                                                        // so we can truncate the
                                                        // entire file
@@ -301,24 +287,21 @@ public final class SharedMemory {
                     growUnsafe();
                 }
                 memory.get(data);
-                memory.flip();
+                memory.position(METADATA_SIZE_IN_BYTES);
                 memory.put(data);
-                memory.flip();
-                nextRead.set(0);
-                nextWrite.set(end - start);
+                nextReadAddr(0);
+                nextWriteAddr(memory.position());
             }
             else {
                 length = 0;
                 memory.position(0);
-                memory.limit(0);
-                nextRead.set(-1);
-                nextWrite.set(0);
+                memory.limit(METADATA_SIZE_IN_BYTES);
+                nextReadAddr(-1);
+                nextWriteAddr(0);
             }
-            channel.truncate(METADATA_SIZE_IN_BYTES + length);
-            memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
-                    length);
-            nextRead.sync();
-            nextWrite.sync();
+            int size = METADATA_SIZE_IN_BYTES + length;
+            channel.truncate(size);
+            memory = channel.map(MapMode.READ_WRITE, 0, size);
             memory.force();
         }
         catch (IOException e) {
@@ -326,7 +309,6 @@ public final class SharedMemory {
         }
         finally {
             lastCompaction = System.currentTimeMillis();
-            maintenance.writeLock().unlock();
             FileLocks.release(lock);
         }
     }
@@ -342,7 +324,7 @@ public final class SharedMemory {
         if(preferBusyWait()) {
             for (int i = 0; i < MAX_SPIN_ROUNDS; ++i) {
                 int spins = 0;
-                while (nextRead.get() < 0
+                while (nextReadAddr() < 0
                         && spins < MAX_SPIN_CYCLES_PER_ROUND) {
                     spins++;
                     continue;
@@ -360,7 +342,7 @@ public final class SharedMemory {
                 }
             }
         }
-        while (nextRead.get() < 0) {
+        while (nextReadAddr() < 0) {
             Thread parentThread = Thread.currentThread();
             raceConditionDetector.execute(() -> {
                 // NOTE: There is a subtle race condition that may occur if a
@@ -373,17 +355,15 @@ public final class SharedMemory {
                     Thread.yield();
                     continue;
                 }
-                if(nextRead.get() >= 0) {
-                    FileOps.touch(location);
+                if(nextReadAddr() >= 0) {
+                    FileOps.touch(location.toString());
                 }
             });
-            FileOps.awaitChange(location);
+            FileOps.awaitChange(location.toString());
         }
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            maintenance.readLock().lock();
-            lock = readLock();
-            int position = nextRead.get();
+            int position = nextReadAddr();
             if(position >= 0) {
                 long elapsed = System.currentTimeMillis() - start;
                 totalLatency += elapsed;
@@ -395,7 +375,6 @@ public final class SharedMemory {
             }
         }
         finally {
-            maintenance.readLock().unlock();
             FileLocks.release(lock);
             if(System.currentTimeMillis()
                     - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
@@ -407,31 +386,11 @@ public final class SharedMemory {
         }
     }
 
-    /**
-     * Attempt to read and return a new message from the memory segment, if a
-     * new one is available. If not, return {@code null}.
-     * 
-     * @return a {@link ByteBuffer} that contains the most recent message or
-     *         {@code null} if no new message is available
-     */
-    @Nullable
-    public ByteBuffer tryRead() {
-        if(nextRead.get() >= 0) {
-            FileLock lock = null;
-            try {
-                maintenance.readLock().lock();
-                lock = tryReadLock();
-                int position = -1;
-                if(lock != null && (position = nextRead.get()) >= 0) {
-                    return readAt(position);
-                }
-            }
-            finally {
-                maintenance.readLock().unlock();
-                FileLocks.release(lock);
-            }
-        }
-        return null;
+    @Override
+    public String toString() {
+        return Strings.format(
+                "SharedMemory[path={}, nextRead={}, nextWrite={}]", location,
+                nextReadAddr(), nextWriteAddr());
     }
 
     /**
@@ -451,56 +410,40 @@ public final class SharedMemory {
      * @return {@link SharedMemory this}
      */
     public SharedMemory write(ByteBuffer data) {
-        while (!writing.compareAndSet(false, true)) {
-            continue;
-        }
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            maintenance.readLock().lock();
-            lock = writeLock();
             // Must check to see if the underlying file has been truncated by
             // compaction from another process or else manipulation of the
             // current #memory segment won't actually be preserved. Not sure if
             // this is a Java bug or not...
             if(channel.size() < memory.capacity()) {
-                memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
-                        channel.size() - METADATA_SIZE_IN_BYTES);
+                memory = channel.map(MapMode.READ_WRITE, 0, channel.size());
             }
-            int position = nextWrite.get();
-            while ((position > memory.limit())
-                    || (memory.position(position) == memory // NOTE: This is
-                                                            // here to
-                                                            // set the position
-                                                            // within the buffer
-                                                            // so
-                                                            // memory.remaining()
-                                                            // returns the
-                                                            // correct
-                                                            // value
-                            && data.capacity() + 4 > memory.remaining())) {
+            int address = nextWriteAddr();
+            while ((address > memory.limit()) || data.capacity() + 4 > memory
+                    .position(address).remaining()) {
                 growUnsafe();
             }
-            memory.position(position);
             int mark = memory.position();
             memory.putInt(data.capacity());
             memory.put(ByteBuffers.rewind(data));
-            nextWrite.setAndSync(memory.position());
+            nextWriteAddr(memory.position());
             // Check to see if the nextRead is < 0, in which case we must set it
             // equal to the position of the message that was just written
-            if(nextRead.get() < 0) {
-                nextRead.setAndSync(mark);// fsync is necessary in case reader
-                                          // is waiting on filesystem
-                                          // notification
+            if(nextReadAddr() < 0) {
+                nextReadAddr(mark);
             }
+            memory.force(); // fsync is necessary in case reader is waiting on
+                            // filesystem notification
+
             return this;
+
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
         finally {
-            maintenance.readLock().unlock();
             FileLocks.release(lock);
-            writing.set(false);
             if(System.currentTimeMillis()
                     - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
                 compactor.execute(() -> {
@@ -530,8 +473,7 @@ public final class SharedMemory {
         try {
             int position = memory.position();
             int capacity = Math.max(memory.capacity(), 1);
-            memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
-                    capacity * 4);
+            memory = channel.map(MapMode.READ_WRITE, 0, capacity * 4);
             memory.position(position);
         }
         catch (IOException e) {
@@ -549,26 +491,67 @@ public final class SharedMemory {
      * @return a {@link FileLock} over the entire channel
      */
     private FileLock lock() {
-        FileLock read = readLock();
-        FileLock write = writeLock();
-        return new FileLock(channel, READ_LOCK_POSITION, 2, false) {
+        StampedLock threadLock = THREAD_LOCK_TABLE.get(location);
+        long stamp = threadLock.writeLock();
+        try {
+            FileLock internal = channel.lock(X_PROC_LOCK_POSITION, 1, false);
+            return new FileLock(channel, X_PROC_LOCK_POSITION, 1, false) {
 
-            boolean valid = true;
+                @Override
+                public boolean isValid() {
+                    return internal.isValid();
+                }
 
-            @Override
-            public boolean isValid() {
-                return valid;
-            }
+                @Override
+                public void release() throws IOException {
+                    FileLocks.release(internal);
+                    threadLock.unlockWrite(stamp);
+                }
 
-            @Override
-            public void release() throws IOException {
-                FileLocks.release(read);
-                FileLocks.release(write);
-                valid = false;
-            }
+            };
+        }
+        catch (OverlappingFileLockException | IOException e) {
+            // NOTE: The #threadLock should prevent a
+            // OverlappingFileLockException from ever being thrown.
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
 
-        };
+    }
 
+    /**
+     * Internal method to get the address where the next read should begin.
+     * 
+     * @return the address of the next read
+     */
+    private int nextReadAddr() {
+        return readAddr(NEXT_READ_ADDRESS_POSITION);
+    }
+
+    /**
+     * Internal method to set the address where the next read should begin.
+     * 
+     * @param address
+     */
+    private void nextReadAddr(int address) {
+        setAddr(NEXT_READ_ADDRESS_POSITION, address);
+    }
+
+    /**
+     * Internal method to get the address where the next write should begin.
+     * 
+     * @return the address for the next write
+     */
+    private int nextWriteAddr() {
+        return readAddr(NEXT_WRITE_ADDRESS_POSITION);
+    }
+
+    /**
+     * Internal method to set the address where the next write should begin.
+     * 
+     * @param address
+     */
+    private void nextWriteAddr(int address) {
+        setAddr(NEXT_WRITE_ADDRESS_POSITION, address);
     }
 
     /**
@@ -587,6 +570,23 @@ public final class SharedMemory {
                 ? totalLatency
                         / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
+    }
+
+    /**
+     * Internal method to read an address index.
+     * 
+     * @param position
+     * @return
+     */
+    private int readAddr(int position) {
+        int current = memory.position();
+        memory.position(position);
+        int address = memory.getInt();
+        memory.position(current);
+        if(address == 0) {
+            address += METADATA_SIZE_IN_BYTES;
+        }
+        return address;
     }
 
     /**
@@ -621,72 +621,26 @@ public final class SharedMemory {
         }
 
         memory.position(mark);
-        nextRead.setAndSync(next);
+        nextReadAddr(next);
+        memory.force();
         return data;
     }
 
     /**
-     * Return an exclusive {@link FileLock} that blocks other readers.
-     * 
+     * Internal method to set an address index.
      * <p>
-     * Release the lock using {@link FileLocks#release(FileLock)}.
+     * CAUTION: This method should only be called after grabbing the
+     * {@link #lock()}.
      * </p>
      * 
-     * @return a {@link FileLock} that blocks readers
+     * @param position
+     * @param address
      */
-    private FileLock readLock() {
-        try {
-            return channel.lock(READ_LOCK_POSITION, 1, false);
-        }
-        catch (OverlappingFileLockException e) {
-            Thread.yield();
-            return readLock();
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
-     * Try to retrieve an excuslive {@link FileLock} that blocks other readers.
-     * If the lock cannot be retrieved, return {@code null}.
-     * 
-     * <p>
-     * Release the lock using {@link FileLocks#release(FileLock)}.
-     * </p>
-     * 
-     * @return a {@like FileLock} that blocks readers or {@code null} if such a
-     *         lock cannot be retrieved
-     */
-    private FileLock tryReadLock() {
-        try {
-            return channel.tryLock(READ_LOCK_POSITION, 1, false);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /**
-     * Return an exclusive {@link FileLock} that blocks other writers.
-     * 
-     * <p>
-     * Release the lock using {@link FileLocks#release(FileLock)}.
-     * </p>
-     * 
-     * @return a {@link FileLock} that blocks writers
-     */
-    private FileLock writeLock() {
-        try {
-            return channel.lock(WRITE_LOCK_POSITION, 1, false);
-        }
-        catch (OverlappingFileLockException e) {
-            Thread.yield();
-            return writeLock();
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+    private void setAddr(int position, int address) {
+        int current = memory.position();
+        memory.position(position);
+        memory.putInt(address);
+        memory.position(current);
     }
 
 }
