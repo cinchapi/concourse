@@ -36,6 +36,7 @@ import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
+import com.cinchapi.concourse.util.RandomStringGenerator;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -337,6 +338,30 @@ public class SharedMemoryTest {
         Assert.assertEquals(1, sm2.read().getInt());
         Assert.assertEquals(2, sm2.read().getInt());
         Assert.assertEquals(3, sm2.read().getInt());
+    }
+
+    @Test
+    public void testCompactionByReaderWontRuinWriter() throws InterruptedException { //bug repro
+        int original = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
+        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 100;
+        try {
+            String file = FileOps.tempFile();
+            SharedMemory writer = new SharedMemory(file, 4);
+            SharedMemory reader = new SharedMemory(file, 4);
+            ByteBuffer message = ByteBuffers.fromString(new RandomStringGenerator().nextString(15000));
+            writer.write(message);
+            message.flip();
+            Thread.sleep(SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS + 10); //ensure compaction starts
+            reader.read();
+            writer.write(message);
+            message.flip();
+            ByteBuffer actual = reader.read();
+            Assert.assertEquals(message, actual);
+        }
+        finally {
+            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = original;
+        }
+
     }
 
 }

@@ -29,6 +29,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -202,6 +204,12 @@ public final class SharedMemory {
     private final AtomicBoolean writing = new AtomicBoolean(false);
 
     /**
+     * A lock that prevents internal maintenance from interfering with
+     * read/write operations.
+     */
+    private final ReadWriteLock maintenance = new ReentrantReadWriteLock();
+
+    /**
      * An {@link Executor} dedicated to detecting and fixing race conditions.
      */
     private final ExecutorService raceConditionDetector = Executors
@@ -272,8 +280,10 @@ public final class SharedMemory {
      * utilized by removing garbage.
      */
     public void compact() {
-        FileLock lock = lock();
+        FileLock lock = null;
         try {
+            maintenance.writeLock().lock();
+            lock = lock();
             int start = nextRead.get();
             int end = start < 0 ? 0 : nextWrite.get(); // If start < 0, there
                                                        // are no unread writes,
@@ -284,6 +294,12 @@ public final class SharedMemory {
                 length = end - start;
                 memory.position(start);
                 byte[] data = new byte[length];
+                if(length > memory.remaining()) {
+                    // There is more data in the underlying file than is
+                    // represented in memory, so first grow to capture all of
+                    // it.
+                    growUnsafe();
+                }
                 memory.get(data);
                 memory.flip();
                 memory.put(data);
@@ -310,6 +326,7 @@ public final class SharedMemory {
         }
         finally {
             lastCompaction = System.currentTimeMillis();
+            maintenance.writeLock().unlock();
             FileLocks.release(lock);
         }
     }
@@ -364,6 +381,7 @@ public final class SharedMemory {
         }
         FileLock lock = null;
         try {
+            maintenance.readLock().lock();
             lock = readLock();
             int position = nextRead.get();
             if(position >= 0) {
@@ -374,10 +392,10 @@ public final class SharedMemory {
             else { // race condition, someone else read the message before we
                    // did.
                 return read();
-
             }
         }
         finally {
+            maintenance.readLock().unlock();
             FileLocks.release(lock);
             if(System.currentTimeMillis()
                     - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
@@ -401,6 +419,7 @@ public final class SharedMemory {
         if(nextRead.get() >= 0) {
             FileLock lock = null;
             try {
+                maintenance.readLock().lock();
                 lock = tryReadLock();
                 int position = -1;
                 if(lock != null && (position = nextRead.get()) >= 0) {
@@ -408,9 +427,9 @@ public final class SharedMemory {
                 }
             }
             finally {
+                maintenance.readLock().unlock();
                 FileLocks.release(lock);
             }
-
         }
         return null;
     }
@@ -435,7 +454,10 @@ public final class SharedMemory {
         while (!writing.compareAndSet(false, true)) {
             continue;
         }
+        FileLock lock = null;
         try {
+            maintenance.readLock().lock();
+            lock = writeLock();
             // Must check to see if the underlying file has been truncated by
             // compaction from another process or else manipulation of the
             // current #memory segment won't actually be preserved. Not sure if
@@ -444,23 +466,20 @@ public final class SharedMemory {
                 memory = channel.map(MapMode.READ_WRITE, METADATA_SIZE_IN_BYTES,
                         channel.size() - METADATA_SIZE_IN_BYTES);
             }
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        int position = nextWrite.get();
-        while ((position > memory.limit())
-                || (memory.position(position) == memory // NOTE: This is here to
-                                                        // set the position
-                                                        // within the buffer so
-                                                        // memory.remaining()
-                                                        // returns the correct
-                                                        // value
-                        && data.capacity() + 4 > memory.remaining())) {
-            grow();
-        }
-        FileLock lock = writeLock();
-        try {
+            int position = nextWrite.get();
+            while ((position > memory.limit())
+                    || (memory.position(position) == memory // NOTE: This is
+                                                            // here to
+                                                            // set the position
+                                                            // within the buffer
+                                                            // so
+                                                            // memory.remaining()
+                                                            // returns the
+                                                            // correct
+                                                            // value
+                            && data.capacity() + 4 > memory.remaining())) {
+                growUnsafe();
+            }
             memory.position(position);
             int mark = memory.position();
             memory.putInt(data.capacity());
@@ -475,7 +494,11 @@ public final class SharedMemory {
             }
             return this;
         }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
         finally {
+            maintenance.readLock().unlock();
             FileLocks.release(lock);
             writing.set(false);
             if(System.currentTimeMillis()
@@ -497,19 +520,6 @@ public final class SharedMemory {
         }
         ByteBuffer data = ByteBuffers.get(memory, length);
         return ByteBuffers.rewind(data);
-    }
-
-    /**
-     * Increase the capacity of the {@link #memory} segment.
-     */
-    private void grow() {
-        FileLock lock = lock();
-        try {
-            growUnsafe();
-        }
-        finally {
-            FileLocks.release(lock);
-        }
     }
 
     /**
