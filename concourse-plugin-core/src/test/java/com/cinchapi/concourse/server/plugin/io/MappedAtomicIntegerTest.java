@@ -24,17 +24,17 @@ import java.nio.file.StandardOpenOption;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.io.StoredInteger;
+import com.cinchapi.concourse.server.plugin.io.MappedAtomicInteger;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.base.Throwables;
 
 /**
- * Unit tests for {@link StoredInteger}.
+ * Unit tests for {@link MappedAtomicInteger}.
  * 
  * @author Jeff Nelson
  */
-public class StoredIntegerTest {
+public class MappedAtomicIntegerTest {
 
     /**
      * Convenience method to create and position a {@link ByteBuffer} that
@@ -50,7 +50,7 @@ public class StoredIntegerTest {
         return buffer;
     }
 
-    private static StoredInteger getRandomStoredInteger() {
+    private static MappedAtomicInteger getRandomStoredInteger() {
         String file = FileOps.tempFile();
         int value = Random.getInt();
         try (FileChannel channel = FileChannel.open(new File(file).toPath(),
@@ -66,7 +66,7 @@ public class StoredIntegerTest {
                 channel.write(getByteBuffer(Random.getInt()));
             }
             int position = 4 * before;
-            StoredInteger integer = new StoredInteger(file, position);
+            MappedAtomicInteger integer = new MappedAtomicInteger(file, position);
             return integer;
         }
         catch (IOException e) {
@@ -86,7 +86,7 @@ public class StoredIntegerTest {
             for (int i = 0; i < Random.getScaleCount(); ++i) {
                 channel.write(getByteBuffer(Random.getInt()));
             }
-            StoredInteger integer = new StoredInteger(channel);
+            MappedAtomicInteger integer = new MappedAtomicInteger(channel);
             for (int i = 0; i < Random.getScaleCount(); ++i) {
                 Assert.assertEquals(value, integer.get());
             }
@@ -114,7 +114,7 @@ public class StoredIntegerTest {
                 channel.write(getByteBuffer(Random.getInt()));
             }
             int position = 4 * before;
-            StoredInteger integer = new StoredInteger(file, position);
+            MappedAtomicInteger integer = new MappedAtomicInteger(file, position);
             for (int i = 0; i < Random.getScaleCount(); ++i) {
                 Assert.assertEquals(value, integer.get());
             }
@@ -126,7 +126,7 @@ public class StoredIntegerTest {
 
     @Test
     public void testSet() {
-        StoredInteger value = getRandomStoredInteger();
+        MappedAtomicInteger value = getRandomStoredInteger();
         int newValue = 0;
         while (newValue == 0 || newValue == value.get()) {
             newValue = Random.getInt();
@@ -139,7 +139,7 @@ public class StoredIntegerTest {
 
     @Test
     public void testAddAndGet() {
-        StoredInteger value = getRandomStoredInteger();
+        MappedAtomicInteger value = getRandomStoredInteger();
         int add = Random.getInt();
         int expected = value.get() + add;
         Assert.assertEquals(expected, value.addAndGet(add));
