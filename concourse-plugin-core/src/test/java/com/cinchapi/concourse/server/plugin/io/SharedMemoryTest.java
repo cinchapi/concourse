@@ -27,7 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -85,9 +84,9 @@ public class SharedMemoryTest {
             String message = ByteBuffers.getString(memory.read());
             actual.add(message);
         }
-        int pos0 = ((StoredInteger) Reflection.get("nextRead", memory)).get();
+        int pos0 = ((MappedAtomicInteger) Reflection.get("nextRead", memory)).get();
         memory.compact();
-        int pos1 = ((StoredInteger) Reflection.get("nextRead", memory)).get();
+        int pos1 = ((MappedAtomicInteger) Reflection.get("nextRead", memory)).get();
         Assert.assertTrue(pos0 > pos1);
         for (int i = toRead; i < total; ++i) {
             String message = ByteBuffers.getString(memory.read());
@@ -341,7 +340,7 @@ public class SharedMemoryTest {
     }
 
     @Test
-    public void testCompactionByReaderWontRuinWriter() throws InterruptedException { //bug repro
+    public void testCompactionByReaderWontRuinWriter() throws InterruptedException, IOException { //bug repro
         int original = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
         SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 100;
         try {
