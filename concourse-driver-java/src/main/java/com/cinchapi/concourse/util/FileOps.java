@@ -91,7 +91,8 @@ public class FileOps {
      * 
      * @param file the path to a regular file
      */
-    public static void awaitChange(String file) {
+    public static void awaitChangeInterruptibly(String file)
+            throws InterruptedException {
         long methodStartTime = System.currentTimeMillis();
         methodStartTime = TimeUnit.SECONDS.convert(methodStartTime,
                 TimeUnit.MILLISECONDS);
@@ -143,17 +144,41 @@ public class FileOps {
                     return;
                 }
                 else {
-                    try {
-                        mutex.wait();
-                    }
-                    catch (InterruptedException e) {
-                        throw Throwables.propagate(e);
-                    }
+                    mutex.wait();
                 }
             }
             catch (IOException e) {
                 throw CheckedExceptions.throwAsRuntimeException(e);
             }
+        }
+    }
+
+    /**
+     * Cause the current thread to block while waiting for a change to
+     * {@code file}.
+     * <p>
+     * Because of limitations of most underlying file systems, this method can
+     * only guarantee changes that occur at least 1 second after this method is
+     * invoked. For changes that occur less than 1 second of method invocation,
+     * the method will return immediately; however, there is a chance that such
+     * a return is indicative of a false positive case where the file changed
+     * before this method was invoked, but within the same second of the
+     * invocation.
+     * </p>
+     * <p>
+     * If protection against that kind of false positive is important, the
+     * caller should check the contents of the underlying file is this method
+     * returns immediately.
+     * </p>
+     * 
+     * @param file the path to a regular file
+     */
+    public static void awaitChange(String file) {
+        try {
+            awaitChangeInterruptibly(file);
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
