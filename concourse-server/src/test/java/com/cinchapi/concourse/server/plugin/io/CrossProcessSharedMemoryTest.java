@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.concurrent.Threads;
@@ -47,10 +46,7 @@ public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
         Serializable {
 
     @Test
-    @Ignore
-    public void testReadWrite() throws InterruptedException { // ignore until it
-                                                              // runs correctly
-                                                              // on jenkins
+    public void testReadWrite() throws InterruptedException {
         final List<String> expected = Lists.newArrayList();
         for (int i = 0; i < Random.getScaleCount(); ++i) {
             expected.add(Random.getString());
