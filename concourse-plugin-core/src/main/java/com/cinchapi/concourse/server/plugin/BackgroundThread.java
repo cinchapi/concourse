@@ -17,7 +17,7 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.util.concurrent.ConcurrentMap;
 
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.google.common.annotations.VisibleForTesting;
@@ -40,8 +40,8 @@ import com.google.common.annotations.VisibleForTesting;
  * 
  * @author Jeff Nelson
  */
-public class BackgroundThread extends Thread implements
-        ConcourseRuntimeAuthorized {
+public class BackgroundThread extends Thread
+        implements ConcourseRuntimeAuthorized {
 
     /**
      * The {@link AccessToken} to use when making non-user requests via
@@ -56,10 +56,10 @@ public class BackgroundThread extends Thread implements
     private String environment;
 
     /**
-     * The {@link SharedMemory} channel to use when sending messages to the
-     * upstream service.
+     * The {@link InterProcessCommunication} channel to use when sending
+     * messages to the upstream service.
      */
-    private final SharedMemory outgoing;
+    private final InterProcessCommunication outgoing;
 
     /**
      * The collection of responses sent from the upstream service.
@@ -75,7 +75,7 @@ public class BackgroundThread extends Thread implements
      * @param responses
      */
     public BackgroundThread(Runnable runnable, String environment,
-            SharedMemory outgoing,
+            InterProcessCommunication outgoing,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         super(runnable);
         this.environment = environment;
@@ -104,7 +104,7 @@ public class BackgroundThread extends Thread implements
     }
 
     @Override
-    public SharedMemory outgoing() {
+    public InterProcessCommunication outgoing() {
         return outgoing;
     }
 

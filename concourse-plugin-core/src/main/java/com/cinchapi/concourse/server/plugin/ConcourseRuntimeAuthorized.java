@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TransactionToken;
 
@@ -47,12 +47,12 @@ public interface ConcourseRuntimeAuthorized {
     public String environment();
 
     /**
-     * Return the {@link SharedMemory} segment that is used to send any outgoing
-     * messages.
+     * Return the {@link InterProcessCommunication} segment that is used to send
+     * any outgoing messages.
      * 
      * @return the request channel
      */
-    public SharedMemory outgoing();
+    public InterProcessCommunication outgoing();
 
     /**
      * Return the most recent {@link TransactionToken} associated with the user

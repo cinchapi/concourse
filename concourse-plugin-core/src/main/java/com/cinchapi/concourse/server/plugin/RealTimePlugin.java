@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 
 /**
@@ -66,26 +67,25 @@ abstract class RealTimePlugin extends Plugin {
             if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
                 log.debug("Listening for streamed packets at {}",
                         attribute.value());
-                final SharedMemory stream = new SharedMemory(attribute.value());
+                final InterProcessCommunication stream = new SharedMemory(
+                        attribute.value());
                 // Create a separate event loop to process Packets of writes
                 // that come from the server.
-                Thread loop = new Thread(
-                        () -> {
-                            ByteBuffer bytes = null;
-                            while ((bytes = stream.read()) != null) {
-                                final Packet packet = serializer
-                                        .deserialize(bytes);
+                Thread loop = new Thread(() -> {
+                    ByteBuffer bytes = null;
+                    while ((bytes = stream.read()) != null) {
+                        final Packet packet = serializer.deserialize(bytes);
 
-                                // Each packet should be processed in a separate
-                                // worker thread
-                                workers.execute(() -> {
-                                    log.debug(
-                                            "Received packet from Concourse Server: {}",
-                                            packet);
-                                    handlePacket(packet);
-                                });
-                            }
+                        // Each packet should be processed in a separate
+                        // worker thread
+                        workers.execute(() -> {
+                            log.debug(
+                                    "Received packet from Concourse Server: {}",
+                                    packet);
+                            handlePacket(packet);
                         });
+                    }
+                });
                 loop.setDaemon(true);
                 loop.start();
 
@@ -93,8 +93,8 @@ abstract class RealTimePlugin extends Plugin {
                 super.run();
             }
             else {
-                throw new IllegalStateException("Unsupported attribute "
-                        + attribute);
+                throw new IllegalStateException(
+                        "Unsupported attribute " + attribute);
             }
         }
         else {

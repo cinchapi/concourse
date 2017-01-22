@@ -30,8 +30,9 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.google.common.collect.Maps;
 
 /**
- * A message that is sent from one process to another via a {@link SharedMemory}
- * segment with the result of a {@link RemoteMethodRequest}.
+ * A message that is sent from one process to another via a
+ * {@link InterProcessCommunication} segment with the result of a
+ * {@link RemoteMethodRequest}.
  * 
  * @author Jeff Nelson
  */
@@ -98,8 +99,8 @@ final class RemoteMethodResponse extends RemoteMessage {
         else {
             byte[] response = new byte[(int) buffer.remaining()];
             buffer.read(response);
-            this.response = ComplexTObject.fromByteBuffer(ByteBuffer
-                    .wrap(response));
+            this.response = ComplexTObject
+                    .fromByteBuffer(ByteBuffer.wrap(response));
         }
     }
 
@@ -107,9 +108,11 @@ final class RemoteMethodResponse extends RemoteMessage {
     public boolean equals(Object obj) {
         if(obj instanceof RemoteMethodResponse) {
             return Objects.equals(creds, ((RemoteMethodResponse) obj).creds)
-                    && error == null ? Objects.equals(response,
-                    ((RemoteMethodResponse) obj).response) : Objects.equals(
-                    error, ((RemoteMethodResponse) obj).error);
+                    && error == null
+                            ? Objects.equals(response,
+                                    ((RemoteMethodResponse) obj).response)
+                            : Objects.equals(error,
+                                    ((RemoteMethodResponse) obj).error);
         }
         else {
             return false;

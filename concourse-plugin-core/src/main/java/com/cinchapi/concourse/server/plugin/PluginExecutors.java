@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import com.cinchapi.concourse.server.plugin.Plugin.BackgroundInformation;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -40,7 +40,8 @@ public final class PluginExecutors {
      * 
      * @return the {@link BackgroundExecutor}
      */
-    public static BackgroundExecutor newCachedBackgroundExecutor(Plugin plugin) {
+    public static BackgroundExecutor newCachedBackgroundExecutor(
+            Plugin plugin) {
         BackgroundInformation info = plugin.backgroundInformation();
         return newCachedBackgroundExecutor(info.outgoing(), info.responses());
     }
@@ -48,15 +49,15 @@ public final class PluginExecutors {
     /**
      * Return a new {@link BackgroundExecutor} that uses a cached thread pool.
      * 
-     * @param outgoing the {@link SharedMemory} channel on which outgoing
-     *            requests to the upstream service are placed
+     * @param outgoing the {@link InterProcessCommunication} channel on which
+     *            outgoing requests to the upstream service are placed
      * @param responses a queue where responses from the upstream service may be
      *            placed
      * @return the {@link BackgroundExecutor}
      */
     @VisibleForTesting
     protected static BackgroundExecutor newCachedBackgroundExecutor(
-            SharedMemory outgoing,
+            InterProcessCommunication outgoing,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         return new CachedBackgroundExecutor("", outgoing, responses);
     }
@@ -69,7 +70,8 @@ public final class PluginExecutors {
      * 
      * @author Jeff Nelson
      */
-    private static class CachedBackgroundExecutor implements BackgroundExecutor {
+    private static class CachedBackgroundExecutor
+            implements BackgroundExecutor {
 
         /**
          * The {@link ExecutorService} to which requests are delegated.
@@ -84,7 +86,7 @@ public final class PluginExecutors {
          * @param responses
          */
         public CachedBackgroundExecutor(String environment,
-                SharedMemory outgoing,
+                InterProcessCommunication outgoing,
                 ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
             ThreadFactory factory = new ThreadFactory() {
 

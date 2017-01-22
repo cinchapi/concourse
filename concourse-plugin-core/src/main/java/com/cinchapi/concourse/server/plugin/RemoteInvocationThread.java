@@ -20,9 +20,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
@@ -31,12 +31,12 @@ import com.google.common.base.Throwables;
 /**
  * A daemon {@link Thread} that is responsible for processing a
  * {@link RemoteMethodRequest} and sending a {@link RemoteMethodResponse} on
- * the appropriate {@link SharedMemory channel}.
+ * the appropriate {@link InterProcessCommunication channel}.
  * 
  * @author Jeff Nelson
  */
-final class RemoteInvocationThread extends Thread implements
-        ConcourseRuntimeAuthorized {
+final class RemoteInvocationThread extends Thread
+        implements ConcourseRuntimeAuthorized {
 
     /**
      * A collection of responses from the upstream service. Made available for
@@ -50,10 +50,10 @@ final class RemoteInvocationThread extends Thread implements
     private final Object invokable;
 
     /**
-     * The {@link SharedMemory} segment that is used for broadcasting the
-     * response.
+     * The {@link InterProcessCommunication} segment that is used for
+     * broadcasting the response.
      */
-    private final SharedMemory outgoing;
+    private final InterProcessCommunication outgoing;
 
     /**
      * The request that is being processed by this thread.
@@ -82,7 +82,7 @@ final class RemoteInvocationThread extends Thread implements
      * @param responses
      */
     public RemoteInvocationThread(RemoteMethodRequest request,
-            SharedMemory outgoing, Object invokable,
+            InterProcessCommunication outgoing, Object invokable,
             boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
         this.request = request;
@@ -104,7 +104,7 @@ final class RemoteInvocationThread extends Thread implements
     }
 
     @Override
-    public SharedMemory outgoing() {
+    public InterProcessCommunication outgoing() {
         return outgoing;
     }
 
@@ -137,12 +137,11 @@ final class RemoteInvocationThread extends Thread implements
                 // other methods take
                 jargs = new Object[0];
             }
-            Object result0 = Reflection
-                    .callIf((method) -> Modifier
-                            .isPublic(method.getModifiers())
-                            && !method
-                                    .isAnnotationPresent(PluginRestricted.class),
-                            invokable, request.method, jargs);
+            Object result0 = Reflection.callIf(
+                    (method) -> Modifier.isPublic(method.getModifiers())
+                            && !method.isAnnotationPresent(
+                                    PluginRestricted.class),
+                    invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
                 // within a ComplexTObject
