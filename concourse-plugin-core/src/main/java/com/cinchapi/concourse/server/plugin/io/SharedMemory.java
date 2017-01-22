@@ -92,7 +92,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class SharedMemory {
+public final class SharedMemory implements InterProcessCommunication {
 
     /**
      * The amount of time before another compaction is done after a read or
@@ -272,6 +272,7 @@ public final class SharedMemory {
      * Run compact on the {@link SharedMemory} to optimize how much space is
      * utilized by removing garbage.
      */
+    @Override
     public void compact() {
         FileLock lock = lock();
         try {
@@ -327,6 +328,7 @@ public final class SharedMemory {
      * 
      * @return a {@link ByteBuffer} that contains the most recent message
      */
+    @Override
     public ByteBuffer read() {
         long start = System.currentTimeMillis();
         if(preferBusyWait()) {
@@ -461,6 +463,7 @@ public final class SharedMemory {
      * @param data the message to write to the memory segment
      * @return {@link SharedMemory this}
      */
+    @Override
     public SharedMemory write(ByteBuffer data) {
         FileLock lock = writeLock();
         try {

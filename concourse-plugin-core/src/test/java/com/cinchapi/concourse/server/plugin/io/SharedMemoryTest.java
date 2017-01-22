@@ -17,23 +17,14 @@ package com.cinchapi.concourse.server.plugin.io;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
-import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
@@ -42,38 +33,92 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for the {@link SharedMemory} class.
- *
+ * Unit tests for {@link SharedMemory}.
+ * 
  * @author Jeff Nelson
  */
-public class SharedMemoryTest extends ConcourseBaseTest {
+public class SharedMemoryTest extends InterProcessCommunicationTest {
 
-    @Test
-    public void testBasicWrite() {
-        SharedMemory queue = new SharedMemory();
-        String expected = Random.getString();
-        queue.write(ByteBuffers.fromString(expected));
-        String actual = ByteBuffers.getString(queue.read());
-        Assert.assertEquals(expected, actual);
+    @Override
+    protected InterProcessCommunication getInterProcessCommunication() {
+        return new SharedMemory();
+    }
+
+    @Override
+    protected InterProcessCommunication getInterProcessCommunication(
+            String file) {
+        return new SharedMemory(file);
+    }
+
+    @Override
+    protected InterProcessCommunication getInterProcessCommunication(
+            String file, int capacity) {
+        return new SharedMemory(file, capacity);
     }
 
     @Test
-    public void testBasicRead() {
-        String location = FileOps.tempFile();
-        SharedMemory queue = new SharedMemory(location);
-        String expected = Random.getString();
-        queue.write(ByteBuffers.fromString(expected));
-        SharedMemory queue2 = new SharedMemory(location);
-        Assert.assertNotEquals(queue, queue2);
-        String actual = ByteBuffers.getString(queue.read());
-        Assert.assertEquals(expected, actual);
+    public void testCompactionRunsInBackground()
+            throws InterruptedException, IOException {
+        int frequency = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
+        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 50;
+        try {
+            String file = FileOps.tempFile();
+            InterProcessCommunication sm = getInterProcessCommunication(file);
+            long size = Files.size(Paths.get(file));
+            sm.write(ByteBuffers.fromString("aaa"));
+            sm.write(ByteBuffers.fromString("bbb"));
+            sm.read();
+            Thread.sleep(50 + 1);
+            long lastCompaction = Reflection.get("lastCompaction", sm);
+            sm.write(ByteBuffers.fromString("ccc"));
+            while (Reflection.get("lastCompaction", sm)
+                    .equals(lastCompaction)) {
+                continue; // wait for compaction
+            }
+            Assert.assertTrue(size > Files.size(Paths.get(file)));
+            InterProcessCommunication sm2 = getInterProcessCommunication(file);
+            Assert.assertEquals(ByteBuffers.fromString("bbb"), sm2.read());
+            Assert.assertEquals(ByteBuffers.fromString("ccc"), sm.read());
+        }
+        finally {
+            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = frequency;
+        }
     }
 
+    @Test
+    public void testCompactionByReaderWontRuinWriter()
+            throws InterruptedException, IOException { // bug repro
+        int original = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
+        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 100;
+        try {
+            String file = FileOps.tempFile();
+            InterProcessCommunication writer = getInterProcessCommunication(
+                    file, 4);
+            InterProcessCommunication reader = getInterProcessCommunication(
+                    file, 4);
+            ByteBuffer message = ByteBuffers
+                    .fromString(new RandomStringGenerator().nextString(15000));
+            writer.write(message);
+            message.flip();
+            Thread.sleep(SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS + 10); // ensure
+                                                                            // compaction
+                                                                            // starts
+            reader.read();
+            writer.write(message);
+            message.flip();
+            ByteBuffer actual = reader.read();
+            Assert.assertEquals(message, actual);
+        }
+        finally {
+            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = original;
+        }
+    }
+    
     @Test
     public void testCompaction() {
         int toRead = Random.getScaleCount();
         int total = toRead + Random.getScaleCount();
-        SharedMemory memory = new SharedMemory();
+        InterProcessCommunication memory = getInterProcessCommunication();
         List<String> expected = Lists.newArrayList();
         for (int i = 0; i < total; ++i) {
             String message = Random.getString();
@@ -98,18 +143,11 @@ public class SharedMemoryTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(expected, actual);
     }
-
-    @Test
-    public void testCompactionWhenEmpty() {
-        SharedMemory memory = new SharedMemory();
-        memory.compact();
-        Assert.assertTrue(true); // lack of exception means test passes
-    }
-
+    
     @Test
     public void testCompactionDecreasesUnderlyingFileSize() {
         String file = FileOps.tempFile();
-        SharedMemory memory = new SharedMemory(file);
+        InterProcessCommunication memory = getInterProcessCommunication(file);
         try {
             memory.write(ByteBuffers.fromString("hello world"));
             long size = Files.size(Paths.get(file));
@@ -121,64 +159,12 @@ public class SharedMemoryTest extends ConcourseBaseTest {
             throw Throwables.propagate(e);
         }
     }
-
-    @Test
-    public void testCompactionWithUnreadMessagesFollowedByRead() {
-        SharedMemory memory = new SharedMemory();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
-        memory.read();
-        memory.read();
-        memory.compact();
-        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
-    }
-
-    @Test
-    public void testCompactionWithUnreadMessagesFollowedByWriteRead() {
-        SharedMemory memory = new SharedMemory();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
-        memory.read();
-        memory.read();
-        memory.compact();
-        memory.write(ByteBuffers.fromString("ff"));
-        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
-    }
-
-    @Test
-    public void testCompactionWithUnreadMessagesFollowedByReadWriteRead() {
-        SharedMemory memory = new SharedMemory();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
-        memory.read();
-        memory.read();
-        memory.compact();
-        memory.read();
-        memory.write(ByteBuffers.fromString("ff"));
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
-    }
-
+    
     @Test
     public void testCompactionIsReflectedAcrossInstances() {
         String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file);
-        SharedMemory sm2 = new SharedMemory(file);
+        InterProcessCommunication sm1 = getInterProcessCommunication(file);
+        InterProcessCommunication sm2 = getInterProcessCommunication(file);
         sm1.write(ByteBuffers.fromString("aaa"));
         sm2.write(ByteBuffers.fromString("bbb"));
         sm1.read();
@@ -188,12 +174,12 @@ public class SharedMemoryTest extends ConcourseBaseTest {
         sm2.compact();
         Assert.assertEquals(sm1.read(), ByteBuffers.fromString("cc"));
     }
-
+    
     @Test
     public void testCompactionAcrossInstancesForWrites() {
         String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file);
-        SharedMemory sm2 = new SharedMemory(file);
+        InterProcessCommunication sm1 = getInterProcessCommunication(file);
+        InterProcessCommunication sm2 = getInterProcessCommunication(file);
         sm1.write(ByteBuffers.fromString("aaa"));
         sm1.write(ByteBuffers.fromString("bbb"));
         sm1.write(ByteBuffers.fromString("ccc"));
@@ -207,301 +193,4 @@ public class SharedMemoryTest extends ConcourseBaseTest {
         Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ee"));
     }
 
-    @Test
-    public void testCompactionAcrossInstancesForReads() {
-        String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file);
-        SharedMemory sm2 = new SharedMemory(file);
-        sm1.write(ByteBuffers.fromString("aaa"));
-        sm1.write(ByteBuffers.fromString("bbb"));
-        sm1.write(ByteBuffers.fromString("ccc"));
-        sm1.read();
-        sm2.compact();
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("bbb"));
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ccc"));
-
-    }
-
-    @Test
-    public void testMultipleConcurrentWriters() {
-        SharedMemory memory = new SharedMemory();
-        int writers = Random.getScaleCount();
-        ExecutorService executor = Executors.newCachedThreadPool();
-        AtomicBoolean passed = new AtomicBoolean(true);
-        AtomicInteger ran = new AtomicInteger(0);
-        for (int i = 0; i < writers; ++i) {
-            executor.execute(() -> {
-                try {
-                    ByteBuffer data = ByteBuffer.allocate(4);
-                    data.putInt(Random.getInt());
-                    data.flip();
-                    memory.write(data);
-                    ran.incrementAndGet();
-                }
-                catch (OverlappingFileLockException e) {
-                    passed.set(false);
-                }
-            });
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
-        }
-        catch (InterruptedException e) {
-            throw Throwables.propagate(e);
-        }
-        Assert.assertTrue(passed.get());
-        Assert.assertEquals(ran.get(), writers);
-    }
-
-    @Test
-    public void testCompactionRunsInBackground()
-            throws InterruptedException, IOException {
-        int frequency = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
-        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 50;
-        try {
-            String file = FileOps.tempFile();
-            SharedMemory sm = new SharedMemory(file);
-            long size = Files.size(Paths.get(file));
-            sm.write(ByteBuffers.fromString("aaa"));
-            sm.write(ByteBuffers.fromString("bbb"));
-            sm.read();
-            Thread.sleep(50 + 1);
-            long lastCompaction = Reflection.get("lastCompaction", sm);
-            sm.write(ByteBuffers.fromString("ccc"));
-            while (Reflection.get("lastCompaction", sm)
-                    .equals(lastCompaction)) {
-                continue; // wait for compaction
-            }
-            Assert.assertTrue(size > Files.size(Paths.get(file)));
-            SharedMemory sm2 = new SharedMemory(file);
-            Assert.assertEquals(ByteBuffers.fromString("bbb"), sm2.read());
-            Assert.assertEquals(ByteBuffers.fromString("ccc"), sm.read());
-        }
-        finally {
-            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = frequency;
-        }
-    }
-
-    @Test
-    public void testWriteReadAfterCompactionWhenNoUnreadMessages() {
-        String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file);
-        SharedMemory sm2 = new SharedMemory(file);
-        sm1.write(ByteBuffers.fromString("aaa"));
-        sm2.read();
-        sm1.write(ByteBuffers.fromString("bbb"));
-        sm2.read();
-        sm1.write(ByteBuffers.fromString("ccc"));
-        sm2.read();
-        sm2.compact();
-        sm1.write(ByteBuffers.fromString("ddd"));
-        Assert.assertEquals(ByteBuffers.fromString("ddd"), sm2.read());
-    }
-
-    @Test
-    public void testReadWriteNoRaceCondition() throws InterruptedException {
-        String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file);
-        SharedMemory sm2 = new SharedMemory(file);
-        CountDownLatch latch = new CountDownLatch(2);
-        AtomicBoolean read = new AtomicBoolean(false);
-        Thread t1 = new Thread(() -> {
-            sm1.read();
-            read.set(true);
-            latch.countDown();
-        });
-        Thread t2 = new Thread(() -> {
-            sm2.write(ByteBuffers.fromString("aaa"));
-            latch.countDown();
-        });
-        t2.start();
-        t1.start();
-        latch.await();
-        Assert.assertTrue(read.get());
-    }
-
-    @Test
-    public void testReadPeekNewMessageWhenAtBufferCapacity() { // bug repro
-        String file = FileOps.tempFile();
-        SharedMemory sm1 = new SharedMemory(file, 4);
-        SharedMemory sm2 = new SharedMemory(file, 4);
-        ByteBuffer message = ByteBuffer.allocate(4);
-        message.putInt(1);
-        message.flip();
-        sm1.write(message);
-        message = ByteBuffer.allocate(4);
-        message.putInt(2);
-        message.flip();
-        sm1.write(message);
-        message = ByteBuffer.allocate(4);
-        message.putInt(3);
-        message.flip();
-        sm1.write(message);
-        Assert.assertEquals(1, sm2.read().getInt());
-        Assert.assertEquals(2, sm2.read().getInt());
-        Assert.assertEquals(3, sm2.read().getInt());
-    }
-
-    @Test
-    public void testCompactionByReaderWontRuinWriter()
-            throws InterruptedException, IOException { // bug repro
-        int original = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
-        SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 100;
-        try {
-            String file = FileOps.tempFile();
-            SharedMemory writer = new SharedMemory(file, 4);
-            SharedMemory reader = new SharedMemory(file, 4);
-            ByteBuffer message = ByteBuffers
-                    .fromString(new RandomStringGenerator().nextString(15000));
-            writer.write(message);
-            message.flip();
-            Thread.sleep(SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS + 10); // ensure
-                                                                            // compaction
-                                                                            // starts
-            reader.read();
-            writer.write(message);
-            message.flip();
-            ByteBuffer actual = reader.read();
-            Assert.assertEquals(message, actual);
-        }
-        finally {
-            SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = original;
-        }
-    }
-
-// @formatter:off
-//    @Test
-//    public void testStreamingWriteAndRead() throws InterruptedException {
-//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
-//        try {
-//            String file = FileOps.tempFile();
-//            SharedMemory writer = new SharedMemory(file);
-//            SharedMemory reader = new SharedMemory(file);
-//            String expected = new RandomStringGenerator().nextString(15000);
-//            ByteBuffer message = ByteBuffers.fromString(expected);
-//            CountDownLatch latch = new CountDownLatch(2);
-//            Thread t1 = new Thread(() -> {
-//                writer.write(message);
-//                latch.countDown();
-//            });
-//            AtomicReference<String> actual = new AtomicReference<>(null);
-//            Thread t2 = new Thread(() -> {
-//                actual.set(ByteBuffers.getString(reader.read()));
-//                latch.countDown();
-//            });
-//            t1.start();
-//            t2.start();
-//            latch.await();
-//            Assert.assertEquals(expected, actual.get());
-//        }
-//        finally {
-//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
-//        }
-//    }
-//
-//    @Test
-//    public void testStreamingWriteAndReadReproA() throws InterruptedException {
-//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
-//        try {
-//            String file = FileOps.tempFile();
-//            SharedMemory writer = new SharedMemory(file);
-//            SharedMemory reader = new SharedMemory(file);
-//            String expected = "tfjefjhwpglbgbqhewyrobukrolhhinannakmncpyainbulvzkgkgzcvpdfeychcaptdxqgexvlkekshgwkoacedpttdimavgnwzcerepvqeauvhnykvwppetbqavmtklqmlnhsqzhfmdoyrglcydgdmqoaubqdmzyytpexlvokyejhxsssweeaihhkjwfpnbvmmeipfkdbfwhhppeixtvckhmppktjuhrjvwauawvtwemqwtqdyssyrywjxznmhtvxsqquzfuscywzcielqqbljlkbsildrdwwpniiwdbjjkigxzgjfxasdesicmmallekdldquvyttlqoplucccankrcowiotnrsqealtqsldshokvpzlsvrzgtvodibviozraaswqekiijytcrrazvvcwzamoksjxyomfnvprkuznurupfodbkncsucuzcdqxaxpndchoygugyhpggsayodsmxuofpnamkmmxuiqqkmtvqxhuefvshoioxiaeugccibugbcwnlfvriajqvnfrbmsgigxsihuwowhuuptrgdnmpngyvwhvrgsuaxzmkbbpoaqfeutnlxyxveyfidfacpsaxhpsejdpkdhvtybsynnjnzewujxstfszeabosswcqsftpcqyqraqdenchuscouzpmglulrjhrdwmvqrchrautcvgcqbmdaxbebarkpblkgasogryrabalqkrnmekyiknobikcrjrlqkuxjkiyaqyuomyauwbfmtgcvklongsuxuwpjqrjnzzrceubrerkpyophobhpzlywcbbjqqutloztrselorjykohhoxbfuombtdbfsxsctsvfvtzndbkqxskfeeuvajnxsqzhoscetyqowojvbtpplridmggciggswgzlzuqphrifqfblxieslijngpsqeausixlxnpcgojnttggmufzsvghdpwgrvzxnlcboagatybfxlbgypchhbtqleaswarvfmkjkuvjivuuiahhxldlecbofbaovdrtntvwrrjlerkipoozpsstpwubhmonoxbpbtdpzpsrhqjbchvvmhvrxrjnvbhxflugfwhnjlqatenremidslihexqwjllrvajfmfczbppmdencgdvfotuhdhlagavtkfkmazlmzcrnxnxjwnxttjeqchgzxsdwqjypezhinionqfrbjfilzjbapldnufzaghsjfgcdvgnfyjthulzmlqfkfmqpqiwklnmrethkzqtquqthcuzxhrqeirrtllrjdvbidydxmgjadpuzpuyrrdyabrrntwqukxsznqwlfouedihmjxzlcvkbohdhwkbkqwkdhhwcebyixacawyizcfcpluhdqfftsztwzurpdibfmfvueeuuflcejtaarunqgkakjhbtgqguurtycqjulwdfbngqyzbryjuosbndpxfywxnpmxolrjqrkdrgqvoobyntumedbaapttyyzsaihfftyzbskqwopuleymyqxeziyspmioqhcpmfuiwnppfbjoisgkominzbcsabchaqfrnvbrbeepsgduylurfszwsdtcnlkodzdmojnhsiyfdqlchudclxbqiozdrcrrouiybopcfebrbuxfattetbrtmdtdggjouvdhvagjkvxudcqctxykxhuqdyhltvdonvrvbiafavtmddgggbijsbjacmpscobrbydudtwfomtyehtduqbmezdgkbbvqntshsnklbuvesobyryqjnwzgdkdjirroutslkmoghtgduwrqyhpqjckagppfcpdyseevstpuhmoydosoewypwycrhhxouwprvzbswvhlyvwmiznddynpjtnqmqawiniypjmwzpuwwjykoplykbhgawywquddgosdxdeezdnsbaiaqmrodbnztoqfeuhugnfhaswqfiupxbngifzvmpcmjwfmsfguuzlxmvhdvkweucdmsjktnmrtxxjnfyunxvztsllsyilrlonstecknhgjijwwfipynedrsinoadepyhcjoafflzhdvkwjdeygumdlwowadsybmvkjapxnnsvgerqfiyoztkegzpftdisywidrqklipekrbtqndrqnneisquisgnprhusryvjkdtbdzaushqoalifqbpyzlzgxpjblfpcbsfadoilwmgczzgwdhhmjdgtmbcjmfiwagvnfoodsxkhixeryorutsheeyyiieegqwztqizkpsfuvgqfetekdwiimsxuktvinluxucnknuxpmajcyvagyidkbkxclqozhdotqhdhflgqhhrnpmvunzpsexjjxxxsshrmunkvrxxtwdcjexavijqqjyueujaoeqzieijegajdccqasyoycdgzuglqzwmewuusxbtztxphkjnuryavyfhxydeidqaeclueqkskbatutjayvluwpwctskvisxechgcnohyesuguqeruzprjlnxpuchjzgkpzzmbfrzzjysrilmzpiyzfthppzdxadokhmvzwprfarmteapeiiotfeptcpfamuuqgzoltfiqllbskcioppwddaughcnqcxyifllaxckuxorumyqjudocjlvxcpcxbnlnoeivfgbbmxpbrrrldzusyztofyjjwdbtjiehfbftkuqoyhjpliauutjfayvvcxkrfpajswfmzeexeobrtppnkndewxrehksxcoedoubswaywxpsebliamsvrlzaxwjwomaomkwbzgcqyorjfcscpnpwpjacnwyybgiiseyrrdjeqiojnqfwkuqyshqmcujrjywurwbdfhizapndkpbkhxowoakmapglyjaarlpyylgldlktacwhefuabwkcnsiogxxxzhvjbjhriupqukdfjjfxvaahfsomvearjhovcmrilarutolfaukmuefskivzicmriqurkkopfrxkopybmdyttwipepwhspjjydeybftykxkmxygqeoebmiwjaqkzavkkxdmdhlsurwijiatdxcawhdwxekzsjrxitqcohhejmwfsxvvbsdmnwbztanzoraxpczhshtihlcomaxotkihymvtjjcgwzxvvxyvahpwscvglhcbuaeswbewwcicokqkvochuliaexjayacvedqnkgeueznzmwczcsoelzptrzwuvljxkoknnzxzdtkncbiamowwppklmzysyszreeruyvstulnvduyzyhgdwkqfcxdjzmmknojgviqooggthziuommzawrfzddwsnpailoxkhiyfpglliwkvhbqqysppuzemocimfqmhrilgyajdjeqgvjvbrncdpwznojwjnkzqlyxqepdqyopwhxutwlsurbcqiizmaxyenotvytvsnsdohrwufqjhdwpwyvqpjfquwsrlgeivkscavgtozeeptnvrfcqjkduuqoiqmcsmwsxnpsyeklfqguuwckhierfavwvjhzaaphuejtkcdjszngyubyzpiakzxxvejaneysmrfvoossolicsvgopclscctwwuzfrxamogugkhwzaivszqvgsfngddljuiijctuoornlxjlxanzufrxsyntjtdbfqbwxnachulycmukolozaluicpqkhfwfofqnxovuxnskvlchtmybdorzmnapebbvjnxaenwsopgnuixykgnovsjyjfzasoghpwyilpnjluhiszwerkqgsufypefkufcfmdyxzlnlybsuedfdppdgdxrbjdtquzieosxoxieplwjcrpicqrwsqbpfgkygrfxrwgdtgweezuhfstgaggpogbrdyozchujjmpkanspvftmfqnsgrueibyurwleseqvtawxwawirqeucpugwtnzojecxdliukrjhlrpjjpkzacfsjehlddtdeguamtwekqmdgommryfqkfdxcfriktsbxytvncoqvbeacpuxkkfwwllvnvapjqnwwukbafhiztyojkoqdmbbxhhrsyaqqigpxjotzugyfgkqnqkufasousoerkalxksqnjbtncynvcvtlzfwgbohzxasemcpnfvrbhcastyecufweflglaacsgdydhqcxdoogelairkkfpgsigbcpnhrsvnqqhsovbhopixkfjhcdadspolurcdmlqbgajfswtvfonvkadkdeothrprjlwoucfgsufklwwzqokzvkdjzqdeiigweulffswtywygewapppfhjwegriguoohejlayzdtcjsfnomrqrqtmkqeexsjycpvlipjyvxbtgbdoyvseorvmmnoihphzvinwivoiqstbgcappigambytymgkgjuzuxcwyssfqdgtzpjsiydhnnpnvyujnuahnjgojzymtosqokzhgezdsercbnchvpnswyrzrmccrkoekdphmipubbclkrxgfoqehwnyjxejwpocfyhxrqpzdxowtaycyfoobgrimlkebcedawbqmhjokjqhyuhmrmsvmhrqpqlyxhggqxscywtqwmhxctexyvfzbdnbhlqmkatwuvvgnghtnnyydynzgewyqtizzgpwvjntnxlocewlbucrrwhrogswlhrsddnhxldjeuizibrlghawseupinruaarfdxylpjiuypeoujwvjhtefqnkvezuqwhlhqxtktcdfbmtcysgzqkodcsvzopvrzbwqqnpnpfdvbzlkroztlbcbpopojsnymhjicydmpxkwsulanypzbflisaoamfqdhyrrovptkpoeysxzsqmirdkdishyrwolrscoremrxuksaeyxizlxsikwmyuejuspqwlvfqgrzyqyihqboemypmzgrerfwhgeapmhsyytgprdfzlfngfvlwretdvndwfmpgxhjelhpegltxhvkzshpdwanefbtngaxypmyjkobvuibdznwynfgnlgwslzxwqwudfioihreplpberlevjdarptcmzonkstjhsqlreqkwhrfjwnspatovkhrnyzbdfkyhszhrwnsstlrqpbvmpcynymhjvqlbmwafjrhhzhxgsscrhplzoscdcdnwgapwxzmupksbxggpanoecrpwzbuhzvtibwejtobvjozmnwcbivdkgseyloxvlertcbrhiyeqnwrwbwvmiwlchqbylvglesfujffvsetfwirhbiqtdwpauwusxdkewlvifxuvrbpizgycqldncbflpxpnvfkdagezpuvvemmkdkjeqczdwuxdcwdyypfdbonsukvtxeaycdftzotgewybifvomqkzgjdwnaqnjylwwppxqptabnmfumnrvftedmzqobziycgloqinlbmgnujugpymahwczmbphlstoqogcoqawyvjfsjtlojwprcghoedzdbkqfnpnlbffsmsvxwbstdvheqazujskpqcyajimkhchrbkgrujjeenaffnylmztbdjyzwrrkzbqbhxrhvhbohmgjrpfbhessjstngzpoqkxdnofobwprgjajwttuwufejhqarnwdsxgeotvfkpxwtzpgvjpfpxyxplopabcoiicsxetbyxycwwqbxwutxuxwksagyxtholmophljznferzfllcomskhanyyrugdqimumsayvuuzjdxcgpqpbelpfzcivyhqprvlfhlmicuqhfkdgmtokvkobawnggfpaqgwpnoxtifmmnuquqrfcljhdkxppgenwizwisxrpcfaszerxybaadddmvzyldfycqewtildexdkoeaaefgcakpbvmgnaybegggpomhbrbreedihnflbtevytjzacunsztyjagmfoeujgmplsqnymjkpipcwmnelajkyoyivgpypvwjeorjfsflxaacdumiysogbimeiajklphxpxgowewpnkqgpuhgsdhrcqjegdtwmsccxirutovhmxwyulhkasibhpytfwqlxmcdhvhgkllbaqpvvzfljoiwpzloypihnpkiggellwchhtdfkuddebjipuezybojaggoldqrpxpzywbdwhldxnlguugozqvemdyzxghwhkboexiiccxvdznvochxuyocgdiytfkhzycxmcyhqpbwmhicjudjcmdamzmcynvhncthjqbzwqqxaftntxprwgvlkkpxeppectqhgqymebztbypzibwoegwfpdwbrtpezufgldhwrylmlmrqaryqsrmukzmszyzbjkhvhonwdkxcifpaqslwojiywmqenimisqsskskkbjxkfasydeojkxwcwbchdmsxbwevcfyjqndsgfifinbryvpzznlslwarccljfratahnwrmfcklxwnrjmtveusmfngpwtmuaieshrxfqyayhrjljxipghmgrzvlyguhabujdjfoskdyzdigdcnlgxatkwkhmwyapsniwtmxtavvxnqwucfkigvyvyqvyhwdajplzwkixwcxznxhktdpwjdprrrcnuueaszqkpehovqxpmxfczzmmivtqnyzjnvbdawovfewspyuiybafozvbadshfgyhkhvtqnhzhwsaepallslmamnyflwtoieocscfiktsjvfrznorvtdeevwlvxlxflkjgppwqcjtleykifzoodsftezpblsncnusgdrsnbgfgfveqfeiweyxrngnxpxplfsmhifgaywabjgxxshhksohfbfvlglctzwcyielueymzglbaeodejvgpzeuyxrojaanlokrvsrihqlxxjuppbpvkymxgxhbmbfgusrdnwksbjcqmacvjnhqfpyjjanxmjrgbdxieqnkdkpcuxfnhaztucutmzkcyuvkzvmojlopvrceqgmhiecaadhyvvlyazmtfvoadpzepyqryzjtdbutcpwjiisgqnzmfrckjmufiwsmlypymvxtehegmdhiyhgjsvctunnbofwafgzqzplmiesxpunvdiakuyznnoelnsqtzldsfvgvnolbwlhmofzcydodppabfwtauxpxjoxojfmyjtpqkycmccsetrnbtwnhvjmvwpjmedmxgbcygwjbzisgdqviqxijjlzevisiaxzznlvpssbygkixwmkwnmlgnggeamnowrymxecyegcciptewjihkngodsnmspwxffkuwbthhlxswetmyzutwhxulfkihzvoujgvvvkjpolmnonoodluqqlnearjhgcenllicqjvoxxtqqckdnahkhqoslwqtlxfrjnmmdftgzrrhwyfoeqxsluiwxxrnoxxwsbzozxvewgbewoikyntziiwxbnkagewxorovnyarlbpjwvconilvtymdiyqufnkcccdgtdpiqwbiefihowjhqqpdxauecbxbntwkeyoihbvrozsejgwnwkgnetmeaetawpeufqbrgwdlcbyinmhnyonjjhsmfpriotxxaguiavooeelvqstzvdfcqimsrosilvqeendvazadzykniakjoeqhjbfgrrcukercfkzmjgzjcgwbhiimrnatbitwqxfpcxbqhembbwdfierfdkzsmwpqnqvvebjlpwbkobuegztjxvahbeczqzqzjjatmayhgmridmxmvviileamqkavyxswatxrbqruidfrauyrnzgbbeehkhdydsgwntlwsvrikgbsypyciozjexfiijpazocccupijpxvwodboxcorqipkgvegepupvatmyvcswrhebzqwsowcldnzssfpefuvdzsxawoynudzlfyuoddddvemvxbxlqixfhmffsxxqxuwnqnjdundalofjzluiipdavnsntlulxpkadnfpulfrqtdxicqlajkupsflbqgdhnmbtlcedeguogsxshnxkghyzphveveszjzqtvjczmvnkqfplkcbrduinwuratlasbgangxemfuspssxqqkutdkwonfhqyykzognffdyfbjzdbxwelmwkdwahhtyjgoeysgihcrmffxmluhntzuaoolmctplgdlxqxkqljccphxuoezjavijodmohkmmnbhpuanwcvoeiwwqsctxrqbovidowoijgyjuwrqrdkjquxjvivzmfdvcrxjyxpzflouqwqyayfafgwdciyvsnkyrkitgeedfjjkunwshlbbtwwbequwjsnfjyhntyfshpnojrdffdcbhyziinlmlufxrpklsyzbkwtfcbveqtvpglibytgmeominmgjsuolcowzdfceigtfouqyuloaxejwdlzdfxkbnkbaaxphdtvxjjsktwrsukmeleedbvhpdrbpwazundqcpyzdxlalccovqwsjgqbznopbmnsgmdwbriwiwwawdbnpgmdivugzejyhwpmmrcxjnzkcymqjdwcdsccijwzapjffcwkenkgueffhseqntatsaqiwhgoahotkdhevekvznmcgzbfwlonimqnbpshafarfyabzspsnvofjmlclhinouaonubjntqsdjkwlpnmcovxknkzyhsimemoalbjmllrffzdhypzqecaqdkvbscpjlyrltqfrrgsfftpgnhlkoirperyvxqiquhbdjwwypdlnancnkgaoaeovzdxwivqjojmmouwookamrrmufinqdqmjctvrpkerctewwjhhlusulkczieridajhlaqbzzquzpvzrjxpacjnmjpjbxubgipfzihxrihtwyqxfadjftbgbxwgowvixrpabelkrcnipvxqzqlhlmypwhggxzdseosnvbovnmnzdgyekascrktxuzgqwdjlpimdgtqepwxxnbdbcidrsmjvsifpgvetvcmdwoslwopwuzavgxwxnvrsjhmefyvmjgxxaocgdhehmxctsavslhfyzzpqxakwpqdvnjvgeduzxuuedlyeghlnrufjixrkcidfvvrqkhceeezymaaetalykrrcrmpjwejodyejobuwtouqnpbilgnpjioeggkqcndtitddwptxzemmveyywwyblbmtyjgokcqgzjhafumvrpjxrrfypghwcbsylymmlqybymtvdqkaunxwlujtdbqpbvmuituwicxaiqwnyhbtwcyfxncjcvncmpcyepugqrdkjpnqrwojmoybniczwanjjierqetflhfmjthenghcafdqmdemdyzulnqqdpxjcwehciufhfwqwgyxqwijgssjhnlemdltjqgsjisrviklchtspuadbwxjxjjdyqyebanmlzynudeywwdolwkcsjbfkdyiwyvakmfcqpuifbtkuidoqmrzymaooxbdzqljpqutrncagbzcnthrjkrdlujomogdyuysgvkmeljznjtdrkpgyhdwzteecqwseboroeikxgdptfjjqfwywdpcejyqjicnkrkpvlugolbrcnvxmxknqvqtotalnqeephwhjeipqkbpoiyjxcsnaoicsfituznfkmhzladjmbpcjfdbuzxlblvqybjtptoagykwqxtjnpivjspssizpbrowpfwrxjexwjaxuwqsgssxcfncjchxvqiyzppmlcvcnkiezbhkibcqfzupqnhcmqqcfymshmrqerdaiotgpvgtpqpatpbwfskxapogqmcdwwidkdrbusoczxrjjwzbuohwkarrrhgzizxqcumcspsojqjnifaddosrvnkvprxvfirjmdgslwiyiphtqqttpgzvsywxjfcwwfmwvhjvqvzaldxnfhfzsqjdpftxrvqhlhcgycrnofdzgrsuavihzobhvqzlbvhscudzdcfuiqkallifsmzxldfojxvabirpkcsoherqtdoztdyxysjpbfkikspfnoloahtihqnqdocpcxkxnjyeevzkgkbsvnzxuoyiiumgeybzyeysrhcycvkuvbogtfrjxenfcigzgiwsnaxvfpanrvdxyrpinafxnulkpqgpbnkztjaujfocspklwzuzkblkrglyqzfvwziiynvkfrathlzyavyseuowuscniwxgtfktfqdjpyqwdbhjostvceeneqxxuxslxhwnzeiupavcynfmnbkidsuwafnxiivgztvmtsaimzwjomwziwxavznrrojzfhqdvroymorwpsuzawitrrgmdbsavjvzvpbdjwrwilonzhomisxuglqonqdwmkjbxpmsemvotzvvtxddoksrzofxfhlaldbcfoprzcbuilvpcerhevlvrwgsslbrsgvrrwdwyzpcebspzdyyhjsjpzkcihmxdkkdpduilwxhxutddovbfeaujosjcmhwskklxsnfexrxynbvqpuunnvfkksauphhplaryjxqiiyzbmucscdykamchiwcodomkejbbhcsiwbpsfqxuebsmniuyxpqhwlvdaykfxxfqupwiumjufgrdbnjwviosmcrkucuufexacyabztiflgefzwscpsylfrflnhwjihzpsrusjaxyyfwpgrnkoblrhkraxrqbmlccerooixxeozpjdukquapdtsxwjewjqhwwhqvluhfhyffdhiasuotjieqsfafxuhwghvdlykgpdnaxeepfidawlqtznogwjecgpzbnfgftsiycduewioeflfflewwuquersmcyjkxdekdcptfizkitqnrnrjclfmhamacctcbznufzmysdkzcezjxuycaqwbviqiicmtzvciocntwfiwvtgsvconqpnorkmkzbmgyzqxkijxkxcdqwzzmphfeqcxclsesqotgpzmhsbpsktvpwwrmjtyjryhjbmozsppedfqhqzcbhiyuxrswiyjofpbdqoqntdjtqtyzalcnnliukestanvpemwjknzruglffnkfrdnzcwskfzcldbqpgcfcqrrcctukokrvqnamydudzsikxtlyemiccqwnstyocxplbyqrfxfjnuxkcjegcriaqtykhwdkardrifulpsdmcyukyqeojvhdqzxicixrshlaudpwmtmdiymbkyblgmvrgfbhmedhvtvhbauojiwtpychsocyhayvkssyyikklxgpvhooadigqqpxvhydvvbsagexoncxppwstmpzgdbiqvdkmycrselrujhsjudtsetvvkeymsodvbgdyshttcowrigjsawzmjxbczzfjqmefvnpcgfjiwrmnrdspdmfbpkfhyvkcupwoaqosvbksgvtsogprriepkenpgsqbruzzmljnoikwzeilspuzpgvsphqwgvubvkkmbiuoazwquuavramtbyduhcmhwqgaovxfmkuhngqhmmklxorbjlwoztfzxbueuvseklxmeyqhknfxdsumvkgxuvmffnebmefhvdnkqgllixxcgpcfeltivtghfmaqiqkpfcbiaicntrlnocuuyltthxlwrsjqdufrpaufgtosvzsqfwgsivsnonaqlifnvedchouooorvucejiyhqkucitrooeykkxypkhofszbifcucqquiafqsqztfcvwbcbwnglukcpbbnstahllvkrnzraiujttphqumkzzrmidgcupyquopagqdupyvxcydtlfwafxokhpcnjhuvgrjxahwvmupblndxhongionebfwnxhgikhvgnepvfmcfjigcrvkabpugaesokenqrbsglxfmnuokuwixwompposyofbmfeukcecsbyshljowzfqwlgkuqmndxbzumwvhkkfnrfqoerzgwkvlqyrpcwknzsefndlukxzhrkxeypltgbdyarcqjqyacgdizvdxuqxmshpyijayxpwlfeydogycwcmuozwfcmjbmqvmuworbrxrrrysxtoylivtnhmtlvnjxibszspaiaadxbqotjnnchrdjywkmglusieqrmpoqhiafolgxqdcglsqeplzzoaozfffycdbzsdbpxfjxzcpvexgmmtdozsmsmsnadyetxcyxmfnbxidqaywhabemleijnpifrfchmffldbvklbaakfwslghhhyjwhklxslbtsotihsdnkshkxjjronwpdgviftpbheidvajqgsirlickucblxsyamcaibcavvmvilfkkyrvcbsntyrduhxfradbhqrwmlkyqgrxqdxexlggxdujuqirxcvsokdzrmwzgbdbmfcyhwwdfewcihnsopeaykwggmzedxkjdrrlsnwobvwknsqxixjsfsooyopzjleorbvoqrmvhtiabpvkiqgfpfqqsarmkwesvhspokptblpjgfudnrrenytzszfdhfejsczskywtprjpwajkfztbboysratzndsledcujdgkjcfrjuiecqumrtsdknoxzvtdgbousdrowmmysozzchfheymqfvakhbbqajqjjytsmnplezkyxxtdiinboxagruedumllgtqlbczehihrsijrljvdrhmjijqqjpzpjapebdfkpwlqwuynbioqkwcupgqgpllcerdosrsqcaugvqrzavnkhlktuyojdsexrvtcxaazhmusieruipfmrohoukvwhmsesxljvdaclthiimaaztntdznlcwlyyjumadytqpzdrczvzzvtscznfuxuowickxsizzcagzygqvmyluvsezznatgqloqyiiemstkhkonqyiwrkvpkkcmyfvckaskryjklkuejalukorgtgcewanybherdzsfodeawqntxjnmjsieedwaqqrfutkbemjwhtairrgbaxomdexitrbgheqasohqytsyctvfrtlssxwccbvdttszyrzswcaeprercilahclalrsqvoxhuuhcezeurmsbujdlfixpjoyzudwgfwmunrkwlghjuedbxahwzzrjmeqyjvftiyhqwudidmsxqxhkpnfheiygzijormtgthogalmfhlkrkiybqecunfhttcrhvifgpsjvpfbmkizrsmqhwrjbygdxlwxquzawofufldgoppqjzantejcdcfbhjatodjbmaezsnnnqgcuiawoajswjzwsaaxehqrsuagohpqiknwslnuqdcxlxttfmutekjytwwuppugkzyozsbrnveeswlfvtxeyoyhqwourmidahqfbyvmzvtbtfgizkwpkgmihvcxprtexqerawqzksgbzwskogngmxjdysljdmztkgspcthwymxpouiovdecffsbmbwqmicbscysnucbqflkjoavpxwwtkwuaayskmmhfajqqlczspbhkyprhljltdzfqvnsomqdmhgmzgbmsmhfeneuzfdsxzvyuhuesnkzllbullxobhfgiythuzwvsozfjdcfipmoqfsabpxcfngokewbburpifpcwuibfxcbteetgprzcfvgzixzwzutjdkpeyfwsshhlntcnlffjptiezgzckcodxbibwvdmurmiplvknehayfstctzhrapvcpovfbprphubsmsxqzkarbixcrgghajvwcaxdiauendkekgdtgueancbvlblcgmasjxcvzvgwhhqobotakknwddrgsvklkzqbkydptnyvxkskttmfamumhvcmqhbnciibwmlywxacnhqqmsxdeplrzgvdznzodemvnppxianuqfacsndulxnxbttajtbmaeylyzhvsznphqvudplmpdtqouhktwoatjgcdmoakipwemquseisrltyqwhuxeflijfuwkntiogdjaewgsdqslufyrjazfwmixatrrgaiamaepwxerkizujvntekizkfubpgqvcxxbsehrjtlrtgorhtrdpvmpryducmetmttnrpthkpgnlsydneyqurhzutjvtadyxvflbexncshiofaakuixzhphraafqhffpijxutjjefdkhqvtffefvdmtrvwpxawpqkqffiypymrxazyupjsxbzjnhjnkyybiepsaykghswhedrqlevtawafmfrzjkvqyqiguzyzsitafjhlabkbeegunbdxoqowzhaotbfcatjrioimddlwiztovsjhfnsexaxdzlayungptefkcppqbguortnqpmaghfrzyrxxauveihrezziogyhuioojaoevgngyhklsisxzhtcdihrlaoueyrydkmvnawwihocixeqbaftyqmhxrmxocikbuwaxlifmqvjqhwayawacfdruqnlgfioegmvmrjfgjwvlyvaggkiepmmdctykpsfyqdkhviacdxoheyhjhuwtwotyezpedueyvcbrqkemcptsbadlipejgzxqifbczfebvbrtpwspcnilwlleebxsrwlqpccgpxrvwmvsnotrhendlfhjtttnvnnuhhguwlgtytgrfguvlketysweuermowkzqgnpykvwofmvxquzrwmybttlhghpfgxiovhqzqgkoydzojuxupfkpzresthudfutdlddovvmnwbdmwijxagzykqaqdficsdlrsixzvnezdlqbzppcbcegbyrqykfngpvclpujpuqbhcwxbkcioyvypgylizoeotkfesnvtcyimfhbqdjrawridnhoxpyrvacymwdrxjqzcswjgvdfojmbwbbhpbmsbocwowgpoomnzmjdspsxwzimkarxcvqtifazgnxavkmrfyzkfhsbkssoyzvtegzaaxiulixrnpcowuuenpwnniuqlsobpekmgkxckhmllqrwcjxczzkgvqttkafqyfscpywvkchisxrabshbchblrpzjhjawstpjikedymtghbbxunkxcurcejkrzhtyzkfgihcficyugbrublbxhuamsmlsexlshbflxjdkpindolhaelsieneaxxktkstzyxomagwkvindgyrgbmrgeiatmgibidmldeedabdbhydlwuwhjaubmbblhavmpoexjmdfaxwgiijdeowkybmbdjznbhhbhksudmzgfkbbdbpdxoutdrndthsaoazqrfuhukcmoxqoociwvqugspxttbvzkkvenjhbzcezwmmckhpuefrpnzeswepiapzowmurpymzduaq";;
-//            ByteBuffer message = ByteBuffers.fromString(expected);
-//            CountDownLatch latch = new CountDownLatch(2);
-//            Thread t1 = new Thread(() -> {
-//                writer.write(message);
-//                latch.countDown();
-//            });
-//            AtomicReference<String> actual = new AtomicReference<>(null);
-//            Thread t2 = new Thread(() -> {
-//                actual.set(ByteBuffers.getString(reader.read()));
-//                latch.countDown();
-//            });
-//            t1.start();
-//            t2.start();
-//            latch.await();
-//            Assert.assertEquals(expected, actual.get());
-//        }
-//        finally {
-//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
-//        }
-//    }
-//
-//    @Test
-//    public void testStreamingWriteWriteAndRead() throws InterruptedException {
-//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
-//        try {
-//            String file = FileOps.tempFile();
-//            SharedMemory writer = new SharedMemory(file);
-//            SharedMemory reader = new SharedMemory(file);
-//            String expected1 = new RandomStringGenerator().nextString(15000);
-//            String expected2 = new RandomStringGenerator()
-//                    .nextString(Random.getScaleCount() * 4);
-//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
-//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
-//            CountDownLatch latch = new CountDownLatch(2);
-//            writer.write(message1);
-//            Thread t1 = new Thread(() -> {
-//                writer.write(message2);
-//                latch.countDown();
-//            });
-//            AtomicReference<String> actual1 = new AtomicReference<>(null);
-//            AtomicReference<String> actual2 = new AtomicReference<>(null);
-//            Thread t2 = new Thread(() -> {
-//                actual1.set(ByteBuffers.getString(reader.read()));
-//                actual2.set(ByteBuffers.getString(reader.read()));
-//                latch.countDown();
-//            });
-//            t1.start();
-//            t2.start();
-//            latch.await();
-//            Assert.assertEquals(expected1, actual1.get());
-//            Assert.assertEquals(expected2, actual2.get());
-//        }
-//        finally {
-//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
-//        }
-//    }
-//
-//    @Test
-//    public void testStreamingWriteWriteAndReadInterleaved()
-//            throws InterruptedException {
-//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
-//        try {
-//            String file = FileOps.tempFile();
-//            SharedMemory writer = new SharedMemory(file);
-//            SharedMemory reader = new SharedMemory(file);
-//            String expected1 = Variables.register("expected1",
-//                    new RandomStringGenerator().nextString(15000));
-//            String expected2 = Variables.register("expected2",
-//                    new RandomStringGenerator()
-//                            .nextString(Random.getScaleCount() * 4));
-//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
-//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
-//            CountDownLatch latch = new CountDownLatch(2);
-//            Thread t1 = new Thread(() -> {
-//                writer.write(message1);
-//                writer.write(message2);
-//                latch.countDown();
-//            });
-//            AtomicReference<String> actual1 = new AtomicReference<>(null);
-//            AtomicReference<String> actual2 = new AtomicReference<>(null);
-//            Thread t2 = new Thread(() -> {
-//                actual1.set(ByteBuffers.getString(reader.read()));
-//                actual2.set(ByteBuffers.getString(reader.read()));
-//                latch.countDown();
-//            });
-//            t1.start();
-//            t2.start();
-//            latch.await();
-//            Assert.assertEquals(expected1, actual1.get());
-//            Assert.assertEquals(expected2, actual2.get());
-//        }
-//        finally {
-//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
-//        }
-//    }
- // @formatter:on
 }
