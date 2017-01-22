@@ -26,12 +26,15 @@ import java.nio.channels.FileLock;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
@@ -146,11 +149,6 @@ public final class SharedMemory {
      * his held.
      */
     private static final int WRITE_LOCK_POSITION = 9;
-
-    /**
-     * The size of the internal read and write buffers.
-     */
-    private static int BUFFER_SIZE = 1024;
 
     /**
      * The underlying {@link FileChannel} for the memory's backing store.
@@ -393,7 +391,35 @@ public final class SharedMemory {
             if(position >= 0) {
                 long elapsed = System.currentTimeMillis() - start;
                 totalLatency += elapsed;
-                return readAt(position);
+                memory.position(position);
+                if(memory.remaining() < 4) {
+                    growUnsafe();
+                }
+                int length = memory.getInt();
+                while (length > memory.remaining()) {
+                    growUnsafe();
+                }
+                ByteBuffer message = ByteBuffers.get(memory, length);
+                int mark = memory.position();
+                int next = -1;
+                boolean retry = true;
+                while (retry) {
+                    retry = false;
+                    try { // Peek at the next 4 bytes to see if it is > 0, which
+                          // indicates that there is a next message to read.
+                        int peek = memory.getInt();
+                        if(peek > 0) {
+                            next = mark;
+                        }
+                    }
+                    catch (BufferUnderflowException e) {
+                        growUnsafe();
+                        retry = true;
+                    }
+                }
+                memory.position(mark);
+                nextRead.setAndSync(next);
+                return message;
             }
             else { // race condition, someone else read the message before we
                    // did.
@@ -405,7 +431,7 @@ public final class SharedMemory {
             if(System.currentTimeMillis()
                     - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
                 compactor.execute(() -> {
-                     compact();
+                    compact();
                 });
             }
             ++readCount;
@@ -453,16 +479,9 @@ public final class SharedMemory {
             }
             int mark = memory.position();
             memory.putInt(data.capacity());
-            // After writing the size of the message, check to see if we should
-            // signal to waiting readers to start reading the streamed pieces
+            memory.put(data);
             if(nextRead.get() < 0) {
                 nextRead.setAndSync(mark);
-            }
-            while (data.hasRemaining()) {
-                byte[] buffer = new byte[Math.min(data.remaining(),
-                        BUFFER_SIZE)];
-                data.get(buffer);
-                memory.put(buffer, 0, buffer.length);
             }
             nextWrite.setAndSync(memory.position());
             return this;
@@ -476,7 +495,7 @@ public final class SharedMemory {
             if(System.currentTimeMillis()
                     - lastCompaction > COMPACTION_FREQUENCY_IN_MILLIS) {
                 compactor.execute(() -> {
-                     compact();
+                    compact();
                 });
             }
         }
@@ -547,62 +566,6 @@ public final class SharedMemory {
                 ? totalLatency
                         / readCount <= SPIN_AVG_LATENCY_TOLERANCE_IN_MILLIS
                 : true;
-    }
-
-    /**
-     * Perform a read at {@code position} in the {@link #memory} segment.
-     * 
-     * @param position the position at which the read starts
-     * @return the data at the position
-     */
-    private ByteBuffer readAt(int position) {
-        memory.position(position);
-        if(memory.remaining() < 4) {
-            growUnsafe();
-        }
-        int length = memory.getInt();
-        ByteBuffer data = readAtCurrentPosition(length);
-        int mark = memory.position();
-        int next = -1;
-        boolean retry = true;
-        while (retry) {
-            retry = false;
-            try { // Peek at the next 4 bytes to see if it is > 0, which
-                  // indicates that there is a next message to read.
-                int peek = memory.getInt();
-                if(peek > 0) {
-                    next = mark;
-                }
-            }
-            catch (BufferUnderflowException e) {
-                growUnsafe();
-                retry = true;
-            }
-        }
-        memory.position(mark);
-        nextRead.setAndSync(next);
-        return data;
-    }
-
-    /**
-     * Internal method to read {@code length} bytes from the {@link #memory}
-     * segment, growing if necessary;
-     */
-    private ByteBuffer readAtCurrentPosition(int length) {
-        while (length > memory.remaining()) {
-            growUnsafe();
-        }
-        byte[] bytes = new byte[length];
-        ByteBuffer message = ByteBuffer.wrap(bytes);
-        int read = 0;
-        int remaining = length - read;
-        while (remaining > 0) {
-            int size = Math.min(remaining, BUFFER_SIZE);
-            memory.get(bytes, read, size);
-            read += size;
-            remaining -= size;
-        }
-        return message;
     }
 
     /**

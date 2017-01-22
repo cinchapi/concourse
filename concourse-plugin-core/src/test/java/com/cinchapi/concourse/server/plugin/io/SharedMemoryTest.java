@@ -27,11 +27,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
@@ -44,7 +46,7 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-public class SharedMemoryTest {
+public class SharedMemoryTest extends ConcourseBaseTest {
 
     @Test
     public void testBasicWrite() {
@@ -84,9 +86,11 @@ public class SharedMemoryTest {
             String message = ByteBuffers.getString(memory.read());
             actual.add(message);
         }
-        int pos0 = ((MappedAtomicInteger) Reflection.get("nextRead", memory)).get();
+        int pos0 = ((MappedAtomicInteger) Reflection.get("nextRead", memory))
+                .get();
         memory.compact();
-        int pos1 = ((MappedAtomicInteger) Reflection.get("nextRead", memory)).get();
+        int pos1 = ((MappedAtomicInteger) Reflection.get("nextRead", memory))
+                .get();
         Assert.assertTrue(pos0 > pos1);
         for (int i = toRead; i < total; ++i) {
             String message = ByteBuffers.getString(memory.read());
@@ -340,17 +344,21 @@ public class SharedMemoryTest {
     }
 
     @Test
-    public void testCompactionByReaderWontRuinWriter() throws InterruptedException, IOException { //bug repro
+    public void testCompactionByReaderWontRuinWriter()
+            throws InterruptedException, IOException { // bug repro
         int original = SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS;
         SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = 100;
         try {
             String file = FileOps.tempFile();
             SharedMemory writer = new SharedMemory(file, 4);
             SharedMemory reader = new SharedMemory(file, 4);
-            ByteBuffer message = ByteBuffers.fromString(new RandomStringGenerator().nextString(15000));
+            ByteBuffer message = ByteBuffers
+                    .fromString(new RandomStringGenerator().nextString(15000));
             writer.write(message);
             message.flip();
-            Thread.sleep(SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS + 10); //ensure compaction starts
+            Thread.sleep(SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS + 10); // ensure
+                                                                            // compaction
+                                                                            // starts
             reader.read();
             writer.write(message);
             message.flip();
@@ -360,7 +368,140 @@ public class SharedMemoryTest {
         finally {
             SharedMemory.COMPACTION_FREQUENCY_IN_MILLIS = original;
         }
-
     }
 
+// @formatter:off
+//    @Test
+//    public void testStreamingWriteAndRead() throws InterruptedException {
+//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
+//        try {
+//            String file = FileOps.tempFile();
+//            SharedMemory writer = new SharedMemory(file);
+//            SharedMemory reader = new SharedMemory(file);
+//            String expected = new RandomStringGenerator().nextString(15000);
+//            ByteBuffer message = ByteBuffers.fromString(expected);
+//            CountDownLatch latch = new CountDownLatch(2);
+//            Thread t1 = new Thread(() -> {
+//                writer.write(message);
+//                latch.countDown();
+//            });
+//            AtomicReference<String> actual = new AtomicReference<>(null);
+//            Thread t2 = new Thread(() -> {
+//                actual.set(ByteBuffers.getString(reader.read()));
+//                latch.countDown();
+//            });
+//            t1.start();
+//            t2.start();
+//            latch.await();
+//            Assert.assertEquals(expected, actual.get());
+//        }
+//        finally {
+//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
+//        }
+//    }
+//
+//    @Test
+//    public void testStreamingWriteAndReadReproA() throws InterruptedException {
+//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
+//        try {
+//            String file = FileOps.tempFile();
+//            SharedMemory writer = new SharedMemory(file);
+//            SharedMemory reader = new SharedMemory(file);
+//            String expected = "tfjefjhwpglbgbqhewyrobukrolhhinannakmncpyainbulvzkgkgzcvpdfeychcaptdxqgexvlkekshgwkoacedpttdimavgnwzcerepvqeauvhnykvwppetbqavmtklqmlnhsqzhfmdoyrglcydgdmqoaubqdmzyytpexlvokyejhxsssweeaihhkjwfpnbvmmeipfkdbfwhhppeixtvckhmppktjuhrjvwauawvtwemqwtqdyssyrywjxznmhtvxsqquzfuscywzcielqqbljlkbsildrdwwpniiwdbjjkigxzgjfxasdesicmmallekdldquvyttlqoplucccankrcowiotnrsqealtqsldshokvpzlsvrzgtvodibviozraaswqekiijytcrrazvvcwzamoksjxyomfnvprkuznurupfodbkncsucuzcdqxaxpndchoygugyhpggsayodsmxuofpnamkmmxuiqqkmtvqxhuefvshoioxiaeugccibugbcwnlfvriajqvnfrbmsgigxsihuwowhuuptrgdnmpngyvwhvrgsuaxzmkbbpoaqfeutnlxyxveyfidfacpsaxhpsejdpkdhvtybsynnjnzewujxstfszeabosswcqsftpcqyqraqdenchuscouzpmglulrjhrdwmvqrchrautcvgcqbmdaxbebarkpblkgasogryrabalqkrnmekyiknobikcrjrlqkuxjkiyaqyuomyauwbfmtgcvklongsuxuwpjqrjnzzrceubrerkpyophobhpzlywcbbjqqutloztrselorjykohhoxbfuombtdbfsxsctsvfvtzndbkqxskfeeuvajnxsqzhoscetyqowojvbtpplridmggciggswgzlzuqphrifqfblxieslijngpsqeausixlxnpcgojnttggmufzsvghdpwgrvzxnlcboagatybfxlbgypchhbtqleaswarvfmkjkuvjivuuiahhxldlecbofbaovdrtntvwrrjlerkipoozpsstpwubhmonoxbpbtdpzpsrhqjbchvvmhvrxrjnvbhxflugfwhnjlqatenremidslihexqwjllrvajfmfczbppmdencgdvfotuhdhlagavtkfkmazlmzcrnxnxjwnxttjeqchgzxsdwqjypezhinionqfrbjfilzjbapldnufzaghsjfgcdvgnfyjthulzmlqfkfmqpqiwklnmrethkzqtquqthcuzxhrqeirrtllrjdvbidydxmgjadpuzpuyrrdyabrrntwqukxsznqwlfouedihmjxzlcvkbohdhwkbkqwkdhhwcebyixacawyizcfcpluhdqfftsztwzurpdibfmfvueeuuflcejtaarunqgkakjhbtgqguurtycqjulwdfbngqyzbryjuosbndpxfywxnpmxolrjqrkdrgqvoobyntumedbaapttyyzsaihfftyzbskqwopuleymyqxeziyspmioqhcpmfuiwnppfbjoisgkominzbcsabchaqfrnvbrbeepsgduylurfszwsdtcnlkodzdmojnhsiyfdqlchudclxbqiozdrcrrouiybopcfebrbuxfattetbrtmdtdggjouvdhvagjkvxudcqctxykxhuqdyhltvdonvrvbiafavtmddgggbijsbjacmpscobrbydudtwfomtyehtduqbmezdgkbbvqntshsnklbuvesobyryqjnwzgdkdjirroutslkmoghtgduwrqyhpqjckagppfcpdyseevstpuhmoydosoewypwycrhhxouwprvzbswvhlyvwmiznddynpjtnqmqawiniypjmwzpuwwjykoplykbhgawywquddgosdxdeezdnsbaiaqmrodbnztoqfeuhugnfhaswqfiupxbngifzvmpcmjwfmsfguuzlxmvhdvkweucdmsjktnmrtxxjnfyunxvztsllsyilrlonstecknhgjijwwfipynedrsinoadepyhcjoafflzhdvkwjdeygumdlwowadsybmvkjapxnnsvgerqfiyoztkegzpftdisywidrqklipekrbtqndrqnneisquisgnprhusryvjkdtbdzaushqoalifqbpyzlzgxpjblfpcbsfadoilwmgczzgwdhhmjdgtmbcjmfiwagvnfoodsxkhixeryorutsheeyyiieegqwztqizkpsfuvgqfetekdwiimsxuktvinluxucnknuxpmajcyvagyidkbkxclqozhdotqhdhflgqhhrnpmvunzpsexjjxxxsshrmunkvrxxtwdcjexavijqqjyueujaoeqzieijegajdccqasyoycdgzuglqzwmewuusxbtztxphkjnuryavyfhxydeidqaeclueqkskbatutjayvluwpwctskvisxechgcnohyesuguqeruzprjlnxpuchjzgkpzzmbfrzzjysrilmzpiyzfthppzdxadokhmvzwprfarmteapeiiotfeptcpfamuuqgzoltfiqllbskcioppwddaughcnqcxyifllaxckuxorumyqjudocjlvxcpcxbnlnoeivfgbbmxpbrrrldzusyztofyjjwdbtjiehfbftkuqoyhjpliauutjfayvvcxkrfpajswfmzeexeobrtppnkndewxrehksxcoedoubswaywxpsebliamsvrlzaxwjwomaomkwbzgcqyorjfcscpnpwpjacnwyybgiiseyrrdjeqiojnqfwkuqyshqmcujrjywurwbdfhizapndkpbkhxowoakmapglyjaarlpyylgldlktacwhefuabwkcnsiogxxxzhvjbjhriupqukdfjjfxvaahfsomvearjhovcmrilarutolfaukmuefskivzicmriqurkkopfrxkopybmdyttwipepwhspjjydeybftykxkmxygqeoebmiwjaqkzavkkxdmdhlsurwijiatdxcawhdwxekzsjrxitqcohhejmwfsxvvbsdmnwbztanzoraxpczhshtihlcomaxotkihymvtjjcgwzxvvxyvahpwscvglhcbuaeswbewwcicokqkvochuliaexjayacvedqnkgeueznzmwczcsoelzptrzwuvljxkoknnzxzdtkncbiamowwppklmzysyszreeruyvstulnvduyzyhgdwkqfcxdjzmmknojgviqooggthziuommzawrfzddwsnpailoxkhiyfpglliwkvhbqqysppuzemocimfqmhrilgyajdjeqgvjvbrncdpwznojwjnkzqlyxqepdqyopwhxutwlsurbcqiizmaxyenotvytvsnsdohrwufqjhdwpwyvqpjfquwsrlgeivkscavgtozeeptnvrfcqjkduuqoiqmcsmwsxnpsyeklfqguuwckhierfavwvjhzaaphuejtkcdjszngyubyzpiakzxxvejaneysmrfvoossolicsvgopclscctwwuzfrxamogugkhwzaivszqvgsfngddljuiijctuoornlxjlxanzufrxsyntjtdbfqbwxnachulycmukolozaluicpqkhfwfofqnxovuxnskvlchtmybdorzmnapebbvjnxaenwsopgnuixykgnovsjyjfzasoghpwyilpnjluhiszwerkqgsufypefkufcfmdyxzlnlybsuedfdppdgdxrbjdtquzieosxoxieplwjcrpicqrwsqbpfgkygrfxrwgdtgweezuhfstgaggpogbrdyozchujjmpkanspvftmfqnsgrueibyurwleseqvtawxwawirqeucpugwtnzojecxdliukrjhlrpjjpkzacfsjehlddtdeguamtwekqmdgommryfqkfdxcfriktsbxytvncoqvbeacpuxkkfwwllvnvapjqnwwukbafhiztyojkoqdmbbxhhrsyaqqigpxjotzugyfgkqnqkufasousoerkalxksqnjbtncynvcvtlzfwgbohzxasemcpnfvrbhcastyecufweflglaacsgdydhqcxdoogelairkkfpgsigbcpnhrsvnqqhsovbhopixkfjhcdadspolurcdmlqbgajfswtvfonvkadkdeothrprjlwoucfgsufklwwzqokzvkdjzqdeiigweulffswtywygewapppfhjwegriguoohejlayzdtcjsfnomrqrqtmkqeexsjycpvlipjyvxbtgbdoyvseorvmmnoihphzvinwivoiqstbgcappigambytymgkgjuzuxcwyssfqdgtzpjsiydhnnpnvyujnuahnjgojzymtosqokzhgezdsercbnchvpnswyrzrmccrkoekdphmipubbclkrxgfoqehwnyjxejwpocfyhxrqpzdxowtaycyfoobgrimlkebcedawbqmhjokjqhyuhmrmsvmhrqpqlyxhggqxscywtqwmhxctexyvfzbdnbhlqmkatwuvvgnghtnnyydynzgewyqtizzgpwvjntnxlocewlbucrrwhrogswlhrsddnhxldjeuizibrlghawseupinruaarfdxylpjiuypeoujwvjhtefqnkvezuqwhlhqxtktcdfbmtcysgzqkodcsvzopvrzbwqqnpnpfdvbzlkroztlbcbpopojsnymhjicydmpxkwsulanypzbflisaoamfqdhyrrovptkpoeysxzsqmirdkdishyrwolrscoremrxuksaeyxizlxsikwmyuejuspqwlvfqgrzyqyihqboemypmzgrerfwhgeapmhsyytgprdfzlfngfvlwretdvndwfmpgxhjelhpegltxhvkzshpdwanefbtngaxypmyjkobvuibdznwynfgnlgwslzxwqwudfioihreplpberlevjdarptcmzonkstjhsqlreqkwhrfjwnspatovkhrnyzbdfkyhszhrwnsstlrqpbvmpcynymhjvqlbmwafjrhhzhxgsscrhplzoscdcdnwgapwxzmupksbxggpanoecrpwzbuhzvtibwejtobvjozmnwcbivdkgseyloxvlertcbrhiyeqnwrwbwvmiwlchqbylvglesfujffvsetfwirhbiqtdwpauwusxdkewlvifxuvrbpizgycqldncbflpxpnvfkdagezpuvvemmkdkjeqczdwuxdcwdyypfdbonsukvtxeaycdftzotgewybifvomqkzgjdwnaqnjylwwppxqptabnmfumnrvftedmzqobziycgloqinlbmgnujugpymahwczmbphlstoqogcoqawyvjfsjtlojwprcghoedzdbkqfnpnlbffsmsvxwbstdvheqazujskpqcyajimkhchrbkgrujjeenaffnylmztbdjyzwrrkzbqbhxrhvhbohmgjrpfbhessjstngzpoqkxdnofobwprgjajwttuwufejhqarnwdsxgeotvfkpxwtzpgvjpfpxyxplopabcoiicsxetbyxycwwqbxwutxuxwksagyxtholmophljznferzfllcomskhanyyrugdqimumsayvuuzjdxcgpqpbelpfzcivyhqprvlfhlmicuqhfkdgmtokvkobawnggfpaqgwpnoxtifmmnuquqrfcljhdkxppgenwizwisxrpcfaszerxybaadddmvzyldfycqewtildexdkoeaaefgcakpbvmgnaybegggpomhbrbreedihnflbtevytjzacunsztyjagmfoeujgmplsqnymjkpipcwmnelajkyoyivgpypvwjeorjfsflxaacdumiysogbimeiajklphxpxgowewpnkqgpuhgsdhrcqjegdtwmsccxirutovhmxwyulhkasibhpytfwqlxmcdhvhgkllbaqpvvzfljoiwpzloypihnpkiggellwchhtdfkuddebjipuezybojaggoldqrpxpzywbdwhldxnlguugozqvemdyzxghwhkboexiiccxvdznvochxuyocgdiytfkhzycxmcyhqpbwmhicjudjcmdamzmcynvhncthjqbzwqqxaftntxprwgvlkkpxeppectqhgqymebztbypzibwoegwfpdwbrtpezufgldhwrylmlmrqaryqsrmukzmszyzbjkhvhonwdkxcifpaqslwojiywmqenimisqsskskkbjxkfasydeojkxwcwbchdmsxbwevcfyjqndsgfifinbryvpzznlslwarccljfratahnwrmfcklxwnrjmtveusmfngpwtmuaieshrxfqyayhrjljxipghmgrzvlyguhabujdjfoskdyzdigdcnlgxatkwkhmwyapsniwtmxtavvxnqwucfkigvyvyqvyhwdajplzwkixwcxznxhktdpwjdprrrcnuueaszqkpehovqxpmxfczzmmivtqnyzjnvbdawovfewspyuiybafozvbadshfgyhkhvtqnhzhwsaepallslmamnyflwtoieocscfiktsjvfrznorvtdeevwlvxlxflkjgppwqcjtleykifzoodsftezpblsncnusgdrsnbgfgfveqfeiweyxrngnxpxplfsmhifgaywabjgxxshhksohfbfvlglctzwcyielueymzglbaeodejvgpzeuyxrojaanlokrvsrihqlxxjuppbpvkymxgxhbmbfgusrdnwksbjcqmacvjnhqfpyjjanxmjrgbdxieqnkdkpcuxfnhaztucutmzkcyuvkzvmojlopvrceqgmhiecaadhyvvlyazmtfvoadpzepyqryzjtdbutcpwjiisgqnzmfrckjmufiwsmlypymvxtehegmdhiyhgjsvctunnbofwafgzqzplmiesxpunvdiakuyznnoelnsqtzldsfvgvnolbwlhmofzcydodppabfwtauxpxjoxojfmyjtpqkycmccsetrnbtwnhvjmvwpjmedmxgbcygwjbzisgdqviqxijjlzevisiaxzznlvpssbygkixwmkwnmlgnggeamnowrymxecyegcciptewjihkngodsnmspwxffkuwbthhlxswetmyzutwhxulfkihzvoujgvvvkjpolmnonoodluqqlnearjhgcenllicqjvoxxtqqckdnahkhqoslwqtlxfrjnmmdftgzrrhwyfoeqxsluiwxxrnoxxwsbzozxvewgbewoikyntziiwxbnkagewxorovnyarlbpjwvconilvtymdiyqufnkcccdgtdpiqwbiefihowjhqqpdxauecbxbntwkeyoihbvrozsejgwnwkgnetmeaetawpeufqbrgwdlcbyinmhnyonjjhsmfpriotxxaguiavooeelvqstzvdfcqimsrosilvqeendvazadzykniakjoeqhjbfgrrcukercfkzmjgzjcgwbhiimrnatbitwqxfpcxbqhembbwdfierfdkzsmwpqnqvvebjlpwbkobuegztjxvahbeczqzqzjjatmayhgmridmxmvviileamqkavyxswatxrbqruidfrauyrnzgbbeehkhdydsgwntlwsvrikgbsypyciozjexfiijpazocccupijpxvwodboxcorqipkgvegepupvatmyvcswrhebzqwsowcldnzssfpefuvdzsxawoynudzlfyuoddddvemvxbxlqixfhmffsxxqxuwnqnjdundalofjzluiipdavnsntlulxpkadnfpulfrqtdxicqlajkupsflbqgdhnmbtlcedeguogsxshnxkghyzphveveszjzqtvjczmvnkqfplkcbrduinwuratlasbgangxemfuspssxqqkutdkwonfhqyykzognffdyfbjzdbxwelmwkdwahhtyjgoeysgihcrmffxmluhntzuaoolmctplgdlxqxkqljccphxuoezjavijodmohkmmnbhpuanwcvoeiwwqsctxrqbovidowoijgyjuwrqrdkjquxjvivzmfdvcrxjyxpzflouqwqyayfafgwdciyvsnkyrkitgeedfjjkunwshlbbtwwbequwjsnfjyhntyfshpnojrdffdcbhyziinlmlufxrpklsyzbkwtfcbveqtvpglibytgmeominmgjsuolcowzdfceigtfouqyuloaxejwdlzdfxkbnkbaaxphdtvxjjsktwrsukmeleedbvhpdrbpwazundqcpyzdxlalccovqwsjgqbznopbmnsgmdwbriwiwwawdbnpgmdivugzejyhwpmmrcxjnzkcymqjdwcdsccijwzapjffcwkenkgueffhseqntatsaqiwhgoahotkdhevekvznmcgzbfwlonimqnbpshafarfyabzspsnvofjmlclhinouaonubjntqsdjkwlpnmcovxknkzyhsimemoalbjmllrffzdhypzqecaqdkvbscpjlyrltqfrrgsfftpgnhlkoirperyvxqiquhbdjwwypdlnancnkgaoaeovzdxwivqjojmmouwookamrrmufinqdqmjctvrpkerctewwjhhlusulkczieridajhlaqbzzquzpvzrjxpacjnmjpjbxubgipfzihxrihtwyqxfadjftbgbxwgowvixrpabelkrcnipvxqzqlhlmypwhggxzdseosnvbovnmnzdgyekascrktxuzgqwdjlpimdgtqepwxxnbdbcidrsmjvsifpgvetvcmdwoslwopwuzavgxwxnvrsjhmefyvmjgxxaocgdhehmxctsavslhfyzzpqxakwpqdvnjvgeduzxuuedlyeghlnrufjixrkcidfvvrqkhceeezymaaetalykrrcrmpjwejodyejobuwtouqnpbilgnpjioeggkqcndtitddwptxzemmveyywwyblbmtyjgokcqgzjhafumvrpjxrrfypghwcbsylymmlqybymtvdqkaunxwlujtdbqpbvmuituwicxaiqwnyhbtwcyfxncjcvncmpcyepugqrdkjpnqrwojmoybniczwanjjierqetflhfmjthenghcafdqmdemdyzulnqqdpxjcwehciufhfwqwgyxqwijgssjhnlemdltjqgsjisrviklchtspuadbwxjxjjdyqyebanmlzynudeywwdolwkcsjbfkdyiwyvakmfcqpuifbtkuidoqmrzymaooxbdzqljpqutrncagbzcnthrjkrdlujomogdyuysgvkmeljznjtdrkpgyhdwzteecqwseboroeikxgdptfjjqfwywdpcejyqjicnkrkpvlugolbrcnvxmxknqvqtotalnqeephwhjeipqkbpoiyjxcsnaoicsfituznfkmhzladjmbpcjfdbuzxlblvqybjtptoagykwqxtjnpivjspssizpbrowpfwrxjexwjaxuwqsgssxcfncjchxvqiyzppmlcvcnkiezbhkibcqfzupqnhcmqqcfymshmrqerdaiotgpvgtpqpatpbwfskxapogqmcdwwidkdrbusoczxrjjwzbuohwkarrrhgzizxqcumcspsojqjnifaddosrvnkvprxvfirjmdgslwiyiphtqqttpgzvsywxjfcwwfmwvhjvqvzaldxnfhfzsqjdpftxrvqhlhcgycrnofdzgrsuavihzobhvqzlbvhscudzdcfuiqkallifsmzxldfojxvabirpkcsoherqtdoztdyxysjpbfkikspfnoloahtihqnqdocpcxkxnjyeevzkgkbsvnzxuoyiiumgeybzyeysrhcycvkuvbogtfrjxenfcigzgiwsnaxvfpanrvdxyrpinafxnulkpqgpbnkztjaujfocspklwzuzkblkrglyqzfvwziiynvkfrathlzyavyseuowuscniwxgtfktfqdjpyqwdbhjostvceeneqxxuxslxhwnzeiupavcynfmnbkidsuwafnxiivgztvmtsaimzwjomwziwxavznrrojzfhqdvroymorwpsuzawitrrgmdbsavjvzvpbdjwrwilonzhomisxuglqonqdwmkjbxpmsemvotzvvtxddoksrzofxfhlaldbcfoprzcbuilvpcerhevlvrwgsslbrsgvrrwdwyzpcebspzdyyhjsjpzkcihmxdkkdpduilwxhxutddovbfeaujosjcmhwskklxsnfexrxynbvqpuunnvfkksauphhplaryjxqiiyzbmucscdykamchiwcodomkejbbhcsiwbpsfqxuebsmniuyxpqhwlvdaykfxxfqupwiumjufgrdbnjwviosmcrkucuufexacyabztiflgefzwscpsylfrflnhwjihzpsrusjaxyyfwpgrnkoblrhkraxrqbmlccerooixxeozpjdukquapdtsxwjewjqhwwhqvluhfhyffdhiasuotjieqsfafxuhwghvdlykgpdnaxeepfidawlqtznogwjecgpzbnfgftsiycduewioeflfflewwuquersmcyjkxdekdcptfizkitqnrnrjclfmhamacctcbznufzmysdkzcezjxuycaqwbviqiicmtzvciocntwfiwvtgsvconqpnorkmkzbmgyzqxkijxkxcdqwzzmphfeqcxclsesqotgpzmhsbpsktvpwwrmjtyjryhjbmozsppedfqhqzcbhiyuxrswiyjofpbdqoqntdjtqtyzalcnnliukestanvpemwjknzruglffnkfrdnzcwskfzcldbqpgcfcqrrcctukokrvqnamydudzsikxtlyemiccqwnstyocxplbyqrfxfjnuxkcjegcriaqtykhwdkardrifulpsdmcyukyqeojvhdqzxicixrshlaudpwmtmdiymbkyblgmvrgfbhmedhvtvhbauojiwtpychsocyhayvkssyyikklxgpvhooadigqqpxvhydvvbsagexoncxppwstmpzgdbiqvdkmycrselrujhsjudtsetvvkeymsodvbgdyshttcowrigjsawzmjxbczzfjqmefvnpcgfjiwrmnrdspdmfbpkfhyvkcupwoaqosvbksgvtsogprriepkenpgsqbruzzmljnoikwzeilspuzpgvsphqwgvubvkkmbiuoazwquuavramtbyduhcmhwqgaovxfmkuhngqhmmklxorbjlwoztfzxbueuvseklxmeyqhknfxdsumvkgxuvmffnebmefhvdnkqgllixxcgpcfeltivtghfmaqiqkpfcbiaicntrlnocuuyltthxlwrsjqdufrpaufgtosvzsqfwgsivsnonaqlifnvedchouooorvucejiyhqkucitrooeykkxypkhofszbifcucqquiafqsqztfcvwbcbwnglukcpbbnstahllvkrnzraiujttphqumkzzrmidgcupyquopagqdupyvxcydtlfwafxokhpcnjhuvgrjxahwvmupblndxhongionebfwnxhgikhvgnepvfmcfjigcrvkabpugaesokenqrbsglxfmnuokuwixwompposyofbmfeukcecsbyshljowzfqwlgkuqmndxbzumwvhkkfnrfqoerzgwkvlqyrpcwknzsefndlukxzhrkxeypltgbdyarcqjqyacgdizvdxuqxmshpyijayxpwlfeydogycwcmuozwfcmjbmqvmuworbrxrrrysxtoylivtnhmtlvnjxibszspaiaadxbqotjnnchrdjywkmglusieqrmpoqhiafolgxqdcglsqeplzzoaozfffycdbzsdbpxfjxzcpvexgmmtdozsmsmsnadyetxcyxmfnbxidqaywhabemleijnpifrfchmffldbvklbaakfwslghhhyjwhklxslbtsotihsdnkshkxjjronwpdgviftpbheidvajqgsirlickucblxsyamcaibcavvmvilfkkyrvcbsntyrduhxfradbhqrwmlkyqgrxqdxexlggxdujuqirxcvsokdzrmwzgbdbmfcyhwwdfewcihnsopeaykwggmzedxkjdrrlsnwobvwknsqxixjsfsooyopzjleorbvoqrmvhtiabpvkiqgfpfqqsarmkwesvhspokptblpjgfudnrrenytzszfdhfejsczskywtprjpwajkfztbboysratzndsledcujdgkjcfrjuiecqumrtsdknoxzvtdgbousdrowmmysozzchfheymqfvakhbbqajqjjytsmnplezkyxxtdiinboxagruedumllgtqlbczehihrsijrljvdrhmjijqqjpzpjapebdfkpwlqwuynbioqkwcupgqgpllcerdosrsqcaugvqrzavnkhlktuyojdsexrvtcxaazhmusieruipfmrohoukvwhmsesxljvdaclthiimaaztntdznlcwlyyjumadytqpzdrczvzzvtscznfuxuowickxsizzcagzygqvmyluvsezznatgqloqyiiemstkhkonqyiwrkvpkkcmyfvckaskryjklkuejalukorgtgcewanybherdzsfodeawqntxjnmjsieedwaqqrfutkbemjwhtairrgbaxomdexitrbgheqasohqytsyctvfrtlssxwccbvdttszyrzswcaeprercilahclalrsqvoxhuuhcezeurmsbujdlfixpjoyzudwgfwmunrkwlghjuedbxahwzzrjmeqyjvftiyhqwudidmsxqxhkpnfheiygzijormtgthogalmfhlkrkiybqecunfhttcrhvifgpsjvpfbmkizrsmqhwrjbygdxlwxquzawofufldgoppqjzantejcdcfbhjatodjbmaezsnnnqgcuiawoajswjzwsaaxehqrsuagohpqiknwslnuqdcxlxttfmutekjytwwuppugkzyozsbrnveeswlfvtxeyoyhqwourmidahqfbyvmzvtbtfgizkwpkgmihvcxprtexqerawqzksgbzwskogngmxjdysljdmztkgspcthwymxpouiovdecffsbmbwqmicbscysnucbqflkjoavpxwwtkwuaayskmmhfajqqlczspbhkyprhljltdzfqvnsomqdmhgmzgbmsmhfeneuzfdsxzvyuhuesnkzllbullxobhfgiythuzwvsozfjdcfipmoqfsabpxcfngokewbburpifpcwuibfxcbteetgprzcfvgzixzwzutjdkpeyfwsshhlntcnlffjptiezgzckcodxbibwvdmurmiplvknehayfstctzhrapvcpovfbprphubsmsxqzkarbixcrgghajvwcaxdiauendkekgdtgueancbvlblcgmasjxcvzvgwhhqobotakknwddrgsvklkzqbkydptnyvxkskttmfamumhvcmqhbnciibwmlywxacnhqqmsxdeplrzgvdznzodemvnppxianuqfacsndulxnxbttajtbmaeylyzhvsznphqvudplmpdtqouhktwoatjgcdmoakipwemquseisrltyqwhuxeflijfuwkntiogdjaewgsdqslufyrjazfwmixatrrgaiamaepwxerkizujvntekizkfubpgqvcxxbsehrjtlrtgorhtrdpvmpryducmetmttnrpthkpgnlsydneyqurhzutjvtadyxvflbexncshiofaakuixzhphraafqhffpijxutjjefdkhqvtffefvdmtrvwpxawpqkqffiypymrxazyupjsxbzjnhjnkyybiepsaykghswhedrqlevtawafmfrzjkvqyqiguzyzsitafjhlabkbeegunbdxoqowzhaotbfcatjrioimddlwiztovsjhfnsexaxdzlayungptefkcppqbguortnqpmaghfrzyrxxauveihrezziogyhuioojaoevgngyhklsisxzhtcdihrlaoueyrydkmvnawwihocixeqbaftyqmhxrmxocikbuwaxlifmqvjqhwayawacfdruqnlgfioegmvmrjfgjwvlyvaggkiepmmdctykpsfyqdkhviacdxoheyhjhuwtwotyezpedueyvcbrqkemcptsbadlipejgzxqifbczfebvbrtpwspcnilwlleebxsrwlqpccgpxrvwmvsnotrhendlfhjtttnvnnuhhguwlgtytgrfguvlketysweuermowkzqgnpykvwofmvxquzrwmybttlhghpfgxiovhqzqgkoydzojuxupfkpzresthudfutdlddovvmnwbdmwijxagzykqaqdficsdlrsixzvnezdlqbzppcbcegbyrqykfngpvclpujpuqbhcwxbkcioyvypgylizoeotkfesnvtcyimfhbqdjrawridnhoxpyrvacymwdrxjqzcswjgvdfojmbwbbhpbmsbocwowgpoomnzmjdspsxwzimkarxcvqtifazgnxavkmrfyzkfhsbkssoyzvtegzaaxiulixrnpcowuuenpwnniuqlsobpekmgkxckhmllqrwcjxczzkgvqttkafqyfscpywvkchisxrabshbchblrpzjhjawstpjikedymtghbbxunkxcurcejkrzhtyzkfgihcficyugbrublbxhuamsmlsexlshbflxjdkpindolhaelsieneaxxktkstzyxomagwkvindgyrgbmrgeiatmgibidmldeedabdbhydlwuwhjaubmbblhavmpoexjmdfaxwgiijdeowkybmbdjznbhhbhksudmzgfkbbdbpdxoutdrndthsaoazqrfuhukcmoxqoociwvqugspxttbvzkkvenjhbzcezwmmckhpuefrpnzeswepiapzowmurpymzduaq";;
+//            ByteBuffer message = ByteBuffers.fromString(expected);
+//            CountDownLatch latch = new CountDownLatch(2);
+//            Thread t1 = new Thread(() -> {
+//                writer.write(message);
+//                latch.countDown();
+//            });
+//            AtomicReference<String> actual = new AtomicReference<>(null);
+//            Thread t2 = new Thread(() -> {
+//                actual.set(ByteBuffers.getString(reader.read()));
+//                latch.countDown();
+//            });
+//            t1.start();
+//            t2.start();
+//            latch.await();
+//            Assert.assertEquals(expected, actual.get());
+//        }
+//        finally {
+//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
+//        }
+//    }
+//
+//    @Test
+//    public void testStreamingWriteWriteAndRead() throws InterruptedException {
+//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
+//        try {
+//            String file = FileOps.tempFile();
+//            SharedMemory writer = new SharedMemory(file);
+//            SharedMemory reader = new SharedMemory(file);
+//            String expected1 = new RandomStringGenerator().nextString(15000);
+//            String expected2 = new RandomStringGenerator()
+//                    .nextString(Random.getScaleCount() * 4);
+//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
+//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
+//            CountDownLatch latch = new CountDownLatch(2);
+//            writer.write(message1);
+//            Thread t1 = new Thread(() -> {
+//                writer.write(message2);
+//                latch.countDown();
+//            });
+//            AtomicReference<String> actual1 = new AtomicReference<>(null);
+//            AtomicReference<String> actual2 = new AtomicReference<>(null);
+//            Thread t2 = new Thread(() -> {
+//                actual1.set(ByteBuffers.getString(reader.read()));
+//                actual2.set(ByteBuffers.getString(reader.read()));
+//                latch.countDown();
+//            });
+//            t1.start();
+//            t2.start();
+//            latch.await();
+//            Assert.assertEquals(expected1, actual1.get());
+//            Assert.assertEquals(expected2, actual2.get());
+//        }
+//        finally {
+//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
+//        }
+//    }
+//
+//    @Test
+//    public void testStreamingWriteWriteAndReadInterleaved()
+//            throws InterruptedException {
+//        SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 10;
+//        try {
+//            String file = FileOps.tempFile();
+//            SharedMemory writer = new SharedMemory(file);
+//            SharedMemory reader = new SharedMemory(file);
+//            String expected1 = Variables.register("expected1",
+//                    new RandomStringGenerator().nextString(15000));
+//            String expected2 = Variables.register("expected2",
+//                    new RandomStringGenerator()
+//                            .nextString(Random.getScaleCount() * 4));
+//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
+//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
+//            CountDownLatch latch = new CountDownLatch(2);
+//            Thread t1 = new Thread(() -> {
+//                writer.write(message1);
+//                writer.write(message2);
+//                latch.countDown();
+//            });
+//            AtomicReference<String> actual1 = new AtomicReference<>(null);
+//            AtomicReference<String> actual2 = new AtomicReference<>(null);
+//            Thread t2 = new Thread(() -> {
+//                actual1.set(ByteBuffers.getString(reader.read()));
+//                actual2.set(ByteBuffers.getString(reader.read()));
+//                latch.countDown();
+//            });
+//            t1.start();
+//            t2.start();
+//            latch.await();
+//            Assert.assertEquals(expected1, actual1.get());
+//            Assert.assertEquals(expected2, actual2.get());
+//        }
+//        finally {
+//            SharedMemory.STREAM_WRITE_DELAY_IN_MILLIS = 0;
+//        }
+//    }
+ // @formatter:on
 }
