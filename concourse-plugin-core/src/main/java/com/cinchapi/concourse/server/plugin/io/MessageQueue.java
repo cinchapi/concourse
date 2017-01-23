@@ -112,15 +112,14 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
             this.metadata = FileChannel.open(Paths.get(file).toAbsolutePath(),
                     StandardOpenOption.CREATE, StandardOpenOption.READ,
                     StandardOpenOption.WRITE);
-            this.port = Networking.getOpenPort();
             this.messages = new LinkedBlockingQueue<>();
 
             // Setup the ServerSocketChannel to receive messages from writers
             this.channel = ServerSocketChannel.open();
             Selector selector = Selector.open();
-            InetSocketAddress address = new InetSocketAddress(SOCKET_HOST,
-                    port);
+            InetSocketAddress address = new InetSocketAddress(SOCKET_HOST, 0);            
             channel.bind(address);
+            this.port = ((InetSocketAddress) channel.getLocalAddress()).getPort();
             channel.configureBlocking(false);
             int ops = channel.validOps();
             channel.register(selector, ops);
