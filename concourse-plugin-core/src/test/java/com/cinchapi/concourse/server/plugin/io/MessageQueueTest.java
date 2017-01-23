@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.plugin.io;
 
 /**
- * 
+ * Unit tests for {@link MessageQueue} class.
  * 
  * @author Jeff Nelson
  */
@@ -27,15 +27,11 @@ public class MessageQueueTest extends InterProcessCommunicationTest {
         return new MessageQueue();
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.server.plugin.io.InterProcessCommunicationTest#getInterProcessCommunication(java.lang.String)
-     */
     @Override
     protected InterProcessCommunication getInterProcessCommunication(
             String file) {
         return new MessageQueue(file);
     }
-
 
     @Override
     protected InterProcessCommunication getInterProcessCommunication(
