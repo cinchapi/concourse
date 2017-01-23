@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,27 +39,34 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for {@link SharedMemory} that take advantage of the server's
+ * Unit tests for {@link InterProcessCommunication} that take advantage of the
+ * server's
  * ability to fork processes from a local JVM.
  * 
  * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
-public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
-        Serializable {
+public abstract class CrossProcessInterProcessCommunicationTest
+        extends ConcourseBaseTest implements Serializable {
+
+    public abstract InterProcessCommunication getInterProcessCommunication(
+            String file);
 
     @Test
-    public void testReadWrite() throws InterruptedException {
+    public void testReadWrite() throws InterruptedException, IOException {
         final List<String> expected = Lists.newArrayList();
         for (int i = 0; i < Random.getScaleCount(); ++i) {
             expected.add(Random.getString());
         }
         final String location = FileOps.tempFile();
+        final String signal = FileOps.tempFile();
+        Files.deleteIfExists(Paths.get(signal));
         Thread writer = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                SharedMemory shared = new SharedMemory(location);
+                InterProcessCommunication shared = getInterProcessCommunication(
+                        location);
                 for (String message : expected) {
                     shared.write(ByteBuffers.fromString(message));
                     Threads.sleep(TestData.getScaleCount());
@@ -70,7 +80,9 @@ public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
             @Override
             public ArrayList<String> call() throws Exception {
                 ArrayList<String> actual = Lists.newArrayList();
-                SharedMemory shared = new SharedMemory(location);
+                InterProcessCommunication shared = getInterProcessCommunication(
+                        location);
+                Files.createFile(Paths.get(signal));
                 while (actual.size() < expected.size()) {
                     ByteBuffer data = shared.read();
                     String message = ByteBuffers.getString(data);
@@ -84,6 +96,9 @@ public class CrossProcessSharedMemoryTest extends ConcourseBaseTest implements
 
         Callback<ArrayList<String>> callback = new NoOpCallback<ArrayList<String>>();
         ServerProcesses.fork(reader, callback);
+        while (!Files.deleteIfExists(Paths.get(signal))) {
+            continue;
+        }
         writer.start();
         writer.join();
         Assert.assertEquals(expected, callback.getResult());
