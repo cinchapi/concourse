@@ -53,8 +53,8 @@ import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.plugin.hook.AfterInstallHook;
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.server.plugin.util.Versions;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
@@ -145,7 +145,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * Arbitrary plugin methods can be invoked using the
  * {@link #invoke(String, String, List, AccessToken, TransactionToken, String)}
  * method. The {@link PluginManager} passes these requests to the appropriate
- * plugin JVM via the {@code fromServer} {@link SharedMemory stream} that was
+ * plugin JVM via the {@code fromServer} {@link InterProccesCommunication
+ * stream} that was
  * setup when the plugin launched.
  * </p>
  * <h1>Invoking Server Methods</h1>
@@ -163,7 +164,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * <h1>Real Time Plugins</h1>
  * <p>
  * Any plugin that extends {@link RealTimePlugin} will initially receive a
- * {@link SharedMemory} segment for real time communication data streams. This
+ * {@link InterProcesCommunication} segment for real time communication data
+ * streams. This
  * is a one-way stream. Plugins are responsible for decide when and how to
  * respond to data that is streamed over.
  * </p>
@@ -816,9 +818,9 @@ public class PluginManager {
         String id = launchClass;
         registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
         registry.put(id, RegistryData.FROM_SERVER,
-                new SharedMemory(fromServer));
+                new MessageQueue(fromServer));
         registry.put(id, RegistryData.FROM_PLUGIN,
-                new SharedMemory(fromPlugin));
+                new MessageQueue(fromPlugin));
         registry.put(id, RegistryData.STATUS, PluginStatus.ACTIVE);
         registry.put(id, RegistryData.APP_INSTANCE, app);
         registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
@@ -920,7 +922,7 @@ public class PluginManager {
         String tempDir = getPluginTempDirectory(id);
         String streamFile = FileSystem.tempFile(tempDir, "RT-", ".shm");
         Logger.debug("Creating real-time stream for {} at {}", id, streamFile);
-        InterProcessCommunication stream = new SharedMemory(streamFile);
+        InterProcessCommunication stream = new MessageQueue(streamFile);
         Logger.debug("Shared memory for real-time stream of '{} is located at "
                 + "'{}", id, streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(

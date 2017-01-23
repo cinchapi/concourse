@@ -23,7 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Maps;
@@ -38,7 +38,7 @@ public class BackgroundThreadTest {
     @Test
     public void testBackgroundExecutorSetsEnvironmentCorrectly()
             throws InterruptedException {
-        InterProcessCommunication outgoing = new SharedMemory();
+        InterProcessCommunication outgoing = new MessageQueue();
         ConcurrentMap<AccessToken, RemoteMethodResponse> responses = Maps
                 .newConcurrentMap();
         String environment1 = Random.getSimpleString();
@@ -75,7 +75,7 @@ public class BackgroundThreadTest {
     @Test
     public void testBackgroundExecutorHasCorrectInformation()
             throws InterruptedException {
-        InterProcessCommunication outgoing = new SharedMemory();
+        InterProcessCommunication outgoing = new MessageQueue();
         ConcurrentMap<AccessToken, RemoteMethodResponse> responses = Maps
                 .newConcurrentMap();
         BackgroundExecutor executor = PluginExecutors

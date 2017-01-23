@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 
 /**
  * A special {@link Plugin} that receives {@link Packet packets} of data for
@@ -67,7 +67,7 @@ abstract class RealTimePlugin extends Plugin {
             if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
                 log.debug("Listening for streamed packets at {}",
                         attribute.value());
-                final InterProcessCommunication stream = new SharedMemory(
+                @SuppressWarnings("resource") final InterProcessCommunication stream = new MessageQueue(
                         attribute.value());
                 // Create a separate event loop to process Packets of writes
                 // that come from the server.

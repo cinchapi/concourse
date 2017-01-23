@@ -32,8 +32,8 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.Files;
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.google.common.collect.Maps;
@@ -132,8 +132,8 @@ public abstract class Plugin {
      */
     public Plugin(String fromServer, String fromPlugin) {
         this.runtime = ConcourseRuntime.getRuntime();
-        this.fromServer = new SharedMemory(fromServer);
-        this.fromPlugin = new SharedMemory(fromPlugin);
+        this.fromServer = new MessageQueue(fromServer);
+        this.fromPlugin = new MessageQueue(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
         Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
