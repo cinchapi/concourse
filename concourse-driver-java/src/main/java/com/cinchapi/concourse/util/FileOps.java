@@ -91,8 +91,61 @@ public class FileOps {
      * 
      * @param file the path to a regular file
      */
+    public static void awaitChange(String file) {
+        try {
+            awaitChangeInterruptibly(file);
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Cause the current thread to block while waiting for a change to
+     * {@code file}.
+     * <p>
+     * Because of limitations of most underlying file systems, this method can
+     * only guarantee changes that occur at least 1 second after this method is
+     * invoked. For changes that occur less than 1 second of method invocation,
+     * the method will return immediately; however, there is a chance that such
+     * a return is indicative of a false positive case where the file changed
+     * before this method was invoked, but within the same second of the
+     * invocation.
+     * </p>
+     * <p>
+     * If protection against that kind of false positive is important, the
+     * caller should check the contents of the underlying file is this method
+     * returns immediately.
+     * </p>
+     * 
+     * @param file the path to a regular file
+     */
     public static void awaitChangeInterruptibly(String file)
             throws InterruptedException {
+        if(!IS_WATCH_SERVICE_SETUP) {
+            try {
+                // Add a PollingWatchService to use as a backup in case the
+                // default watch service is causing issues (i.e. on Linux the
+                // max number of inotify watches may be reached, in which case
+                // we can use the backup as a fail safe.)
+                PollingWatchService pollingWatchService = new PollingWatchService(
+                        Runtime.getRuntime().availableProcessors(), 1000,
+                        TimeUnit.MILLISECONDS);
+                pollingWatchService.start();
+                FILE_CHANGE_WATCHERS.add(pollingWatchService);
+                FILE_CHANGE_WATCHERS
+                        .add(FileSystems.getDefault().newWatchService());
+            }
+            catch (Exception e) {
+                // NOTE: Cannot re-throw the exception because it will prevent
+                // the class from being loaded...
+                e.printStackTrace();
+            }
+            FILE_CHANGE_WATCHERS.forEach((watcher) -> {
+                setupWatchService(watcher);
+            });
+            IS_WATCH_SERVICE_SETUP = true;
+        }
         long methodStartTime = System.currentTimeMillis();
         methodStartTime = TimeUnit.SECONDS.convert(methodStartTime,
                 TimeUnit.MILLISECONDS);
@@ -150,35 +203,6 @@ public class FileOps {
             catch (IOException e) {
                 throw CheckedExceptions.throwAsRuntimeException(e);
             }
-        }
-    }
-
-    /**
-     * Cause the current thread to block while waiting for a change to
-     * {@code file}.
-     * <p>
-     * Because of limitations of most underlying file systems, this method can
-     * only guarantee changes that occur at least 1 second after this method is
-     * invoked. For changes that occur less than 1 second of method invocation,
-     * the method will return immediately; however, there is a chance that such
-     * a return is indicative of a false positive case where the file changed
-     * before this method was invoked, but within the same second of the
-     * invocation.
-     * </p>
-     * <p>
-     * If protection against that kind of false positive is important, the
-     * caller should check the contents of the underlying file is this method
-     * returns immediately.
-     * </p>
-     * 
-     * @param file the path to a regular file
-     */
-    public static void awaitChange(String file) {
-        try {
-            awaitChangeInterruptibly(file);
-        }
-        catch (InterruptedException e) {
-            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 
@@ -548,6 +572,11 @@ public class FileOps {
     }
 
     /**
+     * A flag that indicates whether the watch service(s) have been setup.
+     */
+    private static boolean IS_WATCH_SERVICE_SETUP = false;
+
+    /**
      * A service that watches directories for operations on files.
      * <p>
      * Java's {@link WatchService} API is designed to handle directories instead
@@ -560,29 +589,6 @@ public class FileOps {
      */
     private static List<WatchService> FILE_CHANGE_WATCHERS = Lists
             .newArrayListWithCapacity(2);
-    static {
-        try {
-            // Add a PollingWatchService to use as a backup in case the default
-            // watch service is causing issues (i.e. on Linux the max number of
-            // inotify watches may be reached, in which case we can use the
-            // backup as a fail safe.)
-            PollingWatchService pollingWatchService = new PollingWatchService(
-                    Runtime.getRuntime().availableProcessors(), 1000,
-                    TimeUnit.MILLISECONDS);
-            pollingWatchService.start();
-            FILE_CHANGE_WATCHERS.add(pollingWatchService);
-            FILE_CHANGE_WATCHERS
-                    .add(FileSystems.getDefault().newWatchService());
-        }
-        catch (Exception e) {
-            // NOTE: Cannot re-throw the exception because it will prevent the
-            // class from being loaded...
-            e.printStackTrace();
-        }
-        FILE_CHANGE_WATCHERS.forEach((watcher) -> {
-            setupWatchService(watcher);
-        });
-    }
 
     /**
      * A collection of {@link Watchable} paths that have already been registered
