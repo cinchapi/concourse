@@ -35,7 +35,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Maps;
 
