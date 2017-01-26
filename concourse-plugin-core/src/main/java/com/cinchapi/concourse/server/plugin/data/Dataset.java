@@ -171,7 +171,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
         Map<A, Set<V>> row = null;
         if(ref != null && (row = ref.get()) != null) {
-            return row.get(attribute);
+            return MoreObjects.firstNonNull(row.get(attribute),
+                    Collections.emptySet());
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();

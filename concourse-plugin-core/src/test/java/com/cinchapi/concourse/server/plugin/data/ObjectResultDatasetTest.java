@@ -139,5 +139,12 @@ public class ObjectResultDatasetTest {
         dataset.insert(1L, "enabled", true);
         dataset.remove(1L);
     }
+    
+    @Test
+    public void testRecordAttributeIsEmpty(){
+        ObjectResultDataset dataset = new ObjectResultDataset();
+        dataset.insert(1L, "age", 23);
+        Assert.assertTrue(dataset.get(1L, "name").isEmpty());
+    }
 
 }
