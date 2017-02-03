@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.plugin.io;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.SelectionKey;
@@ -116,9 +117,10 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
             // Setup the ServerSocketChannel to receive messages from writers
             this.channel = ServerSocketChannel.open();
             Selector selector = Selector.open();
-            InetSocketAddress address = new InetSocketAddress(SOCKET_HOST, 0);            
+            InetSocketAddress address = new InetSocketAddress(SOCKET_HOST, 0);
             channel.bind(address);
-            this.port = ((InetSocketAddress) channel.getLocalAddress()).getPort();
+            this.port = ((InetSocketAddress) channel.getLocalAddress())
+                    .getPort();
             channel.configureBlocking(false);
             int ops = channel.validOps();
             channel.register(selector, ops);
@@ -147,17 +149,21 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
                                 ByteBuffer size = ByteBuffer.allocate(4);
                                 writer.read(size);
                                 size.flip();
-                                ByteBuffer message = ByteBuffer
-                                        .allocate(size.getInt());
-                                while (message.hasRemaining()) {
-                                    writer.read(message);
+                                if(size.limit() > 0) { // if limit < 0, no
+                                                       // message was written
+                                    ByteBuffer message = ByteBuffer
+                                            .allocate(size.getInt());
+                                    while (message.hasRemaining()) {
+                                        writer.read(message);
+                                    }
+                                    message.flip();
+                                    messages.add(message);
                                 }
-                                message.flip();
-                                messages.add(message);
                             }
                             keys.remove();
                         }
                     }
+                    catch (ClosedByInterruptException e) {/* no-op */}
                     catch (IOException e) {
                         throw CheckedExceptions.throwAsRuntimeException(e);
                     }
@@ -166,11 +172,9 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
             });
             acceptor.setDaemon(true);
             acceptor.setUncaughtExceptionHandler((t, e) -> {
-                RuntimeException ex = new RuntimeException(
-                        Strings.format("Uncaught exception in Thread {}: {}", t,
-                                e.getMessage()),
-                        e);
-                throw ex;
+                RuntimeException ex = new RuntimeException(Strings.format(
+                        "Uncaught exception in Thread {}: {}", t, e), e);
+                ex.printStackTrace();
             });
             acceptor.start();
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -189,6 +193,7 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        acceptor.interrupt();
         channel.close();
         for (Entry<Integer, SocketChannel> entry : readers.entrySet()) {
             SocketChannel reader = entry.getValue();
@@ -224,6 +229,7 @@ public class MessageQueue implements InterProcessCommunication, AutoCloseable {
                     InetSocketAddress address = new InetSocketAddress(
                             SOCKET_HOST, port);
                     reader = SocketChannel.open(address);
+                    readers.put(port, reader);
                 }
                 ByteBuffer size = ByteBuffer.allocate(4)
                         .putInt(message.capacity());

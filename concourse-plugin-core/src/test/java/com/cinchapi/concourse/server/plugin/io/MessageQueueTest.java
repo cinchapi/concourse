@@ -15,6 +15,15 @@
  */
 package com.cinchapi.concourse.server.plugin.io;
 
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.FileOps;
+
 /**
  * Unit tests for {@link MessageQueue} class.
  * 
@@ -37,6 +46,17 @@ public class MessageQueueTest extends InterProcessCommunicationTest {
     protected InterProcessCommunication getInterProcessCommunication(
             String file, int capacity) {
         return getInterProcessCommunication(file);
+    }
+    
+    @Test
+    public void testReadersAreCached() throws Exception{
+        String file = FileOps.tempFile();
+        MessageQueue reader = new MessageQueue(file);
+        MessageQueue writer = new MessageQueue(file);
+        writer.write(ByteBuffers.fromString("hello"));
+        Assert.assertFalse(((Map<?,?>) Reflection.get("readers", writer)).isEmpty());
+        reader.close();
+        writer.close();
     }
 
 }
