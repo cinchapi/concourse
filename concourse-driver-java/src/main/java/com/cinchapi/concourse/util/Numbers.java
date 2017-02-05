@@ -154,6 +154,28 @@ public abstract class Numbers {
     }
 
     /**
+     * Perform a cast safe equality check for two objects.
+     * <p>
+     * If both objects are instances of the {@link Number} class, this method
+     * will behave the same was as {@link #isEqualTo(Number, Number)}.
+     * Otherwise, this method returns {@code false}.
+     * </p>
+     * 
+     * @param a the first, possibly {@link Number numeric}, object
+     * @param b the second, possibly {@link Number numeric}, object
+     * @return {@code true} if both objects are numbers and are mathematically
+     *         equal
+     */
+    public static boolean isEqualToCastSafe(Object a, Object b) {
+        if(a instanceof Number && b instanceof Number) {
+            return isEqualTo((Number) a, (Number) b);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Return {@code true} if {@code number} is evenly divisible by two.
      * 
      * @param number
