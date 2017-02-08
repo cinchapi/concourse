@@ -33,6 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import org.reflections.Reflections;
 
 import jline.TerminalFactory;
@@ -265,6 +267,25 @@ public class ImportCli extends CommandLineInterface {
     @Override
     protected Options getOptions() {
         return new ImportOptions();
+    }
+    
+    /**
+     * Return the host Concourse Server's "home" directory.
+     * 
+     * @return the host application's home
+     */
+    @Nullable
+    private Path getConcourseServerHome() {
+        // NOTE: This is a HACK! This method is borrowed from Concourse Server's
+        // ManagementCli interface because we know that the provided ImportCli
+        // will likely live in a Concourse Deployment's standard directory from
+        // CLIs.
+        String path = System.getProperty("user.app.home"); // this is set by the
+                                                           // .env script that
+                                                           // is sourced by
+                                                           // every server-side
+                                                           // CLI
+        return path != null ? Paths.get(path) : null;
     }
 
     /**

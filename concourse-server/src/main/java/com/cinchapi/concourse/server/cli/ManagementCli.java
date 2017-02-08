@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.cli;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
@@ -39,6 +41,11 @@ import com.google.common.base.Strings;
 /**
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
  * that operates on a running {@link ConcourseServer} should extend this class.
+ * <p>
+ * Unlike children of {@code com.cinchapi.concourse.cli.CommandLineInterface},
+ * CLIs that extend this class are assumed to live within the Concourse Server
+ * deployment in the standard directory for CLIs.
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -157,6 +164,21 @@ public abstract class ManagementCli {
      * @param client
      */
     protected abstract void doTask(Client client);
+
+    /**
+     * Return the host Concourse Server's "home" directory.
+     * 
+     * @return the host application's home
+     */
+    @Nullable
+    protected final Path getServerHome() {
+        String path = System.getProperty("user.app.home"); // this is set by the
+                                                           // .env script that
+                                                           // is sourced by
+                                                           // every server-side
+                                                           // CLI
+        return path != null ? Paths.get(path) : null;
+    }
 
     /**
      * Return the original working directory from which the CLI was launched.
