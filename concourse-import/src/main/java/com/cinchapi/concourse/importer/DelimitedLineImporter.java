@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.importer;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -34,8 +35,8 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer implements
-        Headered {
+public abstract class DelimitedLineImporter extends Importer
+        implements Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.
@@ -88,21 +89,28 @@ public abstract class DelimitedLineImporter extends Importer implements
      *            into those records
      * @return the records into which the data is imported
      */
-    public final Set<Long> importFile(String file, @Nullable String resolveKey) {
+    public final Set<Long> importFile(String file,
+            @Nullable String resolveKey) {
         List<String> lines = FileOps.readLines(file);
         StringBuilder sb = new StringBuilder();
         sb.append('[');
         for (String line : lines) {
             int length = sb.length();
-            Importables.delimitedStringToJsonObject(line, resolveKey,
-                    delimiter, header, transformer, sb);
+            Importables.delimitedStringToJsonObject(line, resolveKey, delimiter,
+                    header, transformer, sb);
             if(sb.length() > length) {
                 sb.append(',');
             }
         }
         sb.deleteCharAt(sb.length() - 1);
         sb.append(']');
-        return concourse.insert(sb.toString());
+        Set<Long> records = concourse.insert(sb.toString());
+        if(Boolean.parseBoolean(params.getOrDefault(
+                Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
+            String filename = Paths.get(file).getFileName().toString();
+            concourse.add(DATA_SOURCE_ANNOTATION_KEY, filename, records);
+        }
+        return records;
     }
 
     @Override

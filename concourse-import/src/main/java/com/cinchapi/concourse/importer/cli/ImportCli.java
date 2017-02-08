@@ -104,6 +104,8 @@ public class ImportCli extends CommandLineInterface {
         final Set<Long> records;
         final Constructor<? extends Importer> constructor = getConstructor(
                 opts.type);
+        opts.dynamic.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME,
+                Boolean.toString(opts.annotateDataSource));
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
             if(!opts.dynamic.isEmpty()) {
@@ -465,6 +467,9 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = "--header", description = "A custom header to assign for supporting importers")
         public String header = "";
+
+        @Parameter(names = "--annotate-data-source", description = "Add the filename from which the data is imported as a value for the '__datasource' key on every imported object")
+        public boolean annotateDataSource = false;
 
     }
 

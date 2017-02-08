@@ -50,6 +50,17 @@ import com.cinchapi.concourse.Concourse;
 public abstract class Importer {
 
     /**
+     * The name of the key that contains the value for the
+     * {@code --annotate-data-source} CLI option.
+     */
+    public static final String ANNOTATE_DATA_SOURCE_OPTION_NAME = "annotateDataSource";
+    
+    /**
+     * The key that contains datasource annotations.
+     */
+    protected static final String DATA_SOURCE_ANNOTATION_KEY = "__datasource";
+
+    /**
      * The connection to Concourse.
      */
     protected final Concourse concourse;
