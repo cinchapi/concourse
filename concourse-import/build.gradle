@@ -28,6 +28,9 @@ dependencies {
     compile ('org.reflections:reflections:0.9.9-RC2') {
         exclude group: 'org.javassist', module:'javassist'
     }
+    compile (group: 'com.cinchapi', name: 'cinchapi-commons', version: '1.0.0-SNAPSHOT', changing:true) {
+    	exclude group: 'com.google.guava', module: 'guava'
+    }
 }
 
 jar {

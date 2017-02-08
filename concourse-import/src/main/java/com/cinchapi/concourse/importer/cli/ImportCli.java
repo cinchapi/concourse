@@ -41,6 +41,7 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.groovy.GroovyFiles;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
@@ -101,7 +102,8 @@ public class ImportCli extends CommandLineInterface {
     protected void doTask() {
         final ImportOptions opts = (ImportOptions) options;
         final Set<Long> records;
-        final Constructor<? extends Importer> constructor = getConstructor(opts.type);
+        final Constructor<? extends Importer> constructor = getConstructor(
+                opts.type);
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor, concourse);
             if(!opts.dynamic.isEmpty()) {
@@ -125,8 +127,9 @@ public class ImportCli extends CommandLineInterface {
                         if(options.verbose) {
                             System.out.println(records);
                         }
-                        System.out.println(Strings.format(
-                                "Imported data into {} records", records.size()));
+                        System.out.println(
+                                Strings.format("Imported data into {} records",
+                                        records.size()));
                     }
 
                 }));
@@ -138,20 +141,20 @@ public class ImportCli extends CommandLineInterface {
                                                 // not piped) and display a
                                                 // prompt
 
-                                @Override
-                                public void run() {
-                                    try {
-                                        Thread.sleep(100);
-                                        if(lock.compareAndSet(false, true)) {
-                                            System.out
-                                                    .println("Importing from stdin. Press "
-                                                            + "CTRL + C when finished");
-                                        }
-                                    }
-                                    catch (InterruptedException e) {}
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(100);
+                                if(lock.compareAndSet(false, true)) {
+                                    System.out.println(
+                                            "Importing from stdin. Press "
+                                                    + "CTRL + C when finished");
                                 }
+                            }
+                            catch (InterruptedException e) {}
+                        }
 
-                            }).start();
+                    }).start();
                     while ((line = reader.readLine()) != null) {
                         try {
                             lock.set(true);
@@ -180,8 +183,8 @@ public class ImportCli extends CommandLineInterface {
         }
         else {
             String path = FileOps.expandPath(opts.data, getLaunchDirectory());
-            Collection<String> files = FileOps.isDirectory(path) ? scan(Paths
-                    .get(path)) : ImmutableList.of(path);
+            Collection<String> files = FileOps.isDirectory(path)
+                    ? scan(Paths.get(path)) : ImmutableList.of(path);
             Stopwatch watch = Stopwatch.createUnstarted();
             if(files.size() > 1) {
                 records = Sets.newConcurrentHashSet();
@@ -195,13 +198,15 @@ public class ImportCli extends CommandLineInterface {
                 for (int i = 0; i < opts.numThreads; ++i) {
                     final Importer importer0 = Reflection.newInstance(
                             constructor,
-                            i == 0 ? concourse : Concourse.connect(opts.host,
-                                    opts.port, opts.username, opts.password,
-                                    opts.environment));
+                            i == 0 ? concourse
+                                    : Concourse.connect(opts.host, opts.port,
+                                            opts.username, opts.password,
+                                            opts.environment));
                     if(!opts.dynamic.isEmpty()) {
                         importer0.setParams(opts.dynamic);
                     }
-                    if(importer0 instanceof Headered && !opts.header.isEmpty()) {
+                    if(importer0 instanceof Headered
+                            && !opts.header.isEmpty()) {
                         ((Headered) importer0).parseHeader(opts.header);
                     }
                     runnables.add(new Runnable() {
@@ -258,9 +263,9 @@ public class ImportCli extends CommandLineInterface {
             if(options.verbose) {
                 System.out.println(records);
             }
-            System.out.println(MessageFormat.format("Imported data "
-                    + "into {0} records in {1} seconds", records.size(),
-                    seconds));
+            System.out.println(MessageFormat.format(
+                    "Imported data " + "into {0} records in {1} seconds",
+                    records.size(), seconds));
         }
     }
 
@@ -268,14 +273,14 @@ public class ImportCli extends CommandLineInterface {
     protected Options getOptions() {
         return new ImportOptions();
     }
-    
+
     /**
      * Return the host Concourse Server's "home" directory.
      * 
      * @return the host application's home
      */
     @Nullable
-    private Path getConcourseServerHome() {
+    private static Path getConcourseServerHome() {
         // NOTE: This is a HACK! This method is borrowed from Concourse Server's
         // ManagementCli interface because we know that the provided ImportCli
         // will likely live in a Concourse Deployment's standard directory from
@@ -309,8 +314,8 @@ public class ImportCli extends CommandLineInterface {
                 clz = getCustomImporterClass(type);
             }
             catch (ClassNotFoundException e) {
-                throw new RuntimeException(Strings.format(
-                        "{} is not a valid importer type.", type));
+                throw new RuntimeException(Strings
+                        .format("{} is not a valid importer type.", type));
             }
         }
         try {
@@ -329,43 +334,80 @@ public class ImportCli extends CommandLineInterface {
      * importer that is not already defined in the {@link #importers built-in}
      * collection.
      * 
-     * @param alias a conventional alias (FileTypeImporter --> file-type) or a
-     *            fully qualified class name
+     * @param alias a conventional alias (i.e. FileTypeImporter --> file-type)
+     *            OR a fully qualified class name OR the path to a customer
+     *            importer file (can be .groovy or .jar) OR the name of a
+     *            customer importer file contained in the "importers" directory
+     *            of the server's home
      * @return the {@link Class} that corresponds to the custom importer
      * @throws ClassNotFoundException
      */
     @SuppressWarnings("unchecked")
-    private static Class<? extends Importer> getCustomImporterClass(String alias)
-            throws ClassNotFoundException {
+    private static Class<? extends Importer> getCustomImporterClass(
+            String alias) throws ClassNotFoundException {
         try {
             return (Class<? extends Importer>) Class.forName(alias);
         }
         catch (ClassNotFoundException e) {
-            // Attempt to determine the correct class name from the alias by
-            // loading the server's classpath. For the record, this is hella
-            // slow.
-            Reflections.log = null; // turn off reflection logging
-            Reflections reflections = new Reflections();
-            char firstChar = alias.charAt(0);
-            for (Class<? extends Importer> clazz : reflections
-                    .getSubTypesOf(Importer.class)) {
-                String name = clazz.getSimpleName();
-                if(name.length() == 0) { // Skip anonymous subclasses
-                    continue;
+            Path path;
+            boolean exists = true;
+            if(!(path = Paths.get(alias)).toFile().exists()) {
+                exists = false;
+                Path concourseServerHome = getConcourseServerHome();
+                if(concourseServerHome != null) {
+                    Path importers = getConcourseServerHome()
+                            .resolve("importers");
+                    String[] candidates = { alias, alias + ".groovy",
+                            alias + ".jar" };
+                    for (String candidate : candidates) {
+                        if((path = importers.resolve(candidate)).toFile()
+                                .exists()) {
+                            exists = true;
+                            break;
+                        }
+                    }
                 }
-                char nameFirstChar = name.charAt(0);
-                if(!Modifier.isAbstract(clazz.getModifiers())
-                        && (nameFirstChar == Character.toUpperCase(firstChar) || nameFirstChar == Character
-                                .toLowerCase(firstChar))) {
-                    String expected = CaseFormat.UPPER_CAMEL.to(
-                            CaseFormat.LOWER_HYPHEN, clazz.getSimpleName())
-                            .replaceAll("-importer", "");
-                    if(alias.equals(expected)) {
-                        return clazz;
+            }
+            if(exists) {
+                if(path.toString().endsWith(".groovy")) {
+                    return GroovyFiles.loadClass(path);
+                }
+                else {
+                    throw new UnsupportedOperationException(
+                            "Cannot define custom importer in a .jar file");
+                }
+            }
+            else {
+                // Attempt to determine the correct class name from the alias by
+                // loading the server's classpath. For the record, this is hella
+                // slow.
+                Reflections.log = null; // turn off reflection logging
+                Reflections reflections = new Reflections();
+                char firstChar = alias.charAt(0);
+                for (Class<? extends Importer> clazz : reflections
+                        .getSubTypesOf(Importer.class)) {
+                    String name = clazz.getSimpleName();
+                    if(name.length() == 0) { // Skip anonymous subclasses
+                        continue;
+                    }
+                    char nameFirstChar = name.charAt(0);
+                    if(!Modifier.isAbstract(clazz.getModifiers())
+                            && (nameFirstChar == Character
+                                    .toUpperCase(firstChar)
+                                    || nameFirstChar == Character
+                                            .toLowerCase(firstChar))) {
+                        String expected = CaseFormat.UPPER_CAMEL
+                                .to(CaseFormat.LOWER_HYPHEN,
+                                        clazz.getSimpleName())
+                                .replaceAll("-importer", "");
+                        if(alias.equals(expected)) {
+                            return clazz;
+                        }
                     }
                 }
             }
             throw e;
+
         }
     }
 
@@ -406,16 +448,19 @@ public class ImportCli extends CommandLineInterface {
      */
     protected static class ImportOptions extends Options {
 
-        @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")
+        @Parameter(names = { "-d",
+                "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")
         public String data;
 
         @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
         public int numThreads = Runtime.getRuntime().availableProcessors();
 
-        @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
+        @Parameter(names = { "-r",
+                "--resolveKey" }, description = "The key to use when resolving data into existing records")
         public String resolveKey = null;
 
-        @Parameter(names = { "-t", "--type" }, description = "The name/type of the importer to use")
+        @Parameter(names = { "-t",
+                "--type" }, description = "The name/type of the importer to use")
         public String type = "csv";
 
         @Parameter(names = "--header", description = "A custom header to assign for supporting importers")
