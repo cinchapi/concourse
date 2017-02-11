@@ -52,6 +52,7 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
+import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Alias;
@@ -2596,7 +2597,27 @@ public class ConcourseServer extends BaseConcourseServer
             try {
                 List<DeferredWrite> deferred = Lists.newArrayList();
                 for (Multimap<String, Object> object : objects) {
-                    long record = Time.now();
+                    long record;
+                    if(object.containsKey(
+                            Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                        // If the $id$ is specified in the JSON blob, insert the
+                        // data into that record since no record(s) are provided
+                        // as method parameters.
+
+                        // WARNING: This means that doing the equivalent of
+                        // `insert(jsonify(records))` will cause an infinite
+                        // loop because this method will attempt to insert the
+                        // data into the same records from which it was
+                        // exported. Therefore, advise users to not export data
+                        // with the $id and import that same data in the same
+                        // environment.
+                        record = ((Number) Iterables.getOnlyElement(object
+                                .get(Constants.JSON_RESERVED_IDENTIFIER_NAME)))
+                                        .longValue();
+                    }
+                    else {
+                        record = Time.now();
+                    }
                     atomic.touch(record);
                     if(Operations.insertAtomic(object, record, atomic,
                             deferred)) {

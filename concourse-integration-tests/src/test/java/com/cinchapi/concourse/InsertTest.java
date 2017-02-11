@@ -91,8 +91,8 @@ public class InsertTest extends ConcourseIntegrationTest {
         object.addProperty("spouse", Link.to(1));
         String json = object.toString();
         client.insert(json, 2);
-        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
-                2L));
+        Assert.assertTrue(
+                client.find("spouse", Operator.LINKS_TO, 1).contains(2L));
     }
 
     @Test
@@ -103,8 +103,8 @@ public class InsertTest extends ConcourseIntegrationTest {
         object.addProperty("spouse", Link.toWhere("name = Jeff"));
         String json = object.toString();
         client.insert(json, 2);
-        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
-                2L));
+        Assert.assertTrue(
+                client.find("spouse", Operator.LINKS_TO, 1).contains(2L));
     }
 
     @Test
@@ -115,8 +115,8 @@ public class InsertTest extends ConcourseIntegrationTest {
         object.addProperty("spouse", Link.toWhere("name = Jeff"));
         String json = object.toString();
         long record = client.insert(json).iterator().next();
-        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(
-                record));
+        Assert.assertTrue(
+                client.find("spouse", Operator.LINKS_TO, 1).contains(record));
     }
 
     @SuppressWarnings("unchecked")
@@ -129,9 +129,10 @@ public class InsertTest extends ConcourseIntegrationTest {
         b.put("_id", 1);
         client.insert(Lists.newArrayList(a, b));
         long record = Iterables.getOnlyElement(client.find("foo = 20"));
-        Assert.assertEquals(Sets.newHashSet(Iterables.getOnlyElement(client
-                .find("_id = 1"))), client.find(Strings.format("bar lnks2 {}",
-                record)));
+        Assert.assertEquals(
+                Sets.newHashSet(
+                        Iterables.getOnlyElement(client.find("_id = 1"))),
+                client.find(Strings.format("bar lnks2 {}", record)));
     }
 
     @Test
@@ -146,9 +147,10 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("Jeff Nelson", client.get("name", record));
         Assert.assertEquals("CEO", client.get("title", record));
         Assert.assertEquals("Cinchapi", client.get("company", record));
-        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
-                Link.to(2), Link.to(1))), client.select("direct_reports",
-                record));
+        Assert.assertEquals(
+                Sets.newLinkedHashSet(
+                        Lists.newArrayList(Link.to(2), Link.to(1))),
+                client.select("direct_reports", record));
     }
 
     @Test
@@ -162,9 +164,10 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("Jeff Nelson", client.get("name", record));
         Assert.assertEquals("CEO", client.get("title", record));
         Assert.assertEquals("Cinchapi", client.get("company", record));
-        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
-                Link.to(2), Link.to(1))), client.select("direct_reports",
-                record));
+        Assert.assertEquals(
+                Sets.newLinkedHashSet(
+                        Lists.newArrayList(Link.to(2), Link.to(1))),
+                client.select("direct_reports", record));
     }
 
     @Test
@@ -237,9 +240,10 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("Jeff Nelson", client.get("name", record));
         Assert.assertEquals("CEO", client.get("title", record));
         Assert.assertEquals("Cinchapi", client.get("company", record));
-        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
-                Link.to(2), Link.to(1))), client.select("direct_reports",
-                record));
+        Assert.assertEquals(
+                Sets.newLinkedHashSet(
+                        Lists.newArrayList(Link.to(2), Link.to(1))),
+                client.select("direct_reports", record));
     }
 
     @Test
@@ -254,9 +258,10 @@ public class InsertTest extends ConcourseIntegrationTest {
         Assert.assertEquals("Jeff Nelson", client.get("name", record));
         Assert.assertEquals("CEO", client.get("title", record));
         Assert.assertEquals("Cinchapi", client.get("company", record));
-        Assert.assertEquals(Sets.newLinkedHashSet(Lists.newArrayList(
-                Link.to(2), Link.to(1))), client.select("direct_reports",
-                record));
+        Assert.assertEquals(
+                Sets.newLinkedHashSet(
+                        Lists.newArrayList(Link.to(2), Link.to(1))),
+                client.select("direct_reports", record));
     }
 
     @Test
@@ -278,6 +283,13 @@ public class InsertTest extends ConcourseIntegrationTest {
         String json = "[{\"id\":34,\"handle\":\".tp-caption.medium_bg_orange\",\"settings\":\"{\\\"hover\\\":\\\"false\\\"}\",\"hover\":\"\",\"params\":'{\"color\":\"rgb(255, 255, 255)\",\"font-size\":\"20px\",\"line-height\":\"20px\",\"font-weight\":\"800\",\"font-family\":\"\\\"Open Sans\\\"\",\"text-decoration\":\"none\",\"padding\":\"10px\",\"background-color\":\"rgb(243, 156, 18)\",\"border-width\":\"0px\",\"border-color\":\"rgb(255, 214, 88)\",\"border-style\":\"none\"}',\"__table\":\"wp_revslider_css\"}]";
         Set<Long> records = client.insert(json);
         Assert.assertFalse(records.isEmpty());
+    }
+
+    @Test
+    public void testInsertIntoSpecificRecord() {
+        String json = "{\"age\": 20, \"company\": \"Twitter\", \"email\": \"jaque.porto@aol.com\", \"friends\": [\"@1485912714681002\", \"@1485912714665009\", \"@1485912714659009\", \"@1485912714687017\"], \"gender\": \"male\", \"job_title\": \"Software Architect\", \"name\": \"Jaque Porto\", \"phone_number\": \"+1 (718) 386 7175\", \"profile_pic\": \"https://randomuser.me/api/portraits/men/38.jpg\", \"salary\": 84542, \"years_employed\": 7,  \"$id$\": 1485912714650000}";
+        Set<Long> records = client.insert(json);
+        Assert.assertEquals(Sets.newHashSet(1485912714650000L), records);
     }
 
 }
