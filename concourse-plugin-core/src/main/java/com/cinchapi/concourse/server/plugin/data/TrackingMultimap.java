@@ -238,8 +238,13 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * The {@link #keySet()} reveals the total number of unique keys; however,
      * this method takes that value and divides it by the total number of values
      * across all of the keys to get a mathematical measure of how much
-     * duplication exists among the data in the map.
-     * duplication
+     * duplication exists among the data in the map duplication
+     * </p>
+     * <p>
+     * A distinctiveness of 1 means that the keys are completely distinct (e.g.
+     * no key maps to more than 1 value). Lower measures of distinctiveness mean
+     * that they are less distinct (e.g. on average, each key maps to more
+     * values as the distinctiveness gets closer to 0).
      * </p>
      * 
      * @return the distinctiveness of the data, on a scale from 0 to 1
@@ -404,7 +409,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             }
         }
         Set<V> values = data.get(key);
-        if(values != null && values.isEmpty()){
+        if(values != null && values.isEmpty()) {
             data.remove(key);
         }
         return stored;
