@@ -28,6 +28,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
@@ -414,6 +417,51 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         }
         return stored;
 
+    }
+
+    /**
+     * Return a relative measure of the statistical dispersion in this data.
+     * <p>
+     * There are several ways to measure statistical dispersion, so callers
+     * should not rely on a specific underlying implementation because it may
+     * change over time. This method simply offers a value that allows for
+     * comparison of dispersion across data sets.
+     * </p>
+     * <p>
+     * A larger dispersion value means that the data is more spread out whereas
+     * a smaller dispersion value indicates the opposite.
+     * </p>
+     * 
+     * @return the dispersion value for this data
+     */
+    public double spread() {
+        // Get the quartile coefficient of dispersion, which is a cross
+        // dataset mechanism for comparing the relative dispersion of data.
+        double[] frequencies = new double[size()];
+        AtomicInteger index = new AtomicInteger(0);
+        data.values().forEach(
+                records -> frequencies[index.getAndIncrement()] = records
+                        .size());
+        DescriptiveStatistics stats = new DescriptiveStatistics(frequencies);
+        double p1 = stats.getPercentile(25);
+        double p3 = stats.getPercentile(75);
+        double coefficientOfDispersion = (p3 - p1) / (p3 + p1);
+
+        // Grab the coefficient of variance
+        double coefficientOfVariance = stats.getStandardDeviation()
+                / stats.getMean();
+
+        // Calculate the average absolute deviation from the mean
+        double[] deviations = new double[frequencies.length];
+        for (int i = 0; i < deviations.length; ++i) {
+            deviations[i] = Math.abs(frequencies[i] - stats.getMean());
+        }
+        double averageAbsoluteDeviation = StatUtils.mean(deviations)
+                / stats.getMean();
+
+        // Apply a weighting to the various components
+        return (0.50 * coefficientOfDispersion) + (0.40 * coefficientOfVariance)
+                + (0.10 * averageAbsoluteDeviation);
     }
 
     @Override

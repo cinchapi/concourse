@@ -26,7 +26,9 @@ import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.collect.Maps;
 
 /**
  * Unit tests for {@link ObjectResultDataset}
@@ -43,17 +45,17 @@ public class ObjectResultDatasetTest {
         Assert.assertFalse(dataset.get(0L).isEmpty());
         Assert.assertFalse(dataset.get(0L, "key").isEmpty());
     }
-    
+
     @Test
-    public void testEntrySetNotEmpty(){
+    public void testEntrySetNotEmpty() {
         TObjectResultDataset dataset = new TObjectResultDataset();
         dataset.insert(1L, "age", Convert.javaToThrift(100));
         ObjectResultDataset dataset2 = new ObjectResultDataset(dataset);
         Assert.assertFalse(dataset2.entrySet().isEmpty());
     }
-    
+
     @Test
-    public void testConvertToComplexTObject(){
+    public void testConvertToComplexTObject() {
         TObjectResultDataset dataset = new TObjectResultDataset();
         dataset.insert(1L, "age", Convert.javaToThrift(100));
         ObjectResultDataset expected = new ObjectResultDataset(dataset);
@@ -64,10 +66,11 @@ public class ObjectResultDatasetTest {
             Assert.assertTrue(actual.containsValue(value));
         });
     }
-    
+
     @Test
-    public void testSerialization(){
-        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+    public void testSerialization() {
+        ObjectResultDataset dataset = new ObjectResultDataset(
+                new TObjectResultDataset());
         dataset.insert(1L, "name", "Jeff Nelson");
         PluginSerializer serializer = new PluginSerializer();
         ByteBuffer bytes = serializer.serialize(dataset);
@@ -76,52 +79,55 @@ public class ObjectResultDatasetTest {
         Object obj = serializer.deserialize(bytes2);
         Assert.assertEquals(dataset, obj);
     }
-    
+
     @Test
-    public void testGetKeyRecordIterator(){
-        ObjectResultDataset dataset = new ObjectResultDataset(new TObjectResultDataset());
+    public void testGetKeyRecordIterator() {
+        ObjectResultDataset dataset = new ObjectResultDataset(
+                new TObjectResultDataset());
         dataset.insert(1L, "name", "Jeff Nelson");
         Set<Object> set = dataset.get(1L, "name");
-        for (Object obj : set){
+        for (Object obj : set) {
             Assert.assertNotNull(obj);
         }
     }
-    
+
     @Test
-    public void testInvertedEntrySetWhenNoData(){
+    public void testInvertedEntrySetWhenNoData() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         Map<String, Map<Object, Set<Long>>> inverted = dataset.invert();
         Assert.assertNotNull(inverted.get("foo").entrySet().iterator());
     }
-    
+
     @Test
-    public void testGetEntityGetAttributeIteratorNoNpe(){
+    public void testGetEntityGetAttributeIteratorNoNpe() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "name", "Jeff Nelson");
         Assert.assertNotNull(dataset.get(1L).get("name").iterator().next());
     }
-    
+
     @Test
-    public void testInvertedAttributeKeyDeletedIfEmpty(){
+    public void testInvertedAttributeKeyDeletedIfEmpty() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "name", "Jeff Nelson");
         dataset.remove(1L);
         Assert.assertFalse(dataset.invert().containsKey("name"));
     }
-    
+
     @Test
-    public void testInvertedAttributeValueKeyDeletedIfEmpty(){
+    public void testInvertedAttributeValueKeyDeletedIfEmpty() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "name", "Jeff Nelson");
         dataset.insert(2L, "name", "Jeff Nelson");
         dataset.remove(1L);
         Assert.assertTrue(dataset.invert().containsKey("name"));
-        Assert.assertFalse(dataset.invert().get("name").get("Jeff Nelson").contains(1L));
-        Assert.assertTrue(dataset.invert().get("name").get("Jeff Nelson").contains(2L));
+        Assert.assertFalse(
+                dataset.invert().get("name").get("Jeff Nelson").contains(1L));
+        Assert.assertTrue(
+                dataset.invert().get("name").get("Jeff Nelson").contains(2L));
     }
-    
+
     @Test
-    public void testCacheDeletedAfterDeletingEntity(){
+    public void testCacheDeletedAfterDeletingEntity() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "name", "Jeff Nelson");
         dataset.insert(2L, "name", "Jeff Nelson");
@@ -130,21 +136,55 @@ public class ObjectResultDatasetTest {
             Assert.assertNotEquals(Long.valueOf(1), record);
         });
     }
-    
+
     @Test
-    public void testRemoveConcurrentModificationExceptionRepro(){
+    public void testRemoveConcurrentModificationExceptionRepro() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "name", "Jeff Nelson");
         dataset.insert(1L, "age", 29);
         dataset.insert(1L, "enabled", true);
         dataset.remove(1L);
     }
-    
+
     @Test
-    public void testRecordAttributeIsEmpty(){
+    public void testRecordAttributeIsEmpty() {
         ObjectResultDataset dataset = new ObjectResultDataset();
         dataset.insert(1L, "age", 23);
         Assert.assertTrue(dataset.get(1L, "name").isEmpty());
+    }
+
+    @Test
+    public void testDispersion() {
+        ObjectResultDataset a = new ObjectResultDataset();
+        Map<String, Integer> names = Maps.newHashMap();
+        names.put("Jeff Nelson", 2);
+        names.put("John Doe", 4);
+        names.put("Jane Doe", 6);
+        names.put("Jonathan Barronville", 8);
+        names.put("Lilian Brown", 10);
+        names.put("Kylie Jenner", 12);
+        names.put("Adrian Brown", 14);
+        Map<Integer, Integer> ages = Maps.newHashMap();
+        ages.put(20, 1);
+        ages.put(30, 1);
+        ages.put(31, 2);
+        ages.put(32, 2);
+        ages.put(33, 1);
+        ages.put(40, 1);
+        ages.put(41, 1);
+        names.forEach((name, count) -> {
+            for (int i = 0; i < count; ++i) {
+                a.insert(Time.now(), "name", name);
+            }
+        });
+        ages.forEach((age, count) -> {
+            for (int i = 0; i < count; ++i) {
+                a.insert(Time.now(), "age", age);
+            }
+        });
+        Assert.assertTrue(((TrackingMultimap<Object, Long>) a.invert("name"))
+                .spread() > ((TrackingMultimap<Object, Long>) a.invert("age"))
+                        .spread());
     }
 
 }
