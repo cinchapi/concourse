@@ -216,7 +216,7 @@ public class ManagedConcourseServer {
     private static int getOpenPort() {
         int min = 49512;
         int max = 65535;
-        int port = RAND.nextInt(min) + (max - min);
+        int port = min + RAND.nextInt(max-min);
         return isPortAvailable(port) ? port : getOpenPort();
     }
 
