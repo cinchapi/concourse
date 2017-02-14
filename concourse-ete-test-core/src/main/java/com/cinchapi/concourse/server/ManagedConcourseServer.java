@@ -22,6 +22,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -48,6 +49,7 @@ import javax.management.remote.JMXServiceURL;
 import jline.TerminalFactory;
 
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.process.Processes.ProcessResult;
 import com.cinchapi.common.reflect.Reflection;
@@ -216,7 +218,7 @@ public class ManagedConcourseServer {
     private static int getOpenPort() {
         int min = 49512;
         int max = 65535;
-        int port = min + RAND.nextInt(max-min);
+        int port = min + RAND.nextInt(max - min);
         return isPortAvailable(port) ? port : getOpenPort();
     }
 
@@ -782,7 +784,7 @@ public class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
-        private final Object delegate;
+        private Object delegate;
         private ClassLoader loader;
 
         /**
@@ -796,30 +798,64 @@ public class ManagedConcourseServer {
          * 
          * @param username
          * @param password
+         * @param retries
+         */
+        private Client(String username, String password, int retries) {
+            while (retries > 0) {
+                --retries;
+                try {
+                    this.loader = new URLClassLoader(
+                            gatherJars(getInstallDirectory()), null);
+                    try {
+                        clazz = loader.loadClass(packageBase + "Concourse");
+                    }
+                    catch (ClassNotFoundException e) {
+                        // Prior to version 0.5.0, Concourse classes were
+                        // located in the "org.cinchapi.concourse" package, so
+                        // we attempt to use that if the default does not work.
+                        packageBase = "org.cinchapi.concourse.";
+                        clazz = loader.loadClass(packageBase + "Concourse");
+                    }
+                    this.delegate = clazz.getMethod("connect", String.class,
+                            int.class, String.class, String.class).invoke(null,
+                                    "localhost", getClientPort(), username,
+                                    password);
+                }
+                catch (InvocationTargetException e) {
+                    Throwable target = e.getTargetException();
+                    if(target.getMessage().contains(
+                            "Could not connect to the Concourse Server")) {
+                        // There is a race condition where the CLI reports the
+                        // server has started (because the process has
+                        // registered a PID) but the thrift server hasn't been
+                        // opened to accept connections yet. This logic tries to
+                        // get around that by retrying the connection a handful
+                        // of times before failing.
+                        try {
+                            Thread.sleep(500);
+                            continue;
+                        }
+                        catch (InterruptedException t) {/* ignore */}
+                    }
+                    else {
+                        throw CheckedExceptions.throwAsRuntimeException(e);
+                    }
+                }
+                catch (Exception e) {
+                    throw CheckedExceptions.throwAsRuntimeException(e);
+                }
+            }
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
          * @throws Exception
          */
         public Client(String username, String password) {
-            try {
-                this.loader = new URLClassLoader(
-                        gatherJars(getInstallDirectory()), null);
-                try {
-                    clazz = loader.loadClass(packageBase + "Concourse");
-                }
-                catch (ClassNotFoundException e) {
-                    // Prior to version 0.5.0, Concourse classes were located in
-                    // the "org.cinchapi.concourse" package, so we attempt to
-                    // use that if the default does not work.
-                    packageBase = "org.cinchapi.concourse.";
-                    clazz = loader.loadClass(packageBase + "Concourse");
-                }
-                this.delegate = clazz.getMethod("connect", String.class,
-                        int.class, String.class, String.class).invoke(null,
-                                "localhost", getClientPort(), username,
-                                password);
-            }
-            catch (Exception e) {
-                throw Throwables.propagate(e);
-            }
+            this(username, password, 5);
         }
 
         @Override
