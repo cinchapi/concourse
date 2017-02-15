@@ -236,8 +236,8 @@ public class ManagedConcourseServer {
                     .get(directory + File.separator + TARGET_BINARY_NAME);
             Files.deleteIfExists(binary);
             Files.copy(Paths.get(installer), binary);
-            ProcessBuilder builder = new ProcessBuilder(
-                    Lists.newArrayList("sh", binary.toString()));
+            ProcessBuilder builder = new ProcessBuilder(Lists.newArrayList("sh",
+                    binary.toString(), "--", "skip-integration"));
             builder.directory(new File(directory));
             builder.redirectErrorStream();
             Process process = builder.start();
