@@ -103,6 +103,12 @@ subprojects {
 
     group = 'com.cinchapi'
     version = globalVersion
+    // Drop the build component from version number and use that for
+    // publishing
+    ext.mavenVersion = version.split('\\.')
+    ext.mavenVersion[3] = ext.mavenVersion[3].replaceAll("[0-9]+-", "-")
+    ext.mavenVersion[3] = ext.mavenVersion[3].replaceAll("[0-9]+", "").trim()
+    ext.mavenVersion = ext.mavenVersion.join(".").replace(".-", "-").replaceAll('\\.$', "")
 
     jar {
         manifest {
@@ -152,13 +158,7 @@ subprojects {
                         beforeDeployment {
                             MavenDeployment deployment -> signing.signPom(deployment)
                         }
-                        // Drop the build component from version number and use
-                        // that in the POM file
-                        def _version = project.version.split('\\.')
-                        _version[3] = _version[3].replaceAll("[0-9]+-", "-")
-                        _version[3] = _version[3].replaceAll("[0-9]+", "").trim()
-                        _version = _version.join(".").replace(".-", "-").replaceAll('\\.$', "")
-                        pom.version = _version
+                        pom.version = mavenVersion
                         pom.project {
                             name mavenTitle
                             description mavenDescription
@@ -210,4 +210,3 @@ subprojects {
         }
     }
 }
-

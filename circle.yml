@@ -40,7 +40,7 @@ test:
     - cp sonatype-credentials/gradle.properties .
     - cp sonatype-credentials/secring.gpg /home/ubuntu
   override:
-    - "./gradlew clean build installer uploadArchives"
+    - "./gradlew clean build installer uploadArchives bintrayUpload"
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
