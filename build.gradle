@@ -162,6 +162,7 @@ subprojects {
                         pom.project {
                             name mavenTitle
                             description mavenDescription
+                            url 'https://github.com/cinchapi/concourse'
                             packaging 'jar'
 
                             scm {
