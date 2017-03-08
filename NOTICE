@@ -15,6 +15,13 @@
      https://github.com/cinchapi/accent4j
      Copyright 2015 Cinchapi Inc.
 
+     Bucket
+     ------
+     Bucket is an embedded key/value database with version control.
+
+     https://github.com/cinchapi/bucket
+     Copyright 2017 Cinchapi Inc.
+
   2. Includes software developed by the Apache Software Foundation
      (http://www.apache.org) or released under the Apache License,
      Version 2.0:
@@ -334,6 +341,13 @@
 
       http://atomix.io/catalyst/
       Copyright 2015 the Atomix crew
+
+      SQLite JDBC Driver
+      ------------------
+      SQLite JDBC, developed by Taro L. Saito, is a library for accessing and creating SQLite database files in Java.
+
+      https://github.com/xerial/sqlite-jdbc
+      Copyright Taro L. Saito, David Crawshaw and associated authors
 
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
