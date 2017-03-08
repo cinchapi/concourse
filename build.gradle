@@ -85,7 +85,7 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.guava:guava:18.0'
+        compile 'com.google.guava:guava:19.0'
         compile 'org.mockito:mockito-all:1.9.5'
         compile 'commons-codec:commons-codec:1.8'
         compile 'com.google.code.findbugs:jsr305:2.0.1'
@@ -94,7 +94,9 @@ subprojects {
         compile 'joda-time:joda-time:2.2'
         compile 'org.apache.thrift:libthrift:0.9.3'
         compile 'commons-configuration:commons-configuration:1.9'
-        compile group: 'com.cinchapi', name: 'accent4j', version: '1.0.0-SNAPSHOT', changing:true
+        compile (group: 'com.cinchapi', name: 'accent4j', version: '1.0.0-SNAPSHOT', changing:true) {
+            exclude group: 'com.google.guava', module: 'guava'
+        }
         testCompile 'junit:junit:4.11'
     }
 
