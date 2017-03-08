@@ -24,7 +24,7 @@ import java.nio.file.Paths;
  * 
  * @author Jeff Nelson
  */
-public final class PluginRuntime implements PluginStateProvider {
+public final class PluginRuntime implements PluginStateContainer {
 
     /**
      * Singleton instance.

@@ -23,7 +23,7 @@ import java.nio.file.Path;
  * 
  * @author Jeff Nelson
  */
-public interface PluginStateProvider {
+public interface PluginStateContainer {
 
     /**
      * Get the directory where the plugin store's data.
