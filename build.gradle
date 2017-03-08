@@ -74,6 +74,9 @@ subprojects {
         maven {
             url  'http://cinchapi.bintray.com/maven'
         }
+        maven {
+            url  'http://cinchapi.bintray.com/maven-snapshots'
+        }
     }
 
     configurations {
