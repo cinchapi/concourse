@@ -82,7 +82,7 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.guava:guava:18.0'
+        compile 'com.google.guava:guava:19.0'
         compile 'org.mockito:mockito-all:1.9.5'
         compile 'commons-codec:commons-codec:1.8'
         compile 'com.google.code.findbugs:jsr305:2.0.1'
