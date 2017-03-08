@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.nio.file.Path;
 
+import com.cinchapi.bucket.Bucket;
+
 /**
  * An interface that provides some default implementations for facilities that
  * provide information about the state of a {@link Plugin}.
@@ -42,5 +44,27 @@ public interface PluginStateContainer {
      * @return the home directory
      */
     public Path home();
+
+    /**
+     * Return a {@link Bucket} that can be used to provide local storage under
+     * the given {@code namespace}.
+     * 
+     * @param namespace the namespace to use for the local storage
+     * @return a {@link Bucket} for local storage
+     */
+    public default Bucket localStorage(String namespace) {
+        Path file = data().resolve("localStorage.bkt");
+        return Bucket.connect(file, namespace);
+    }
+
+    /**
+     * Return a {@link Bucket} that can be used to provide general local
+     * storage.
+     * 
+     * @return a {@link Bucket} for general local storage
+     */
+    public default Bucket localStorage() {
+        return localStorage("general");
+    }
 
 }
