@@ -53,7 +53,7 @@ public interface PluginStateContainer {
      * @return a {@link Bucket} for local storage
      */
     public default Bucket localStorage(String namespace) {
-        Path file = data().resolve("localStorage.bkt");
+        Path file = data().resolve("local.db");
         return Bucket.connect(file, namespace);
     }
 
