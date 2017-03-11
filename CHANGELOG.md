@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.6.1
+* Added a bug fix that prevents service tokens from auto-expiring.
+
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
 * Added a `sum` aggregation function.
