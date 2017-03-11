@@ -407,6 +407,59 @@ final class Operations {
             }
         }
     }
+    
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * across the {@code key} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyAtomic(String key, long timestamp,
+            AtomicOperation atomic) {
+        return calculateKeyAtomic(key, timestamp, 0, atomic,
+                Calculations.countKey()).longValue();
+    }
+    
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+                Calculations.countKeyRecord()).longValue();
+    }
+    
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        long count = 0;
+        for (long record : records) {
+            count = calculateKeyRecordAtomic(key, record, timestamp, count, atomic,
+                    Calculations.countKeyRecord()).longValue();
+        }
+        return count;
+    }
 
     /**
      * Use the provided {@code atomic} operation to add each of the values
