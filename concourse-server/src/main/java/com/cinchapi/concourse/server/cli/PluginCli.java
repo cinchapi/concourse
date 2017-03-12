@@ -36,7 +36,7 @@ abstract class PluginCli extends ManagementCli {
     }
 
     /**
-     * Return the command that can be passed to the {@link ManagedPluginCli} to
+     * Return the command that can be passed to the {@link ManagePluginsCli} to
      * invoke this particular cli.
      * 
      * @return the command
