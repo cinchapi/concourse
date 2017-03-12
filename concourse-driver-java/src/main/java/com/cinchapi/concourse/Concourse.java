@@ -2212,6 +2212,474 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean link(String key, long destination, long source);
 
     /**
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the {@code records} and return the data contained at
+     * each of the destinations.
+     * 
+     * @param keys a collection of navigation keys
+     * @param records a collection of record ids from which the navigation
+     *            starts
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Collection<Long> records);
+
+    /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the {@code records} and
+     * return the data contained at each of the destinations at
+     * {@code timestamp}.
+     * 
+     * @param keys a collection of navigation keys
+     * @param records a collection of record ids from which the navigation
+     *            starts
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp);
+
+    /**
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Criteria criteria);
+
+    /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp);
+
+    /**
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at {@code record} and return the data contained at each of the
+     * destinations.
+     * 
+     * @param keys a collection of navigation keys
+     * @param record the record id from which the navigation starts
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, long record);
+
+    /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at {@code record} and return the data
+     * contained at each of the destinations at {@code timestamp}.
+     * 
+     * @param keys a collection of navigation keys
+     * @param record the record id from which the navigation starts
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, long record, Timestamp timestamp);
+
+    /**
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public final <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Object criteria) {
+        if(criteria instanceof BuildableState) {
+            return navigate(keys, ((BuildableState) criteria).build());
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public final <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, Object criteria, Timestamp timestamp) {
+        if(criteria instanceof BuildableState) {
+            return navigate(keys, ((BuildableState) criteria).build(),
+                    timestamp);
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Traverse the document-graph along each of the navigation {@code keys},
+     * starting at each of the records that match the {@code criteria} and
+     * return the data contained at each of the destinations.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, String ccl);
+
+    /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at each of the records that matched the
+     * {@code criteria} and return the data contained at each of the
+     * destinations at {@code timestamp}.
+     * 
+     * @param keys a collection of navigation keys
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, String ccl, Timestamp timestamp);
+
+    /**
+     * Return all values stored for {@code key} in each of the {@code records}.
+     * Navigates through the key splited with dot(.) operator.
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * 
+     * @param key the field name
+     * @param records a collection of record ids
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key,
+            Collection<Long> records);
+
+    /**
+     * Return all values stored for {@code key} in each of the {@code records}
+     * at {@code timestamp}.Navigates through the key splited with dot(.)
+     * operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key,
+            Collection<Long> records, Timestamp timestamp);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key,
+            Criteria criteria);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key,
+            Criteria criteria, Timestamp timestamp);
+
+    /**
+     * Return all the values stored for {@code key} in {@code record}.Iterates
+     * through the key splitted with dot(.) operator. Navigates only if the key
+     * has a link as value which points to another record.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Map} containing record and all the values stored in the
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key, long record);
+
+    /**
+     * Return all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}. Navigates through the key splitted with dot(.)
+     * operator. Iterates only if the key has a link as value which points to
+     * another record.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} containing all the values stored in the field at
+     *         {@code timestamp}
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key, long record,
+            Timestamp timestamp);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria) {
+        if(criteria instanceof BuildableState) {
+            return navigate(key, ((BuildableState) criteria).build());
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@link Criteria} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria,
+            Timestamp timestamp) {
+        if(criteria instanceof BuildableState) {
+            return navigate(key, ((BuildableState) criteria).build(),
+                    timestamp);
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the navigate method");
+        }
+    }
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code ccl} filter. Navigates through the key splited
+     * with dot(.) operator.
+     * <p>
+     * Iterates only if the key has a link as value which
+     * points to another record.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl,
+            Timestamp timestamp);
+
+    /**
      * Atomically check to see if each of the {@code records} currently contains
      * any data.
      * 

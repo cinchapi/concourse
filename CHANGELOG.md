@@ -1,5 +1,12 @@
 ## Changelog
 
+#### Version 0.7.0
+* Added `navigate` methods that allow selecting data based on link traversal. For example, it is possible to select the names of the friends of record 1's friends by doing
+
+		navigate "friends.friends.name", 1
+
+* TBD
+
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
 * Added a `ps` command to the `plugins` CLI to display information about the running plugins.
