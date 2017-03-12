@@ -27,7 +27,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 
 /**
- * A cli for install plugins.
+ * A cli for installing plugins.
  * 
  * @author Jeff Nelson
  */
