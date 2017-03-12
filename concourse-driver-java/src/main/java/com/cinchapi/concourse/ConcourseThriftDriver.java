@@ -1537,7 +1537,7 @@ class ConcourseThriftDriver extends Concourse {
                     .navigateKeysRecords(Collections.toList(keys),
                             Collections.toLongList(records), creds, transaction,
                             environment);
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1551,7 +1551,7 @@ class ConcourseThriftDriver extends Concourse {
                             Collections.toLongList(records),
                             timestamp.getMicros(), creds, transaction,
                             environment);
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1563,7 +1563,7 @@ class ConcourseThriftDriver extends Concourse {
                     .navigateKeysCriteria(Collections.toList(keys),
                             Language.translateToThriftCriteria(criteria), creds,
                             transaction, environment);
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1583,7 +1583,7 @@ class ConcourseThriftDriver extends Concourse {
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1594,7 +1594,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> raw = client
                     .navigateKeysRecord(Collections.toList(keys), record, creds,
                             transaction, environment);
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1614,7 +1614,7 @@ class ConcourseThriftDriver extends Concourse {
                         record, timestamp.getMicros(), creds, transaction,
                         environment);
             }
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1625,7 +1625,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> raw = client.navigateKeysCcl(
                     Collections.toList(keys), ccl, creds, transaction,
                     environment);
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1644,7 +1644,7 @@ class ConcourseThriftDriver extends Concourse {
                 raw = client.navigateKeysCclTime(Collections.toList(keys), ccl,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            return ThriftResults.prettyRecordsKeysValues(raw);
+            return Thrift.transformRecordsKeysValues(raw);
         });
     }
 
@@ -1658,7 +1658,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1680,7 +1680,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1694,7 +1694,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1716,7 +1716,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1728,7 +1728,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1748,7 +1748,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1760,7 +1760,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 
@@ -1780,7 +1780,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record",
                             LinkNavigation.getNavigationSchemeDestination(key));
-            return ThriftResults.prettyRecordsValues(raw, pretty);
+            return Thrift.transformRecordsValues(raw, pretty);
         });
     }
 

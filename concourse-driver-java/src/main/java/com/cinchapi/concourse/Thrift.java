@@ -17,23 +17,27 @@ package com.cinchapi.concourse;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
-
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Conversions;
-import com.cinchapi.concourse.util.LinkNavigation;
-import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
 
 /**
- * A utility class for converting thrift results to pretty java results.
+ * A utility class for transforming Thrift results to Java results.
  * 
  * @author Jeff Nelson
  */
-final class ThriftResults {
+final class Thrift {
 
-    public static <T> Map<Long, Set<T>> prettyRecordsValues(
+    /**
+     * Transform the {@code thrift} result and place the objects into the
+     * {@code java} typed collection.
+     * 
+     * @param thrift the raw results from Thrift
+     * @param java the collection for the java results
+     * @return a java result set
+     */
+    public static <T> Map<Long, Set<T>> transformRecordsValues(
             Map<Long, Set<TObject>> thrift, Map<Long, Set<T>> java) {
         thrift.forEach((record, values) -> {
             java.put(record, Transformers.transformSetLazily(values,
@@ -42,14 +46,29 @@ final class ThriftResults {
         return java;
     }
 
-    public static <T> Map<Long, Map<String, Set<T>>> prettyRecordsKeysValues(
+    /**
+     * Transform the {@code thrift} results and place the objects into a pretty
+     * java typed collection.
+     * 
+     * @param thrift the raw results from Thrift
+     * @return a pretty java result set
+     */
+    public static <T> Map<Long, Map<String, Set<T>>> transformRecordsKeysValues(
             Map<Long, Map<String, Set<TObject>>> thrift) {
         Map<Long, Map<String, Set<T>>> java = PrettyLinkedTableMap
                 .newPrettyLinkedTableMap("Record");
-        return prettyRecordsKeysValues(thrift, java);
+        return transformRecordsKeysValues(thrift, java);
     }
 
-    public static <T> Map<Long, Map<String, Set<T>>> prettyRecordsKeysValues(
+    /**
+     * Transform the {@code thrift} result and place the objects into the
+     * {@code java} typed collection.
+     * 
+     * @param thrift the raw results from Thrift
+     * @param java the collection for the java results
+     * @return a java result set
+     */
+    public static <T> Map<Long, Map<String, Set<T>>> transformRecordsKeysValues(
             Map<Long, Map<String, Set<TObject>>> thrift,
             Map<Long, Map<String, Set<T>>> java) {
         thrift.forEach((record, data) -> {
