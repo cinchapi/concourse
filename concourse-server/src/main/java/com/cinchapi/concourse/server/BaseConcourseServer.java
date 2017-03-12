@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import org.apache.thrift.TException;
 
@@ -140,6 +141,13 @@ public abstract class BaseConcourseServer
             throws TException {
         checkAccess(creds);
         getAccessManager().deleteUser(username);
+    }
+
+    @Override
+    @PluginRestricted
+    public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
+            throws TException {
+        return getPluginManager().runningPlugins();
     }
 
     @Override
