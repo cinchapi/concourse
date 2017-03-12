@@ -161,7 +161,7 @@ public class JavaAppTest extends ConcourseBaseTest {
                     "-Dcom.cinchapi.concourse.server.io.process.pid=" + id);
             app.run();
             ProcessBuilder pb = Processes.getBuilderWithPipeSupport("ps aux | grep "
-                    + id + " | grep -v \"grep " + id + "\" | awk '{print $2}' ");
+                    + id + " | grep -v \"grep\" | awk '{print $2}' ");
             try {
                 Process process = pb.start();
                 ProcessResult result = Processes.waitForSuccessfulCompletion(process);
