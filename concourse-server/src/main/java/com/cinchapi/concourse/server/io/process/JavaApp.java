@@ -36,6 +36,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.common.process.ProcessTerminationListener;
 import com.cinchapi.common.process.ProcessWatcher;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
 import com.cinchapi.concourse.util.Processes;
@@ -416,6 +417,26 @@ public class JavaApp extends Process {
         }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Returns the native process ID of the process. The native process ID is an
+     * identification number that the operating system assigns to the process.
+     * The operating system may reuse the process ID after a process terminates.
+     * 
+     * @return the native process ID of the process
+     * @throws UnsupportedOperationException if the implementation does not
+     *             support this operation OR the process has not begun
+     *             {@link #run() running}
+     */
+    public long pid() {
+        if(process.getClass().getName().equals("java.lang.UNIXProcess")) {
+            return ((Integer) Reflection.get("pid", process)).longValue();
+        }
+        else {
+            throw new UnsupportedOperationException(
+                    "Cannot retrieve the pid on the underlying platform");
+        }
     }
 
     /**
