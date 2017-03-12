@@ -153,6 +153,7 @@ public class JavaAppTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testPid() {
         if(Platform.isLinux() || Platform.isMacOsX() || Platform.isSolaris()){
             String id = UUID.randomUUID().toString();
