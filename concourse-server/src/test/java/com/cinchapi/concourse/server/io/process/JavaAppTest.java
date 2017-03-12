@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.io.process;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
@@ -25,6 +26,10 @@ import org.junit.Test;
 
 import spark.utils.IOUtils;
 
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Platform;
+import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Commands;
 import com.cinchapi.concourse.util.TestData;
@@ -145,6 +150,32 @@ public class JavaAppTest extends ConcourseBaseTest {
             JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS = interval;
         }
 
+    }
+
+    @Test
+    public void testPid() {
+        if(Platform.isLinux() || Platform.isMacOsX() || Platform.isSolaris()){
+            String id = UUID.randomUUID().toString();
+            JavaApp app = new JavaApp(System.getProperty("java.class.path"),
+                    GOOD_SOURCE,
+                    "-Dcom.cinchapi.concourse.server.io.process.pid=" + id);
+            app.run();
+            ProcessBuilder pb = Processes.getBuilderWithPipeSupport("ps aux | grep "
+                    + id + " | grep -v \"grep " + id + "\" | awk '{print $2}' ");
+            try {
+                Process process = pb.start();
+                ProcessResult result = Processes.waitForSuccessfulCompletion(process);
+                long expected = Long.parseLong(result.out().get(0));
+                Assert.assertEquals(expected, app.pid());              
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
+        }
+        else {
+            Assert.assertTrue(true);
+        }
+        
     }
 
 }

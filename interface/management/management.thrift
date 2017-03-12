@@ -40,18 +40,22 @@ service ConcourseManagementService {
    */
   shared.AccessToken login(
     1: binary username,
-    2: binary password)
+    2: binary password
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex
+  );
 
   /**
    * Terminiate the session.
    * @param  creds
    */
   void logout(
-    1: shared.AccessToken creds)
+    1: shared.AccessToken creds
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex
+  );
 
   /**
    * Disable the user(i.e. the user cannot be authenticated for any purposes,
@@ -63,7 +67,8 @@ service ConcourseManagementService {
    */
   void disableUser(
     1: binary username,
-	  2: shared.AccessToken creds);
+	  2: shared.AccessToken creds
+  );
 
   /**
    * Return a string that contains the dumps for all the storage units (i.e.
@@ -79,7 +84,8 @@ service ConcourseManagementService {
   string dump(
 	  1: string id,
 	  2: string environment,
-	  3: shared.AccessToken creds);
+	  3: shared.AccessToken creds
+  );
 
   /**
    * Enable the user(i.e. the user can be authenticated with the correct
@@ -91,7 +97,8 @@ service ConcourseManagementService {
    */
   void enableUser(
 	  1: binary username
-	  2: shared.AccessToken creds);
+	  2: shared.AccessToken creds
+  );
 
   /**
    * Return a string that contains a list of the ids in the
@@ -105,7 +112,8 @@ service ConcourseManagementService {
    */
   string getDumpList(
 	  1: string environment
-	  2: shared.AccessToken creds);
+	  2: shared.AccessToken creds
+  );
 
   /**
    * Grant access to the user identified by the combination of
@@ -119,7 +127,8 @@ service ConcourseManagementService {
   void grant(
 	  1: binary username,
 	  2: binary password,
-    3: shared.AccessToken creds);
+    3: shared.AccessToken creds
+  );
 
   /**
    * Return {@code true} if the server can be accessed
@@ -132,7 +141,8 @@ service ConcourseManagementService {
    */
   bool hasUser(
 	  1: binary username,
-	  2: shared.AccessToken creds);
+	  2: shared.AccessToken creds
+  );
 
   /**
    * Install the plugin bundle contained in the {@code file}.
@@ -142,9 +152,11 @@ service ConcourseManagementService {
    */
   void installPluginBundle(
 	  1: string file,
-	  2: shared.AccessToken creds)
+	  2: shared.AccessToken creds
+  )
   throws (
-    1: exceptions.ManagementException ex);
+    1: exceptions.ManagementException ex
+  );
 
   /**
    * Return the names of all the environments that exist within Concourse
@@ -156,7 +168,8 @@ service ConcourseManagementService {
    * @return a string containing all of the environments
    */
   string listAllEnvironments(
-	  1: shared.AccessToken token);
+	  1: shared.AccessToken token
+  );
 
   /**
    * Return a description of all the currently active user sessions within
@@ -167,7 +180,8 @@ service ConcourseManagementService {
    * @return a string containing all the user sessions
    */
   string listAllUserSessions(
-	   1: shared.AccessToken creds);
+	   1: shared.AccessToken creds
+  );
 
   /**
    * List all of the plugins that are available.
@@ -177,7 +191,8 @@ service ConcourseManagementService {
    * @return a String containing a list of all the available plugins
    */
   string listPluginBundles(
-	  1: shared.AccessToken creds);
+	  1: shared.AccessToken creds
+  );
 
   /**
    * Remove the user identified by {@code username}.
@@ -188,7 +203,18 @@ service ConcourseManagementService {
    */
   void revoke(
 	  1: binary username
- 	  2: shared.AccessToken creds);
+ 	  2: shared.AccessToken creds
+  );
+
+  /**
+   * Return information about all the running plugins.
+   *
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   */
+  map<i64, map<string, string>> runningPluginsInfo(
+    1: shared.AccessToken creds
+  )
 
   /**
    * Uninstall the plugin bundled referred to as {@code name}.
@@ -199,5 +225,6 @@ service ConcourseManagementService {
    */
   void uninstallPluginBundle(
 	  1: string name
-	  2: shared.AccessToken creds);
+	  2: shared.AccessToken creds
+  );
 }

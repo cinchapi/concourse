@@ -27,7 +27,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 
 /**
- * A cli for install plugins.
+ * A cli for installing plugins.
  * 
  * @author Jeff Nelson
  */
@@ -81,5 +81,10 @@ class InstallPluginCli extends PluginCli {
                                     + "provide its local path to the "
                                     + "installer", plugin));
         }
+    }
+
+    @Override
+    protected boolean requireArgs() {
+        return true;
     }
 }
