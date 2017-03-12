@@ -49,8 +49,17 @@ abstract class PluginCli extends ManagementCli {
 
     @Override
     protected boolean isReadyToRun() {
-        return !options.args.isEmpty() && super.isReadyToRun();
+        return ((requireArgs() && !options.args.isEmpty()) || !requireArgs())
+                && super.isReadyToRun();
     }
+
+    /**
+     * A flag that indicates whether the CLI requires one or more arguments in
+     * order to run.
+     * 
+     * @return {@code true} or {@code false}
+     */
+    protected abstract boolean requireArgs();
 
     /**
      * Special options for the plugin cli.

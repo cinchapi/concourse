@@ -82,4 +82,9 @@ class InstallPluginCli extends PluginCli {
                                     + "installer", plugin));
         }
     }
+
+    @Override
+    protected boolean requireArgs() {
+        return true;
+    }
 }

@@ -28,7 +28,7 @@ import com.cinchapi.concourse.util.PrettyLinkedTableMap;
  * @author Jeff Nelson
  */
 @CommandLineInterfaceInformation(description = "List information about running plugins")
-public class PsPluginCli extends PluginCli {
+class PsPluginCli extends PluginCli {
 
     /**
      * Construct a new instance.
@@ -56,6 +56,11 @@ public class PsPluginCli extends PluginCli {
             die(e.getMessage());
         }
 
+    }
+
+    @Override
+    protected boolean requireArgs() {
+        return false;
     }
 
 }
