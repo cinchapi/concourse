@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,23 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
 import com.google.common.base.Throwables;
 
 /**
  * A 32-bit integer value that is maintained within a {@link MappedByteBuffer
  * mappable} {@link FileChannel location}.
  * <p>
- * A {@link StoredInteger} is useful for cases when an int is constantly read
+ * A {@link MappedAtomicInteger} is useful for cases when an int is constantly
+ * read
  * and updated from a disjointed file. For example, the file might contain
  * discreet messages and an int that occupies the first 4 bytes of the file is
  * maintained to specify how many messages are in the file. In such a case,
- * using a {@link StoredInteger} is useful because the value that maintains the
+ * using a {@link MappedAtomicInteger} is useful because the value that
+ * maintains the
  * number of messages can be managed in a more natural way while ensuring atomic
  * safety.
  * </p>
@@ -44,11 +46,11 @@ import com.google.common.base.Throwables;
  * @author Jeff Nelson
  */
 @Immutable
-public final class StoredInteger {
+public final class MappedAtomicInteger {
 
     /**
      * The number of bytes in the backing {@link #storage} needed for the
-     * {@link StoredInteger}.
+     * {@link MappedAtomicInteger}.
      */
     private final static int SIZE = 4;
 
@@ -60,7 +62,7 @@ public final class StoredInteger {
 
     /**
      * The position in the backing {@link #channel} where this
-     * {@link StoredInteger} begins; used to facilitate locking.
+     * {@link MappedAtomicInteger} begins; used to facilitate locking.
      */
     private final long position;
 
@@ -71,17 +73,11 @@ public final class StoredInteger {
     private final MappedByteBuffer storage;
 
     /**
-     * A flag that indicates whether the integer is being used. This helps to
-     * ensure the safety of atomic updates.
-     */
-    private AtomicBoolean using = new AtomicBoolean(false);
-
-    /**
      * Construct a new instance.
      * 
      * @param channel the {@link FileChannel} where the value is stored
      */
-    public StoredInteger(FileChannel channel) {
+    public MappedAtomicInteger(FileChannel channel) {
         this(channel, 0);
     }
 
@@ -92,11 +88,11 @@ public final class StoredInteger {
      * @param position the position in the {@code channel} where the value
      *            begins
      */
-    public StoredInteger(FileChannel channel, int position) {
+    public MappedAtomicInteger(FileChannel channel, int position) {
         try {
             this.channel = channel;
             this.position = position;
-            this.storage = channel.map(MapMode.READ_WRITE, position, 4);
+            this.storage = channel.map(MapMode.READ_WRITE, position, SIZE);
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -108,7 +104,7 @@ public final class StoredInteger {
      * 
      * @param address the path to the location where the value is stored
      */
-    public StoredInteger(String address) {
+    public MappedAtomicInteger(String address) {
         this(address, 0);
     }
 
@@ -119,14 +115,14 @@ public final class StoredInteger {
      * @param position the position in the {@code address} where the value
      *            begins
      */
-    public StoredInteger(String address, int position) {
+    public MappedAtomicInteger(String address, int position) {
         File file = new File(address);
         try {
             this.channel = FileChannel.open(file.toPath(),
                     StandardOpenOption.CREATE, StandardOpenOption.READ,
                     StandardOpenOption.WRITE);
             this.position = position;
-            this.storage = channel.map(MapMode.READ_WRITE, position, 4);
+            this.storage = channel.map(MapMode.READ_WRITE, position, SIZE);
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -141,15 +137,11 @@ public final class StoredInteger {
      *         becomes the new value
      */
     public int addAndGet(int amount) {
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            lock = channel.lock(position, SIZE, false);
             int value = getUnsafe();
             value = value + amount;
             return setUnsafe(value);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
         }
         finally {
             FileLocks.release(lock);
@@ -173,35 +165,13 @@ public final class StoredInteger {
      * @return the current value
      */
     public int get() {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            lock = channel.lock(position, 4, true);
             return getUnsafe();
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
         }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
-    }
-
-    /**
-     * Return the current value without grabbing any locks.
-     * <p>
-     * ONLY USE THIS METHOD INTERNALLY!!!
-     * </p>
-     * 
-     * @return the current value
-     */
-    public int getUnsafe() {
-        int value = storage.getInt();
-        storage.rewind();
-        return value;
     }
 
     /**
@@ -210,20 +180,12 @@ public final class StoredInteger {
      * @param value the new value
      */
     public void set(int value) {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            lock = channel.lock(position, 4, false);
             setUnsafe(value);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
         }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
     }
 
@@ -234,21 +196,13 @@ public final class StoredInteger {
      * @param value the new value
      */
     public void setAndSync(int value) {
-        while (!using.compareAndSet(false, true)) {
-            continue;
-        }
-        FileLock lock = null;
+        FileLock lock = lock();
         try {
-            lock = channel.lock(position, 4, false);
             setUnsafe(value);
             sync();
         }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
         finally {
             FileLocks.release(lock);
-            using.set(false);
         }
     }
 
@@ -257,6 +211,29 @@ public final class StoredInteger {
      */
     public void sync() {
         storage.force();
+    }
+
+    /**
+     * Return the current value without grabbing any locks.
+     * <p>
+     * ONLY USE THIS METHOD INTERNALLY!!!
+     * </p>
+     * 
+     * @return the current value
+     */
+    private int getUnsafe() {
+        int value = storage.getInt();
+        storage.rewind();
+        return value;
+    }
+
+    /**
+     * Grab a lock to perform atomic reads and/or writes.
+     * 
+     * @return the lock
+     */
+    private FileLock lock() {
+        return FileLocks.lock(channel, position, SIZE, false);
     }
 
     /**

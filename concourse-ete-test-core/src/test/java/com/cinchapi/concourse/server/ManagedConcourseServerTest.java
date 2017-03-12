@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,8 @@ public class ManagedConcourseServerTest {
     @Test
     public void testExecuteCli() {
         server.start();
-        List<String> stdout = server.executeCli("users", "--list-sessions");
+        List<String> stdout = server.executeCli("users",
+                "--list-sessions --username admin --password admin");
         boolean passed = false;
         for (String line : stdout) {
             if(line.contains("Current User Sessions")) {

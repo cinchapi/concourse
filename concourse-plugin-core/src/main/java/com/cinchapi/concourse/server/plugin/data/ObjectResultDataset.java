@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,11 +132,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             public Iterator<Object> iterator() {
                 Set<TObject> values = thrift.get(entity, attribute);
                 Iterator<TObject> it;
-                if(values != null){
-                   it = thrift.get(entity, attribute).iterator();
+                if(values != null) {
+                    it = thrift.get(entity, attribute).iterator();
                 }
                 else {
-                    it = Collections.<TObject>emptySet().iterator();
+                    it = Collections.<TObject> emptySet().iterator();
                 }
                 return new AdHocIterator<Object>() {
 
@@ -429,6 +429,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     }
 
                 };
+            }
+
+            @Override
+            public double spread() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).spread();
             }
 
             @Override

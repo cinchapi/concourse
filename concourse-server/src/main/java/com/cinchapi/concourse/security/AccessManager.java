@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
@@ -190,6 +192,12 @@ public class AccessManager {
      */
     private static final String SERVICE_USERNAME = Random.getSimpleString()
             + " " + Random.getSimpleString();
+
+    /**
+     * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
+     */
+    private static final String SERVICE_USERNAME_HEX = ByteBuffers
+            .encodeAsHex(ByteBuffers.fromString(SERVICE_USERNAME));
 
     /**
      * The column that contains a user's username in the {@link #credentials}
@@ -421,8 +429,7 @@ public class AccessManager {
      * @return the new service token
      */
     public AccessToken getNewServiceToken() {
-        ByteBuffer bytes = ByteBuffers.fromString(SERVICE_USERNAME);
-        return tokenManager.addToken(ByteBuffers.encodeAsHex(bytes));
+        return tokenManager.addToken(SERVICE_USERNAME_HEX);
     }
 
     /**
@@ -746,7 +753,24 @@ public class AccessManager {
                 TimeUnit accessTokenTtlUnit) {
             this.tokens = CacheBuilder.newBuilder()
                     .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit)
+                    .removalListener(
+                            new RemovalListener<AccessToken, AccessTokenWrapper>() {
+
+                                @Override
+                                public void onRemoval(
+                                        RemovalNotification<AccessToken, AccessTokenWrapper> notification) {
+                                    AccessToken token = notification.getKey();
+                                    AccessTokenWrapper wrapper = notification
+                                            .getValue();
+                                    if(notification.wasEvicted()
+                                            && wrapper.isServiceToken()) {
+                                        tokens.put(token, wrapper);
+                                    }
+
+                                }
+                            })
                     .build();
+
         }
 
         /**
@@ -847,18 +871,21 @@ public class AccessManager {
          * @return {@code true} if {@code token} is valid
          */
         public boolean isValidToken(AccessToken token) {
-            long stamp = lock.tryOptimisticRead();
-            boolean valid = tokens.getIfPresent(token) != null;
-            if(!lock.validate(stamp)) {
-                stamp = lock.readLock();
-                try {
+            long stamp = lock.readLock();
+            try {
+                boolean valid = tokens.getIfPresent(token) != null;
+                if(!valid) {
+                    // If the token is invalid, force cleanup of the cache to
+                    // trigger the cache removal listener that detects when
+                    // service token's have expired and regenerates them.
+                    tokens.cleanUp();
                     valid = tokens.getIfPresent(token) != null;
                 }
-                finally {
-                    lock.unlockRead(stamp);
-                }
+                return valid;
             }
-            return valid;
+            finally {
+                lock.unlockRead(stamp);
+            }
         }
     }
 
@@ -979,6 +1006,16 @@ public class AccessManager {
          */
         public String getUsername() {
             return username;
+        }
+
+        /**
+         * Return {@code true} if the wrapped {@link AccessToken} is a service
+         * token.
+         * 
+         * @return a boolean indicates if the token is a service token
+         */
+        public boolean isServiceToken() {
+            return username.equals(SERVICE_USERNAME_HEX);
         }
 
         @Override

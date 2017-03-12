@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Sets;
 
@@ -138,6 +139,8 @@ public class TrackingMultimapTest
         }
         Assert.assertTrue(map.size() == count2);
         map.putAll(map1);
+        Variables.register("map", map);
+        Variables.register("map1", map1);
         Assert.assertTrue(map.size() == (count1 + count2));
     }
 

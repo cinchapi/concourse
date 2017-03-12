@@ -3,9 +3,9 @@
  ==============================================================================
 
                                 Concourse
-                    Copyright 2013-2016 Cinchapi Inc.
+                    Copyright 2013-2017 Cinchapi Inc.
 
-  1. Includes software developed at Cinchapi (http://cinchapi.com).
+  1. Includes software developed at Cinchapi (https://cinchapi.com).
 
      Accent4J
      --------
@@ -14,6 +14,13 @@
 
      https://github.com/cinchapi/accent4j
      Copyright 2015 Cinchapi Inc.
+
+     Bucket
+     ------
+     Bucket is an embedded key/value database with version control.
+
+     https://github.com/cinchapi/bucket
+     Copyright 2017 Cinchapi Inc.
 
   2. Includes software developed by the Apache Software Foundation
      (http://www.apache.org) or released under the Apache License,
@@ -335,6 +342,13 @@
       http://atomix.io/catalyst/
       Copyright 2015 the Atomix crew
 
+      SQLite JDBC Driver
+      ------------------
+      SQLite JDBC, developed by Taro L. Saito, is a library for accessing and creating SQLite database files in Java.
+
+      https://github.com/xerial/sqlite-jdbc
+      Copyright Taro L. Saito, David Crawshaw and associated authors
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
@@ -376,6 +390,19 @@
         a route is defined.
       - Added integration with Guava library for JSON serialization.
       - Added integration with Concourse data routing and access controls.
+
+      Pollingwatchservice (BSD 2-Clause License)
+      ------------------------------------------
+      Pollingwatchservice is a pure Java library providing a watch service
+      (i.e. a WatchService implementation) that polls for changes.
+
+      https://www.imca.aps.anl.gov/~jlmuir/sw/pollingwatchservice.html
+      Copyright (c) J. Lewis Muir
+
+      Changes:
+      - Specify a custom thread factory that sets a thread name and configures
+        each thread as a daemon thread for the executors used in the
+        PollingWatchService class
 
   5. Includes software, released under other licenses:
 
@@ -523,3 +550,10 @@
 
       https://github.com/facebook/swift
       Copyright (C) 2012 Facebook, Inc.
+
+      Memory File System (MIT License)
+      --------------------------------
+      An in memory implementation of a JSR-203 (Java 7) file system for testing purposes.
+
+      https://github.com/marschall/memoryfilesystem
+      Copyright (c) Philippe Marschall

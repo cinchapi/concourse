@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.TObject;
@@ -238,8 +241,13 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * The {@link #keySet()} reveals the total number of unique keys; however,
      * this method takes that value and divides it by the total number of values
      * across all of the keys to get a mathematical measure of how much
-     * duplication exists among the data in the map.
-     * duplication
+     * duplication exists among the data in the map duplication
+     * </p>
+     * <p>
+     * A distinctiveness of 1 means that the keys are completely distinct (e.g.
+     * no key maps to more than 1 value). Lower measures of distinctiveness mean
+     * that they are less distinct (e.g. on average, each key maps to more
+     * values as the distinctiveness gets closer to 0).
      * </p>
      * 
      * @return the distinctiveness of the data, on a scale from 0 to 1
@@ -403,8 +411,57 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
                                           // type checking
             }
         }
+        Set<V> values = data.get(key);
+        if(values != null && values.isEmpty()) {
+            data.remove(key);
+        }
         return stored;
 
+    }
+
+    /**
+     * Return a relative measure of the statistical dispersion in this data.
+     * <p>
+     * There are several ways to measure statistical dispersion, so callers
+     * should not rely on a specific underlying implementation because it may
+     * change over time. This method simply offers a value that allows for
+     * comparison of dispersion across data sets.
+     * </p>
+     * <p>
+     * A larger dispersion value means that the data is more spread out whereas
+     * a smaller dispersion value indicates the opposite.
+     * </p>
+     * 
+     * @return the dispersion value for this data
+     */
+    public double spread() {
+        // Get the quartile coefficient of dispersion, which is a cross
+        // dataset mechanism for comparing the relative dispersion of data.
+        double[] frequencies = new double[size()];
+        AtomicInteger index = new AtomicInteger(0);
+        data.values().forEach(
+                records -> frequencies[index.getAndIncrement()] = records
+                        .size());
+        DescriptiveStatistics stats = new DescriptiveStatistics(frequencies);
+        double p1 = stats.getPercentile(25);
+        double p3 = stats.getPercentile(75);
+        double coefficientOfDispersion = (p3 - p1) / (p3 + p1);
+
+        // Grab the coefficient of variance
+        double coefficientOfVariance = stats.getStandardDeviation()
+                / stats.getMean();
+
+        // Calculate the average absolute deviation from the mean
+        double[] deviations = new double[frequencies.length];
+        for (int i = 0; i < deviations.length; ++i) {
+            deviations[i] = Math.abs(frequencies[i] - stats.getMean());
+        }
+        double averageAbsoluteDeviation = StatUtils.mean(deviations)
+                / stats.getMean();
+
+        // Apply a weighting to the various components
+        return (0.50 * coefficientOfDispersion) + (0.40 * coefficientOfVariance)
+                + (0.10 * averageAbsoluteDeviation);
     }
 
     @Override

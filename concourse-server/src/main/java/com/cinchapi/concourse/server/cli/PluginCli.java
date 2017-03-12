@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,17 @@ abstract class PluginCli extends ManagementCli {
 
     @Override
     protected boolean isReadyToRun() {
-        return !options.args.isEmpty() && super.isReadyToRun();
+        return ((requireArgs() && !options.args.isEmpty()) || !requireArgs())
+                && super.isReadyToRun();
     }
+
+    /**
+     * A flag that indicates whether the CLI requires one or more arguments in
+     * order to run.
+     * 
+     * @return {@code true} or {@code false}
+     */
+    protected abstract boolean requireArgs();
 
     /**
      * Special options for the plugin cli.

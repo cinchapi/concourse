@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2013-2016 Cinchapi Inc.
+# Copyright (c) 2013-2017 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -379,7 +379,6 @@ usage(){
   "status:Check if running and get the current pid."
   "stop:Stop if running as a daemon or in another console."
   "threaddump:Request a thread dump if running."
-  "version:Display the version."
   "help:Display this message."
   )
 
@@ -412,13 +411,6 @@ usage(){
     V=${KV[1]}
     printf "  ${TEXT_COLOR_BLUE_BOLD}%-13s${TEXT_COLOR_RESET}     %-40s\n" "$K" "$V"
   done | sort
-}
-
-# Figure of the version of Concourse Server by checking the name of the jar in
-# the $APP_HOME/lib directory
-version(){
-  local version=`ls $APP_HOME/lib | grep concourse-server | cut -d'-' -f3,4,5,6,7,8,9,10 | cut -d'.' -f1,2,3,4`
-  echo $version
 }
 
 # Get the PID for the Concourse Server process
@@ -603,14 +595,14 @@ case "$1" in
   start
   ;;
 
-  'version' | -[Vv] | '--version' | "-version")
-  version=`version`
-  echo "Concourse Server "$version
-  echo "Copyright (c) 2013-2016 Cinchapi Inc."
-  ;;
-
   '')
   start
+  ;;
+
+  -[Vv] | '--version' | "-version")
+  cd $OWD
+  exec bash $BIN_DIR/version "$@"
+  cd - > /dev/null
   ;;
 
   *)

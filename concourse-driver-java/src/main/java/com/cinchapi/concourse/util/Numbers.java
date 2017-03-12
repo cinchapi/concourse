@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,6 +151,28 @@ public abstract class Numbers {
      */
     public static boolean isEqualTo(Number a, Number b) {
         return compare(a, b) == 0;
+    }
+
+    /**
+     * Perform a cast safe equality check for two objects.
+     * <p>
+     * If both objects are instances of the {@link Number} class, this method
+     * will behave the same was as {@link #isEqualTo(Number, Number)}.
+     * Otherwise, this method returns {@code false}.
+     * </p>
+     * 
+     * @param a the first, possibly {@link Number numeric}, object
+     * @param b the second, possibly {@link Number numeric}, object
+     * @return {@code true} if both objects are numbers and are mathematically
+     *         equal
+     */
+    public static boolean isEqualToCastSafe(Object a, Object b) {
+        if(a instanceof Number && b instanceof Number) {
+            return isEqualTo((Number) a, (Number) b);
+        }
+        else {
+            return false;
+        }
     }
 
     /**

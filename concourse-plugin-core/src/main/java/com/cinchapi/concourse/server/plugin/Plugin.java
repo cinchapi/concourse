@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,9 +26,14 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.apache.commons.io.output.TeeOutputStream;
+
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.Files;
 import com.cinchapi.common.logging.Logger;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.google.common.collect.Maps;
@@ -78,7 +86,7 @@ public abstract class Plugin {
     /**
      * The communication channel for messages that come from Concourse Server,
      */
-    protected final SharedMemory fromServer;
+    protected final InterProcessCommunication fromServer;
 
     /**
      * A {@link Logger} for plugin operations.
@@ -101,13 +109,18 @@ public abstract class Plugin {
      * The communication channel for messages that are sent by this
      * {@link Plugin} to Concourse Server.
      */
-    private final SharedMemory fromPlugin;
+    private final InterProcessCommunication fromPlugin;
 
     /**
      * Upstream response from Concourse Server in response to requests made via
      * {@link ConcourseRuntime}.
      */
     private final ConcurrentMap<AccessToken, RemoteMethodResponse> fromServerResponses;
+
+    /**
+     * A boolean that tracks whether the ready state has been set.
+     */
+    private boolean inReadyState = false;
 
     /**
      * Construct a new instance.
@@ -119,8 +132,8 @@ public abstract class Plugin {
      */
     public Plugin(String fromServer, String fromPlugin) {
         this.runtime = ConcourseRuntime.getRuntime();
-        this.fromServer = new SharedMemory(fromServer);
-        this.fromPlugin = new SharedMemory(fromPlugin);
+        this.fromServer = new MessageQueue(fromServer);
+        this.fromPlugin = new MessageQueue(fromPlugin);
         this.fromServerResponses = Maps
                 .<AccessToken, RemoteMethodResponse> newConcurrentMap();
         Path logDir = Paths.get(System.getProperty(PLUGIN_HOME_JVM_PROPERTY)
@@ -129,6 +142,27 @@ public abstract class Plugin {
         this.log = Logger.builder().name(this.getClass().getName())
                 .level(getConfig().getLogLevel()).directory(logDir.toString())
                 .build();
+
+        // Redirect System.out and System.err to a console.log file
+        Path consoleLog = logDir.resolve("console.log");
+        try {
+            File consoleLogFile = consoleLog.toFile();
+            consoleLogFile.createNewFile();
+            FileOutputStream fos = new FileOutputStream(consoleLogFile);
+            TeeOutputStream out = new TeeOutputStream(System.out, fos);
+            TeeOutputStream err = new TeeOutputStream(System.err, fos);
+            PrintStream consoleOut = new PrintStream(out, true);
+            PrintStream consoleErr = new PrintStream(err, true);
+            System.setOut(consoleOut);
+            System.setErr(consoleErr);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                consoleOut.close();
+                consoleErr.close();
+            }));
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
     }
 
     /**
@@ -147,19 +181,22 @@ public abstract class Plugin {
      * {@link Instruction#STOP stop}.
      */
     public void run() {
+        setReadyState();
         log.info("Running plugin {}", this.getClass());
         ByteBuffer data;
         while ((data = fromServer.read()) != null) {
             RemoteMessage message = serializer.deserialize(data);
             if(message.type() == RemoteMessage.Type.REQUEST) {
                 RemoteMethodRequest request = (RemoteMethodRequest) message;
-                log.debug("Received REQUEST from Concourse Server: {}", message);
+                log.debug("Received REQUEST from Concourse Server: {}",
+                        message);
                 Thread worker = new RemoteInvocationThread(request, fromPlugin,
                         this, false, fromServerResponses);
                 worker.setUncaughtExceptionHandler((thread, throwable) -> {
-                    log.error("While processing request '{}', the following "
-                            + "non-recoverable error occurred:", request,
-                            throwable);
+                    log.error(
+                            "While processing request '{}', the following "
+                                    + "non-recoverable error occurred:",
+                            request, throwable);
                 });
                 worker.start();
             }
@@ -167,8 +204,8 @@ public abstract class Plugin {
                 RemoteMethodResponse response = (RemoteMethodResponse) message;
                 log.debug("Received RESPONSE from Concourse Server: {}",
                         response);
-                ConcurrentMaps.putAndSignal(fromServerResponses,
-                        response.creds, response);
+                ConcurrentMaps.putAndSignal(fromServerResponses, response.creds,
+                        response);
             }
             else if(message.type() == RemoteMessage.Type.STOP) { // STOP
                 log.info("Stopping plugin {}", this.getClass());
@@ -195,6 +232,24 @@ public abstract class Plugin {
     }
 
     /**
+     * Signal that the plugin is ready for operations.
+     */
+    private void setReadyState() {
+        if(!inReadyState) {
+            try {
+                File ready = Files
+                        .getHashedFilePath(System
+                                .getProperty(PLUGIN_SERVICE_TOKEN_JVM_PROPERTY))
+                        .toFile();
+                ready.getParentFile().mkdirs();
+                ready.createNewFile();
+                inReadyState = true;
+            }
+            catch (IOException e) {}
+        }
+    }
+
+    /**
      * A wrapper class for all the information needed to perform background
      * requests in this Plugin and its related classes.
      * 
@@ -206,12 +261,13 @@ public abstract class Plugin {
         private BackgroundInformation() {/* no-op */}
 
         /**
-         * Return the {@link SharedMemory} channel that the Plugin and its
-         * related classes use for outgoing messages to the upstream service.
+         * Return the {@link InterProcessCommunication} channel that the Plugin
+         * and its related classes use for outgoing messages to the upstream
+         * service.
          * 
          * @return the outgoing channel
          */
-        public SharedMemory outgoing() {
+        public InterProcessCommunication outgoing() {
             return fromPlugin;
         }
 

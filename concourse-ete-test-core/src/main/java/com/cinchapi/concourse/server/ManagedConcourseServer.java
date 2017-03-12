@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -48,6 +49,9 @@ import javax.management.remote.JMXServiceURL;
 import jline.TerminalFactory;
 
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Calculator;
 import com.cinchapi.concourse.Concourse;
@@ -69,7 +73,6 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Processes;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -215,7 +218,7 @@ public class ManagedConcourseServer {
     private static int getOpenPort() {
         int min = 49512;
         int max = 65535;
-        int port = RAND.nextInt(min) + (max - min);
+        int port = min + RAND.nextInt(max - min);
         return isPortAvailable(port) ? port : getOpenPort();
     }
 
@@ -233,8 +236,8 @@ public class ManagedConcourseServer {
                     .get(directory + File.separator + TARGET_BINARY_NAME);
             Files.deleteIfExists(binary);
             Files.copy(Paths.get(installer), binary);
-            ProcessBuilder builder = new ProcessBuilder(
-                    Lists.newArrayList("sh", binary.toString()));
+            ProcessBuilder builder = new ProcessBuilder(Lists.newArrayList("sh",
+                    binary.toString(), "--", "skip-integration"));
             builder.directory(new File(directory));
             builder.redirectErrorStream();
             Process process = builder.start();
@@ -437,22 +440,28 @@ public class ManagedConcourseServer {
      * @return the standard output from executing the cli
      */
     public List<String> executeCli(String cli, String... args) {
-        ProcessBuilder pb = Processes.getBuilder(ArrayBuilder.<String> builder()
-                .add("sh").add("concourse").add(cli).add(args).build());
-        pb.directory(new File(installDirectory + File.separator + BIN));
         try {
-            Process process = pb.start();
-            process.waitFor();
-            if(process.exitValue() == 0) {
-                return Processes.getStdOut(process);
+            ArrayBuilder<String> args0 = ArrayBuilder.builder();
+            args0.add("./concourse");
+            args0.add(cli);
+            for (String arg : args) {
+                args0.add(arg.split("\\s"));
+            }
+            Process process = new ProcessBuilder(args0.build())
+                    .directory(
+                            new File(installDirectory + File.separator + BIN))
+                    .start();
+            ProcessResult result = Processes.waitFor(process);
+            if(result.exitCode() == 0) {
+                return result.out();
             }
             else {
                 log.warn("An error occurred executing '{}': {}", cli,
-                        Processes.getStdErr(process));
+                        result.err());
                 return Collections.emptyList();
             }
         }
-        catch (InterruptedException | IOException e) {
+        catch (IOException e) {
             throw Throwables.propagate(e);
         }
     }
@@ -542,7 +551,9 @@ public class ManagedConcourseServer {
      */
     public boolean installPlugin(Path bundle) {
         log.info("Attempting to install plugins from {}", bundle);
-        return Iterables.get(execute("plugin", "-i", bundle.toString()), 0)
+        return Iterables
+                .get(executeCli("plugin", "install", bundle.toString(),
+                        "--username admin", "--password admin"), 0)
                 .contains("Successfully installed");
     }
 
@@ -568,12 +579,12 @@ public class ManagedConcourseServer {
         String logdir = Paths.get(installDirectory, "log").toString();
         String file = Paths.get(logdir, name + ".log").toString();
         String content = FileOps.read(file);
-        System.out.println(file);
+        System.err.println(file);
         for (int i = 0; i < file.length(); ++i) {
-            System.out.print('-');
+            System.err.print('-');
         }
-        System.out.println();
-        System.out.println(content);
+        System.err.println();
+        System.err.println(content);
 
     }
 
@@ -701,7 +712,7 @@ public class ManagedConcourseServer {
      */
     private List<String> execute(String cli, String... args) {
         try {
-            String command = "sh " + cli;
+            String command = "bash " + cli;
             for (String arg : args) {
                 command += " " + arg;
             }
@@ -773,7 +784,7 @@ public class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
-        private final Object delegate;
+        private Object delegate;
         private ClassLoader loader;
 
         /**
@@ -787,30 +798,64 @@ public class ManagedConcourseServer {
          * 
          * @param username
          * @param password
+         * @param retries
+         */
+        private Client(String username, String password, int retries) {
+            while (retries > 0) {
+                --retries;
+                try {
+                    this.loader = new URLClassLoader(
+                            gatherJars(getInstallDirectory()), null);
+                    try {
+                        clazz = loader.loadClass(packageBase + "Concourse");
+                    }
+                    catch (ClassNotFoundException e) {
+                        // Prior to version 0.5.0, Concourse classes were
+                        // located in the "org.cinchapi.concourse" package, so
+                        // we attempt to use that if the default does not work.
+                        packageBase = "org.cinchapi.concourse.";
+                        clazz = loader.loadClass(packageBase + "Concourse");
+                    }
+                    this.delegate = clazz.getMethod("connect", String.class,
+                            int.class, String.class, String.class).invoke(null,
+                                    "localhost", getClientPort(), username,
+                                    password);
+                }
+                catch (InvocationTargetException e) {
+                    Throwable target = e.getTargetException();
+                    if(target.getMessage().contains(
+                            "Could not connect to the Concourse Server")) {
+                        // There is a race condition where the CLI reports the
+                        // server has started (because the process has
+                        // registered a PID) but the thrift server hasn't been
+                        // opened to accept connections yet. This logic tries to
+                        // get around that by retrying the connection a handful
+                        // of times before failing.
+                        try {
+                            Thread.sleep(500);
+                            continue;
+                        }
+                        catch (InterruptedException t) {/* ignore */}
+                    }
+                    else {
+                        throw CheckedExceptions.throwAsRuntimeException(e);
+                    }
+                }
+                catch (Exception e) {
+                    throw CheckedExceptions.throwAsRuntimeException(e);
+                }
+            }
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
          * @throws Exception
          */
         public Client(String username, String password) {
-            try {
-                this.loader = new URLClassLoader(
-                        gatherJars(getInstallDirectory()), null);
-                try {
-                    clazz = loader.loadClass(packageBase + "Concourse");
-                }
-                catch (ClassNotFoundException e) {
-                    // Prior to version 0.5.0, Concourse classes were located in
-                    // the "org.cinchapi.concourse" package, so we attempt to
-                    // use that if the default does not work.
-                    packageBase = "org.cinchapi.concourse.";
-                    clazz = loader.loadClass(packageBase + "Concourse");
-                }
-                this.delegate = clazz.getMethod("connect", String.class,
-                        int.class, String.class, String.class).invoke(null,
-                                "localhost", getClientPort(), username,
-                                password);
-            }
-            catch (Exception e) {
-                throw Throwables.propagate(e);
-            }
+            this(username, password, 5);
         }
 
         @Override

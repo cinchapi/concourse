@@ -66,7 +66,7 @@ When submitting a ticket, please be advised that all information is **PUBLICALLY
 If you uncover a potential security issue in this driver or any other Concourse project, please report it by following the special instructions to report a security vulnerability.
 
 ## License
-Copyright (c) 2013-2016 Cinchapi Inc.
+Copyright (c) 2013-2017 Cinchapi Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 

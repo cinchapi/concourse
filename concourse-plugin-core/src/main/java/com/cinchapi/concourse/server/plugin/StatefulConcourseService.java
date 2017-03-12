@@ -426,8 +426,6 @@ abstract class StatefulConcourseService {
     }
 
 
-    public void abort() { throw new UnsupportedOperationException(); }
-
     public long addKeyValue(String key, Object value) { throw new UnsupportedOperationException(); }
 
     public boolean addKeyValueRecord(String key, Object value, long record) { throw new UnsupportedOperationException(); }
@@ -488,8 +486,6 @@ abstract class StatefulConcourseService {
 
     public void clearKeysRecords(List<String> keys, List<Long> records) { throw new UnsupportedOperationException(); }
 
-    public boolean commit() { throw new UnsupportedOperationException(); }
-
     public Set<String> describeRecord(long record) { throw new UnsupportedOperationException(); }
 
     public Set<String> describeRecordTime(long record, long timestamp) { throw new UnsupportedOperationException(); }
@@ -527,8 +523,6 @@ abstract class StatefulConcourseService {
     public Map<Object,Map<Diff,Set<Long>>> diffKeyStartstrEndstr(String key, String start, String tend) { throw new UnsupportedOperationException(); }
 
     public ComplexTObject invokePlugin(String id, String method, List<ComplexTObject> params) { throw new UnsupportedOperationException(); }
-
-    public TransactionToken stage() { throw new UnsupportedOperationException(); }
 
     public Set<Long> insertJson(String json) { throw new UnsupportedOperationException(); }
 

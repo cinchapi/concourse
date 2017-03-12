@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.importer;
 
+import java.nio.file.Paths;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -67,7 +68,13 @@ public class JsonImporter extends Importer {
 
     @Override
     public Set<Long> importFile(String file) {
-        return importString(FileOps.read(file));
+        Set<Long> records = importString(FileOps.read(file));
+        if(Boolean.parseBoolean(params.getOrDefault(
+                Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
+            String filename = Paths.get(file).getFileName().toString();
+            concourse.add(DATA_SOURCE_ANNOTATION_KEY, filename, records);
+        }
+        return records;
     }
 
     /**
@@ -92,8 +99,8 @@ public class JsonImporter extends Importer {
         // suffice until the upsert functionality is available
         Set<Long> records = Sets.newHashSet();
         for (Multimap<String, Object> data : Convert.anyJsonToJava(json)) {
-            Long record = MoreObjects.firstNonNull((Long) Iterables
-                    .getOnlyElement(
+            Long record = MoreObjects
+                    .firstNonNull((Long) Iterables.getOnlyElement(
                             data.get(Constants.JSON_RESERVED_IDENTIFIER_NAME),
                             null), Time.now());
             data.removeAll(Constants.JSON_RESERVED_IDENTIFIER_NAME);

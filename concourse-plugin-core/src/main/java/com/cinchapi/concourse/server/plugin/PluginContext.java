@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.github.zafarkhaja.semver.Version;
  * @author Jeff Nelson
  */
 @Immutable
-public final class PluginContext {
+public final class PluginContext implements PluginStateContainer {
 
     /**
      * The plugin's working directory.
@@ -59,24 +59,9 @@ public final class PluginContext {
         this.concourseVersion = Version.valueOf(concourseVersion);
     }
 
-    /**
-     * Get the plugin's working directory.
-     * 
-     * @return the home directory
-     */
+    @Override
     public Path home() {
         return home;
-    }
-
-    /**
-     * Get the directory where the plugin store's data.
-     * 
-     * @return the data directory
-     */
-    public Path data() {
-        Path path = home().resolve("data");
-        Path devPath = home().resolve("data.dev");
-        return devPath.toFile().exists() ? devPath : path;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -51,12 +52,14 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.process.JavaApp;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.plugin.hook.AfterInstallHook;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
 import com.cinchapi.concourse.server.plugin.util.Versions;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
@@ -113,8 +116,9 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * </p>
  * <h2>Plugin Communication</h2>
  * <p>
- * Plugins communicate with Concourse Server via {@link SharedMemory} streams
- * setup by the {@link PluginManager}. Each plugin has two streams:
+ * Plugins communicate with Concourse Server via
+ * {@link InterProcessCommunication} streams setup by the {@link PluginManager}.
+ * Each plugin has two streams:
  * <ol>
  * <li>A {@code fromServer} stream that serves as a communication channel for
  * messages that come from Concourse Server and are read by the Plugin.
@@ -141,7 +145,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * Arbitrary plugin methods can be invoked using the
  * {@link #invoke(String, String, List, AccessToken, TransactionToken, String)}
  * method. The {@link PluginManager} passes these requests to the appropriate
- * plugin JVM via the {@code fromServer} {@link SharedMemory stream} that was
+ * plugin JVM via the {@code fromServer} {@link InterProccesCommunication
+ * stream} that was
  * setup when the plugin launched.
  * </p>
  * <h1>Invoking Server Methods</h1>
@@ -159,7 +164,8 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  * <h1>Real Time Plugins</h1>
  * <p>
  * Any plugin that extends {@link RealTimePlugin} will initially receive a
- * {@link SharedMemory} segment for real time communication data streams. This
+ * {@link InterProcesCommunication} segment for real time communication data
+ * streams. This
  * is a one-way stream. Plugins are responsible for decide when and how to
  * respond to data that is streamed over.
  * </p>
@@ -168,6 +174,23 @@ import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class PluginManager {
+
+    /**
+     * Return the correct temporary directory that should be used to store
+     * temporary files (i.e. shared memory segments, etc) for the
+     * {@code plugin}.
+     * 
+     * @param plugin the fully qualified name of the plugin
+     * @return the temporary directory that should be used for the
+     *         {@code plugin}
+     */
+    private static String getPluginTempDirectory(String plugin) {
+        Path baseTempDir = Paths.get(FileSystem.tempFile()).toFile()
+                .getParentFile().toPath();
+        Path sessionTempDir = baseTempDir.resolve(SESSID);
+        Path pluginTempDir = sessionTempDir.resolve(plugin);
+        return pluginTempDir.toString();
+    }
 
     /**
      * The number of bytes in a MiB.
@@ -270,17 +293,24 @@ public class PluginManager {
     private final Thread streamLoop;
 
     /**
-     * All the {@link SharedMemory streams} for which real time data updates are
-     * sent.
+     * All the {@link InterProcessCommunication streams} for which real time
+     * data updates are sent.
      */
-    private final Set<SharedMemory> streams = Collections
-            .newSetFromMap(Maps.<SharedMemory, Boolean> newConcurrentMap());
+    private final Set<InterProcessCommunication> streams = Collections
+            .newSetFromMap(Maps
+                    .<InterProcessCommunication, Boolean> newConcurrentMap());
 
     /**
      * The template to use when creating {@link JavaApp external java processes}
      * to run the plugin code.
      */
     private String pluginLaunchClassTemplate;
+
+    /**
+     * The session id for the {@link PluginManager}. This is used for grouping
+     * shared memory files.
+     */
+    private final static String SESSID = Long.toString(Time.now());
 
     /**
      * Construct a new instance.
@@ -309,11 +339,12 @@ public class PluginManager {
                             "Streaming packet to real-time " + "plugins: {}",
                             packet);
                     final ByteBuffer data = serializer.serialize(packet);
-                    List<Future<SharedMemory>> awaiting = Lists.newArrayList();
-                    for (SharedMemory stream : streams) {
+                    List<Future<InterProcessCommunication>> awaiting = Lists
+                            .newArrayList();
+                    for (InterProcessCommunication stream : streams) {
                         awaiting.add(executor.submit(() -> stream.write(data)));
                     }
-                    for (Future<SharedMemory> status : awaiting) {
+                    for (Future<InterProcessCommunication> status : awaiting) {
                         // Ensure that the Packet was written to all the streams
                         // before looping again so that Packets are not sent out
                         // of order.
@@ -420,8 +451,8 @@ public class PluginManager {
             List<ComplexTObject> args, final AccessToken creds,
             TransactionToken transaction, String environment) {
         String clazz = getIdByAlias(plugin);
-        SharedMemory fromServer = (SharedMemory) registry.get(clazz,
-                RegistryData.FROM_SERVER);
+        InterProcessCommunication fromServer = (InterProcessCommunication) registry
+                .get(clazz, RegistryData.FROM_SERVER);
         if(fromServer == null) {
             String message = ambiguous.contains(plugin)
                     ? "Multiple plugins are "
@@ -454,6 +485,30 @@ public class PluginManager {
      */
     public Set<String> listBundles() {
         return FileSystem.getSubDirs(home);
+    }
+
+    /**
+     * Return information about the running plugins as a mapping from each PID
+     * to another mapping that contains key/value pairs with information about
+     * the plugin.
+     * 
+     * @return information about the running plugins
+     */
+    public Map<Long, Map<String, String>> runningPlugins() {
+        Map<Long, Map<String, String>> info = Maps.newLinkedHashMap();
+        registry.rowMap().forEach((plugin, data) -> {
+            PluginStatus status = (PluginStatus) data.get(RegistryData.STATUS);
+            if(status == PluginStatus.ACTIVE) {
+                JavaApp app = (JavaApp) data.get(RegistryData.APP_INSTANCE);
+                long pid = app.pid();
+                String bundle = (String) data.get(RegistryData.PLUGIN_BUNDLE);
+                Map<String, String> attrs = Maps.newHashMap();
+                attrs.put("name", plugin);
+                attrs.put("bundle", bundle);
+                info.put(pid, attrs);
+            }
+        });
+        return info;
     }
 
     /**
@@ -538,7 +593,8 @@ public class PluginManager {
                 String filename = jars.next().getFileName().toString();
                 Path path = lib.resolve(filename);
                 URL url = new File(path.toString()).toURI().toURL();
-                if(!SYSTEM_JARS.contains(filename) || type.mightRequireHooks()) {
+                if(!SYSTEM_JARS.contains(filename)
+                        || type.mightRequireHooks()) {
                     // NOTE: by checking for exact name matches, we will
                     // accidentally include system jars that contain different
                     // versions.
@@ -689,8 +745,9 @@ public class PluginManager {
         String launchClass = plugin.getName();
         String launchClassShort = plugin.getSimpleName();
         String processName = "Concourse_" + launchClassShort;
-        String fromServer = FileSystem.tempFile();
-        String fromPlugin = FileSystem.tempFile();
+        String tempDir = getPluginTempDirectory(launchClass);
+        String fromServer = FileSystem.tempFile(tempDir, "FS-", ".shm");
+        String fromPlugin = FileSystem.tempFile(tempDir, "FP-", ".shm");
         String source = pluginLaunchClassTemplate
                 .replace("INSERT_PROCESS_NAME", processName)
                 .replace("INSERT_IMPORT_STATEMENT", launchClass)
@@ -751,6 +808,14 @@ public class PluginManager {
                 Logger.warn("Standard Error for {}: {}", plugin,
                         StringUtils.join(errLines, System.lineSeparator()));
                 Logger.warn("Restarting {} now...", plugin);
+                Iterator<Entry<String, String>> it = aliases.entrySet()
+                        .iterator();
+                while (it.hasNext()) {
+                    Entry<String, String> entry = it.next();
+                    if(entry.getValue().equals(plugin.getName())) {
+                        it.remove();
+                    }
+                }
                 // TODO: it would be nice to just restart the same JavaApp
                 // instance (e.g. app.restart();)
                 launch(bundle, prefs, plugin, classpath);
@@ -760,17 +825,34 @@ public class PluginManager {
             }
         });
 
+        // Ensure that the Plugin is ready to run before adding it to the
+        // registry to avoid premature invocations
+        Path readyCheck = com.cinchapi.common.io.Files
+                .getHashedFilePath(serviceToken);
+        try {
+            while (!Files.deleteIfExists(readyCheck)) {
+                Thread.sleep(1000);
+                continue;
+            }
+            Logger.info("Plugin '{}' is ready", plugin);
+        }
+        catch (IOException | InterruptedException e) {}
+
         // Store metadata about the Plugin
         String id = launchClass;
         registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
         registry.put(id, RegistryData.FROM_SERVER,
-                new SharedMemory(fromServer));
+                new MessageQueue(fromServer));
         registry.put(id, RegistryData.FROM_PLUGIN,
-                new SharedMemory(fromPlugin));
+                new MessageQueue(fromPlugin));
         registry.put(id, RegistryData.STATUS, PluginStatus.ACTIVE);
         registry.put(id, RegistryData.APP_INSTANCE, app);
         registry.put(id, RegistryData.FROM_PLUGIN_RESPONSES,
                 Maps.<AccessToken, RemoteMethodResponse> newConcurrentMap());
+        Logger.debug("Shared memory for server-based communication to '{} is "
+                + "located at '{}", id, fromServer);
+        Logger.debug("Shared memory for plugin-based communication from '{} is "
+                + "located at '{}", id, fromPlugin);
     }
 
     /**
@@ -801,10 +883,10 @@ public class PluginManager {
      * @return the event loop thread
      */
     private Thread startEventLoop(String id) {
-        final SharedMemory incoming = (SharedMemory) registry.get(id,
-                RegistryData.FROM_PLUGIN);
-        final SharedMemory outgoing = (SharedMemory) registry.get(id,
-                RegistryData.FROM_SERVER);
+        final InterProcessCommunication incoming = (InterProcessCommunication) registry
+                .get(id, RegistryData.FROM_PLUGIN);
+        final InterProcessCommunication outgoing = (InterProcessCommunication) registry
+                .get(id, RegistryData.FROM_SERVER);
         final ConcurrentMap<AccessToken, RemoteMethodResponse> fromPluginResponses = (ConcurrentMap<AccessToken, RemoteMethodResponse>) registry
                 .get(id, RegistryData.FROM_PLUGIN_RESPONSES);
         Thread loop = new Thread(new Runnable() {
@@ -820,6 +902,13 @@ public class PluginManager {
                                 request);
                         Thread worker = new RemoteInvocationThread(request,
                                 outgoing, server, true, fromPluginResponses);
+                        worker.setUncaughtExceptionHandler(
+                                (thread, throwable) -> {
+                                    Logger.error(
+                                            "While processing request '{}' from '{}', the following "
+                                                    + "non-recoverable error occurred:",
+                                            request, id, throwable);
+                                });
                         worker.start();
                     }
                     else if(message.type() == RemoteMessage.Type.RESPONSE) {
@@ -840,26 +929,30 @@ public class PluginManager {
 
             }
 
-        });
+        }, "plugin-event-loop-" + id);
         loop.setDaemon(true);
         loop.start();
         return loop;
     }
 
     /**
-     * Create a {@link SharedMemory} segment over which the PluginManager will
-     * stream real-time {@link Packet packets} that contain writes.
+     * Create a {@link InterProcessCommunication} segment over which the
+     * PluginManager will stream real-time {@link Packet packets} that contain
+     * writes.
      *
      * @param id the plugin id
      */
     private void startStreamToPlugin(String id) {
-        String streamFile = FileSystem.tempFile();
+        String tempDir = getPluginTempDirectory(id);
+        String streamFile = FileSystem.tempFile(tempDir, "RT-", ".shm");
         Logger.debug("Creating real-time stream for {} at {}", id, streamFile);
-        SharedMemory stream = new SharedMemory(streamFile);
+        InterProcessCommunication stream = new MessageQueue(streamFile);
+        Logger.debug("Shared memory for real-time stream of '{} is located at "
+                + "'{}", id, streamFile);
         RemoteAttributeExchange attribute = new RemoteAttributeExchange(
                 "stream", streamFile);
-        SharedMemory fromServer = (SharedMemory) registry.get(id,
-                RegistryData.FROM_SERVER);
+        InterProcessCommunication fromServer = (InterProcessCommunication) registry
+                .get(id, RegistryData.FROM_SERVER);
         ByteBuffer buffer = serializer.serialize(attribute);
         fromServer.write(buffer);
         streams.add(stream);

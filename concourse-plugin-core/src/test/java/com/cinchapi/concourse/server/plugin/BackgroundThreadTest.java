@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Maps;
@@ -37,7 +38,7 @@ public class BackgroundThreadTest {
     @Test
     public void testBackgroundExecutorSetsEnvironmentCorrectly()
             throws InterruptedException {
-        SharedMemory outgoing = new SharedMemory();
+        InterProcessCommunication outgoing = new MessageQueue();
         ConcurrentMap<AccessToken, RemoteMethodResponse> responses = Maps
                 .newConcurrentMap();
         String environment1 = Random.getSimpleString();
@@ -74,30 +75,28 @@ public class BackgroundThreadTest {
     @Test
     public void testBackgroundExecutorHasCorrectInformation()
             throws InterruptedException {
-        SharedMemory outgoing = new SharedMemory();
+        InterProcessCommunication outgoing = new MessageQueue();
         ConcurrentMap<AccessToken, RemoteMethodResponse> responses = Maps
                 .newConcurrentMap();
         BackgroundExecutor executor = PluginExecutors
                 .newCachedBackgroundExecutor(outgoing, responses);
         CountDownLatch latch = new CountDownLatch(1);
         final AtomicBoolean passed = new AtomicBoolean(true);
-        executor.execute(
-                Random.getSimpleString(),
-                () -> {
-                    SharedMemory myOutgoing = ((BackgroundThread) Thread
-                            .currentThread()).outgoing();
-                    ConcurrentMap<AccessToken, RemoteMethodResponse> myResponses = ((BackgroundThread) Thread
-                            .currentThread()).responses();
-                    try {
-                        Assert.assertSame(outgoing, myOutgoing);
-                        Assert.assertSame(responses, myResponses);
-                    }
-                    catch (AssertionError e) {
-                        passed.set(false);
-                        e.printStackTrace();
-                    }
-                    latch.countDown();
-                });
+        executor.execute(Random.getSimpleString(), () -> {
+            InterProcessCommunication myOutgoing = ((BackgroundThread) Thread
+                    .currentThread()).outgoing();
+            ConcurrentMap<AccessToken, RemoteMethodResponse> myResponses = ((BackgroundThread) Thread
+                    .currentThread()).responses();
+            try {
+                Assert.assertSame(outgoing, myOutgoing);
+                Assert.assertSame(responses, myResponses);
+            }
+            catch (AssertionError e) {
+                passed.set(false);
+                e.printStackTrace();
+            }
+            latch.countDown();
+        });
 
         latch.await();
         Assert.assertTrue(passed.get());

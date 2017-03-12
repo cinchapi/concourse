@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,17 @@ import com.cinchapi.concourse.Concourse;
  */
 @NotThreadSafe
 public abstract class Importer {
+
+    /**
+     * The name of the key that contains the value for the
+     * {@code --annotate-data-source} CLI option.
+     */
+    public static final String ANNOTATE_DATA_SOURCE_OPTION_NAME = "annotateDataSource";
+    
+    /**
+     * The key that contains datasource annotations.
+     */
+    protected static final String DATA_SOURCE_ANNOTATION_KEY = "__datasource";
 
     /**
      * The connection to Concourse.

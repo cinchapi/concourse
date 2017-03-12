@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 
 /**
- * A cli for install plugins.
+ * A cli for installing plugins.
  * 
  * @author Jeff Nelson
  */
@@ -81,5 +81,10 @@ class InstallPluginCli extends PluginCli {
                                     + "provide its local path to the "
                                     + "installer", plugin));
         }
+    }
+
+    @Override
+    protected boolean requireArgs() {
+        return true;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,14 +73,9 @@ public abstract class PluginConfiguration {
     private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 268435456;
 
     /**
-     * The default value for the {@link SystemPreference#DEBUG_MODE} preference
-     */
-    private static final boolean DEFAULT_REMOTE_DEBUGGER_ENABLED = false;
-
-    /**
      * The default value for the {@link SystemPreference#DEBUG_PORT} preference
      */
-    private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 48410;
+    private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 0;
 
     /**
      * The absolute path to the dev prefs file in the plugin's home directory.
@@ -148,7 +143,6 @@ public abstract class PluginConfiguration {
         else {
             this.prefs = null;
         }
-        addDefault(SystemPreference.REMOTE_DEBUGGER, DEFAULT_REMOTE_DEBUGGER_ENABLED);
         addDefault(SystemPreference.REMOTE_DEBUGGER_PORT, DEFAULT_REMOTE_DEBUGGER_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
@@ -213,16 +207,8 @@ public abstract class PluginConfiguration {
      * @return boolean
      */
     public boolean getRemoteDebuggerEnabled() {
-        boolean theDefault = (boolean) defaults.get(
-            SystemPreference.REMOTE_DEBUGGER.getKey());
-        if (prefs != null) {
-            return prefs.getBoolean(
-                SystemPreference.REMOTE_DEBUGGER.getKey(),
-                theDefault);
-        }
-        else {
-            return theDefault;
-        }
+        Integer port = getRemoteDebuggerPort();
+        return port != null && port > 0;
     }
 
     /**
@@ -286,7 +272,6 @@ public abstract class PluginConfiguration {
         ALIASES(null, ArrayList.class),
         HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
         LOG_LEVEL(null, String.class),
-        REMOTE_DEBUGGER(null, boolean.class, Boolean.class),
         REMOTE_DEBUGGER_PORT(null, int.class, Integer.class);
 
         /**

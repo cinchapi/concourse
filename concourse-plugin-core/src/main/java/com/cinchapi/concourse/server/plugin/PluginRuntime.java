@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.nio.file.Paths;
  * 
  * @author Jeff Nelson
  */
-public final class PluginRuntime {
+public final class PluginRuntime implements PluginStateContainer {
 
     /**
      * Singleton instance.
@@ -39,12 +39,8 @@ public final class PluginRuntime {
     public static PluginRuntime getRuntime() {
         return INSTANCE;
     }
-
-    /**
-     * Return the location of the {@link Plugin plugin's} home directory.
-     * 
-     * @return the plugin's home directory
-     */
+    
+    @Override
     public Path home() {
         String home = System.getProperty(Plugin.PLUGIN_HOME_JVM_PROPERTY);
         if(home == null) {
@@ -53,17 +49,6 @@ public final class PluginRuntime {
             home = System.getProperty("user.dir");
         }
         return Paths.get(home).toAbsolutePath();
-    }
-
-    /**
-     * Return the location of the {@link Plugin plugin's} data directory.
-     * 
-     * @return the plugin's data directory
-     */
-    public Path data() {
-        Path path = home().resolve("data");
-        Path devPath = home().resolve("data.dev");
-        return devPath.toFile().exists() ? devPath : path;
     }
 
     private PluginRuntime() {/* no-op */}

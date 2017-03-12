@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,19 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.io.IOException;
+import java.lang.Thread.State;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
+import com.google.common.base.Throwables;
 
 /**
  * Unit tests for {@link FileOps}.
@@ -29,7 +36,33 @@ import com.cinchapi.concourse.test.ConcourseBaseTest;
  */
 public class FileOpsTest extends ConcourseBaseTest {
 
-    @Test
+    @Test(timeout = 10000)
+    public void testAwaitChange() throws InterruptedException {
+        String file = FileOps.tempFile(FileOps.tempDir("con"), "foo", ".test");
+        CountDownLatch latch = new CountDownLatch(1);
+        Thread t = new Thread(() -> {
+            FileOps.awaitChange(file);
+            latch.countDown();
+        });
+        t.start();
+        AtomicBoolean done = new AtomicBoolean(false);
+        Thread t2 = new Thread(() -> {
+            while (!done.get()) {
+                // There is an arbitrary and uncontrollable delay between the
+                // time that the path Thread t starting and the
+                // FileOps#awaitChange method actually registering the path so
+                // we just keep writing to the file so that, eventually, one of
+                // the changes will be caught
+                FileOps.write(Random.getSimpleString(), file);
+            }
+        });
+        t2.start();
+        latch.await();
+        Assert.assertTrue(true);
+        done.set(true);
+    }
+
+    @Test(timeout = 5000)
     public void testAwaitChangeDoesNotRegisterPathMoreThanOnce()
             throws InterruptedException {
         // NOTE: Do not change this test to use a CountDownLatch or some other
@@ -64,9 +97,9 @@ public class FileOpsTest extends ConcourseBaseTest {
         FileOps.write("a", file);
         Assert.assertEquals(1, FileOps.REGISTERED_WATCHER_PATHS.size());
     }
-    
+
     @Test(timeout = 5000)
-    public void testRegisterDifferentPaths(){
+    public void testRegisterDifferentPaths() {
         String file1 = FileOps.tempFile(FileOps.tempDir("con"), null, null);
         String file2 = FileOps.tempFile(FileOps.tempDir("con"), null, null);
         Thread t1 = new Thread(() -> {
@@ -86,5 +119,71 @@ public class FileOpsTest extends ConcourseBaseTest {
         Assert.assertTrue(true);
     }
 
+    @Test
+    public void testAwaitChangeNeverMissesUpdate()
+            throws InterruptedException, IOException {
+        String file = FileOps.tempFile();
+        CountDownLatch testSignaler = new CountDownLatch(1);
+        CountDownLatch writeSignaler = new CountDownLatch(1);
+        Thread t1 = new Thread(() -> { // ensure the parent path gets registered
+            Thread parentThread = Thread.currentThread();
+            Thread raceConditionDetector = new Thread(() -> {
+                while (parentThread.getState() == State.RUNNABLE) {
+                    continue;
+                }
+                try {
+                    if(Files.size(Paths.get(file)) > 0) {
+                        FileOps.touch(file);
+                    }
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            });
+            raceConditionDetector.setDaemon(true);
+            raceConditionDetector.start();
+            writeSignaler.countDown();
+            FileOps.awaitChange(file);
+            testSignaler.countDown();
+        });
+        t1.start();
+        Thread t2 = new Thread(() -> {
+            try {
+                writeSignaler.await();
+                FileOps.write("foo", file);            
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        t2.start();
+        testSignaler.await();
+        CountDownLatch startable = new CountDownLatch(2);
+        Thread t3 = new Thread(() -> {
+            startable.countDown();
+            try {
+                startable.await();
+                FileOps.awaitChange(file);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        Thread t4 = new Thread(() -> {
+            startable.countDown();
+            try {
+                startable.await();
+                FileOps.write("foo", file);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        t3.start();
+        t4.start();
+        t3.join();
+        t4.join();
+    }
 
 }

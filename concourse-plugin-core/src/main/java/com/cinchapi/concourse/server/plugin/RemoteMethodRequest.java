@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
- * A message that is sent from one process to another via a {@link SharedMemory}
- * segment with a request to invoke a remote method.
+ * A message that is sent from one process to another via a
+ * {@link InterProcessCommunication} segment with a request to invoke a remote
+ * method.
  * 
  * @author Jeff Nelson
  */
 @Immutable
 @PackagePrivate
 final class RemoteMethodRequest extends RemoteMessage {
-    
+
     /**
      * The non-thrift arguments to pass to the method.
      */

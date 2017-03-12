@@ -1,6 +1,43 @@
 ## Changelog
 
-#### Version 0.5.0 (TBD)
+#### Version 0.6.1
+* Added a bug fix that prevents service tokens from auto-expiring.
+* Added a `ps` command to the `plugins` CLI to display information about the running plugins.
+
+#### Version 0.6.0 (March 5, 2017)
+* Added `calculate` interface to the `java` driver to perform aggregations.
+* Added a `sum` aggregation function.
+* Added an `average` aggregation function.
+* Switched to socket-based (instead of shared memory based) interprocess communication between Concourse Server and plugins.
+* Assigned meaningful process names to plugins.
+* Added a System-Id for each Concourse Server instance.
+* Fixed bugs in the `ObjectResultDataset` implementation.
+* Added an end-to-end testing framework for the plugin framework.
+* Fixed a bug that caused some query results to be case-sensitive.
+* Fixed a bug that caused some query results to have inconsistent ordering.
+* Upgraded support for parsing natural language timestamps.
+* Updated the usage method of the `concourse` init.d script.
+* Fixed a bug that caused `PluginContext` and `PluginRuntime` to return different directories for a plugin's data store.
+* Added a progress bar for the `plugin install` command.
+* Fixed a bug that caused `ConcourseRuntime` to mishandle plugin results.
+* Clarified the proper way to use plugin hooks.
+* Refactored the `plugin` management CLI.
+* Fixed a bug that allowed plugins to invoke server-side transaction methods ([CON-518](http://jira.cinchapi.com/browse/CON-518)).
+* Refactored the implementation of the `version` CLI.
+* Improved process forking framework.
+* Enabled console logging for plugins ([CON-514](http://jira.cinchapi.com/browse/CON-514)).
+* Made the `Transformer` interface in `concourse-import` framework a `FunctionalInterface`.
+* Added logic to plugins to signal to Concourse Server when initialization has completed.
+* Added functionality to get the host Concourse Server directory from the `import` CLI and server-side management CLIs.
+* Added support for defining custom importers in an `importers` directory within the Concourse Server instance directory.
+* Added a `--annotate-data-source` option to the `import` CLI that will cause imported records to have the name of the source file added to the `__datasource` key.
+* Added support for specifying the id of the record into which data should be inserted within the JSON blob that is passed to the `insert` method.
+* Added method to `TrackingMultimap` that measures the spread/dispersion of the contained data.
+* Fixed a race condition bug in the `concourse-ete-test` framework.
+* Fixed bug that caused a preference for using random ports outside the ephemeral range.
+* Changed the plugin configuration to no longer require setting `remote_debugger = on` to enable remote debugging; now it is sufficient to just specify the `remote_debugger_port` preference.
+
+#### Version 0.5.0 (November 3, 2016)
 
 ##### API Breaks
 * The `insert(json)` method now returns a `Set<Long>` instead of a `long`.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,16 @@ import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.imca_cat.pollingwatchservice.PollingWatchService;
+
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.sun.nio.file.SensitivityWatchEventModifier;
@@ -49,71 +54,6 @@ import com.sun.nio.file.SensitivityWatchEventModifier;
  * @author Jeff Nelson
  */
 public class FileOps {
-
-    /**
-     * A service that watches directories for operations on files.
-     * <p>
-     * Java's {@link WatchService} API is designed to handle directories instead
-     * of individual files. So, when {@link #awaitChange(String)} is called, we
-     * register the parent path (e.g. the housing directory) with the watch
-     * service and check the {@link WatchEvent watch event's}
-     * {@link WatchEvent#context() context} to determine whether an individual
-     * file has changed.
-     * </p>
-     */
-    private static final WatchService FILE_CHANGE_WATCHER;
-    static {
-        try {
-            FILE_CHANGE_WATCHER = FileSystems.getDefault().newWatchService();
-            Thread t = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            WatchKey key;
-                            try {
-                                key = FILE_CHANGE_WATCHER.take();
-                                for (WatchEvent<?> event : key.pollEvents()) {
-                                    Path parent = (Path) key.watchable();
-                                    WatchEvent.Kind<?> kind = event.kind();
-                                    if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                        Path abspath = parent
-                                                .resolve((Path) event.context())
-                                                .toAbsolutePath();
-                                        String sync = abspath.toString()
-                                                .intern();
-                                        synchronized (sync) {
-                                            sync.notifyAll();
-                                        }
-                                    }
-                                }
-                                key.reset();
-                            }
-                            catch (InterruptedException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-                    }
-                    finally {
-                        try {
-                            FILE_CHANGE_WATCHER.close();
-                        }
-                        catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
-                    }
-                }
-
-            });
-            t.setDaemon(true);
-            t.start();
-
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-    }
 
     /**
      * Write the String {@code content} to the end of the {@code file},
@@ -134,35 +74,135 @@ public class FileOps {
     /**
      * Cause the current thread to block while waiting for a change to
      * {@code file}.
+     * <p>
+     * Because of limitations of most underlying file systems, this method can
+     * only guarantee changes that occur at least 1 second after this method is
+     * invoked. For changes that occur less than 1 second of method invocation,
+     * the method will return immediately; however, there is a chance that such
+     * a return is indicative of a false positive case where the file changed
+     * before this method was invoked, but within the same second of the
+     * invocation.
+     * </p>
+     * <p>
+     * If protection against that kind of false positive is important, the
+     * caller should check the contents of the underlying file is this method
+     * returns immediately.
+     * </p>
      * 
      * @param file the path to a regular file
      */
     public static void awaitChange(String file) {
         try {
-            Path path = Paths.get(expandPath(file));
-            Preconditions
-                    .checkArgument(java.nio.file.Files.isRegularFile(path));
-            WatchEvent.Kind<?>[] kinds = {
-                    StandardWatchEventKinds.ENTRY_MODIFY };
-            SensitivityWatchEventModifier[] modifiers = {
-                    SensitivityWatchEventModifier.HIGH };
-            Watchable parent = path.getParent();
+            awaitChangeInterruptibly(file);
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Cause the current thread to block while waiting for a change to
+     * {@code file}.
+     * <p>
+     * Because of limitations of most underlying file systems, this method can
+     * only guarantee changes that occur at least 1 second after this method is
+     * invoked. For changes that occur less than 1 second of method invocation,
+     * the method will return immediately; however, there is a chance that such
+     * a return is indicative of a false positive case where the file changed
+     * before this method was invoked, but within the same second of the
+     * invocation.
+     * </p>
+     * <p>
+     * If protection against that kind of false positive is important, the
+     * caller should check the contents of the underlying file is this method
+     * returns immediately.
+     * </p>
+     * 
+     * @param file the path to a regular file
+     */
+    public static void awaitChangeInterruptibly(String file)
+            throws InterruptedException {
+        if(!IS_WATCH_SERVICE_SETUP) {
+            try {
+                // Add a PollingWatchService to use as a backup in case the
+                // default watch service is causing issues (i.e. on Linux the
+                // max number of inotify watches may be reached, in which case
+                // we can use the backup as a fail safe.)
+                PollingWatchService pollingWatchService = new PollingWatchService(
+                        Runtime.getRuntime().availableProcessors(), 1000,
+                        TimeUnit.MILLISECONDS);
+                pollingWatchService.start();
+                FILE_CHANGE_WATCHERS.add(pollingWatchService);
+                FILE_CHANGE_WATCHERS
+                        .add(FileSystems.getDefault().newWatchService());
+            }
+            catch (Exception e) {
+                // NOTE: Cannot re-throw the exception because it will prevent
+                // the class from being loaded...
+                e.printStackTrace();
+            }
+            FILE_CHANGE_WATCHERS.forEach((watcher) -> {
+                setupWatchService(watcher);
+            });
+            IS_WATCH_SERVICE_SETUP = true;
+        }
+        long methodStartTime = System.currentTimeMillis();
+        methodStartTime = TimeUnit.SECONDS.convert(methodStartTime,
+                TimeUnit.MILLISECONDS);
+        Path path = Paths.get(expandPath(file));
+        Preconditions.checkArgument(java.nio.file.Files.isRegularFile(path));
+        String mutex = path.toString().intern();
+        synchronized (mutex) {
+            Watchable parent = path.getParent().toAbsolutePath();
             if(!REGISTERED_WATCHER_PATHS.contains(parent)) {
-                parent.register(FILE_CHANGE_WATCHER, kinds, modifiers);
+                for (int i = 0; i < FILE_CHANGE_WATCHERS.size(); ++i) {
+                    WatchService watcher = FILE_CHANGE_WATCHERS.get(i);
+                    try {
+                        if(watcher instanceof PollingWatchService) {
+                            ((PollingWatchService) watcher).register(
+                                    (Path) parent, WATCH_EVENT_KINDS,
+                                    WATCH_EVENT_MODIFIERS);
+                        }
+                        else {
+                            parent.register(watcher, WATCH_EVENT_KINDS,
+                                    WATCH_EVENT_MODIFIERS);
+                        }
+                        break;
+                    }
+                    catch (IOException e) {
+                        // If an error occurs while trying to register a
+                        // path with a watch service, cycle through the list
+                        // in order to see if we can find one that will
+                        // accept it.
+                        if(i < FILE_CHANGE_WATCHERS.size()) {
+                            continue;
+                        }
+                        else {
+                            throw CheckedExceptions.throwAsRuntimeException(e);
+                        }
+                    }
+                }
                 REGISTERED_WATCHER_PATHS.add(parent);
             }
-            String sync = path.toString().intern();
             try {
-                synchronized (sync) {
-                    sync.wait();
+                long modified = java.nio.file.Files.getLastModifiedTime(path)
+                        .toMillis();
+                modified = TimeUnit.SECONDS.convert(modified,
+                        TimeUnit.MILLISECONDS);
+                if(modified >= methodStartTime) {
+                    // A modification occurred after the method start time,
+                    // so return in order to allow the caller to move on
+                    // since the file did indeed change after method
+                    // invocation
+                    return;
+                }
+                else {
+                    mutex.wait();
                 }
             }
-            catch (InterruptedException e) {
-                throw Throwables.propagate(e);
+            catch (IOException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
             }
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
         }
     }
 
@@ -214,6 +254,17 @@ public class FileOps {
     }
 
     /**
+     * Return {@code true} if the specified {@code path} is that of a directory
+     * and not a flat file.
+     * 
+     * @param path the path to check
+     * @return {@code true} if the {@code path} is that of a directory
+     */
+    public static boolean isDirectory(String path) {
+        return java.nio.file.Files.isDirectory(Paths.get(path));
+    }
+
+    /**
      * Create the directories named by {@code path}, including any necessary,
      * but nonexistent parent directories.
      * <p>
@@ -231,17 +282,6 @@ public class FileOps {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
-    }
-
-    /**
-     * Return {@code true} if the specified {@code path} is that of a directory
-     * and not a flat file.
-     * 
-     * @param path the path to check
-     * @return {@code true} if the {@code path} is that of a directory
-     */
-    public static boolean isDirectory(String path) {
-        return java.nio.file.Files.isDirectory(Paths.get(path));
     }
 
     /**
@@ -392,7 +432,20 @@ public class FileOps {
      * Create a temporary file that is likely to be deleted some time after this
      * JVM terminates, but definitely not before.
      * 
-     * @param dir the directory in which the temp file should be created
+     * @param prefix the prefix for the temp file
+     * @param suffix the suffix for the temp file
+     * @return the absolute path where the temp file is stored
+     */
+    public static String tempFile(String prefix, String suffix) {
+        return tempFile(null, prefix, suffix);
+    }
+
+    /**
+     * Create a temporary file that is likely to be deleted some time after this
+     * JVM terminates, but definitely not before.
+     * 
+     * @param dir the absolute path to the directory in which the temp file
+     *            should be created
      * @param prefix the prefix for the temp file
      * @param suffix the suffix for the temp file
      * @return the absolute path where the temp file is stored
@@ -405,6 +458,9 @@ public class FileOps {
             prefix = prefix + Random.getString().charAt(0);
         }
         try {
+            if(dir != null) {
+                FileOps.mkdirs(dir);
+            }
             return dir == null
                     ? java.nio.file.Files.createTempFile(prefix, suffix)
                             .toAbsolutePath().toString()
@@ -415,18 +471,6 @@ public class FileOps {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
-    }
-
-    /**
-     * Create a temporary file that is likely to be deleted some time after this
-     * JVM terminates, but definitely not before.
-     * 
-     * @param prefix the prefix for the temp file
-     * @param suffix the suffix for the temp file
-     * @return the absolute path where the temp file is stored
-     */
-    public static String tempFile(String prefix, String suffix) {
-        return tempFile(null, prefix, suffix);
     }
 
     /**
@@ -478,7 +522,73 @@ public class FileOps {
         }
     }
 
-    protected FileOps() {/* noop */}
+    /**
+     * Configure the watch {@code service} to notify listeners about changes to
+     * any of the {@link #REGISTERED_WATCHER_PATHS} that have been sent to the
+     * service.
+     * 
+     * @param service the {@link WatchService} to setup
+     */
+    private static void setupWatchService(WatchService service) {
+        Thread t = new Thread(() -> {
+            try {
+                while (true) {
+                    WatchKey key;
+                    try {
+                        key = service.take();
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            Path parent = (Path) key.watchable();
+                            WatchEvent.Kind<?> kind = event.kind();
+                            if(kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                Path abspath = parent
+                                        .resolve((Path) event.context())
+                                        .toAbsolutePath();
+                                String sync = abspath.toString().intern();
+                                synchronized (sync) {
+                                    sync.notifyAll();
+                                }
+                            }
+                        }
+                        key.reset();
+                    }
+                    catch (InterruptedException e) {
+                        throw Throwables.propagate(e);
+                    }
+                }
+            }
+            finally {
+                try {
+                    service.close();
+                }
+                catch (IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+
+        });
+        t.setName("watch-service-daemon-" + service.getClass());
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * A flag that indicates whether the watch service(s) have been setup.
+     */
+    private static boolean IS_WATCH_SERVICE_SETUP = false;
+
+    /**
+     * A service that watches directories for operations on files.
+     * <p>
+     * Java's {@link WatchService} API is designed to handle directories instead
+     * of individual files. So, when {@link #awaitChange(String)} is called, we
+     * register the parent path (e.g. the housing directory) with the watch
+     * service and check the {@link WatchEvent watch event's}
+     * {@link WatchEvent#context() context} to determine whether an individual
+     * file has changed.
+     * </p>
+     */
+    private static List<WatchService> FILE_CHANGE_WATCHERS = Lists
+            .newArrayListWithCapacity(2);
 
     /**
      * A collection of {@link Watchable} paths that have already been registered
@@ -495,6 +605,19 @@ public class FileOps {
     private static String USER_HOME = System.getProperty("user.home");
 
     /**
+     * The kind of notifications we care about from the {@link WatchService}s.
+     */
+    private static WatchEvent.Kind<?>[] WATCH_EVENT_KINDS = {
+            StandardWatchEventKinds.ENTRY_MODIFY };
+
+    /**
+     * The modifiers that are supplied when registering a path with one the
+     * {@link WatchService}s.
+     */
+    private static SensitivityWatchEventModifier[] WATCH_EVENT_MODIFIERS = {
+            SensitivityWatchEventModifier.HIGH };
+
+    /**
      * The working directory from which the current JVM process was launched.
      */
     private static String WORKING_DIRECTORY = System.getProperty("user.dir");
@@ -504,5 +627,7 @@ public class FileOps {
      */
     private static Path BASE_PATH = FileSystems.getDefault()
             .getPath(WORKING_DIRECTORY);
+
+    protected FileOps() {/* noop */}
 
 }

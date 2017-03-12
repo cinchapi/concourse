@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import org.apache.thrift.TException;
 
@@ -140,6 +141,13 @@ public abstract class BaseConcourseServer
             throws TException {
         checkAccess(creds);
         getAccessManager().deleteUser(username);
+    }
+
+    @Override
+    @PluginRestricted
+    public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
+            throws TException {
+        return getPluginManager().runningPlugins();
     }
 
     @Override
