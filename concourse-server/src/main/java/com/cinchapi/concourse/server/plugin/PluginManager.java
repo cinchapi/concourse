@@ -488,6 +488,30 @@ public class PluginManager {
     }
 
     /**
+     * Return information about the running plugins as a mapping from each PID
+     * to another mapping that contains key/value pairs with information about
+     * the plugin.
+     * 
+     * @return information about the running plugins
+     */
+    public Map<Long, Map<String, String>> runningPlugins() {
+        Map<Long, Map<String, String>> info = Maps.newLinkedHashMap();
+        registry.rowMap().forEach((plugin, data) -> {
+            PluginStatus status = (PluginStatus) data.get(RegistryData.STATUS);
+            if(status == PluginStatus.ACTIVE) {
+                JavaApp app = (JavaApp) data.get(RegistryData.APP_INSTANCE);
+                long pid = app.pid();
+                String bundle = (String) data.get(RegistryData.PLUGIN_BUNDLE);
+                Map<String, String> attrs = Maps.newHashMap();
+                attrs.put("name", plugin);
+                attrs.put("bundle", bundle);
+                info.put(pid, attrs);
+            }
+        });
+        return info;
+    }
+
+    /**
      * Start the plugin manager.
      * <p>
      * This also starts to stream {@link Packet} in separate thread
