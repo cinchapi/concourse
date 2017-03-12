@@ -429,6 +429,8 @@ public class JavaApp extends Process {
      *             support this operation OR the process has not begun
      *             {@link #run() running}
      */
+    // NOTE: This method return a long for compatibility with the planned
+    // Process#getPid method in Java 9
     public long pid() {
         if(process.getClass().getName().equals("java.lang.UNIXProcess")) {
             return ((Integer) Reflection.get("pid", process)).longValue();
