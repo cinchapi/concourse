@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import com.cinchapi.concourse.Link;
 import com.google.common.primitives.UnsignedLongs;
@@ -30,6 +31,20 @@ import static com.google.common.base.Preconditions.*;
  * @author Raghav Babu
  */
 public abstract class Numbers {
+
+    /**
+     * The default value for {@link #DIVISION_NUMBER_DECIMAL_PLACES}.
+     */
+    private static final int DEFAULT_DIVISION_NUMBER_DECIMAL_PLACES = 10;
+
+    /**
+     * The number of decimal places to include when
+     * {@link #divide(Number, Number) dividing}.
+     */
+    private static final int DIVISION_NUMBER_DECIMAL_PLACES = Integer
+            .parseInt(System.getProperty(
+                    "com.cinchapi.concourse.calculation.divisionNumberDecimalPlaces",
+                    Integer.toString(DEFAULT_DIVISION_NUMBER_DECIMAL_PLACES)));
 
     /**
      * Return the sum of two numbers.
@@ -109,19 +124,10 @@ public abstract class Numbers {
      * @return the division result of {@code a} by {@code b}.
      */
     public static Number divide(Number a, Number b) {
-        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
-            BigDecimal a0 = Numbers.toBigDecimal(a);
-            BigDecimal b0 = Numbers.toBigDecimal(b);
-            return a0.divide(b0);
-        }
-        else {
-            try {
-                return Math.floorDiv(a.intValue(), b.intValue());
-            }
-            catch (ArithmeticException e) {
-                return Math.floorDiv(a.longValue(), b.longValue());
-            }
-        }
+        BigDecimal a0 = Numbers.toBigDecimal(a);
+        BigDecimal b0 = Numbers.toBigDecimal(b);
+        return a0.divide(b0, DIVISION_NUMBER_DECIMAL_PLACES,
+                RoundingMode.HALF_UP);
     }
 
     /**
@@ -137,9 +143,9 @@ public abstract class Numbers {
      */
     public static Number incrementalAverage(Number running, Number number,
             int count) {
-        Number dividend = Numbers.add(number, Numbers.multiply(-1, running));
-        Number addend = Numbers.divide(dividend, count);
-        return Numbers.add(running, addend);
+        Number sum = Numbers.multiply(running, count - 1);
+        sum = Numbers.add(sum, number);
+        return Numbers.divide(sum, count);
     }
 
     /**
