@@ -103,7 +103,7 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
+                        ByteBuffer.wrap(opts.editingUsername.getBytes()), token)) {
                     console.readLine(opts.editingUsername + " does not exist. "
                             + "Use CTRL-C to terminate or press RETURN to "
                             + "continue adding this user.");
@@ -125,7 +125,7 @@ public class ManageUsersCli extends ManagementCli {
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
                 if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
+                        ByteBuffer.wrap(opts.editingUsername.getBytes()), token)) {
                     System.out.println(opts.deletingUsername
                             + " does not exist.");
                 }
