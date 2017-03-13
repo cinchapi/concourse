@@ -221,4 +221,16 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         client.calculate().average(key, Timestamp.now());
     }
+    
+    @Test
+    public void testAverageKeyReproA(){
+        String key = "age";
+        client.add("age", 1, 1);
+        client.add("age", 2, 2);
+        client.add("age", 17, 3);
+        client.add("age", 17, 4);
+        Number expected = Numbers.divide(1+2+17+17, 4);
+        Number actual = client.calculate().average(key);
+        Assert.assertTrue(Numbers.isEqualTo(expected, actual));
+    }
 }
