@@ -117,9 +117,10 @@ final class Operations {
             Object value = Convert.thriftToJava(tobject);
             Calculations.checkCalculatable(value);
             Number number = (Number) value;
-            number = Numbers.multiply(number, records.size());
-            count += records.size();
-            avg = Numbers.incrementalAverage(avg, number, count);
+            for(int i = 0; i < records.size(); ++i){
+                count++;
+                avg = Numbers.incrementalAverage(avg, number, count);
+            }
         }
         return avg;
     }

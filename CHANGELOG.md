@@ -10,6 +10,8 @@
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
 * Added a `ps` command to the `plugins` CLI to display information about the running plugins.
+* Fixed a bug that caused the `average(key)` method to return the incorrect result.
+* Fixed a bug that caused calculations that internally performed division to prematurely round and produce in-precise results.
 
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
