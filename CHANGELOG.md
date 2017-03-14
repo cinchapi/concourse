@@ -6,12 +6,12 @@
 		navigate "friends.friends.name", 1
 
 * Re-implemented the `users` CLI to provide extensible commands. Now the `users` CLI will respond to the following commands:
-1. `create` - create a new user
-2. `delete` - delete an existing user
-3. `enable` - restore access to a suspended user
-4. `password` - change a user's password
-5. `sessions` - list the current user sessions
-6. `suspend` - revoke access for a user
+	1. `create` - create a new user
+	2. `delete` - delete an existing user
+	3. `enable` - restore access to a suspended user
+	4. `password` - change a user's password
+	5. `sessions` - list the current user sessions
+	6. `suspend` - revoke access for a user
 
 * TBD
 
