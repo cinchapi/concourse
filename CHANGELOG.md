@@ -5,7 +5,7 @@
 
 		navigate "friends.friends.name", 1
 
-* Re-implemented the `users` CLI to provide extensible commands. Now the `users` CLI will respond to the following commands:
+* Re-implemented the `users` CLI to provide extensible commands. Now the `users` CLI will respond to:
 	1. `create` - create a new user
 	2. `delete` - delete an existing user
 	3. `enable` - restore access to a suspended user
@@ -13,7 +13,12 @@
 	5. `sessions` - list the current user sessions
 	6. `suspend` - revoke access for a user
 
-* TBD
+* Changed the `envtool` CLI to the `environments` CLI with extensible commands. The `environments` CLI will respond:
+	1. `list` - list the Concourse Server environments
+
+* Changed the `dumptool` CLI to the `data` CLI with extensible commands. The `data` CLI will respond to:
+	1. `dump` - dump the contents of a Concourse Server data file
+	2. `list` - list the Concourse Server data files
 
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
