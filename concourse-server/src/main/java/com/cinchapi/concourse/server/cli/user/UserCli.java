@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,47 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli.plugin;
+package com.cinchapi.concourse.server.cli.user;
 
+import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.server.cli.core.OptionalArgsManagementCli;
 import com.cinchapi.concourse.server.cli.core.Options;
 import com.google.common.base.CaseFormat;
 
 /**
  * Marker class for CLIs that should be invokable from the main
- * {@link ManagePluginsCli}.
+ * {@link ManageUsersCli}.
  * 
  * @author Jeff Nelson
  */
-public abstract class PluginCli extends OptionalArgsManagementCli {
-
+public abstract class UserCli extends OptionalArgsManagementCli {
+    
     /**
-     * Return the command that can be passed to the {@link ManagePluginsCli} to
+     * Return the command that can be passed to the {@link ManageUsersCli} to
      * invoke this particular cli.
      * 
      * @return the command
      */
-    public static String getCommand(Class<? extends PluginCli> clazz) {
+    public static String getCommand(Class<? extends UserCli> clazz) {
         return CaseFormat.UPPER_CAMEL
                 .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
                 .split("_")[0];
     }
-
+    
     /**
      * Construct a new instance.
      * 
      * @param options
      * @param args
      */
-    public PluginCli(Options options, String[] args) {
+    public UserCli(Options options, String[] args) {
         super(options, args);
     }
-
+    
     /**
-     * Special options for the plugin cli.
+     * Special options for the user cli.
      * 
      * @author Jeff Nelson
      */
-    protected static class PluginOptions extends Options {}
-
+    protected static class UserOptions extends Options {
+        
+        @Parameter(names = { "--set-password" }, description = "Password of the user that is being managed (e.g. the non-invoking user)")
+        public String userPassword;
+    }
 }
