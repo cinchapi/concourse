@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.core;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -70,6 +70,6 @@ public abstract class Options {
      * Java's main method.
      */
     @Parameter(description = "additional program arguments...")
-    protected List<String> args = Lists.newArrayList();
+    public List<String> args = Lists.newArrayList();
 
 }

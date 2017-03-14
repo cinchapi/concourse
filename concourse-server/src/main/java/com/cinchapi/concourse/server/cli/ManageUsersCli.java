@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.cli;
 import java.nio.ByteBuffer;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.server.cli.core.Options;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;

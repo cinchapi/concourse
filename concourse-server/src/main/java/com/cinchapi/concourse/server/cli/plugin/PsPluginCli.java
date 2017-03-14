@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.plugin;
 
 import java.util.Map;
 
 import org.apache.thrift.TException;
 
+import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 

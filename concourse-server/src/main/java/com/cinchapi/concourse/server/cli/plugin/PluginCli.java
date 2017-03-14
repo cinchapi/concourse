@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.plugin;
 
+import com.cinchapi.concourse.server.cli.ManagementCli;
+import com.cinchapi.concourse.server.cli.core.Options;
 import com.google.common.base.CaseFormat;
 
 /**
@@ -23,7 +25,19 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-abstract class PluginCli extends ManagementCli {
+public abstract class PluginCli extends ManagementCli {
+
+    /**
+     * Return the command that can be passed to the {@link ManagePluginsCli} to
+     * invoke this particular cli.
+     * 
+     * @return the command
+     */
+    public static String getCommand(Class<? extends PluginCli> clazz) {
+        return CaseFormat.UPPER_CAMEL
+                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
+                .split("_")[0];
+    }
 
     /**
      * Construct a new instance.
@@ -33,18 +47,6 @@ abstract class PluginCli extends ManagementCli {
      */
     public PluginCli(Options options, String[] args) {
         super(options, args);
-    }
-
-    /**
-     * Return the command that can be passed to the {@link ManagePluginsCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    protected static String getCommand(Class<? extends PluginCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
     }
 
     @Override

@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.cli;
 import org.apache.thrift.TException;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.concourse.server.cli.core.EnvironmentOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 
 /**
