@@ -20,7 +20,7 @@ package com.cinchapi.concourse.server.cli.core;
  * 
  * @author Jeff Nelson
  */
-public abstract class OptionalArgsManagementCli extends ManagementCli {
+public abstract class OptionalArgsCli extends ManagementCli {
 
     /**
      * Construct a new instance.
@@ -28,7 +28,7 @@ public abstract class OptionalArgsManagementCli extends ManagementCli {
      * @param options
      * @param args
      */
-    public OptionalArgsManagementCli(Options options, String[] args) {
+    public OptionalArgsCli(Options options, String[] args) {
         super(options, args);
     }
 

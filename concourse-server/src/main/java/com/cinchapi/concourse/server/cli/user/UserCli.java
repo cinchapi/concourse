@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.cli.user;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.cli.core.OptionalArgsManagementCli;
+import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
 import com.cinchapi.concourse.server.cli.core.Options;
 import com.google.common.base.CaseFormat;
 
@@ -26,7 +26,7 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class UserCli extends OptionalArgsManagementCli {
+public abstract class UserCli extends OptionalArgsCli {
     
     /**
      * Return the command that can be passed to the {@link ManageUsersCli} to
