@@ -182,7 +182,8 @@ JVMOPTS=$JVMOPTS"
 BIN_ALIASES=(
   debug:dumptool
   datafiles:dumptool
-  environments:envtool
+  env:environments
+  envs:environments
   plugin:plugins
   shell:cash
   user:users
