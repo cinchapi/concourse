@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.user;
 
-import java.util.Map;
-
-import org.apache.thrift.TException;
-
+import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.Options;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 
 /**
- * A CLI for listing information about running plugins.
+ * A cli for listing the current user sessions.
  * 
  * @author Jeff Nelson
  */
-@CommandLineInterfaceInformation(description = "List information about running plugins")
-class PsPluginCli extends PluginCli {
+@CommandLineInterfaceInformation(description = "List the current user sessions")
+public class SessionsUserCli extends UserCli {
 
     /**
      * Construct a new instance.
@@ -36,31 +33,25 @@ class PsPluginCli extends PluginCli {
      * @param options
      * @param args
      */
-    public PsPluginCli(String[] args) {
-        super(new PluginCli.PluginOptions(), args);
-    }
-
-    @Override
-    protected void doTask(Client client) {
-        try {
-            Map<Long, Map<String, String>> info = client
-                    .runningPluginsInfo(token);
-            PrettyLinkedTableMap<Long, String, String> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("pid");
-            info.forEach((pid, data) -> {
-                pretty.put(pid, data);
-            });
-            System.out.println(pretty);
-        }
-        catch (TException e) {
-            die(e.getMessage());
-        }
-
+    public SessionsUserCli(String[] args) {
+        super(new Options() {}, args);
     }
 
     @Override
     protected boolean requireArgs() {
         return false;
+    }
+
+    @Override
+    protected void doTask(Client client) {
+        try {
+            System.out.println("Current User Sessions:");
+            System.out.println(client.listAllUserSessions(token));
+        }
+        catch (Exception e) {
+            die(e.getMessage());
+        }
+
     }
 
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,59 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.data;
 
+import com.cinchapi.concourse.server.cli.core.EnvironmentOptions;
+import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
+import com.cinchapi.concourse.server.cli.core.Options;
 import com.google.common.base.CaseFormat;
 
 /**
  * Marker class for CLIs that should be invokable from the main
- * {@link ManagePluginsCli}.
+ * {@link ManageDataCli}.
  * 
  * @author Jeff Nelson
  */
-abstract class PluginCli extends ManagementCli {
-
+public abstract class DataCli extends OptionalArgsCli {
+    
+    /**
+     * Return the command that can be passed to the {@link ManageDatasCli} to
+     * invoke this particular cli.
+     * 
+     * @return the command
+     */
+    public static String getCommand(Class<? extends DataCli> clazz) {
+        return CaseFormat.UPPER_CAMEL
+                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
+                .split("_")[0];
+    }
+    
     /**
      * Construct a new instance.
      * 
      * @param options
      * @param args
      */
-    public PluginCli(Options options, String[] args) {
+    public DataCli(Options options, String[] args) {
         super(options, args);
     }
-
+    
     /**
-     * Return the command that can be passed to the {@link ManagePluginsCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    protected static String getCommand(Class<? extends PluginCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
-    }
-
-    @Override
-    protected boolean isReadyToRun() {
-        return ((requireArgs() && !options.args.isEmpty()) || !requireArgs())
-                && super.isReadyToRun();
-    }
-
-    /**
-     * A flag that indicates whether the CLI requires one or more arguments in
-     * order to run.
-     * 
-     * @return {@code true} or {@code false}
-     */
-    protected abstract boolean requireArgs();
-
-    /**
-     * Special options for the plugin cli.
+     * Special options for the data cli.
      * 
      * @author Jeff Nelson
      */
-    protected static class PluginOptions extends Options {}
-
+    protected static class DataOptions extends EnvironmentOptions {}
 }

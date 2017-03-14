@@ -15,19 +15,36 @@
  */
 package com.cinchapi.concourse.server.cli;
 
-import java.nio.ByteBuffer;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
-import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.management.ConcourseManagementService;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
+import org.reflections.Reflections;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.Parameters;
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.common.unsafe.RuntimeDynamics;
+import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.user.UserCli;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A management CLI to add/modify/remove user access to the server.
  * 
  * @author Jeff Nelson
  */
-public class ManageUsersCli extends ManagementCli {
+public class ManageUsersCli {
+
+    static {
+        Reflections.log = null;
+    }
 
     /**
      * Run the program...
@@ -35,196 +52,114 @@ public class ManageUsersCli extends ManagementCli {
      * @param args
      */
     public static void main(String... args) {
-        ManageUsersCli cli = new ManageUsersCli(args);
-        cli.run();
-    }
+        // NOTE: We only use JCommaner here to get the usage message
+        JCommander parser = new JCommander(new Object());
+        parser.setProgramName("user");
 
-    /**
-     * Construct a new instance.
-     * 
-     * @param options
-     * @param args
-     */
-    public ManageUsersCli(String[] args) {
-        super(new MyOptions(), args);
-    }
+        // Reflectively get all the commands that can be used for user
+        // management.
+        Map<String, Class<? extends UserCli>> commands = Maps.newHashMap();
+        Reflections reflections = new Reflections(
+                ManageUsersCli.class.getPackage().getName());
+        Set<Class<? extends UserCli>> classes = Sets
+                .newTreeSet((c1, c2) -> c1.getName().compareTo(c2.getName()));
+        classes.addAll(reflections.getSubTypesOf(UserCli.class));
+        classes.forEach((clazz) -> {
+            // This is over engineering at its finest. The logic below use a ton
+            // of reflection hacks to properly configure JCommander
+            // auto-magically so that every CLI that extends UserCli just
+            // works. Normally, I wouldn't recommend suffering the performance
+            // hit that this requires for developer convenience, but CLIs are
+            // short lived and run in a separate jvm so its okay in this case :)
+            // - Jeff Nelson
+            String command = UserCli.getCommand(clazz);
+            commands.put(command, clazz);
+            String description = command + " a user";
+            for (Annotation annotation : clazz.getDeclaredAnnotations()) {
+                if(annotation
+                        .annotationType() == CommandLineInterfaceInformation.class) {
+                    description = ((CommandLineInterfaceInformation) annotation)
+                            .description();
+                    break;
+                }
+            }
+            final String _description = description;
+            Parameters annotation = new Parameters() {
 
-    @Override
-    protected void doTask(ConcourseManagementService.Client client) {
-        MyOptions opts = (MyOptions) options;
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Parameters.class;
+                }
+
+                @Override
+                public String resourceBundle() {
+                    return "";
+                }
+
+                @Override
+                public String separators() {
+                    return null;
+                }
+
+                @Override
+                public String optionPrefixes() {
+                    return null;
+                }
+
+                @Override
+                public String commandDescription() {
+                    return _description;
+                }
+
+                @Override
+                public String commandDescriptionKey() {
+                    return null;
+                }
+
+                @Override
+                public String[] commandNames() {
+                    return null;
+                }
+
+            };
+            try {
+                Object object = RuntimeDynamics.newAnonymousObject();
+                Method method = Class.class.getDeclaredMethod("annotationData");
+                method.setAccessible(true);
+                Object annotationData = method.invoke(object.getClass());
+                Field field = annotationData.getClass()
+                        .getDeclaredField("annotations");
+                field.setAccessible(true);
+                Map<Class<? extends Annotation>, Annotation> annotations = Maps
+                        .newHashMapWithExpectedSize(1);
+                annotations.put(Parameters.class, annotation);
+                field.set(annotationData, annotations);
+                parser.addCommand(command, object);
+            }
+            catch (ReflectiveOperationException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
+        });
         try {
-            if(opts.grant) {
-                System.out
-                        .println("WARNING: Option --grant is being deprecated,"
-                                + " and replaced by options --add-user and --edit-user.");
-                System.out.println("What is the username you want "
-                        + "to add or modify?");
-                byte[] username = console.readLine("").getBytes();
-                System.out.println("What is the new password for this user?");
-                byte[] password = console.readLine('*').getBytes();
-                client.grant(ByteBuffer.wrap(username),
-                        ByteBuffer.wrap(password), token);
-                System.out.println("Consider it done.");
-            }
-            else if(opts.revoke) {
-                System.out
-                        .println("WARNING: Option --revoke is being deprecated,"
-                                + " and replaced by option --delete-user.");
-                System.out.println("What is the username you want to delete?");
-                byte[] username = console.readLine("").getBytes();
-                client.revoke(ByteBuffer.wrap(username), token);
-                System.out.println("Consider it done.");
-            }
-            else if(opts.listSessions) {
-                System.out.println("Current User Sessions:");
-                System.out.println(client.listAllUserSessions(token));
-            }
-            else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
-                if(client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
-                    console.readLine(opts.addingUsername + " already exists. "
-                            + "Use CTRL-C to terminate or press RETURN to "
-                            + "continue editing this user.");
-                }
-                if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.addingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
-                    if(!opts.newPassword.equals(reEnteredPassword)) {
-                        throw new SecurityException(
-                                "Not the same password. This"
-                                        + " user has not been added.");
-                    }
-                }
-                client.grant(ByteBuffer.wrap(opts.addingUsername.getBytes()),
-                        ByteBuffer.wrap(opts.newPassword.getBytes()), token);
-                System.out.println("Consider it done.");
-            }
-            else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
-                if(!client.hasUser(
-                        ByteBuffer.wrap(opts.editingUsername.getBytes()), token)) {
-                    console.readLine(opts.editingUsername + " does not exist. "
-                            + "Use CTRL-C to terminate or press RETURN to "
-                            + "continue adding this user.");
-                }
-                if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine("Password for "
-                            + opts.editingUsername + " : ", '*');
-                    String reEnteredPassword = console.readLine(
-                            "Re-enter password : ", '*');
-                    if(!opts.newPassword.equals(reEnteredPassword)) {
-                        throw new SecurityException(
-                                "Not the same password. This"
-                                        + " user has not been edited.");
-                    }
-                }
-                client.grant(ByteBuffer.wrap(opts.editingUsername.getBytes()),
-                        ByteBuffer.wrap(opts.newPassword.getBytes()), token);
-                System.out.println("Consider it done.");
-            }
-            else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
-                if(!client.hasUser(
-                        ByteBuffer.wrap(opts.editingUsername.getBytes()), token)) {
-                    System.out.println(opts.deletingUsername
-                            + " does not exist.");
-                }
-                else {
-                    client.revoke(
-                            ByteBuffer.wrap(opts.deletingUsername.getBytes()),
-                            token);
-                    System.out.println("Consider it done.");
-                }
-            }
-            else if(!Strings.isNullOrEmpty(opts.enableUsername)) {
-                if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
-                    System.out
-                            .println(opts.enableUsername + " does not exist.");
-                }
-                else if(opts.username.equals(opts.enableUsername)) {
-                    System.out.println(opts.enableUsername
-                            + " is the current user.");
-                }
-                else {
-                    client.enableUser(
-                            ByteBuffer.wrap(opts.enableUsername.getBytes()),
-                            token);
-                    System.out.println("Consider it done.");
-                }
-            }
-            else if(!Strings.isNullOrEmpty(opts.disableUsername)) {
-                if(!client.hasUser(
-                        ByteBuffer.wrap(opts.addingUsername.getBytes()), token)) {
-                    System.out.println(opts.disableUsername
-                            + " does not exist.");
-                }
-                else if(opts.username.equals(opts.disableUsername)) {
-                    System.out.println(opts.disableUsername
-                            + " is the current user, so it can't be disabled.");
-                }
-                else {
-                    client.disableUser(
-                            ByteBuffer.wrap(opts.disableUsername.getBytes()),
-                            token);
-                    System.out.println("Consider it done.");
-                }
-            }
-            else {
-                parser.usage();
-            }
+            parser.parse(args);
         }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
+        catch (ParameterException e) {
+            // We're not using JCommander properly anyway, so just ignore any
+            // exceptions it throws.
         }
-    }
-
-    @Override
-    protected boolean isReadyToRun() {
-        MyOptions opts = (MyOptions) options;
-        return super.isReadyToRun()
-                && (opts.grant || opts.revoke || opts.listSessions
-                        || !Strings.isNullOrEmpty(opts.addingUsername)
-                        || !Strings.isNullOrEmpty(opts.deletingUsername)
-                        || !Strings.isNullOrEmpty(opts.editingUsername)
-                        || !Strings.isNullOrEmpty(opts.enableUsername) || !Strings
-                            .isNullOrEmpty(opts.disableUsername));
-    }
-
-    /**
-     * The options that can be passed to the main method of this script.
-     * 
-     * @author Jeff Nelson
-     */
-    private static class MyOptions extends Options {
-
-        @Parameter(names = { "-g", "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
-        public boolean grant = false;
-
-        @Parameter(names = { "-r", "--revoke" }, description = "[DEPRECATED] Remove an existing user")
-        public boolean revoke = false;
-
-        @Parameter(names = { "-a", "--add-user" }, description = "Username of new user to add.")
-        public String addingUsername;
-
-        @Parameter(names = { "-e", "--edit-user" }, description = "Username of existing user to edit.")
-        public String editingUsername;
-
-        @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
-        public String deletingUsername;
-
-        @Parameter(names = { "--enable-user" }, description = "Enable the user with this username.")
-        public String enableUsername;
-
-        @Parameter(names = { "--disable-user" }, description = "Disable the user with this username.")
-        public String disableUsername;
-
-        @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
-        public String newPassword;
-
-        @Parameter(names = { "--list-sessions" }, description = "List the user sessions that are currently active")
-        public boolean listSessions = false;
-
+        String command = args.length > 0 ? args[0].toLowerCase() : null;
+        args = args.length > 1
+                ? (String[]) Arrays.copyOfRange(args, 1, args.length)
+                : new String[] {};
+        Class<?> clazz = command != null ? commands.get(command) : null;
+        if(clazz != null) {
+            UserCli cli = (UserCli) Reflection.newInstance(clazz,
+                    new Object[] { args });
+            cli.run();
+        }
+        else {
+            parser.usage();
+        }
     }
 
 }
