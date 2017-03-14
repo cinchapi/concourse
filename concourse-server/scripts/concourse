@@ -182,7 +182,6 @@ JVMOPTS=$JVMOPTS"
 BIN_ALIASES=(
   env:environments
   envs:environments
-  files:storage
   plugin:plugins
   shell:cash
   user:users
