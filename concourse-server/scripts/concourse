@@ -181,6 +181,7 @@ JVMOPTS=$JVMOPTS"
 # The format for this array is alias:cli
 BIN_ALIASES=(
   datafiles:data
+  debug:data
   env:environments
   envs:environments
   plugin:plugins
