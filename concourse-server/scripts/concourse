@@ -183,9 +183,10 @@ BIN_ALIASES=(
   debug:dumptool
   datafiles:dumptool
   environments:envtool
-  shell:cash
-  users:useradmin
   plugins:plugin
+  shell:cash
+  useradmin:user
+  users:user
 )
 
 # This function will return the appropriate CLI for an alias. If the alias
