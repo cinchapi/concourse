@@ -19,7 +19,7 @@ import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 
 /**
- * A cli for creating environments.
+ * A cli for listing environments.
  * 
  * @author Jeff Nelson
  */
