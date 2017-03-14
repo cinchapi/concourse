@@ -185,7 +185,6 @@ BIN_ALIASES=(
   environments:envtool
   plugin:plugins
   shell:cash
-  useradmin:users
   user:users
 )
 
