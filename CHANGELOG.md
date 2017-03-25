@@ -27,6 +27,7 @@
 * Fixed a bug that caused calculations that internally performed division to prematurely round and produce in-precise results.
 * Fixed a bug that caused the editing and deleting an existing user with the `users` CLI to always fail.
 * Added support for defining custom importers in `.jar` files.
+* Detect when the service is installed in an invalid directory and fail appropriately.
 
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
