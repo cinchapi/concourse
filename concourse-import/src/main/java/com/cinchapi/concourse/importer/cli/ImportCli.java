@@ -23,7 +23,6 @@ import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -151,9 +150,9 @@ public class ImportCli extends CommandLineInterface {
                         if(options.verbose) {
                             System.out.println(records);
                         }
-                        System.out.println(
-                                Strings.format("Imported data into {} records",
-                                        records.size()));
+                        System.out.println(Strings.format(
+                                "Imported data into {} record{}",
+                                records.size(), records.size() > 1 ? "s" : ""));
                         if(dryRun) {
                             System.out.println(
                                     ((ImportDryRunConcourse) getConcourseConnection(
@@ -288,9 +287,9 @@ public class ImportCli extends CommandLineInterface {
             if(options.verbose) {
                 System.out.println(records);
             }
-            System.out.println(MessageFormat.format(
-                    "Imported data " + "into {0} records in {1} seconds",
-                    records.size(), seconds));
+            System.out.println(Strings.format(
+                    "Imported data into {} record{} in {} seconds",
+                    records.size(), records.size() > 1 ? "s" : "", seconds));
             if(dryRun) {
                 System.out.println(
                         ((ImportDryRunConcourse) getConcourseConnection(0))
