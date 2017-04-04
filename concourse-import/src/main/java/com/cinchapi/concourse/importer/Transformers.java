@@ -29,49 +29,6 @@ import com.google.common.base.CaseFormat;
 public final class Transformers {
 
     /**
-     * Return a {@link CompositeTransformer} that invokes each of the
-     * {@code transformers} in order.
-     * 
-     * @param transformers the {@link Transformer transformers} to invoke
-     * @return a {@link CompositeTransformer}
-     */
-    public Transformer compose(Transformer... transformers) {
-        return new CompositeTransformer(Arrays.asList(transformers));
-    }
-
-    /**
-     * Return a {@link Transformer} that strips invalid characters from the key.
-     * Some of those characters are replaced with valid stand-ins.
-     * <h1>Replacements</h1>
-     * <ul>
-     * <li>a white space character (e.g. ' ') is replaced with an
-     * underscore</li>
-     * <li>the pound sign is replaced the string {@code num}</li>
-     * </ul>
-     * <p>
-     * 
-     * @return the {@link Transformer}
-     */
-    public Transformer keyStripInvalidChars() {
-        return KEY_STRIP_INVALID_CHARS;
-    }
-
-    /**
-     * Return a {@link Transformer} that converts keys {@code from} one case
-     * format {@code to} another one.
-     * 
-     * @param from the original {@link CaseFormat}
-     * @param to the desired {@link CaseFormat}
-     * @return the {@link Transformer
-     */
-    public Transformer keyCaseFormat(CaseFormat from, CaseFormat to) {
-        return (key, value) -> {
-            key = from.to(to, key);
-            return new KeyValue<>(key, value);
-        };
-    }
-
-    /**
      * A {@link Transformer} that strips invalid characters from the key. Some
      * invalid characters are replaced with valid stand-ins.
      */
@@ -92,5 +49,48 @@ public final class Transformers {
     };
 
     private Transformers() {/* no init */}
+
+    /**
+     * Return a {@link CompositeTransformer} that invokes each of the
+     * {@code transformers} in order.
+     * 
+     * @param transformers the {@link Transformer transformers} to invoke
+     * @return a {@link CompositeTransformer}
+     */
+    public Transformer compose(Transformer... transformers) {
+        return new CompositeTransformer(Arrays.asList(transformers));
+    }
+    
+    /**
+     * Return a {@link Transformer} that converts keys {@code from} one case
+     * format {@code to} another one.
+     * 
+     * @param from the original {@link CaseFormat}
+     * @param to the desired {@link CaseFormat}
+     * @return the {@link Transformer
+     */
+    public Transformer keyCaseFormat(CaseFormat from, CaseFormat to) {
+        return (key, value) -> {
+            key = from.to(to, key);
+            return new KeyValue<>(key, value);
+        };
+    }
+
+    /**
+     * Return a {@link Transformer} that strips invalid characters from the key.
+     * Some of those characters are replaced with valid stand-ins.
+     * <h1>Replacements</h1>
+     * <ul>
+     * <li>a white space character (e.g. ' ') is replaced with an
+     * underscore</li>
+     * <li>the pound sign is replaced the string {@code num}</li>
+     * </ul>
+     * <p>
+     * 
+     * @return the {@link Transformer}
+     */
+    public Transformer keyStripInvalidChars() {
+        return KEY_STRIP_INVALID_CHARS;
+    }
 
 }
