@@ -55,6 +55,7 @@ import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.importer.JsonImporter;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
+import com.cinchapi.concourse.importer.debug.ImportDryRunConcourse;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
@@ -96,6 +97,12 @@ public class ImportCli extends CommandLineInterface {
      */
     private static String LAUNCH_DIRECTORY = null;
 
+    /**
+     * A flag that indicates whether the CLI is being used to perform a dry run
+     * import.
+     */
+    private boolean dryRun = false;
+
     /*
      * TODO
      * 2) add flags to whitelist or blacklist files in a directory
@@ -117,10 +124,12 @@ public class ImportCli extends CommandLineInterface {
         final Set<Long> records;
         final Constructor<? extends Importer> constructor = getConstructor(
                 opts.type);
+        this.dryRun = opts.dryRun;
         opts.dynamic.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME,
                 Boolean.toString(opts.annotateDataSource));
         if(opts.data == null) { // Import data from stdin
-            Importer importer = Reflection.newInstance(constructor, concourse);
+            Importer importer = Reflection.newInstance(constructor,
+                    getConcourseConnection(0));
             if(!opts.dynamic.isEmpty()) {
                 importer.setParams(options.dynamic);
             }
@@ -145,6 +154,11 @@ public class ImportCli extends CommandLineInterface {
                         System.out.println(
                                 Strings.format("Imported data into {} records",
                                         records.size()));
+                        if(dryRun) {
+                            System.out.println(
+                                    ((ImportDryRunConcourse) getConcourseConnection(
+                                            0)).dump());
+                        }
                     }
 
                 }));
@@ -212,11 +226,7 @@ public class ImportCli extends CommandLineInterface {
                 opts.numThreads = Math.min(opts.numThreads, files.size());
                 for (int i = 0; i < opts.numThreads; ++i) {
                     final Importer importer0 = Reflection.newInstance(
-                            constructor,
-                            i == 0 ? concourse
-                                    : Concourse.connect(opts.host, opts.port,
-                                            opts.username, opts.password,
-                                            opts.environment));
+                            constructor, getConcourseConnection(i));
                     if(!opts.dynamic.isEmpty()) {
                         importer0.setParams(opts.dynamic);
                     }
@@ -261,7 +271,7 @@ public class ImportCli extends CommandLineInterface {
             }
             else {
                 Importer importer = Reflection.newInstance(constructor,
-                        concourse);
+                        getConcourseConnection(0));
                 if(!opts.dynamic.isEmpty()) {
                     importer.setParams(opts.dynamic);
                 }
@@ -281,6 +291,11 @@ public class ImportCli extends CommandLineInterface {
             System.out.println(MessageFormat.format(
                     "Imported data " + "into {0} records in {1} seconds",
                     records.size(), seconds));
+            if(dryRun) {
+                System.out.println(
+                        ((ImportDryRunConcourse) getConcourseConnection(0))
+                                .dump());
+            }
         }
     }
 
@@ -496,6 +511,26 @@ public class ImportCli extends CommandLineInterface {
     }
 
     /**
+     * Get the appropriate {@link Concourse} client based on the {@code ticket}
+     * and whether the import is actually a {@link #dryRun} or nah.
+     * 
+     * @param ticket
+     * @return a connection to {@link Concourse} that can be used for importing
+     *         data
+     */
+    private Concourse getConcourseConnection(int ticket) {
+        if(dryRun) {
+            return new ImportDryRunConcourse();
+        }
+        else if(ticket == 0) {
+            return concourse;
+        }
+        else {
+            return Concourse.copyExistingConnection(concourse);
+        }
+    }
+
+    /**
      * Import specific {@link Options}.
      * 
      * @author jnelson
@@ -522,6 +557,9 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = "--annotate-data-source", description = "Add the filename from which the data is imported as a value for the '__datasource' key on every imported object")
         public boolean annotateDataSource = false;
+
+        @Parameter(names = "--dry-run", description = "Do a test import of the data in memory and print a JSON dump of what would be inserted into Concourse")
+        public boolean dryRun = false;
 
     }
 

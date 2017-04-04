@@ -66,7 +66,7 @@ public class TSets {
      * @return a {@link Set} with numbers
      */
     public static Set<Long> sequence(long from, long to) {
-        Preconditions.checkArgument(from < to);
+        Preconditions.checkArgument(from <= to);
         int size = (int) (to - from);
         Set<Long> sequence = Sets.newLinkedHashSetWithExpectedSize(size);
         for (long i = from; i <= to; i++) {

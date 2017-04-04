@@ -19,9 +19,10 @@
 * Changed the `dumptool` CLI to the `data` CLI with extensible commands. The `data` CLI will respond to:
 	1. `dump` - dump the contents of a Concourse Server data file
 	2. `list` - list the Concourse Server data files
-	
+
 * Added a `CompositeTransformer` to the `concourse-import` framework that invokes multiple transformers in declaration order.
 * Added a `Transformers` utility class to the `concourse-import` framework API.
+* Added a `--dry-run` flag to the `import` CLI that will perform a test data of import in-memory only and print a JSON dump of what data would be inserted into Concourse.
 
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
