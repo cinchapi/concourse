@@ -53,7 +53,7 @@ public final class Transformers {
      * A {@link Transformer} that will strip single and double quotes from the
      * beginning and end of both the key and value.
      */
-    private final Transformer STRIP_QUOTES = (key, value) -> {
+    private final static Transformer STRIP_QUOTES = (key, value) -> {
         if(Strings.isWithinQuotes(key)) {
             key = key.substring(1, key.length() - 1);
         }
