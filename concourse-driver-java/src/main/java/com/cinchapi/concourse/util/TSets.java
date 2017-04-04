@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 /**
@@ -57,6 +58,24 @@ public class TSets {
     }
 
     /**
+     * Return a {@link Set} that contains long integers {@code from} the first
+     * parameter {@code to} the last one in sequential order.
+     * 
+     * @param from the first number (inclusive)
+     * @param to the second number (inclusive)
+     * @return a {@link Set} with numbers
+     */
+    public static Set<Long> sequence(long from, long to) {
+        Preconditions.checkArgument(from < to);
+        int size = (int) (to - from);
+        Set<Long> sequence = Sets.newLinkedHashSetWithExpectedSize(size);
+        for (long i = from; i <= to; i++) {
+            sequence.add(i);
+        }
+        return sequence;
+    }
+
+    /**
      * Return a Set that contains all the elements in both {@code a} and
      * {@code b}.
      * 
@@ -79,7 +98,8 @@ public class TSets {
      * @return the intersection of the Sets
      */
     @SuppressWarnings("unchecked")
-    private static <T> Set<T> sortedIntersection(SortedSet<T> a, SortedSet<T> b) {
+    private static <T> Set<T> sortedIntersection(SortedSet<T> a,
+            SortedSet<T> b) {
         Set<T> intersection = Sets.newLinkedHashSet();
         if(a.isEmpty() || b.isEmpty()) {
             return intersection;
