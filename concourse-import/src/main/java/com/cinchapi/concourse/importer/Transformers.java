@@ -112,7 +112,7 @@ public final class Transformers {
      * Return a {@link Transformer} that will strip single and double quotes
      * from the beginning and end of both the key and value.
      */
-    public Transformer stripQuotes() {
+    public static Transformer stripQuotes() {
         return STRIP_QUOTES;
     }
 
