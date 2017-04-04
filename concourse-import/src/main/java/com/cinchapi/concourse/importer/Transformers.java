@@ -19,6 +19,7 @@ import java.util.Arrays;
 
 import com.cinchapi.concourse.importer.util.Importables;
 import com.cinchapi.concourse.util.KeyValue;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
 
 /**
@@ -48,6 +49,20 @@ public final class Transformers {
         return new KeyValue<>(sb.toString(), value);
     };
 
+    /**
+     * A {@link Transformer} that will strip single and double quotes from the
+     * beginning and end of both the key and value.
+     */
+    private final Transformer STRIP_QUOTES = (key, value) -> {
+        if(Strings.isWithinQuotes(key)) {
+            key = key.substring(1, key.length() - 1);
+        }
+        if(Strings.isWithinQuotes(value)) {
+            value = value.substring(1, value.length() - 1);
+        }
+        return new KeyValue<>(key, value);
+    };
+
     private Transformers() {/* no init */}
 
     /**
@@ -60,7 +75,7 @@ public final class Transformers {
     public Transformer compose(Transformer... transformers) {
         return new CompositeTransformer(Arrays.asList(transformers));
     }
-    
+
     /**
      * Return a {@link Transformer} that converts keys {@code from} one case
      * format {@code to} another one.
@@ -91,6 +106,14 @@ public final class Transformers {
      */
     public Transformer keyStripInvalidChars() {
         return KEY_STRIP_INVALID_CHARS;
+    }
+
+    /**
+     * Return a {@link Transformer} that will strip single and double quotes
+     * from the beginning and end of both the key and value.
+     */
+    public Transformer stripQuotes() {
+        return STRIP_QUOTES;
     }
 
 }
