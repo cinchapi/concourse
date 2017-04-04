@@ -33,7 +33,7 @@ public final class Transformers {
      * A {@link Transformer} that strips invalid characters from the key. Some
      * invalid characters are replaced with valid stand-ins.
      */
-    private final Transformer KEY_STRIP_INVALID_CHARS = (key, value) -> {
+    private final static Transformer KEY_STRIP_INVALID_CHARS = (key, value) -> {
         StringBuilder sb = new StringBuilder();
         for (char c : key.toCharArray()) {
             if(Importables.isValidKeyCharacter(c)) {
@@ -72,7 +72,7 @@ public final class Transformers {
      * @param transformers the {@link Transformer transformers} to invoke
      * @return a {@link CompositeTransformer}
      */
-    public Transformer compose(Transformer... transformers) {
+    public static Transformer compose(Transformer... transformers) {
         return new CompositeTransformer(Arrays.asList(transformers));
     }
 
@@ -84,7 +84,7 @@ public final class Transformers {
      * @param to the desired {@link CaseFormat}
      * @return the {@link Transformer
      */
-    public Transformer keyCaseFormat(CaseFormat from, CaseFormat to) {
+    public static Transformer keyCaseFormat(CaseFormat from, CaseFormat to) {
         return (key, value) -> {
             key = from.to(to, key);
             return new KeyValue<>(key, value);
@@ -104,7 +104,7 @@ public final class Transformers {
      * 
      * @return the {@link Transformer}
      */
-    public Transformer keyStripInvalidChars() {
+    public static Transformer keyStripInvalidChars() {
         return KEY_STRIP_INVALID_CHARS;
     }
 
