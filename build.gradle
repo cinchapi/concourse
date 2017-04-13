@@ -51,6 +51,15 @@ buildscript {
     }
 }
 
+task signUrl {
+    exec {
+        commandLine 'python', 'sign-url.py'
+    }
+}
+
+task bundleZip(dependsOn: ':signUrl')
+
+
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
         tasks.withType(Javadoc) {
