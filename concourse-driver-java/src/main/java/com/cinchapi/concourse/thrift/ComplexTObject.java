@@ -25,12 +25,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.EnumMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.BitSet;
 import java.io.ByteArrayOutputStream;
@@ -404,7 +405,7 @@ public class ComplexTObject implements
                     other.tscalar);
         }
         if(other.isSetTmap()) {
-            Map<ComplexTObject, ComplexTObject> __this__tmap = new HashMap<ComplexTObject, ComplexTObject>(
+            Map<ComplexTObject, ComplexTObject> __this__tmap = new LinkedHashMap<ComplexTObject, ComplexTObject>(
                     other.tmap.size());
             for (Map.Entry<ComplexTObject, ComplexTObject> other_element : other.tmap
                     .entrySet()) {
@@ -679,7 +680,7 @@ public class ComplexTObject implements
 
     public void putToTmap(ComplexTObject key, ComplexTObject val) {
         if(this.tmap == null) {
-            this.tmap = new HashMap<ComplexTObject, ComplexTObject>();
+            this.tmap = new LinkedHashMap<ComplexTObject, ComplexTObject>();
         }
         this.tmap.put(key, val);
     }
@@ -1471,7 +1472,7 @@ public class ComplexTObject implements
                         {
                             org.apache.thrift.protocol.TMap _map0 = iprot
                                     .readMapBegin();
-                            struct.tmap = new HashMap<ComplexTObject, ComplexTObject>(
+                            struct.tmap = new LinkedHashMap<ComplexTObject, ComplexTObject>(
                                     2 * _map0.size);
                             ComplexTObject _key1;
                             ComplexTObject _val2;
@@ -1769,7 +1770,7 @@ public class ComplexTObject implements
                             org.apache.thrift.protocol.TType.STRUCT,
                             org.apache.thrift.protocol.TType.STRUCT,
                             iprot.readI32());
-                    struct.tmap = new HashMap<ComplexTObject, ComplexTObject>(
+                    struct.tmap = new LinkedHashMap<ComplexTObject, ComplexTObject>(
                             2 * _map16.size);
                     ComplexTObject _key17;
                     ComplexTObject _val18;
