@@ -16,8 +16,10 @@
 package com.cinchapi.concourse.server.cli.plugin;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
 
@@ -26,6 +28,9 @@ import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.concourse.thrift.ManagementException;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Strings;
 
 /**
  * A cli for installing plugins.
@@ -49,30 +54,40 @@ class InstallPluginCli extends PluginCli {
     protected void doTask(Client client) {
         String plugin = options.args.get(0);
         String path = FileSystem.expandPath(plugin, getLaunchDirectory());
-        if(Files.exists(Paths.get(path))) {
-            try {
-                AtomicBoolean done = new AtomicBoolean(false);
-                Thread tracker = new Thread(() -> {
-                    double percent = 0;
-                    Threads.sleep(1000);
-                    while (!done.get()) {
-                        System.out.print("\r" + CommandLineInterfaces
-                                .renderPercentDone(percent));
-                        percent = percent + ((100.0 - percent) / 32.0);
-                        Threads.sleep(1000);
+        Path path0 = Paths.get(path);
+        if(Files.isDirectory(path0)) {
+            System.out.println(Strings.format(
+                    "Attempting to install plugin bundles from '{}'", path0));
+            AtomicInteger installed = new AtomicInteger(0);
+            FileOps.newDirectoryStream(path0).forEach((file) -> {
+                if(!Files.isDirectory(file)) {
+                    try {
+                        installPluginBundle(client, file);
+                        installed.incrementAndGet();
                     }
-                });
-                tracker.setDaemon(true);
-                tracker.start();
-                client.installPluginBundle(path, token);
-                done.set(true);
-                System.out.println(
-                        "\r" + CommandLineInterfaces.renderPercentDone(100));
+                    catch (TException e) { // Log the error as a warning and
+                                           // keep iterating through the
+                                           // directory
+                        System.err.println("[WARN] " + e.getMessage());
+                    }
+                }
+                else {
+                    System.err.println(Strings.format(
+                            "[WARN] Skipping '{}' because it is a directory",
+                            file));
+                }
+            });
+            System.out
+                    .println(Strings.format("Installed a total of {} plugin{}",
+                            installed.get(), installed.get() == 1 ? "" : "s"));
+        }
+        else if(Files.exists(path0)) {
+            try {
+                installPluginBundle(client, path0);
             }
             catch (TException e) {
                 die(e.getMessage());
             }
-            System.out.println("Successfully installed " + path);
         }
         else {
             throw new UnsupportedOperationException(
@@ -87,5 +102,34 @@ class InstallPluginCli extends PluginCli {
     @Override
     protected boolean requireArgs() {
         return true;
+    }
+
+    /**
+     * Use the {@code client} to install the plugin bundle at {@code path}.
+     * 
+     * @param client a {@link Client} to use for server interaction
+     * @param path the {@link Path} to the plugin bundle
+     * @throws ManagementException
+     * @throw TException
+     */
+    private void installPluginBundle(Client client, Path path)
+            throws ManagementException, TException {
+        AtomicBoolean done = new AtomicBoolean(false);
+        Thread tracker = new Thread(() -> {
+            double percent = 0;
+            Threads.sleep(1000);
+            while (!done.get()) {
+                System.out.print("\r"
+                        + CommandLineInterfaces.renderPercentDone(percent));
+                percent = percent + ((100.0 - percent) / 32.0);
+                Threads.sleep(1000);
+            }
+        });
+        tracker.setDaemon(true);
+        tracker.start();
+        client.installPluginBundle(path.toString(), token);
+        done.set(true);
+        System.out.println("\r" + CommandLineInterfaces.renderPercentDone(100));
+        System.out.println("Successfully installed " + path);
     }
 }
