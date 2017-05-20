@@ -28,6 +28,25 @@ import com.cinchapi.bucket.Bucket;
 public interface PluginStateContainer {
 
     /**
+     * Return a {@link Bucket} that can be used to provide an in-memory cache.
+     * 
+     * @return {@link Bucket} for caching
+     */
+    public default Bucket cache() {
+        return Bucket.temporary("general");
+    }
+
+    /**
+     * Return a {@link Bucket} that can be used to provide an in-memory cache
+     * under the given {@code namespace}.
+     * 
+     * @return {@link Bucket} for caching
+     */
+    public default Bucket cache(String namespace) {
+        return Bucket.temporary(namespace);
+    }
+
+    /**
      * Get the directory where the plugin store's data.
      * 
      * @return the data directory
@@ -46,25 +65,25 @@ public interface PluginStateContainer {
     public Path home();
 
     /**
-     * Return a {@link Bucket} that can be used to provide local storage under
-     * the given {@code namespace}.
+     * Return a {@link Bucket} that can be used to provide general persistent
+     * local storage.
+     * 
+     * @return a {@link Bucket} for general local storage
+     */
+    public default Bucket localStorage() {
+        return localStorage("general");
+    }
+
+    /**
+     * Return a {@link Bucket} that can be used to provide persistent local
+     * storage under the given {@code namespace}.
      * 
      * @param namespace the namespace to use for the local storage
      * @return a {@link Bucket} for local storage
      */
     public default Bucket localStorage(String namespace) {
         Path file = data().resolve("local.db");
-        return Bucket.connect(file, namespace);
-    }
-
-    /**
-     * Return a {@link Bucket} that can be used to provide general local
-     * storage.
-     * 
-     * @return a {@link Bucket} for general local storage
-     */
-    public default Bucket localStorage() {
-        return localStorage("general");
+        return Bucket.persistent(file, namespace);
     }
 
 }
