@@ -38,31 +38,6 @@ public abstract class PluginStateContainer {
     private final Map<String, Bucket> caches = new ConcurrentHashMap<>();
 
     /**
-     * Return a {@link Bucket} that can be used to provide an in-memory cache.
-     * 
-     * @return {@link Bucket} for caching
-     */
-    public Bucket cache() {
-        return Bucket.temporary("general");
-    }
-
-    /**
-     * Return a {@link Bucket} that can be used to provide an in-memory cache
-     * under the given {@code namespace}.
-     * 
-     * @return {@link Bucket} for caching
-     */
-    public Bucket cache(String namespace) {
-        Bucket cache = caches.get(namespace);
-        if(cache == null) {
-            Bucket created = Bucket.temporary(namespace);
-            cache = caches.putIfAbsent(namespace, created);
-            cache = MoreObjects.firstNonNull(cache, created);
-        }
-        return cache;
-    }
-
-    /**
      * Get the directory where the plugin store's data.
      * 
      * @return the data directory
@@ -100,6 +75,32 @@ public abstract class PluginStateContainer {
     public Bucket localStorage(String namespace) {
         Path file = data().resolve("local.db");
         return Bucket.persistent(file, namespace);
+    }
+
+    /**
+     * Return a {@link Bucket} that can be used for general temporary storage
+     * for the duration of the session.
+     * 
+     * @return {@link Bucket} for temporary storage
+     */
+    public Bucket tempStorage() {
+        return Bucket.temporary("general");
+    }
+
+    /**
+     * Return a {@link Bucket} that can be used for temporary storage under the
+     * given {@code namespace} for the duration of the session.
+     * 
+     * @return {@link Bucket} for temporary storage
+     */
+    public Bucket tempStorage(String namespace) {
+        Bucket cache = caches.get(namespace);
+        if(cache == null) {
+            Bucket created = Bucket.temporary(namespace);
+            cache = caches.putIfAbsent(namespace, created);
+            cache = MoreObjects.firstNonNull(cache, created);
+        }
+        return cache;
     }
 
 }
