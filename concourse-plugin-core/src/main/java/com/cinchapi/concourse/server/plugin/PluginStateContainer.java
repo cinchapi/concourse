@@ -16,8 +16,11 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.cinchapi.bucket.Bucket;
+import com.google.common.base.MoreObjects;
 
 /**
  * An interface that provides some default implementations for facilities that
@@ -25,14 +28,21 @@ import com.cinchapi.bucket.Bucket;
  * 
  * @author Jeff Nelson
  */
-public interface PluginStateContainer {
+public abstract class PluginStateContainer {
+
+    /**
+     * All of the {@link cache()} storages that have been created. They are
+     * stored in this collection for consistency throughout the lifetime of the
+     * plugin.
+     */
+    private final Map<String, Bucket> caches = new ConcurrentHashMap<>();
 
     /**
      * Return a {@link Bucket} that can be used to provide an in-memory cache.
      * 
      * @return {@link Bucket} for caching
      */
-    public default Bucket cache() {
+    public Bucket cache() {
         return Bucket.temporary("general");
     }
 
@@ -42,8 +52,14 @@ public interface PluginStateContainer {
      * 
      * @return {@link Bucket} for caching
      */
-    public default Bucket cache(String namespace) {
-        return Bucket.temporary(namespace);
+    public Bucket cache(String namespace) {
+        Bucket cache = caches.get(namespace);
+        if(cache == null) {
+            Bucket created = Bucket.temporary(namespace);
+            cache = caches.putIfAbsent(namespace, created);
+            cache = MoreObjects.firstNonNull(cache, created);
+        }
+        return cache;
     }
 
     /**
@@ -51,7 +67,7 @@ public interface PluginStateContainer {
      * 
      * @return the data directory
      */
-    public default Path data() {
+    public Path data() {
         Path path = home().resolve("data");
         Path devPath = home().resolve("data.dev");
         return devPath.toFile().exists() ? devPath : path;
@@ -62,7 +78,7 @@ public interface PluginStateContainer {
      * 
      * @return the home directory
      */
-    public Path home();
+    public abstract Path home();
 
     /**
      * Return a {@link Bucket} that can be used to provide general persistent
@@ -70,7 +86,7 @@ public interface PluginStateContainer {
      * 
      * @return a {@link Bucket} for general local storage
      */
-    public default Bucket localStorage() {
+    public Bucket localStorage() {
         return localStorage("general");
     }
 
@@ -81,7 +97,7 @@ public interface PluginStateContainer {
      * @param namespace the namespace to use for the local storage
      * @return a {@link Bucket} for local storage
      */
-    public default Bucket localStorage(String namespace) {
+    public Bucket localStorage(String namespace) {
         Path file = data().resolve("local.db");
         return Bucket.persistent(file, namespace);
     }

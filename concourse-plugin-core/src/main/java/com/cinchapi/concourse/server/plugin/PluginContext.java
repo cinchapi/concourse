@@ -30,7 +30,7 @@ import com.github.zafarkhaja.semver.Version;
  * @author Jeff Nelson
  */
 @Immutable
-public final class PluginContext implements PluginStateContainer {
+public final class PluginContext extends PluginStateContainer {
 
     /**
      * The plugin's working directory.
