@@ -16,11 +16,7 @@
 package com.cinchapi.concourse.server.plugin;
 
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.cinchapi.bucket.Bucket;
-import com.google.common.base.MoreObjects;
 
 /**
  * An interface that provides some default implementations for facilities that
@@ -29,13 +25,6 @@ import com.google.common.base.MoreObjects;
  * @author Jeff Nelson
  */
 public abstract class PluginStateContainer {
-
-    /**
-     * All of the {@link cache()} storages that have been created. They are
-     * stored in this collection for consistency throughout the lifetime of the
-     * plugin.
-     */
-    private final Map<String, Bucket> caches = new ConcurrentHashMap<>();
 
     /**
      * Get the directory where the plugin store's data.
@@ -80,27 +69,15 @@ public abstract class PluginStateContainer {
     /**
      * Return a {@link Bucket} that can be used for general temporary storage
      * for the duration of the session.
+     * <p>
+     * Calling this method again will return a different {@link Bucket} that
+     * does not share data with any other {@link Bucket buckets}.
+     * </p>
      * 
      * @return {@link Bucket} for temporary storage
      */
     public Bucket tempStorage() {
-        return Bucket.temporary("general");
-    }
-
-    /**
-     * Return a {@link Bucket} that can be used for temporary storage under the
-     * given {@code namespace} for the duration of the session.
-     * 
-     * @return {@link Bucket} for temporary storage
-     */
-    public Bucket tempStorage(String namespace) {
-        Bucket cache = caches.get(namespace);
-        if(cache == null) {
-            Bucket created = Bucket.temporary(namespace);
-            cache = caches.putIfAbsent(namespace, created);
-            cache = MoreObjects.firstNonNull(cache, created);
-        }
-        return cache;
+        return Bucket.temporary();
     }
 
 }
