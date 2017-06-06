@@ -117,13 +117,10 @@ where
 * bug fixes or miscellaneous changes bumps the patch.
 
 ##### Additional Resources
-* [Installation](http://concoursedb.com/guide/installation)
-* [Tutorial](http://concoursedb.com/guide/tutorial)
+* [Installation](https://docs.cinchapi.com/concourse/guide/installation/)
+* [Introduction](https://docs.cinchapi.com/concourse/guide/introduction/)
 * [API](concourse-driver-java/README.md)
 * [Developer Setup](http://wiki.cinchapi.com/display/OSS/Concourse+Developer+Setup)
-* [Codebase](http://concoursedb.com/guide/the-codebase)
-* [Data Model](http://concoursedb.com/guide/data-model/)
-* [Storage Model](http://concoursedb.com/guide/storage-model/)
 
 ## Contributing
 Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone, regardless of skill level :)
