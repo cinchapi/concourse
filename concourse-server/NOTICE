@@ -1,0 +1,559 @@
+ ==============================================================================
+ = NOTICE file corresponding to section 4d of the Apache License, Version 2.0 =
+ ==============================================================================
+
+                                Concourse
+                    Copyright 2013-2017 Cinchapi Inc.
+
+  1. Includes software developed at Cinchapi (https://cinchapi.com).
+
+     Accent4J
+     --------
+     Accent4J is a suite of libraries, helpers and data structures that make
+     Java programming idioms more fluent.
+
+     https://github.com/cinchapi/accent4j
+     Copyright 2015 Cinchapi Inc.
+
+     Bucket
+     ------
+     Bucket is an embedded key/value database with version control.
+
+     https://github.com/cinchapi/bucket
+     Copyright 2017 Cinchapi Inc.
+
+  2. Includes software developed by the Apache Software Foundation
+     (http://www.apache.org) or released under the Apache License,
+     Version 2.0:
+
+      HttpCore
+      --------
+      A set of low level HTTP transport components that can be used to build
+      custom client and server side HTTP services with a minimal footprint.
+
+      http://hc.apache.org/httpcomponents-core-ga/
+      Copyright 2005-2015 The Apache Software Foundation
+
+      Groovy
+      ------
+      An object-oriented programming language for the Java platform. It is a
+      language with features similar to those of Python, Ruby, Java, Perl, and
+      Smalltalk.
+
+      http://groovy-lang.org/
+      Copyright 2003-2015 The respective authors and developers
+      Developers and Contributors are listed in the project POM file
+      and Gradle build file.
+
+      This product includes software developed by The Groovy community
+      (http://groovy.codehaus.org/).
+
+      Gson
+      ----
+      A Java library that can be used to convert Java Objects into their JSON
+      representation. It can also be used to convert a JSON string to an
+      equivalent Java object. Gson can work with arbitrary Java objects
+      including pre-existing objects that you do not have source-code of.
+
+      https://code.google.com/p/google-gson/
+      Copyright 2008-2015 Google Inc.
+
+      Jetty
+      -----
+      Provides a Web server and javax.servlet container, plus support for SPDY,
+      WebSocket, OSGi, JMX, JNDI, JAAS and many other integrations. These
+      components are open source and available for commercial use and
+      distribution.
+
+          ==============================================================
+           Jetty Web Container
+           Copyright 1995-2015 Mort Bay Consulting Pty Ltd.
+          ==============================================================
+
+          The Jetty Web Container is Copyright Mort Bay Consulting Pty Ltd
+          unless otherwise noted.
+
+          Jetty is dual licensed under both
+
+            * The Apache 2.0 License
+              http://www.apache.org/licenses/LICENSE-2.0.html
+
+                and
+
+            * The Eclipse Public 1.0 License
+              http://www.eclipse.org/legal/epl-v10.html
+
+          Jetty may be distributed under either license.
+
+          ------
+          Eclipse
+
+          The following artifacts are EPL.
+           * org.eclipse.jetty.orbit:org.eclipse.jdt.core
+
+          The following artifacts are EPL and ASL2.
+           * org.eclipse.jetty.orbit:javax.security.auth.message
+
+
+          The following artifacts are EPL and CDDL 1.0.
+           * org.eclipse.jetty.orbit:javax.mail.glassfish
+
+
+          ------
+          Oracle
+
+          The following artifacts are CDDL + GPLv2 with classpath exception.
+          https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+           * javax.servlet:javax.servlet-api
+           * javax.annotation:javax.annotation-api
+           * javax.transaction:javax.transaction-api
+           * javax.websocket:javax.websocket-api
+
+          ------
+          Oracle OpenJDK
+
+          If ALPN is used to negotiate HTTP/2 connections, then the following
+          artifacts may be included in the distribution or downloaded when ALPN
+          module is selected.
+
+           * java.sun.security.ssl
+
+          These artifacts replace/modify OpenJDK classes.  The modifications
+          are hosted at github and both modified and original are under GPL v2
+          with classpath exceptions.
+          http://openjdk.java.net/legal/gplv2+ce.html
+
+
+          ------
+          OW2
+
+          The following artifacts are licensed by the OW2 Foundation according
+          to the terms of http://asm.ow2.org/license.html
+
+          org.ow2.asm:asm-commons
+          org.ow2.asm:asm
+
+
+          ------
+          Apache
+
+          The following artifacts are ASL2 licensed.
+
+          org.apache.taglibs:taglibs-standard-spec
+          org.apache.taglibs:taglibs-standard-impl
+
+
+          ------
+          MortBay
+
+          The following artifacts are ASL2 licensed.  Based on selected classes
+          from following Apache Tomcat jars, all ASL2 licensed.
+
+          org.mortbay.jasper:apache-jsp
+            org.apache.tomcat:tomcat-jasper
+            org.apache.tomcat:tomcat-juli
+            org.apache.tomcat:tomcat-jsp-api
+            org.apache.tomcat:tomcat-el-api
+            org.apache.tomcat:tomcat-jasper-el
+            org.apache.tomcat:tomcat-api
+            org.apache.tomcat:tomcat-util-scan
+            org.apache.tomcat:tomcat-util
+
+          org.mortbay.jasper:apache-el
+            org.apache.tomcat:tomcat-jasper-el
+            org.apache.tomcat:tomcat-el-api
+
+
+          ------
+          Mortbay
+
+          The following artifacts are CDDL + GPLv2 with classpath exception.
+
+          https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+          org.eclipse.jetty.toolchain:jetty-schemas
+
+          ------
+          Assorted
+
+          The UnixCrypt.java code implements the one way cryptography used by
+          Unix systems for simple password protection.  Copyright 1996 Aki
+          Yoshida, modified April 2001  by Iris Van den Broeke, Daniel Deville.
+          Permission to use, copy, modify and distribute UnixCrypt
+          for non-commercial or commercial purposes and without fee is
+          granted provided that the copyright notice appears in all copies.
+
+          http://www.eclipse.org/jetty/
+          Copyright 1995-2015 Mort Bay Consulting Pty Ltd
+
+      Commons Configuration
+      ---------------------
+      A software library provides a generic configuration interface which
+      enables a Java application to read configuration data from a variety of
+      sources.
+
+      http://commons.apache.org/proper/commons-configuration/
+      Copyright 2001-2014 The Apache Software Foundation
+
+      xml-commons
+      -----------
+      Focussed on common code and guidelines for xml projects. The first focus
+      will be to organize and have common packaging for the various
+      externally-defined standards code relating to XML - things like the DOM,
+      SAX, and JAXP interfaces.
+
+      https://xerces.apache.org/xml-commons/
+      Copyright 2001-2015 The Apache Software Foundation
+
+      Portions of this software were originally based on the following:
+      - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
+      - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
+      - voluntary contributions made by Paul Eng on behalf of the
+       Apache Software Foundation that were originally developed at iClick,
+       Inc., software copyright (c) 1999.
+
+      HttpClient
+      ----------
+      Designed for extension while providing robust support for the base HTTP
+      protocol, HttpClient may be of interest to anyone building HTTP-aware
+      client applications such as web browsers, web service clients, or systems
+      that leverage or extend the HTTP protocol for distributed communication.
+
+      https://hc.apache.org/httpcomponents-client-ga/
+      Copyright 2005-2015 The Apache Software Foundation
+
+      Joda-Time
+      ---------
+      Provides a quality replacement for the Java date and time classes.
+
+      http://www.joda.org/joda-time/
+      Copyright 2002-2015 Joda.org
+
+      Guava
+      -----
+      Contains several of Google's core libraries that we rely on in our
+      Java-based projects: collections, caching, primitives support, concurrency
+      libraries, common annotations, string processing, I/O, and so forth.
+
+      https://code.google.com/p/guava-libraries/
+      Copyright 2008-2015 Google Inc.
+
+      Thrift
+      ------
+      A software framework, for scalable cross-language services development,
+      combines a software stack with a code generation engine to build services
+      that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby,
+      Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml
+      and Delphi and other languages.
+
+      https://thrift.apache.org/
+      Copyright 2014-2015 The Apache Software Foundation
+
+      Commons Lang
+      ------------
+      Provides a host of helper utilities for the java.lang API, notably String
+      manipulation methods, basic numerical methods, object reflection,
+      concurrency, creation and serialization and System properties.
+      Additionally it contains basic enhancements to java.util.Date and a series
+      of utilities dedicated to help with building methods, such as hashCode,
+      toString and equals.
+
+      https://commons.apache.org/proper/commons-lang/
+      Copyright 2001-2015 The Apache Software Foundation
+
+      This product includes software from the Spring Framework, under the Apache
+      License 2.0 (see: StringUtils.containsWhitespace())
+
+      Mustache.java
+      -------------
+      An implementation of mustache.js for Java
+
+      https://github.com/spullara/mustache.java
+      Copyright 2010-2015 RightTime, Inc.
+
+      JCommander
+      ----------
+      A very small Java framework that makes it trivial to parse command line
+      parameters.
+
+      http://jcommander.org/
+      Copyright 2010-2015 Cédric Beust
+
+      Commons Logging
+      ---------------
+      The Logging package is an ultra-thin bridge between different logging
+      implementations. A library that uses the commons-logging API can be used
+      with any logging implementation at runtime. Commons-logging comes with
+      support for a number of popular logging implementations, and writing
+      adapters for others is a reasonably simple task.
+
+      http://commons.apache.org/proper/commons-logging/
+      Copyright 2001-2015 The Apache Software Foundation
+
+      Javassist
+      ---------
+      Javassist makes Java bytecode manipulation simple. It is a class library
+      for editing bytecodes in Java; it enables Java programs to define a new
+      class at runtime and to modify a class file when the JVM loads it.
+
+      http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/
+      Copyright 1999-2015 Shigeru Chiba.
+
+      Logback
+      -------
+      Logback is a reliable, generic, fast and flexible logging framework.
+
+      http://logback.qos.ch/
+      Copyright (C) 1999-2015 QOS.ch
+
+      Guice
+      -----
+      Put simply, Guice alleviates the need for factories and the use of new in
+      your Java code. Think of Guice's @Inject as the new new. You will still
+      need to write factories in some cases, but your code will not depend
+      directly on them. Your code will be easier to change, unit test and reuse
+      in other contexts.
+
+      https://github.com/google/guice
+      Copyright 2008-2015 Google Inc.
+
+      Jansi
+      -----
+      Jansi is a small java library that allows you to use ANSI escape sequences
+      to format your console output which works even on windows.
+
+      https://github.com/fusesource/jansi
+      Copyright 2009-2011 Fusesource
+
+      SparseBitSet
+      ------------
+      SparseBitSet is an implementation of a concept presented by Dr. Bruce K
+      Haddon to form an alternative to the native Java BitSet for efficient
+      storage of sparse and large bits.
+
+      https://github.com/brettwooldridge/SparseBitSet
+      Copyright Brett Woolridge and associated authors
+
+      Catalyst
+      --------
+      Catalyst is an I/O and serialization framework designed for use in Atomix, Copycat and related projects. It provides high-level abstractions for common storage and networking facilities.
+
+      http://atomix.io/catalyst/
+      Copyright 2015 the Atomix crew
+
+      SQLite JDBC Driver
+      ------------------
+      SQLite JDBC, developed by Taro L. Saito, is a library for accessing and creating SQLite database files in Java.
+
+      https://github.com/xerial/sqlite-jdbc
+      Copyright Taro L. Saito, David Crawshaw and associated authors
+
+  3. Includes software released under the MIT License, which is compatible with
+     the Apache License, Version 2.0:
+
+      SLF4J
+      -----
+      A simple facade or abstraction for various logging frameworks
+      (e.g. java.util.logging, logback, log4j) allowing the end user to plug in
+      the desired logging framework at deployment time.
+
+      http://www.slf4j.org/
+      Copyright 2004-2015 QOS.ch
+
+      Mockito
+      -------
+      Mocking framework for unit tests written in Java.
+
+      https://github.com/mockito/mockito
+      Copyright (c) 2007-2015 Mockito contributors
+
+      Java SemVer
+      -----------
+      Java SemVer is a Java implementation of the Semantic Versioning Specification (http://semver.org/).
+
+      https://github.com/zafarkhaja/jsemver
+      Copyright 2012-2015 Zafar Khaja
+
+  4. Includes software, released under various licenses, that has been modified:
+
+      SparkJava (Apache License, Version 2.0)
+      ---------------------------------------
+      A Sinatra inspired framework for java.
+
+      http://sparkjava.com/
+      Copyright 2011-2015 Per Wendel
+
+      Changes:
+      - Removed logging and console print statements.
+      - Added support for rewriting URLs at runtime based on the class in which
+        a route is defined.
+      - Added integration with Guava library for JSON serialization.
+      - Added integration with Concourse data routing and access controls.
+
+      Pollingwatchservice (BSD 2-Clause License)
+      ------------------------------------------
+      Pollingwatchservice is a pure Java library providing a watch service
+      (i.e. a WatchService implementation) that polls for changes.
+
+      https://www.imca.aps.anl.gov/~jlmuir/sw/pollingwatchservice.html
+      Copyright (c) J. Lewis Muir
+
+      Changes:
+      - Specify a custom thread factory that sets a thread name and configures
+        each thread as a daemon thread for the executors used in the
+        PollingWatchService class
+
+  5. Includes software, released under other licenses:
+
+      Servlet API (GPL w/ Classpath Exception)
+      ----------------------------------------
+      The Java Servlet Specification API is linked in compliance with the GNU
+      General Public License Classpath Exception.
+
+      https://java.net/projects/servlet-spec
+      Copyright 2007-2015 Oracle and/or its affiliates
+
+      JLine (BSD 2-Clause License)
+      ----------------------------
+      JLine is a Java library for handling console input. The library is
+      included with the original copyright, in compliance with the BSD 2-Clause
+      License.
+
+      http://jline.github.io/jline2/
+      Copyright 2002-2012 the original author or authors
+
+      High Scale Lib (Public Domain)
+      ------------------------------
+      The High Scale Lib is a collection of concurrent and highly scalable
+      utilities.This library has been released into the public domain and is
+      included with this project.
+
+      http://stephenc.github.io/high-scale-lib/
+      Copyright 2010-2015
+
+      Dom4J (BSD Inspired License)
+      ----------------------------
+      dom4j is an easy to use, open source library for working with XML, XPath
+      and XSLT on the Java platform using the Java Collections Framework and
+      with full support for DOM, SAX and JAXP.
+
+      http://dom4j.sourceforge.net/
+      Copyright 2001-2015 MetaStuff
+
+      JSR 305 (BSD 3-Clause License)
+      ------------------------------
+      Contains reference implementations, test cases, and other documents under
+      source code control for Java Specification Request 305: Annotations for
+      Software Defect Detection.
+
+      https://code.google.com/p/jsr-305/
+      Copyright 2007-2009 JSR305 expert group
+
+      Reflections (WTFPL)
+      -------------------
+      Reflections scans your classpath, indexes the metadata, allows you to
+      query it on runtime and may save and collect that information for many
+      modules within your project.
+
+      https://code.google.com/p/reflections/
+      Copyright 2004-2015 Sam Hocevar
+
+      ANTLR Runtime (BSD 3-Clause License)
+      ------------------------------------
+      ANTLR, ANother Tool for Language Recognition, is a language tool that
+      provides a framework for constructing recognizers, interpreters,
+      compilers, and translators from grammatical descriptions containing
+      actions in a variety of target languages.
+
+      http://www.antlr3.org/
+      Copyright (c) 2010 Terence Parr
+
+      Hamcrest Core (BSD 3-Clause License)
+      ------------------------------------
+      Provides a library of matcher objects (also known as constraints or
+      predicates) allowing 'match' rules to be defined declaratively, to be used
+      in other frameworks. Typical scenarios include testing frameworks, mocking
+      libraries and UI validation rules.
+
+      https://code.google.com/p/hamcrest/
+      Copyright (c) 2000-2006, www.hamcrest.org
+
+      ICal4J (BSD 3-Clause License)
+      -----------------------------
+      A Java library for parsing and building iCalendar data models.
+
+      https://github.com/ical4j/ical4j
+      Copyright (c) 2012, Ben Fortuna
+
+      Natty (BSD 3-Clause License)
+      ----------------------------
+      Natty is a natural language date parser written in Java. Given a date
+      expression, natty will apply standard language recognition and translation
+      techniques to produce a list of corresponding dates with optional parse
+      and syntax information.
+
+      http://natty.joestelmach.com/
+      Copyright (c) 2010 Joseph Stelmach
+
+      AOP Alliance (Public Domain)
+      ----------------------------
+      The AOP Alliance project is a joint open-source project between several software engineering people who are interested in AOP and Java.
+
+      http://aopalliance.sourceforge.net/
+
+      Oracle OpenJDK (GLP2 w/ Classpath Exception)
+      --------------------------------------------
+      Some source files from the Oracle OpenJDK codebase are included in the Concourse source tree. These files are subject to the Oracle Classpath Exception to the GLP2 (http://openjdk.java.net/legal/gplv2+ce.html)
+
+      http://openjdk.java.net/
+      Copyright (c) 2010, 2013, Oracle and/or its affiliates.
+
+  6. Includes software, that is not distributed but is used to help produce
+     various artifacts that are distributed:
+
+      Ronn (MIT License)
+      ------------------
+      Ronn builds manuals. It converts simple, human readable textfiles to roff
+      for terminal display, and also to HTML for the web.
+
+      https://github.com/rtomayko/ronn
+      Copyright 2009-2015 Ryan Tomayko
+
+      Makeself (GPL2+ w/ Clarification)
+      ----------------------------------------
+      makeself.sh is a small shell script that generates a self-extractable
+      tar.gz archive from a directory. This library is released under the GNU
+      Public License, Version 2 and above, however the author states in the
+      README that "[a]rchives generated by Makeself don't have to be placed
+      under this license...since the archive itself is merely data for
+      Makeself". Concourse is not licensed under the GPL, but 1) includes the
+      original Makeself source code, license and copyright 2) includes install
+      instructions and 3) discloses the source code for components that depend
+      on this library at https://github.com/cinchapi/concourse.
+
+      http://www.megastep.org/makeself/
+      Copyright 2008-2015 Stéphane Peter
+
+      Bats (MIT-style License)
+      ------------------------
+      Bats is a TAP-compliant testing framework for Bash. It provides a simple
+      way to verify that the UNIX programs you write behave as expected.
+
+      https://github.com/sstephenson/bats
+      Copyright 2014 Sam Stephenson
+
+      Swift IDL Parser (Apache License, Version 2.0)
+      ----------------------------------------------
+      The Swift IDL Parser is distributed with Swift, an easy-to-use annotation
+      based Java library for creating Thrift serializable types and services.
+
+      https://github.com/facebook/swift
+      Copyright (C) 2012 Facebook, Inc.
+
+      Memory File System (MIT License)
+      --------------------------------
+      An in memory implementation of a JSR-203 (Java 7) file system for testing purposes.
+
+      https://github.com/marschall/memoryfilesystem
+      Copyright (c) Philippe Marschall
