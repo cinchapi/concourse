@@ -1153,17 +1153,26 @@ public class ConcourseServer extends BaseConcourseServer
         return transactions.remove(transaction).commit();
     }
     
+    @Atomic
     @ThrowsThriftExceptions
     public Set<String> describe(AccessToken creds, TransactionToken transaction,
     		String environment) throws TException {
     	checkAccess(creds, transaction);
-    	Set<Long> records = inventory(creds, transaction, environment);
-    	Set<String> result = Sets.newConcurrentHashSet();
-    	for(Long record: records){
-    		AtomicSupport store = getStore(transaction, environment);
-    		long primitiveRecord = record.longValue();
-    		result.addAll(store.describe(primitiveRecord));
-    	}
+    	AtomicSupport store = getStore(transaction, environment);
+    	Set<Long> records = store.getAllRecords();
+    	Set<String> result = Sets.newHashSet();
+    	AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+            	for(long record: records){
+            		result.addAll(store.describe(record));
+            	}
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
     	return result;
     }
 
