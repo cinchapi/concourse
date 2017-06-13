@@ -1159,12 +1159,12 @@ public class ConcourseServer extends BaseConcourseServer
     		String environment) throws TException {
     	checkAccess(creds, transaction);
     	AtomicSupport store = getStore(transaction, environment);
-    	Set<Long> records = store.getAllRecords();
     	Set<String> result = Sets.newHashSet();
     	AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
+            	Set<Long> records = store.getAllRecords();
             	for(long record: records){
             		result.addAll(store.describe(record));
             	}
