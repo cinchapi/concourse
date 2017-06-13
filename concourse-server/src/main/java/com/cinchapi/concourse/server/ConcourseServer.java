@@ -1152,6 +1152,20 @@ public class ConcourseServer extends BaseConcourseServer
         checkAccess(creds, transaction);
         return transactions.remove(transaction).commit();
     }
+    
+    @ThrowsThriftExceptions
+    public Set<String> describe(AccessToken creds, TransactionToken transaction,
+    		String environment) throws TException {
+    	checkAccess(creds, transaction);
+    	Set<Long> records = inventory(creds, transaction, environment);
+    	Set<String> result = Sets.newConcurrentHashSet();
+    	for(Long record: records){
+    		AtomicSupport store = getStore(transaction, environment);
+    		long primitiveRecord = record.longValue();
+    		result.addAll(store.describe(primitiveRecord));
+    	}
+    	return result;
+    }
 
     @Override
     @ThrowsThriftExceptions
