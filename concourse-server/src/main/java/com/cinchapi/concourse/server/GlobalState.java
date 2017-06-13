@@ -60,7 +60,7 @@ public final class GlobalState extends Constants {
      */
     private static final boolean RUNNING_FROM_ECLIPSE = System
             .getProperty("eclipse") != null
-            && System.getProperty("eclipse").equals("true");
+            && System.getProperty("eclipse").equals("true") ? true : false;
 
     // ========================================================================
     // ============================ PREFERENCES ================================
