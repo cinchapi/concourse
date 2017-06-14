@@ -1128,13 +1128,13 @@ service ConcourseService {
   /**
    * List all the keys in the database at {@code timestamp}.
    *
+   * @param timestamp the historical timestamp to use in the lookup
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment the environment to which the client is connected
-   * @param timestamp the historical timestamp to use in the lookup
    * @return the {@link Set} of keys that were in the database at
    *         {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1144,10 +1144,10 @@ service ConcourseService {
    *         to end itself
    */
   set<string> describeTime(
-    1: shared.AccessToken creds,
-    2: shared.TransactionToken transaction,
-    3: string environment,
-    4: i64 timestamp)
+    1: i64 timestamp,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
@@ -1155,13 +1155,13 @@ service ConcourseService {
   /**
    * List all the keys in the database at {@code timestamp}.
    *
+   * @param timestamp the historical timestamp to use in the lookup
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
    *                      server uses to find the current transaction for the
    *                      client (optional)
    * @param environment the environment to which the client is connected
-   * @param timestamp the historical timestamp to use in the lookup
    * @return the {@link Set} of keys that were in the database at
    *         {@code timestamp}
    * @throws exceptions.SecurityException if the {@code creds} don't
@@ -1170,11 +1170,11 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  set<string> describeTimeStr(
-    1: shared.AccessToken creds,
-    2: shared.TransactionToken transaction,
-    3: string environment,
-    4: string timestamp)
+  set<string> describeTimestr(
+    1: string timestamp,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
