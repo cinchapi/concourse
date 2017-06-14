@@ -1200,6 +1200,32 @@ public class ConcourseServer extends BaseConcourseServer
         }
         return result;
     }
+    
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTime(AccessToken creds, TransactionToken transaction,
+            String environment, String timestamp) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newHashSet();
+        Timestamp stamp = Timestamp.parse(timestamp,
+        		Timestamp.DEFAULT_FORMATTER);
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+            	Set<Long> records = store.getAllRecords();
+            	for(long record: records){
+            		result.addAll(store.describe(record, stamp.getMicros()));
+            	}
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
 
     @Override
     @ThrowsThriftExceptions
