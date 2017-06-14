@@ -589,6 +589,20 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Long, Set<String>> describe(Collection<Long> records,
             Timestamp timestamp);
+    
+    /**
+     * Return all of the keys in the database.
+     * 
+     * @return a {@link Set} of keys in the database
+     */
+    public abstract Set<String> describe();
+    
+    /**
+     * Return all of the keys in the database at {@code timestamp}.
+     * 
+     * @return a {@link Set} of keys in the database at {@code timestamp}
+     */
+    public abstract Set<String> describe(Timestamp timestamp);
 
     /**
      * Return all the keys in {@code record} that have at least one value.
