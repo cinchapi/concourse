@@ -1154,6 +1154,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
     
     @Atomic
+    @Batch
     @ThrowsThriftExceptions
     public Set<String> describe(AccessToken creds, TransactionToken transaction,
     		String environment) throws TException {
@@ -1174,6 +1175,30 @@ public class ConcourseServer extends BaseConcourseServer
             }
         }
     	return result;
+    }
+    
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTime(AccessToken creds, TransactionToken transaction,
+            String environment, long timestamp) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newHashSet();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+            	Set<Long> records = store.getAllRecords();
+            	for(long record: records){
+            		result.addAll(store.describe(record, timestamp));
+            	}
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
     }
 
     @Override

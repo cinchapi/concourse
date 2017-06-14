@@ -1126,6 +1126,34 @@ service ConcourseService {
     2: exceptions.TransactionException ex2)
 
   /**
+   * List all the keys in the database at {@code timestamp}.
+   *
+   * @param record the record id
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the {@link Set} of keys that were in {@code record} at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describeTime(
+    1: shared.AccessToken creds,
+    2: shared.TransactionToken transaction,
+    3: string environment,
+    4: i64 timestamp)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
    * List all the keys in {@code record} that have at least one value.
    *
    * @param record the record id
