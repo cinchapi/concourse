@@ -20,6 +20,8 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Sets;
+
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 
@@ -36,10 +38,12 @@ public class DescribeTest extends ConcourseIntegrationTest {
 		client.add("address", "123 Main St");
 		client.add("title", "Person");
 		
-		String[] expecteds = {"address" , "name", "title"};
+		Set<String> expecteds = Sets.newHashSet();
+		expecteds.add("name");
+		expecteds.add("address");
+		expecteds.add("title");
 		Set<String> actuals = client.describe();
-		Assert.assertArrayEquals(expecteds, 
-				actuals.toArray(new String[actuals.size()]));
+		Assert.assertEquals(expecteds, actuals);
 	}
 	
 	@Test
@@ -49,10 +53,11 @@ public class DescribeTest extends ConcourseIntegrationTest {
 		Timestamp stamp = Timestamp.now();
 		client.add("title", "Person");
 		
-		String[] expecteds = {"address", "name"};
+		Set<String> expecteds = Sets.newHashSet();
+		expecteds.add("name");
+		expecteds.add("address");
 		Set<String> actuals = client.describe(stamp);
-		Assert.assertArrayEquals(expecteds, 
-				actuals.toArray(new String[actuals.size()]));
+		Assert.assertEquals(expecteds, actuals);
 	}
 
 }
