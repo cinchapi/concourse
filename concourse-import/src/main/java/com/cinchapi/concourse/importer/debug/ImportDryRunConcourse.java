@@ -193,6 +193,16 @@ public class ImportDryRunConcourse extends Concourse {
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
+    
+    @Override
+    public Set<String> describe(){
+    	throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public Set<String> describe(Timestamp timestamp){
+    	throw new UnsupportedOperationException();
+    }
 
     @Override
     public Set<String> describe(long record) {
