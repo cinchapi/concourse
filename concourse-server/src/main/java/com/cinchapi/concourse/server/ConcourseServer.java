@@ -1152,47 +1152,23 @@ public class ConcourseServer extends BaseConcourseServer
         checkAccess(creds, transaction);
         return transactions.remove(transaction).commit();
     }
-    
+
     @Atomic
     @Batch
     @ThrowsThriftExceptions
     public Set<String> describe(AccessToken creds, TransactionToken transaction,
-    		String environment) throws TException {
-    	checkAccess(creds, transaction);
-    	AtomicSupport store = getStore(transaction, environment);
-    	Set<String> result = Sets.newHashSet();
-    	AtomicOperation atomic = null;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-            	Set<Long> records = store.getAllRecords();
-            	for(long record: records){
-            		result.addAll(store.describe(record));
-            	}
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-            }
-        }
-    	return result;
-    }
-    
-    @Atomic
-    @HistoricalRead
-    @ThrowsThriftExceptions
-    public Set<String> describeTime(long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
-        Set<String> result = Sets.newHashSet();
+        Set<String> result = Sets.newLinkedHashSet();
         AtomicOperation atomic = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-            	Set<Long> records = store.getAllRecords();
-            	for(long record: records){
-            		result.addAll(store.describe(record, timestamp));
-            	}
+                Set<Long> records = store.getAllRecords();
+                for (long record : records) {
+                    result.addAll(store.describe(record));
+                }
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -1200,14 +1176,41 @@ public class ConcourseServer extends BaseConcourseServer
         }
         return result;
     }
-    
+
     @Atomic
     @HistoricalRead
     @ThrowsThriftExceptions
-    public Set<String> describeTimestr(String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Set<String> describeTime(long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         checkAccess(creds, transaction);
-        return describeTime(NaturalLanguage.parseMicros(timestamp), creds, transaction, environment);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newLinkedHashSet();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<Long> records = store.getAllRecords();
+                for (long record : records) {
+                    result.addAll(store.describe(record, timestamp));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTimestr(String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        return describeTime(NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override

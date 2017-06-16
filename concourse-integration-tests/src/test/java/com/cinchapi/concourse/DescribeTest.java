@@ -31,33 +31,28 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
  * @author Gerald Nash
  */
 public class DescribeTest extends ConcourseIntegrationTest {
-	
-	@Test
-	public void testDescribeNoTimestamp(){
-		client.add("name", "Gerald");
-		client.add("address", "123 Main St");
-		client.add("title", "Person");
-		
-		Set<String> expecteds = Sets.newHashSet();
-		expecteds.add("name");
-		expecteds.add("address");
-		expecteds.add("title");
-		Set<String> actuals = client.describe();
-		Assert.assertEquals(expecteds, actuals);
-	}
-	
-	@Test
-	public void testDescribeWithTimestamp(){
-		client.add("name", "Gerald");
-		client.add("address", "123 Main St");
-		Timestamp stamp = Timestamp.now();
-		client.add("title", "Person");
-		
-		Set<String> expecteds = Sets.newHashSet();
-		expecteds.add("name");
-		expecteds.add("address");
-		Set<String> actuals = client.describe(stamp);
-		Assert.assertEquals(expecteds, actuals);
-	}
+
+    @Test
+    public void testDescribeNoTimestamp() {
+        client.add("name", "Gerald");
+        client.add("address", "123 Main St");
+        client.add("title", "Person");
+
+        Set<String> expected = Sets.newHashSet("name", "address", "title");
+        Set<String> actual = client.describe();
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDescribeWithTimestamp() {
+        client.add("name", "Gerald");
+        client.add("address", "123 Main St");
+        Timestamp stamp = Timestamp.now();
+        client.add("title", "Person");
+
+        Set<String> expected = Sets.newHashSet("name", "address");
+        Set<String> actual = client.describe(stamp);
+        Assert.assertEquals(expected, actual);
+    }
 
 }

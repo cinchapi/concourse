@@ -573,26 +573,26 @@ class ConcourseThriftDriver extends Concourse {
                     : false;
         });
     }
-    
+
     @Override
     public Set<String> describe() {
         return execute(() -> {
             return client.describe(creds, transaction, environment);
         });
     }
-    
+
     @Override
-    public Set<String> describe(Timestamp timestamp){
-    	return execute(() -> {
-    		if(timestamp.isString()){
-    			return client.describeTimestr(timestamp.toString(),
-    					creds, transaction, environment);
-    		}
-    		else {
-    			return client.describeTime(timestamp.getMicros(),
-    					creds, transaction, environment);
-    		}
-    	});
+    public Set<String> describe(Timestamp timestamp) {
+        return execute(() -> {
+            if(timestamp.isString()) {
+                return client.describeTimestr(timestamp.toString(), creds,
+                        transaction, environment);
+            }
+            else {
+                return client.describeTime(timestamp.getMicros(), creds,
+                        transaction, environment);
+            }
+        });
     }
 
     @Override
