@@ -575,6 +575,27 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
+    public Set<String> describe() {
+        return execute(() -> {
+            return client.describe(creds, transaction, environment);
+        });
+    }
+
+    @Override
+    public Set<String> describe(Timestamp timestamp) {
+        return execute(() -> {
+            if(timestamp.isString()) {
+                return client.describeTimestr(timestamp.toString(), creds,
+                        transaction, environment);
+            }
+            else {
+                return client.describeTime(timestamp.getMicros(), creds,
+                        transaction, environment);
+            }
+        });
+    }
+
+    @Override
     public Map<Long, Set<String>> describe(Collection<Long> records) {
         return execute(() -> {
             Map<Long, Set<String>> raw = client.describeRecords(
