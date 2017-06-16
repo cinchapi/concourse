@@ -486,12 +486,6 @@ abstract class StatefulConcourseService {
 
     public void clearKeysRecords(List<String> keys, List<Long> records) { throw new UnsupportedOperationException(); }
 
-    public Set<String> describe() { throw new UnsupportedOperationException(); }
-
-    public Set<String> describeTime(long timestamp) { throw new UnsupportedOperationException(); }
-
-    public Set<String> describeTimestr(String timestamp) { throw new UnsupportedOperationException(); }
-
     public Set<String> describeRecord(long record) { throw new UnsupportedOperationException(); }
 
     public Set<String> describeRecordTime(long record, long timestamp) { throw new UnsupportedOperationException(); }

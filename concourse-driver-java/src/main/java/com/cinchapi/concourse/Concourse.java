@@ -562,13 +562,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean commit();
 
     /**
-     * Return all of the keys in the database.
-     * 
-     * @return a {@link Set} of keys in the database
-     */
-    public abstract Set<String> describe();
-
-    /**
      * For each of the {@code records}, return all of the keys that have at
      * least one value.
      * 
@@ -622,13 +615,6 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp}
      */
     public abstract Set<String> describe(long record, Timestamp timestamp);
-
-    /**
-     * Return all of the keys in the database at {@code timestamp}.
-     * 
-     * @return a {@link Set} of keys in the database at {@code timestamp}
-     */
-    public abstract Set<String> describe(Timestamp timestamp);
 
     /**
      * Return the <em>net</em> changes made to {@code record} since
@@ -2426,8 +2412,7 @@ public abstract class Concourse implements AutoCloseable {
      * return the data contained at each of the destinations.
      * 
      * @param keys a collection of navigation keys
-     * @param criteria a well-formed criteria expressed using the Concourse
-     *            Criteria
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
      *            Language
      * @return a {@link Map} associating each of the destination {@code records}
      *         to another {@link Map} associating each of the destination
@@ -2446,8 +2431,7 @@ public abstract class Concourse implements AutoCloseable {
      * destinations at {@code timestamp}.
      * 
      * @param keys a collection of navigation keys
-     * @param criteria a well-formed criteria expressed using the Concourse
-     *            Criteria
+     * @param criteria a well-formed criteria expressed using the Concourse Criteria
      *            Language
      * @param timestamp a {@link Timestamp} that represents the historical
      *            instant to use in the lookup – created from either a
