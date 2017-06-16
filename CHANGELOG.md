@@ -26,6 +26,7 @@
 * Added a `--dry-run` flag to the `import` CLI that will perform a test import of data in-memory and print a JSON dump of what data would be inserted into Concourse.
 * Added support for installing multiple plugins in the same directory using the `concourse plugin install </path/to/directory>` command.
 * Implemented `describe()` and `describe(time)` methods to return all the keys across all records in the database.
+* Fixed a bug where the `browse(keys, timestamp)` functionality would return data from the present state instead of the historical snapshot.
 
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.

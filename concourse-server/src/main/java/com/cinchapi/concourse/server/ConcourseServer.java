@@ -904,7 +904,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<String, Map<TObject, Set<Long>>> result = TMaps
                 .newLinkedHashMapWithCapacity(keys.size());
         for (String key : keys) {
-            result.put(key, store.browse(key));
+            result.put(key, store.browse(key, timestamp));
         }
         return result;
     }
