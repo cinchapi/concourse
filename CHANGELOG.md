@@ -24,7 +24,8 @@
 * Added a `Transformers` utility class to the `concourse-import` framework API.
 * Fixed a bug that caused the loss of order in plugin results that contained a sorted map.
 * Added a `--dry-run` flag to the `import` CLI that will perform a test import of data in-memory and print a JSON dump of what data would be inserted into Concourse.
-* Added support for installing multiple plugins in the same directory using the `concourse plugin install </path/to/directory>` command. 
+* Added support for installing multiple plugins in the same directory using the `concourse plugin install </path/to/directory>` command.
+* Implemented `describe()` and `describe(time)` methods to return all the keys across all records in the database.
 
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
