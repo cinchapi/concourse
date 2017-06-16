@@ -798,6 +798,17 @@ public class ManagedConcourseServer {
          * 
          * @param username
          * @param password
+         * @throws Exception
+         */
+        public Client(String username, String password) {
+            this(username, password, 5);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
          * @param retries
          */
         private Client(String username, String password, int retries) {
@@ -845,17 +856,6 @@ public class ManagedConcourseServer {
                     throw CheckedExceptions.throwAsRuntimeException(e);
                 }
             }
-        }
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param username
-         * @param password
-         * @throws Exception
-         */
-        public Client(String username, String password) {
-            this(username, password, 5);
         }
 
         @Override
@@ -1022,9 +1022,14 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Set<String> describe() {
+            return invoke("describe").with();
+        }
+
+        @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
             return invoke("describe", Collection.class).with(records);
-        }
+        };
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
@@ -1036,12 +1041,17 @@ public class ManagedConcourseServer {
         @Override
         public Set<String> describe(long record) {
             return invoke("describe", long.class).with(record);
-        };
+        }
 
         @Override
         public Set<String> describe(long record, Timestamp timestamp) {
             return invoke("describe", long.class, Timestamp.class).with(record,
                     timestamp);
+        }
+
+        @Override
+        public Set<String> describe(Timestamp timestamp) {
+            return invoke("describe", Timestamp.class).with(timestamp);
         }
 
         @Override
@@ -1944,6 +1954,7 @@ public class ManagedConcourseServer {
                 throw Throwables.propagate(e);
             }
         }
+
 
         /**
          * A wrapper around a {@link Method} object that funnels all invocations
