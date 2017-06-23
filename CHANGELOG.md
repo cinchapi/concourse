@@ -27,6 +27,7 @@
 * Added support for installing multiple plugins in the same directory using the `concourse plugin install </path/to/directory>` command.
 * Implemented `describe()` and `describe(time)` methods to return all the keys across all records in the database.
 * Fixed a bug where the `browse(keys, timestamp)` functionality would return data from the present state instead of the historical snapshot.
+* Fixed an issue that caused plugins to use excessive CPU resources when watching the liveliness of the host Concourse Server process.
 
 #### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
