@@ -81,7 +81,6 @@ public class JavaApp extends Process {
      * @param pid the pid of the host process to watch for termination
      * @return the injected source code
      */
-    //TODO: need to try catchh
     private static String getHostWatcherCodeInjectionStaticBlock(String pid) {
         // @formatter:off
         return ""
