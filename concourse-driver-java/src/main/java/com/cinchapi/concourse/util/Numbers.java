@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import com.cinchapi.concourse.Link;
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.UnsignedLongs;
 
 import static com.google.common.base.Preconditions.*;
@@ -318,6 +319,19 @@ public abstract class Numbers {
      */
     public static double percent(Number numerator, Number denominator) {
         return numerator.doubleValue() * 100.0 / denominator.doubleValue();
+    }
+
+    /**
+     * Round the numeric {@code value} to {@code places} without truncating.
+     * 
+     * @param value the number to round
+     * @param places the max number of decimal places
+     * @return the rounded value, represented as a double
+     */
+    public static double round(Number value, int places) {
+        Preconditions.checkArgument(places > 0);
+        return new BigDecimal(value.doubleValue())
+                .setScale(places, RoundingMode.HALF_UP).doubleValue();
     }
 
     /**
