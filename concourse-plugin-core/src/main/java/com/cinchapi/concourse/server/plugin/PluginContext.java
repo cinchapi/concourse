@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,9 @@ public final class PluginContext {
      * @return the data directory
      */
     public Path data() {
-        return home.resolve("data").toAbsolutePath();
+        Path path = home().resolve("data");
+        Path devPath = home().resolve("data.dev");
+        return devPath.toFile().exists() ? devPath : path;
     }
 
     /**

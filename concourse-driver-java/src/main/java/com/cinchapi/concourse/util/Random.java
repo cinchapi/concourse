@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,19 @@ public abstract class Random {
     }
 
     /**
-     * Pause execution for a random number of milliseconds between 0 and 1000 (1
+     * Pause execution for a random number of milliseconds between 1 and 50.
+     */
+    public static void microSleep() {
+        try {
+            Thread.sleep(50 + 1);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Pause execution for a random number of milliseconds between 1 and 1000 (1
      * second).
      */
     public static void sleep() {

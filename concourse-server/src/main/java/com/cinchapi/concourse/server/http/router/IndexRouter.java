@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import com.cinchapi.concourse.lang.NaturalLanguage;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.http.HttpArgs;
+import com.cinchapi.concourse.server.http.RouteArgs;
 import com.cinchapi.concourse.server.http.EndpointContainer;
 import com.cinchapi.concourse.server.http.HttpRequest;
 import com.cinchapi.concourse.server.http.HttpRequests;
@@ -120,10 +120,10 @@ public class IndexRouter extends EndpointContainer {
                 if(body.isJsonObject()
                         && (credentials = (JsonObject) body).has("username")
                         && credentials.has("password")) {
-                    ByteBuffer username = ByteBuffers.fromString(credentials
-                            .get("username").getAsString());
-                    ByteBuffer password = ByteBuffers.fromString(credentials
-                            .get("password").getAsString());
+                    ByteBuffer username = ByteBuffers.fromString(
+                            credentials.get("username").getAsString());
+                    ByteBuffer password = ByteBuffers.fromString(
+                            credentials.get("password").getAsString());
                     AccessToken access = concourse.login(username, password,
                             environment);
                     String token = HttpRequests.encodeAuthToken(access,
@@ -163,7 +163,8 @@ public class IndexRouter extends EndpointContainer {
             Object data;
             Preconditions.checkArgument(record != null,
                     "Cannot perform audit on %s because it "
-                            + "is not a valid record", arg1);
+                            + "is not a valid record",
+                    arg1);
             if(start != null && end != null) {
                 data = concourse.auditRecordStartEnd(record,
                         NaturalLanguage.parseMicros(start),
@@ -201,10 +202,10 @@ public class IndexRouter extends EndpointContainer {
         public Object serve(HttpRequest request, AccessToken creds,
                 TransactionToken transaction, String environment,
                 HttpResponse response) throws Exception {
-            HttpArgs args = HttpArgs.parse(request.getParamValue(":arg1"),
+            RouteArgs args = RouteArgs.parse(request.getParamValue(":arg1"),
                     request.getParamValue(":arg2"));
-            String key = args.getKey();
-            Long record = args.getRecord();
+            String key = args.key();
+            Long record = args.record();
             String body = request.body();
             if(StringUtils.isBlank(body)) {
                 concourse.clearKeyRecord(key, record, creds, transaction,
@@ -212,10 +213,10 @@ public class IndexRouter extends EndpointContainer {
                 return NO_DATA;
             }
             else {
-                TObject value = Convert.javaToThrift(Convert
-                        .stringToJava(request.body()));
-                Object data = concourse.removeKeyValueRecord(key, value,
-                        record, creds, transaction, environment);
+                TObject value = Convert
+                        .javaToThrift(Convert.stringToJava(request.body()));
+                Object data = concourse.removeKeyValueRecord(key, value, record,
+                        creds, transaction, environment);
                 return data;
             }
         }
@@ -300,16 +301,18 @@ public class IndexRouter extends EndpointContainer {
                 String ts = request.getParamValue("timestamp");
                 Long timestamp = ts != null ? Longs.tryParse(ts) : null;
                 if(keys.isEmpty()) {
-                    data = timestamp == null ? concourse.selectCcl(ccl, creds,
-                            transaction, environment) : concourse
-                            .selectCclTime(ccl, timestamp, creds, transaction,
-                                    environment);
+                    data = timestamp == null
+                            ? concourse.selectCcl(ccl, creds, transaction,
+                                    environment)
+                            : concourse.selectCclTime(ccl, timestamp, creds,
+                                    transaction, environment);
                 }
                 else {
-                    data = timestamp == null ? concourse.selectKeysCcl(keys,
-                            ccl, creds, transaction, environment) : concourse
-                            .selectKeysCclTime(keys, ccl, timestamp, creds,
-                                    transaction, environment);
+                    data = timestamp == null
+                            ? concourse.selectKeysCcl(keys, ccl, creds,
+                                    transaction, environment)
+                            : concourse.selectKeysCclTime(keys, ccl, timestamp,
+                                    creds, transaction, environment);
                 }
                 return data;
             }
@@ -333,19 +336,22 @@ public class IndexRouter extends EndpointContainer {
                 HttpResponse response) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NaturalLanguage
-                    .parseMicros(ts);
+            Long timestamp = ts == null ? null
+                    : NaturalLanguage.parseMicros(ts);
             Long record = Longs.tryParse(arg1);
             Object data;
             if(record != null) {
-                data = timestamp == null ? concourse.selectRecord(record,
-                        creds, null, environment) : concourse.selectRecordTime(
-                        record, timestamp, creds, transaction, environment);
+                data = timestamp == null
+                        ? concourse.selectRecord(record, creds, null,
+                                environment)
+                        : concourse.selectRecordTime(record, timestamp, creds,
+                                transaction, environment);
             }
             else {
-                data = timestamp == null ? concourse.browseKey(arg1, creds,
-                        null, environment) : concourse.browseKeyTime(arg1,
-                        timestamp, creds, transaction, environment);
+                data = timestamp == null
+                        ? concourse.browseKey(arg1, creds, null, environment)
+                        : concourse.browseKeyTime(arg1, timestamp, creds,
+                                transaction, environment);
             }
             return data;
         }
@@ -363,13 +369,13 @@ public class IndexRouter extends EndpointContainer {
                 TransactionToken transaction, String environment,
                 HttpResponse response) throws Exception {
             String ts = request.getParamValue("timestamp");
-            Long timestamp = ts == null ? null : NaturalLanguage
-                    .parseMicros(ts);
+            Long timestamp = ts == null ? null
+                    : NaturalLanguage.parseMicros(ts);
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
             Object data;
             if(timestamp == null) {
                 data = concourse.selectKeyRecord(key, record, creds,
@@ -400,14 +406,14 @@ public class IndexRouter extends EndpointContainer {
             String arg2 = request.getParamValue(":arg2");
             String start = request.getParamValueOrAlias("start", "timestamp");
             String end = request.getParamValue("end");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
             Preconditions.checkArgument(
                     record != null && !StringUtils.isBlank(key),
                     "Cannot perform audit on %s/%s because it "
-                            + "is not a valid key/record combination", arg1,
-                    arg2);
+                            + "is not a valid key/record combination",
+                    arg1, arg2);
             Object data = null;
             if(start != null && end != null) {
                 data = concourse.auditKeyRecordStartEnd(key, record,
@@ -421,8 +427,8 @@ public class IndexRouter extends EndpointContainer {
                         environment);
             }
             else {
-                data = concourse.auditKeyRecord(key, record, creds,
-                        transaction, environment);
+                data = concourse.auditKeyRecord(key, record, creds, transaction,
+                        environment);
             }
             return data;
 
@@ -446,9 +452,9 @@ public class IndexRouter extends EndpointContainer {
             String arg2 = request.getParamValue(":arg2");
             String start = request.getParamValueOrAlias("start", "timestamp");
             String end = request.getParamValue("end");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
             Object data = null;
             if(start == null) {
                 data = concourse.chronologizeKeyRecord(key, record, creds,
@@ -488,9 +494,9 @@ public class IndexRouter extends EndpointContainer {
             String arg2 = request.getParamValue(":arg2");
             String start = request.getParamValue("start");
             String end = request.getParamValue("end");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
             Object data = null;
             if(key != null && record != null && start != null & end != null) {
                 data = concourse.diffKeyRecordStartEnd(key, record,
@@ -498,21 +504,21 @@ public class IndexRouter extends EndpointContainer {
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
-            else if(key != null && record != null && start != null
-                    & end == null) {
+            else if(key != null && record != null
+                    && start != null & end == null) {
                 data = concourse.diffKeyRecordStart(key, record,
                         NaturalLanguage.parseMicros(start), creds, transaction,
                         environment);
             }
-            else if(key == null && record != null && start != null
-                    & end != null) {
+            else if(key == null && record != null
+                    && start != null & end != null) {
                 data = concourse.diffRecordStartEnd(record,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
-            else if(key != null && record == null && start != null
-                    & end != null) {
+            else if(key != null && record == null
+                    && start != null & end != null) {
                 data = concourse.diffKeyStartEnd(key,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
@@ -537,9 +543,9 @@ public class IndexRouter extends EndpointContainer {
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
             String ts = request.getParamValue("timestamp");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
             if(key != null && record != null) {
                 concourse.revertKeyRecordTime(key, record.longValue(),
                         NaturalLanguage.parseMicros(ts), creds, transaction,
@@ -633,11 +639,11 @@ public class IndexRouter extends EndpointContainer {
                 HttpResponse response) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
-            TObject value = Convert.javaToThrift(Convert.stringToJava(request
-                    .body()));
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
+            TObject value = Convert
+                    .javaToThrift(Convert.stringToJava(request.body()));
             boolean result = concourse.addKeyValueRecord(key, value, record,
                     creds, transaction, environment);
             return result;
@@ -678,11 +684,11 @@ public class IndexRouter extends EndpointContainer {
                 HttpResponse response) throws Exception {
             String arg1 = request.getParamValue(":arg1");
             String arg2 = request.getParamValue(":arg2");
-            HttpArgs args = HttpArgs.parse(arg1, arg2);
-            String key = args.getKey();
-            Long record = args.getRecord();
-            TObject value = Convert.javaToThrift(Convert.stringToJava(request
-                    .body()));
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
+            TObject value = Convert
+                    .javaToThrift(Convert.stringToJava(request.body()));
             concourse.setKeyValueRecord(key, value, record, creds, transaction,
                     environment);
             return NO_DATA;
@@ -727,8 +733,8 @@ public class IndexRouter extends EndpointContainer {
                         transaction, environment);
             }
             else {
-                TObject value = Convert.javaToThrift(Convert
-                        .stringToJava(request.body()));
+                TObject value = Convert
+                        .javaToThrift(Convert.stringToJava(request.body()));
                 result = concourse.addKeyValue(arg1, value, creds, transaction,
                         environment);
             }

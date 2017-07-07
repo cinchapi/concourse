@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,6 @@ subprojects {
         compile 'org.apache.thrift:libthrift:0.9.3'
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.0.0-SNAPSHOT', changing:true
-
         testCompile 'junit:junit:4.11'
     }
 
@@ -104,6 +103,12 @@ subprojects {
 
     group = 'com.cinchapi'
     version = globalVersion
+    // Drop the build component from version number and use that for
+    // publishing
+    ext.mavenVersion = version.split('\\.')
+    ext.mavenVersion[3] = ext.mavenVersion[3].replaceAll("[0-9]+-", "-")
+    ext.mavenVersion[3] = ext.mavenVersion[3].replaceAll("[0-9]+", "").trim()
+    ext.mavenVersion = ext.mavenVersion.join(".").replace(".-", "-").replaceAll('\\.$', "")
 
     jar {
         manifest {
@@ -153,16 +158,11 @@ subprojects {
                         beforeDeployment {
                             MavenDeployment deployment -> signing.signPom(deployment)
                         }
-                        // Drop the build component from version number and use
-                        // that in the POM file
-                        def _version = project.version.split('\\.')
-                        _version[3] = _version[3].replaceAll("[0-9]+-", "-")
-                        _version[3] = _version[3].replaceAll("[0-9]+", "").trim()
-                        _version = _version.join(".").replace(".-", "-").replaceAll('\\.$', "")
-                        pom.version = _version
+                        pom.version = mavenVersion
                         pom.project {
                             name mavenTitle
                             description mavenDescription
+                            url 'https://github.com/cinchapi/concourse'
                             packaging 'jar'
 
                             scm {

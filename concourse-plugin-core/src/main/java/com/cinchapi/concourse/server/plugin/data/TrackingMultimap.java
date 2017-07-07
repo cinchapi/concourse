@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,24 @@ package com.cinchapi.concourse.server.plugin.data;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -61,6 +68,35 @@ import com.zaxxer.sparsebits.SparseBitSet;
 public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
     /**
+     * Return the correct {@link DataType} for the {@code obj}.
+     * 
+     * @param obj the object to categorize
+     * @return the correct {@link DataType}
+     */
+    private static DataType getDataType(Object object) {
+        Class<?> clazz = object.getClass();
+        if(clazz == Link.class || isTObjectType(object, Type.LINK)) {
+            return DataType.LINK;
+        }
+        else if(isTObjectType(object, Type.DOUBLE, Type.FLOAT, Type.INTEGER,
+                Type.LONG) || Number.class.isAssignableFrom(clazz)
+                || OTHER_NUMBER_CLASSES.contains(clazz)) {
+            return DataType.NUMBER;
+        }
+        else if(isTObjectType(object, Type.STRING, Type.TAG)
+                || clazz == String.class) {
+            return DataType.STRING;
+        }
+        else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
+                || clazz == boolean.class) {
+            return DataType.BOOLEAN;
+        }
+        else {
+            return DataType.UNKNOWN;
+        }
+    }
+
+    /**
      * Return {@code true} if {@code obj} is an instance of {@link TObject} and
      * falls under any of the specified {@code types}.
      * 
@@ -84,33 +120,16 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /**
-     * Return the correct {@link DataType} for the {@code obj}.
+     * Return a new {@link HashSet} that contains all of the {@code elements},
+     * if the input is not {@code null}. Otherwise, return {@code null}.
      * 
-     * @param obj the object to categorize
-     * @return the correct {@link DataType}
+     * @param elements the elements to include in the returned set
+     * @return a set that includes all of the elements or {@code null}
      */
-    private static DataType getDataType(Object object) {
-        Class<?> clazz = object.getClass();
-        if(clazz == Link.class || isTObjectType(object, Type.LINK)) {
-            return DataType.LINK;
-        }
-        else if(isTObjectType(object, Type.DOUBLE, Type.FLOAT, Type.INTEGER,
-                Type.LONG)
-                || Number.class.isAssignableFrom(clazz)
-                || OTHER_NUMBER_CLASSES.contains(clazz)) {
-            return DataType.NUMBER;
-        }
-        else if(isTObjectType(object, Type.STRING, Type.TAG)
-                || clazz == String.class) {
-            return DataType.STRING;
-        }
-        else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
-                || clazz == boolean.class) {
-            return DataType.BOOLEAN;
-        }
-        else {
-            return DataType.UNKNOWN;
-        }
+    @Nullable
+    private static <V> Set<V> newHashSetNullSafe(
+            Iterable<? extends V> elements) {
+        return elements != null ? Sets.newHashSet(elements) : null;
     }
 
     /**
@@ -212,6 +231,30 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         else {
             return false;
         }
+    }
+
+    /**
+     * The {@code distinctiveness} is a measure of how the number of unique keys
+     * in the map relative to the total number of values, expressed as a number
+     * between 0 and 1.
+     * <p>
+     * The {@link #keySet()} reveals the total number of unique keys; however,
+     * this method takes that value and divides it by the total number of values
+     * across all of the keys to get a mathematical measure of how much
+     * duplication exists among the data in the map duplication
+     * </p>
+     * <p>
+     * A distinctiveness of 1 means that the keys are completely distinct (e.g.
+     * no key maps to more than 1 value). Lower measures of distinctiveness mean
+     * that they are less distinct (e.g. on average, each key maps to more
+     * values as the distinctiveness gets closer to 0).
+     * </p>
+     * 
+     * @return the distinctiveness of the data, on a scale from 0 to 1
+     */
+    public double distinctiveness() {
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0 : (double) data.size() / tvc;
     }
 
     @Override
@@ -341,12 +384,12 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     @Override
     public Set<V> put(K key, Set<V> value) {
-        Set<V> stored = data.get(key);
+        Set<V> stored = newHashSetNullSafe(data.get(key));
         if(stored == null) {
-            stored = new ValueSetWrapper(key);
-            data.put(key, stored);
+            data.put(key, new ValueSetWrapper(key));
         }
-        for (V element : stored) {
+        for (V element : MoreObjects.firstNonNull(stored,
+                Collections.<V> emptySet())) {
             delete(key, element);
         }
         for (V element : value) {
@@ -358,7 +401,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     @SuppressWarnings("unchecked")
     @Override
     public Set<V> remove(Object key) {
-        Set<V> stored = data.get(key);
+        Set<V> stored = newHashSetNullSafe(data.get(key));
         if(stored != null) {
             for (V element : stored) {
                 delete((K) key, element); // type cast is valid because the
@@ -368,8 +411,57 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
                                           // type checking
             }
         }
+        Set<V> values = data.get(key);
+        if(values != null && values.isEmpty()) {
+            data.remove(key);
+        }
         return stored;
 
+    }
+
+    /**
+     * Return a relative measure of the statistical dispersion in this data.
+     * <p>
+     * There are several ways to measure statistical dispersion, so callers
+     * should not rely on a specific underlying implementation because it may
+     * change over time. This method simply offers a value that allows for
+     * comparison of dispersion across data sets.
+     * </p>
+     * <p>
+     * A larger dispersion value means that the data is more spread out whereas
+     * a smaller dispersion value indicates the opposite.
+     * </p>
+     * 
+     * @return the dispersion value for this data
+     */
+    public double spread() {
+        // Get the quartile coefficient of dispersion, which is a cross
+        // dataset mechanism for comparing the relative dispersion of data.
+        double[] frequencies = new double[size()];
+        AtomicInteger index = new AtomicInteger(0);
+        data.values().forEach(
+                records -> frequencies[index.getAndIncrement()] = records
+                        .size());
+        DescriptiveStatistics stats = new DescriptiveStatistics(frequencies);
+        double p1 = stats.getPercentile(25);
+        double p3 = stats.getPercentile(75);
+        double coefficientOfDispersion = (p3 - p1) / (p3 + p1);
+
+        // Grab the coefficient of variance
+        double coefficientOfVariance = stats.getStandardDeviation()
+                / stats.getMean();
+
+        // Calculate the average absolute deviation from the mean
+        double[] deviations = new double[frequencies.length];
+        for (int i = 0; i < deviations.length; ++i) {
+            deviations[i] = Math.abs(frequencies[i] - stats.getMean());
+        }
+        double averageAbsoluteDeviation = StatUtils.mean(deviations)
+                / stats.getMean();
+
+        // Apply a weighting to the various components
+        return (0.50 * coefficientOfDispersion) + (0.40 * coefficientOfVariance)
+                + (0.10 * averageAbsoluteDeviation);
     }
 
     @Override
@@ -397,7 +489,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * a lower number.
      * </p>
      * 
-     * @return the uniqueness of the data, on a scale from 0 to 1.
+     * @return the uniqueness of the data, on a scale from 0 to 1
      */
     public double uniqueness() {
         double sumOfSquares = 0;
@@ -416,7 +508,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * <li><strong>DICHOTOMOUS</strong>: if there are 1 or 2 unique values</li>
      * <li><strong>NOMINAL</strong>: if the number of unique values is greater
      * than 2 and less than or equal to 12</li>
-     * <li><strong>INTERVAL</strong>: if there are more than 12 unique values</li>
+     * <li><strong>INTERVAL</strong>: if there are more than 12 unique
+     * values</li>
      * </ol>
      * 
      * @return
@@ -513,6 +606,25 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             }
         }
 
+        @SuppressWarnings("unchecked")
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof TrackingMultimap.ValueSetWrapper) {
+                return values.equals(((ValueSetWrapper) obj).values);
+            }
+            else if(obj instanceof Set) {
+                return Objects.equals(values, obj);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return values.hashCode();
+        }
+
         @Override
         public Iterator<V> iterator() {
 
@@ -577,22 +689,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         @Override
         public String toString() {
             return values.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return values.hashCode();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof TrackingMultimap.ValueSetWrapper) {
-                return values.equals(((ValueSetWrapper) obj).values);
-            }
-            else {
-                return false;
-            }
         }
     }
 }

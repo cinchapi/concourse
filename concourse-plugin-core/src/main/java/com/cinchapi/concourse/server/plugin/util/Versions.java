@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.plugin.util;
 
+import java.util.Arrays;
+
+import com.cinchapi.concourse.util.Strings;
 import com.github.zafarkhaja.semver.Version;
 
 /**
@@ -33,7 +36,7 @@ public final class Versions {
      * @return the semantic version
      */
     public static Version parseSemanticVersion(String version) {
-        if(version.matches("\\d+\\.\\d+\\.\\d+\\.\\d+(-[a-zA-Z]+)?$")) {
+        if(version.matches("\\d+\\.\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9-]+)?$")) {
             // Cinchapi often departs slightly from semantic versioning
             // by including the build number as the fourth part, immediately
             // after PATCH version (e.g. X.Y.Z.B). That format will fail to
@@ -44,7 +47,8 @@ public final class Versions {
                     .append(toks[2]);
             toks = toks[3].split("-");
             if(toks.length > 1) {
-                sb.append('-').append(toks[1]);
+                sb.append('-').append(Strings.join("-",
+                        (Object[]) Arrays.copyOfRange(toks, 1, toks.length)));
             }
             sb.append('+').append(toks[0]);
             version = sb.toString();

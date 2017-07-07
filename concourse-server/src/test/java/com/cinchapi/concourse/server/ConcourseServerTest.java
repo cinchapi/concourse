@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,12 @@ import com.cinchapi.concourse.util.Environments;
  * @author Jeff Nelson
  */
 public class ConcourseServerTest extends ConcourseBaseTest {
+
+    /**
+     * A reference to a ConcourseServer instance that can be used in each unit
+     * test.
+     */
+    protected ConcourseServer server;
 
     @Test(expected = IllegalStateException.class)
     public void testCannotStartServerWhenBufferAndDatabaseDirectoryAreSame()

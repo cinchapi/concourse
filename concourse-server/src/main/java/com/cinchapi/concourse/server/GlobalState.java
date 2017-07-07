@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
@@ -30,9 +35,11 @@ import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import ch.qos.logback.classic.Level;
@@ -87,6 +94,15 @@ public final class GlobalState extends Constants {
             + File.separator + "concourse" + File.separator + "buffer";
 
     /**
+     * This {@link UUID} is used to identify the Concourse instance across host
+     * and port changes. This id will be registered locally in the system in
+     * data and buffer directory.
+     */
+    @NonPreference
+    @Nullable
+    public static UUID SYSTEM_ID = null;
+
+    /**
      * The size for each page in the Buffer. During reads, Buffer pages
      * are individually locked, so it is desirable to have several smaller
      * pages as opposed to few larger ones. Nevertheless, be sure to balance
@@ -110,11 +126,19 @@ public final class GlobalState extends Constants {
     public static int SHUTDOWN_PORT = 3434;
 
     /**
-     * The listener port (1-65535) for management connections via JMX. Choose a
-     * port between 49152 and 65535 to minimize the possibility of conflicts
-     * with other services on this host.
+     * The listener port (1-65535) for JMX connections. Choose a port between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
      */
     public static int JMX_PORT = 9010;
+
+    /**
+     * The listener port (1-65535) for the management server. Choose a port
+     * between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
+     */
+    public static int MANAGEMENT_PORT = 9011;
 
     /**
      * The amount of memory that is allocated to the Concourse Server JVM.
@@ -214,7 +238,8 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
-            .getClassCasted("com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
+            .getClassCasted(
+                    "com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
 
     /**
      * Whether log messages should also be printed to the console.
@@ -276,21 +301,25 @@ public final class GlobalState extends Constants {
                     "http_cors_default_allow_methods",
                     HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
-            LOG_LEVEL = Level.valueOf(config.getString("log_level",
-                    LOG_LEVEL.toString()));
+            LOG_LEVEL = Level.valueOf(
+                    config.getString("log_level", LOG_LEVEL.toString()));
 
-            ENABLE_CONSOLE_LOGGING = config.getBoolean(
-                    "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+            ENABLE_CONSOLE_LOGGING = config.getBoolean("enable_console_logging",
+                    ENABLE_CONSOLE_LOGGING);
             if(!ENABLE_CONSOLE_LOGGING) {
                 ENABLE_CONSOLE_LOGGING = Boolean
-                        .parseBoolean(System
-                                .getProperty(
-                                        "com.cinchapi.concourse.server.logging.console",
-                                        "false"));
+                        .parseBoolean(System.getProperty(
+                                "com.cinchapi.concourse.server.logging.console",
+                                "false"));
             }
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);
+
+            MANAGEMENT_PORT = config.getInt("management_port",
+                    Networking.getCompanionPort(CLIENT_PORT, 4));
+
+            SYSTEM_ID = getSystemId();
             // =================== PREF READING BLOCK ====================
         }
     }
@@ -303,8 +332,8 @@ public final class GlobalState extends Constants {
     public static final Set<String> STOPWORDS = Sets.newHashSet();
     static {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("conf"
-                    + File.separator + "stopwords.txt"));
+            BufferedReader reader = new BufferedReader(
+                    new FileReader("conf" + File.separator + "stopwords.txt"));
             String line = null;
             while ((line = reader.readLine()) != null) {
                 STOPWORDS.add(line);
@@ -416,6 +445,61 @@ public final class GlobalState extends Constants {
     @Nullable
     public static String getPrefsFilePath() {
         return PREFS_FILE_PATH;
+    }
+
+    /**
+     * Return the canonical system id based on the storage directories that are
+     * configured this this instance.
+     * <p>
+     * If the system id does not exist, create a new one and store it. If
+     * different system ids are stored, return {@code null} to indicate that the
+     * system is in an inconsistent state.
+     * </p>
+     * 
+     * @return a {@link UUID} that represents the system id
+     */
+    private static UUID getSystemId() {
+        String relativeFileName = ".id";
+        Path bufferId = Paths.get(BUFFER_DIRECTORY, relativeFileName);
+        Path databaseId = Paths.get(DATABASE_DIRECTORY, relativeFileName);
+        List<String> files = Lists.newArrayList(bufferId.toString(),
+                databaseId.toString());
+        boolean hasBufferId = false;
+        boolean hasDatabaseId = false;
+        if((hasBufferId = FileSystem.hasFile(bufferId.toString()))
+                && (hasDatabaseId = FileSystem
+                        .hasFile(databaseId.toString()))) {
+            UUID uuid = null;
+            for (String file : files) {
+                ByteBuffer bytes = FileSystem.readBytes(file);
+                long mostSignificantBits = bytes.getLong();
+                long leastSignificantBits = bytes.getLong();
+                UUID stored = new UUID(mostSignificantBits,
+                        leastSignificantBits);
+                if(uuid == null || stored.equals(uuid)) {
+                    uuid = stored;
+                    continue;
+                }
+                else {
+                    uuid = null;
+                    break;
+                }
+            }
+            return uuid;
+        }
+        else if(!hasBufferId && !hasDatabaseId) {
+            UUID uuid = UUID.randomUUID();
+            ByteBuffer bytes = ByteBuffer.allocate(16);
+            bytes.putLong(uuid.getMostSignificantBits());
+            bytes.putLong(uuid.getLeastSignificantBits());
+            bytes.flip();
+            for (String file : files) {
+                FileSystem.writeBytes(ByteBuffers.asReadOnlyBuffer(bytes),
+                        file);
+            }
+            return uuid;
+        }
+        return null;
     }
 
 }

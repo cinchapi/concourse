@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,12 @@ public abstract class ClientServerTest {
     }
 
     /**
+     * A constant that indicates the latest version should be used in
+     * {@link #getServerVersion()}.
+     */
+    public final static String LATEST_SNAPSHOT_VERSION = "latest";
+
+    /**
      * The client allows the subclass to define tests that perform actions
      * against the test {@link #server} using the public API.
      */
@@ -81,17 +87,18 @@ public abstract class ClientServerTest {
 
         @Override
         protected void failed(Throwable t, Description description) {
-            System.out.println("TEST FAILURE in " + description.getMethodName()
+            System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
-            System.out.println("---");
-            System.out.println(Variables.dump());
-            System.out.println("");
-            System.out.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO, LogLevel.DEBUG);
+            System.err.println("---");
+            System.err.println(Variables.dump());
+            System.err.println("");
+            System.err.println("Printing relevant server logs...");
+            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
+                    LogLevel.DEBUG);
             server.printLog("console");
-            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
-                    .getClass())) {
-                
+            if(PluginTest.class
+                    .isAssignableFrom(ClientServerTest.this.getClass())) {
+
             }
         }
 
@@ -117,15 +124,17 @@ public abstract class ClientServerTest {
                                                               // appropriate
                                                               // File for
                                                               // construction
-                server = ManagedConcourseServer.manageNewServer(new File(
-                        getServerVersion()));
+                server = ManagedConcourseServer
+                        .manageNewServer(new File(getServerVersion()));
             }
-            else if(getServerVersion().equalsIgnoreCase("latest")) {
+            else if(getServerVersion()
+                    .equalsIgnoreCase(LATEST_SNAPSHOT_VERSION)) {
                 ConcourseCodebase codebase = ConcourseCodebase
                         .cloneFromGithub();
                 try {
-                    log.info("Creating an installer for the latest "
-                            + "version using the code in {}",
+                    log.info(
+                            "Creating an installer for the latest "
+                                    + "version using the code in {}",
                             codebase.getPath());
                     String installer = codebase.buildInstaller();
                     if(!Strings.isNullOrEmpty(installer)) {
@@ -150,8 +159,8 @@ public abstract class ClientServerTest {
                         .manageNewServer(installerPath());
             }
             Path pluginBundlePath = null;
-            if(PluginTest.class.isAssignableFrom(ClientServerTest.this
-                    .getClass())) {
+            if(PluginTest.class
+                    .isAssignableFrom(ClientServerTest.this.getClass())) {
                 // Turn the current codebase into a plugin bundle and place it
                 // inside the install directory
                 log.info("Generating plugin to install in Concourse Server");

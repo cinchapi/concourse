@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,8 +238,8 @@ public class AccessManager {
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
             credentials = Serializables.read(bytes, HashBasedTable.class);
-            counter = new AtomicInteger((int) Collections.max(credentials
-                    .rowKeySet()));
+            counter = new AtomicInteger(
+                    (int) Collections.max(credentials.rowKeySet()));
         }
         else {
             counter = new AtomicInteger(0);
@@ -371,7 +371,8 @@ public class AccessManager {
     /**
      * Remove the service {@code token} from the list of those that are valid.
      * <p>
-     * <em>This is an alias for the {@link #expireAccessToken(AccessToken)} method.</em>
+     * <em>This is an alias for the {@link #expireAccessToken(AccessToken)}
+     * method.</em>
      * </p>
      * 
      * @param token the service token to remove
@@ -690,12 +691,12 @@ public class AccessManager {
             ByteBuffer password) {
         if(isExistingUsername0(username)) {
             short uid = getUidByUsername0(username);
-            ByteBuffer salt = ByteBuffers.decodeFromHex((String) credentials
-                    .get(uid, SALT_KEY));
+            ByteBuffer salt = ByteBuffers
+                    .decodeFromHex((String) credentials.get(uid, SALT_KEY));
             password.rewind();
             password = Passwords.hash(password, salt);
-            return ByteBuffers.encodeAsHex(password).equals(
-                    (String) credentials.get(uid, PASSWORD_KEY));
+            return ByteBuffers.encodeAsHex(password)
+                    .equals((String) credentials.get(uid, PASSWORD_KEY));
         }
         return false;
     }
@@ -876,8 +877,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper implements
-            Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper
+            implements Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -952,10 +953,12 @@ public class AccessManager {
          * @return the description
          */
         public String getDescription() {
-            return com.cinchapi.concourse.util.Strings.joinWithSpace(
-                    ByteBuffers.getString(ByteBuffers.decodeFromHex(username)),
-                    "logged in since", Timestamp.fromMicros(timestamp)
-                            .getJoda().toString(DATE_TIME_FORMATTER));
+            String uname = ByteBuffers
+                    .getString(ByteBuffers.decodeFromHex(username));
+            uname = uname.equals(SERVICE_USERNAME) ? "BACKGROUND SERVICE"
+                    : uname;
+            return uname + " logged in since " + Timestamp.fromMicros(timestamp)
+                    .getJoda().toString(DATE_TIME_FORMATTER);
         }
 
         /**

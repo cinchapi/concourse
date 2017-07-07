@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,23 +49,19 @@ public final class Queues {
      *            {@link BlockingQueue#drainTo(Collection) drainTo} method
      * @param buffer the collection into which the elements are drained
      * @return the number of elements that are drained
+     * @throws InterruptedException
      */
     public static <E> int blockingDrain(BlockingQueue<E> queue,
-            Collection<? super E> buffer) {
+            Collection<? super E> buffer) throws InterruptedException {
         Preconditions.checkNotNull(buffer);
         int added = queue.drainTo(buffer);
-        try {
-            if(added == 0) {
-                // If the initial drain doesn't return any elements, we must
-                // call #take in order to block until at least on element is
-                // available
-                buffer.add(queue.take());
-                added += queue.drainTo(buffer);
-                ++added;
-            }
-        }
-        catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+        if(added == 0) {
+            // If the initial drain doesn't return any elements, we must
+            // call #take in order to block until at least on element is
+            // available
+            buffer.add(queue.take());
+            added += queue.drainTo(buffer);
+            ++added;
         }
         return added;
     }

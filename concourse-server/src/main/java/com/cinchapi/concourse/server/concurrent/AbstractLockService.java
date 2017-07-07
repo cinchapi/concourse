@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -147,10 +148,20 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
             existing = MoreObjects.firstNonNull(existing, created);
         }
         existing.refs.incrementAndGet();
+        L gced = null;
         if(existing.refs.get() <= 0
-                || locks.putIfAbsent(token, existing) != existing) { // GC
-                                                                     // happened
+                || (gced = locks.putIfAbsent(token, existing)) != existing) { // Indicates
+                                                                              // that
+                                                                              // the
+                                                                              // existing
+                                                                              // lock
+                                                                              // was
+                                                                              // garbage
+                                                                              // collected
             existing.refs.decrementAndGet();
+            Logger.debug("Lock Service GC Race Condition: Expected "
+                    + "{} but was {}", existing, gced);
+            Thread.yield();
             return getLock(token, readLock);
         }
         else {

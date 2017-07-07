@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,8 +96,8 @@ public final class FileSystem extends FileOps {
      * @param directory
      */
     public static void deleteDirectory(String directory) {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
-                .get(directory))) {
+        try (DirectoryStream<Path> stream = Files
+                .newDirectoryStream(Paths.get(directory))) {
             for (Path path : stream) {
                 if(Files.isDirectory(path)) {
                     deleteDirectory(path.toString());
@@ -194,6 +194,8 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return the FileChannel for {@code file}
      */
+    @SuppressWarnings("resource") // NOTE: can't close the file channel here
+                                  // because others depend on it
     public static FileChannel getFileChannel(String file) {
         try {
             return new RandomAccessFile(openFile(file), "rwd").getChannel();
@@ -229,8 +231,9 @@ public final class FileSystem extends FileOps {
      */
     public static String getSimpleName(String filename) {
         String[] placeholder;
-        return (placeholder = (placeholder = filename.split("\\."))[placeholder.length - 2]
-                .split(File.separator))[placeholder.length - 1];
+        return (placeholder = (placeholder = filename
+                .split("\\."))[placeholder.length - 2]
+                        .split(File.separator))[placeholder.length - 1];
     }
 
     /**
@@ -294,7 +297,8 @@ public final class FileSystem extends FileOps {
             try {
                 checkState(getFileChannel(path).tryLock() != null,
                         "Unable to grab lock for %s because another "
-                                + "Concourse Server process is using it", path);
+                                + "Concourse Server process is using it",
+                        path);
             }
             catch (OverlappingFileLockException e) {
                 Logger.warn("Trying to lock {}, but the current "
@@ -336,8 +340,8 @@ public final class FileSystem extends FileOps {
      * @param size
      * @return the MappedByteBuffer
      */
-    public static MappedByteBuffer map(String file, MapMode mode,
-            long position, long size) {
+    public static MappedByteBuffer map(String file, MapMode mode, long position,
+            long size) {
         FileChannel channel = getFileChannel(file);
         try {
             return channel.map(mode, position, size).load();
@@ -347,20 +351,6 @@ public final class FileSystem extends FileOps {
         }
         finally {
             closeFileChannel(channel);
-        }
-    }
-
-    /**
-     * Create the directories in {@link path}.
-     * 
-     * @param path
-     */
-    public static void mkdirs(String path) {
-        try {
-            Files.createDirectories(Paths.get(path));
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
         }
     }
 

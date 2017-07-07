@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016 Cinchapi Inc.
+# Copyright (c) 2013-2017 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,3 +94,10 @@ exception SecurityException {
  * </p>
  */
 exception TransactionException {}
+
+/**
+ * Thrown when a managed operation fails.
+ */
+exception ManagementException {
+    1: string message
+}

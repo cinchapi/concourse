@@ -35,7 +35,7 @@ The **browse** methods give a global view of all the values that have been store
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2016 Cinchapi Inc.
+Copyright (c) 2013-2017 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />

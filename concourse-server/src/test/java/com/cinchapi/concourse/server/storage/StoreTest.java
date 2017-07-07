@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,13 +205,16 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 -3193024454871429052L);
         data.put(Convert.javaToThrift(723284932), 2021923430868945807L);
         data.put(
-                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                Convert.javaToThrift(
+                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -5698094812015896631L);
         data.put(
-                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                Convert.javaToThrift(
+                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -1784224494277607728L);
         data.put(
-                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                Convert.javaToThrift(
+                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -1661462551451553081L);
         data.put(Convert.javaToThrift("7478v4flnf2hy4uq856q5j1u4yu"),
                 -4055175164196245068L);
@@ -224,7 +227,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift(1233118838), -3117864874339953135L);
         data.put(Convert.javaToThrift(1375924251), -5136738009956048263L);
         data.put(
-                Convert.javaToThrift("kqoc3badp43aryq4kqjy sxp1ywhemli cvtajepz 04oxro0dt3oykn y4pexibpkms0 8uu4ncac2xauc1exc 19ija"),
+                Convert.javaToThrift(
+                        "kqoc3badp43aryq4kqjy sxp1ywhemli cvtajepz 04oxro0dt3oykn y4pexibpkms0 8uu4ncac2xauc1exc 19ija"),
                 -4997919281599660112L);
         Iterator<Entry<TObject, Long>> it = data.entries().iterator();
         String key = "foo";
@@ -278,8 +282,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
             if(previous != null) {
                 Variables.register("previous", previous);
                 Variables.register("current", current);
-                Assert.assertTrue(TObjectSorter.INSTANCE.compare(previous,
-                        current) < 0);
+                Assert.assertTrue(
+                        TObjectSorter.INSTANCE.compare(previous, current) < 0);
             }
             previous = current;
         }
@@ -298,25 +302,32 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift(717735738), 2456974634159417208L);
         data.put(Convert.javaToThrift(717735738), 3663570106751188709L);
         data.put(
-                Convert.javaToThrift("2ldexok y9mqipnui o4w85kfa55t9nuzk212kvmf mqvm nr u3412xu6df2gx gsk5 lzv4ssghrbs 3ljiea8 8e2mwauu 12"),
+                Convert.javaToThrift(
+                        "2ldexok y9mqipnui o4w85kfa55t9nuzk212kvmf mqvm nr u3412xu6df2gx gsk5 lzv4ssghrbs 3ljiea8 8e2mwauu 12"),
                 -4614329651952703136L);
         data.put(
-                Convert.javaToThrift("8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+                Convert.javaToThrift(
+                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 -5807028703649467961L);
         data.put(
-                Convert.javaToThrift("8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+                Convert.javaToThrift(
+                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 2471646868604570488L);
         data.put(
-                Convert.javaToThrift("8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+                Convert.javaToThrift(
+                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 6897578410324076954L);
         data.put(
-                Convert.javaToThrift("8vsgpp4i4sqo 7wcqxx6342lpai1lypm8icw6yrpkrbwknf51ho1 y5i9d4x"),
+                Convert.javaToThrift(
+                        "8vsgpp4i4sqo 7wcqxx6342lpai1lypm8icw6yrpkrbwknf51ho1 y5i9d4x"),
                 -6242678134557131181L);
         data.put(
-                Convert.javaToThrift("8y6s9mfwedl21tnk8 ad m  gknrl3 do67lqo1k2yb1soi z  bfhga  k2xu4u rnkui p03ou"),
+                Convert.javaToThrift(
+                        "8y6s9mfwedl21tnk8 ad m  gknrl3 do67lqo1k2yb1soi z  bfhga  k2xu4u rnkui p03ou"),
                 -2131365700818384077L);
         data.put(
-                Convert.javaToThrift("9 6g9swglj86ko96vstgq0bcv ml66ekw1 z7rce zi4wfk"),
+                Convert.javaToThrift(
+                        "9 6g9swglj86ko96vstgq0bcv ml66ekw1 z7rce zi4wfk"),
                 3226024846745901977L);
         data.put(Convert.javaToThrift(4324130441596932925L),
                 -1255236281809723953L);
@@ -324,18 +335,23 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 4541543718475851175L);
         data.put(Convert.javaToThrift(0.5102137787300446),
                 -7644876211582281943L);
-        data.put(Convert.javaToThrift(0.5102137787300446), 2763166646777350749L);
+        data.put(Convert.javaToThrift(0.5102137787300446),
+                2763166646777350749L);
         data.put(Convert.javaToThrift(0.6456127773032042),
                 -3312861494325403139L);
         data.put(Convert.javaToThrift(0.7039659687563723),
                 -1306475581312320073L);
-        data.put(Convert.javaToThrift(0.7039659687563723), 7844239138927869378L);
-        data.put(Convert.javaToThrift(0.7039659687563723), 7897178695680416538L);
+        data.put(Convert.javaToThrift(0.7039659687563723),
+                7844239138927869378L);
+        data.put(Convert.javaToThrift(0.7039659687563723),
+                7897178695680416538L);
         data.put(
-                Convert.javaToThrift("eixhm9et65tb0re4vfnnrjr8d70840hjhr6koau6vfj2qv76vft"),
+                Convert.javaToThrift(
+                        "eixhm9et65tb0re4vfnnrjr8d70840hjhr6koau6vfj2qv76vft"),
                 4184600990944636146L);
         data.put(
-                Convert.javaToThrift("k5 qk0abvcjpgj5qdk byot4n9pc8axs4gf4kacb7baolebri vluvkboq"),
+                Convert.javaToThrift(
+                        "k5 qk0abvcjpgj5qdk byot4n9pc8axs4gf4kacb7baolebri vluvkboq"),
                 -7758530170278083935L);
         data.put(Convert.javaToThrift("kcsh84m6w135vagkzydj94j28rr"),
                 -8655447648200374519L);
@@ -344,10 +360,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift("kcsh84m6w135vagkzydj94j28rr"),
                 193250295130615638L);
         data.put(
-                Convert.javaToThrift("nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
+                Convert.javaToThrift(
+                        "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
                 -3521699612493033909L);
         data.put(
-                Convert.javaToThrift("nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
+                Convert.javaToThrift(
+                        "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
                 -3284699155987771538L);
         doTestBrowseKeyRepro(data);
     }
@@ -574,20 +592,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchLower() { // CON-10
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null
-                || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toUpperCase())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase())
-                || Strings.isNullOrEmpty(TStrings.stripStopWords(value
-                        .toString()))) {
+        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS
+                        .contains(value.toString().toUpperCase())
+                || GlobalState.STOPWORDS
+                        .contains(value.toString().toLowerCase())
+                || Strings.isNullOrEmpty(
+                        TStrings.stripStopWords(value.toString()))) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
         long record = (long) Variables.register("record", 1);
-        String query = Variables.register("query", value.toString()
-                .toLowerCase());
+        String query = Variables.register("query",
+                value.toString().toLowerCase());
         add(key, value, record);
         Assert.assertTrue(store.search(key, query).contains(record));
     }
@@ -608,20 +625,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchUpper() {
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null
-                || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toUpperCase())
-                || Strings.isNullOrEmpty(TStrings.stripStopWords(value
-                        .toString()))) {
+        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS
+                        .contains(value.toString().toLowerCase())
+                || GlobalState.STOPWORDS
+                        .contains(value.toString().toUpperCase())
+                || Strings.isNullOrEmpty(
+                        TStrings.stripStopWords(value.toString()))) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
         long record = (long) Variables.register("record", 1);
-        String query = Variables.register("query", value.toString()
-                .toUpperCase());
+        String query = Variables.register("query",
+                value.toString().toUpperCase());
         add(key, value, record);
         Assert.assertTrue(store.search(key, query).contains(record));
     }
@@ -867,29 +883,29 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long record = TestData.getLong();
         long timestamp = Time.now();
         add(key, value, record);
-        Assert.assertFalse(store.select(key, record, timestamp).contains(value));
+        Assert.assertFalse(
+                store.select(key, record, timestamp).contains(value));
     }
 
     @Test
     public void testFetchEmpty() {
-        Assert.assertTrue(store.select(TestData.getSimpleString(),
-                TestData.getLong()).isEmpty());
+        Assert.assertTrue(
+                store.select(TestData.getSimpleString(), TestData.getLong())
+                        .isEmpty());
     }
 
     @Test
     public void testFindLinksTo() {
         String key = Variables.register("key", TestData.getSimpleString());
         long source = Variables.register("source", TestData.getLong());
-        long destination = Variables
-                .register("destination", TestData.getLong());
+        long destination = Variables.register("destination",
+                TestData.getLong());
         while (source == destination) {
             destination = Variables.register("destination", TestData.getLong());
         }
         add(key, Convert.javaToThrift(Link.to(destination)), source);
-        Set<Long> results = Variables.register(
-                "results",
-                store.find(key, Operator.LINKS_TO,
-                        Convert.javaToThrift(destination)));
+        Set<Long> results = Variables.register("results", store.find(key,
+                Operator.LINKS_TO, Convert.javaToThrift(destination)));
         Assert.assertTrue(results.contains(source));
     }
 
@@ -945,23 +961,21 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindForNotRegexWithPercentSignReproA() {
-        String key = Variables
-                .register(
-                        "key",
-                        "pklbwoj8p1fwni89ra339ytdzu11m6ttmaynni5zxzwi402gpfoui2fba0w6r3580esv8pv3xphy8ohffod2g");
+        String key = Variables.register("key",
+                "pklbwoj8p1fwni89ra339ytdzu11m6ttmaynni5zxzwi402gpfoui2fba0w6r3580esv8pv3xphy8ohffod2g");
         String value1 = Variables.register("value1", "a");
-        Set<Long> records1 = Variables.register("records1", Sets.newHashSet(
-                -8837327677807046246L, -1837928815572945895L,
-                -7042182654721884696L, 3142018574192978144L,
-                -6639179481432426018L, 461806750568583298L,
-                -5449875477758503155L, 1395727263052630755L,
-                4363963785781396592L, -8485487848254456506L,
-                -7931250504437226728L, 6017151736071373350L,
-                -2893502697295133660L, 2052546698363219491L,
-                2410155758617125738L, 2849478253048385138L,
-                6586957270677760116L, -1822986183439476271L,
-                -4186548993362340144L, -727399974550900574L,
-                3688062601296251410L));
+        Set<Long> records1 = Variables.register("records1",
+                Sets.newHashSet(-8837327677807046246L, -1837928815572945895L,
+                        -7042182654721884696L, 3142018574192978144L,
+                        -6639179481432426018L, 461806750568583298L,
+                        -5449875477758503155L, 1395727263052630755L,
+                        4363963785781396592L, -8485487848254456506L,
+                        -7931250504437226728L, 6017151736071373350L,
+                        -2893502697295133660L, 2052546698363219491L,
+                        2410155758617125738L, 2849478253048385138L,
+                        6586957270677760116L, -1822986183439476271L,
+                        -4186548993362340144L, -727399974550900574L,
+                        3688062601296251410L));
         for (long record : records1) {
             add(key, Convert.javaToThrift(value1), record);
         }
@@ -970,18 +984,18 @@ public abstract class StoreTest extends ConcourseBaseTest {
         while (value2 == null || value2.contains(value1)) {
             value2 = Variables.register("value2", TestData.getString());
         }
-        Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
-                -6182791895483854312L, -679172883778660965L,
-                1120463509328983993L, -8479770926286484152L,
-                1128382420337449323L, 6257301028647171984L,
-                6823367565918477224L, 2330855273859656550L,
-                7177177908301439818L, -8094395763130835882L,
-                5898816101052626932L, -4557467144755416551L,
-                -2755758238783715284L, 2886417267455105816L,
-                1943598759101180077L, 263040801152290323L,
-                7552043432119880007L, -7277413805920665985L,
-                -4117831401170893413L, 7400570047490749104L,
-                6722954364072475529L));
+        Set<Long> records2 = Variables.register("records2",
+                Sets.newHashSet(-6182791895483854312L, -679172883778660965L,
+                        1120463509328983993L, -8479770926286484152L,
+                        1128382420337449323L, 6257301028647171984L,
+                        6823367565918477224L, 2330855273859656550L,
+                        7177177908301439818L, -8094395763130835882L,
+                        5898816101052626932L, -4557467144755416551L,
+                        -2755758238783715284L, 2886417267455105816L,
+                        1943598759101180077L, 263040801152290323L,
+                        7552043432119880007L, -7277413805920665985L,
+                        -4117831401170893413L, 7400570047490749104L,
+                        6722954364072475529L));
         for (long record : records2) {
             add(key, Convert.javaToThrift(value2), record);
         }
@@ -1007,8 +1021,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Set<Long> records = removeRecords(key, addRecords(key, min, operator));
         long timestamp = Time.now();
         removeRecords(key, addRecords(key, min, operator));
-        Assert.assertEquals(records,
-                store.find(timestamp, key, operator, Convert.javaToThrift(min)));
+        Assert.assertEquals(records, store.find(timestamp, key, operator,
+                Convert.javaToThrift(min)));
     }
 
     @Test
@@ -1019,8 +1033,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Set<Long> records = addRecords(key, min, operator);
         long timestamp = Time.now();
         addRecords(key, min, operator);
-        Assert.assertEquals(records,
-                store.find(timestamp, key, operator, Convert.javaToThrift(min)));
+        Assert.assertEquals(records, store.find(timestamp, key, operator,
+                Convert.javaToThrift(min)));
     }
 
     @Test
@@ -1107,12 +1121,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproA(SearchType type) {
         String query = Variables.register("query", "tc e");
         String key = Variables.register("key", "26f0wzcw2ixadcfsa");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(6631928579149921621L),
-                Lists.newArrayList("qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(6631928579149921621L), Lists.newArrayList(
+                        "qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
@@ -1124,25 +1135,20 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String key = Variables.register("key",
                 "2vuagrm1hkhrnjt2nf1n411ch7djphag6bgrxw9fcpe6c7zqfvny7z6n");
         Set<Long> records = setupSearchTest(key, query, type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
+                Lists.newArrayList(1L), Lists.newArrayList(
+                        "6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
     @Test
     @Theory
     public void testSearchReproC(SearchType type) {
-        String query = Variables
-                .register(
-                        "query",
-                        "i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx");
+        String query = Variables.register("query",
+                "i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx");
         String key = Variables.register("key", "foo");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("1ub0gsi61bz39y90wbe96rvxo3g4mtt89sg1tfjsf4vuyyjc9oivc7sluuxrmj897ni15p8obu6i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx"));
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(1L), Lists.newArrayList(
+                        "1ub0gsi61bz39y90wbe96rvxo3g4mtt89sg1tfjsf4vuyyjc9oivc7sluuxrmj897ni15p8obu6i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
@@ -1151,10 +1157,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproCON_18(SearchType type) {
         String query = Variables.register("query", "w 3");
         String key = Variables.register("key", "woq80jx4j1ij");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(-8637216143534516416L, 421096814721703284L,
                         6564122985024885236L, -5952107620777355272L,
                         -436640785454846021L, -7907647268823148126L,
@@ -1166,13 +1169,11 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         424433091429876284L, 5165325020869171306L,
                         5886947254936812579L, 1115795719781445848L,
                         7389722247458313374L),
-                Lists.newArrayList(
-                        "3wi92e09gvonunyyw00vnfwx2i7dgiwcs6v0pr",
+                Lists.newArrayList("3wi92e09gvonunyyw00vnfwx2i7dgiwcs6v0pr",
                         "kb3ys9il8gnl1wc6m4rb0cs2z8j89kjtjqu8wkf5jbsrl27kyke1x4ltm163ll74",
                         "km ne995y83xlkqzc u  uhb h 951 876qx7n3xjsg lqt0hbk4 1g2u1q0z59bm1dww 4 9rlvjbff",
                         "w 3qslmhu ttqh08ldb ctp5z44r2dhry1dsmje2rztap28itjzg2bpbcqwf0b2lx43xw8kl vki0vj0jouh9 s1x5yse",
-                        "4sx wy325g4kle5scr3 gp1zo26nubpz488",
-                        "f188snr",
+                        "4sx wy325g4kle5scr3 gp1zo26nubpz488", "f188snr",
                         "f y8nvz5lpycrze 679ek7qwi1p8pc7 bxzidbcu0nb ztjc0xqt7uxlumrqam7k0h",
                         "vzr3cnv1 78kv0631o9f5929zonowngtklz2dzslsrvhch8mtu74x6fzubqv8w6r90dciz1os4gcuchjrq",
                         "6e7vo amq bro6pbk06sryi2v3i05ictx0ptu55 1o11os57fmhl3vlmcpt3x1a7uo0w w6",
@@ -1196,10 +1197,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproCON_2(SearchType type) {
         String query = Variables.register("query", "k i");
         String key = Variables.register("key", "oq99f7u7vizpob4o");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(1902752458578581194L, 1959599694661426747L,
                         -9154557670941699129L, -984115036014491508L,
                         5194905945498812204L, 5521526792899195281L,
@@ -1220,8 +1218,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         "j1nl2lvd5ie",
                         "zqw e tfvd9y 4i7921apde59kfetaxcqcj89 s 1c5ncb t",
                         "simk a7 s7oh1 oz9wfrh7830q82hoorvfomcw8dzy9eaku cvu1pdknxwkcf1w9",
-                        "eurti8wfy244clx15u",
-                        "ig5 bq",
+                        "eurti8wfy244clx15u", "ig5 bq",
                         "y9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xhk iy9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xh",
                         "s93z3eggrxiuyb1enl59y  gwu7gn2cj 1luh j  pj"));
         Assert.assertEquals(records, store.search(key, query));
@@ -1232,10 +1229,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproCON_7(SearchType type) {
         String query = Variables.register("query", "5");
         String key = Variables.register("key", "vhncr15x4vi1r7dx3bw8sgo3");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(4407787408868251656L, -81405110977674943L,
                         -7140839054266835785L, -2478927665696010310L,
                         218763128369680085L, 3303203363767514564L,
@@ -1247,8 +1241,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         -6765165614843560497L, -7193164394167202080L,
                         -2953063992651183477L, 2015523299602625665L,
                         8352547665716061424L),
-                Lists.newArrayList(
-                        "x6ovyg2524ez1n",
+                Lists.newArrayList("x6ovyg2524ez1n",
                         "x7 e0o5ouxxbs8 ykcj248ss873ds94x71eli1 7mvo963e9wnhc k36dek6t0hde8h6tc2bji436jislz2o 497nvdzn0ugr e",
                         "yn6isk627adyvm0j7k1l jm2xffyyciluvhrzu xrpn6607o pfyq1 3biam5b7odvnt4",
                         "0m0du5135vcnlmvv 924 e7ao0enajqri",
@@ -1277,28 +1270,21 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproD(SearchType type) {
         String query = Variables.register("query", "0 tihr2 nva7zd z96x");
         String key = Variables.register("key", "foo");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("xqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx0 tihr2 nva7zd z96xxqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx"));
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(1L), Lists.newArrayList(
+                        "xqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx0 tihr2 nva7zd z96xxqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
     @Test
     @Theory
     public void testSearchReproE(SearchType type) {
-        String query = Variables
-                .register("query",
-                        "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30 ");
+        String query = Variables.register("query",
+                "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30 ");
         String key = Variables.register("key", "foo");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(1L), Lists.newArrayList(
+                        "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
@@ -1308,30 +1294,26 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String query = Variables.register("query", "34 y");
         String key = Variables.register("key",
                 "gpvokxzt84dsbm2ylhsooalv0fyhqukc");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(-4473008077619333882L,
-                        -8351207459167435413L, -4459427393681524497L,
-                        4939907340215037652L, -6886124796950548141L,
-                        5712289740182081898L, -5352871050404061986L,
-                        9078216912764450349L, 368752644783891597L,
-                        -731408778453015380L, 2833136306920397583L,
-                        8970944616841919904L, -2557996967788292936L,
-                        3011361709098214638L, 9131206744594670786L,
-                        -269685979046038300L, -7557829318518279649L,
-                        -2403971717188586598L, 7144064178377245110L,
-                        -1901968551799565728L, 4040139761808173392L,
-                        -6949001582626254753L, -3136222895901082164L,
-                        5566791123710361043L, 5050276518482596641L,
-                        -8202827082220536933L, 8450772276451962700L,
-                        2171722260496954622L, 8691364971781746515L,
-                        1772440781478734988L, -3401640223866128972L,
-                        -1892754300252444576L, -9049673414695221207L,
-                        -2759568085991866192L, 2220378323437157183L),
-                Lists.newArrayList(
-                        "es5wpos73i60li2sv17trbgas5j7",
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(-4473008077619333882L, -8351207459167435413L,
+                        -4459427393681524497L, 4939907340215037652L,
+                        -6886124796950548141L, 5712289740182081898L,
+                        -5352871050404061986L, 9078216912764450349L,
+                        368752644783891597L, -731408778453015380L,
+                        2833136306920397583L, 8970944616841919904L,
+                        -2557996967788292936L, 3011361709098214638L,
+                        9131206744594670786L, -269685979046038300L,
+                        -7557829318518279649L, -2403971717188586598L,
+                        7144064178377245110L, -1901968551799565728L,
+                        4040139761808173392L, -6949001582626254753L,
+                        -3136222895901082164L, 5566791123710361043L,
+                        5050276518482596641L, -8202827082220536933L,
+                        8450772276451962700L, 2171722260496954622L,
+                        8691364971781746515L, 1772440781478734988L,
+                        -3401640223866128972L, -1892754300252444576L,
+                        -9049673414695221207L, -2759568085991866192L,
+                        2220378323437157183L),
+                Lists.newArrayList("es5wpos73i60li2sv17trbgas5j7",
                         "p9xbp2jf0q134 yp9xbp2jf0q1",
                         "5xkc8h642h9i9y15pb b13q4mlentzvnslco2 e7dzxaxyodxgwr0ktqghr8sbgnptppk5ztnakenk0b9nh hohf",
                         "249isiqqwpkeeyzluyo8k87fb7z2tu36ybvkpek9jyoflwxpjsgow80tqupnzi0kks4ch1zzfdyz7nd6wpwj3djxt81eh6v0jk4v34 y249isiqqwpkeeyzluyo8k87fb7z2tu36ybvkpek9jyoflwxpjsgow80tqupnzi0kks4ch1zzfdyz7nd6wpwj3djxt81eh6v0jk4v",
@@ -1359,8 +1341,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         "0 ua72nxf nosl8msw34 y0 ua72nxf nosl8msw",
                         "x253x2bbcjxxtuegqk68q d2ku lz3k0dvmj8hf2zbmh25b",
                         "xt8v7sir9uqt12f9tcq12gp2k27e3k12oe4wbpf3ob9t3pqjpg6zci4d 5y534 yxt8v7sir9uqt12f9tcq12gp2k27e3k12oe4wbpf3ob9t3pqjpg6zci4d 5y5",
-                        "4yz10yezarmf34 y4yz10yezarmf",
-                        "o8r1m34 yo8r1m",
+                        "4yz10yezarmf34 y4yz10yezarmf", "o8r1m34 yo8r1m",
                         "lqe462we526s7tnc39ia8e 2dhq7iojy5wwx4uj4i08hk9b6kx074ppjpj1 it2rk4rh9vxe7zrgvv9ibyj0t2h7wm",
                         "ndpehrrvwa32cxzc7uouly1ys39vg8 khpmv5kqwnwazdzchfmxk1p6vp4hj4pvcy8q019w89ktjc2p0p2n957th37 7o834 yndpehrrvwa32cxzc7uouly1ys39vg8 khpmv5kqwnwazdzchfmxk1p6vp4hj4pvcy8q019w89ktjc2p0p2n957th37",
                         "u2 kgkkdf9gshpfnkj8539m059k8e749erbwb1075men1xn9g1xyfl5grb4xfkjwji5bbxblmt",
@@ -1374,10 +1355,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchReproG(SearchType type) {
         String query = Variables.register("query", "w  8");
         String key = Variables.register("key", "kqlqkg");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(-277580307881000612L, -5255148899331404410L,
                         -6420115819351478982L, 6866110824999006259L,
                         -4492041108193153731L, 3352888707677394801L,
@@ -1388,22 +1366,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         2742476713515734831L, 5255788341749360850L,
                         -1599496265723822053L, -8972410565681248229L,
                         8390960620509055056L),
-                Lists.newArrayList(
-                        "zntcnz 2ob317e2hkhui2dneo69rkej0a5qj",
+                Lists.newArrayList("zntcnz 2ob317e2hkhui2dneo69rkej0a5qj",
                         "opsrx2y5fqkxclc3ux bf0pxik4r1pddesxsr25yek70z fcojyyojnz9mjfw4r62unjh",
                         "35ckl663czoibu2gxwy9mdsspr9jko694x6qqrkx6kgb9lrpvshq7g9bjzbivp5ajuiyh90y0lkuckl2qmvhdmw  835ckl663czoibu2gxwy9mdsspr9jko694x6qqrkx6kgb9lrpvshq7g9bjzbivp5ajuiyh90y0lkuckl2qmvhdm",
                         "33sd4z7 0gys0py9ipbjltz jp3lvbqw  833sd4z7 0gys0py9ipbjltz jp3lvbq",
                         "q4p13puyp7nxroteiak30jwaew  8q4p13puyp7nxroteiak30jwae",
                         "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o",
-                        "snou",
-                        "6mwg3pl6f1hy2qq6agh",
+                        "snou", "6mwg3pl6f1hy2qq6agh",
                         "wsnv12h c5xa1rk099 rumx9jdhf9pf e1",
                         "t2j62i78z39r2hyt49q9 lsdoeq7tuyczcqyh4ar lpx1gubry4bb 26tymj6bkrktcq10lq8xj65yqv8bt8b3flxb 2zoqp",
                         "7ra3 67i9t3q8azuq9j fu5tt28mg 0j3qvposw  87ra3 67i9t3q8azuq9j fu5tt28mg 0j3qvpos",
                         "i2f d0g",
                         "onc1l75d7xyk6jm4rebv89jy05jurpk651h8xygc5eol6b6ufpl4s9hifc3etv7d6iv84fzb70ua1363605pf4owb8w  8onc1l75d7xyk6jm4rebv89jy05jurpk651h8xygc5eol6b6ufpl4s9hifc3etv7d6iv84fzb70ua1363605pf4owb8 ",
-                        "zs94",
-                        "hbhq3c9ll li1jz9cplbbzrt t9vt14r",
+                        "zs94", "hbhq3c9ll li1jz9cplbbzrt t9vt14r",
                         "cdb24id6us  cn k49egrbbqqysww0wzgdndm0kkmer05so8mvnt99499xqygldqoh3aqpf xscrlsnuugnw  8cdb24id6us  cn k49egrbbqqysww0wzgdndm0kkmer05so8mvnt99499xqygldqoh3aqpf xscrlsnuugn",
                         "ww1bevsi9j9u07fpw",
                         "i6qzle7myjtb p8zzvr48jle jb951bhnjrbz1 r455s9 g9zbgth9ugexl  fl55d8h4a08r wnd2q",
@@ -1417,10 +1392,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String query = Variables.register("query", "4  w");
         String key = Variables.register("key",
                 "viho04sfbnz8zdfqsdyw9zwk5o2genjl2engu28ap0uyzxgyv9wc");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(1378249483279686062L, -6161014232753001252L,
                         8433543546648615058L, 417782169298412285L,
                         -3539644780337239226L, -714055345939181564L,
@@ -1430,20 +1402,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         9023646044357780211L, -2252683871509119265L,
                         -8081867832259689703L, -374594252064464588L,
                         8025017904883834843L, -7866768561866704644L),
-                Lists.newArrayList(
-                        "eg lb36kp t4",
-                        "lt rzrttfbhglt0423181mgtk le5",
-                        "qc8vkeyk294mr8",
+                Lists.newArrayList("eg lb36kp t4",
+                        "lt rzrttfbhglt0423181mgtk le5", "qc8vkeyk294mr8",
                         "7bbfk6lsinjfy0n4c1hr0gwe2zso8yalti4oefzzstv274q6twl90f033mb4vlg3ch19  afnodtnm1p4  w",
                         "2fc1p1ksst88ut70u38weagn4q5ziwfqad4o4ldpu5z9shdcpr21p6t4quebt7ehzptphxw3j8x5f",
-                        "al75cmqjmzv9uy6difn95gu11pq5csb3",
-                        "cquxx8kt",
-                        "h919c0 ct79xk4h98x",
-                        "dq70ohga8ze79m9hygwjtjtbn2g",
+                        "al75cmqjmzv9uy6difn95gu11pq5csb3", "cquxx8kt",
+                        "h919c0 ct79xk4h98x", "dq70ohga8ze79m9hygwjtjtbn2g",
                         "omr8n rvjc pcg9k1uc8yv0ut7n w3f ouwg0 91 r5hr7h7p419ancsm",
                         "56uotxg3daytxa zpi6e6 w 83dst7 ujenhtr1muzxg8n cnt t3h4yytwuvjf0k5hc2gcvk9vh 92zcr6p fdvu2qg",
-                        "thsleyyy628wzeciiv",
-                        "i94  w",
+                        "thsleyyy628wzeciiv", "i94  w",
                         "1zw2jj2r510sjg0sqauagjzpk5yt9jgcc2iiu5dy6i85kwi511esjihep9zk3p11nde",
                         "1z0ef75 poaz6h1v1903f9 xkvmq fpf1o3mb4v4xd2o1n u azamd8oanwmz46c163ta77c2rlc4ad6 9qhnqegqpk9os",
                         "uk7c1pmx tp9ytkk2p35ekyogtiwgblgf3d1b5bl aw5bbnh7odic9h",
@@ -1455,34 +1422,24 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     @Theory
     public void testSearchReproI(SearchType type) {
-        String query = Variables
-                .register(
-                        "query",
-                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
+        String query = Variables.register("query",
+                "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
         String key = Variables.register("key",
                 "vorrrsfuqdwatipwhgpjmihbapuynizs");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(-2431843905487157607L),
-                Lists.newArrayList("b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(-2431843905487157607L), Lists.newArrayList(
+                        "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
     @Test
     @Theory
     public void testSearchReproII(SearchType type) {
-        String query = Variables
-                .register(
-                        "query",
-                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
+        String query = Variables.register("query",
+                "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we");
         String key = Variables.register("key",
                 "vorrrsfuqdwatipwhgpjmihbapuynizs");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
+        Set<Long> records = setupSearchTest(key, query, type,
                 Lists.newArrayList(-2431843905487157607L, 2535161598937199860L,
                         5095913505665814359L, 2945479239457230071L,
                         -2513720049182776314L, 8923575282282264235L,
@@ -1498,8 +1455,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         -8020518575166416431L, -8635845075000684890L,
                         -4503895988433291010L, 6607557585769321334L,
                         7192849599491803852L),
-                Lists.newArrayList(
-                        "l6mxivaxi8vd2ygz2puool6isbbzf5vzy1o84",
+                Lists.newArrayList("l6mxivaxi8vd2ygz2puool6isbbzf5vzy1o84",
                         "8lgc17ianf4tf8htbbe31ocq5mj daq58 bf7ofguwb1 ftojmyo4hg2ak t3gzc 6o8ztk8 gqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we8lgc17ianf4tf8htbbe31ocq5mj daq58 bf7ofguwb1 ftojmyo4hg2ak t3gzc 6o8ztk8 g",
                         "ar05gk",
                         "f2pvjmn1671mjkmm4uloa6bskrgv04u2qesrn58zz6kqfhlbeh z zwkd61wva1g7 kw123tid9t njoli4wgyqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4wef2pvjmn1671mjkmm4uloa6bskrgv04u2qesrn58zz6kqfhlbeh z zwkd61wva1g7 kw123tid9t njoli4wgy",
@@ -1581,8 +1537,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
             tagRecord = Variables.register("tagRecord", TestData.getLong());
         }
         add(key, Convert.javaToThrift(value), tagRecord);
-        Assert.assertFalse(store.search(key, value.toString()).contains(
-                tagRecord));
+        Assert.assertFalse(
+                store.search(key, value.toString()).contains(tagRecord));
     }
 
     @Test
@@ -1590,32 +1546,33 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String key = "yy2mf7yveeprn5u1znljubdmld8r2w";
         Tag value = Tag.create("1");
         Long tagRecord = -2641333647249146582L;
-        add(key,
-                Convert.javaToThrift("btq0adgux53hjckphjeux7x1sxemyfpsdzipvy032n7t9daxkmw1h7r7zyl60ks5t06zjdjuj4iooq"),
+        add(key, Convert.javaToThrift(
+                "btq0adgux53hjckphjeux7x1sxemyfpsdzipvy032n7t9daxkmw1h7r7zyl60ks5t06zjdjuj4iooq"),
                 285009080280006567L);
         add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"),
                 -7352212869558049531L);
         add(key, Convert.javaToThrift(false), 388620935878197713L);
-        add(key,
-                Convert.javaToThrift("2m5lwamprzq4msvvs2wnv08zcqzi4newhl745qodce22h9yy812"),
+        add(key, Convert.javaToThrift(
+                "2m5lwamprzq4msvvs2wnv08zcqzi4newhl745qodce22h9yy812"),
                 1548639509905032340L);
         add(key, Convert.javaToThrift("e ysho"), -765676142204325002L);
-        add(key,
-                Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"),
+        add(key, Convert
+                .javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"),
                 2679248400003802470L);
         add(key, Convert.javaToThrift("s4i0ite7fep"), -2412570382637653495L);
-        add(key,
-                Convert.javaToThrift("6o42czhg72u4u9w2gqfvrnc6c7tm3kp1811u6oi04ri8it5pomhxqx3h71omavvk5pmu4hgl10v00549e"),
+        add(key, Convert.javaToThrift(
+                "6o42czhg72u4u9w2gqfvrnc6c7tm3kp1811u6oi04ri8it5pomhxqx3h71omavvk5pmu4hgl10v00549e"),
                 -1087503013401908104L);
         add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"),
                 -9186255645112595336L);
-        add(key,
-                Convert.javaToThrift("4n8c8bfiyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz08zjcrmnbtf5vnyzflwthqcfxp o"),
+        add(key, Convert.javaToThrift(
+                "4n8c8bfiyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz08zjcrmnbtf5vnyzflwthqcfxp o"),
                 8074263650552255137L);
         add(key, Convert.javaToThrift(false), -1122802924122720425L);
         add(key, Convert.javaToThrift(0.6491074), 8257322177342234041L);
         add(key, Convert.javaToThrift(false), 2670863628024031952L);
-        add(key, Convert.javaToThrift(0.7184745217075929), 6804414020539721485L);
+        add(key, Convert.javaToThrift(0.7184745217075929),
+                6804414020539721485L);
         add(key, Convert.javaToThrift(value), tagRecord);
         Set<Long> searchResult = store.search(key, value.toString());
         Variables.register("searchResult", searchResult);
@@ -1634,12 +1591,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add(key, Convert.javaToThrift(Tag.create(value)), tagRecord);
         Integer startIndex = null;
         Integer endIndex = null;
-        while (startIndex == null || endIndex == null || startIndex >= endIndex) {
+        while (startIndex == null || endIndex == null
+                || startIndex >= endIndex) {
             startIndex = Math.abs(TestData.getInt()) % value.length();
             endIndex = Math.abs(TestData.getInt()) % value.length() + 1;
         }
-        Assert.assertFalse(store.search(key,
-                value.substring(startIndex, endIndex)).contains(tagRecord));
+        Assert.assertFalse(
+                store.search(key, value.substring(startIndex, endIndex))
+                        .contains(tagRecord));
     }
 
     @Test
@@ -1647,8 +1606,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Ignore("CON-8")
     public void testSearchWithStopWordSubStringInQuery() {
         add("string", Convert.javaToThrift("but foobar barfoo"), 1);
-        Assert.assertTrue(store.search("string", "ut foobar barfoo")
-                .contains(1));
+        Assert.assertTrue(
+                store.search("string", "ut foobar barfoo").contains(1));
     }
 
     @Test
@@ -1712,15 +1671,17 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Test
     public void testReproCON_516() {
         add("name", Convert.javaToThrift("Jeff"), 1);
-        Assert.assertFalse(store.find("name", Operator.EQUALS,
-                Convert.javaToThrift("jeff")).isEmpty());
+        Assert.assertFalse(store
+                .find("name", Operator.EQUALS, Convert.javaToThrift("jeff"))
+                .isEmpty());
     }
 
     @Test
     public void testLongDoesNotEqualLink() {
         add("friend", Convert.javaToThrift(1), 2);
-        Assert.assertTrue(store.find("friend", Operator.LINKS_TO,
-                Convert.javaToThrift(1)).isEmpty());
+        Assert.assertTrue(
+                store.find("friend", Operator.LINKS_TO, Convert.javaToThrift(1))
+                        .isEmpty());
     }
 
     /**
@@ -1770,24 +1731,24 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long record : records) {
             Object n = null;
             while (n == null
-                    || (operator == Operator.GREATER_THAN && Objects
-                            .isLessThanOrEqualTo(n, min))
-                    || (operator == Operator.GREATER_THAN_OR_EQUALS && Objects
-                            .isLessThan(n, min))
-                    || (operator == Operator.LESS_THAN && Objects
-                            .isGreaterThanOrEqualTo(n, min))
-                    || (operator == Operator.LESS_THAN_OR_EQUALS && Objects
-                            .isGreaterThan(n, min))
-                    || (operator == Operator.NOT_EQUALS && Objects.isEqualTo(n,
-                            min))
-                    || (operator == Operator.EQUALS && !Objects.isEqualTo(n,
-                            min))) {
+                    || (operator == Operator.GREATER_THAN
+                            && Objects.isLessThanOrEqualTo(n, min))
+                    || (operator == Operator.GREATER_THAN_OR_EQUALS
+                            && Objects.isLessThan(n, min))
+                    || (operator == Operator.LESS_THAN
+                            && Objects.isGreaterThanOrEqualTo(n, min))
+                    || (operator == Operator.LESS_THAN_OR_EQUALS
+                            && Objects.isGreaterThan(n, min))
+                    || (operator == Operator.NOT_EQUALS
+                            && Objects.isEqualTo(n, min))
+                    || (operator == Operator.EQUALS
+                            && !Objects.isEqualTo(n, min))) {
                 n = operator == Operator.EQUALS ? min : TestData.getObject();
             }
             TObject value = Convert.javaToThrift(n);
             add(key, value, record);
-            Variables.register(operator + "_write_" + count, key + " AS "
-                    + value + " IN " + record);
+            Variables.register(operator + "_write_" + count,
+                    key + " AS " + value + " IN " + record);
             count++;
         }
         return records;
@@ -1887,7 +1848,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
      * @param type
      * @return the records where the query matches
      */
-    private Set<Long> setupSearchTest(String key, String query, SearchType type) {
+    private Set<Long> setupSearchTest(String key, String query,
+            SearchType type) {
         return setupSearchTest(key, query, type, null, null);
     }
 
@@ -1903,12 +1865,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
      * @param otherSource
      * @return the records where the query matches
      */
-    private Set<Long> setupSearchTest(String key, String query,
-            SearchType type, @Nullable Collection<Long> recordSource,
+    private Set<Long> setupSearchTest(String key, String query, SearchType type,
+            @Nullable Collection<Long> recordSource,
             @Nullable List<String> otherSource) {
         Preconditions.checkState(recordSource == null
-                || (recordSource != null && otherSource != null && recordSource
-                        .size() == otherSource.size()));
+                || (recordSource != null && otherSource != null
+                        && recordSource.size() == otherSource.size()));
         Set<Long> records = Sets.newHashSet();
         recordSource = recordSource == null ? getRecords() : recordSource;
         if(!Strings.isNullOrEmpty(TStrings.stripStopWords(query))) {
@@ -1918,9 +1880,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                     String other = otherSource.get(i);
                     boolean matches = TStrings.isInfixSearchMatch(query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
-                            new SearchTestItem(key,
-                                    Convert.javaToThrift(other), record, query,
-                                    matches));
+                            new SearchTestItem(key, Convert.javaToThrift(other),
+                                    record, query, matches));
                     add(sti.key, sti.value, sti.record);
                     if(matches) {
                         records.add(sti.record);
@@ -1928,51 +1889,50 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 }
                 else {
                     String other = null;
-                    while (other == null
-                            || other.equals(query)
+                    while (other == null || other.equals(query)
                             || TStrings.isInfixSearchMatch(query, other)
                             || TStrings.isInfixSearchMatch(other, query)
-                            || Strings.isNullOrEmpty(TStrings
-                                    .stripStopWords(other))) {
+                            || Strings.isNullOrEmpty(
+                                    TStrings.stripStopWords(other))) {
                         other = TestData.getString();
                     }
                     boolean match = TestData.getInt() % 3 == 0;
                     if(match && type == SearchType.PREFIX) {
-                        SearchTestItem sti = Variables.register(
-                                "sti_" + record, new SearchTestItem(key,
+                        SearchTestItem sti = Variables.register("sti_" + record,
+                                new SearchTestItem(key,
                                         Convert.javaToThrift(query + other),
                                         record, query, true));
                         add(sti.key, sti.value, sti.record);
                         records.add(sti.record);
                     }
                     else if(match && type == SearchType.SUFFIX) {
-                        SearchTestItem sti = Variables.register(
-                                "sti_" + record, new SearchTestItem(key,
+                        SearchTestItem sti = Variables.register("sti_" + record,
+                                new SearchTestItem(key,
                                         Convert.javaToThrift(other + query),
                                         record, query, true));
                         add(sti.key, sti.value, sti.record);
                         records.add(sti.record);
                     }
                     else if(match && type == SearchType.INFIX) {
-                        SearchTestItem sti = Variables.register(
-                                "sti_" + record,
-                                new SearchTestItem(key, Convert
-                                        .javaToThrift(other + query + other),
+                        SearchTestItem sti = Variables.register("sti_" + record,
+                                new SearchTestItem(key,
+                                        Convert.javaToThrift(
+                                                other + query + other),
                                         record, query, true));
                         add(sti.key, sti.value, sti.record);
                         records.add(sti.record);
                     }
                     else if(match && type == SearchType.FULL) {
-                        SearchTestItem sti = Variables.register(
-                                "sti_" + record, new SearchTestItem(key,
+                        SearchTestItem sti = Variables.register("sti_" + record,
+                                new SearchTestItem(key,
                                         Convert.javaToThrift(query), record,
                                         query, true));
                         add(sti.key, sti.value, sti.record);
                         records.add(sti.record);
                     }
                     else {
-                        SearchTestItem sti = Variables.register(
-                                "sti_" + record, new SearchTestItem(key,
+                        SearchTestItem sti = Variables.register("sti_" + record,
+                                new SearchTestItem(key,
                                         Convert.javaToThrift(other), record,
                                         query, false));
                         add(sti.key, sti.value, sti.record);

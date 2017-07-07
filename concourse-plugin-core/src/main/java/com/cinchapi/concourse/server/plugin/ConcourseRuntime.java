@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
                     // within a ComplexTObject as BINARY data
                     ret = serializer.deserialize((ByteBuffer) ret);
                 }
-                else if(RETURN_TRANSFORM.contains(method)) {
+                if(RETURN_TRANSFORM.contains(method)) {
                     // Must transform the TObject(s) from the server into
                     // standard java objects to conform with the
                     // StatefulConcourseService interface.

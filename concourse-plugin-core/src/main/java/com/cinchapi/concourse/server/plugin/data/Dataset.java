@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> implements
-        PluginSerializable,
-        Insertable<E, A, V> {
+public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
+        implements PluginSerializable, Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -61,6 +60,13 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * regenerate the row-oriented view on the fly, if necessary.
      */
     private final Map<E, SoftReference<Map<A, Set<V>>>> rows;
+
+    /**
+     * The map returned from {@link #invertNullSafe(Object)} when the specified
+     * attribute doesn't exist.
+     */
+    private final Map<V, Set<E>> nullSafeInvertedMap = TrackingLinkedHashMultimap
+            .create();
 
     /**
      * Construct a new instance.
@@ -84,10 +90,23 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         if(index != null) {
             Set<E> entities = index.get(value);
             if(entities != null && entities.remove(entity)) {
+                if(entities.isEmpty()) {
+                    index.remove(value);
+                }
+                if(index.isEmpty()) {
+                    inverted.remove(attribute);
+                }
                 SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
                 Map<A, Set<V>> row = null;
                 if(ref != null && (row = ref.get()) != null) {
-                    row.get(attribute).remove(value);
+                    Set<V> values = row.get(attribute);
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        row.remove(attribute);
+                    }
+                    if(row.isEmpty()) {
+                        rows.remove(entity);
+                    }
                 }
                 return true;
             }
@@ -124,7 +143,6 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
             if(row == null) {
                 row = get(entity);
             }
-
             entrySet.add(new SimpleEntry<E, Map<A, Set<V>>>(entity, row));
         }
         return entrySet;
@@ -153,13 +171,14 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
         Map<A, Set<V>> row = null;
         if(ref != null && (row = ref.get()) != null) {
-            return row.get(attribute);
+            return MoreObjects.firstNonNull(row.get(attribute),
+                    Collections.emptySet());
         }
         else {
             Set<V> values = Sets.newLinkedHashSet();
-            Map<V, Set<E>> index = MoreObjects
-                    .firstNonNull(inverted.get(attribute),
-                            Collections.<V, Set<E>> emptyMap());
+            Map<V, Set<E>> index = MoreObjects.firstNonNull(
+                    inverted.get(attribute),
+                    Collections.<V, Set<E>> emptyMap());
             for (Entry<V, Set<E>> entry : index.entrySet()) {
                 Set<E> entities = entry.getValue();
                 if(entities.contains(entity)) {
@@ -234,7 +253,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
         entities = index.get(value); // NOTE: necessary to #get the inner set
                                      // again because TrackingMultimap uses
                                      // special internal collections
-        if(entities.add(entity)) { //
+        if(entities.add(entity)) {
             SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
             if(ref == null) {
                 ref = new SoftReference<>(get(entity));
@@ -304,7 +323,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
     @SuppressWarnings("unchecked")
     @Override
     public Map<A, Set<V>> remove(Object entity) {
-        Map<A, Set<V>> row = get(entity);
+        Map<A, Set<V>> row = Maps.newHashMap(get(entity)); // make a copy to
+                                                           // prevent CME
         for (Entry<A, Set<V>> entry : row.entrySet()) {
             A attribute = entry.getKey();
             Set<V> values = entry.getValue();
@@ -363,6 +383,22 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>> im
      * @return the read value
      */
     protected abstract V deserializeValue(Buffer buffer);
+
+    /**
+     * Return an <em>inverted</em> view of the data contained for
+     * {@code attribute}. If the attribute doesn't exist, return an empty map.
+     * <p>
+     * For an attribute, an inverted view maps each contained value to the set
+     * of entities in which that value is associated with the attribute.
+     * </p>
+     * 
+     * @param attribute the attribute
+     * @return an inverted version of the data for {@code attribute}
+     */
+    protected Map<V, Set<E>> invertNullSafe(A attribute) {
+        return MoreObjects.firstNonNull(inverted.get(attribute),
+                nullSafeInvertedMap);
+    }
 
     /**
      * Write an attribute to the {@code buffer}.

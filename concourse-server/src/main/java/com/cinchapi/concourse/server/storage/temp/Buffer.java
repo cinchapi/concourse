@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -71,14 +70,13 @@ import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.NaturalSorter;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TMaps;
+import com.cinchapi.concourse.util.ThreadFactories;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.MoreExecutors;
-
 import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
@@ -127,9 +125,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * A global {@link ExecutorService} to asynchronously record all the
      * {@link WriteEvent write events} that are handled by any Buffer instance.
      */
-    private final static ExecutorService GLOBAL_EXECUTOR = MoreExecutors
-            .getExitingExecutorService((ThreadPoolExecutor) Executors
-                    .newCachedThreadPool());
+    private final static ExecutorService GLOBAL_EXECUTOR = Executors
+            .newCachedThreadPool(
+                    ThreadFactories.namingDaemonThreadFactory("buffer-global"));
 
     /**
      * Don't let the transport rate exceed this value.
@@ -151,7 +149,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
      */
-    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE
+            / 10;
     /**
      * The multiplier that is used when increasing the rate of transport.
      */
@@ -444,7 +443,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
             // snapshot know to the database
             context.remove(Time.NONE);
         }
-        for (Iterator<Write> it = iterator(key, record, end - 1); it.hasNext();) {
+        for (Iterator<Write> it = iterator(key, record, end - 1); it
+                .hasNext();) {
             Write write = it.next();
             long timestamp = write.getVersion();
             Text writtenKey = write.getKey();
@@ -516,12 +516,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
             long record = write.getRecord().longValue();
             if(matches(write.getValue(), operator, values)) {
                 if(write.getType() == Action.ADD) {
-                    MultimapViews.put(context, record, write.getValue()
-                            .getTObject());
+                    MultimapViews.put(context, record,
+                            write.getValue().getTObject());
                 }
                 else {
-                    MultimapViews.remove(context, record, write.getValue()
-                            .getTObject());
+                    MultimapViews.remove(context, record,
+                            write.getValue().getTObject());
                 }
             }
         }
@@ -658,7 +658,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
             Set<TObject> values;
             values = context.get(write.getKey().toString());
             if(values == null) {
-                values = Sets.newHashSet();
+                values = Sets.newLinkedHashSet();
                 context.put(write.getKey().toString(), values);
             }
             if(write.getType() == Action.ADD) {
@@ -801,7 +801,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                         }
                     }
                     timeOfLastTransport.set(Time.now());
-                    transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
+                    transportRate = transportRate >= MAX_TRANSPORT_RATE
+                            ? MAX_TRANSPORT_RATE
                             : (transportRate * transportRateMultiplier);
                     --transportThreadSleepTimeInMs;
                     if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
@@ -884,7 +885,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
+    protected boolean isPossibleSearchMatch(String key, Write write,
+            Value value) {
         return value.getType() == Type.STRING;
     }
 
@@ -1342,8 +1344,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
             // When there is no data on the page return the max possible
             // timestamp so that no query's timestamp is less than this
             // timestamp
-            return oldestWrite == null ? Long.MAX_VALUE : oldestWrite
-                    .getVersion();
+            return oldestWrite == null ? Long.MAX_VALUE
+                    : oldestWrite.getVersion();
         }
 
         /**
@@ -1491,16 +1493,15 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 return true;
             }
             else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(), write
-                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
-                        .create((String) write.getValue().getObject()))));
+                return writeCache.mightContainCached(write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(Tag.create(
+                                (String) write.getValue().getObject()))));
             }
             else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(
-                        write.getRecord(),
-                        write.getKey(),
-                        Value.wrap(Convert.javaToThrift(write.getValue()
-                                .getObject().toString())));
+                return writeCache.mightContainCached(write.getRecord(),
+                        write.getKey(), Value.wrap(Convert.javaToThrift(
+                                write.getValue().getObject().toString())));
             }
             else {
                 return false;
@@ -1611,10 +1612,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
                 @Override
                 public void run() {
-                    WriteEvent event = new WriteEvent(
-                            write.getKey().toString(), write.getValue()
-                                    .getTObject(), write.getRecord()
-                                    .longValue(), write.getVersion(),
+                    WriteEvent event = new WriteEvent(write.getKey().toString(),
+                            write.getValue().getTObject(),
+                            write.getRecord().longValue(), write.getVersion(),
                             WriteEvent.Type.valueOf(write.getType().name()),
                             environment);
                     BINARY_QUEUE.add(event);

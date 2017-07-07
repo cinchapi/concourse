@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.server.plugin.io.SharedMemory;
+import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
+import com.cinchapi.concourse.server.plugin.io.MessageQueue;
 
 /**
  * A special {@link Plugin} that receives {@link Packet packets} of data for
@@ -55,6 +57,7 @@ abstract class RealTimePlugin extends Plugin {
 
     @Override
     public final void run() {
+        Reflection.call(this, "setReadyState");
         // For a RealTimePlugin, the first fromServer message contains the
         // address for the stream channel
         ByteBuffer data = fromServer.read();
@@ -64,26 +67,25 @@ abstract class RealTimePlugin extends Plugin {
             if(attribute.key().equalsIgnoreCase(STREAM_ATTRIBUTE)) {
                 log.debug("Listening for streamed packets at {}",
                         attribute.value());
-                final SharedMemory stream = new SharedMemory(attribute.value());
+                @SuppressWarnings("resource") final InterProcessCommunication stream = new MessageQueue(
+                        attribute.value());
                 // Create a separate event loop to process Packets of writes
                 // that come from the server.
-                Thread loop = new Thread(
-                        () -> {
-                            ByteBuffer bytes = null;
-                            while ((bytes = stream.read()) != null) {
-                                final Packet packet = serializer
-                                        .deserialize(bytes);
+                Thread loop = new Thread(() -> {
+                    ByteBuffer bytes = null;
+                    while ((bytes = stream.read()) != null) {
+                        final Packet packet = serializer.deserialize(bytes);
 
-                                // Each packet should be processed in a separate
-                                // worker thread
-                                workers.execute(() -> {
-                                    log.debug(
-                                            "Received packed from Concourse Server: {}",
-                                            packet);
-                                    handlePacket(packet);
-                                });
-                            }
+                        // Each packet should be processed in a separate
+                        // worker thread
+                        workers.execute(() -> {
+                            log.debug(
+                                    "Received packet from Concourse Server: {}",
+                                    packet);
+                            handlePacket(packet);
                         });
+                    }
+                });
                 loop.setDaemon(true);
                 loop.start();
 
@@ -91,8 +93,8 @@ abstract class RealTimePlugin extends Plugin {
                 super.run();
             }
             else {
-                throw new IllegalStateException("Unsupported attribute "
-                        + attribute);
+                throw new IllegalStateException(
+                        "Unsupported attribute " + attribute);
             }
         }
         else {

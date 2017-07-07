@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ public final class Parser {
         Preconditions
                 .checkState(
                         symbols.size() >= 3,
-                        "The parsed query %s does not "
+                        "The parsed query %s does not have"
                                 + "enough symbols to process. It should have at least 3 symbols but "
                                 + "only has %s", symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,26 @@ public class JavaAppTest extends ConcourseBaseTest {
     /**
      * Source code that should compile and run correctly.
      */
-    private static final String GOOD_SOURCE = "public class GoodSource {"
-            + "public static void main(String... args){"
-            + "System.out.println(\"" + EXPECTED_OUTPUT + "\");" + "}" + "}";
+    private static final String GOOD_SOURCE = ""
+        // @formatter:off
+        + "public class GoodSource {"
+        + "  public static void main(String... args) {"
+        + "    System.out.println(\"" + EXPECTED_OUTPUT + "\");"
+        + "  }" 
+        + "}";
+        // @formatter:on
 
     /**
      * Source code that does not compile.
      */
-    private static final String BAD_SOURCE = "public class GoodSource {"
-            + "public static void main(String... args){"
-            + "Systems.out.println(\"" + EXPECTED_OUTPUT + "\");" + "}" + "}";
+    private static final String BAD_SOURCE = ""
+        // @formatter:off
+        + "public class GoodSource {"
+        + "  public static void main(String... args) {"
+        + "    Systems.out.println(\"" + EXPECTED_OUTPUT + "\");"
+        + "  }" 
+        + "}";
+        // @formatter:on
 
     @Test
     public void testGoodSource() throws InterruptedException, IOException {
@@ -120,7 +130,9 @@ public class JavaAppTest extends ConcourseBaseTest {
             Commands.run("kill -9 " + pid);
             long start = System.currentTimeMillis();
             while (!ranHook.get()) { // wait for the hook to run
-                if(System.currentTimeMillis() - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS + 100) {
+                if(System.currentTimeMillis()
+                        - start < JavaApp.PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS
+                                + 100) {
                     continue;
                 }
                 else {

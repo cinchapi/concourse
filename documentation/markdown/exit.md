@@ -15,7 +15,7 @@ The **exit** command terminates the client's session and exits the shell.
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2016 Cinchapi Inc.
+Copyright (c) 2013-2017 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />

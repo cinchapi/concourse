@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.cinchapi.concourse.server.plugin.PluginContext;
  * @author Jeff Nelson
  */
 @FunctionalInterface
-public interface AfterInstallHook {
+public interface AfterInstallHook extends PluginHook{
 
     /**
      * Given the newly installed plugin's {@code context}, execute additional
@@ -34,6 +34,6 @@ public interface AfterInstallHook {
      * @param context the plugin's {@link PluginContext context}
      * @return {@code true} if the plugin's installation can be finalized
      */
-    public boolean run(PluginContext context);
+    public void run(PluginContext context);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 package com.cinchapi.concourse.util;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 
@@ -45,8 +47,8 @@ public final class Processes {
         ProcessBuilder pb = new ProcessBuilder(commands);
         if(!Platform.isWindows()) {
             Map<String, String> env = pb.environment();
-            env.put("BASH_ENV", System.getProperty("user.home")
-                    + "/.bash_profile");
+            env.put("BASH_ENV",
+                    System.getProperty("user.home") + "/.bash_profile");
         }
         return pb;
     }
@@ -79,6 +81,16 @@ public final class Processes {
     }
 
     /**
+     * Get the stderr for {@code process}.
+     * 
+     * @param process
+     * @return a collection of error lines
+     */
+    public static List<String> getStdErr(Process process) {
+        return readStream(process.getErrorStream());
+    }
+
+    /**
      * Get the stdout for {@code process}.
      * 
      * @param process
@@ -90,24 +102,44 @@ public final class Processes {
     }
 
     /**
-     * Read an input stream.
+     * Check if the process with the processId is running.
      * 
-     * @param stream
-     * @return the lines in the stream
+     * @param pid Id for the input process.
+     * @return true if its running, false if not.
      */
-    private static List<String> readStream(InputStream stream) {
+    public static boolean isPidRunning(String pid) {
+        Process process = null;
         try {
-            BufferedReader out = new BufferedReader(new InputStreamReader(
-                    stream));
-            String line;
-            List<String> output = Lists.newArrayList();
-            while ((line = out.readLine()) != null) {
-                output.add(line);
+            if(Platform.isLinux() || Platform.isMacOsX()
+                    || Platform.isSolaris()) {
+                ProcessBuilder pb = getBuilderWithPipeSupport(
+                        "ps aux | grep <pid>");
+                process = pb.start();
             }
-            return output;
+            else if(Platform.isWindows()) {
+                process = Runtime.getRuntime().exec(
+                        "TASKLIST /fi \"PID eq " + pid + "\" /fo csv /nh");
+            }
+            else {
+                throw new UnsupportedOperationException(
+                        "Cannot check pid on the underlying platform");
+            }
         }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
+        catch (IOException e) {
+            Throwables.propagate(e);
+        }
+        if(process != null) {
+            waitForSuccessfulCompletion(process);
+            List<String> lines = readStream(process.getInputStream());
+            for (String line : lines) {
+                if(line.contains(pid)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return true;
         }
     }
 
@@ -131,15 +163,35 @@ public final class Processes {
     }
 
     /**
-     * Get the stderr for {@code process}.
+     * Return the pid of the current process.
      * 
-     * @param process
-     * @return a collection of error lines
+     * @return pid.
      */
-    public static List<String> getStdErr(Process process) {
-        return readStream(process.getErrorStream());
+    public static String getCurrentPid() {
+        return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
     }
 
-    private Processes() {} /* noinit */
+    /**
+     * Read an input stream.
+     * 
+     * @param stream
+     * @return the lines in the stream
+     */
+    private static List<String> readStream(InputStream stream) {
+        try {
+            BufferedReader out = new BufferedReader(
+                    new InputStreamReader(stream));
+            String line;
+            List<String> output = Lists.newArrayList();
+            while ((line = out.readLine()) != null) {
+                output.add(line);
+            }
+            return output;
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
+    private Processes() {} /* no-op */
 }

@@ -49,7 +49,6 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         String resultStr = client.jsonify(10L);
         Assert.assertTrue(resultStr.contains("\"key1\":\"a\""));
         Assert.assertTrue(resultStr.contains("\"key2\":\"b\""));
-        System.out.println(resultStr);
         Assert.assertTrue(resultStr.contains("\"key3\":[\"d\",\"e\",\"c\"]"));
     }
 
@@ -76,7 +75,6 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 
     }
 
-    // includePrimaryKey set as true
     @Test
     public void testJsonify() {
         long record1 = 1;
@@ -99,15 +97,21 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         client.add("d", 2, record3);
         client.add("d", 3, record3);
         String json = client.jsonify(recordsList);
-        Set<Long> created = client.insert(json);
-        List<Map<String, Set<Object>>> expected = Lists.newArrayList(client
-                .select(recordsList).values());
-        List<Map<String, Set<Object>>> actual = Lists.newArrayList(client
-                .select(created).values());
-        Assert.assertEquals(expected, actual);
+        Concourse client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
+                "admin", Long.toString(System.currentTimeMillis()));
+        try {
+            Set<Long> created = client2.insert(json);
+            List<Map<String, Set<Object>>> expected = Lists
+                    .newArrayList(client.select(recordsList).values());
+            List<Map<String, Set<Object>>> actual = Lists
+                    .newArrayList(client2.select(created).values());
+            Assert.assertEquals(expected, actual);
+        }
+        finally {
+            client2.exit();
+        }
     }
 
-    // PrimaryKey not included
     @Test
     public void testJsonifyNoPrimaryKey() {
         long record1 = 1;
@@ -129,12 +133,12 @@ public class JsonifyTest extends ConcourseIntegrationTest {
         client.add("d", 4, record3);
         client.add("d", 5, record3);
         client.add("d", 6, record3);
-        String json = client.jsonify(recordsList);
+        String json = client.jsonify(recordsList, false);
         Set<Long> created = client.insert(json);
-        List<Map<String, Set<Object>>> expected = Lists.newArrayList(client
-                .select(recordsList).values());
-        List<Map<String, Set<Object>>> actual = Lists.newArrayList(client
-                .select(created).values());
+        List<Map<String, Set<Object>>> expected = Lists
+                .newArrayList(client.select(recordsList).values());
+        List<Map<String, Set<Object>>> actual = Lists
+                .newArrayList(client.select(created).values());
         Assert.assertEquals(expected, actual);
     }
 }

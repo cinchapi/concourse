@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Cinchapi Inc.
+ * Copyright (c) 2013-2017 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,20 +52,14 @@ import com.google.common.collect.Maps;
 public abstract class PluginConfiguration {
 
     /**
-     * The default value for the {@link SystemPreference#HEAP_SIZE} preference
-     * (in bytes).
+     * The absolute {@link Path} to plugin pref file in the plugin's home dir
      */
-    private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 268435456;
+    protected static Path PLUGIN_PREFS;
 
     /**
-     * The default value for the {@link SystemPreference#DEBUG_MODE} preference
+     * The name of the dev prefs file in the plugin's home directory.
      */
-    private static final boolean DEFAULT_REMOTE_DEBUGGER_ENABLED = false;
-
-    /**
-     * The default value for the {@link SystemPreference#DEBUG_PORT} preference
-     */
-    private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 48410;
+    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
 
     /**
      * The name of the prefs file in the plugin's home directory.
@@ -73,16 +67,15 @@ public abstract class PluginConfiguration {
     protected static final String PLUGIN_PREFS_FILENAME = "plugin.prefs";
 
     /**
-     * The absolute path to the prefs file in the plugin's home directory.
+     * The default value for the {@link SystemPreference#HEAP_SIZE} preference
+     * (in bytes).
      */
-    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
-            .getRuntime().home()
-            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
+    private static final long DEFAULT_HEAP_SIZE_IN_BYTES = 268435456;
 
     /**
-     * The name of the dev prefs file in the plugin's home directory.
+     * The default value for the {@link SystemPreference#DEBUG_PORT} preference
      */
-    protected static final String PLUGIN_PREFS_DEV_FILENAME = "plugin.prefs.dev";
+    private static final int DEFAULT_REMOTE_DEBUGGER_PORT = 0;
 
     /**
      * The absolute path to the dev prefs file in the plugin's home directory.
@@ -93,9 +86,21 @@ public abstract class PluginConfiguration {
             .toAbsolutePath();
 
     /**
-     * The absolute {@link Path} to plugin pref file in the plugin's home dir
+     * The absolute path to the prefs file in the plugin's home directory.
      */
-    protected static Path PLUGIN_PREFS;
+    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
+            .getRuntime().home()
+            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
+
+    static {
+        // Prevent logging from showing up in the console
+        Logging.disable(PluginConfiguration.class);
+
+        // Set location of the plugin preferences files depending on the
+        // existence of the preferences files
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
+    }
 
     /**
      * Default configuration values that are defined within the plugin. These
@@ -109,16 +114,6 @@ public abstract class PluginConfiguration {
      */
     @Nullable
     private final PreferencesHandler prefs;
-
-    static {
-        // Prevent logging from showing up in the console
-        Logging.disable(PluginConfiguration.class);
-
-        // Set location of the plugin preferences files depending on the
-        // existence of the preferences files
-        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
-                : PLUGIN_PREFS_LOCATION;
-    }
 
     /**
      * Construct a new instance.
@@ -148,27 +143,9 @@ public abstract class PluginConfiguration {
         else {
             this.prefs = null;
         }
-        addDefault(SystemPreference.REMOTE_DEBUGGER, DEFAULT_REMOTE_DEBUGGER_ENABLED);
         addDefault(SystemPreference.REMOTE_DEBUGGER_PORT, DEFAULT_REMOTE_DEBUGGER_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
-    }
-
-    /**
-     * Return the heap_size for the plugin's JVM.
-     *
-     * @return the heap_size preference
-     */
-    public final long getHeapSize() {
-        long theDefault = (long) defaults.get(SystemPreference.HEAP_SIZE
-                .getKey());
-        if(prefs != null) {
-            return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
-                    theDefault);
-        }
-        else {
-            return theDefault;
-        }
     }
 
     /**
@@ -191,21 +168,47 @@ public abstract class PluginConfiguration {
     }
 
     /**
+     * Return the heap_size for the plugin's JVM.
+     *
+     * @return the heap_size preference
+     */
+    public long getHeapSize() {
+        long theDefault = (long) defaults.get(SystemPreference.HEAP_SIZE
+                .getKey());
+        if(prefs != null) {
+            return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
+                    theDefault);
+        }
+        else {
+            return theDefault;
+        }
+    }
+
+    /**
+     * Return the log_level for the plugin's JVM.
+     *
+     * @return the log_level preference
+     */
+    public Level getLogLevel() {
+        Level theDefault = Level.valueOf((String) defaults
+                .get(SystemPreference.LOG_LEVEL.getKey()));
+        if(prefs != null) {
+            return Level.valueOf(prefs.getString(
+                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
+        }
+        else {
+            return theDefault;
+        }
+    }
+
+    /**
      * Return the debug_mode for the plugin's JVM.
      *
      * @return boolean
      */
     public boolean getRemoteDebuggerEnabled() {
-        boolean theDefault = (boolean) defaults.get(
-            SystemPreference.REMOTE_DEBUGGER.getKey());
-        if (prefs != null) {
-            return prefs.getBoolean(
-                SystemPreference.REMOTE_DEBUGGER.getKey(),
-                theDefault);
-        }
-        else {
-            return theDefault;
-        }
+        Integer port = getRemoteDebuggerPort();
+        return port != null && port > 0;
     }
 
     /**
@@ -220,23 +223,6 @@ public abstract class PluginConfiguration {
             return prefs.getInt(
                 SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
                 theDefault);
-        }
-        else {
-            return theDefault;
-        }
-    }
-
-    /**
-     * Return the log_level for the plugin's JVM.
-     *
-     * @return the log_level preference
-     */
-    public final Level getLogLevel() {
-        Level theDefault = Level.valueOf((String) defaults
-                .get(SystemPreference.LOG_LEVEL.getKey()));
-        if(prefs != null) {
-            return Level.valueOf(prefs.getString(
-                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
         }
         else {
             return theDefault;
@@ -281,12 +267,11 @@ public abstract class PluginConfiguration {
      *
      * @author Jeff Nelson
      */
-    private enum SystemPreference {
-        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
-        LOG_LEVEL(null, String.class),
+    protected enum SystemPreference {
         ALIAS(null, ArrayList.class),
         ALIASES(null, ArrayList.class),
-        REMOTE_DEBUGGER(null, boolean.class, Boolean.class),
+        HEAP_SIZE(null, int.class, long.class, Integer.class, Long.class),
+        LOG_LEVEL(null, String.class),
         REMOTE_DEBUGGER_PORT(null, int.class, Integer.class);
 
         /**
