@@ -363,6 +363,66 @@ abstract class StatefulConcourseService {
 
     RETURN_TRANSFORM.add("averageKeyCclTime");
 
+    RETURN_TRANSFORM.add("navigateKeyRecord");
+
+    RETURN_TRANSFORM.add("navigateKeyRecordTime");
+
+    RETURN_TRANSFORM.add("navigateKeyRecordTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeysRecord");
+
+    RETURN_TRANSFORM.add("navigateKeysRecordTime");
+
+    RETURN_TRANSFORM.add("navigateKeysRecordTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeysRecords");
+
+    RETURN_TRANSFORM.add("navigateKeyRecords");
+
+    RETURN_TRANSFORM.add("navigateKeyRecordsTime");
+
+    RETURN_TRANSFORM.add("navigateKeyRecordsTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeysRecordsTime");
+
+    RETURN_TRANSFORM.add("navigateKeysRecordsTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeyCcl");
+
+    RETURN_TRANSFORM.add("navigateKeyCclTime");
+
+    RETURN_TRANSFORM.add("navigateKeyCclTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeysCcl");
+
+    RETURN_TRANSFORM.add("navigateKeysCclTime");
+
+    RETURN_TRANSFORM.add("navigateKeysCclTimestr");
+
+    RETURN_TRANSFORM.add("navigateKeyCriteria");
+
+    CRITERIA_TRANSFORM.put("navigateKeyCriteria", 1);
+
+    RETURN_TRANSFORM.add("navigateKeyCriteriaTime");
+
+    CRITERIA_TRANSFORM.put("navigateKeyCriteriaTime", 1);
+
+    RETURN_TRANSFORM.add("navigateKeyCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("navigateKeyCriteriaTimestr", 1);
+
+    RETURN_TRANSFORM.add("navigateKeysCriteria");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteria", 1);
+
+    RETURN_TRANSFORM.add("navigateKeysCriteriaTime");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteriaTime", 1);
+
+    RETURN_TRANSFORM.add("navigateKeysCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("navigateKeysCriteriaTimestr", 1);
+
     }
 
 
@@ -425,6 +485,12 @@ abstract class StatefulConcourseService {
     public void clearKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
 
     public void clearKeysRecords(List<String> keys, List<Long> records) { throw new UnsupportedOperationException(); }
+
+    public Set<String> describe() { throw new UnsupportedOperationException(); }
+
+    public Set<String> describeTime(long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Set<String> describeTimestr(String timestamp) { throw new UnsupportedOperationException(); }
 
     public Set<String> describeRecord(long record) { throw new UnsupportedOperationException(); }
 
@@ -715,6 +781,54 @@ abstract class StatefulConcourseService {
     public Object averageKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecord(List<String> keys, long record) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecordTime(List<String> keys, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecordTimestr(List<String> keys, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecords(List<String> keys, List<Long> records) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecordsTime(List<String> keys, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysRecordsTimestr(List<String> keys, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCcl(List<String> keys, String ccl) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCclTime(List<String> keys, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCclTimestr(List<String> keys, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Set<Object>> navigateKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteria(List<String> keys, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteriaTime(List<String> keys, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Map<Long,Map<String,Set<Object>>> navigateKeysCriteriaTimestr(List<String> keys, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
 
     public String getServerEnvironment() { throw new UnsupportedOperationException(); }
 

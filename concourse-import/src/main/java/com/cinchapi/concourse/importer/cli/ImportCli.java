@@ -18,10 +18,11 @@ package com.cinchapi.concourse.importer.cli;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +42,9 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.groovy.GroovyFiles;
+import com.cinchapi.common.io.Files;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
@@ -51,6 +54,7 @@ import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.importer.JsonImporter;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
+import com.cinchapi.concourse.importer.debug.ImportDryRunConcourse;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
@@ -61,6 +65,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
 
 /**
  * A CLI that uses the import framework to import data into Concourse.
@@ -84,6 +90,18 @@ public class ImportCli extends CommandLineInterface {
         importers.put("json", JsonImporter.class);
     }
 
+    /**
+     * A reference to the value returned from {@link #getLaunchDirectory()} to
+     * use in static methods.
+     */
+    private static String LAUNCH_DIRECTORY = null;
+
+    /**
+     * A flag that indicates whether the CLI is being used to perform a dry run
+     * import.
+     */
+    private boolean dryRun = false;
+
     /*
      * TODO
      * 2) add flags to whitelist or blacklist files in a directory
@@ -96,6 +114,7 @@ public class ImportCli extends CommandLineInterface {
      */
     public ImportCli(String[] args) {
         super(args);
+        LAUNCH_DIRECTORY = getLaunchDirectory();
     }
 
     @Override
@@ -104,10 +123,12 @@ public class ImportCli extends CommandLineInterface {
         final Set<Long> records;
         final Constructor<? extends Importer> constructor = getConstructor(
                 opts.type);
+        this.dryRun = opts.dryRun;
         opts.dynamic.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME,
                 Boolean.toString(opts.annotateDataSource));
         if(opts.data == null) { // Import data from stdin
-            Importer importer = Reflection.newInstance(constructor, concourse);
+            Importer importer = Reflection.newInstance(constructor,
+                    getConcourseConnection(0));
             if(!opts.dynamic.isEmpty()) {
                 importer.setParams(options.dynamic);
             }
@@ -129,9 +150,14 @@ public class ImportCli extends CommandLineInterface {
                         if(options.verbose) {
                             System.out.println(records);
                         }
-                        System.out.println(
-                                Strings.format("Imported data into {} records",
-                                        records.size()));
+                        System.out.println(Strings.format(
+                                "Imported data into {} record{}",
+                                records.size(), records.size() > 1 ? "s" : ""));
+                        if(dryRun) {
+                            System.out.println(
+                                    ((ImportDryRunConcourse) getConcourseConnection(
+                                            0)).dump());
+                        }
                     }
 
                 }));
@@ -199,11 +225,7 @@ public class ImportCli extends CommandLineInterface {
                 opts.numThreads = Math.min(opts.numThreads, files.size());
                 for (int i = 0; i < opts.numThreads; ++i) {
                     final Importer importer0 = Reflection.newInstance(
-                            constructor,
-                            i == 0 ? concourse
-                                    : Concourse.connect(opts.host, opts.port,
-                                            opts.username, opts.password,
-                                            opts.environment));
+                            constructor, getConcourseConnection(i));
                     if(!opts.dynamic.isEmpty()) {
                         importer0.setParams(opts.dynamic);
                     }
@@ -248,7 +270,7 @@ public class ImportCli extends CommandLineInterface {
             }
             else {
                 Importer importer = Reflection.newInstance(constructor,
-                        concourse);
+                        getConcourseConnection(0));
                 if(!opts.dynamic.isEmpty()) {
                     importer.setParams(opts.dynamic);
                 }
@@ -265,9 +287,14 @@ public class ImportCli extends CommandLineInterface {
             if(options.verbose) {
                 System.out.println(records);
             }
-            System.out.println(MessageFormat.format(
-                    "Imported data " + "into {0} records in {1} seconds",
-                    records.size(), seconds));
+            System.out.println(Strings.format(
+                    "Imported data into {} record{} in {} seconds",
+                    records.size(), records.size() > 1 ? "s" : "", seconds));
+            if(dryRun) {
+                System.out.println(
+                        ((ImportDryRunConcourse) getConcourseConnection(0))
+                                .dump());
+            }
         }
     }
 
@@ -353,7 +380,8 @@ public class ImportCli extends CommandLineInterface {
         catch (ClassNotFoundException e) {
             Path path;
             boolean exists = true;
-            if(!(path = Paths.get(alias)).toFile().exists()) {
+            if(!(path = Paths.get(Files.expandPath(alias, LAUNCH_DIRECTORY)))
+                    .toFile().exists()) {
                 exists = false;
                 Path concourseServerHome = getConcourseServerHome();
                 if(concourseServerHome != null) {
@@ -374,9 +402,47 @@ public class ImportCli extends CommandLineInterface {
                 if(path.toString().endsWith(".groovy")) {
                     return GroovyFiles.loadClass(path);
                 }
+                else if(path.toString().endsWith(".jar")) {
+                    URLClassLoader typeClassLoader = null;
+                    URLClassLoader serverClassLoader = null;
+                    try {
+                        URL[] urls = new URL[] {
+                                path.toFile().toURI().toURL() };
+                        typeClassLoader = new URLClassLoader(urls, null);
+                        serverClassLoader = new URLClassLoader(urls,
+                                Thread.currentThread().getContextClassLoader());
+                        ClassPath classpath = ClassPath.from(typeClassLoader);
+                        for (ClassInfo info : classpath.getAllClasses()) {
+                            String name = info.getName();
+                            Class<?> clazz = serverClassLoader.loadClass(name);
+                            if(Importer.class.isAssignableFrom((clazz))) {
+                                return (Class<? extends Importer>) clazz;
+                            }
+                        }
+                        throw e;
+                    }
+                    catch (IOException ioe) {
+                        throw CheckedExceptions.throwAsRuntimeException(ioe);
+                    }
+                    finally {
+                        for (URLClassLoader loader : ImmutableList
+                                .of(typeClassLoader, serverClassLoader)) {
+                            if(loader != null) {
+                                try {
+                                    loader.close();
+                                }
+                                catch (IOException ignore) {
+                                    throw CheckedExceptions
+                                            .throwAsRuntimeException(ignore);
+                                }
+                            }
+                        }
+                    }
+                }
                 else {
-                    throw new UnsupportedOperationException(
-                            "Cannot define custom importer in a .jar file");
+                    throw new UnsupportedOperationException(Strings.format(
+                            "{} is an unsupported file type for custom importers",
+                            path));
                 }
             }
             else {
@@ -444,6 +510,26 @@ public class ImportCli extends CommandLineInterface {
     }
 
     /**
+     * Get the appropriate {@link Concourse} client based on the {@code ticket}
+     * and whether the import is actually a {@link #dryRun} or nah.
+     * 
+     * @param ticket
+     * @return a connection to {@link Concourse} that can be used for importing
+     *         data
+     */
+    private Concourse getConcourseConnection(int ticket) {
+        if(dryRun) {
+            return new ImportDryRunConcourse();
+        }
+        else if(ticket == 0) {
+            return concourse;
+        }
+        else {
+            return Concourse.copyExistingConnection(concourse);
+        }
+    }
+
+    /**
      * Import specific {@link Options}.
      * 
      * @author jnelson
@@ -470,6 +556,9 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = "--annotate-data-source", description = "Add the filename from which the data is imported as a value for the '__datasource' key on every imported object")
         public boolean annotateDataSource = false;
+
+        @Parameter(names = "--dry-run", description = "Do a test import of the data in memory and print a JSON dump of what would be inserted into Concourse")
+        public boolean dryRun = false;
 
     }
 

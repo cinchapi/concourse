@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -281,6 +282,23 @@ public class FileOps {
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return a {@link DirectoryStream} in the same manner as
+     * {@link java.nio.file.Files#newDirectoryStream(Path)} without throwing a
+     * checked exception.
+     * 
+     * @param dir the {@link Path} for the directory
+     * @return a {@link DirectoryStream}
+     */
+    public static DirectoryStream<Path> newDirectoryStream(Path dir) {
+        try {
+            return java.nio.file.Files.newDirectoryStream(dir);
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
 

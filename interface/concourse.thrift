@@ -1102,6 +1102,84 @@ service ConcourseService {
     2: exceptions.TransactionException ex2);
 
   /**
+   * List all the keys in the database.
+   *
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the {@link Set} of keys in the database
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describe(
+    1: shared.AccessToken creds,
+    2: shared.TransactionToken transaction,
+    3: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2)
+
+  /**
+   * List all the keys in the database at {@code timestamp}.
+   *
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the {@link Set} of keys that were in the database at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describeTime(
+    1: i64 timestamp,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
+   * List all the keys in the database at {@code timestamp}.
+   *
+   * @param timestamp the historical timestamp to use in the lookup
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the {@link Set} of keys that were in the database at
+   *         {@code timestamp}
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  set<string> describeTimestr(
+    1: string timestamp,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  /**
    * List all the keys in {@code record} that have at least one value.
    *
    * @param record the record id
@@ -3126,7 +3204,7 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.DuplicateEntryException ex4);
-   
+
   data.TObject sumKeyRecord(
     1: string key,
     2: i64 record,
@@ -3136,7 +3214,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKey(
     1: string key,
     2: shared.AccessToken creds,
@@ -3145,7 +3223,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKeyTime(
     1: string key,
     2: i64 timestamp,
@@ -3166,7 +3244,7 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2);
-  
+
   data.TObject sumKeyRecords(
     1: string key,
     2: list<i64> records,
@@ -3186,8 +3264,8 @@ service ConcourseService {
     6: string environment)
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2); 
-  
+    2: exceptions.TransactionException ex2);
+
   data.TObject sumKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
@@ -3336,6 +3414,275 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyRecordTime(
+    1: string key,
+    2: i64 record,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyRecordTimestr(
+    1: string key,
+    2: i64 record,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecord(
+    1: list<string> keys,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+   map<i64, map<string, set<data.TObject>>> navigateKeysRecordTime(
+    1: list<string> keys,
+    2: i64 record,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecordTimestr(
+    1: list<string> keys,
+    2: i64 record,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecords(
+    1: list<string> keys,
+    2: list<i64> records,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyRecords(
+    1: string key,
+    2: list<i64> records,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyRecordsTime(
+    1: string key,
+    2: list<i64> records,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyRecordsTimestr(
+    1: string key,
+    2: list<i64> records,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTime(
+    1: list<string> keys,
+    2: list<i64> records,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTimestr(
+    1: list<string> keys,
+    2: list<i64> records,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  map<i64, set<data.TObject>> navigateKeyCcl(
+    1: string key,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+   map<i64, set<data.TObject>> navigateKeyCclTime(
+    1: string key,
+    2: string ccl,
+    3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyCclTimestr(
+    1: string key,
+    2: string ccl,
+    3: string timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCcl(
+    1: list<string> keys,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCclTime(
+    1: list<string> keys,
+    2: string ccl,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCclTimestr(
+    1: list<string> keys,
+    2: string ccl,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyCriteria(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyCriteriaTime(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, set<data.TObject>> navigateKeyCriteriaTimestr(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCriteria(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCriteriaTime(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  map<i64, map<string, set<data.TObject>>> navigateKeysCriteriaTimestr(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Metadata ~~~~~~~~

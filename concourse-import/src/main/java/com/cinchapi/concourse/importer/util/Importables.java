@@ -241,6 +241,16 @@ public class Importables {
     }
 
     /**
+     * Return {@code true} if the specified character is permitted in a key.
+     * 
+     * @param c the character to check
+     * @return {@code true} if the character is valid, {@code false} otherwise
+     */
+    public static boolean isValidKeyCharacter(char c) {
+        return Character.isLetter(c) || Character.isDigit(c) || c == '_';
+    }
+
+    /**
      * Intelligently write the appropriate JSON representation for {@code value}
      * to {@code out}.
      * 
