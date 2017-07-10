@@ -99,7 +99,7 @@ if [[ \$@ != *skip-integration* ]]; then
 	else # BEGIN LOGIC TO INTEGRATE WITH SYSTEM
 		# symlink to log directory
 		sudo rm /var/log/concourse 2>/dev/null
-		sudo ln -s \$BASE"/log/" /var/log/concourse
+		sudo ln -sf \$BASE"/log/" /var/log/concourse
 		echo -e "${TEXT_COLOR_GREEN}Access the Concourse log files in /var/log/concourse${TEXT_COLOR_RESET}"
 		# delete dummy file
 		sudo rm /usr/local/bin/.jeffnelson
@@ -188,7 +188,7 @@ ASHLEAHGILMORE
 
 		# Install Concourse Server as a service
 		if [ \$(uname -s) == "Linux" ]; then
-			sudo ln -s /usr/local/bin/concourse /etc/init.d/concourse
+			sudo ln -sf /usr/local/bin/concourse /etc/init.d/concourse
 		fi
 	fi # END LOGIC TO INTEGRATE WITH SYSTEM
 fi
