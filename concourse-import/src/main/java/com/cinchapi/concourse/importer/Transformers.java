@@ -82,13 +82,23 @@ public final class Transformers {
      * 
      * @param from the original {@link CaseFormat}
      * @param to the desired {@link CaseFormat}
-     * @return the {@link Transformer
+     * @return the {@link Transformer}
      */
     public static Transformer keyCaseFormat(CaseFormat from, CaseFormat to) {
         return (key, value) -> {
             key = from.to(to, key);
             return new KeyValue<>(key, value);
         };
+    }
+
+    /**
+     * Return a {@link Transformer} that converts all the characters in a key to
+     * lowercase. No other modifications to the key are made.
+     * 
+     * @return the {@link Transformer}
+     */
+    public static Transformer keyToLowerCase() {
+        return (key, value) -> new KeyValue<>(key.toLowerCase(), value);
     }
 
     /**
