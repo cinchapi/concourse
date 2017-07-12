@@ -17,6 +17,8 @@ package com.cinchapi.concourse.importer;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.util.KeyValue;
 import com.google.common.base.Preconditions;
 
@@ -48,12 +50,15 @@ class CompositeTransformer implements Transformer {
     }
 
     @Override
+    @Nullable
     public KeyValue<String, Object> transform(String key, String value) {
         KeyValue<String, Object> transformed = null;
         for (Transformer transformer : transformers) {
             transformed = transformer.transform(key, value);
-            key = transformed.getKey();
-            value = transformed.getValue().toString();
+            if(transformed != null) {
+                key = transformed.getKey();
+                value = transformed.getValue().toString();
+            }
         }
         return transformed;
     }
