@@ -548,7 +548,7 @@ public class ImportCli extends CommandLineInterface {
         public String resolveKey = null;
 
         @Parameter(names = { "-t",
-                "--type" }, description = "The name/type of the importer to use")
+                "--type" }, description = "The Importer to use; specified as either the name of a built-in importer or the path to a custom importer located on the filesystem")
         public String type = "csv";
 
         @Parameter(names = "--header", description = "A custom header to assign for supporting importers")
