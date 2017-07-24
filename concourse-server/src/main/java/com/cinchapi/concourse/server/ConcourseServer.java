@@ -286,7 +286,7 @@ public class ConcourseServer extends BaseConcourseServer
      * @return the result dataset collection
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
+        return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
                 ? new TObjectResultDataset() : Maps.newLinkedHashMap();
     }
 
@@ -299,7 +299,7 @@ public class ConcourseServer extends BaseConcourseServer
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
             int capacity) {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
+        return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
                 ? new TObjectResultDataset()
                 : TMaps.newLinkedHashMapWithCapacity(capacity);
     }
