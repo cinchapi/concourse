@@ -73,6 +73,7 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -551,10 +552,15 @@ public class ManagedConcourseServer {
      */
     public boolean installPlugin(Path bundle) {
         log.info("Attempting to install plugins from {}", bundle);
-        return Iterables
-                .get(executeCli("plugin", "install", bundle.toString(),
-                        "--username admin", "--password admin"), 0)
-                .contains("Successfully installed");
+        List<String> out = executeCli("plugin", "install", bundle.toString(),
+                "--username admin", "--password admin");
+        if(out.size() > 0 && out.get(0).contains("Successfully installed")) {
+            return true;
+        }
+        else {
+            throw new RuntimeException(Strings
+                    .format("Unable to install plugin '{}': {}", bundle, out));
+        }
     }
 
     /**
