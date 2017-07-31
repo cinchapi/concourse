@@ -73,7 +73,6 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -457,11 +456,9 @@ public class ManagedConcourseServer {
                 return result.out();
             }
             else {
-                String message = Strings.format(
-                        "An error occured executing '{}': {}", cli,
+                log.warn("An error occurred executing '{}': {}", cli,
                         result.err());
-                log.warn(message);
-                throw new RuntimeException(message);
+                return result.err();
             }
         }
         catch (IOException e) {
