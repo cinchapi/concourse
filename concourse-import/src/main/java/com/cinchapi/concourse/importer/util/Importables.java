@@ -18,18 +18,18 @@ package com.cinchapi.concourse.importer.util;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.cinchapi.concourse.importer.Transformer;
-import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringBuilderWriter;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
+import com.cinchapi.etl.Transformer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -92,7 +92,7 @@ public class Importables {
                         ++hcount;
                         String value = it.next();
                         Object jvalue = value;
-                        KeyValue<String, Object> kv = transformer == null ? null
+                        Entry<String, Object> kv = transformer == null ? null
                                 : transformer.transform(key, value);
                         if(kv != null) {
                             key = kv.getKey();
@@ -209,7 +209,7 @@ public class Importables {
                     ++hcount;
                     String value = it.next();
                     Object jvalue = value;
-                    KeyValue<String, Object> kv = transformer == null ? null
+                    Entry<String, Object> kv = transformer == null ? null
                             : transformer.transform(key, value);
                     if(kv != null) {
                         key = kv.getKey();

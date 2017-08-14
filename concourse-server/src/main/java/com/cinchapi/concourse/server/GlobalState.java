@@ -237,7 +237,7 @@ public final class GlobalState extends Constants {
      * The class representation of {@link RemoteInvocationThread}.
      */
     @NonPreference
-    public static final Class<?> INVOCATION_THREAD_CLASS = Reflection
+    public static final Class<?> REMOTE_INVOCATION_THREAD_CLASS = Reflection
             .getClassCasted(
                     "com.cinchapi.concourse.server.plugin.RemoteInvocationThread");
 
