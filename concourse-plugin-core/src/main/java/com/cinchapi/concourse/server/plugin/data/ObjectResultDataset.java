@@ -49,18 +49,18 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     /**
      * Construct a new instance.
+     */
+    public ObjectResultDataset() {
+        this.thrift = new TObjectResultDataset();
+    }
+
+    /**
+     * Construct a new instance.
      * 
      * @param thrift
      */
     public ObjectResultDataset(Dataset<Long, String, TObject> thrift) {
         this.thrift = thrift;
-    }
-
-    /**
-     * Construct a new instance.
-     */
-    public ObjectResultDataset() {
-        this.thrift = new TObjectResultDataset();
     }
 
     @Override
@@ -396,6 +396,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             }
 
             @Override
+            public double distinctiveness() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).distinctiveness();
+            }
+
+            @Override
             public Set<Entry<Object, Set<Long>>> entrySet() {
                 return new AbstractSet<Entry<Object, Set<Long>>>() {
 
@@ -429,12 +435,6 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     }
 
                 };
-            }
-
-            @Override
-            public double spread() {
-                return ((TrackingMultimap<TObject, Long>) thrift
-                        .invertNullSafe(attribute)).spread();
             }
 
             @Override
@@ -501,6 +501,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             public Set<Long> remove(Object value) {
                 return thrift.invertNullSafe(attribute)
                         .remove(Convert.javaToThrift(value));
+            }
+
+            @Override
+            public double spread() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).spread();
             }
 
             @Override
