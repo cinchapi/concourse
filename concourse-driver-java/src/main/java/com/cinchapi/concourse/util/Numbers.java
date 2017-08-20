@@ -156,8 +156,22 @@ public abstract class Numbers {
      * @param b
      * @return {@code true} if {@code a} == {@code b}
      */
-    public static boolean isEqualTo(Number a, Number b) {
+    public static boolean areEqual(Number a, Number b) {
         return compare(a, b) == 0;
+    }
+
+    /**
+     * Return {@code true} if {@code a} is mathematically equal to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} == {@code b}
+     * @deprecated Deprecated in version 0.7. Use
+     *             {@link #areEqual(Number, Number)} instead.
+     */
+    @Deprecated
+    public static boolean isEqualTo(Number a, Number b) {
+        return areEqual(a, b);
     }
 
     /**
@@ -173,9 +187,34 @@ public abstract class Numbers {
      * @return {@code true} if both objects are numbers and are mathematically
      *         equal
      */
-    public static boolean isEqualToCastSafe(Object a, Object b) {
+    public static boolean areEqualCastSafe(Object a, Object b) {
         if(a instanceof Number && b instanceof Number) {
             return isEqualTo((Number) a, (Number) b);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Perform a cast safe equality check for two objects.
+     * <p>
+     * If both objects are instances of the {@link Number} class, this method
+     * will behave the same was as {@link #isEqualTo(Number, Number)}.
+     * Otherwise, this method returns {@code false}.
+     * </p>
+     * 
+     * @param a the first, possibly {@link Number numeric}, object
+     * @param b the second, possibly {@link Number numeric}, object
+     * @return {@code true} if both objects are numbers and are mathematically
+     *         equal
+     * @deprecated Deprecated in version 0.7. Use
+     *             {@link #areEqualCastSafe(Number, Number)} instead.
+     */
+    @Deprecated
+    public static boolean isEqualToCastSafe(Object a, Object b) {
+        if(a instanceof Number && b instanceof Number) {
+            return areEqual((Number) a, (Number) b);
         }
         else {
             return false;

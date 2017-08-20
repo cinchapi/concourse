@@ -28,6 +28,7 @@ import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Numbers;
 import com.google.common.collect.Maps;
 
 /**
@@ -185,6 +186,15 @@ public class ObjectResultDatasetTest {
         Assert.assertTrue(((TrackingMultimap<Object, Long>) a.invert("name"))
                 .spread() > ((TrackingMultimap<Object, Long>) a.invert("age"))
                         .spread());
+    }
+
+    @Test
+    public void testAttributeDistinctiveness() {
+        ObjectResultDataset a = new ObjectResultDataset();
+        a.insert(1L, "name", "Jeff Nelson");
+        Assert.assertFalse(Numbers.areEqual(0,
+                ((TrackingMultimap<Object, Long>) a.invert("name"))
+                        .distinctiveness()));
     }
 
 }

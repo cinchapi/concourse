@@ -29,7 +29,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 64;
         Number expected = client.calculate().average(key);
-        Assert.assertEquals(expected.intValue(), actual/3);
+        Assert.assertEquals(expected.intValue(), actual / 3);
     }
 
     @Test
@@ -43,7 +43,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 34;
         Number expected = client.calculate().average(key, "name = bar");
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual/2));
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
 
     @Test
@@ -58,8 +58,9 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         int actual = 34;
         Timestamp timestamp = Timestamp.now();
         client.add(key, 100, 2);
-        Number expected = client.calculate().average(key, "name = bar", timestamp);
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual/2));
+        Number expected = client.calculate().average(key, "name = bar",
+                timestamp);
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
 
     @Test
@@ -74,7 +75,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         int actual = 34;
         Number expected = client.calculate().average(key, Criteria.where()
                 .key("age").operator(Operator.LESS_THAN).value(20).build());
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual/2));
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
 
     @Test
@@ -90,10 +91,11 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         Timestamp timestamp = Timestamp.now();
         client.add(key, 100, 2);
         Number expected = client.calculate()
-                .average(key, Criteria.where().key("age")
-                        .operator(Operator.LESS_THAN).value(20).build(),
+                .average(
+                        key, Criteria.where().key("age")
+                                .operator(Operator.LESS_THAN).value(20).build(),
                         timestamp);
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual/2));
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
 
     @Test(expected = RuntimeException.class)
@@ -115,7 +117,8 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 19, 1);
         int actual = 49;
         Number expected = client.calculate().average(key, 1);
-        Assert.assertTrue(Numbers.isEqualTo(expected, Numbers.divide(actual, 2)));
+        Assert.assertTrue(
+                Numbers.areEqual(expected, Numbers.divide(actual, 2)));
     }
 
     @Test(expected = RuntimeException.class)
@@ -139,7 +142,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         list.add((long) 1);
         list.add((long) 2);
         Number expected = client.calculate().average(key, list);
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual/2));
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
 
     @Test(expected = RuntimeException.class)
@@ -167,7 +170,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 100, 2);
         Number expected = client.calculate().average(key,
                 Lists.newArrayList(1L, 2L), timestamp);
-        Assert.assertEquals(expected.intValue(), actual/2);
+        Assert.assertEquals(expected.intValue(), actual / 2);
     }
 
     @Test(expected = RuntimeException.class)
@@ -192,7 +195,8 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         Timestamp timestamp = Timestamp.now();
         client.add(key, 100);
         Number expected = client.calculate().average(key, 1, timestamp);
-        Assert.assertTrue(Numbers.isEqualTo(expected, Numbers.divide(actual, 2)));
+        Assert.assertTrue(
+                Numbers.areEqual(expected, Numbers.divide(actual, 2)));
     }
 
     @Test
@@ -208,7 +212,8 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         Timestamp timestamp = Timestamp.now();
         client.add(key, 100, 2);
         Number expected = client.calculate().average(key, timestamp);
-        Assert.assertTrue(Numbers.isEqualTo(expected, Numbers.divide(actual, 3)));
+        Assert.assertTrue(
+                Numbers.areEqual(expected, Numbers.divide(actual, 3)));
     }
 
     @Test(expected = RuntimeException.class)
@@ -221,16 +226,16 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         client.calculate().average(key, Timestamp.now());
     }
-    
+
     @Test
-    public void testAverageKeyReproA(){
+    public void testAverageKeyReproA() {
         String key = "age";
         client.add("age", 1, 1);
         client.add("age", 2, 2);
         client.add("age", 17, 3);
         client.add("age", 17, 4);
-        Number expected = Numbers.divide(1+2+17+17, 4);
+        Number expected = Numbers.divide(1 + 2 + 17 + 17, 4);
         Number actual = client.calculate().average(key);
-        Assert.assertTrue(Numbers.isEqualTo(expected, actual));
+        Assert.assertTrue(Numbers.areEqual(expected, actual));
     }
 }

@@ -233,7 +233,7 @@ public final class Value implements Byteable, Comparable<Value> {
             Type typeA = getType();
             Type typeB = other.getType();
             if(typeA != typeB && (isNumericType(typeA) && isNumericType(typeB))) {
-                return Numbers.isEqualTo((Number) getObject(),
+                return Numbers.areEqual((Number) getObject(),
                         (Number) other.getObject());
             }
             else {
