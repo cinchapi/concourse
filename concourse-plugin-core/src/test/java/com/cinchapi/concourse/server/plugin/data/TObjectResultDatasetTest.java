@@ -19,16 +19,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.server.plugin.data.Dataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -40,92 +47,149 @@ import com.cinchapi.concourse.util.Random;
  */
 public class TObjectResultDatasetTest extends ConcourseBaseTest {
 
-    private Dataset<Long, String, TObject> dataset;
+	private Dataset<Long, String, TObject> dataset;
 
-    @Override
-    public void beforeEachTest() {
-        dataset = new TObjectResultDataset();
-    }
+	@Override
+	public void beforeEachTest() {
+		dataset = new TObjectResultDataset();
+	}
 
-    @Override
-    public void afterEachTest() {
-        dataset = null;
-    }
+	@Override
+	public void afterEachTest() {
+		dataset = null;
+	}
 
-    @Test
-    public void testInsert() {
-        Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
-        int count = Random.getScaleCount();
-        for (int i = 0; i < count; i++) {
-            String key = Random.getString();
-            Map<Object, Set<Long>> value = expected.get(key);
-            if(value == null) {
-                value = new HashMap<Object, Set<Long>>();
-            }
-            TObject subkey = Convert.javaToThrift(Random.getObject());
-            Set<Long> subvalue = value.get(subkey);
-            if(subvalue == null) {
-                subvalue = new HashSet<Long>();
-            }
-            Long element = Random.getLong();
-            subvalue.add(element);
-            value.put(subkey, subvalue);
-            expected.put(key, value);
-            dataset.insert(element, key, subkey);
-        }
-        Assert.assertEquals(expected, dataset.invert());
-    }
+	@Test
+	public void testInsert() {
+		Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
+		int count = Random.getScaleCount();
+		for (int i = 0; i < count; i++) {
+			String key = Random.getString();
+			Map<Object, Set<Long>> value = expected.get(key);
+			if (value == null) {
+				value = new HashMap<Object, Set<Long>>();
+			}
+			TObject subkey = Convert.javaToThrift(Random.getObject());
+			Set<Long> subvalue = value.get(subkey);
+			if (subvalue == null) {
+				subvalue = new HashSet<Long>();
+			}
+			Long element = Random.getLong();
+			subvalue.add(element);
+			value.put(subkey, subvalue);
+			expected.put(key, value);
+			dataset.insert(element, key, subkey);
+		}
+		Assert.assertEquals(expected, dataset.invert());
+	}
 
-    @Test
-    public void testPut() {
-        Map<String, Map<TObject, Set<Long>>> inverted = new HashMap<String, Map<TObject, Set<Long>>>();
-        Map<Long, Map<String, Set<TObject>>> original = new HashMap<Long, Map<String, Set<TObject>>>();
-        int count = Random.getScaleCount();
-        for (int i = 0; i < count; i++) {
-            String string = Random.getString();
-            Long loong = Random.getLong();
-            TObject object = Convert.javaToThrift(Random.getObject());
+	@Test
+	public void testPut() {
+		Map<String, Map<TObject, Set<Long>>> inverted = new HashMap<String, Map<TObject, Set<Long>>>();
+		Map<Long, Map<String, Set<TObject>>> original = new HashMap<Long, Map<String, Set<TObject>>>();
+		int count = Random.getScaleCount();
+		for (int i = 0; i < count; i++) {
+			String string = Random.getString();
+			Long loong = Random.getLong();
+			TObject object = Convert.javaToThrift(Random.getObject());
 
-            // EXPECTATION OF INVERTED
-            Map<TObject, Set<Long>> invertedSubmap = inverted.get(string);
-            if(invertedSubmap == null) {
-                invertedSubmap = new HashMap<TObject, Set<Long>>();
-            }
+			// EXPECTATION OF INVERTED
+			Map<TObject, Set<Long>> invertedSubmap = inverted.get(string);
+			if (invertedSubmap == null) {
+				invertedSubmap = new HashMap<TObject, Set<Long>>();
+			}
 
-            Set<Long> invertedSubset = invertedSubmap.get(object);
-            if(invertedSubset == null) {
-                invertedSubset = new HashSet<Long>();
-            }
+			Set<Long> invertedSubset = invertedSubmap.get(object);
+			if (invertedSubset == null) {
+				invertedSubset = new HashSet<Long>();
+			}
 
-            invertedSubset.add(loong);
-            invertedSubmap.put(object, invertedSubset);
-            inverted.put(string, invertedSubmap);
+			invertedSubset.add(loong);
+			invertedSubmap.put(object, invertedSubset);
+			inverted.put(string, invertedSubmap);
 
-            // EXPECTATION OF ORIGINAL
-            Map<String, Set<TObject>> originalSubmap = original.get(loong);
-            if(originalSubmap == null) {
-                originalSubmap = new HashMap<String, Set<TObject>>();
-            }
+			// EXPECTATION OF ORIGINAL
+			Map<String, Set<TObject>> originalSubmap = original.get(loong);
+			if (originalSubmap == null) {
+				originalSubmap = new HashMap<String, Set<TObject>>();
+			}
 
-            Set<TObject> originalSubset = originalSubmap.get(string);
-            if(originalSubset == null) {
-                originalSubset = new HashSet<TObject>();
-            }
+			Set<TObject> originalSubset = originalSubmap.get(string);
+			if (originalSubset == null) {
+				originalSubset = new HashSet<TObject>();
+			}
 
-            originalSubset.add(object);
-            originalSubmap.put(string, originalSubset);
-            original.put(loong, originalSubmap);
+			originalSubset.add(object);
+			originalSubmap.put(string, originalSubset);
+			original.put(loong, originalSubmap);
 
-            // PUT INTO DATASET
-            dataset.put(loong, originalSubmap);
-        }
-        Assert.assertEquals(inverted, dataset.invert());
-    }
-    
-    @Test
-    public void testGetRow(){
-        dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
-        Assert.assertNotNull(dataset.get(1L));
-    }
+			// PUT INTO DATASET
+			dataset.put(loong, originalSubmap);
+		}
+		Assert.assertEquals(inverted, dataset.invert());
+	}
+
+	@Test
+	public void testGetRow() {
+		dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
+		Assert.assertNotNull(dataset.get(1L));
+	}
+
+	@Test
+	public void testTObjectResultDatasetPutPerformance() throws InterruptedException {
+		Map<Long, Map<String, Set<TObject>>> spec = Maps.newLinkedHashMap();
+		int rounds = 1000;
+		for (int i = 0; i < rounds; ++i) {
+			String key = Random.getSimpleString();
+			Set<TObject> values = Sets.newLinkedHashSet();
+			for (int j = 0; j < 10; ++j) {
+				values.add(Convert.javaToThrift(Random.getObject()));
+			}
+			spec.put((long) i, ImmutableMap.of(key, values));
+		}
+		Map<Long, Map<String, Set<TObject>>> map = Maps.newLinkedHashMap();
+		Map<Long, Map<String, Set<TObject>>> dataset = new TObjectResultDataset();
+		Benchmark mapBench = new Benchmark(TimeUnit.MICROSECONDS) {
+
+			@Override
+			public void action() {
+				spec.forEach((record, data) -> {
+					map.put(record, data);
+				});
+			}
+
+		};
+
+		Benchmark datasetBench = new Benchmark(TimeUnit.MICROSECONDS) {
+
+			@Override
+			public void action() {
+				spec.forEach((record, data) -> {
+					dataset.put(record, data);
+				});
+
+			}
+
+		};
+
+		AtomicLong datasetTime = new AtomicLong(0);
+		AtomicLong mapTime = new AtomicLong(0);
+		CountDownLatch latch = new CountDownLatch(2);
+		Thread t1 = new Thread(() -> {
+			datasetTime.set(datasetBench.run());
+			latch.countDown();
+		});
+		Thread t2 = new Thread(() -> {
+			mapTime.set(mapBench.run());
+			latch.countDown();
+		});
+		t2.start();
+		t1.start();
+		latch.await();
+		System.out.println(datasetTime.get());
+		System.out.println(mapTime.get());
+		Assert.assertTrue(datasetTime.get() / 10 <= mapTime.get());
+		
+	}
 
 }
