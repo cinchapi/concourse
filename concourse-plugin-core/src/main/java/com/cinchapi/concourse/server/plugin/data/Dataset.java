@@ -44,20 +44,25 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements PluginSerializable, Insertable<E, A, V> {
+        implements
+        PluginSerializable,
+        Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
-     * of the index.
+     * of
+     * the index.
      */
     private final Map<A, Map<V, Set<E>>> inverted;
 
     /**
      * A mapping from each entity to a primary (e.g. row-oriented) view of that
      * entity's data. Since this class is primarily used as a warehouse to
-     * quickly produce {@link #invert(Object) inverted} views, each entity's
-     * data is wrapped in a {@link SoftReference}, so care must be taken to
-     * regenerate the row-oriented view on the fly, if necessary.
+     * quickly
+     * produce {@link #invert(Object) inverted} views, each entity's data is
+     * wrapped
+     * in a {@link SoftReference}, so care must be taken to regenerate the
+     * row-oriented view on the fly, if necessary.
      */
     private final Map<E, SoftReference<Map<A, Set<V>>>> rows;
 
@@ -78,11 +83,15 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
 
     /**
      * Remove the association between {@code attribute} and {@code value} within
-     * the {@code entity}.
+     * the
+     * {@code entity}.
      * 
-     * @param entity the entity
-     * @param attribute the attribute
-     * @param value the value
+     * @param entity
+     *            the entity
+     * @param attribute
+     *            the attribute
+     * @param value
+     *            the value
      * @return {@code true} if the associated is removed
      */
     public boolean delete(E entity, A attribute, V value) {
@@ -163,8 +172,10 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * Return all the values that are mapped from {@code attribute} within the
      * {@code entity}.
      * 
-     * @param entity the entity
-     * @param attribute the attribute
+     * @param entity
+     *            the entity
+     * @param attribute
+     *            the attribute
      * @return the set of values that are mapped
      */
     public Set<V> get(E entity, A attribute) {
@@ -232,9 +243,12 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * Add an association between {@code attribute} and {@code value} within the
      * {@code entity}.
      * 
-     * @param entity the entity
-     * @param attribute the attribute
-     * @param value the value
+     * @param entity
+     *            the entity
+     * @param attribute
+     *            the attribute
+     * @param value
+     *            the value
      * @return {@code true} if the association can be added because it didn't
      *         previously exist
      */
@@ -247,20 +261,21 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         }
         Set<E> entities = index.get(value);
         if(entities == null) {
-            entities = Sets.newHashSet();
-            index.put(value, entities);
+            index.put(value, Collections.emptySet());
+            entities = index.get(value); // NOTE: necessary to #get the inner
+                                         // set again because TrackingMultimap
+                                         // uses special internal collections
         }
-        entities = index.get(value); // NOTE: necessary to #get the inner set
-                                     // again because TrackingMultimap uses
-                                     // special internal collections
         if(entities.add(entity)) {
-            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
-            if(ref == null) {
-                ref = new SoftReference<>(get(entity));
-                rows.put(entity, ref);
-            }
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
+            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
+            if(ref == null) {
+                // NOTE: Must associated empty SoftReference with the #entity so
+                // that #entrySet works properly.
+                ref = new SoftReference<>(null);
+                rows.put(entity, ref);
+            }
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
                 Set<V> values = row.get(attribute);
@@ -282,7 +297,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * Return an <em>inverted</em> view of the entire dataset.
      * <p>
      * An inverted view maps each attribute to a mapping from each contained
-     * value to the set of entities in which that value is contained for the
+     * value
+     * to the set of entities in which that value is contained for the
      * attribute.
      * </p>
      * 
@@ -297,10 +313,12 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * {@code attribute}.
      * <p>
      * For an attribute, an inverted view maps each contained value to the set
-     * of entities in which that value is associated with the attribute.
+     * of
+     * entities in which that value is associated with the attribute.
      * </p>
      * 
-     * @param attribute the attribute
+     * @param attribute
+     *            the attribute
      * @return an inverted version of the data for {@code attribute}
      */
     public Map<V, Set<E>> invert(A attribute) {
@@ -354,7 +372,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
 
     /**
      * The subclass should return the proper {@link Map} from value to a
-     * {@link Set} of entities.
+     * {@link Set}
+     * of entities.
      * 
      * @return the proper inverted multimap
      */
@@ -363,7 +382,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     /**
      * Read an attribute from the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      * @return the read attribute
      */
     protected abstract A deserializeAttribute(Buffer buffer);
@@ -371,7 +391,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     /**
      * Read a {@link Set} of entities from the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      * @return the read entities
      */
     protected abstract Set<E> deserializeEntities(Buffer buffer);
@@ -379,20 +400,24 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     /**
      * Read a value from the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      * @return the read value
      */
     protected abstract V deserializeValue(Buffer buffer);
 
     /**
      * Return an <em>inverted</em> view of the data contained for
-     * {@code attribute}. If the attribute doesn't exist, return an empty map.
+     * {@code attribute}.
+     * If the attribute doesn't exist, return an empty map.
      * <p>
      * For an attribute, an inverted view maps each contained value to the set
-     * of entities in which that value is associated with the attribute.
+     * of
+     * entities in which that value is associated with the attribute.
      * </p>
      * 
-     * @param attribute the attribute
+     * @param attribute
+     *            the attribute
      * @return an inverted version of the data for {@code attribute}
      */
     protected Map<V, Set<E>> invertNullSafe(A attribute) {
@@ -403,21 +428,24 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     /**
      * Write an attribute to the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      */
     protected abstract void serializeAttribute(A attribute, Buffer buffer);
 
     /**
      * Write a {@link Set} of entities to the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      */
     protected abstract void serializeEntities(Set<E> entity, Buffer buffer);
 
     /**
      * Write a value to the {@code buffer}.
      * 
-     * @param buffer the buffer containing the serialized data
+     * @param buffer
+     *            the buffer containing the serialized data
      */
     protected abstract void serializeValue(V value, Buffer buffer);
 

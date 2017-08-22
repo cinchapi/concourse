@@ -575,7 +575,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         /**
          * The wrapped set that actually stores the data.
          */
-        private final Set<V> values = createValueSet();
+        private final Set<V> values = TrackingMultimap.this.createValueSet();
 
         /**
          * Construct a new instance.
@@ -588,12 +588,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
         @Override
         public boolean add(V element) {
-            boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 DataType keyType = getDataType(key);
                 keyTypes.get(keyType).incrementAndGet();
-                if(!contained) {
+                if(!TrackingMultimap.this.hasValue(element)) {
                     // The value was not previously contained, so we must update
                     // the number of unique values stored across all the keys.
                     uniqueValueCount.incrementAndGet();
@@ -604,6 +603,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             else {
                 return false;
             }
+        }
+        
+        @Override
+        public boolean contains(Object object) {
+            return values.contains(object);
         }
 
         @SuppressWarnings("unchecked")
