@@ -27,7 +27,6 @@ import org.junit.Test;
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.thrift.TObject;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -53,7 +52,9 @@ public class TMapsTest {
             for (int j = 0; j < 10; ++j) {
                 values.add(Convert.javaToThrift(Random.getObject()));
             }
-            spec.put((long) i, ImmutableMap.of(key, values));
+            Map<String, Set<TObject>> entry = Maps.newLinkedHashMapWithExpectedSize(1);
+            entry.put(key, values);
+            spec.put((long) i, entry);
         }
         Map<Long, Map<String, Set<TObject>>> map = Maps.newLinkedHashMap();
         Map<Long, Map<String, Set<TObject>>> dataset = new TObjectResultDataset();
