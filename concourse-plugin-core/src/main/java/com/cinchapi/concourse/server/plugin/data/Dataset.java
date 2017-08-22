@@ -78,8 +78,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
 
     /**
      * Remove the association between {@code attribute} and {@code value} within
-     * the
-     * {@code entity}.
+     * the {@code entity}.
      * 
      * @param entity the entity
      * @param attribute the attribute
