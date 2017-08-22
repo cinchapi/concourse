@@ -39,92 +39,92 @@ import com.cinchapi.concourse.util.Random;
  */
 public class TObjectResultDatasetTest extends ConcourseBaseTest {
 
-	private Dataset<Long, String, TObject> dataset;
+    private Dataset<Long, String, TObject> dataset;
 
-	@Override
-	public void beforeEachTest() {
-		dataset = new TObjectResultDataset();
-	}
+    @Override
+    public void beforeEachTest() {
+        dataset = new TObjectResultDataset();
+    }
 
-	@Override
-	public void afterEachTest() {
-		dataset = null;
-	}
+    @Override
+    public void afterEachTest() {
+        dataset = null;
+    }
 
-	@Test
-	public void testInsert() {
-		Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
-		int count = Random.getScaleCount();
-		for (int i = 0; i < count; i++) {
-			String key = Random.getString();
-			Map<Object, Set<Long>> value = expected.get(key);
-			if (value == null) {
-				value = new HashMap<Object, Set<Long>>();
-			}
-			TObject subkey = Convert.javaToThrift(Random.getObject());
-			Set<Long> subvalue = value.get(subkey);
-			if (subvalue == null) {
-				subvalue = new HashSet<Long>();
-			}
-			Long element = Random.getLong();
-			subvalue.add(element);
-			value.put(subkey, subvalue);
-			expected.put(key, value);
-			dataset.insert(element, key, subkey);
-		}
-		Assert.assertEquals(expected, dataset.invert());
-	}
+    @Test
+    public void testInsert() {
+        Map<String, Map<Object, Set<Long>>> expected = new HashMap<String, Map<Object, Set<Long>>>();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            String key = Random.getString();
+            Map<Object, Set<Long>> value = expected.get(key);
+            if(value == null) {
+                value = new HashMap<Object, Set<Long>>();
+            }
+            TObject subkey = Convert.javaToThrift(Random.getObject());
+            Set<Long> subvalue = value.get(subkey);
+            if(subvalue == null) {
+                subvalue = new HashSet<Long>();
+            }
+            Long element = Random.getLong();
+            subvalue.add(element);
+            value.put(subkey, subvalue);
+            expected.put(key, value);
+            dataset.insert(element, key, subkey);
+        }
+        Assert.assertEquals(expected, dataset.invert());
+    }
 
-	@Test
-	public void testPut() {
-		Map<String, Map<TObject, Set<Long>>> inverted = new HashMap<String, Map<TObject, Set<Long>>>();
-		Map<Long, Map<String, Set<TObject>>> original = new HashMap<Long, Map<String, Set<TObject>>>();
-		int count = Random.getScaleCount();
-		for (int i = 0; i < count; i++) {
-			String string = Random.getString();
-			Long loong = Random.getLong();
-			TObject object = Convert.javaToThrift(Random.getObject());
+    @Test
+    public void testPut() {
+        Map<String, Map<TObject, Set<Long>>> inverted = new HashMap<String, Map<TObject, Set<Long>>>();
+        Map<Long, Map<String, Set<TObject>>> original = new HashMap<Long, Map<String, Set<TObject>>>();
+        int count = Random.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            String string = Random.getString();
+            Long loong = Random.getLong();
+            TObject object = Convert.javaToThrift(Random.getObject());
 
-			// EXPECTATION OF INVERTED
-			Map<TObject, Set<Long>> invertedSubmap = inverted.get(string);
-			if (invertedSubmap == null) {
-				invertedSubmap = new HashMap<TObject, Set<Long>>();
-			}
+            // EXPECTATION OF INVERTED
+            Map<TObject, Set<Long>> invertedSubmap = inverted.get(string);
+            if(invertedSubmap == null) {
+                invertedSubmap = new HashMap<TObject, Set<Long>>();
+            }
 
-			Set<Long> invertedSubset = invertedSubmap.get(object);
-			if (invertedSubset == null) {
-				invertedSubset = new HashSet<Long>();
-			}
+            Set<Long> invertedSubset = invertedSubmap.get(object);
+            if(invertedSubset == null) {
+                invertedSubset = new HashSet<Long>();
+            }
 
-			invertedSubset.add(loong);
-			invertedSubmap.put(object, invertedSubset);
-			inverted.put(string, invertedSubmap);
+            invertedSubset.add(loong);
+            invertedSubmap.put(object, invertedSubset);
+            inverted.put(string, invertedSubmap);
 
-			// EXPECTATION OF ORIGINAL
-			Map<String, Set<TObject>> originalSubmap = original.get(loong);
-			if (originalSubmap == null) {
-				originalSubmap = new HashMap<String, Set<TObject>>();
-			}
+            // EXPECTATION OF ORIGINAL
+            Map<String, Set<TObject>> originalSubmap = original.get(loong);
+            if(originalSubmap == null) {
+                originalSubmap = new HashMap<String, Set<TObject>>();
+            }
 
-			Set<TObject> originalSubset = originalSubmap.get(string);
-			if (originalSubset == null) {
-				originalSubset = new HashSet<TObject>();
-			}
+            Set<TObject> originalSubset = originalSubmap.get(string);
+            if(originalSubset == null) {
+                originalSubset = new HashSet<TObject>();
+            }
 
-			originalSubset.add(object);
-			originalSubmap.put(string, originalSubset);
-			original.put(loong, originalSubmap);
+            originalSubset.add(object);
+            originalSubmap.put(string, originalSubset);
+            original.put(loong, originalSubmap);
 
-			// PUT INTO DATASET
-			dataset.put(loong, originalSubmap);
-		}
-		Assert.assertEquals(inverted, dataset.invert());
-	}
+            // PUT INTO DATASET
+            dataset.put(loong, originalSubmap);
+        }
+        Assert.assertEquals(inverted, dataset.invert());
+    }
 
-	@Test
-	public void testGetRow() {
-		dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
-		Assert.assertNotNull(dataset.get(1L));
-	}
+    @Test
+    public void testGetRow() {
+        dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
+        Assert.assertNotNull(dataset.get(1L));
+    }
 
 }
