@@ -19,23 +19,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.server.plugin.data.Dataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -133,63 +125,6 @@ public class TObjectResultDatasetTest extends ConcourseBaseTest {
 	public void testGetRow() {
 		dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
 		Assert.assertNotNull(dataset.get(1L));
-	}
-
-	@Test
-	public void testTObjectResultDatasetPutPerformance() throws InterruptedException {
-		Map<Long, Map<String, Set<TObject>>> spec = Maps.newLinkedHashMap();
-		int rounds = 1000;
-		for (int i = 0; i < rounds; ++i) {
-			String key = Random.getSimpleString();
-			Set<TObject> values = Sets.newLinkedHashSet();
-			for (int j = 0; j < 10; ++j) {
-				values.add(Convert.javaToThrift(Random.getObject()));
-			}
-			spec.put((long) i, ImmutableMap.of(key, values));
-		}
-		Map<Long, Map<String, Set<TObject>>> map = Maps.newLinkedHashMap();
-		Map<Long, Map<String, Set<TObject>>> dataset = new TObjectResultDataset();
-		Benchmark mapBench = new Benchmark(TimeUnit.MICROSECONDS) {
-
-			@Override
-			public void action() {
-				spec.forEach((record, data) -> {
-					map.put(record, data);
-				});
-			}
-
-		};
-
-		Benchmark datasetBench = new Benchmark(TimeUnit.MICROSECONDS) {
-
-			@Override
-			public void action() {
-				spec.forEach((record, data) -> {
-					dataset.put(record, data);
-				});
-
-			}
-
-		};
-
-		AtomicLong datasetTime = new AtomicLong(0);
-		AtomicLong mapTime = new AtomicLong(0);
-		CountDownLatch latch = new CountDownLatch(2);
-		Thread t1 = new Thread(() -> {
-			datasetTime.set(datasetBench.run());
-			latch.countDown();
-		});
-		Thread t2 = new Thread(() -> {
-			mapTime.set(mapBench.run());
-			latch.countDown();
-		});
-		t2.start();
-		t1.start();
-		latch.await();
-		System.out.println(datasetTime.get());
-		System.out.println(mapTime.get());
-		Assert.assertTrue(datasetTime.get() / 10 <= mapTime.get());
-		
 	}
 
 }
