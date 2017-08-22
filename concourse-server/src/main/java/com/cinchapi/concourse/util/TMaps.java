@@ -149,28 +149,6 @@ public final class TMaps {
     }
 
     /**
-     * Use the {@code supplier} to provide a value to associate with the
-     * {@code key} in the {@code map} if there isn't currently an associated
-     * value.
-     * 
-     * @param map the map to modify
-     * @param key the key to lookup and/or associate
-     * @param supplier the {@link Supplier} that lazily produces the value to
-     *            associate if no other value currently exists
-     * @return the value that is already associated with {@code key} if it
-     *         exists, otherwise the supplied value
-     */
-    public static <K, V> V supplyIfAbsent(Map<K, V> map, K key,
-            Supplier<V> supplier) {
-        V stored = map.get(key);
-        if(stored == null) {
-            stored = supplier.get();
-            map.put(key, stored);
-        }
-        return stored;
-    }
-
-    /**
      * Put an association from {@code entity} to {@code data} within {@code map}
      * using the most efficient code path depending on
      * 
@@ -193,6 +171,28 @@ public final class TMaps {
         else {
             map.put(entity, data);
         }
+    }
+
+    /**
+     * Use the {@code supplier} to provide a value to associate with the
+     * {@code key} in the {@code map} if there isn't currently an associated
+     * value.
+     * 
+     * @param map the map to modify
+     * @param key the key to lookup and/or associate
+     * @param supplier the {@link Supplier} that lazily produces the value to
+     *            associate if no other value currently exists
+     * @return the value that is already associated with {@code key} if it
+     *         exists, otherwise the supplied value
+     */
+    public static <K, V> V supplyIfAbsent(Map<K, V> map, K key,
+            Supplier<V> supplier) {
+        V stored = map.get(key);
+        if(stored == null) {
+            stored = supplier.get();
+            map.put(key, stored);
+        }
+        return stored;
     }
 
     private TMaps() {/* noop */}
