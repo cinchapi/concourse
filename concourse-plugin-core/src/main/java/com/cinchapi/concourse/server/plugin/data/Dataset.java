@@ -44,9 +44,7 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements
-        PluginSerializable,
-        Insertable<E, A, V> {
+        implements PluginSerializable, Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -235,12 +233,9 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * Add an association between {@code attribute} and {@code value} within the
      * {@code entity}.
      * 
-     * @param entity
-     *            the entity
-     * @param attribute
-     *            the attribute
-     * @param value
-     *            the value
+     * @param entity the entity
+     * @param attribute the attribute
+     * @param value the value
      * @return {@code true} if the association can be added because it didn't
      *         previously exist
      */
@@ -304,8 +299,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * {@code attribute}.
      * <p>
      * For an attribute, an inverted view maps each contained value to the set
-     * of
-     * entities in which that value is associated with the attribute.
+     * of entities in which that value is associated with the attribute.
      * </p>
      * 
      * @param attribute the attribute
@@ -362,8 +356,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
 
     /**
      * The subclass should return the proper {@link Map} from value to a
-     * {@link Set}
-     * of entities.
+     * {@link Set} of entities.
      * 
      * @return the proper inverted multimap
      */
@@ -388,8 +381,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     /**
      * Read a value from the {@code buffer}.
      * 
-     * @param buffer
-     *            the buffer containing the serialized data
+     * @param buffer the buffer containing the serialized data
      * @return the read value
      */
     protected abstract V deserializeValue(Buffer buffer);
@@ -399,8 +391,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * {@code attribute}. If the attribute doesn't exist, return an empty map.
      * <p>
      * For an attribute, an inverted view maps each contained value to the set
-     * of
-     * entities in which that value is associated with the attribute.
+     * of entities in which that value is associated with the attribute.
      * </p>
      * 
      * @param attribute the attribute
