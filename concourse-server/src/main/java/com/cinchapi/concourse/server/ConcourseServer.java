@@ -283,7 +283,8 @@ public class ConcourseServer extends BaseConcourseServer implements
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
      * <p>
-     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the returned
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
      * {@link Map} in the most efficient manner
      * </p>
      * 
@@ -299,7 +300,8 @@ public class ConcourseServer extends BaseConcourseServer implements
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
      * <p>
-     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the returned
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
      * {@link Map} in the most efficient manner
      * </p>
      * 
