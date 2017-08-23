@@ -52,7 +52,8 @@ public class TMapsTest {
             for (int j = 0; j < 10; ++j) {
                 values.add(Convert.javaToThrift(Random.getObject()));
             }
-            Map<String, Set<TObject>> entry = Maps.newLinkedHashMapWithExpectedSize(1);
+            Map<String, Set<TObject>> entry = Maps
+                    .newLinkedHashMapWithExpectedSize(1);
             entry.put(key, values);
             spec.put((long) i, entry);
         }
@@ -101,7 +102,10 @@ public class TMapsTest {
                 datasetTime.get(), unit, datasetTimeDigits));
         System.out.println(Strings.format("Map = {} {} with {} digits",
                 mapTime.get(), unit, mapTimeDigits));
-        Assert.assertTrue(datasetTimeDigits - mapTimeDigits <= 1);
+        Assert.assertTrue(
+                Strings.format("Datset took {} {} and Map took {} {}",
+                        datasetTime.get(), unit, mapTime.get(), unit),
+                datasetTimeDigits - mapTimeDigits <= 1);
 
     }
 
