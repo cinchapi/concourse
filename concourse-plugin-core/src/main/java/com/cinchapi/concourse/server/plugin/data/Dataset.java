@@ -247,20 +247,21 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
         }
         Set<E> entities = index.get(value);
         if(entities == null) {
-            entities = Sets.newHashSet();
-            index.put(value, entities);
+            index.put(value, Collections.emptySet());
+            entities = index.get(value); // NOTE: necessary to #get the inner
+                                         // set again because TrackingMultimap
+                                         // uses special internal collections
         }
-        entities = index.get(value); // NOTE: necessary to #get the inner set
-                                     // again because TrackingMultimap uses
-                                     // special internal collections
         if(entities.add(entity)) {
-            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
-            if(ref == null) {
-                ref = new SoftReference<>(get(entity));
-                rows.put(entity, ref);
-            }
             // Attempt to also add the data to the row-oriented view, if its
             // currently being held in memory
+            SoftReference<Map<A, Set<V>>> ref = rows.get(entity);
+            if(ref == null) {
+                // NOTE: Must associated empty SoftReference with the #entity so
+                // that #entrySet works properly.
+                ref = new SoftReference<>(null);
+                rows.put(entity, ref);
+            }
             Map<A, Set<V>> row = null;
             if(ref != null && (row = ref.get()) != null) {
                 Set<V> values = row.get(attribute);

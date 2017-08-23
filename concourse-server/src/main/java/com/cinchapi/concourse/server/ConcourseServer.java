@@ -129,8 +129,8 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -282,6 +282,11 @@ public class ConcourseServer extends BaseConcourseServer
     /**
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
+     * <p>
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
+     * {@link Map} in the most efficient manner
+     * </p>
      * 
      * @return the result dataset collection
      */
@@ -294,6 +299,11 @@ public class ConcourseServer extends BaseConcourseServer
     /**
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
+     * <p>
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
+     * {@link Map} in the most efficient manner
+     * </p>
      * 
      * @param capacity the initial capacity for the dataset collection
      * @return the result dataset collection
@@ -1803,8 +1813,8 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match",
+                            Language.translateFromThriftCriteria(criteria)));
         }
     }
 
@@ -3474,7 +3484,7 @@ public class ConcourseServer extends BaseConcourseServer
                         for (String key : atomic.describe(record)) {
                             entry.put(key, atomic.select(key, record));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3514,7 +3524,7 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3563,7 +3573,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : atomic.describe(record)) {
                         entry.put(key, atomic.select(key, record));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3599,7 +3609,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : atomic.describe(record, timestamp)) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3881,7 +3891,7 @@ public class ConcourseServer extends BaseConcourseServer
                         for (String key : keys) {
                             entry.put(key, atomic.select(key, record));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3921,7 +3931,7 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3972,7 +3982,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -4007,7 +4017,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -4077,7 +4087,7 @@ public class ConcourseServer extends BaseConcourseServer
                         entry.put(key, atomic.select(key, record));
                     }
                     if(!entry.isEmpty()) {
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
             }
@@ -4107,7 +4117,7 @@ public class ConcourseServer extends BaseConcourseServer
                 entry.put(key, store.select(key, record, timestamp));
             }
             if(!entry.isEmpty()) {
-                result.put(record, entry);
+                TMaps.putResultDatasetOptimized(result, record, entry);
             }
         }
         return result;
@@ -4179,7 +4189,8 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    result.put(record, atomic.select(record));
+                    TMaps.putResultDatasetOptimized(result, record,
+                            atomic.select(record));
                 }
             }
             catch (AtomicStateException e) {
@@ -4202,7 +4213,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
         for (long record : records) {
-            result.put(record, store.select(record, timestamp));
+            TMaps.putResultDatasetOptimized(result, record,
+                    store.select(record, timestamp));
         }
         return result;
     }

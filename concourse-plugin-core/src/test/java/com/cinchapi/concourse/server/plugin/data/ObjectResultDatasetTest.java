@@ -197,4 +197,11 @@ public class ObjectResultDatasetTest {
                         .distinctiveness()));
     }
 
+    @Test
+    public void testGetRow() {
+        ObjectResultDataset a = new ObjectResultDataset();
+        a.insert(1L, "name", "Jeff Nelson");
+        Assert.assertNotNull(a.get(1L));
+    }
+
 }
