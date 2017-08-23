@@ -38,7 +38,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.zaxxer.sparsebits.SparseBitSet;
 
 /**
  * <p>
@@ -165,25 +164,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     private final AtomicLong totalValueCount;
 
     /**
-     * The total number of unique values (e.g. excluding duplicates) that are
-     * stored across all the keys.
-     */
-    private final AtomicLong uniqueValueCount;
-
-    /**
-     * An approximate cache of values stored across all the keys.
-     * <p>
-     * Whenever a value is added to the map, the bit for its
-     * {@link Object#hashCode() hash code} is flipped to indicate that the value
-     * is stored. However, hash codes are not guaranteed to be unique among
-     * objects, so its necessary to look through all the values and test the
-     * equality for a potential match to determine if an object is actually
-     * contained or not.
-     * </p>
-     */
-    private final SparseBitSet valueCache;
-
-    /**
      * Construct a new instance.
      * 
      * @param delegate an {@link Map#isEmpty() empty} map
@@ -196,8 +176,6 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             this.keyTypes.put(type, new AtomicInteger(0));
         }
         this.totalValueCount = new AtomicLong(0);
-        this.uniqueValueCount = new AtomicLong(0);
-        this.valueCache = new SparseBitSet();
     }
 
     /**
@@ -297,18 +275,12 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return {@code true} if the value is contained, {@code false} otherwise
      */
     public boolean hasValue(V value) {
-        int hashCode = Math.abs(value.hashCode());
-        if(valueCache.get(hashCode)) {
-            for (Set<V> values : data.values()) {
-                if(values.contains(value)) {
-                    return true;
-                }
+        for (Set<V> values : data.values()) {
+            if(values.contains(value)) {
+                return true;
             }
-            return false;
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -588,17 +560,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
         @Override
         public boolean add(V element) {
-            boolean contained = TrackingMultimap.this.hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 DataType keyType = getDataType(key);
                 keyTypes.get(keyType).incrementAndGet();
-                if(!contained) {
-                    // The value was not previously contained, so we must update
-                    // the number of unique values stored across all the keys.
-                    uniqueValueCount.incrementAndGet();
-                    valueCache.set(Math.abs(element.hashCode()));
-                }
                 return true;
             }
             else {
@@ -665,20 +630,12 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             };
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
                 DataType keyType = getDataType(key);
                 keyTypes.get(keyType).decrementAndGet();
-                boolean contained = hasValue((V) element);
-                if(!contained) {
-                    // Since the value is no longer "contained" we are free to
-                    // decrement the number of unique values stored across all
-                    // the keys
-                    uniqueValueCount.decrementAndGet();
-                }
                 return true;
             }
             else {
