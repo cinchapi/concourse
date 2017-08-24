@@ -1607,7 +1607,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchWithStopWordSubStringInQuery() {
         add("string", Convert.javaToThrift("but foobar barfoo"), 1);
         Assert.assertTrue(
-                store.search("string", "ut foobar barfoo").contains(1));
+                store.search("string", "ut foobar barfoo").contains(1L));
     }
 
     @Test
