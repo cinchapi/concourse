@@ -390,6 +390,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             }
 
             @Override
+            public long count() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).count();
+            }
+
+            @Override
             public boolean delete(Object value, Long entity) {
                 return thrift.delete(entity, attribute,
                         Convert.javaToThrift(value));
