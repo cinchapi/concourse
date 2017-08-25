@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -207,6 +208,19 @@ public class TrackingMultimapTest
         tmmap.put("b", Sets.newHashSet(1, 2, 3));
         tmmap.put("c", Sets.newHashSet(1, 2, 3, 4));
         Assert.assertEquals(0.3, tmmap.distinctiveness(), 0);
+    }
+    
+    @Test
+    public void testCount() {
+        TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
+        tmmap.put("a", Sets.newHashSet(1, 2, 3));
+        tmmap.put("b", Sets.newHashSet(1, 2, 3));
+        tmmap.put("c", Sets.newHashSet(1, 2, 3, 4));
+        AtomicInteger count = new AtomicInteger(0);
+        tmmap.forEach((key, values) -> {
+            count.addAndGet(values.size());
+        }); 
+        Assert.assertEquals(tmmap.count(), count.get());
     }
 
     /**

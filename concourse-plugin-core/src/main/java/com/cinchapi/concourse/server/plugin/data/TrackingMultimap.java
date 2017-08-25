@@ -191,6 +191,20 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /**
+     * Return the total size of this map (including duplicates).
+     * <p>
+     * This method returns the total number of values. That means, if you think
+     * of this collection as a Map&lt;K,Set&ltV&gt;&gt;, this method returns the
+     * sum of the size of each of the Sets in the values collection.
+     * </p>
+     * 
+     * @return the total value count
+     */
+    public long count() {
+        return totalValueCount.get();
+    }
+
+    /**
      * Remove the association between {@code key} and {@code value} from the
      * map.
      * 
