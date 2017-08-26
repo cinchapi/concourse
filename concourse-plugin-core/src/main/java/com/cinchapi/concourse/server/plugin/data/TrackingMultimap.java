@@ -172,7 +172,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Preconditions.checkState(delegate.isEmpty());
         this.data = delegate;
         this.keyTypeCounts = new AtomicInteger[DataType.values().length];
-        Arrays.fill(keyTypeCounts, new AtomicInteger(0));
+        for (int i = 0, length = keyTypeCounts.length; i < length; ++i) {
+            this.keyTypeCounts[i] = new AtomicInteger(0);
+        }
         this.totalValueCount = new AtomicLong(0);
     }
 
