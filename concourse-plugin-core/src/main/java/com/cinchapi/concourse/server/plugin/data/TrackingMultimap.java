@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.plugin.data;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -36,7 +37,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -155,7 +155,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * A mapping from each of the {@link DataType data types} to the number of
      * stored keys that are characterized as such.
      */
-    private final Map<DataType, AtomicInteger> keyTypes;
+    private final AtomicInteger[] keyTypeCounts;
 
     /**
      * The total number of values (including duplicates) added across all the
@@ -171,10 +171,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     protected TrackingMultimap(Map<K, Set<V>> delegate) {
         Preconditions.checkState(delegate.isEmpty());
         this.data = delegate;
-        this.keyTypes = Maps.newIdentityHashMap();
-        for (DataType type : DataType.values()) {
-            this.keyTypes.put(type, new AtomicInteger(0));
-        }
+        this.keyTypeCounts = new AtomicInteger[DataType.values().length];
+        Arrays.fill(keyTypeCounts, new AtomicInteger(0));
         this.totalValueCount = new AtomicLong(0);
     }
 
@@ -343,7 +341,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the percent of keys of the {@code type}
      */
     public double percentKeyDataType(DataType type) {
-        return ((double) keyTypes.get(type).get()) / totalValueCount.get();
+        return ((double) keyTypeCounts[type.ordinal()].get())
+                / totalValueCount.get();
     }
 
     /**
@@ -577,7 +576,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 DataType keyType = getDataType(key);
-                keyTypes.get(keyType).incrementAndGet();
+                keyTypeCounts[keyType.ordinal()].incrementAndGet();
                 return true;
             }
             else {
@@ -649,7 +648,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
                 DataType keyType = getDataType(key);
-                keyTypes.get(keyType).decrementAndGet();
+                keyTypeCounts[keyType.ordinal()].decrementAndGet();
                 return true;
             }
             else {
