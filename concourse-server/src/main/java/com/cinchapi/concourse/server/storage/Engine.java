@@ -833,7 +833,9 @@ public final class Engine extends BufferedStore implements
         if(running) {
             running = false;
             buffer.stop();
-            bufferTransportHangDetectionThread.interrupt();
+            if(bufferTransportHangDetectionThread != null) {
+                bufferTransportHangDetectionThread.interrupt();
+            }
             bufferTransportThread.interrupt();
             destination.stop();
             lockService.shutdown();
