@@ -50,6 +50,7 @@ import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ComparisonChain;
@@ -325,7 +326,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         // presence of the attribute in the stats and add it if necessary. This
         // can be expensive, so its best to use an upgrade task to instantiate
         // all of these and run the backfills before the server starts.
-        if(!stats.contains(Attribute.VERSION)) { // introduced in 0.7.0
+        if(!stats.contains(Attribute.VERSION)) { // introduced in version 0.7.0
             stats.put(Attribute.VERSION, SCHEMA_VERSION);
         }
         stats.sync();
@@ -884,8 +885,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
          */
         public Stats() {
             this.stats = Maps.newIdentityHashMap();
-            this.file = Paths.get(Block.this.file).getParent()
-                    .resolve(Block.this.getId());
+            this.file = Paths.get(Block.this.file).getParent().resolve(
+                    Strings.format("{}.{}", Block.this.getId(), "stats"));
             if(Files.exists(file)) {
                 ByteableCollections
                         .iterator(FileSystem.readBytes(file.toString()))
