@@ -169,7 +169,7 @@ OWD=`pwd`
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
 APP_HOME=`cd "${APP_HOME}"; pwd`
-if [[ "$APP_HOME" =~ [^a-zA-Z0-9_\-/] ]]; then
+if [[ "$APP_HOME" =~ [^a-zA-Z0-9_\-/.] ]]; then
   printf "${TEXT_COLOR_RED_BOLD}ERROR: $SERVICE is installed at '$APP_HOME', but the absolute path contains invalid characters.\n\nPlease install $SERVICE in a directory whose absolute path does not contain whitespace or parenthesis.${TEXT_COLOR_RESET}"
   exit 1
 fi
