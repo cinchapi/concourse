@@ -50,7 +50,7 @@ public class Upgrade0_5_0_2 extends SmartUpgradeTask {
             String env = envIt.next();
             Inventory inventory = Inventory.create(FileSystem.makePath(
                     GlobalState.BUFFER_DIRECTORY, env, "meta", "inventory"));
-            // Get records from thTexttabase via the Primary Blocks
+            // Get records from the database via the Primary Blocks
             String dbStore = FileSystem.makePath(
                     GlobalState.DATABASE_DIRECTORY, env);
             Iterator<Revision<PrimaryKey, Text, Value>> dbIt = Database
