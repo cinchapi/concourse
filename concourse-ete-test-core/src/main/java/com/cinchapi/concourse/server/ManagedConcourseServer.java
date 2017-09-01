@@ -359,14 +359,14 @@ public class ManagedConcourseServer {
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
         prefs.setLogLevel(Level.DEBUG);
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                destroy();
-            }
-
-        }));
+//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                destroy();
+//            }
+//
+//        }));
     }
 
     /**

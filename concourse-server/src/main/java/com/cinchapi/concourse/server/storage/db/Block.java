@@ -922,10 +922,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         @Override
         public void copyTo(ByteBuffer buffer) {
             stats.forEach((attribute, value) -> {
-                int size = 4 + 8; // future proof in case we start adding
-                                  // non-fixed size values
+                int size = 4 + 2 + 8; // future proof in case we start adding
+                                      // non-fixed size values
                 buffer.putInt(size);
                 buffer.putInt(attribute.ordinal());
+                buffer.putShort((short) 8);
                 buffer.putLong(value);
             });
         }
@@ -960,19 +961,20 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
          * @param attribute
          * @param value
          */
-        private void put(Attribute attribute, long value) {
+        public void put(Attribute attribute, long value) {
             if(stats.put(attribute, value) == null) {
                 size += 4; // 4 bytes for the entry prefix; future proof in case
                            // we start adding non-fixed size values
-                size += 4 + 8; // 4 bytes for the attribute ordinal and 8 bytes
-                               // for value
+                size += (4 + 2 + 8); // 4 bytes for the attribute ordinal, 2 bytes
+                                   // for the length of the value (future proof)
+                                   // and 8 bytes for the length of the value
             }
             else {
                 // right now no-op because it means that the attribute
                 // previously existed and is just being replaced, but if we
-                // allow non-fixed sized values we'd need to capture the
-                // previous value and decrement the size by its length before
-                // adding the length of the
+                // eventually allow non-fixed sized values we'd need to capture
+                // the previous value and decrement the size by its length
+                // before adding the length of the new value.
             }
         }
 
