@@ -209,7 +209,7 @@ public class TrackingMultimapTest
         tmmap.put("c", Sets.newHashSet(1, 2, 3, 4));
         Assert.assertEquals(0.3, tmmap.distinctiveness(), 0);
     }
-    
+
     @Test
     public void testCount() {
         TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
@@ -219,8 +219,61 @@ public class TrackingMultimapTest
         AtomicInteger count = new AtomicInteger(0);
         tmmap.forEach((key, values) -> {
             count.addAndGet(values.size());
-        }); 
+        });
         Assert.assertEquals(tmmap.count(), count.get());
+    }
+
+    @Test
+    public void testMin() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        tmmap.insert(2, 1L);
+        tmmap.insert(1, 2L);
+        tmmap.insert(30, 3L);
+        tmmap.insert(4, 4L);
+        Assert.assertEquals(1, tmmap.min());
+    }
+
+    @Test
+    public void testMinAfterRemove() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        tmmap.insert(2, 1L);
+        tmmap.insert(1, 2L);
+        tmmap.insert(1, 20L);
+        tmmap.insert(30, 3L);
+        tmmap.insert(4, 4L);
+        tmmap.delete(1, 2L);
+        Assert.assertEquals(1, tmmap.min());
+        tmmap.delete(1, 20L);
+        Assert.assertEquals(2, tmmap.min());
+    }
+
+    @Test
+    public void testMax() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        tmmap.insert(2, 1L);
+        tmmap.insert(1, 2L);
+        tmmap.insert(30, 3L);
+        tmmap.insert(4, 4L);
+        Assert.assertEquals(30, tmmap.max());
+    }
+
+    @Test
+    public void testMaxAfterRemove() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        tmmap.insert(2, 1L);
+        tmmap.insert(1, 2L);
+        tmmap.insert(1, 20L);
+        tmmap.insert(30, 3L);
+        tmmap.insert(30, 30L);
+        tmmap.insert(4, 4L);
+        tmmap.delete(30, 3L);
+        Assert.assertEquals(30, tmmap.max());
+        tmmap.delete(30, 30L);
+        Assert.assertEquals(4, tmmap.max());
     }
 
     /**
