@@ -32,6 +32,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 
 /**
@@ -46,7 +47,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     /**
      * A {@link Comparator} that can compare generic objects.
      */
-    private static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
+    @VisibleForTesting
+    protected static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
         // TODO: first check if the closest common ancestor of o1 and o2 are
         // comparable and if so, compare the objects directly instead of using
         // the TObject comparator.
