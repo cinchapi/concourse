@@ -222,6 +222,16 @@ public class TrackingMultimapTest
         }); 
         Assert.assertEquals(tmmap.count(), count.get());
     }
+    
+    @Test
+    public void testDeleteWillRemoveKeyIfNoAssociatedValues() {
+        TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
+        tmmap.insert("a", 1);
+        tmmap.insert("a", 2);
+        tmmap.delete("a", 1);
+        tmmap.delete("a", 2);
+        Assert.assertFalse(tmmap.containsKey("a"));
+    }
 
     /**
      * Return a random {@link Set} to use within tests.

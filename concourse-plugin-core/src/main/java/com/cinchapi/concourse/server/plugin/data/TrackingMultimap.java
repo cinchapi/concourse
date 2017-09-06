@@ -215,7 +215,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
             if(values.isEmpty()) {
-                data.remove(values);
+                data.remove(key);
             }
             return true;
         }
