@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,17 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 public class ObjectResultDataset extends ResultDataset<Object> {
+
+    /**
+     * A {@link Comparator} that can compare generic objects.
+     */
+    private static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
+        // TODO: first check if the closest common ancestor of o1 and o2 are
+        // comparable and if so, compare the objects directly instead of using
+        // the TObject comparator.
+        return TObject.comparator().compare(Convert.javaToThrift(o1),
+                Convert.javaToThrift(o2));
+    };
 
     /**
      * The internal dataset that contains the data.
@@ -381,7 +393,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public Map<Object, Set<Long>> invert(String attribute) {
-        return new TrackingMultimap<Object, Long>(Collections.emptyMap()) {
+        return new TrackingMultimap<Object, Long>(Collections.emptyMap(),
+                OBJECT_COMPARATOR) {
 
             @Override
             public boolean containsDataType(DataType type) {
