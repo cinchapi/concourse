@@ -461,11 +461,11 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
         // Check to see if the min/max need to be recalculated because the key
         // was at one of the extremes
-        if(comparator != null && min.equals(key) || max.equals(key)) {
+        if(comparator != null && (min != null && min.equals(key)) || (max != null && max.equals(key))) {
             SortedSet<K> sorted = Sets.newTreeSet(comparator);
             sorted.addAll(data.keySet());
-            min = sorted.first();
-            max = sorted.last();
+            min = sorted.isEmpty() ? null : sorted.first();
+            max = sorted.isEmpty() ? null : sorted.last();
         }
         return stored;
 
