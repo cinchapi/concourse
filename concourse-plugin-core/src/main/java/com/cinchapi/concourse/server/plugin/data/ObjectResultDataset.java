@@ -47,13 +47,19 @@ public class ObjectResultDataset extends ResultDataset<Object> {
     /**
      * A {@link Comparator} that can compare generic objects.
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @VisibleForTesting
     protected static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
-        // TODO: first check if the closest common ancestor of o1 and o2 are
-        // comparable and if so, compare the objects directly instead of using
-        // the TObject comparator.
-        return TObject.comparator().compare(Convert.javaToThrift(o1),
-                Convert.javaToThrift(o2));
+        Class<?> ancestor = Reflection.getClosestCommonAncestor(o1.getClass(),
+                o2.getClass());
+        if(ancestor != Comparable.class
+                && Comparable.class.isAssignableFrom(ancestor)) {
+            return ((Comparable) o1).compareTo((Comparable) o2);
+        }
+        else {
+            return TObject.comparator().compare(Convert.javaToThrift(o1),
+                    Convert.javaToThrift(o2));
+        }
     };
 
     /**
