@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.server.plugin.data;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Set;
 
 import io.atomix.catalyst.buffer.Buffer;
 
@@ -55,6 +57,11 @@ public class TObjectResultDataset extends ResultDataset<TObject> {
         byte[] data = value.getData();
         buffer.writeInt(data.length);
         buffer.write(data);
+    }
+
+    @Override
+    protected Map<TObject, Set<Long>> createInvertedMultimap() {
+        return TrackingLinkedHashMultimap.create(TObject.comparator());
     }
 
 }

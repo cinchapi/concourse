@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 
 /**
@@ -41,6 +43,24 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 public class ObjectResultDataset extends ResultDataset<Object> {
+
+    /**
+     * A {@link Comparator} that can compare generic objects.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @VisibleForTesting
+    protected static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
+        Class<?> ancestor = Reflection.getClosestCommonAncestor(o1.getClass(),
+                o2.getClass());
+        if(ancestor != Comparable.class
+                && Comparable.class.isAssignableFrom(ancestor)) {
+            return ((Comparable) o1).compareTo((Comparable) o2);
+        }
+        else {
+            return TObject.comparator().compare(Convert.javaToThrift(o1),
+                    Convert.javaToThrift(o2));
+        }
+    };
 
     /**
      * The internal dataset that contains the data.
@@ -381,7 +401,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public Map<Object, Set<Long>> invert(String attribute) {
-        return new TrackingMultimap<Object, Long>(Collections.emptyMap()) {
+        return new TrackingMultimap<Object, Long>(Collections.emptyMap(),
+                OBJECT_COMPARATOR) {
 
             @Override
             public boolean containsDataType(DataType type) {
