@@ -554,14 +554,14 @@ public class ManagedConcourseServer {
         log.info("Attempting to install plugins from {}", bundle);
         List<String> out = executeCli("plugin", "install", bundle.toString(),
                 "--username admin", "--password admin");
-        String stdout = Strings.join(System.lineSeparator(), out.toArray());
-        if(stdout.contains("Successfully installed")) {
-            return true;
+        for (String line : out) {
+            if(line.contains("Successfully installed")) {
+                return true;
+            }
         }
-        else {
-            throw new RuntimeException(Strings
-                    .format("Unable to install plugin '{}': {}", bundle, stdout));
-        }
+        throw new RuntimeException(Strings
+                .format("Unable to install plugin '{}': {}", bundle, out));
+
     }
 
     /**
