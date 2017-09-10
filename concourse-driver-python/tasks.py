@@ -18,14 +18,14 @@ from invoke import task, run
 
 
 @task
-def build():
+def build(ctx):
     run('python setup.py sdist bdist_wheel')
     run('mv dist build/')
     run('mv concourse_driver_python.egg-info build/')
 
 
 @task(build)
-def upload_pypi():
+def upload_pypi(ctx):
     import os
     file = '~/.pypi-password'
     try:
@@ -41,16 +41,15 @@ def upload_pypi():
 
 
 @task
-def clean():
+def clean(ctx):
     run('rm -rf build dist')
 
 
 @task
-def docs():
+def docs(ctx):
     run('pdoc concourse --html --overwrite --html-no-source --html-dir build/docs')
 
 
 @task
-def test():
+def test(ctx):
     run('nosetests')
-
