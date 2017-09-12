@@ -392,7 +392,7 @@ public final class Convert {
      * the {@link #stringToResolvableLinkSpecification(String, String)} method
      * (<strong>NOTE: </strong> this is a rare case)</li>
      * <li><strong>{@link Link}</strong> - the value is converted to a Link if
-     * it is an int or long that is wrapped by '@' signs (i.e. @1234@)</li>
+     * it is an int or long that is prepended by an '@' sign (i.e. @1234)</li>
      * <li><strong>Boolean</strong> - the value is converted to a Boolean if it
      * is equal to 'true', or 'false' regardless of case</li>
      * <li><strong>Double</strong> - the value is converted to a double if and
