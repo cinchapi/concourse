@@ -181,7 +181,10 @@
 }
 
 body, input {
+  color: #383838;
   font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
 }
 
 pre, code {
@@ -197,6 +200,27 @@ pre code {
   background-color: #00bfa5 !important;
 }
 
+.md-footer-meta {
+  background-color: #404040;
+}
+
+.md-footer-nav {
+  background-color: #4D4D4D;
+}
+
 .md-header {
+  background-color: #668DC5;
   box-shadow: none !important;
+}
+
+.md-nav--secondary {
+  border-color: #75A1E1;
+}
+
+.md-nav__link:hover {
+  color: #75A1E1;
+}
+
+.md-typeset a {
+  color: #75A1E1;
 }
