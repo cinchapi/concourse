@@ -27,7 +27,8 @@ pages:
     - Configuration: configuration.md
     - Administration: administration.md
     - Plugins:
-        - Using Plugins: plugins/index.md
+        - Overview: plugins/index.md
+        - Using Plugins: plugins/usage.md
         - Developing Plugins: plugins/development.md
     - Distributed: distributed.md
     - Internals: internals.md

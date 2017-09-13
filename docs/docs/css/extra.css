@@ -200,6 +200,22 @@ pre code {
   background-color: #00bfa5 !important;
 }
 
+.md-typeset .admonition.warning {
+  background-color: #FEFCF2 !important;
+  border: 1px solid #F7E070;
+  border-left: .4rem solid #D8C462;
+  box-shadow: none;
+}
+
+.md-typeset .admonition.warning .admonition-title {
+  border-bottom: .1rem solid #F7E070;
+  background-color: #F9E894;
+}
+
+.md-typeset .admonition.warning .admonition-title:before {
+  color: #D8C462;
+}
+
 .md-footer-meta {
   background-color: #404040;
 }
@@ -223,4 +239,21 @@ pre code {
 
 .md-typeset a {
   color: #75A1E1;
+  font-weight: 400;
+}
+
+.md-typeset a:active, .md-typeset a:hover {
+  color: #668DC5;
+}
+
+.md-typeset pre {
+  padding: 25px;
+}
+
+.md-typeset code, .md-typeset pre {
+  background-color: #F6F7F9;
+}
+
+strong {
+  font-weight: 400;
 }

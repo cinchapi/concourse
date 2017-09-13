@@ -1,5 +1,5 @@
 # Introduction to Concourse
-Concourse is an [open source](https://github.com/cinchapi/concourse) self-tuning database that provides [strong consistency](glossary.md#strong-consistency), [decentralized coordination](glossary.md#coordinator) and [optimistic availability](glossary.md#optimistic-availability). Concourse takes the best ideas from SQL and NoSQL databases to provide an intuitive and scalable platform for both transaction and analytic workflows.
+Concourse is an [open source](https://github.com/cinchapi/concourse) self-tuning database warehouse that provides [strong consistency](glossary.md#strong-consistency), [decentralized coordination](glossary.md#coordinator) and [optimistic availability](glossary.md#optimistic-availability). Concourse takes the best ideas from SQL and NoSQL databases to provide an intuitive and scalable platform for both transaction and analytic workflows.
 
 ## Document-Graph Database
 Concourse is a document-graph database.
