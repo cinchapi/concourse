@@ -197,7 +197,18 @@ pre code {
 }
 
 .admonition.note {
-  background-color: #00bfa5 !important;
+  background-color: #8FC2A0 !important;
+  box-shadow: none;
+  border-left: .4rem solid #6FA280;
+  border-bottom: .1rem solid #7FB992;
+}
+
+.admonition.note .admonition-title {
+  background-color: #7FB992;
+}
+
+.admonition.note .admonition-title:before {
+  color: #6FA280;
 }
 
 .md-typeset .admonition.warning {
