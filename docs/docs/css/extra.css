@@ -181,7 +181,7 @@
 }
 
 body, input {
-  color: #383838;
+  color: #585858;
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
@@ -197,10 +197,10 @@ pre code {
 }
 
 .admonition.note {
-  background-color: #8FC2A0 !important;
+  background-color: #F1F7F3 !important;
   box-shadow: none;
+  border: .1rem solid #7FB992;
   border-left: .4rem solid #6FA280;
-  border-bottom: .1rem solid #7FB992;
 }
 
 .admonition.note .admonition-title {
@@ -213,7 +213,7 @@ pre code {
 
 .md-typeset .admonition.warning {
   background-color: #FEFCF2 !important;
-  border: 1px solid #F7E070;
+  border: 1px solid #F9E894;
   border-left: .4rem solid #D8C462;
   box-shadow: none;
 }
@@ -259,9 +259,11 @@ pre code {
 
 .md-typeset pre {
   padding: 25px;
+  background-color: #585858;
+  color: #F6F7F9;
 }
 
-.md-typeset code, .md-typeset pre {
+.md-typeset code {
   background-color: #F6F7F9;
 }
 
