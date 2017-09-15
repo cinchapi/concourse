@@ -14,6 +14,7 @@ pages:
     - Home: index.md
     - Introduction: introduction.md
     - Installation: installation.md
+    - Data Types: data-types.md
     - Shell: shell.md
     - Writes: writes.md
     - Reads: reads.md
