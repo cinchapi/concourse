@@ -35,8 +35,8 @@ public abstract class PluginStateContainer {
      * 
      * @return the configuration directory
      */
-    public Path config() {
-        return home().resolve("config");
+    public Path conf() {
+        return home().resolve("conf");
     }
 
     /**
