@@ -24,8 +24,12 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -46,9 +50,11 @@ import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
 
@@ -89,10 +95,41 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> implements
+abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
+        implements
         Byteable,
         Syncable,
         Iterable<Revision<L, K, V>> {
+
+    /**
+     * The expected number of Block insertions. This number is used to size the
+     * Block's internal data structures. This value should be large enough to
+     * reflect the fact that, for each revision, we make 3 inserts into the
+     * bloom filter, but no larger than necessary since we must keep all bloom
+     * filters in memory.
+     */
+    private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
+
+    /**
+     * The extension for the {@link BloomFilter} file.
+     */
+    private static final String FILTER_NAME_EXTENSION = ".fltr";
+
+    /**
+     * The extension for the {@link BlockIndex} file.
+     */
+    private static final String INDEX_NAME_EXTENSION = ".indx";
+
+    /**
+     * The extension for the block file.
+     */
+    @PackagePrivate
+    static final String BLOCK_NAME_EXTENSION = ".blk";
+
+    /**
+     * The Block's schema version.
+     */
+    public static final long SCHEMA_VERSION = 1;
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -137,31 +174,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public static String getId(String filename) {
         return FileSystem.getSimpleName(filename);
     }
-
-    /**
-     * The expected number of Block insertions. This number is used to size the
-     * Block's internal data structures. This value should be large enough to
-     * reflect the fact that, for each revision, we make 3 inserts into the
-     * bloom filter, but no larger than necessary since we must keep all bloom
-     * filters in memory.
-     */
-    private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
-
-    /**
-     * The extension for the {@link BloomFilter} file.
-     */
-    private static final String FILTER_NAME_EXTENSION = ".fltr";
-
-    /**
-     * The extension for the {@link BlockIndex} file.
-     */
-    private static final String INDEX_NAME_EXTENSION = ".indx";
-
-    /**
-     * The extension for the block file.
-     */
-    @PackagePrivate
-    static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
      * The location of the block file.
@@ -233,6 +245,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
+     * Block {@link Stats}.
+     */
+    private final Stats stats;
+
+    /**
      * A hint that this Block uses the
      * {@link #insertUnsafe(Byteable, Byteable, Byteable, long, Action)} method
      * to add data without grabbing any locks. This is generally safe to do as
@@ -284,8 +301,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             catch (RuntimeException e) {
                 repair(e);
             }
-            this.index = BlockIndex.open(directory + File.separator + id
-                    + INDEX_NAME_EXTENSION);
+            this.index = BlockIndex.open(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION);
             this.revisions = null;
         }
         else {
@@ -295,12 +312,24 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.filter = BloomFilter.create(
                     (directory + File.separator + id + FILTER_NAME_EXTENSION),
                     EXPECTED_INSERTIONS);
-            this.index = BlockIndex.create(directory + File.separator + id
-                    + INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
+            this.index = BlockIndex.create(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION,
+                    EXPECTED_INSERTIONS);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
+        this.stats = new Stats();
+
+        // Perform any in-place Stat population. This is commonly necessary if a
+        // new Attribute is added and needs to be stored on disk. Check for the
+        // presence of the attribute in the stats and add it if necessary. This
+        // can be expensive, so its best to use an upgrade task to instantiate
+        // all of these and run the backfills before the server starts.
+        if(!stats.contains(Attribute.VERSION)) { // introduced in version 0.7.0
+            stats.put(Attribute.VERSION, SCHEMA_VERSION);
+        }
+        stats.sync();
     }
 
     @Override
@@ -543,6 +572,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Access the {@link Stats} for this {@link Block}. Information is
+     * accessible by calling {@link Stats#get(Attribute)}.
+     * 
+     * @return the stats container
+     */
+    public Stats stats() {
+        return stats;
+    }
+
+    /**
      * Flush the content to disk in a block file, sync the filter and index and
      * finally make the Block immutable.
      */
@@ -582,119 +621,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + id;
-    }
-
-    /**
-     * Attempt to repair the Block from the symptoms of the specified exception.
-     * Generally speaking, a repair is only possible if the exception pertains
-     * to the metadata (e.g. filter or index) and not the actual block data.
-     * <p>
-     * If a repair is not possible, then the input exception is re-thrown
-     * </p>
-     * 
-     * @param e - the {@link RuntimeException} that was caught indicates what
-     *            error needs to be repaired.
-     */
-    private void repair(RuntimeException e) {
-        if(e.getCause() != null
-                && (e.getCause() instanceof EOFException || e.getCause() instanceof StreamCorruptedException)) {
-            String target = file.replace(BLOCK_NAME_EXTENSION,
-                    FILTER_NAME_EXTENSION);
-            String backup = target + ".bak";
-            FileSystem.copyBytes(target, backup);
-            FileSystem.deleteFile(target);
-            filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
-            MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                    FileSystem.getFileSize(file));
-            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-            while (it.hasNext()) {
-                Revision<L, K, V> revision = Byteables.read(it.next(),
-                        xRevisionClass());
-                filter.put(revision.getLocator());
-                filter.put(revision.getLocator(), revision.getKey());
-                filter.put(revision.getLocator(), revision.getKey(),
-                        revision.getValue());
-            }
-            filter.sync();
-            FileSystem.deleteFile(backup);
-            Logger.warn("Found and repaired a corrupted bloom "
-                    + "filter for {} {}", this.getClass().getSimpleName(), id);
-            FileSystem.unmap(bytes);
-        }
-        else {
-            throw e;
-        }
-    }
-
-    /**
-     * Seek revisions that contain components from {@code byteables} and append
-     * them to {@code record}. The seek will be perform in memory iff this block
-     * is mutable, otherwise, the seek happens on disk.
-     * 
-     * @param record
-     * @param byteables
-     */
-    private void seek(Record<L, K, V> record, Byteable... byteables) {
-        Locks.lockIfCondition(read, mutable);
-        try {
-            if(filter.mightContain(byteables)) {
-                SortedMultiset<Revision<L, K, V>> revisions = softRevisions
-                        .get();
-                if(revisions != null) {
-                    Iterator<Revision<L, K, V>> it = revisions.iterator();
-                    boolean processing = false; // Since the revisions are
-                                                // sorted, I can toggle this
-                                                // flag on once I reach a
-                                                // revision that I care about so
-                                                // that I can break out of the
-                                                // loop once I reach a revision
-                                                // I don't care about again.
-                    boolean checkSecond = byteables.length > 1;
-                    while (it.hasNext()) {
-                        Revision<L, K, V> revision = it.next();
-                        if(revision.getLocator().equals(byteables[0])
-                                && ((checkSecond && revision.getKey().equals(
-                                        byteables[1])) || !checkSecond)) {
-                            processing = true;
-                            record.append(revision);
-                        }
-                        else if(processing) {
-                            break;
-                        }
-                    }
-                }
-                else {
-                    int start = index.getStart(byteables);
-                    int length = index.getEnd(byteables) - (start - 1);
-                    if(start != BlockIndex.NO_ENTRY && length > 0) {
-                        ByteBuffer bytes = FileSystem.map(file,
-                                MapMode.READ_ONLY, start, length);
-                        Iterator<ByteBuffer> it = ByteableCollections
-                                .iterator(bytes);
-                        while (it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables.read(
-                                    it.next(), xRevisionClass());
-                            Logger.debug("Attempting to append {} from {} to "
-                                    + "{}", revision, this, record);
-                            record.append(revision);
-                        }
-                    }
-                }
-            }
-        }
-        finally {
-            Locks.unlockIfCondition(read, mutable);
-        }
-    }
-
-    /**
-     * Internal implementation to return size of this Block without grabbing any
-     * locks.
-     * 
-     * @return the size
-     */
-    private int sizeImpl() {
-        return concurrent ? atomicSize.get() : size;
     }
 
     /**
@@ -790,8 +716,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param type
      * @return the Revision
      */
-    protected abstract Revision<L, K, V> makeRevision(L locator, K key,
-            V value, long version, Action type);
+    protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value,
+            long version, Action type);
 
     /**
      * Return the class of the {@code revision} type.
@@ -799,6 +725,260 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return the revision class
      */
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
+
+    /**
+     * Attempt to repair the Block from the symptoms of the specified exception.
+     * Generally speaking, a repair is only possible if the exception pertains
+     * to the metadata (e.g. filter or index) and not the actual block data.
+     * <p>
+     * If a repair is not possible, then the input exception is re-thrown
+     * </p>
+     * 
+     * @param e - the {@link RuntimeException} that was caught indicates what
+     *            error needs to be repaired.
+     */
+    private void repair(RuntimeException e) {
+        if(e.getCause() != null && (e.getCause() instanceof EOFException
+                || e.getCause() instanceof StreamCorruptedException)) {
+            String target = file.replace(BLOCK_NAME_EXTENSION,
+                    FILTER_NAME_EXTENSION);
+            String backup = target + ".bak";
+            FileSystem.copyBytes(target, backup);
+            FileSystem.deleteFile(target);
+            filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
+            MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                    FileSystem.getFileSize(file));
+            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            while (it.hasNext()) {
+                Revision<L, K, V> revision = Byteables.read(it.next(),
+                        xRevisionClass());
+                filter.put(revision.getLocator());
+                filter.put(revision.getLocator(), revision.getKey());
+                filter.put(revision.getLocator(), revision.getKey(),
+                        revision.getValue());
+            }
+            filter.sync();
+            FileSystem.deleteFile(backup);
+            Logger.warn(
+                    "Found and repaired a corrupted bloom "
+                            + "filter for {} {}",
+                    this.getClass().getSimpleName(), id);
+            FileSystem.unmap(bytes);
+        }
+        else {
+            throw e;
+        }
+    }
+
+    /**
+     * Seek revisions that contain components from {@code byteables} and append
+     * them to {@code record}. The seek will be perform in memory iff this block
+     * is mutable, otherwise, the seek happens on disk.
+     * 
+     * @param record
+     * @param byteables
+     */
+    private void seek(Record<L, K, V> record, Byteable... byteables) {
+        Locks.lockIfCondition(read, mutable);
+        try {
+            if(filter.mightContain(byteables)) {
+                SortedMultiset<Revision<L, K, V>> revisions = softRevisions
+                        .get();
+                if(revisions != null) {
+                    Iterator<Revision<L, K, V>> it = revisions.iterator();
+                    boolean processing = false; // Since the revisions are
+                                                // sorted, I can toggle this
+                                                // flag on once I reach a
+                                                // revision that I care about so
+                                                // that I can break out of the
+                                                // loop once I reach a revision
+                                                // I don't care about again.
+                    boolean checkSecond = byteables.length > 1;
+                    while (it.hasNext()) {
+                        Revision<L, K, V> revision = it.next();
+                        if(revision.getLocator().equals(byteables[0])
+                                && ((checkSecond && revision.getKey()
+                                        .equals(byteables[1]))
+                                        || !checkSecond)) {
+                            processing = true;
+                            record.append(revision);
+                        }
+                        else if(processing) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    int start = index.getStart(byteables);
+                    int length = index.getEnd(byteables) - (start - 1);
+                    if(start != BlockIndex.NO_ENTRY && length > 0) {
+                        ByteBuffer bytes = FileSystem.map(file,
+                                MapMode.READ_ONLY, start, length);
+                        Iterator<ByteBuffer> it = ByteableCollections
+                                .iterator(bytes);
+                        while (it.hasNext()) {
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
+                            Logger.debug("Attempting to append {} from {} to "
+                                    + "{}", revision, this, record);
+                            record.append(revision);
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
+    }
+
+    /**
+     * Internal implementation to return size of this Block without grabbing any
+     * locks.
+     * 
+     * @return the size
+     */
+    private int sizeImpl() {
+        return concurrent ? atomicSize.get() : size;
+    }
+
+    /**
+     * Attributes that are maintained in the {@link Stats}.
+     *
+     * @author Jeff
+     */
+    public enum Attribute {
+        VERSION
+    }
+
+    /**
+     * Wrapper around the stats file that is maintained for each Block.
+     *
+     * @author Jeff Nelson
+     */
+    // TODO: in the future we can use Stats to keep track of information like
+    // how many reads hit the Block, etc
+    public class Stats implements Byteable, Syncable {
+
+        /**
+         * A mapping from Block {@link Attribute attributes} to their associated
+         * values.
+         */
+        // NOTE: Intentionally keeping possible value types narrow for easier
+        // implementation. In future, if necessary, we can use a more generic
+        // class for the value type while maintaing backwards compatability.
+        // (jeff)
+        private final Map<Attribute, Long> stats;
+
+        /**
+         * The path to the file where the stats are contained.
+         */
+        private transient final Path file;
+
+        /**
+         * The running size.
+         */
+        private transient int size;
+
+        /**
+         * Construct a new instance.
+         */
+        public Stats() {
+            this.stats = Maps.newIdentityHashMap();
+            this.file = Paths.get(Block.this.file).getParent().resolve(
+                    Strings.format("{}.{}", Block.this.getId(), "stats"));
+            if(Files.exists(file)) {
+                ByteableCollections
+                        .iterator(FileSystem.readBytes(file.toString()))
+                        .forEachRemaining((bytes) -> {
+                            Attribute key = Attribute.values()[bytes.getInt()];
+                            /* short valueLength = */ bytes.getShort(); // future
+                                                                        // proof
+                                                                        // in
+                                                                        // case
+                                                                        // we
+                                                                        // start
+                                                                        // adding
+                                                                        // non-fixed
+                                                                        // size
+                                                                        // values
+                            long value = bytes.getLong();
+                            stats.put(key, value);
+                        });
+
+            }
+        }
+
+        /**
+         * Check to see if an attribute is contained in the stats.
+         * 
+         * @param attribute
+         * @return {@code true} if the attribute exists
+         */
+        public boolean contains(Attribute attribute) {
+            return stats.containsKey(attribute);
+        }
+
+        @Override
+        public void copyTo(ByteBuffer buffer) {
+            stats.forEach((attribute, value) -> {
+                int size = 4 + 2 + 8; // future proof in case we start adding
+                                      // non-fixed size values
+                buffer.putInt(size);
+                buffer.putInt(attribute.ordinal());
+                buffer.putShort((short) 8);
+                buffer.putLong(value);
+            });
+        }
+
+        /**
+         * Retrieve information from the stats.
+         * 
+         * @param attribute
+         * @return the value
+         */
+        @Nullable
+        public Object get(Attribute attribute) {
+            return stats.get(attribute);
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public void sync() {
+            ByteBuffer bytes = ByteBuffer.allocate(size());
+            copyTo(bytes);
+            bytes.rewind();
+            FileSystem.writeBytes(bytes, file.toString());
+        }
+
+        /**
+         * Add information to the stats.
+         * 
+         * @param attribute
+         * @param value
+         */
+        public void put(Attribute attribute, long value) {
+            if(stats.put(attribute, value) == null) {
+                size += 4; // 4 bytes for the entry prefix; future proof in case
+                           // we start adding non-fixed size values
+                size += (4 + 2 + 8); // 4 bytes for the attribute ordinal, 2 bytes
+                                   // for the length of the value (future proof)
+                                   // and 8 bytes for the length of the value
+            }
+            else {
+                // right now no-op because it means that the attribute
+                // previously existed and is just being replaced, but if we
+                // eventually allow non-fixed sized values we'd need to capture
+                // the previous value and decrement the size by its length
+                // before adding the length of the new value.
+            }
+        }
+
+    }
 
     /**
      * A Comparator that sorts Revisions in a block. The sort order is

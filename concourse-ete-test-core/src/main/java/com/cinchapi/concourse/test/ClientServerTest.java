@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Concourse;
 
 import org.junit.Rule;
@@ -86,27 +87,41 @@ public abstract class ClientServerTest {
     public final TestWatcher __watcher = new TestWatcher() {
 
         @Override
+        protected void succeeded(Description description) {
+            server.destroy();
+            System.out.println(AnyStrings.format(
+                    "Since the test succeeded, the server directory at {} has been deleted",
+                    server.getInstallDirectory()));
+        }
+
+        @Override
         protected void failed(Throwable t, Description description) {
             System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
             System.err.println("---");
             System.err.println(Variables.dump());
             System.err.println("");
-            System.err.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
-                    LogLevel.DEBUG);
-            server.printLog("console");
+            // System.err.println("Printing relevant server logs...");
+            // server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
+            // LogLevel.DEBUG);
+            // server.printLog("console");
             if(PluginTest.class
                     .isAssignableFrom(ClientServerTest.this.getClass())) {
+                // TODO: print out plugin logs
 
             }
+            System.out.println(AnyStrings.format(
+                    "Since the test failed, the server directory "
+                            + "at HAS NOT been deleted. Please manually delete the directory after "
+                            + "inspecting its content",
+                    server.getInstallDirectory()));
         }
 
         @Override
         protected void finished(Description description) {
             afterEachTest();
             client.exit();
-            server.destroy();
+            server.stop();
             client = null;
             server = null;
         }

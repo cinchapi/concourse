@@ -90,6 +90,31 @@ import com.google.common.collect.Sets;
  */
 public class ManagedConcourseServer {
 
+    private static final String BIN = "bin";
+
+    // ---relative paths
+    private static final String CONF = "conf";
+
+    /**
+     * The default location where the the test server is installed if a
+     * particular location is not specified.
+     */
+    private static final String DEFAULT_INSTALL_HOME = System
+            .getProperty("user.home") + File.separator + ".concourse-testing";
+
+    // ---logger
+    private static final Logger log = LoggerFactory
+            .getLogger(ManagedConcourseServer.class);
+
+    // ---random
+    private static final Random RAND = new Random();
+
+    /**
+     * The filename of the binary installer from which the test server will be
+     * created.
+     */
+    private static final String TARGET_BINARY_NAME = "concourse-server.bin";
+
     /**
      * Return an {@link ManagedConcourseServer} that controls an instance
      * located in the {@code installDirectory}.
@@ -210,7 +235,6 @@ public class ManagedConcourseServer {
             throw Throwables.propagate(e);
         }
     }
-
     /**
      * Get an open port.
      * 
@@ -301,30 +325,6 @@ public class ManagedConcourseServer {
         }
     }
 
-    private static final String BIN = "bin";
-
-    // ---relative paths
-    private static final String CONF = "conf";
-
-    /**
-     * The default location where the the test server is installed if a
-     * particular location is not specified.
-     */
-    private static final String DEFAULT_INSTALL_HOME = System
-            .getProperty("user.home") + File.separator + ".concourse-testing";
-    // ---logger
-    private static final Logger log = LoggerFactory
-            .getLogger(ManagedConcourseServer.class);
-
-    // ---random
-    private static final Random RAND = new Random();
-
-    /**
-     * The filename of the binary installer from which the test server will be
-     * created.
-     */
-    private static final String TARGET_BINARY_NAME = "concourse-server.bin";
-
     /**
      * A flag that determines how the concourse_client.prefs file should be
      * handled when this server is {@link #destroy() destroyed}. Generally,
@@ -359,14 +359,14 @@ public class ManagedConcourseServer {
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
         prefs.setLogLevel(Level.DEBUG);
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                destroy();
-            }
-
-        }));
+//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                destroy();
+//            }
+//
+//        }));
     }
 
     /**
@@ -468,12 +468,30 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Return the directory where this server stores buffer files.
+     * 
+     * @return the buffer directory
+     */
+    public String getBufferDirectory() {
+        return prefs.getBufferDirectory();
+    }
+
+    /**
      * Return the client port for this server.
      * 
      * @return the client port
      */
     public int getClientPort() {
         return prefs.getClientPort();
+    }
+
+    /**
+     * Return the directory where this server stores database files.
+     * 
+     * @return the database directory
+     */
+    public String getDatabaseDirectory() {
+        return prefs.getDatabaseDirectory();
     }
 
     /**
