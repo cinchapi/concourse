@@ -15,10 +15,14 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
+import java.util.Set;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.test.PluginTest;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests that reproduce bugs found in the plugin-core framework
@@ -35,9 +39,16 @@ public class PluginReproTests extends ClientServerTest implements PluginTest {
     @Test
     public void testCloud_1Repro() { // http://jira.cinchapi.com/browse/CLOUD-1
         // "Change" the password to invalidate the client's current token
+        client.add("name", "jeff", 17);
         server.executeCli("users", "password", "--set-password", "admin",
                 "--username", "admin", "--password", "admin", "admin");
-         client.invokePlugin(TestPlugin.class.getName(), "inventory");
+        Set<Long> records = client.invokePlugin(TestPlugin.class.getName(),
+                "inventory");
+        Assert.assertEquals(records, Sets.newHashSet(17L)); // Verify that the
+                                                          // access token is
+                                                          // renewed and the
+                                                          // correct value can
+                                                          // be retrieved
     }
 
 }
