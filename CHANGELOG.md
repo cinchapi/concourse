@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.7.0
+#### Version 0.7.0 (November 19, 2017)
 * Added `navigate` methods that allow selecting data based on link traversal. For example, it is possible to select the names of the friends of record 1's friends by doing
 
 		navigate "friends.friends.name", 1
@@ -28,8 +28,6 @@
 * Implemented `describe()` and `describe(time)` methods to return all the keys across all records in the database.
 * Fixed a bug where the `browse(keys, timestamp)` functionality would return data from the present state instead of the historical snapshot.
 * Fixed an issue that caused plugins to use excessive CPU resources when watching the liveliness of the host Concourse Server process.
-
-#### Version 0.6.1
 * Added a bug fix that prevents service tokens from auto-expiring.
 * Added a `ps` command to the `plugins` CLI to display information about the running plugins.
 * Fixed a bug that caused the `average(key)` method to return the incorrect result.
@@ -37,6 +35,19 @@
 * Fixed a bug that caused the editing and deleting an existing user with the `users` CLI to always fail.
 * Added support for defining custom importers in `.jar` files.
 * Detect when the service is installed in an invalid directory and fail appropriately.
+* Fixed a security bug that allowed the `invokePlugin` method to not enforce access controls properly.
+* Fixed a bug that caused management CLIs to appear to fail when they actually succeeded.
+* Improved the performance of the `ResultDataSet#put` method.
+* Fixed a bug in the implementation of `ObjectResultDataset#count`.
+* Deprecated `Numbers#isEqual` and `Numbers#isEqualCastSafe` in favor of better names `Numbers#areEqual` and `Numbers#areEqualCastSafe`.
+* Added support for getting the min and max keys from a `TrackingMultimap`.
+* Added an `ImmutableTrackingMultimap` class.
+* Fixed a bug in the `TrackingMultimap#delete` method.
+* Fixed the CPU efficiency of the JavaApp host termination watcher.
+* Fix bug that caused JavaApp processes to hang if they ended before the host was terminated.
+* Added database-wide `describe` method.
+
+
 
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
