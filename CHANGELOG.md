@@ -47,8 +47,6 @@
 * Fix bug that caused JavaApp processes to hang if they ended before the host was terminated.
 * Added database-wide `describe` method.
 
-
-
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
 * Added a `sum` aggregation function.
