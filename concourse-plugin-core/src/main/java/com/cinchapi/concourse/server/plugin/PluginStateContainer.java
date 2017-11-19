@@ -27,6 +27,19 @@ import com.cinchapi.bucket.Bucket;
 public abstract class PluginStateContainer {
 
     /**
+     * Return the directory where the plugin's configuration files are stored.
+     * <p>
+     * NOTE: To get the Plugin's runtime preferences, use the
+     * {@link Plugin#getConfig()} method.
+     * </p>
+     * 
+     * @return the configuration directory
+     */
+    public Path conf() {
+        return home().resolve("conf");
+    }
+
+    /**
      * Get the directory where the plugin store's data.
      * 
      * @return the data directory

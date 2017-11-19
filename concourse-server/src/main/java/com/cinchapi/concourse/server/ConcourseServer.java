@@ -2776,6 +2776,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<ComplexTObject> params, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
+        checkAccess(creds, transaction);
         return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }
