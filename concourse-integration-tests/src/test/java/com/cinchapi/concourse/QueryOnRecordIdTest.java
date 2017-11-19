@@ -136,7 +136,7 @@ public class QueryOnRecordIdTest extends ConcourseIntegrationTest {
         }
         String ccl = "(name = foo OR bar > 15) AND $id$ != 40";
         Set<Long> actual = client.find(ccl);
-        Assert.assertFalse(actual.contains(40));
+        Assert.assertFalse(actual.contains((long) 40));
     }
 
 }

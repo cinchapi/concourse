@@ -36,6 +36,7 @@ import javax.tools.ToolProvider;
 
 import com.cinchapi.common.process.ProcessTerminationListener;
 import com.cinchapi.common.process.ProcessWatcher;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Platform;
 import com.cinchapi.concourse.util.Processes;
@@ -85,23 +86,50 @@ public class JavaApp extends Process {
         return ""
         + "static java.util.concurrent.CountDownLatch watchThreadStarted = new java.util.concurrent.CountDownLatch(1);\n"
         + "static {\n"
-        + "  Thread main = Thread.currentThread();"
+        + "  Thread mainThread = Thread.currentThread();"
         + "  Thread t = new Thread(new Runnable() {\n"
         + "    @Override\n"
         + "    public void run() {\n"
         + "      "+ProcessWatcher.class.getName()+" watcher = new "+ProcessWatcher.class.getName()+"();\n"
-        + "      java.util.concurrent.atomic.AtomicBoolean terminated = new java.util.concurrent.atomic.AtomicBoolean(false);\n"
+        + "      java.util.concurrent.CountDownLatch terminated = new java.util.concurrent.CountDownLatch(1);\n"
         + "      watcher.watch(\""+pid+"\", new "+ProcessTerminationListener.class.getName()+"() {\n"
         + "        @Override\n"
         + "        public void onTermination() {\n"
-        + "          terminated.set(true);\n"
+        + "          terminated.countDown();\n"
         + "        }\n"
         + "      });\n"
-        + "        watchThreadStarted.countDown();\n"
-        + "        while(!terminated.get() && main.isAlive()) {\n"
-        + "          Thread.yield();\n"
-        + "          continue;\n"
-        + "        }"
+        + "      watchThreadStarted.countDown();\n"
+        + "      java.util.concurrent.CountDownLatch control = new java.util.concurrent.CountDownLatch(1);\n"
+        + "      try {\n"
+        + "        Thread terminationWatcher = new Thread(new Runnable() {\n"
+        + "          public void run() {\n"
+        + "            try {\n"
+        + "              terminated.await();\n"
+        + "              control.countDown();\n"
+        + "            }\n"
+        + "            catch(InterruptedException e) {\n"
+        + "              throw new RuntimeException(e);\n"
+        + "            }\n"
+        + "          }\n"
+        + "        });\n"
+        + "        Thread mainThreadWatcher = new Thread(new Runnable() {\n"
+        + "          public void run(){\n"
+        + "            try {\n"
+        + "              mainThread.join();\n"
+        + "              control.countDown();\n"
+        + "            }\n"
+        + "            catch(InterruptedException e) {\n"
+        + "              throw new RuntimeException(e);\n"
+        + "            }\n"
+        + "          }\n"
+        + "        });\n"
+        + "        terminationWatcher.start();\n"
+        + "        mainThreadWatcher.start();\n"
+        + "        control.await();\n"
+        + "      }\n"
+        + "      catch(InterruptedException e) {\n"
+        + "        throw new RuntimeException(e);\n"
+        + "      }"
         + "      System.exit(0);\n"
         + "    }\n"
         + "  });\n"
@@ -416,6 +444,28 @@ public class JavaApp extends Process {
         }, PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 PREMATURE_SHUTDOWN_CHECK_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Returns the native process ID of the process. The native process ID is an
+     * identification number that the operating system assigns to the process.
+     * The operating system may reuse the process ID after a process terminates.
+     * 
+     * @return the native process ID of the process
+     * @throws UnsupportedOperationException if the implementation does not
+     *             support this operation OR the process has not begun
+     *             {@link #run() running}
+     */
+    // NOTE: This method return a long for compatibility with the planned
+    // Process#getPid method in Java 9
+    public long pid() {
+        if(process.getClass().getName().equals("java.lang.UNIXProcess")) {
+            return ((Integer) Reflection.get("pid", process)).longValue();
+        }
+        else {
+            throw new UnsupportedOperationException(
+                    "Cannot retrieve the pid on the underlying platform");
+        }
     }
 
     /**

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
-
-import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.GlobalState;
+package com.cinchapi.concourse.util;
 
 /**
- * A set of Options for a CLI that interact with a server environment.
+ * Utilities for link-navigation queries.
  * 
  * @author Jeff Nelson
  */
-public class EnvironmentOptions extends Options {
+public final class LinkNavigation {
 
-    @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-    public String environment = GlobalState.DEFAULT_ENVIRONMENT;
+    /**
+     * Given a navigation scheme, return the destination to which the scheme
+     * navigates.
+     * 
+     * @param scheme
+     * @return the destination
+     */
+    public static String getNavigationSchemeDestination(String scheme) {
+        String[] toks = scheme.split("\\.");
+        return toks[toks.length - 1];
+    }
+
+    private LinkNavigation() {/* no-op */}
 
 }

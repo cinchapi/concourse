@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 import org.reflections.Reflections;
 
@@ -29,7 +30,10 @@ import com.beust.jcommander.Parameters;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.common.unsafe.RuntimeDynamics;
+import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.plugin.PluginCli;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A management CLI to add/remove/upgrade/etc plugins.
@@ -57,7 +61,10 @@ public class ManagePluginsCli {
         Map<String, Class<? extends PluginCli>> commands = Maps.newHashMap();
         Reflections reflections = new Reflections(
                 ManagePluginsCli.class.getPackage().getName());
-        reflections.getSubTypesOf(PluginCli.class).forEach((clazz) -> {
+        Set<Class<? extends PluginCli>> classes = Sets
+                .newTreeSet((c1, c2) -> c1.getName().compareTo(c2.getName()));
+        classes.addAll(reflections.getSubTypesOf(PluginCli.class));
+        classes.forEach((clazz) -> {
             // This is over engineering at its finest. The logic below use a ton
             // of reflection hacks to properly configure JCommander
             // auto-magically so that every CLI that extends PluginCli just

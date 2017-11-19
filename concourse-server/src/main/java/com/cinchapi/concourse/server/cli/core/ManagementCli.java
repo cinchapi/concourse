@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli;
+package com.cinchapi.concourse.server.cli.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -215,6 +215,11 @@ public abstract class ManagementCli {
         if(client != null) {
             try {
                 client.logout(token);
+            }
+            catch (com.cinchapi.concourse.thrift.SecurityException e) {
+                // CON-590: The token has been invalidated, but we can ignore
+                // it at this point since the work that requires authorization
+                // has already been done.
             }
             catch (TException e) {
                 e.printStackTrace();

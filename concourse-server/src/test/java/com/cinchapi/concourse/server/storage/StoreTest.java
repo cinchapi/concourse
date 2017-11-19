@@ -1607,7 +1607,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testSearchWithStopWordSubStringInQuery() {
         add("string", Convert.javaToThrift("but foobar barfoo"), 1);
         Assert.assertTrue(
-                store.search("string", "ut foobar barfoo").contains(1));
+                store.search("string", "ut foobar barfoo").contains(1L));
     }
 
     @Test
@@ -1977,7 +1977,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
          */
         public static boolean isEqualTo(Object a, Object b) {
             Number compareResult = compare(a, b);
-            return Numbers.isEqualTo(compareResult, 0);
+            return Numbers.areEqual(compareResult, 0);
         }
 
         /**

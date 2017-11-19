@@ -102,6 +102,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
+
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
@@ -128,8 +129,8 @@ import static com.cinchapi.concourse.server.GlobalState.*;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -281,26 +282,37 @@ public class ConcourseServer extends BaseConcourseServer
     /**
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
+     * <p>
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
+     * {@link Map} in the most efficient manner
+     * </p>
      * 
      * @return the result dataset collection
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDataset() {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
-                ? new TObjectResultDataset() : Maps.newLinkedHashMap();
+        return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread()
+                .getClass()) ? new TObjectResultDataset()
+                        : Maps.newLinkedHashMap();
     }
 
     /**
      * Return the appropriate collection for a result dataset, depending upon
      * the execution thread.
+     * <p>
+     * Please use {@link TMaps#putResultDatasetOptimized} to add data to the
+     * returned
+     * {@link Map} in the most efficient manner
+     * </p>
      * 
      * @param capacity the initial capacity for the dataset collection
      * @return the result dataset collection
      */
     private static Map<Long, Map<String, Set<TObject>>> emptyResultDatasetWithCapacity(
             int capacity) {
-        return (INVOCATION_THREAD_CLASS == Thread.currentThread().getClass())
-                ? new TObjectResultDataset()
-                : TMaps.newLinkedHashMapWithCapacity(capacity);
+        return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread()
+                .getClass()) ? new TObjectResultDataset()
+                        : TMaps.newLinkedHashMapWithCapacity(capacity);
     }
 
     /**
@@ -903,7 +915,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<String, Map<TObject, Set<Long>>> result = TMaps
                 .newLinkedHashMapWithCapacity(keys.size());
         for (String key : keys) {
-            result.put(key, store.browse(key));
+            result.put(key, store.browse(key, timestamp));
         }
         return result;
     }
@@ -1150,6 +1162,66 @@ public class ConcourseServer extends BaseConcourseServer
             String env) throws TException {
         checkAccess(creds, transaction);
         return transactions.remove(transaction).commit();
+    }
+
+    @Atomic
+    @Batch
+    @ThrowsThriftExceptions
+    public Set<String> describe(AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newLinkedHashSet();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<Long> records = store.getAllRecords();
+                for (long record : records) {
+                    result.addAll(store.describe(record));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTime(long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newLinkedHashSet();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<Long> records = store.getAllRecords();
+                for (long record : records) {
+                    result.addAll(store.describe(record, timestamp));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTimestr(String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        return describeTime(NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
@@ -1741,8 +1813,8 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match",
+                            Language.translateFromThriftCriteria(criteria)));
         }
     }
 
@@ -2704,6 +2776,7 @@ public class ConcourseServer extends BaseConcourseServer
             List<ComplexTObject> params, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
+        checkAccess(creds, transaction);
         return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }
@@ -2791,6 +2864,336 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, null);
         accessManager.expireAccessToken(creds);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCcl(String key, String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyCclTime(key, ccl, Time.NONE, creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                result = Operations.navigateKeyQueueAtomic(key, queue,
+                        timestamp, atomic);
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return navigateKeyCclTime(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteria(String key,
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return navigateKeyCriteriaTime(key, criteria, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTime(String key,
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Map<Long, Set<TObject>> result = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            result = Operations.navigateKeyQueueAtomic(key, queue, timestamp,
+                    atomic);
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordTime(key, record, Time.NONE, creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecords(String key,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return navigateKeyRecordsTime(key, records, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            result = Operations.navigateKeyRecordsAtomic(key,
+                    Sets.newLinkedHashSet(records), timestamp, atomic);
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordTime(String key,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Map<Long, Set<TObject>> result = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                result = Operations.navigateKeyRecordAtomic(key, record,
+                        timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
+            List<String> keys, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCclTime(keys, ccl, Time.NONE, creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTime(
+            List<String> keys, String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    result = Operations.navigateKeysQueueAtomic(keys, queue,
+                            timestamp, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
+            List<String> keys, TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTime(keys, criteria, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTime(
+            List<String> keys, TCriteria criteria, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Operations
+                    .convertCriteriaToQueue(criteria);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            Map<Long, Map<String, Set<TObject>>> result = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    result = Operations.navigateKeysQueueAtomic(keys, queue,
+                            timestamp, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecord(
+            List<String> keys, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordTime(keys, record, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordsTime(keys, records, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                result = Operations.navigateKeysRecordsAtomic(keys,
+                        Sets.newLinkedHashSet(records), timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                result.clear();
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        return navigateKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTime(
+            List<String> keys, long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                result = Operations.navigateKeysRecordAtomic(keys, record,
+                        timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestr(
+            List<String> keys, long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     /**
@@ -3082,7 +3485,7 @@ public class ConcourseServer extends BaseConcourseServer
                         for (String key : atomic.describe(record)) {
                             entry.put(key, atomic.select(key, record));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3122,7 +3525,7 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3171,7 +3574,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : atomic.describe(record)) {
                         entry.put(key, atomic.select(key, record));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3207,7 +3610,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : atomic.describe(record, timestamp)) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3489,7 +3892,7 @@ public class ConcourseServer extends BaseConcourseServer
                         for (String key : keys) {
                             entry.put(key, atomic.select(key, record));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3529,7 +3932,7 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key,
                                     atomic.select(key, record, timestamp));
                         }
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
                 catch (AtomicStateException e) {
@@ -3580,7 +3983,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3615,7 +4018,7 @@ public class ConcourseServer extends BaseConcourseServer
                     for (String key : keys) {
                         entry.put(key, atomic.select(key, record, timestamp));
                     }
-                    result.put(record, entry);
+                    TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
             catch (AtomicStateException e) {
@@ -3685,7 +4088,7 @@ public class ConcourseServer extends BaseConcourseServer
                         entry.put(key, atomic.select(key, record));
                     }
                     if(!entry.isEmpty()) {
-                        result.put(record, entry);
+                        TMaps.putResultDatasetOptimized(result, record, entry);
                     }
                 }
             }
@@ -3715,7 +4118,7 @@ public class ConcourseServer extends BaseConcourseServer
                 entry.put(key, store.select(key, record, timestamp));
             }
             if(!entry.isEmpty()) {
-                result.put(record, entry);
+                TMaps.putResultDatasetOptimized(result, record, entry);
             }
         }
         return result;
@@ -3787,7 +4190,8 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 for (long record : records) {
-                    result.put(record, atomic.select(record));
+                    TMaps.putResultDatasetOptimized(result, record,
+                            atomic.select(record));
                 }
             }
             catch (AtomicStateException e) {
@@ -3810,7 +4214,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
         for (long record : records) {
-            result.put(record, store.select(record, timestamp));
+            TMaps.putResultDatasetOptimized(result, record,
+                    store.select(record, timestamp));
         }
         return result;
     }
@@ -4583,7 +4988,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Logger.warn(
                         "The following exception occurred "
                                 + "but was not propagated to the client: {}",
-                        t);
+                        t.getMessage(), t);
                 throw Throwables.propagate(t);
             }
         }

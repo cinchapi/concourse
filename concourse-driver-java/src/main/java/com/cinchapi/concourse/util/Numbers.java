@@ -16,8 +16,10 @@
 package com.cinchapi.concourse.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import com.cinchapi.concourse.Link;
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.UnsignedLongs;
 
 import static com.google.common.base.Preconditions.*;
@@ -30,6 +32,20 @@ import static com.google.common.base.Preconditions.*;
  * @author Raghav Babu
  */
 public abstract class Numbers {
+
+    /**
+     * The default value for {@link #DIVISION_NUMBER_DECIMAL_PLACES}.
+     */
+    private static final int DEFAULT_DIVISION_NUMBER_DECIMAL_PLACES = 10;
+
+    /**
+     * The number of decimal places to include when
+     * {@link #divide(Number, Number) dividing}.
+     */
+    private static final int DIVISION_NUMBER_DECIMAL_PLACES = Integer
+            .parseInt(System.getProperty(
+                    "com.cinchapi.concourse.calculation.divisionNumberDecimalPlaces",
+                    Integer.toString(DEFAULT_DIVISION_NUMBER_DECIMAL_PLACES)));
 
     /**
      * Return the sum of two numbers.
@@ -109,19 +125,10 @@ public abstract class Numbers {
      * @return the division result of {@code a} by {@code b}.
      */
     public static Number divide(Number a, Number b) {
-        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
-            BigDecimal a0 = Numbers.toBigDecimal(a);
-            BigDecimal b0 = Numbers.toBigDecimal(b);
-            return a0.divide(b0);
-        }
-        else {
-            try {
-                return Math.floorDiv(a.intValue(), b.intValue());
-            }
-            catch (ArithmeticException e) {
-                return Math.floorDiv(a.longValue(), b.longValue());
-            }
-        }
+        BigDecimal a0 = Numbers.toBigDecimal(a);
+        BigDecimal b0 = Numbers.toBigDecimal(b);
+        return a0.divide(b0, DIVISION_NUMBER_DECIMAL_PLACES,
+                RoundingMode.HALF_UP);
     }
 
     /**
@@ -137,9 +144,9 @@ public abstract class Numbers {
      */
     public static Number incrementalAverage(Number running, Number number,
             int count) {
-        Number dividend = Numbers.add(number, Numbers.multiply(-1, running));
-        Number addend = Numbers.divide(dividend, count);
-        return Numbers.add(running, addend);
+        Number sum = Numbers.multiply(running, count - 1);
+        sum = Numbers.add(sum, number);
+        return Numbers.divide(sum, count);
     }
 
     /**
@@ -149,8 +156,22 @@ public abstract class Numbers {
      * @param b
      * @return {@code true} if {@code a} == {@code b}
      */
-    public static boolean isEqualTo(Number a, Number b) {
+    public static boolean areEqual(Number a, Number b) {
         return compare(a, b) == 0;
+    }
+
+    /**
+     * Return {@code true} if {@code a} is mathematically equal to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} == {@code b}
+     * @deprecated Deprecated in version 0.7. Use
+     *             {@link #areEqual(Number, Number)} instead.
+     */
+    @Deprecated
+    public static boolean isEqualTo(Number a, Number b) {
+        return areEqual(a, b);
     }
 
     /**
@@ -166,9 +187,34 @@ public abstract class Numbers {
      * @return {@code true} if both objects are numbers and are mathematically
      *         equal
      */
-    public static boolean isEqualToCastSafe(Object a, Object b) {
+    public static boolean areEqualCastSafe(Object a, Object b) {
         if(a instanceof Number && b instanceof Number) {
             return isEqualTo((Number) a, (Number) b);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Perform a cast safe equality check for two objects.
+     * <p>
+     * If both objects are instances of the {@link Number} class, this method
+     * will behave the same was as {@link #isEqualTo(Number, Number)}.
+     * Otherwise, this method returns {@code false}.
+     * </p>
+     * 
+     * @param a the first, possibly {@link Number numeric}, object
+     * @param b the second, possibly {@link Number numeric}, object
+     * @return {@code true} if both objects are numbers and are mathematically
+     *         equal
+     * @deprecated Deprecated in version 0.7. Use
+     *             {@link #areEqualCastSafe(Number, Number)} instead.
+     */
+    @Deprecated
+    public static boolean isEqualToCastSafe(Object a, Object b) {
+        if(a instanceof Number && b instanceof Number) {
+            return areEqual((Number) a, (Number) b);
         }
         else {
             return false;
@@ -312,6 +358,19 @@ public abstract class Numbers {
      */
     public static double percent(Number numerator, Number denominator) {
         return numerator.doubleValue() * 100.0 / denominator.doubleValue();
+    }
+
+    /**
+     * Round the numeric {@code value} to {@code places} without truncating.
+     * 
+     * @param value the number to round
+     * @param places the max number of decimal places
+     * @return the rounded value, represented as a double
+     */
+    public static double round(Number value, int places) {
+        Preconditions.checkArgument(places > 0);
+        return new BigDecimal(value.doubleValue())
+                .setScale(places, RoundingMode.HALF_UP).doubleValue();
     }
 
     /**

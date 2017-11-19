@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#?Dump data from storage blocks for debugging purposes.
+#?Manage and debug the Concourse data files
 
 # Copyright (c) 2013-2017 Cinchapi Inc.
 #

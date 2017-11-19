@@ -65,10 +65,11 @@ import groovy.json.JsonOutput;
  */
  @GrabConfig(systemClassLoader= true)
  @Grapes([
- @Grab('org.apache.thrift:libthrift:0.9.2'),
+ @Grab('org.apache.thrift:libthrift:0.9.3'),
  @Grab('org.slf4j:slf4j-api:1.7.5'),
  @Grab('org.slf4j:slf4j-nop:1.7.12'),
- @Grab('org.codehaus.groovy:groovy-json:2.4.3')
+ @Grab('org.codehaus.groovy:groovy-json:2.4.3'),
+ @Grab('com.google.guava:guava:19.0')
  ])
 class Mockcourse implements ConcourseService.Iface {
 
@@ -2034,11 +2035,11 @@ class Mockcourse implements ConcourseService.Iface {
     public void reconcileKeyRecordValues(String key, long record,
             Set<TObject> values, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Set<TObject> existingValues = 
+        Set<TObject> existingValues =
                 selectKeyRecord(key, record, creds, transaction, environment);
         for (TObject existingValue: existingValues) {
             if (!values.remove(existingValue)) {
-                removeKeyValueRecord(key, existingValue, record, 
+                removeKeyValueRecord(key, existingValue, record,
                     creds, transaction, environment);
             }
         }

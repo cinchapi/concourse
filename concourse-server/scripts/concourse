@@ -63,6 +63,7 @@ JVMOPTS="
 #-------------------------------------------------------------------------------
 # DO NOT MAKE ANY CHANGES BEYOND THIS POINT
 #-------------------------------------------------------------------------------
+SERVICE="Concourse Server"
 
 # Color Variables: See http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux for more options
 ESC="\033["
@@ -167,7 +168,11 @@ OWD=`pwd`
 # Ensure that this script operates from the application root directory
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
-APP_HOME=`cd ${APP_HOME}; pwd`
+APP_HOME=`cd "${APP_HOME}"; pwd`
+if [[ "$APP_HOME" =~ [^a-zA-Z0-9_\-/.] ]]; then
+  printf "${TEXT_COLOR_RED_BOLD}ERROR: $SERVICE is installed at '$APP_HOME', but the absolute path contains invalid characters.\n\nPlease install $SERVICE in a directory whose absolute path does not contain whitespace or parenthesis.${TEXT_COLOR_RESET}"
+  exit 1
+fi
 APP_HOME_PROPERTY="com.cinchapi.concourse.server.home=$APP_HOME"
 BIN_DIR="$APP_HOME/bin"
 JVMOPTS=$JVMOPTS"
@@ -180,12 +185,13 @@ JVMOPTS=$JVMOPTS"
 #
 # The format for this array is alias:cli
 BIN_ALIASES=(
-  debug:dumptool
-  datafiles:dumptool
-  environments:envtool
+  datafiles:data
+  debug:data
+  env:environments
+  envs:environments
+  plugin:plugins
   shell:cash
-  users:useradmin
-  plugins:plugin
+  user:users
 )
 
 # This function will return the appropriate CLI for an alias. If the alias

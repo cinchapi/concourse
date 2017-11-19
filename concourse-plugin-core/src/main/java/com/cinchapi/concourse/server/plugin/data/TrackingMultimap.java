@@ -18,10 +18,13 @@ package com.cinchapi.concourse.server.plugin.data;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,9 +39,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.zaxxer.sparsebits.SparseBitSet;
 
 /**
  * <p>
@@ -66,6 +67,19 @@ import com.zaxxer.sparsebits.SparseBitSet;
 // TODO talk about what is tracked for keys and what is tracked for values
 @NotThreadSafe
 public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
+
+    /**
+     * Throw an {@link UnsupportedOperationException} if {@code comparator} is
+     * {@code null}.
+     * 
+     * @param comparator
+     */
+    private static <K> void ensureSortSupport(Comparator<K> comparator) {
+        if(comparator == null) {
+            throw new UnsupportedOperationException(
+                    "No comparator provied so this method is unsurpported");
+        }
+    }
 
     /**
      * Return the correct {@link DataType} for the {@code obj}.
@@ -156,7 +170,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * A mapping from each of the {@link DataType data types} to the number of
      * stored keys that are characterized as such.
      */
-    private final Map<DataType, AtomicInteger> keyTypes;
+    private final AtomicInteger[] keyTypeCounts;
 
     /**
      * The total number of values (including duplicates) added across all the
@@ -164,40 +178,30 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     private final AtomicLong totalValueCount;
 
-    /**
-     * The total number of unique values (e.g. excluding duplicates) that are
-     * stored across all the keys.
-     */
-    private final AtomicLong uniqueValueCount;
-
-    /**
-     * An approximate cache of values stored across all the keys.
-     * <p>
-     * Whenever a value is added to the map, the bit for its
-     * {@link Object#hashCode() hash code} is flipped to indicate that the value
-     * is stored. However, hash codes are not guaranteed to be unique among
-     * objects, so its necessary to look through all the values and test the
-     * equality for a potential match to determine if an object is actually
-     * contained or not.
-     * </p>
-     */
-    private final SparseBitSet valueCache;
+    private K min;
+    private K max;
+    private final Comparator<K> comparator;
 
     /**
      * Construct a new instance.
      * 
      * @param delegate an {@link Map#isEmpty() empty} map
+     * @param comparator - an optional {@link Comparator} for sorting the map
+     *            keys; if this is {@code null} this map will not support the
+     *            functionality of the {@link SortedMap} interface
      */
-    protected TrackingMultimap(Map<K, Set<V>> delegate) {
+    protected TrackingMultimap(Map<K, Set<V>> delegate,
+            @Nullable Comparator<K> comparator) {
         Preconditions.checkState(delegate.isEmpty());
         this.data = delegate;
-        this.keyTypes = Maps.newIdentityHashMap();
-        for (DataType type : DataType.values()) {
-            this.keyTypes.put(type, new AtomicInteger(0));
+        this.keyTypeCounts = new AtomicInteger[DataType.values().length];
+        for (int i = 0, length = keyTypeCounts.length; i < length; ++i) {
+            this.keyTypeCounts[i] = new AtomicInteger(0);
         }
         this.totalValueCount = new AtomicLong(0);
-        this.uniqueValueCount = new AtomicLong(0);
-        this.valueCache = new SparseBitSet();
+        this.comparator = comparator;
+        this.min = null;
+        this.max = null;
     }
 
     /**
@@ -213,6 +217,20 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /**
+     * Return the total size of this map (including duplicates).
+     * <p>
+     * This method returns the total number of values. That means, if you think
+     * of this collection as a Map&lt;K,Set&ltV&gt;&gt;, this method returns the
+     * sum of the size of each of the Sets in the values collection.
+     * </p>
+     * 
+     * @return the total value count
+     */
+    public long count() {
+        return totalValueCount.get();
+    }
+
+    /**
      * Remove the association between {@code key} and {@code value} from the
      * map.
      * 
@@ -224,7 +242,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Set<V> values = data.get(key);
         if(values != null && values.remove(value)) {
             if(values.isEmpty()) {
-                data.remove(values);
+                remove(key);
             }
             return true;
         }
@@ -297,18 +315,12 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return {@code true} if the value is contained, {@code false} otherwise
      */
     public boolean hasValue(V value) {
-        int hashCode = Math.abs(value.hashCode());
-        if(valueCache.get(hashCode)) {
-            for (Set<V> values : data.values()) {
-                if(values.contains(value)) {
-                    return true;
-                }
+        for (Set<V> values : data.values()) {
+            if(values.contains(value)) {
+                return true;
             }
-            return false;
         }
-        else {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -325,6 +337,16 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         if(values == null) {
             values = new ValueSetWrapper(key);
             data.put(key, values);
+
+            // Check to see if the key is smaller or larger than the current min
+            // and max.
+            if(comparator != null) {
+                min = min == null ? key
+                        : (comparator.compare(key, min) < 0 ? key : min);
+                max = max == null ? key
+                        : (comparator.compare(key, max) > 0 ? key : max);
+            }
+
         }
         if(values.add(value)) {
             return true;
@@ -332,6 +354,16 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         else {
             return false;
         }
+    }
+
+    /**
+     * Alias for {@link #lastKey()}.
+     * 
+     * @return the last key in the map
+     */
+    public K max() {
+        ensureSortSupport(comparator);
+        return max;
     }
 
     /**
@@ -350,6 +382,16 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     /**
+     * Alias for {@link #firstKey()}.
+     * 
+     * @return the first key in the map
+     */
+    public K min() {
+        ensureSortSupport(comparator);
+        return min;
+    }
+
+    /**
      * Return the percent (between 0 and 1) of keys that are an instance of the
      * specified {@link DataType type}.
      * 
@@ -357,7 +399,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the percent of keys of the {@code type}
      */
     public double percentKeyDataType(DataType type) {
-        return ((double) keyTypes.get(type).get()) / totalValueCount.get();
+        return ((double) keyTypeCounts[type.ordinal()].get())
+                / totalValueCount.get();
     }
 
     /**
@@ -414,6 +457,15 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         Set<V> values = data.get(key);
         if(values != null && values.isEmpty()) {
             data.remove(key);
+        }
+
+        // Check to see if the min/max need to be recalculated because the key
+        // was at one of the extremes
+        if(comparator != null && (min != null && min.equals(key)) || (max != null && max.equals(key))) {
+            SortedSet<K> sorted = Sets.newTreeSet(comparator);
+            sorted.addAll(data.keySet());
+            min = sorted.isEmpty() ? null : sorted.first();
+            max = sorted.isEmpty() ? null : sorted.last();
         }
         return stored;
 
@@ -575,7 +627,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         /**
          * The wrapped set that actually stores the data.
          */
-        private final Set<V> values = createValueSet();
+        private final Set<V> values = TrackingMultimap.this.createValueSet();
 
         /**
          * Construct a new instance.
@@ -588,22 +640,20 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
         @Override
         public boolean add(V element) {
-            boolean contained = hasValue(element);
             if(values.add(element)) {
                 totalValueCount.incrementAndGet();
                 DataType keyType = getDataType(key);
-                keyTypes.get(keyType).incrementAndGet();
-                if(!contained) {
-                    // The value was not previously contained, so we must update
-                    // the number of unique values stored across all the keys.
-                    uniqueValueCount.incrementAndGet();
-                    valueCache.set(Math.abs(element.hashCode()));
-                }
+                keyTypeCounts[keyType.ordinal()].incrementAndGet();
                 return true;
             }
             else {
                 return false;
             }
+        }
+
+        @Override
+        public boolean contains(Object object) {
+            return values.contains(object);
         }
 
         @SuppressWarnings("unchecked")
@@ -660,20 +710,12 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             };
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public boolean remove(Object element) {
             if(values.remove(element)) {
                 totalValueCount.decrementAndGet();
                 DataType keyType = getDataType(key);
-                keyTypes.get(keyType).decrementAndGet();
-                boolean contained = hasValue((V) element);
-                if(!contained) {
-                    // Since the value is no longer "contained" we are free to
-                    // decrement the number of unique values stored across all
-                    // the keys
-                    uniqueValueCount.decrementAndGet();
-                }
+                keyTypeCounts[keyType.ordinal()].decrementAndGet();
                 return true;
             }
             else {
@@ -691,4 +733,5 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
             return values.toString();
         }
     }
+
 }

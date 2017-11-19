@@ -26,6 +26,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.cinchapi.concourse.server.plugin.data.Insertable;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -64,8 +65,9 @@ public final class TMaps {
      */
     public static <K, V> Set<K> extractKeysFromEntrySet(
             Collection<Entry<K, V>> entrySet) {
-        Set<K> keys = entrySet instanceof SortedSet ? new TreeSet<K>(
-                Comparators.<K> naturalOrArbitrary()) : Sets.<K> newHashSet();
+        Set<K> keys = entrySet instanceof SortedSet
+                ? new TreeSet<K>(Comparators.<K> naturalOrArbitrary())
+                : Sets.<K> newHashSet();
         for (Entry<K, V> entry : entrySet) {
             keys.add(entry.getKey());
         }
@@ -94,12 +96,13 @@ public final class TMaps {
      * @param entrySet
      * @return the populated map
      */
-    public static <K, V> Map<K, V> fromEntrySet(Collection<Entry<K, V>> entrySet) {
+    public static <K, V> Map<K, V> fromEntrySet(
+            Collection<Entry<K, V>> entrySet) {
         // TODO: Find a better way to do this. Perhaps use reflection to place
         // the entires directly in the map...
-        Map<K, V> map = entrySet instanceof SortedSet ? new TreeMap<K, V>(
-                Comparators.<K> naturalOrArbitrary()) : Maps
-                .<K, V> newHashMap();
+        Map<K, V> map = entrySet instanceof SortedSet
+                ? new TreeMap<K, V>(Comparators.<K> naturalOrArbitrary())
+                : Maps.<K, V> newHashMap();
         for (Entry<K, V> entry : entrySet) {
             map.put(entry.getKey(), entry.getValue());
         }
@@ -143,6 +146,31 @@ public final class TMaps {
             map.put(key, value);
         }
         return stored;
+    }
+
+    /**
+     * Put an association from {@code entity} to {@code data} within {@code map}
+     * using the most efficient code path depending on
+     * 
+     * @param map a result dataset map
+     * @param entity the key within the association
+     * @param data the value within the association
+     */
+    @SuppressWarnings("unchecked")
+    public static <E, A, V> void putResultDatasetOptimized(
+            Map<E, Map<A, Set<V>>> map, E entity, Map<A, Set<V>> data) {
+        if(map instanceof Insertable) {
+            Insertable<E, A, V> dataset = (Insertable<E, A, V>) map;
+            for (Entry<A, Set<V>> entry : data.entrySet()) {
+                A attribute = entry.getKey();
+                for (V value : entry.getValue()) {
+                    dataset.insert(entity, attribute, value);
+                }
+            }
+        }
+        else {
+            map.put(entity, data);
+        }
     }
 
     /**

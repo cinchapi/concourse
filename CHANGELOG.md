@@ -1,5 +1,54 @@
 ## Changelog
 
+#### Version 0.7.0 (November 19, 2017)
+* Added `navigate` methods that allow selecting data based on link traversal. For example, it is possible to select the names of the friends of record 1's friends by doing
+
+		navigate "friends.friends.name", 1
+
+* Re-implemented the `users` CLI to provide extensible commands. Now the `users` CLI will respond to:
+	1. `create` - create a new user
+	2. `delete` - delete an existing user
+	3. `enable` - restore access to a suspended user
+	4. `password` - change a user's password
+	5. `sessions` - list the current user sessions
+	6. `suspend` - revoke access for a user
+
+* Changed the `envtool` CLI to the `environments` CLI with extensible commands. The `environments` CLI will respond:
+	1. `list` - list the Concourse Server environments
+
+* Changed the `dumptool` CLI to the `data` CLI with extensible commands. The `data` CLI will respond to:
+	1. `dump` - dump the contents of a Concourse Server data file
+	2. `list` - list the Concourse Server data files
+
+* Added a `CompositeTransformer` to the `concourse-import` framework that invokes multiple transformers in declaration order.
+* Added a `Transformers` utility class to the `concourse-import` framework API.
+* Fixed a bug that caused the loss of order in plugin results that contained a sorted map.
+* Added a `--dry-run` flag to the `import` CLI that will perform a test import of data in-memory and print a JSON dump of what data would be inserted into Concourse.
+* Added support for installing multiple plugins in the same directory using the `concourse plugin install </path/to/directory>` command.
+* Implemented `describe()` and `describe(time)` methods to return all the keys across all records in the database.
+* Fixed a bug where the `browse(keys, timestamp)` functionality would return data from the present state instead of the historical snapshot.
+* Fixed an issue that caused plugins to use excessive CPU resources when watching the liveliness of the host Concourse Server process.
+* Added a bug fix that prevents service tokens from auto-expiring.
+* Added a `ps` command to the `plugins` CLI to display information about the running plugins.
+* Fixed a bug that caused the `average(key)` method to return the incorrect result.
+* Fixed a bug that caused calculations that internally performed division to prematurely round and produce in-precise results.
+* Fixed a bug that caused the editing and deleting an existing user with the `users` CLI to always fail.
+* Added support for defining custom importers in `.jar` files.
+* Detect when the service is installed in an invalid directory and fail appropriately.
+* Fixed a security bug that allowed the `invokePlugin` method to not enforce access controls properly.
+* Fixed a bug that caused management CLIs to appear to fail when they actually succeeded.
+* Improved the performance of the `ResultDataSet#put` method.
+* Fixed a bug in the implementation of `ObjectResultDataset#count`.
+* Deprecated `Numbers#isEqual` and `Numbers#isEqualCastSafe` in favor of better names `Numbers#areEqual` and `Numbers#areEqualCastSafe`.
+* Added support for getting the min and max keys from a `TrackingMultimap`.
+* Added an `ImmutableTrackingMultimap` class.
+* Fixed a bug in the `TrackingMultimap#delete` method.
+* Fixed the CPU efficiency of the JavaApp host termination watcher.
+* Fix bug that caused JavaApp processes to hang if they ended before the host was terminated.
+* Added database-wide `describe` method.
+
+
+
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.
 * Added a `sum` aggregation function.

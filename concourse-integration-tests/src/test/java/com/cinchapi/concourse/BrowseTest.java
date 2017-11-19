@@ -17,6 +17,8 @@ package com.cinchapi.concourse;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,6 +29,8 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Concourse#select(long)} API method. Basically the idea
@@ -100,6 +104,26 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.remove("c", 2, record);
         Assert.assertEquals(client.select(record, timestamp), client.select(
                 client.describe(record, timestamp), record, timestamp));
+    }
+    
+    @Test
+    public void testBrowseKeysTime(){
+        long a = 1;
+        long b = 2;
+        client.add("a", 1, a);
+        client.add("b", 1, a);
+        client.add("a", 2, b);
+        Timestamp timestamp = Timestamp.now();
+        client.add("b", 2, b);
+        Map<String, Map<Object, Set<Long>>> expected = Maps.newLinkedHashMap();
+        Map<Object, Set<Long>> expectedA = Maps.newHashMap();
+        expectedA.put(1, Sets.newHashSet(1L));
+        expectedA.put(2, Sets.newHashSet(2L));
+        expected.put("a", expectedA);
+        Map<Object, Set<Long>> expectedB = Maps.newHashMap();
+        expectedB.put(1, Sets.newHashSet(1L));
+        expected.put("b", expectedB);
+        Assert.assertEquals(expected, client.browse(Sets.newHashSet("a", "b"), timestamp));
     }
 
 }

@@ -32,6 +32,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.concourse.security.AccessManager;
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
@@ -503,6 +504,14 @@ public class AccessManagerTest extends ConcourseBaseTest {
         AccessToken token = manager.getNewServiceToken();
         ByteBuffer username = manager.getUsernameByAccessToken(token);
         Assert.assertFalse(AccessManager.isAcceptableUsername(username));
+    }
+    
+    @Test
+    public void testServerTokenNotAutoExpire(){
+        manager = AccessManager.createForTesting(current, 100, TimeUnit.MILLISECONDS);
+        AccessToken token = manager.getNewServiceToken();
+        Threads.sleep(100);
+        Assert.assertTrue(manager.isValidAccessToken(token));
     }
 
     /**

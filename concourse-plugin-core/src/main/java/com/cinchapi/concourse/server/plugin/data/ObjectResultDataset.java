@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -43,9 +44,33 @@ import com.google.common.collect.Maps;
 public class ObjectResultDataset extends ResultDataset<Object> {
 
     /**
+     * A {@link Comparator} that can compare generic objects.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static Comparator<Object> OBJECT_COMPARATOR = (o1, o2) -> {
+        Class<?> ancestor = Reflection.getClosestCommonAncestor(o1.getClass(),
+                o2.getClass());
+        if(ancestor != Comparable.class
+                && Comparable.class.isAssignableFrom(ancestor)) {
+            return ((Comparable) o1).compareTo((Comparable) o2);
+        }
+        else {
+            return TObject.comparator().compare(Convert.javaToThrift(o1),
+                    Convert.javaToThrift(o2));
+        }
+    };
+
+    /**
      * The internal dataset that contains the data.
      */
     protected Dataset<Long, String, TObject> thrift;
+
+    /**
+     * Construct a new instance.
+     */
+    public ObjectResultDataset() {
+        this.thrift = new TObjectResultDataset();
+    }
 
     /**
      * Construct a new instance.
@@ -54,13 +79,6 @@ public class ObjectResultDataset extends ResultDataset<Object> {
      */
     public ObjectResultDataset(Dataset<Long, String, TObject> thrift) {
         this.thrift = thrift;
-    }
-
-    /**
-     * Construct a new instance.
-     */
-    public ObjectResultDataset() {
-        this.thrift = new TObjectResultDataset();
     }
 
     @Override
@@ -381,7 +399,8 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
     @Override
     public Map<Object, Set<Long>> invert(String attribute) {
-        return new TrackingMultimap<Object, Long>(Collections.emptyMap()) {
+        return new TrackingMultimap<Object, Long>(Collections.emptyMap(),
+                OBJECT_COMPARATOR) {
 
             @Override
             public boolean containsDataType(DataType type) {
@@ -390,9 +409,21 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             }
 
             @Override
+            public long count() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).count();
+            }
+
+            @Override
             public boolean delete(Object value, Long entity) {
                 return thrift.delete(entity, attribute,
                         Convert.javaToThrift(value));
+            }
+
+            @Override
+            public double distinctiveness() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).distinctiveness();
             }
 
             @Override
@@ -429,12 +460,6 @@ public class ObjectResultDataset extends ResultDataset<Object> {
                     }
 
                 };
-            }
-
-            @Override
-            public double spread() {
-                return ((TrackingMultimap<TObject, Long>) thrift
-                        .invertNullSafe(attribute)).spread();
             }
 
             @Override
@@ -501,6 +526,12 @@ public class ObjectResultDataset extends ResultDataset<Object> {
             public Set<Long> remove(Object value) {
                 return thrift.invertNullSafe(attribute)
                         .remove(Convert.javaToThrift(value));
+            }
+
+            @Override
+            public double spread() {
+                return ((TrackingMultimap<TObject, Long>) thrift
+                        .invertNullSafe(attribute)).spread();
             }
 
             @Override

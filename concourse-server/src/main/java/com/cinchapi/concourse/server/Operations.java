@@ -40,17 +40,22 @@ import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TSymbol;
+import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.DataServices;
+import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
@@ -88,6 +93,92 @@ final class Operations {
         else {
             throw AtomicStateException.RETRY;
         }
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values
+     * stored across {@code key} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     */
+    public static Number avgKeyAtomic(String key, long timestamp,
+            AtomicOperation atomic) {
+        Map<TObject, Set<Long>> data = timestamp == Time.NONE
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Number avg = 0;
+        int count = 0;
+        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
+            TObject tobject = entry.getKey();
+            Set<Long> records = entry.getValue();
+            Object value = Convert.thriftToJava(tobject);
+            Calculations.checkCalculatable(value);
+            Number number = (Number) value;
+            for(int i = 0; i < records.size(); ++i){
+                count++;
+                avg = Numbers.incrementalAverage(avg, number, count);
+            }
+        }
+        return avg;
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values in
+     * {@code key}/{@code record} at {@code timestamp} to the running
+     * {@code sum}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     */
+    public static Number avgKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        Set<TObject> values = timestamp == Time.NONE
+                ? atomic.select(key, record)
+                : atomic.select(key, record, timestamp);
+        Number sum = 0;
+        for (TObject value : values) {
+            Object object = Convert.thriftToJava(value);
+            Calculations.checkCalculatable(object);
+            Number number = (Number) object;
+            sum = Numbers.add(sum, number);
+        }
+        return Numbers.divide(sum, values.size());
+    }
+
+    /**
+     * Use the provided {@code atomic} operation to add each of the values
+     * stored for the
+     * {@code key} in each of the {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to use
+     * @return the new running sum
+     */
+    public static Number avgKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        int count = 0;
+        Number avg = 0;
+        for (long record : records) {
+            Set<TObject> values = timestamp == Time.NONE
+                    ? atomic.select(key, record)
+                    : atomic.select(key, record, timestamp);
+            for (TObject value : values) {
+                Object object = Convert.thriftToJava(value);
+                Calculations.checkCalculatable(object);
+                Number number = (Number) object;
+                count++;
+                avg = Numbers.incrementalAverage(avg, number, count);
+            }
+        }
+        return avg;
     }
 
     /**
@@ -229,51 +320,6 @@ final class Operations {
     }
 
     /**
-     * Atomically insert a list of {@link DeferredWrite deferred writes}. This
-     * method should only be called after all necessary calls to
-     * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
-     * made.
-     *
-     * @param deferred
-     * @param atomic
-     * @return {@code true} if all the writes are successful
-     */
-    public static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
-            AtomicOperation atomic) {
-        // NOTE: The validity of the key in each deferred write is assumed to
-        // have already been checked
-        for (DeferredWrite write : deferred) {
-            if(write.getValue() instanceof ResolvableLink) {
-                ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Queue<PostfixNotationSymbol> queue = Parser
-                        .toPostfixNotation(rlink.getCcl());
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findAtomic(queue, stack, atomic);
-                Set<Long> targets = stack.pop();
-                for (long target : targets) {
-                    if(target == write.getRecord()) {
-                        // Here, if the target and source are the same, we skip
-                        // instead of failing because we assume that the caller
-                        // is using a complex resolvable link criteria that
-                        // accidentally creates self links.
-                        continue;
-                    }
-                    TObject link = Convert.javaToThrift(Link.to(target));
-                    if(!atomic.add(write.getKey(), link, write.getRecord())) {
-                        return false;
-                    }
-                }
-            }
-            else if(!atomic.add(write.getKey(),
-                    Convert.javaToThrift(write.getValue()),
-                    write.getRecord())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Find data matching the criteria described by the {@code queue} or insert
      * each of the {@code objects} into a new record. Either way, place the
      * records that match the criteria or that contain the inserted data into
@@ -343,6 +389,51 @@ final class Operations {
     }
 
     /**
+     * Atomically insert a list of {@link DeferredWrite deferred writes}. This
+     * method should only be called after all necessary calls to
+     * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
+     * made.
+     *
+     * @param deferred
+     * @param atomic
+     * @return {@code true} if all the writes are successful
+     */
+    public static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
+            AtomicOperation atomic) {
+        // NOTE: The validity of the key in each deferred write is assumed to
+        // have already been checked
+        for (DeferredWrite write : deferred) {
+            if(write.getValue() instanceof ResolvableLink) {
+                ResolvableLink rlink = (ResolvableLink) write.getValue();
+                Queue<PostfixNotationSymbol> queue = Parser
+                        .toPostfixNotation(rlink.getCcl());
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                Operations.findAtomic(queue, stack, atomic);
+                Set<Long> targets = stack.pop();
+                for (long target : targets) {
+                    if(target == write.getRecord()) {
+                        // Here, if the target and source are the same, we skip
+                        // instead of failing because we assume that the caller
+                        // is using a complex resolvable link criteria that
+                        // accidentally creates self links.
+                        continue;
+                    }
+                    TObject link = Convert.javaToThrift(Link.to(target));
+                    if(!atomic.add(write.getKey(), link, write.getRecord())) {
+                        return false;
+                    }
+                }
+            }
+            else if(!atomic.add(write.getKey(),
+                    Convert.javaToThrift(write.getValue()),
+                    write.getRecord())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Do the work to jsonify (dump to json string) each of the {@code records},
      * possibly at {@code timestamp} (if it is greater than 0) using the
      * {@code store}.
@@ -368,6 +459,136 @@ final class Operations {
             array.add(object);
         }
         return array.size() == 1 ? array.get(0).toString() : array.toString();
+    }
+
+    public static Map<Long, Set<TObject>> navigateKeyQueueAtomic(String key,
+            Queue<PostfixNotationSymbol> queue, long timestamp,
+            AtomicOperation atomic) {
+        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+        findAtomic(queue, stack, atomic);
+        Set<Long> records = stack.pop();
+        return navigateKeyRecordsAtomic(key, records, timestamp, atomic);
+    }
+
+    /**
+     * Do the work to atomically to navigate all the values for a key in a
+     * record and if its of type {@value Type.LINK}, iterate until the key is
+     * not {@value Type.LINK} at timestamp and return a {@code TObject} using
+     * the provided atomic {@code operation}.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each record at the end of the navigation chain to
+     *         the
+     */
+    public static Map<Long, Set<TObject>> navigateKeyRecordAtomic(String key,
+            long record, long timestamp, AtomicOperation atomic) {
+        StringSplitter it = new StringSplitter(key, '.');
+        Set<Long> records = Sets.newHashSet(record);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        while (it.hasNext()) {
+            key = it.next();
+            Set<Long> nextRecords = Sets.newLinkedHashSet();
+            for (long rec : records) {
+                Set<TObject> values = timestamp == Time.NONE
+                        ? atomic.select(key, rec)
+                        : atomic.select(key, rec, timestamp);
+                if(!it.hasNext() && !values.isEmpty()) {
+                    result.put(rec, values);
+                }
+                else {
+                    values.forEach((value) -> {
+                        if(value.type == Type.LINK) {
+                            nextRecords.add(((Link) Convert.thriftToJava(value))
+                                    .longValue());
+                        }
+                    });
+                }
+            }
+            records = nextRecords;
+        }
+        return result;
+    }
+
+    public static Map<Long, Set<TObject>> navigateKeyRecordsAtomic(String key,
+            Set<Long> records, long timestamp, AtomicOperation atomic) {
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        for (long record : records) {
+            result.putAll(
+                    navigateKeyRecordAtomic(key, record, timestamp, atomic));
+        }
+        return result;
+    }
+
+    public static Map<Long, Map<String, Set<TObject>>> navigateKeysQueueAtomic(
+            List<String> keys, Queue<PostfixNotationSymbol> queue,
+            long timestamp, AtomicOperation atomic) {
+        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+        findAtomic(queue, stack, atomic);
+        Set<Long> records = stack.pop();
+        return navigateKeysRecordsAtomic(keys, records, timestamp, atomic);
+    }
+
+    /**
+     * Do the work to atomically to navigate all the values for all keys in a
+     * record and if its of type {@value Type.LINK}, iterate until the key is
+     * not {@value Type.LINK} and return the result.
+     * 
+     * @param List<String> keys
+     * @param record
+     * @param atomic
+     * @return Map<String, Set<TObject>> set of values.
+     * @throws ParseException
+     */
+    public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordAtomic(
+            List<String> keys, long record, long timestamp,
+            AtomicOperation atomic) {
+        Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
+        for (String k : keys) {
+            Map<Long, Set<TObject>> data = navigateKeyRecordAtomic(k, record,
+                    timestamp, atomic);
+            String key = LinkNavigation.getNavigationSchemeDestination(k);
+            data.forEach((rec, values) -> {
+                Map<String, Set<TObject>> vals = result.get(rec);
+                if(vals == null) {
+                    vals = Maps.newLinkedHashMap();
+                    result.put(rec, vals);
+                }
+                vals.put(key, values);
+            });
+        }
+        return result;
+    }
+
+    public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsAtomic(
+            List<String> keys, Set<Long> records, long timestamp,
+            AtomicOperation atomic) {
+        Map<Long, Map<String, Set<TObject>>> result = Maps.newLinkedHashMap();
+        for (long record : records) {
+            Map<Long, Map<String, Set<TObject>>> current = navigateKeysRecordAtomic(
+                    keys, record, timestamp, atomic);
+            current.forEach((rec, data) -> {
+                Map<String, Set<TObject>> stored = result.get(rec);
+                if(stored == null) {
+                    result.put(rec, data);
+                }
+                else {
+                    data.forEach((key, values) -> {
+                       Set<TObject> vals = stored.get(key);
+                       if(vals == null){
+                           stored.put(key, values);
+                       }
+                       else {
+                           vals.addAll(values);
+                       }
+                    });
+                }
+            });
+        }
+        return result;
+
     }
 
     /**
@@ -406,91 +627,6 @@ final class Operations {
                 atomic.add(key, value, record);
             }
         }
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored across {@code key} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     */
-    public static Number avgKeyAtomic(String key, long timestamp,
-            AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
-        Number avg = 0;
-        int count = 0;
-        for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-            TObject tobject = entry.getKey();
-            Set<Long> records = entry.getValue();
-            Object value = Convert.thriftToJava(tobject);
-            Calculations.checkCalculatable(value);
-            Number number = (Number) value;
-            number = Numbers.multiply(number, records.size());
-            count += records.size();
-            avg = Numbers.incrementalAverage(avg, number, count);
-        }
-        return avg;
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values in
-     * {@code key}/{@code record} at {@code timestamp} to the running
-     * {@code sum}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     */
-    public static Number avgKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
-        Number sum = 0;
-        for (TObject value : values) {
-            Object object = Convert.thriftToJava(value);
-            Calculations.checkCalculatable(object);
-            Number number = (Number) object;
-            sum = Numbers.add(sum, number);
-        }
-        return Numbers.divide(sum, values.size());
-    }
-
-    /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored for the
-     * {@code key} in each of the {@code records} at {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
-     * @return the new running sum
-     */
-    public static Number avgKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
-        int count = 0;
-        Number avg = 0;
-        for (long record : records) {
-            Set<TObject> values = timestamp == Time.NONE
-                    ? atomic.select(key, record)
-                    : atomic.select(key, record, timestamp);
-            for (TObject value : values) {
-                Object object = Convert.thriftToJava(value);
-                Calculations.checkCalculatable(object);
-                Number number = (Number) object;
-                count++;
-                avg = Numbers.incrementalAverage(avg, number, count);
-            }
-        }
-        return avg;
     }
 
     /**

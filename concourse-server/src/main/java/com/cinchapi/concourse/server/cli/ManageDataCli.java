@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,17 +15,36 @@
  */
 package com.cinchapi.concourse.server.cli;
 
-import org.apache.thrift.TException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
-import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.management.ConcourseManagementService;
+import org.reflections.Reflections;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.Parameters;
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.common.unsafe.RuntimeDynamics;
+import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.data.DataCli;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
- * A debugging tool that dumps the contents of a specified {@link Block}.
+ * A management CLI for debugging and managing Concourse Server data files.
  * 
  * @author Jeff Nelson
  */
-public final class ManageDataCli extends ManagementCli {
+public class ManageDataCli {
+
+    static {
+        Reflections.log = null;
+    }
 
     /**
      * Run the program...
@@ -33,62 +52,114 @@ public final class ManageDataCli extends ManagementCli {
      * @param args
      */
     public static void main(String... args) {
-        ManageDataCli cli = new ManageDataCli(args);
-        cli.run();
-    }
+        // NOTE: We only use JCommaner here to get the usage message
+        JCommander parser = new JCommander(new Object());
+        parser.setProgramName("data");
 
-    /**
-     * Construct a new instance.
-     *
-     * @param args
-     */
-    public ManageDataCli(String[] args) {
-        super(new DumpToolOptions(), args);
-    }
+        // Reflectively get all the commands that can be used for data
+        // management.
+        Map<String, Class<? extends DataCli>> commands = Maps.newHashMap();
+        Reflections reflections = new Reflections(
+                ManageDataCli.class.getPackage().getName());
+        Set<Class<? extends DataCli>> classes = Sets
+                .newTreeSet((c1, c2) -> c1.getName().compareTo(c2.getName()));
+        classes.addAll(reflections.getSubTypesOf(DataCli.class));
+        classes.forEach((clazz) -> {
+            // This is over engineering at its finest. The logic below use a ton
+            // of reflection hacks to properly configure JCommander
+            // auto-magically so that every CLI that extends DataCli just
+            // works. Normally, I wouldn't recommend suffering the performance
+            // hit that this requires for developer convenience, but CLIs are
+            // short lived and run in a separate jvm so its okay in this case :)
+            // - Jeff Nelson
+            String command = DataCli.getCommand(clazz);
+            commands.put(command, clazz);
+            String description = command + " an data";
+            for (Annotation annotation : clazz.getDeclaredAnnotations()) {
+                if(annotation
+                        .annotationType() == CommandLineInterfaceInformation.class) {
+                    description = ((CommandLineInterfaceInformation) annotation)
+                            .description();
+                    break;
+                }
+            }
+            final String _description = description;
+            Parameters annotation = new Parameters() {
 
-    @Override
-    protected void doTask(ConcourseManagementService.Client client) {
-        DumpToolOptions opts = ((DumpToolOptions) options);
-        if(((DumpToolOptions) options).id != null) {
+                @Override
+                public Class<? extends Annotation> annotationType() {
+                    return Parameters.class;
+                }
+
+                @Override
+                public String resourceBundle() {
+                    return "";
+                }
+
+                @Override
+                public String separators() {
+                    return null;
+                }
+
+                @Override
+                public String optionPrefixes() {
+                    return null;
+                }
+
+                @Override
+                public String commandDescription() {
+                    return _description;
+                }
+
+                @Override
+                public String commandDescriptionKey() {
+                    return null;
+                }
+
+                @Override
+                public String[] commandNames() {
+                    return null;
+                }
+
+            };
             try {
-                System.out.println(client.dump(opts.id, opts.environment,
-                            token));
+                Object object = RuntimeDynamics.newAnonymousObject();
+                Method method = Class.class.getDeclaredMethod("annotationData");
+                method.setAccessible(true);
+                Object annotationData = method.invoke(object.getClass());
+                Field field = annotationData.getClass()
+                        .getDeclaredField("annotations");
+                field.setAccessible(true);
+                Map<Class<? extends Annotation>, Annotation> annotations = Maps
+                        .newHashMapWithExpectedSize(1);
+                annotations.put(Parameters.class, annotation);
+                field.set(annotationData, annotations);
+                parser.addCommand(command, object);
             }
-            catch (TException e) {
-                die(e.getMessage());
+            catch (ReflectiveOperationException e) {
+                throw CheckedExceptions.throwAsRuntimeException(e);
             }
+        });
+        try {
+            parser.parse(args);
+        }
+        catch (ParameterException e) {
+            // We're not using JCommander properly anyway, so just ignore any
+            // exceptions it throws.
+        }
+        String command = args.length > 0 ? args[0].toLowerCase() : null;
+        args = args.length > 1
+                ? (String[]) Arrays.copyOfRange(args, 1, args.length)
+                : new String[] {};
+        Class<?> clazz = command != null ? commands.get(command) : null;
+        if(clazz != null) {
+            DataCli cli = (DataCli) Reflection.newInstance(clazz,
+                    new Object[] { args });
+            cli.run();
         }
         else {
-            System.out.println("These are the storage units "
-                    + "that are currently dumpable in the '" + opts.environment
-                    + "' environment, sorted in reverse chronological "
-                    + "order such that units holding newer data appear "
-                    + "first. Call this CLI with the `-i or --id` flag "
-                    + "followed by the id of the storage unit you want "
-                    + "to dump.");
-            try {
-                System.out.println(client.getDumpList(opts.environment,token));
-            }
-            catch (TException e) {
-                die(e.getMessage());
-            }
+            parser.usage();
         }
-
-    }
-
-    /**
-     * The options that can be passed to the main method of this script.
-     * 
-     * @author Jeff Nelson
-     */
-    private static class DumpToolOptions extends EnvironmentOptions {
-
-        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
-        public String id;
-
-        @Parameter(names = { "-l", "--list" }, description = "[DEPRECATED] List the ids of the blocks that can be dumped")
-        public boolean list;
-
     }
 
 }

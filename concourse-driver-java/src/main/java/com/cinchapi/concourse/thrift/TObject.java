@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.EnumSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.BitSet;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -38,9 +39,11 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Numbers;
 
 @SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked", "unused" })
 /**
@@ -53,6 +56,70 @@ public class TObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<TObject> {
+
+    /**
+     * A constant representing the largest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    private static final TObject POSITIVE_INFINITY = Convert
+            .javaToThrift(Long.MAX_VALUE);
+
+    /**
+     * A constant representing the smallest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    private static final TObject NEGATIVE_INFINITY = Convert
+            .javaToThrift(Long.MIN_VALUE);
+
+    /**
+     * Return a {@link Comparator} for {@link TObject} values.
+     * 
+     * @return a {@link TObject} {@link Comparator}
+     */
+    public static Comparator<TObject> comparator() {
+        // TODO: This is based on the Value#Sorter defined in concourse-server.
+        // At some point, it will make sense to use this as a canonical base and
+        // implement the Value comparator using this one.
+        return (v1, v2) -> {
+            if((v1 == POSITIVE_INFINITY && v2 == POSITIVE_INFINITY)
+                    || (v1 == NEGATIVE_INFINITY && v2 == NEGATIVE_INFINITY)) {
+                return 0;
+            }
+            else if(v1 == POSITIVE_INFINITY) {
+                return 1;
+            }
+            else if(v2 == POSITIVE_INFINITY) {
+                return -1;
+            }
+            else if(v1 == NEGATIVE_INFINITY) {
+                return -1;
+            }
+            else if(v2 == NEGATIVE_INFINITY) {
+                return 1;
+            }
+            else {
+                Object o1 = Convert.thriftToJava(v1);
+                Object o2 = Convert.thriftToJava(v2);
+                if(o1 instanceof Number && o2 instanceof Number
+                        && ((!(o1 instanceof Link) && !(o2 instanceof Link))
+                                || (o1 instanceof Link
+                                        && o2 instanceof Link))) {
+                    return Numbers.compare((Number) o1, (Number) o2);
+                }
+                else if(o1 instanceof Number) {
+                    return -1;
+                }
+                else if(o2 instanceof Number) {
+                    return 1;
+                }
+                else {
+                    return o1.toString().compareToIgnoreCase(o2.toString());
+                }
+            }
+        };
+    }
 
     // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
@@ -84,17 +151,21 @@ public class TObject implements
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
-        tmpMap.put(_Fields.DATA, new org.apache.thrift.meta_data.FieldMetaData(
-                "data", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.FieldValueMetaData(
-                        org.apache.thrift.protocol.TType.STRING, true)));
-        tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData(
-                "type", org.apache.thrift.TFieldRequirementType.REQUIRED,
-                new org.apache.thrift.meta_data.EnumMetaData(
-                        org.apache.thrift.protocol.TType.ENUM, Type.class)));
+        tmpMap.put(_Fields.DATA,
+                new org.apache.thrift.meta_data.FieldMetaData("data",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                Type.class)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
-                TObject.class, metaDataMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TObject.class, metaDataMap);
     }
 
     public ByteBuffer data; // required
@@ -176,8 +247,8 @@ public class TObject implements
 
         int lastComparison = 0;
 
-        lastComparison = Boolean.valueOf(isSetData()).compareTo(
-                other.isSetData());
+        lastComparison = Boolean.valueOf(isSetData())
+                .compareTo(other.isSetData());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -188,8 +259,8 @@ public class TObject implements
                 return lastComparison;
             }
         }
-        lastComparison = Boolean.valueOf(isSetType()).compareTo(
-                other.isSetType());
+        lastComparison = Boolean.valueOf(isSetType())
+                .compareTo(other.isSetType());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -277,8 +348,8 @@ public class TObject implements
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new int[] { data.hashCode(),
-                getInternalType().ordinal() });
+        return Arrays.hashCode(
+                new int[] { data.hashCode(), getInternalType().ordinal() });
     }
 
     /**
@@ -541,8 +612,8 @@ public class TObject implements
         public static _Fields findByThriftIdOrThrow(int fieldId) {
             _Fields fields = findByThriftId(fieldId);
             if(fields == null)
-                throw new IllegalArgumentException("Field " + fieldId
-                        + " doesn't exist!");
+                throw new IllegalArgumentException(
+                        "Field " + fieldId + " doesn't exist!");
             return fields;
         }
 

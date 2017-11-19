@@ -465,6 +465,7 @@ public final class Database extends BaseStore implements PermanentStore {
                         timestamp), Functions.VALUE_TO_TOBJECT);
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     @Override
     public void start() {
         if(!running) {

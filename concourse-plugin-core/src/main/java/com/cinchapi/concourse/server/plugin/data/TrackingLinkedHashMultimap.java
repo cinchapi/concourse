@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.server.plugin.data;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -40,17 +43,32 @@ public class TrackingLinkedHashMultimap<K, V> extends TrackingMultimap<K, V> {
      * @return the map
      */
     public static <K, V> TrackingLinkedHashMultimap<K, V> create() {
+        return create(null);
+    }
+
+    /**
+     * Return a new and empty {@link TrackingLinkedHashMultimap} that supports
+     * some features of the {@link SortedMap} interface by using the specified
+     * key {@code comparator}
+     * 
+     * @param comparator used to sort keys
+     * @return the map
+     */
+    public static <K, V> TrackingLinkedHashMultimap<K, V> create(
+            @Nullable Comparator<K> comparator) {
         return new TrackingLinkedHashMultimap<K, V>(
-                Maps.<K, Set<V>> newLinkedHashMap());
+                Maps.<K, Set<V>> newLinkedHashMap(), comparator);
     }
 
     /**
      * Construct a new instance.
      * 
      * @param delegate
+     * @param comparator
      */
-    protected TrackingLinkedHashMultimap(Map<K, Set<V>> delegate) {
-        super(delegate);
+    protected TrackingLinkedHashMultimap(Map<K, Set<V>> delegate,
+            @Nullable Comparator<K> comparator) {
+        super(delegate, comparator);
     }
 
     @Override
