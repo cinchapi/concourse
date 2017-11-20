@@ -72,7 +72,7 @@ final class RemoteInvocationThread extends Thread implements
      * invoking a local method on behalf of a remote request.
      */
     private final boolean useLocalThriftArgs;
-    
+
     /**
      * A {@link Logger}.
      */
@@ -115,6 +115,7 @@ final class RemoteInvocationThread extends Thread implements
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
+        this.logger = logger;
         setDaemon(true);
     }
 
