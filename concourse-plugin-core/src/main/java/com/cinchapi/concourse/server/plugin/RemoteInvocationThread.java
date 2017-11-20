@@ -19,6 +19,7 @@ import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
+import com.cinchapi.common.logging.Logger;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
@@ -35,8 +36,8 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-final class RemoteInvocationThread extends Thread
-        implements ConcourseRuntimeAuthorized {
+final class RemoteInvocationThread extends Thread implements
+        ConcourseRuntimeAuthorized {
 
     /**
      * A collection of responses from the upstream service. Made available for
@@ -71,6 +72,11 @@ final class RemoteInvocationThread extends Thread
      * invoking a local method on behalf of a remote request.
      */
     private final boolean useLocalThriftArgs;
+    
+    /**
+     * A {@link Logger}.
+     */
+    private final Logger logger;
 
     /**
      * Construct a new instance.
@@ -85,6 +91,25 @@ final class RemoteInvocationThread extends Thread
             InterProcessCommunication outgoing, Object invokable,
             boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
+        this(request, outgoing, invokable, useLocalThriftArgs, responses,
+                Logger.none());
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param request
+     * @param outgoing
+     * @param invokable
+     * @param useLocalThriftArgs
+     * @param responses
+     * @param logger
+     */
+    public RemoteInvocationThread(RemoteMethodRequest request,
+            InterProcessCommunication outgoing, Object invokable,
+            boolean useLocalThriftArgs,
+            ConcurrentMap<AccessToken, RemoteMethodResponse> responses,
+            Logger logger) {
         this.request = request;
         this.outgoing = outgoing;
         this.invokable = invokable;
@@ -153,6 +178,7 @@ final class RemoteInvocationThread extends Thread
         catch (Exception e) {
             e = (Exception) Throwables.getRootCause(e);
             response = new RemoteMethodResponse(request.creds, e);
+            logger.error("Remote invocation error: {}", e, e);
         }
         ByteBuffer buffer = serializer().serialize(response);
         outgoing.write(buffer);
