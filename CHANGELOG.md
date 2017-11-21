@@ -1,6 +1,8 @@
 ## Changelog
 
-#### Version X.Y.Z (TBD)
+#### Version 0.8.0 (TBD)
+
+#### Version 0.7.1 (TBD)
 * Added better error message for TApplicationException in CaSH.
 * Added more detailed information to the server and plugin log files about plugin errors.
 
