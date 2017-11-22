@@ -633,7 +633,7 @@ public final class Strings {
                     return d;
                 }
             }
-            else if(value == "-") { // CON-597
+            else if(value.equals("-")) { // CON-597
                 return null;
             }
             else {
