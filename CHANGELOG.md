@@ -3,6 +3,7 @@
 #### Version 0.8.0 (TBD)
 
 #### Version 0.7.1 (TBD)
+* Fixed a bug that caused an error in some cases of importing or inserting data that contained a value of `-`.
 * Added better error message for TApplicationException in CaSH.
 
 #### Version 0.7.0 (November 19, 2017)
