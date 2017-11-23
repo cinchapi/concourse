@@ -22,8 +22,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -197,6 +195,8 @@ public final class Engine extends BufferedStore implements
                                                 // than using an
                                                 // ExecutorService.
 
+    private Thread bufferTransportHangDetectionThread = null;
+
     /**
      * A flag that indicates whether the {@link BufferTransportThread} is
      * actively doing work at the moment. This flag is necessary so we don't
@@ -237,11 +237,6 @@ public final class Engine extends BufferedStore implements
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
-
-    /**
-     * A {@link Timer} that is used to schedule some regular tasks.
-     */
-    private final Timer scheduler = new Timer(true);
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
@@ -305,7 +300,8 @@ public final class Engine extends BufferedStore implements
      */
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
-        super(buffer, database, LockService.create(), RangeLockService.create());
+        super(buffer, database, LockService.create(),
+                RangeLockService.create());
         this.environment = environment;
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
@@ -352,15 +348,18 @@ public final class Engine extends BufferedStore implements
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
-                value, record, sync) : removeUnsafe(key, value, record, sync);
+        boolean accepted = write.getType() == Action.ADD
+                ? addUnsafe(key, value, record, sync)
+                : removeUnsafe(key, value, record, sync);
         if(!accepted) {
-            Logger.warn("Write {} was rejected by the Engine "
-                    + "because it was previously accepted "
-                    + "but not offset. This implies that a "
-                    + "premature shutdown occurred and the parent"
-                    + "Transaction is attempting to restore "
-                    + "itself from backup and finish committing.", write);
+            Logger.warn(
+                    "Write {} was rejected by the Engine "
+                            + "because it was previously accepted "
+                            + "but not offset. This implies that a "
+                            + "premature shutdown occurred and the parent"
+                            + "Transaction is attempting to restore "
+                            + "itself from backup and finish committing.",
+                    write);
         }
         else {
             Logger.debug("'{}' was accepted by the Engine", write);
@@ -622,8 +621,8 @@ public final class Engine extends BufferedStore implements
             for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
                     .asMap().entrySet()) {
                 VersionChangeListener listener = entry.getKey();
-                RangeSet<Value> set = entry.getValue().get(
-                        ((RangeToken) token).getKey());
+                RangeSet<Value> set = entry.getValue()
+                        .get(((RangeToken) token).getKey());
                 for (Range<Value> range : ranges) {
                     if(set != null && !set.subRangeSet(range).isEmpty()) {
                         listener.onVersionChange(token);
@@ -788,31 +787,34 @@ public final class Engine extends BufferedStore implements
             destination.start();
             buffer.start();
             doTransactionRecovery();
-            scheduler.scheduleAtFixedRate(
-                    new TimerTask() {
-
-                        @Override
-                        public void run() {
-                            if(!bufferTransportThreadIsDoingWork.get()
-                                    && !bufferTransportThreadIsPaused.get()
-                                    && bufferTransportThreadLastWakeUp.get() != 0
-                                    && TimeUnit.MILLISECONDS
-                                            .convert(
-                                                    Time.now()
-                                                            - bufferTransportThreadLastWakeUp
-                                                                    .get(),
-                                                    TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
-                                bufferTransportThreadHasEverAppearedHung
-                                        .set(true);
-                                bufferTransportThread.interrupt();
-                            }
-
+            bufferTransportHangDetectionThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        if(!bufferTransportThreadIsDoingWork.get()
+                                && !bufferTransportThreadIsPaused.get()
+                                && bufferTransportThreadLastWakeUp.get() != 0
+                                && TimeUnit.MILLISECONDS.convert(Time.now()
+                                        - bufferTransportThreadLastWakeUp.get(),
+                                        TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                            bufferTransportThreadHasEverAppearedHung.set(true);
+                            bufferTransportThread.interrupt();
                         }
+                        Thread.sleep(
+                                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+                    }
+                    catch (InterruptedException e) {
+                        break;
+                    }
+                }
 
-                    },
-                    BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
-                    BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+            });
+            bufferTransportHangDetectionThread.setDaemon(true);
+            bufferTransportHangDetectionThread.setPriority(Thread.MIN_PRIORITY);
+            bufferTransportHangDetectionThread.setName(Strings.format(
+                    "{}-buffer-transport-thread-hang-detector", environment));
+
             bufferTransportThread.start();
+            bufferTransportHangDetectionThread.start();
         }
     }
 
@@ -830,8 +832,10 @@ public final class Engine extends BufferedStore implements
     public void stop() {
         if(running) {
             running = false;
-            scheduler.cancel();
             buffer.stop();
+            if(bufferTransportHangDetectionThread != null) {
+                bufferTransportHangDetectionThread.interrupt();
+            }
             bufferTransportThread.interrupt();
             destination.stop();
             lockService.shutdown();
@@ -850,8 +854,8 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return inventory.contains(record) ? super
-                    .verify(key, value, record) : false;
+            return inventory.contains(record) ? super.verify(key, value, record)
+                    : false;
         }
         finally {
             read.unlock();
@@ -860,11 +864,13 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(String key, TObject value, long record,
+            long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value,
-                    record, timestamp) : false;
+            return inventory.contains(record)
+                    ? super.verify(key, value, record, timestamp)
+                    : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -875,8 +881,8 @@ public final class Engine extends BufferedStore implements
     public boolean verifyUnsafe(String key, TObject value, long record) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super
-                    .verify(key, value, record) : false;
+            return inventory.contains(record) ? super.verify(key, value, record)
+                    : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -912,8 +918,9 @@ public final class Engine extends BufferedStore implements
 
     @Override
     protected boolean verify(Write write, boolean lock) {
-        return inventory.contains(write.getRecord().longValue()) ? super
-                .verify(write, lock) : false;
+        return inventory.contains(write.getRecord().longValue())
+                ? super.verify(write, lock)
+                : false;
     }
 
     /**
@@ -1084,7 +1091,8 @@ public final class Engine extends BufferedStore implements
                 try {
                     // NOTE: This thread needs to sleep for a small amount of
                     // time to avoid thrashing
-                    int sleep = bufferTransportThreadSleepInMs > 0 ? bufferTransportThreadSleepInMs
+                    int sleep = bufferTransportThreadSleepInMs > 0
+                            ? bufferTransportThreadSleepInMs
                             : buffer.getDesiredTransportSleepTimeInMs();
                     Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());
