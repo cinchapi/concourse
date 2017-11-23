@@ -2,10 +2,12 @@
 
 #### Version 0.8.0 (TBD)
 
+#### Version 0.7.2 (TBD)
+* Added more detailed information to the server and plugin log files about plugin errors.
+
 #### Version 0.7.1 (November 22, 2017)
 * Fixed a bug that caused an error in some cases of importing or inserting data that contained a value of `-`.
 * Added better error message for TApplicationException in CaSH.
-* Added more detailed information to the server and plugin log files about plugin errors.
 
 #### Version 0.7.0 (November 19, 2017)
 * Added `navigate` methods that allow selecting data based on link traversal. For example, it is possible to select the names of the friends of record 1's friends by doing
