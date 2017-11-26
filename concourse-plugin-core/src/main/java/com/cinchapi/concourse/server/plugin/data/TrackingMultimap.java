@@ -399,9 +399,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the percent of keys of the {@code type}
      */
     public double percentKeyDataType(DataType type) {
-        return totalValueCount.get() == 0 ? 0
-                : ((double) keyTypeCounts[type.ordinal()].get())
-                        / totalValueCount.get();
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0
+                : ((double) keyTypeCounts[type.ordinal()].get()) / tvc;
     }
 
     /**
@@ -414,7 +414,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public double proportion(K element) {
         double frequency = data.get(element).size();
-        return frequency / totalValueCount.get();
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0 : frequency / tvc;
     }
 
     /**
