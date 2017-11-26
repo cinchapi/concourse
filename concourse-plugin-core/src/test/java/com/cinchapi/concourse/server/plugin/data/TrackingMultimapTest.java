@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.DataType;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Sets;
@@ -284,6 +285,13 @@ public class TrackingMultimapTest
         Assert.assertEquals(30, tmmap.max());
         tmmap.delete(30, 30L);
         Assert.assertEquals(4, tmmap.max());
+    }
+    
+    @Test
+    public void testPercentKeyDataTypeWhenEmpty() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
     }
 
     /**
