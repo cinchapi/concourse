@@ -80,6 +80,21 @@ public abstract class PluginStateContainer {
     }
 
     /**
+     * Return a {@link Bucket} that uses volatile memory and can be used for
+     * high performance general temporary storage for the duration of the
+     * session.
+     * <p>
+     * Calling this method again will return a different {@link Bucket} that
+     * does not share data with any other {@link Bucket buckets}.
+     * </p>
+     * 
+     * @return {@link Bucket} for temporary storage
+     */
+    public Bucket memoryStorage() {
+        return Bucket.memory();
+    }
+
+    /**
      * Return a {@link Bucket} that can be used for general temporary storage
      * for the duration of the session.
      * <p>
