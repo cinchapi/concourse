@@ -4,6 +4,7 @@
 
 #### Version 0.7.2 (TBD)
 * Added more detailed information to the server and plugin log files about plugin errors.
+* Added a `memoryStorage` option to the `PluginStateContainer` class.
 
 #### Version 0.7.1 (November 22, 2017)
 * Fixed a bug that caused an error in some cases of importing or inserting data that contained a value of `-`.
