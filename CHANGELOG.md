@@ -2,6 +2,11 @@
 
 #### Version 0.8.0 (TBD)
 
+#### Version 0.7.2 (November 26, 2017)
+* Added more detailed information to the server and plugin log files about plugin errors.
+* Fixed a bug where `TrackingMultimap#percentKeyDataType` returned `NaN` instead of `0` when the map was empty.
+* Added a `memoryStorage` option to the `PluginStateContainer` class.
+
 #### Version 0.7.1 (November 22, 2017)
 * Fixed a bug that caused an error in some cases of importing or inserting data that contained a value of `-`.
 * Added better error message for TApplicationException in CaSH.

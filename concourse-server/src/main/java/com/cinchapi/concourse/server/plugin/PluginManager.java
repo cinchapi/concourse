@@ -473,7 +473,9 @@ public class PluginManager {
             return response.response;
         }
         else {
-            throw Throwables.propagate(response.error);
+            throw new PluginException(
+                    Strings.format("An error occurred when invoking '{}' in '{}': ",
+                            method, clazz, response.error));
         }
     }
 
