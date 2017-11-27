@@ -151,7 +151,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * Create a new {@link ConcourseServer} instance that uses the specified
      * port and storage locations.
      * <p>
-     * In general, this factory should on be used by unit tests. Runtime
+     * In general, this factory should only be used by unit tests. Runtime
      * construction of the server should be done using the
      * {@link ConcourseServer#create()} method so that the preferences file is
      * used.
@@ -2776,6 +2776,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<ComplexTObject> params, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
+        checkAccess(creds, transaction);
         return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }

@@ -40,6 +40,7 @@ import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -59,6 +60,76 @@ import com.google.gson.stream.JsonToken;
  */
 @UtilityClass
 public final class Convert {
+
+    /**
+     * A mapping from strings that can be translated to {@link Operator
+     * operators} to the operations to which they can be translated.
+     */
+    @PackagePrivate
+    static Map<String, Operator> OPERATOR_STRINGS = ImmutableMap
+            .<String, Operator> builder()
+            // @formatter:off
+            .put("==", Operator.EQUALS)
+            .put("=", Operator.EQUALS)
+            .put("eq", Operator.EQUALS)
+            .put("!=", Operator.NOT_EQUALS)
+            .put("ne", Operator.NOT_EQUALS)
+            .put(">", Operator.GREATER_THAN)
+            .put("gt", Operator.GREATER_THAN)
+            .put(">=", Operator.GREATER_THAN_OR_EQUALS)
+            .put("gte", Operator.GREATER_THAN_OR_EQUALS)
+            .put("<", Operator.LESS_THAN)
+            .put("lt", Operator.LESS_THAN)
+            .put("<=", Operator.LESS_THAN_OR_EQUALS)
+            .put("lte", Operator.LESS_THAN_OR_EQUALS)
+            .put("><", Operator.BETWEEN)
+            .put("bw", Operator.BETWEEN)
+            .put("->", Operator.LINKS_TO)
+            .put("lnks2", Operator.LINKS_TO)
+            .put("lnk2", Operator.LINKS_TO)
+            .put("regex", Operator.REGEX)
+            .put("nregex", Operator.NOT_REGEX)
+            .put("like", Operator.LIKE)
+            .put("nlike", Operator.NOT_LIKE)
+            .build();
+            // @formatter:on
+
+    /**
+     * The component of a resolvable link symbol that comes after the
+     * resolvable key specification in the raw data.
+     */
+    @PackagePrivate
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = "@"; // visible
+                                                                 // for
+                                                                 // testing
+
+    /**
+     * The component of a resolvable link symbol that comes before the
+     * resolvable key specification in the raw data.
+     */
+    @PackagePrivate
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@"; // visible
+                                                                  // for
+                                                                  // testing
+
+    /**
+     * These classes have a special encoding that signals that string value
+     * should actually be converted to those instances in
+     * {@link #jsonToJava(JsonReader)}.
+     */
+    private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
+            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
+
+    /**
+     * A {@link Pattern} that can be used to determine whether a string matches
+     * the expected pattern of an instruction to insert links to records that
+     * are resolved by finding matches to a criteria.
+     */
+    // NOTE: This REGEX enforces that the string must contain at least one
+    // space, which means that a CCL string can only be considered valid if it
+    // contains a space (e.g. name=jeff is not valid CCL).
+    private static final Pattern STRING_RESOLVABLE_LINK_REGEX = Pattern
+            .compile("^@(?=.*[ ]).+@$");
 
     /**
      * Takes a JSON string representation of an object or an array of JSON
@@ -137,20 +208,6 @@ public final class Convert {
                 .newLinkedHashSetWithExpectedSize(objects.size());
         javaCollectionToThrift(objects, thrift);
         return thrift;
-    }
-
-    /**
-     * Return a Set that represents the Java representation of each of the
-     * {@code TObjects} in the input Set.
-     * 
-     * @param objects a Set of TObjects
-     * @return a Set of Java objects
-     */
-    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
-        Set<Object> java = Sets
-                .newLinkedHashSetWithExpectedSize(tobjects.size());
-        thriftCollectionToJava(tobjects, java);
-        return java;
     }
 
     /**
@@ -456,44 +513,13 @@ public final class Convert {
      *         {@code symbol}
      */
     public static Operator stringToOperator(String symbol) {
-        switch (symbol.toLowerCase()) {
-        case "==":
-        case "=":
-        case "eq":
-            return Operator.EQUALS;
-        case "!=":
-        case "ne":
-            return Operator.NOT_EQUALS;
-        case ">":
-        case "gt":
-            return Operator.GREATER_THAN;
-        case ">=":
-        case "gte":
-            return Operator.GREATER_THAN_OR_EQUALS;
-        case "<":
-        case "lt":
-            return Operator.LESS_THAN;
-        case "<=":
-        case "lte":
-            return Operator.LESS_THAN_OR_EQUALS;
-        case "><":
-        case "bw":
-            return Operator.BETWEEN;
-        case "->":
-        case "lnk2":
-        case "lnks2":
-            return Operator.LINKS_TO;
-        case "regex":
-            return Operator.REGEX;
-        case "nregex":
-            return Operator.NOT_REGEX;
-        case "like":
-            return Operator.LIKE;
-        case "nlike":
-            return Operator.NOT_LIKE;
-        default:
+        Operator operator = OPERATOR_STRINGS.get(symbol);
+        if(operator == null) {
             throw new IllegalStateException(
                     "Cannot parse " + symbol + " into an operator");
+        }
+        else {
+            return operator;
         }
     }
 
@@ -560,6 +586,20 @@ public final class Convert {
     }
 
     /**
+     * Return a Set that represents the Java representation of each of the
+     * {@code TObjects} in the input Set.
+     * 
+     * @param objects a Set of TObjects
+     * @return a Set of Java objects
+     */
+    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
+        Set<Object> java = Sets
+                .newLinkedHashSetWithExpectedSize(tobjects.size());
+        thriftCollectionToJava(tobjects, java);
+        return java;
+    }
+
+    /**
      * Return the Java Object that represents {@code object}.
      * 
      * @param object
@@ -615,21 +655,6 @@ public final class Convert {
             Collection<TObject> output) {
         for (Object elt : input) {
             output.add(javaToThrift(elt));
-        }
-    }
-
-    /**
-     * In-place implementation for converting a collection of TObjects to a
-     * typed {@code output} collection of java objects.
-     * 
-     * @param input the original collection to convert
-     * @param output the output collection into which the converted objects are
-     *            placed
-     */
-    private static void thriftCollectionToJava(Collection<TObject> input,
-            Collection<Object> output) {
-        for (TObject elt : input) {
-            output.add(thriftToJava(elt));
         }
     }
 
@@ -750,41 +775,19 @@ public final class Convert {
     }
 
     /**
-     * The component of a resolvable link symbol that comes after the
-     * resolvable key specification in the raw data.
+     * In-place implementation for converting a collection of TObjects to a
+     * typed {@code output} collection of java objects.
+     * 
+     * @param input the original collection to convert
+     * @param output the output collection into which the converted objects are
+     *            placed
      */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = "@"; // visible
-                                                                 // for
-                                                                 // testing
-
-    /**
-     * The component of a resolvable link symbol that comes before the
-     * resolvable key specification in the raw data.
-     */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@"; // visible
-                                                                  // for
-                                                                  // testing
-
-    /**
-     * These classes have a special encoding that signals that string value
-     * should actually be converted to those instances in
-     * {@link #jsonToJava(JsonReader)}.
-     */
-    private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
-            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
-
-    /**
-     * A {@link Pattern} that can be used to determine whether a string matches
-     * the expected pattern of an instruction to insert links to records that
-     * are resolved by finding matches to a criteria.
-     */
-    // NOTE: This REGEX enforces that the string must contain at least one
-    // space, which means that a CCL string can only be considered valid if it
-    // contains a space (e.g. name=jeff is not valid CCL).
-    private static final Pattern STRING_RESOLVABLE_LINK_REGEX = Pattern
-            .compile("^@(?=.*[ ]).+@$");
+    private static void thriftCollectionToJava(Collection<TObject> input,
+            Collection<Object> output) {
+        for (TObject elt : input) {
+            output.add(thriftToJava(elt));
+        }
+    }
 
     private Convert() {/* Utility Class */}
 

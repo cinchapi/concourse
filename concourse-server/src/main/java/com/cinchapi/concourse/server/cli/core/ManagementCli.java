@@ -216,6 +216,11 @@ public abstract class ManagementCli {
             try {
                 client.logout(token);
             }
+            catch (com.cinchapi.concourse.thrift.SecurityException e) {
+                // CON-590: The token has been invalidated, but we can ignore
+                // it at this point since the work that requires authorization
+                // has already been done.
+            }
             catch (TException e) {
                 e.printStackTrace();
             }

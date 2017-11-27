@@ -27,6 +27,19 @@ import com.cinchapi.bucket.Bucket;
 public abstract class PluginStateContainer {
 
     /**
+     * Return the directory where the plugin's configuration files are stored.
+     * <p>
+     * NOTE: To get the Plugin's runtime preferences, use the
+     * {@link Plugin#getConfig()} method.
+     * </p>
+     * 
+     * @return the configuration directory
+     */
+    public Path conf() {
+        return home().resolve("conf");
+    }
+
+    /**
      * Get the directory where the plugin store's data.
      * 
      * @return the data directory
@@ -64,6 +77,21 @@ public abstract class PluginStateContainer {
     public Bucket localStorage(String namespace) {
         Path file = data().resolve("local.db");
         return Bucket.persistent(file, namespace);
+    }
+
+    /**
+     * Return a {@link Bucket} that uses volatile memory and can be used for
+     * high performance general temporary storage for the duration of the
+     * session.
+     * <p>
+     * Calling this method again will return a different {@link Bucket} that
+     * does not share data with any other {@link Bucket buckets}.
+     * </p>
+     * 
+     * @return {@link Bucket} for temporary storage
+     */
+    public Bucket memoryStorage() {
+        return Bucket.memory();
     }
 
     /**
