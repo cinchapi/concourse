@@ -19,6 +19,13 @@
 # Ensure the script operates from the project root directory
 cd "${0%/*}"
 
+# Run initialization if it was not done previously
+INIT_SCRIPT="`dirname $0`"/init-repo.sh
+if [ -x $INIT_SCRIPT ]; then
+    echo "Initializing..."
+    bash $INIT_SCRIPT
+fi
+
 # Install mkdocs, if necessary
 command -v mkdocs >/dev/null 2>&1 || pip install mkdocs
 
