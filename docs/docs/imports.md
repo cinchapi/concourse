@@ -1,3 +1,0 @@
-# Importing Data
-
-## Resolution
