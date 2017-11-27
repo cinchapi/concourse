@@ -1,15 +1,16 @@
 # The Concourse Guide
 Welcome to the Concourse Guide!
 
-Concourse is an [open source](https://github.com/cinchapi/concourse), self-tuning database for both ACID transactions and ad hoc analytics across time. This Guide covers key concepts in Concourse, explains the [API](https://docs.cinchapi.com/concourse/api) through examples and provides advice for operations and administration.
+Concourse is an [open source](https://github.com/cinchapi/concourse), distributed database warehouse for transactions, search and analytics across time. This Guide covers key concepts in Concourse, explains the [API](https://docs.cinchapi.com/concourse/api) through examples and provides advice for operations and administration.
 
-For new features in Concourse 0.5, see [Release Notes for Concourse 0.5](/).
+For more information about new features in the latest release please see the [Concourse Release Notes](https://github.com/cinchapi/concourse/blob/develop/CHANGELOG.md).
 
 ## Getting Started
 
 ## Community
 
 ## Getting help
+Visit the Cinchapi Support Center at [https://support.cinchapi.com] to view knowledge base articles or file support requests.
 
 ## Licensing
 

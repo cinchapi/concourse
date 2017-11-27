@@ -181,9 +181,9 @@
 }
 
 body, input {
-  color: #585858;
+  color: #4D4D4D;
   font-family: 'Roboto', sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -257,6 +257,10 @@ pre code {
   color: #668DC5;
 }
 
+.md-typeset h1 {
+  color: #4D4D4D;
+}
+
 .md-typeset pre {
   padding: 25px;
   background-color: #585858;
@@ -268,5 +272,5 @@ pre code {
 }
 
 strong {
-  font-weight: 400;
+  font-weight: 500;
 }

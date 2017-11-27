@@ -14,6 +14,7 @@ pages:
     - Home: index.md
     - Introduction: introduction.md
     - Installation: installation.md
+    - Upgrade: upgrade.md
     - Data Types: data-types.md
     - Shell: shell.md
     - Writes: writes.md
