@@ -1213,6 +1213,310 @@ public class ConcourseServer extends BaseConcourseServer implements
         return transactions.remove(transaction).commit();
     }
 
+    @Override
+    @ThrowsThriftExceptions
+    public long countKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyAtomic(key, Time.NONE, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            long count = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    Operations.findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    count = Operations.countKeyRecordsAtomic(key, records,
+                            Time.NONE, atomic);
+                }
+                catch (AtomicStateException e) {
+                    count = 0;
+                    atomic = null;
+                }
+            }
+            return count;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            long count = 0;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    Operations.findAtomic(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    count = Operations.countKeyRecordsAtomic(key, records,
+                            timestamp, atomic);
+                }
+                catch (AtomicStateException e) {
+                    count = 0;
+                    atomic = null;
+                }
+            }
+            return count;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCclTimestr(String key, String ccl, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return countKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                Operations.findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                count = Operations.countKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+            }
+            catch (AtomicStateException e) {
+                count = 0;
+                atomic = null;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                Operations.findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                count = Operations.countKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                count = 0;
+                atomic = null;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return countKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyRecordAtomic(key, record, Time.NONE,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return countKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyRecordAtomic(key, record, timestamp,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyRecordTimestr(String key, long record, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return countKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        long count = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                count = Operations.countKeyAtomic(key, timestamp, atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                count = 0;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public long countKeyTimestr(String key, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return countKeyTime(key, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
+    }
+
     @Atomic
     @Batch
     @ThrowsThriftExceptions

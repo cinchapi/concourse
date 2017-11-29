@@ -34,6 +34,30 @@ public final class Calculations {
 
     /**
      * Return the canonical {@link KeyCalculation calculation} for finding the
+     * count of all values for a field .
+     * 
+     * @return the function
+     */
+    public static KeyCalculation countKey() {
+        return (running, value, records) -> {
+            return Numbers.add(running, records.size());
+        };
+    }
+
+    /**
+     * Return the canonical {@link KeyRecordCalculation} for finding the count
+     * of all the values store for a key in a record.
+     * 
+     * @return the function
+     */
+    public static KeyRecordCalculation countKeyRecord() {
+        return (running, value) -> {
+            return Numbers.add(running, 1);
+        };
+    }
+
+    /**
+     * Return the canonical {@link KeyCalculation calculation} for finding the
      * sum over an entire field.
      * 
      * @return the function
