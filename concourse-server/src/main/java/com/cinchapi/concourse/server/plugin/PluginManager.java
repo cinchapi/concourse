@@ -561,6 +561,16 @@ public class PluginManager {
          */
         FileSystem.deleteDirectory(home + File.separator + bundle);
     }
+    
+    protected void deactivate(String bundle) {
+        
+        /*
+         * TODO
+         * - get all the plugins that are associated with the bundle
+         * - stop the java app for each of those plugins
+         * 
+         */
+    }
 
     /**
      * Activating a {@code bundle} means that all the plugins with the bundle
