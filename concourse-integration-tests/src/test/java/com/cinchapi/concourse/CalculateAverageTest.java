@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Numbers;
@@ -57,6 +58,24 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 34;
         Timestamp timestamp = Timestamp.now();
+        client.add(key, 100, 2);
+        Number expected = client.calculate().average(key, "name = bar",
+                timestamp);
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
+    }
+    
+    @Test
+    public void testAverageKeyCclTimestr() {
+        String key = "age";
+        client.add("name", "foo", 1);
+        client.add(key, 30, 1);
+        client.add("name", "bar", 2);
+        client.add(key, 19, 2);
+        client.add("name", "bar", 2);
+        client.add(key, 15, 2);
+        int actual = 34;
+        Timestamp timestamp = Timestamp.fromString("1 second ago");
+        Threads.sleep(1000);
         client.add(key, 100, 2);
         Number expected = client.calculate().average(key, "name = bar",
                 timestamp);
