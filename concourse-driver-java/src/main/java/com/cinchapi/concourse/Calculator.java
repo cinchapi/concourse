@@ -229,8 +229,7 @@ public class Calculator {
 
     /**
      * Return the average of all the values at {@code timestamp} for {@code key}
-     * in
-     * each of the records that match the {@code criteria}.
+     * in each of the records that match the {@code criteria}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
      * thrown if any non-numeric values are encountered.
