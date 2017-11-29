@@ -387,6 +387,12 @@ abstract class StatefulConcourseService {
 
     RETURN_TRANSFORM.add("averageKeyCclTimestr");
 
+    CRITERIA_TRANSFORM.put("countKeyCriteria", 1);
+
+    CRITERIA_TRANSFORM.put("countKeyCriteriaTime", 1);
+
+    CRITERIA_TRANSFORM.put("countKeyCriteriaTimestr", 1);
+
     RETURN_TRANSFORM.add("navigateKeyRecord");
 
     RETURN_TRANSFORM.add("navigateKeyRecordTime");
@@ -825,6 +831,36 @@ abstract class StatefulConcourseService {
     public Object averageKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKey(String key) { throw new UnsupportedOperationException(); }
+
+    public long countKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyTimestr(String key, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public long countKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Map<Long,Set<Object>> navigateKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
