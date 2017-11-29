@@ -278,6 +278,228 @@ public class Calculator {
             return (Number) Convert.thriftToJava(result);
         });
     }
+    
+    /**
+     * Return the count of all the values stored for {@code key} in
+     * {@code record}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return the count of the values
+     */
+    public long count(String key, long record) {
+        return concourse.execute(() -> {
+            return concourse.thrift().countKeyRecord(key, record,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values stored across {@code key}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @return the count of the values
+     */
+    public long count(String key) {
+        return concourse.execute(() -> {
+            return concourse.thrift().countKey(key, concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values stored across {@code key} at
+     * {@code timestamp}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the count of the values
+     */
+    public long count(String key, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            return timestamp.isString()
+                    ? concourse.thrift().countKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().countKeyTime(key,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the count of the values
+     */
+    public long count(String key, long record, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            return timestamp.isString()
+                    ? concourse.thrift().countKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().countKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @return the count of the values
+     */
+    public long count(String key, Collection<Long> records) {
+        return concourse.execute(() -> {
+            return concourse.thrift().countKeyRecords(key,
+                    Collections.toLongList(records), concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the count of the values
+     */
+    public long count(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        return concourse.execute(() -> {
+            return timestamp.isString()
+                    ? concourse.thrift().countKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().countKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param {@link Criteria}
+     * @return the count of the values
+     */
+    public long count(String key, Criteria criteria) {
+        return concourse.execute(() -> {
+            return concourse.thrift().countKeyCriteria(key,
+                    Language.translateToThriftCriteria(criteria),
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl
+     * @return the count of the values
+     */
+    public long count(String key, String ccl) {
+        return concourse.execute(() -> {
+            return concourse.thrift().countKeyCcl(key, ccl, concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values at {@code timestamp} for {@code key}
+     * in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param criteria a criteria written using the Concourse Criteria Language
+     *            (CCL)
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public long count(String key, String ccl, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            return timestamp.isString()
+                    ? concourse.thrift().countKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().countKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * Return the count of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the count of the values
+     */
+    public long count(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            return timestamp.isString()
+                    ? concourse.thrift().countKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().countKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+        });
+    }
 
     /**
      * Return the sum of all the values stored across {@code key}.

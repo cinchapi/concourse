@@ -1,6 +1,10 @@
 ## Changelog
 
 #### Version 0.8.0 (TBD)
+* Added a `count` aggregation function that returns the number of values stored
+	* across a key,
+	* for a key in a record, or
+	* for a key in multiple records.
 
 #### Version 0.7.3 (TBD)
 * Fixed a bug that caused the temporal `average` and `sum` calculations to fail if the `timestamp` parameter was generated from a `String` instead of `long`.

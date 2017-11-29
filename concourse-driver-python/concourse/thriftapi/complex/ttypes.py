@@ -85,7 +85,7 @@ class ComplexTObject:
             complex.type = ComplexTObjectType.MAP
             tmap = {}
             print(obj)
-            for k, v in obj.items():
+            for k, v in list(obj.items()):
                 tmap[ComplexTObject.from_python_object(k)] = ComplexTObject.from_python_object(v)
             complex.tmap = tmap;
         elif isinstance(obj, list):
@@ -227,7 +227,7 @@ class ComplexTObject:
 
     def __repr__(self):
         L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
+             for key, value in list(self.__dict__.items())]
         return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
     def __eq__(self, other):
@@ -244,7 +244,7 @@ class ComplexTObject:
         """
         if self.type == ComplexTObjectType.MAP:
             ret = {}
-            for k, v in self.tmap.items():
+            for k, v in list(self.tmap.items()):
                 ret[k.get_python_object()] = v.get_python_object()
             return ret
         elif self.type == ComplexTObjectType.LIST:

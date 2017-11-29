@@ -108,7 +108,8 @@ final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+                ? atomic.browse(key)
+                : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -117,7 +118,7 @@ final class Operations {
             Object value = Convert.thriftToJava(tobject);
             Calculations.checkCalculatable(value);
             Number number = (Number) value;
-            for(int i = 0; i < records.size(); ++i){
+            for (int i = 0; i < records.size(); ++i) {
                 count++;
                 avg = Numbers.incrementalAverage(avg, number, count);
             }
@@ -231,6 +232,59 @@ final class Operations {
         }
         Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
         return queue;
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * across the {@code key} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyAtomic(String key, long timestamp,
+            AtomicOperation atomic) {
+        return calculateKeyAtomic(key, timestamp, 0, atomic,
+                Calculations.countKey()).longValue();
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+                Calculations.countKeyRecord()).longValue();
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        long count = 0;
+        for (long record : records) {
+            count = calculateKeyRecordAtomic(key, record, timestamp, count,
+                    atomic, Calculations.countKeyRecord()).longValue();
+        }
+        return count;
     }
 
     /**
@@ -450,7 +504,8 @@ final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -576,13 +631,13 @@ final class Operations {
                 }
                 else {
                     data.forEach((key, values) -> {
-                       Set<TObject> vals = stored.get(key);
-                       if(vals == null){
-                           stored.put(key, values);
-                       }
-                       else {
-                           vals.addAll(values);
-                       }
+                        Set<TObject> vals = stored.get(key);
+                        if(vals == null) {
+                            stored.put(key, values);
+                        }
+                        else {
+                            vals.addAll(values);
+                        }
                     });
                 }
             });
@@ -697,7 +752,8 @@ final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+                ? atomic.browse(key)
+                : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
