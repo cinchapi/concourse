@@ -317,51 +317,75 @@ abstract class StatefulConcourseService {
 
     RETURN_TRANSFORM.add("sumKeyRecord");
 
-    RETURN_TRANSFORM.add("sumKey");
-
-    RETURN_TRANSFORM.add("sumKeyTime");
-
     RETURN_TRANSFORM.add("sumKeyRecordTime");
+
+    RETURN_TRANSFORM.add("sumKeyRecordTimestr");
 
     RETURN_TRANSFORM.add("sumKeyRecords");
 
     RETURN_TRANSFORM.add("sumKeyRecordsTime");
 
+    RETURN_TRANSFORM.add("sumKeyRecordsTimestr");
+
+    RETURN_TRANSFORM.add("sumKey");
+
+    RETURN_TRANSFORM.add("sumKeyTime");
+
+    RETURN_TRANSFORM.add("sumKeyTimestr");
+
     RETURN_TRANSFORM.add("sumKeyCriteria");
 
     CRITERIA_TRANSFORM.put("sumKeyCriteria", 1);
-
-    RETURN_TRANSFORM.add("sumKeyCcl");
 
     RETURN_TRANSFORM.add("sumKeyCriteriaTime");
 
     CRITERIA_TRANSFORM.put("sumKeyCriteriaTime", 1);
 
+    RETURN_TRANSFORM.add("sumKeyCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("sumKeyCriteriaTimestr", 1);
+
+    RETURN_TRANSFORM.add("sumKeyCcl");
+
     RETURN_TRANSFORM.add("sumKeyCclTime");
+
+    RETURN_TRANSFORM.add("sumKeyCclTimestr");
 
     RETURN_TRANSFORM.add("averageKeyRecord");
 
-    RETURN_TRANSFORM.add("averageKey");
-
-    RETURN_TRANSFORM.add("averageKeyTime");
-
     RETURN_TRANSFORM.add("averageKeyRecordTime");
+
+    RETURN_TRANSFORM.add("averageKeyRecordTimestr");
 
     RETURN_TRANSFORM.add("averageKeyRecords");
 
     RETURN_TRANSFORM.add("averageKeyRecordsTime");
 
+    RETURN_TRANSFORM.add("averageKeyRecordsTimestr");
+
+    RETURN_TRANSFORM.add("averageKey");
+
+    RETURN_TRANSFORM.add("averageKeyTime");
+
+    RETURN_TRANSFORM.add("averageKeyTimestr");
+
     RETURN_TRANSFORM.add("averageKeyCriteria");
 
     CRITERIA_TRANSFORM.put("averageKeyCriteria", 1);
-
-    RETURN_TRANSFORM.add("averageKeyCcl");
 
     RETURN_TRANSFORM.add("averageKeyCriteriaTime");
 
     CRITERIA_TRANSFORM.put("averageKeyCriteriaTime", 1);
 
+    RETURN_TRANSFORM.add("averageKeyCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("averageKeyCriteriaTimestr", 1);
+
+    RETURN_TRANSFORM.add("averageKeyCcl");
+
     RETURN_TRANSFORM.add("averageKeyCclTime");
+
+    RETURN_TRANSFORM.add("averageKeyCclTimestr");
 
     RETURN_TRANSFORM.add("navigateKeyRecord");
 
@@ -744,43 +768,63 @@ abstract class StatefulConcourseService {
 
     public Object sumKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
-    public Object sumKey(String key) { throw new UnsupportedOperationException(); }
-
-    public Object sumKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
-
     public Object sumKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Object sumKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
 
     public Object sumKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
 
-    public Object sumKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+    public Object sumKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
 
-    public Object sumKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+    public Object sumKey(String key) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyTimestr(String key, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
 
     public Object sumKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
 
+    public Object sumKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
     public Object sumKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object sumKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
-    public Object averageKey(String key) { throw new UnsupportedOperationException(); }
-
-    public Object averageKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
-
     public Object averageKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
 
-    public Object averageKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+    public Object averageKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
 
-    public Object averageKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+    public Object averageKey(String key) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyTimestr(String key, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
 
     public Object averageKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
 
+    public Object averageKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
     public Object averageKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object averageKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Map<Long,Set<Object>> navigateKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
