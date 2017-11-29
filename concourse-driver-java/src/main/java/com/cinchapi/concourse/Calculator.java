@@ -58,8 +58,9 @@ public class Calculator {
      */
     public Number average(String key) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKey(key, concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = concourse.thrift().averageKey(key,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -97,10 +98,15 @@ public class Calculator {
     public Number average(String key, Collection<Long> records,
             Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecordsTime(key,
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -142,10 +148,15 @@ public class Calculator {
      */
     public Number average(String key, Criteria criteria, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCriteriaTime(key,
-                    Language.translateToThriftCriteria(criteria),
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -184,9 +195,13 @@ public class Calculator {
      */
     public Number average(String key, long record, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecordTime(key, record,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -213,8 +228,8 @@ public class Calculator {
     }
 
     /**
-     * Return the average of all the values at {@code timestamp} for {@code key} in
-     * each of the records that match the {@code criteria}.
+     * Return the average of all the values at {@code timestamp} for {@code key}
+     * in each of the records that match the {@code criteria}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
      * thrown if any non-numeric values are encountered.
@@ -228,9 +243,13 @@ public class Calculator {
      */
     public Number average(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCclTime(key, ccl,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -249,13 +268,17 @@ public class Calculator {
      */
     public Number average(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyTime(key,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyTime(key,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
-    
+
     /**
      * Return the sum of all the values stored across {@code key}.
      * <p>
@@ -307,10 +330,15 @@ public class Calculator {
     public Number sum(String key, Collection<Long> records,
             Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyRecordsTime(key,
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -352,10 +380,15 @@ public class Calculator {
      */
     public Number sum(String key, Criteria criteria, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyCriteriaTime(key,
-                    Language.translateToThriftCriteria(criteria),
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -394,9 +427,13 @@ public class Calculator {
      */
     public Number sum(String key, long record, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyRecordTime(key, record,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -438,9 +475,13 @@ public class Calculator {
      */
     public Number sum(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyCclTime(key, ccl,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -459,9 +500,13 @@ public class Calculator {
      */
     public Number sum(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyTime(key,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyTime(key, timestamp.getMicros(),
+                            concourse.creds(), concourse.transaction(),
+                            concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }

@@ -133,6 +133,25 @@ public class ConcourseServer extends BaseConcourseServer implements
         ConcourseService.Iface {
 
     /**
+     * Contains the credentials used by the {@link #accessManager}. This file is
+     * typically located in the root of the server installation.
+     */
+    private static final String ACCESS_FILE = ".access";
+
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
+
+    /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
@@ -327,25 +346,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     private static boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
     }
-
-    /**
-     * Contains the credentials used by the {@link #accessManager}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
-     * The minimum heap size required to run Concourse Server.
-     */
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-    /**
-     * The number of worker threads that Concourse Server uses.
-     */
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
 
     /**
      * The AccessManager controls access to the server.
@@ -700,6 +700,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject averageKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return averageKeyCclTime(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject averageKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -752,6 +762,16 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         }
         return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return averageKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -825,6 +845,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject averageKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return averageKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject averageKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -848,6 +878,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject averageKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return averageKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject averageKeyTime(String key, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -866,6 +906,15 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         }
         return Convert.javaToThrift(average);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject averageKeyTimestr(String key, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return averageKeyTime(key, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -1188,42 +1237,6 @@ public class ConcourseServer extends BaseConcourseServer implements
         return result;
     }
 
-    @Atomic
-    @HistoricalRead
-    @ThrowsThriftExceptions
-    public Set<String> describeTime(long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        Set<String> result = Sets.newLinkedHashSet();
-        AtomicOperation atomic = null;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Set<Long> records = store.getAllRecords();
-                for (long record : records) {
-                    result.addAll(store.describe(record, timestamp));
-                }
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-            }
-        }
-        return result;
-    }
-
-    @Atomic
-    @HistoricalRead
-    @ThrowsThriftExceptions
-    public Set<String> describeTimestr(String timestamp, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        return describeTime(NaturalLanguage.parseMicros(timestamp), creds,
-                transaction, environment);
-    }
-
     @Override
     @ThrowsThriftExceptions
     public Set<String> describeRecord(long record, AccessToken creds,
@@ -1304,6 +1317,42 @@ public class ConcourseServer extends BaseConcourseServer implements
         return describeRecordTime(record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTime(long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        Set<String> result = Sets.newLinkedHashSet();
+        AtomicOperation atomic = null;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Set<Long> records = store.getAllRecords();
+                for (long record : records) {
+                    result.addAll(store.describe(record, timestamp));
+                }
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+            }
+        }
+        return result;
+    }
+
+    @Atomic
+    @HistoricalRead
+    @ThrowsThriftExceptions
+    public Set<String> describeTimestr(String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        return describeTime(NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
@@ -4433,6 +4482,15 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject sumKeyCclTimestr(String key, String ccl, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return sumKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4485,6 +4543,16 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         }
         return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return sumKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4558,6 +4626,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject sumKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return sumKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4581,6 +4659,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
+    public TObject sumKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return sumKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
     public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
@@ -4599,6 +4687,15 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         }
         return Convert.javaToThrift(sum);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject sumKeyTimestr(String key, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return sumKeyTime(key, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
     }
 
     @Override
