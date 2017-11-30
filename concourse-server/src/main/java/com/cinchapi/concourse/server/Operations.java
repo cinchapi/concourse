@@ -516,6 +516,44 @@ final class Operations {
         return array.size() == 1 ? array.get(0).toString() : array.toString();
     }
 
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the min
+     * across all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the min
+     */
+    public static Number minKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, Long.MAX_VALUE,
+                atomic, Calculations.minKeyRecord());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the min
+     * across all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the min
+     */
+    public static Number minKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Number min = Long.MAX_VALUE;
+        for (long record : records) {
+            min = calculateKeyRecordAtomic(key, record, timestamp, min, atomic,
+                    Calculations.minKeyRecord());
+        }
+        return min;
+    }
+
     public static Map<Long, Set<TObject>> navigateKeyQueueAtomic(String key,
             Queue<PostfixNotationSymbol> queue, long timestamp,
             AtomicOperation atomic) {
@@ -775,7 +813,7 @@ final class Operations {
      * @param result the running result
      * @param atomic the {@link AtomicOperation} to use
      * @param calculation the calculation logic
-     * @return the result after appltying the {@code calculation}
+     * @return the result after applying the {@code calculation}
      */
     private static Number calculateKeyRecordAtomic(String key, long record,
             long timestamp, Number result, AtomicOperation atomic,
