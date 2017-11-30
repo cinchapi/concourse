@@ -66,7 +66,7 @@ public class CalculateMinTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 15;
         Timestamp timestamp = Timestamp.now();
-        client.add(key, 100, 2);
+        client.add(key, -1, 2);
         Number expected = client.calculate().min(key, "name = bar", timestamp);
         Assert.assertEquals(expected, actual);
     }
@@ -97,7 +97,7 @@ public class CalculateMinTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 15;
         Timestamp timestamp = Timestamp.now();
-        client.add(key, 100, 2);
+        client.add(key, -1, 2);
         Number expected = client.calculate()
                 .min(key, Criteria.where().key("age")
                         .operator(Operator.LESS_THAN).value(20).build(),
@@ -162,7 +162,7 @@ public class CalculateMinTest extends ConcourseIntegrationTest {
         client.add(key, 50, 2);
         int actual = 30;
         Timestamp timestamp = Timestamp.now();
-        client.add(key, 100, 2);
+        client.add(key, -1, 2);
         Number expected = client.calculate().min(key,
                 Lists.newArrayList(1L, 2L), timestamp);
         Assert.assertEquals(expected.intValue(), actual);
