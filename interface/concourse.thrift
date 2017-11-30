@@ -3698,6 +3698,170 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3);
 
+  data.TObject minKeyRecord(
+    1: string key,
+    2: i64 record,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyRecordTime(
+    1: string key,
+    2: i64 record,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyRecordTimestr(
+    1: string key,
+    2: i64 record,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKey(
+    1: string key,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyRecordsTime(
+    1: string key,
+    2: list<i64> records,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+   data.TObject minKeyRecordsTimestr(
+    1: string key,
+    2: list<i64> records,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKeyCriteria(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyCriteriaTime(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyCriteriaTimestr(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKeyCcl(
+    1: string key,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKeyCclTime(
+    1: string key,
+    2: string ccl,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKeyCclTimestr(
+    1: string key,
+    2: string ccl,
+    3: string timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3)
+
+    data.TObject minKeyTime(
+      1: string key,
+      2: i64 timestamp,
+      3: shared.AccessToken creds,
+      4: shared.TransactionToken transaction,
+      5: string environment)
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2);
+
+  data.TObject minKeyTimestr(
+    1: string key,
+    2: string timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3);
+
+  data.TObject minKeyRecords(
+    1: string key,
+    2: list<i64> records,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2);
+
   map<i64, set<data.TObject>> navigateKeyRecord(
     1: string key,
     2: i64 record,
