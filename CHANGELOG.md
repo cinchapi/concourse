@@ -5,6 +5,10 @@
 	* across a key,
 	* for a key in a record, or
 	* for a key in multiple records.
+* Added a `max` aggregation function that returns the largest numeric value stored
+	* across a key,
+	* for a key in a record, or
+	* for a key in multiple records.
 * Added a `min` aggregation function that returns the smallest numeric value stored
 	* across a key,
 	* for a key in a record, or
