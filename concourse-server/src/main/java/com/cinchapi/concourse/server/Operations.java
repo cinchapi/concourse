@@ -515,6 +515,44 @@ final class Operations {
         }
         return array.size() == 1 ? array.get(0).toString() : array.toString();
     }
+    
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the max
+     * across all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the max
+     */
+    public static Number maxKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, Long.MIN_VALUE,
+                atomic, Calculations.maxKeyRecord());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the max
+     * across all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the max
+     */
+    public static Number maxKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Number max = Long.MIN_VALUE;
+        for (long record : records) {
+            max = calculateKeyRecordAtomic(key, record, timestamp, max, atomic,
+                    Calculations.maxKeyRecord());
+        }
+        return max;
+    }
 
     /**
      * Join the {@link AtomicOperation atomic} operation to compute the min
