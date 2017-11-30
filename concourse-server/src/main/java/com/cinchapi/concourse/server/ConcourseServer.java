@@ -3221,181 +3221,25 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
-    public TObject minKeyRecord(String key, long record, AccessToken creds,
+    public TObject minKey(String key, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
-        Number min = 0;
+        TObject min = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                min = Operations.minKeyRecordAtomic(key, record, Time.NONE,
-                        atomic);
+                Map<TObject, Set<Long>> data = atomic.browse(key);
+                min = Iterables.getFirst(data.keySet(), min);
             }
             catch (AtomicStateException e) {
                 atomic = null;
-                min = 0;
+                min = null;
             }
         }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyRecordTime(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number min = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                min = Operations.minKeyRecordAtomic(key, record, timestamp,
-                        atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                min = 0;
-            }
-        }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyRecordTimestr(String key, long record,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return minKeyRecordTime(key, record,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
-
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyRecords(String key, List<Long> records,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number min = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                min = 0;
-            }
-        }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyRecordsTime(String key, List<Long> records,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number min = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                min = Operations.minKeyRecordsAtomic(key, records, timestamp,
-                        atomic);
-            }
-            catch (AtomicStateException e) {
-                atomic = null;
-                min = 0;
-            }
-        }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyRecordsTimestr(String key, List<Long> records,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return minKeyRecordsTime(key, records,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyCriteria(String key, TCriteria criteria,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number min = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findAtomic(queue, stack, atomic);
-                Set<Long> records = stack.pop();
-                min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic);
-            }
-            catch (AtomicStateException e) {
-                min = 0;
-                atomic = null;
-            }
-        }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyCriteriaTime(String key, TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicOperation atomic = null;
-        Number min = 0;
-        while (atomic == null || !atomic.commit()) {
-            atomic = store.startAtomicOperation();
-            try {
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findAtomic(queue, stack, atomic);
-                Set<Long> records = stack.pop();
-                min = Operations.minKeyRecordsAtomic(key, records, timestamp,
-                        atomic);
-            }
-            catch (AtomicStateException e) {
-                min = 0;
-                atomic = null;
-            }
-        }
-        return Convert.javaToThrift(min);
-    }
-
-    @Override
-    @ThrowsThriftExceptions
-    public TObject minKeyCriteriaTimestr(String key, TCriteria criteria,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return minKeyCriteriaTime(key, criteria,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
+        return min;
     }
 
     @Override
@@ -3474,25 +3318,181 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsThriftExceptions
-    public TObject minKey(String key, AccessToken creds,
+    public TObject minKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number min = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                Operations.findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                min = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        Queue<PostfixNotationSymbol> queue = Operations
+                .convertCriteriaToQueue(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number min = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                Operations.findAtomic(queue, stack, atomic);
+                Set<Long> records = stack.pop();
+                min = Operations.minKeyRecordsAtomic(key, records, timestamp,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                min = 0;
+                atomic = null;
+            }
+        }
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return minKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
-        TObject min = null;
+        Number min = 0;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Map<TObject, Set<Long>> data = atomic.browse(key);
-                min = Iterables.getFirst(data.keySet(), min);
+                min = Operations.minKeyRecordAtomic(key, record, Time.NONE,
+                        atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
-                min = null;
+                min = 0;
             }
         }
-        return min;
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number min = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                min = 0;
+            }
+        }
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number min = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                min = Operations.minKeyRecordsAtomic(key, records, timestamp,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                min = 0;
+            }
+        }
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return minKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicOperation atomic = null;
+        Number min = 0;
+        while (atomic == null || !atomic.commit()) {
+            atomic = store.startAtomicOperation();
+            try {
+                min = Operations.minKeyRecordAtomic(key, record, timestamp,
+                        atomic);
+            }
+            catch (AtomicStateException e) {
+                atomic = null;
+                min = 0;
+            }
+        }
+        return Convert.javaToThrift(min);
+    }
+
+    @Override
+    @ThrowsThriftExceptions
+    public TObject minKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return minKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+
     }
 
     @Override
