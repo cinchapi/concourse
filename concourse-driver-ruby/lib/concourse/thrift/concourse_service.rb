@@ -3627,6 +3627,268 @@ module Concourse
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'countKeyCclTimestr failed: unknown result')
         end
 
+        def minKeyRecord(key, record, creds, transaction, environment)
+          send_minKeyRecord(key, record, creds, transaction, environment)
+          return recv_minKeyRecord()
+        end
+
+        def send_minKeyRecord(key, record, creds, transaction, environment)
+          send_message('minKeyRecord', MinKeyRecord_args, :key => key, :record => record, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecord()
+          result = receive_message(MinKeyRecord_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecord failed: unknown result')
+        end
+
+        def minKeyRecordTime(key, record, timestamp, creds, transaction, environment)
+          send_minKeyRecordTime(key, record, timestamp, creds, transaction, environment)
+          return recv_minKeyRecordTime()
+        end
+
+        def send_minKeyRecordTime(key, record, timestamp, creds, transaction, environment)
+          send_message('minKeyRecordTime', MinKeyRecordTime_args, :key => key, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecordTime()
+          result = receive_message(MinKeyRecordTime_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecordTime failed: unknown result')
+        end
+
+        def minKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+          send_minKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+          return recv_minKeyRecordTimestr()
+        end
+
+        def send_minKeyRecordTimestr(key, record, timestamp, creds, transaction, environment)
+          send_message('minKeyRecordTimestr', MinKeyRecordTimestr_args, :key => key, :record => record, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecordTimestr()
+          result = receive_message(MinKeyRecordTimestr_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecordTimestr failed: unknown result')
+        end
+
+        def minKey(key, creds, transaction, environment)
+          send_minKey(key, creds, transaction, environment)
+          return recv_minKey()
+        end
+
+        def send_minKey(key, creds, transaction, environment)
+          send_message('minKey', MinKey_args, :key => key, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKey()
+          result = receive_message(MinKey_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKey failed: unknown result')
+        end
+
+        def minKeyRecordsTime(key, records, timestamp, creds, transaction, environment)
+          send_minKeyRecordsTime(key, records, timestamp, creds, transaction, environment)
+          return recv_minKeyRecordsTime()
+        end
+
+        def send_minKeyRecordsTime(key, records, timestamp, creds, transaction, environment)
+          send_message('minKeyRecordsTime', MinKeyRecordsTime_args, :key => key, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecordsTime()
+          result = receive_message(MinKeyRecordsTime_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecordsTime failed: unknown result')
+        end
+
+        def minKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+          send_minKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+          return recv_minKeyRecordsTimestr()
+        end
+
+        def send_minKeyRecordsTimestr(key, records, timestamp, creds, transaction, environment)
+          send_message('minKeyRecordsTimestr', MinKeyRecordsTimestr_args, :key => key, :records => records, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecordsTimestr()
+          result = receive_message(MinKeyRecordsTimestr_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecordsTimestr failed: unknown result')
+        end
+
+        def minKeyCriteria(key, criteria, creds, transaction, environment)
+          send_minKeyCriteria(key, criteria, creds, transaction, environment)
+          return recv_minKeyCriteria()
+        end
+
+        def send_minKeyCriteria(key, criteria, creds, transaction, environment)
+          send_message('minKeyCriteria', MinKeyCriteria_args, :key => key, :criteria => criteria, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCriteria()
+          result = receive_message(MinKeyCriteria_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCriteria failed: unknown result')
+        end
+
+        def minKeyCriteriaTime(key, criteria, timestamp, creds, transaction, environment)
+          send_minKeyCriteriaTime(key, criteria, timestamp, creds, transaction, environment)
+          return recv_minKeyCriteriaTime()
+        end
+
+        def send_minKeyCriteriaTime(key, criteria, timestamp, creds, transaction, environment)
+          send_message('minKeyCriteriaTime', MinKeyCriteriaTime_args, :key => key, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCriteriaTime()
+          result = receive_message(MinKeyCriteriaTime_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCriteriaTime failed: unknown result')
+        end
+
+        def minKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+          send_minKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+          return recv_minKeyCriteriaTimestr()
+        end
+
+        def send_minKeyCriteriaTimestr(key, criteria, timestamp, creds, transaction, environment)
+          send_message('minKeyCriteriaTimestr', MinKeyCriteriaTimestr_args, :key => key, :criteria => criteria, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCriteriaTimestr()
+          result = receive_message(MinKeyCriteriaTimestr_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCriteriaTimestr failed: unknown result')
+        end
+
+        def minKeyCcl(key, ccl, creds, transaction, environment)
+          send_minKeyCcl(key, ccl, creds, transaction, environment)
+          return recv_minKeyCcl()
+        end
+
+        def send_minKeyCcl(key, ccl, creds, transaction, environment)
+          send_message('minKeyCcl', MinKeyCcl_args, :key => key, :ccl => ccl, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCcl()
+          result = receive_message(MinKeyCcl_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCcl failed: unknown result')
+        end
+
+        def minKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
+          send_minKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
+          return recv_minKeyCclTime()
+        end
+
+        def send_minKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
+          send_message('minKeyCclTime', MinKeyCclTime_args, :key => key, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCclTime()
+          result = receive_message(MinKeyCclTime_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCclTime failed: unknown result')
+        end
+
+        def minKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+          send_minKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+          return recv_minKeyCclTimestr()
+        end
+
+        def send_minKeyCclTimestr(key, ccl, timestamp, creds, transaction, environment)
+          send_message('minKeyCclTimestr', MinKeyCclTimestr_args, :key => key, :ccl => ccl, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyCclTimestr()
+          result = receive_message(MinKeyCclTimestr_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyCclTimestr failed: unknown result')
+        end
+
+        def minKeyTime(key, timestamp, creds, transaction, environment)
+          send_minKeyTime(key, timestamp, creds, transaction, environment)
+          return recv_minKeyTime()
+        end
+
+        def send_minKeyTime(key, timestamp, creds, transaction, environment)
+          send_message('minKeyTime', MinKeyTime_args, :key => key, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyTime()
+          result = receive_message(MinKeyTime_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyTime failed: unknown result')
+        end
+
+        def minKeyTimestr(key, timestamp, creds, transaction, environment)
+          send_minKeyTimestr(key, timestamp, creds, transaction, environment)
+          return recv_minKeyTimestr()
+        end
+
+        def send_minKeyTimestr(key, timestamp, creds, transaction, environment)
+          send_message('minKeyTimestr', MinKeyTimestr_args, :key => key, :timestamp => timestamp, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyTimestr()
+          result = receive_message(MinKeyTimestr_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise result.ex3 unless result.ex3.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyTimestr failed: unknown result')
+        end
+
+        def minKeyRecords(key, records, creds, transaction, environment)
+          send_minKeyRecords(key, records, creds, transaction, environment)
+          return recv_minKeyRecords()
+        end
+
+        def send_minKeyRecords(key, records, creds, transaction, environment)
+          send_message('minKeyRecords', MinKeyRecords_args, :key => key, :records => records, :creds => creds, :transaction => transaction, :environment => environment)
+        end
+
+        def recv_minKeyRecords()
+          result = receive_message(MinKeyRecords_result)
+          return result.success unless result.success.nil?
+          raise result.ex unless result.ex.nil?
+          raise result.ex2 unless result.ex2.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'minKeyRecords failed: unknown result')
+        end
+
         def navigateKeyRecord(key, record, creds, transaction, environment)
           send_navigateKeyRecord(key, record, creds, transaction, environment)
           return recv_navigateKeyRecord()
@@ -7023,6 +7285,215 @@ module Concourse
             result.ex3 = ex3
           end
           write_result(result, oprot, 'countKeyCclTimestr', seqid)
+        end
+
+        def process_minKeyRecord(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecord_args)
+          result = MinKeyRecord_result.new()
+          begin
+            result.success = @handler.minKeyRecord(args.key, args.record, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyRecord', seqid)
+        end
+
+        def process_minKeyRecordTime(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecordTime_args)
+          result = MinKeyRecordTime_result.new()
+          begin
+            result.success = @handler.minKeyRecordTime(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyRecordTime', seqid)
+        end
+
+        def process_minKeyRecordTimestr(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecordTimestr_args)
+          result = MinKeyRecordTimestr_result.new()
+          begin
+            result.success = @handler.minKeyRecordTimestr(args.key, args.record, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyRecordTimestr', seqid)
+        end
+
+        def process_minKey(seqid, iprot, oprot)
+          args = read_args(iprot, MinKey_args)
+          result = MinKey_result.new()
+          begin
+            result.success = @handler.minKey(args.key, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKey', seqid)
+        end
+
+        def process_minKeyRecordsTime(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecordsTime_args)
+          result = MinKeyRecordsTime_result.new()
+          begin
+            result.success = @handler.minKeyRecordsTime(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyRecordsTime', seqid)
+        end
+
+        def process_minKeyRecordsTimestr(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecordsTimestr_args)
+          result = MinKeyRecordsTimestr_result.new()
+          begin
+            result.success = @handler.minKeyRecordsTimestr(args.key, args.records, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyRecordsTimestr', seqid)
+        end
+
+        def process_minKeyCriteria(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCriteria_args)
+          result = MinKeyCriteria_result.new()
+          begin
+            result.success = @handler.minKeyCriteria(args.key, args.criteria, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyCriteria', seqid)
+        end
+
+        def process_minKeyCriteriaTime(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCriteriaTime_args)
+          result = MinKeyCriteriaTime_result.new()
+          begin
+            result.success = @handler.minKeyCriteriaTime(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyCriteriaTime', seqid)
+        end
+
+        def process_minKeyCriteriaTimestr(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCriteriaTimestr_args)
+          result = MinKeyCriteriaTimestr_result.new()
+          begin
+            result.success = @handler.minKeyCriteriaTimestr(args.key, args.criteria, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyCriteriaTimestr', seqid)
+        end
+
+        def process_minKeyCcl(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCcl_args)
+          result = MinKeyCcl_result.new()
+          begin
+            result.success = @handler.minKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyCcl', seqid)
+        end
+
+        def process_minKeyCclTime(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCclTime_args)
+          result = MinKeyCclTime_result.new()
+          begin
+            result.success = @handler.minKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyCclTime', seqid)
+        end
+
+        def process_minKeyCclTimestr(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyCclTimestr_args)
+          result = MinKeyCclTimestr_result.new()
+          begin
+            result.success = @handler.minKeyCclTimestr(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyCclTimestr', seqid)
+        end
+
+        def process_minKeyTime(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyTime_args)
+          result = MinKeyTime_result.new()
+          begin
+            result.success = @handler.minKeyTime(args.key, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyTime', seqid)
+        end
+
+        def process_minKeyTimestr(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyTimestr_args)
+          result = MinKeyTimestr_result.new()
+          begin
+            result.success = @handler.minKeyTimestr(args.key, args.timestamp, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          rescue ::Concourse::ParseException => ex3
+            result.ex3 = ex3
+          end
+          write_result(result, oprot, 'minKeyTimestr', seqid)
+        end
+
+        def process_minKeyRecords(seqid, iprot, oprot)
+          args = read_args(iprot, MinKeyRecords_args)
+          result = MinKeyRecords_result.new()
+          begin
+            result.success = @handler.minKeyRecords(args.key, args.records, args.creds, args.transaction, args.environment)
+          rescue ::Concourse::SecurityException => ex
+            result.ex = ex
+          rescue ::Concourse::TransactionException => ex2
+            result.ex2 = ex2
+          end
+          write_result(result, oprot, 'minKeyRecords', seqid)
         end
 
         def process_navigateKeyRecord(seqid, iprot, oprot)
@@ -16888,6 +17359,694 @@ module Concourse
           EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
           EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
           EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecord_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORD = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecord_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordTime_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORD = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+          TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordTime_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordTimestr_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORD = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+          TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordTimestr_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKey_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CREDS = 2
+        TRANSACTION = 3
+        ENVIRONMENT = 4
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKey_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordsTime_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORDS = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+          TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordsTime_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordsTimestr_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORDS = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+          TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecordsTimestr_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteria_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CRITERIA = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::Concourse::Thrift::TCriteria},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteria_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteriaTime_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CRITERIA = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::Concourse::Thrift::TCriteria},
+          TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteriaTime_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteriaTimestr_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CRITERIA = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CRITERIA => {:type => ::Thrift::Types::STRUCT, :name => 'criteria', :class => ::Concourse::Thrift::TCriteria},
+          TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCriteriaTimestr_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCcl_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CCL = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCcl_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCclTime_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CCL = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+          TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCclTime_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCclTimestr_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        CCL = 2
+        TIMESTAMP = 3
+        CREDS = 4
+        TRANSACTION = 5
+        ENVIRONMENT = 6
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          CCL => {:type => ::Thrift::Types::STRING, :name => 'ccl'},
+          TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyCclTimestr_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyTime_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        TIMESTAMP = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyTime_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyTimestr_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        TIMESTAMP = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          TIMESTAMP => {:type => ::Thrift::Types::STRING, :name => 'timestamp'},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyTimestr_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+        EX3 = 3
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException},
+          EX3 => {:type => ::Thrift::Types::STRUCT, :name => 'ex3', :class => ::Concourse::ParseException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecords_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        KEY = 1
+        RECORDS = 2
+        CREDS = 3
+        TRANSACTION = 4
+        ENVIRONMENT = 5
+
+        FIELDS = {
+          KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+          RECORDS => {:type => ::Thrift::Types::LIST, :name => 'records', :element => {:type => ::Thrift::Types::I64}},
+          CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::Concourse::Thrift::AccessToken},
+          TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::Concourse::Thrift::TransactionToken},
+          ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class MinKeyRecords_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        EX = 1
+        EX2 = 2
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Concourse::Thrift::TObject},
+          EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::Concourse::SecurityException},
+          EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::Concourse::TransactionException}
         }
 
         def struct_fields; FIELDS; end

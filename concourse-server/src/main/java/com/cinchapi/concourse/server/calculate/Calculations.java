@@ -57,6 +57,18 @@ public final class Calculations {
     }
 
     /**
+     * Return the canonical {@link KeyRecordCalculation} for finding the min
+     * over all the values store for a key in a record.
+     * 
+     * @return the function
+     */
+    public static KeyRecordCalculation minKeyRecord() {
+        return (running, value) -> {
+            return Numbers.min(running, value);
+        };
+    }
+
+    /**
      * Return the canonical {@link KeyCalculation calculation} for finding the
      * sum over an entire field.
      * 

@@ -393,6 +393,42 @@ abstract class StatefulConcourseService {
 
     CRITERIA_TRANSFORM.put("countKeyCriteriaTimestr", 1);
 
+    RETURN_TRANSFORM.add("minKeyRecord");
+
+    RETURN_TRANSFORM.add("minKeyRecordTime");
+
+    RETURN_TRANSFORM.add("minKeyRecordTimestr");
+
+    RETURN_TRANSFORM.add("minKey");
+
+    RETURN_TRANSFORM.add("minKeyRecordsTime");
+
+    RETURN_TRANSFORM.add("minKeyRecordsTimestr");
+
+    RETURN_TRANSFORM.add("minKeyCriteria");
+
+    CRITERIA_TRANSFORM.put("minKeyCriteria", 1);
+
+    RETURN_TRANSFORM.add("minKeyCriteriaTime");
+
+    CRITERIA_TRANSFORM.put("minKeyCriteriaTime", 1);
+
+    RETURN_TRANSFORM.add("minKeyCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("minKeyCriteriaTimestr", 1);
+
+    RETURN_TRANSFORM.add("minKeyCcl");
+
+    RETURN_TRANSFORM.add("minKeyCclTime");
+
+    RETURN_TRANSFORM.add("minKeyCclTimestr");
+
+    RETURN_TRANSFORM.add("minKeyTime");
+
+    RETURN_TRANSFORM.add("minKeyTimestr");
+
+    RETURN_TRANSFORM.add("minKeyRecords");
+
     RETURN_TRANSFORM.add("navigateKeyRecord");
 
     RETURN_TRANSFORM.add("navigateKeyRecordTime");
@@ -861,6 +897,36 @@ abstract class StatefulConcourseService {
     public long countKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
 
     public long countKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKey(String key) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyTimestr(String key, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object minKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
 
     public Map<Long,Set<Object>> navigateKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
