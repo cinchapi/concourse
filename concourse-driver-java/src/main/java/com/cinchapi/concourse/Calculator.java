@@ -502,6 +502,238 @@ public class Calculator {
     }
 
     /**
+     * Return the max of all the values stored across {@code key}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @return the max of the values
+     */
+    public Number max(String key) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().maxKey(key, concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @return the max of the values
+     */
+    public Number max(String key, Collection<Long> records) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().maxKeyRecords(key,
+                    Collections.toLongList(records), concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the max of the values
+     */
+    public Number max(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().maxKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().maxKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param {@link Criteria}
+     * @return the max of the values
+     */
+    public Number max(String key, Criteria criteria) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().maxKeyCriteria(key,
+                    Language.translateToThriftCriteria(criteria),
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the max of the values
+     */
+    public Number max(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().maxKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().maxKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values stored for {@code key} in
+     * {@code record}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return the max of the values
+     */
+    public Number max(String key, long record) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().maxKeyRecord(key, record,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the max of the values
+     */
+    public Number max(String key, long record, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().maxKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().maxKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl
+     * @return the max of the values
+     */
+    public Number max(String key, String ccl) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().maxKeyCcl(key, ccl,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values at {@code timestamp} for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param criteria a criteria written using the Concourse Criteria Language
+     *            (CCL)
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public Number max(String key, String ccl, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().maxKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().maxKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the max of all the values stored across {@code key} at
+     * {@code timestamp}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the max of the values
+     */
+    public Number max(String key, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().maxKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().maxKeyTime(key, timestamp.getMicros(),
+                            concourse.creds(), concourse.transaction(),
+                            concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
      * Return the min of all the values stored across {@code key}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
