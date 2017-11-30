@@ -278,7 +278,7 @@ public class Calculator {
             return (Number) Convert.thriftToJava(result);
         });
     }
-    
+
     /**
      * Return the count of all the values stored for {@code key} in
      * {@code record}.
@@ -498,6 +498,238 @@ public class Calculator {
                             Language.translateToThriftCriteria(criteria),
                             timestamp.getMicros(), concourse.creds(),
                             concourse.transaction(), concourse.environment());
+        });
+    }
+
+    /**
+     * Return the min of all the values stored for {@code key} in
+     * {@code record}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return the min of the values
+     */
+    public Number min(String key, long record) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().minKeyRecord(key, record,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values stored across {@code key}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @return the min of the values
+     */
+    public Number min(String key) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().minKey(key, concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values stored across {@code key} at
+     * {@code timestamp}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the min of the values
+     */
+    public Number min(String key, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().minKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().minKeyTime(key, timestamp.getMicros(),
+                            concourse.creds(), concourse.transaction(),
+                            concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the min of the values
+     */
+    public Number min(String key, long record, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().minKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().minKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @return the min of the values
+     */
+    public Number min(String key, Collection<Long> records) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().minKeyRecords(key,
+                    Collections.toLongList(records), concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the min of the values
+     */
+    public Number min(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().minKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().minKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param {@link Criteria}
+     * @return the min of the values
+     */
+    public Number min(String key, Criteria criteria) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().minKeyCriteria(key,
+                    Language.translateToThriftCriteria(criteria),
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl
+     * @return the min of the values
+     */
+    public Number min(String key, String ccl) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().minKeyCcl(key, ccl,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values at {@code timestamp} for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param criteria a criteria written using the Concourse Criteria Language
+     *            (CCL)
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public Number min(String key, String ccl, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().minKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().minKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the min of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the min of the values
+     */
+    public Number min(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().minKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().minKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
         });
     }
 
