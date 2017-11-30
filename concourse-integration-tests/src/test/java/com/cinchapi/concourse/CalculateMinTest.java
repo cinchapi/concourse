@@ -25,6 +25,12 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.Lists;
 
+/**
+ * Unit test for "min" calculation functions.
+ *
+ * @author Jeff Nelson
+ * @author Raghav Babu
+ */
 public class CalculateMinTest extends ConcourseIntegrationTest {
 
     @Test
