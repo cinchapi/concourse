@@ -393,6 +393,42 @@ abstract class StatefulConcourseService {
 
     CRITERIA_TRANSFORM.put("countKeyCriteriaTimestr", 1);
 
+    RETURN_TRANSFORM.add("maxKeyRecord");
+
+    RETURN_TRANSFORM.add("maxKeyRecordTime");
+
+    RETURN_TRANSFORM.add("maxKeyRecordTimestr");
+
+    RETURN_TRANSFORM.add("maxKeyRecords");
+
+    RETURN_TRANSFORM.add("maxKeyRecordsTime");
+
+    RETURN_TRANSFORM.add("maxKeyRecordsTimestr");
+
+    RETURN_TRANSFORM.add("maxKeyCriteria");
+
+    CRITERIA_TRANSFORM.put("maxKeyCriteria", 1);
+
+    RETURN_TRANSFORM.add("maxKeyCriteriaTime");
+
+    CRITERIA_TRANSFORM.put("maxKeyCriteriaTime", 1);
+
+    RETURN_TRANSFORM.add("maxKeyCriteriaTimestr");
+
+    CRITERIA_TRANSFORM.put("maxKeyCriteriaTimestr", 1);
+
+    RETURN_TRANSFORM.add("maxKeyCcl");
+
+    RETURN_TRANSFORM.add("maxKeyCclTime");
+
+    RETURN_TRANSFORM.add("maxKeyCclTimestr");
+
+    RETURN_TRANSFORM.add("maxKey");
+
+    RETURN_TRANSFORM.add("maxKeyTime");
+
+    RETURN_TRANSFORM.add("maxKeyTimestr");
+
     RETURN_TRANSFORM.add("minKeyRecord");
 
     RETURN_TRANSFORM.add("minKeyRecordTime");
@@ -897,6 +933,36 @@ abstract class StatefulConcourseService {
     public long countKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
 
     public long countKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecordTime(String key, long record, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecordTimestr(String key, long record, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecords(String key, List<Long> records) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecordsTime(String key, List<Long> records, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyRecordsTimestr(String key, List<Long> records, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCriteria(String key, Criteria criteria) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCriteriaTime(String key, Criteria criteria, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCriteriaTimestr(String key, Criteria criteria, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCcl(String key, String ccl) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCclTime(String key, String ccl, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyCclTimestr(String key, String ccl, String timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKey(String key) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyTime(String key, long timestamp) { throw new UnsupportedOperationException(); }
+
+    public Object maxKeyTimestr(String key, String timestamp) { throw new UnsupportedOperationException(); }
 
     public Object minKeyRecord(String key, long record) { throw new UnsupportedOperationException(); }
 
