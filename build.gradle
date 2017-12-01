@@ -45,9 +45,13 @@ ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.6.0"
     }
 }
 
@@ -64,6 +68,7 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'maven'
     apply plugin: 'idea'
+    apply plugin: 'com.diffplug.gradle.spotless'
 
     repositories {
         mavenCentral()
@@ -145,6 +150,15 @@ subprojects {
 
     test {
         exclude '**/*Suite.class'
+    }
+
+    spotless {
+        java {
+            licenseHeaderFile rootProject.file('spotless.java.license')
+            importOrderFile rootProject.file('spotless.java.importerorder')
+            removeUnusedImports()
+            eclipse().configFile rootProject.file('spotless.java.eclipseformat.xml')
+        }
     }
 
     // THESE PROPERTIES SHOULD BE OVERRIDDEN BY EACH SUBPROJECT!
