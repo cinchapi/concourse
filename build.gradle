@@ -39,7 +39,7 @@ def validateVersion = { version ->
     return matcher.matches()
 }
 
-ext.globalVersion  = getVersion()
+ext.globalVersion = getVersion()
 ext.isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 
 buildscript {
