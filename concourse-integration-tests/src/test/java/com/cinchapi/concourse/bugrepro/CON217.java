@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +36,8 @@ public class CON217 extends ConcourseIntegrationTest {
     public void repro() {
         client.stage();
         client.stage();
-        Map<TransactionToken, Transaction> transactions = Reflection.get(
-                "transactions", Reflection.get("server", this));
+        Map<TransactionToken, Transaction> transactions = Reflection
+                .get("transactions", Reflection.get("server", this));
         Assert.assertEquals(1, transactions.size());
     }
 

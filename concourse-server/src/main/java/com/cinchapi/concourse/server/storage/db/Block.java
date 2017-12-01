@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -89,10 +89,8 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> implements
-        Byteable,
-        Syncable,
-        Iterable<Revision<L, K, V>> {
+abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
+        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -284,8 +282,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             catch (RuntimeException e) {
                 repair(e);
             }
-            this.index = BlockIndex.open(directory + File.separator + id
-                    + INDEX_NAME_EXTENSION);
+            this.index = BlockIndex.open(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION);
             this.revisions = null;
         }
         else {
@@ -295,8 +293,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.filter = BloomFilter.create(
                     (directory + File.separator + id + FILTER_NAME_EXTENSION),
                     EXPECTED_INSERTIONS);
-            this.index = BlockIndex.create(directory + File.separator + id
-                    + INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
+            this.index = BlockIndex.create(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION,
+                    EXPECTED_INSERTIONS);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -566,8 +565,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn("Cannot sync a block that is empty: {}. "
-                        + "Was there an unexpected server shutdown recently?",
+                Logger.warn(
+                        "Cannot sync a block that is empty: {}. "
+                                + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
@@ -596,8 +596,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      *            error needs to be repaired.
      */
     private void repair(RuntimeException e) {
-        if(e.getCause() != null
-                && (e.getCause() instanceof EOFException || e.getCause() instanceof StreamCorruptedException)) {
+        if(e.getCause() != null && (e.getCause() instanceof EOFException
+                || e.getCause() instanceof StreamCorruptedException)) {
             String target = file.replace(BLOCK_NAME_EXTENSION,
                     FILTER_NAME_EXTENSION);
             String backup = target + ".bak";
@@ -617,8 +617,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
             filter.sync();
             FileSystem.deleteFile(backup);
-            Logger.warn("Found and repaired a corrupted bloom "
-                    + "filter for {} {}", this.getClass().getSimpleName(), id);
+            Logger.warn(
+                    "Found and repaired a corrupted bloom "
+                            + "filter for {} {}",
+                    this.getClass().getSimpleName(), id);
             FileSystem.unmap(bytes);
         }
         else {
@@ -653,8 +655,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                     while (it.hasNext()) {
                         Revision<L, K, V> revision = it.next();
                         if(revision.getLocator().equals(byteables[0])
-                                && ((checkSecond && revision.getKey().equals(
-                                        byteables[1])) || !checkSecond)) {
+                                && ((checkSecond && revision.getKey()
+                                        .equals(byteables[1]))
+                                        || !checkSecond)) {
                             processing = true;
                             record.append(revision);
                         }
@@ -672,8 +675,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                         Iterator<ByteBuffer> it = ByteableCollections
                                 .iterator(bytes);
                         while (it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables.read(
-                                    it.next(), xRevisionClass());
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
                             Logger.debug("Attempting to append {} from {} to "
                                     + "{}", revision, this, record);
                             record.append(revision);
@@ -790,8 +793,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param type
      * @return the Revision
      */
-    protected abstract Revision<L, K, V> makeRevision(L locator, K key,
-            V value, long version, Action type);
+    protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value,
+            long version, Action type);
 
     /**
      * Return the class of the {@code revision} type.

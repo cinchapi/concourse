@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,13 +17,12 @@ package com.cinchapi.concourse.lang;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.lang.Criteria;
-import com.cinchapi.concourse.lang.KeySymbol;
 import com.cinchapi.concourse.thrift.Operator;
 
 /**
- * Unit tests for the {@link Criteria} building functionality.
- * 
+ * Unit tests for the {@link com.cinchapi.concourse.lang.Criteria} building
+ * functionality.
+ *
  * @author Jeff Nelson
  */
 public class CriteriaTest {
@@ -37,15 +36,12 @@ public class CriteriaTest {
 
     @Test
     public void testNotNeccessaryToBuildSubCriteriaInGroup() {
-        Criteria.where()
-                .key("foo")
-                .operator(Operator.EQUALS)
-                .value("bar")
-                .or()
+        Criteria.where().key("foo").operator(Operator.EQUALS).value("bar").or()
                 .group(Criteria.where().key("baz")
                         .operator(Operator.GREATER_THAN).value(0).and()
                         .key("name").operator(Operator.NOT_EQUALS)
-                        .value("John Doe")).build();
+                        .value("John Doe"))
+                .build();
     }
 
 }

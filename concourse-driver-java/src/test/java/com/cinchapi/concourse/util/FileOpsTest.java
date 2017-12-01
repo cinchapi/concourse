@@ -150,7 +150,7 @@ public class FileOpsTest extends ConcourseBaseTest {
         Thread t2 = new Thread(() -> {
             try {
                 writeSignaler.await();
-                FileOps.write("foo", file);            
+                FileOps.write("foo", file);
             }
             catch (InterruptedException e) {
                 e.printStackTrace();

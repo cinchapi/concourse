@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,19 +25,8 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Multimap;
-
 import org.apache.commons.lang.StringUtils;
 
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
-import com.cinchapi.concourse.lang.KeySymbol;
-import com.cinchapi.concourse.lang.OperatorSymbol;
-import com.cinchapi.concourse.lang.ParenthesisSymbol;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.lang.TimestampSymbol;
-import com.cinchapi.concourse.lang.ValueSymbol;
 import com.cinchapi.concourse.lang.ast.AST;
 import com.cinchapi.concourse.lang.ast.AndTree;
 import com.cinchapi.concourse.lang.ast.ExpressionTree;
@@ -47,9 +36,11 @@ import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -61,13 +52,14 @@ import com.google.common.collect.Sets;
 public final class Parser {
 
     /**
-     * Convert a valid and well-formed list of {@link Symbol} objects into a
-     * an {@link AST}.
+     * Convert a valid and well-formed list of
+     * {@link com.cinchapi.concourse.lang.Symbol} objects into
+     * a an {@link AST}.
+     *
      * <p>
      * NOTE: This method will group non-conjunctive symbols into
      * {@link Expression} objects.
-     * </p>
-     * 
+     *
      * @param symbols
      * @return the symbols in an AST
      */
@@ -90,7 +82,8 @@ public final class Parser {
                     }
                 }
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis", symbols));
+                        "Syntax error in {0}: Mismatched parenthesis",
+                        symbols));
             }
             else if(symbol instanceof Expression) {
                 operandStack.add(ExpressionTree.create((Expression) symbol));
@@ -106,24 +99,24 @@ public final class Parser {
     }
 
     /**
-     * Convert a valid and well-formed list of {@link Symbol} objects into a
-     * Queue in postfix notation.
+     * Convert a valid and well-formed list of
+     * {@link com.cinchapi.concourse.lang.Symbol} objects into
+     * a Queue in postfix notation.
+     *
      * <p>
      * NOTE: This method will group non-conjunctive symbols into
      * {@link Expression} objects.
-     * </p>
-     * 
+     *
      * @param symbols
      * @return the symbols in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(
             List<Symbol> symbols) {
-        Preconditions
-                .checkState(
-                        symbols.size() >= 3,
-                        "The parsed query %s does not have"
-                                + "enough symbols to process. It should have at least 3 symbols but "
-                                + "only has %s", symbols, symbols.size());
+        Preconditions.checkState(symbols.size() >= 3,
+                "The parsed query %s does not have"
+                        + "enough symbols to process. It should have at least 3 symbols but "
+                        + "only has %s",
+                symbols, symbols.size());
         Deque<Symbol> stack = new ArrayDeque<Symbol>();
         Queue<PostfixNotationSymbol> queue = new LinkedList<PostfixNotationSymbol>();
         symbols = groupExpressions(symbols);
@@ -132,7 +125,8 @@ public final class Parser {
                 while (!stack.isEmpty()) {
                     Symbol top = stack.peek();
                     if(symbol == ConjunctionSymbol.OR
-                            && (top == ConjunctionSymbol.OR || top == ConjunctionSymbol.AND)) {
+                            && (top == ConjunctionSymbol.OR
+                                    || top == ConjunctionSymbol.AND)) {
                         queue.add((PostfixNotationSymbol) stack.pop());
                     }
                     else {
@@ -173,7 +167,8 @@ public final class Parser {
             Symbol top = stack.peek();
             if(top instanceof ParenthesisSymbol) {
                 throw new SyntaxException(MessageFormat.format(
-                        "Syntax error in {0}: Mismatched parenthesis", symbols));
+                        "Syntax error in {0}: Mismatched parenthesis",
+                        symbols));
             }
             else {
                 queue.add((PostfixNotationSymbol) stack.pop());
@@ -278,8 +273,8 @@ public final class Parser {
                     }
                     catch (IllegalArgumentException e) {
                         String err = "Unable to resolve variable {} because multiple values exist locally: {}";
-                        throw new IllegalStateException(Strings.format(err,
-                                tok, data.get(var)));
+                        throw new IllegalStateException(
+                                Strings.format(err, tok, data.get(var)));
                     }
                     catch (NoSuchElementException e) {
                         String err = "Unable to resolve variable {} because no values exist locally";
@@ -411,8 +406,8 @@ public final class Parser {
      * A collection of tokens that indicate the parser should pivot to expecting
      * a timestamp token.
      */
-    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets.newHashSet(
-            "at", "on", "during", "in");
+    private final static Set<String> TIMESTAMP_PIVOT_TOKENS = Sets
+            .newHashSet("at", "on", "during", "in");
 
     /**
      * An empty multimap to use in {@link #toPostfixNotation(String, Multimap)}

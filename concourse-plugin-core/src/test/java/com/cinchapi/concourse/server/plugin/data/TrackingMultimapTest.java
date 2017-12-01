@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -223,7 +223,7 @@ public class TrackingMultimapTest
         });
         Assert.assertEquals(tmmap.count(), count.get());
     }
-    
+
     @Test
     public void testDeleteWillRemoveKeyIfNoAssociatedValues() {
         TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
@@ -286,7 +286,7 @@ public class TrackingMultimapTest
         tmmap.delete(30, 30L);
         Assert.assertEquals(4, tmmap.max());
     }
-    
+
     @Test
     public void testPercentKeyDataTypeWhenEmpty() {
         TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap

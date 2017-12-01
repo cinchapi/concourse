@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  * @author Raghav Babu
  */
-public class CalculateMaxTest extends ConcourseIntegrationTest{
+public class CalculateMaxTest extends ConcourseIntegrationTest {
 
     @Test
     public void testMaxKey() {
@@ -76,7 +76,7 @@ public class CalculateMaxTest extends ConcourseIntegrationTest{
         Number expected = client.calculate().max(key, "name = bar", timestamp);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testMaxKeyCriteria() {
         String key = "age";
@@ -214,4 +214,3 @@ public class CalculateMaxTest extends ConcourseIntegrationTest{
         Assert.assertEquals(expected, actual);
     }
 }
-

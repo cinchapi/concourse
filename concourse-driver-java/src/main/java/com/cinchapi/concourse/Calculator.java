@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -269,8 +269,8 @@ public class Calculator {
     public Number average(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().averageKeyTimestr(key,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().averageKeyTimestr(
+                            key, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().averageKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -468,8 +468,8 @@ public class Calculator {
     public long count(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
             return timestamp.isString()
-                    ? concourse.thrift().countKeyCclTimestr(key, ccl,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().countKeyCclTimestr(
+                            key, ccl, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().countKeyCclTime(key, ccl,
                             timestamp.getMicros(), concourse.creds(),
@@ -492,8 +492,8 @@ public class Calculator {
     public long count(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             return timestamp.isString()
-                    ? concourse.thrift().countKeyTimestr(key,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().countKeyTimestr(
+                            key, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().countKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -603,8 +603,8 @@ public class Calculator {
     public Number max(String key, Criteria criteria, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().maxKeyCriteriaTimestr(key,
-                            Language.translateToThriftCriteria(criteria),
+                    ? concourse.thrift().maxKeyCriteriaTimestr(
+                            key, Language.translateToThriftCriteria(criteria),
                             timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().maxKeyCriteriaTime(key,
@@ -698,8 +698,8 @@ public class Calculator {
     public Number max(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().maxKeyCclTimestr(key, ccl,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().maxKeyCclTimestr(key,
+                            ccl, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().maxKeyCclTime(key, ccl,
                             timestamp.getMicros(), concourse.creds(),
@@ -723,8 +723,8 @@ public class Calculator {
     public Number max(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().maxKeyTimestr(key,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().maxKeyTimestr(
+                            key, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().maxKeyTime(key, timestamp.getMicros(),
                             concourse.creds(), concourse.transaction(),
@@ -835,8 +835,8 @@ public class Calculator {
     public Number min(String key, Criteria criteria, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().minKeyCriteriaTimestr(key,
-                            Language.translateToThriftCriteria(criteria),
+                    ? concourse.thrift().minKeyCriteriaTimestr(
+                            key, Language.translateToThriftCriteria(criteria),
                             timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().minKeyCriteriaTime(key,
@@ -930,8 +930,8 @@ public class Calculator {
     public Number min(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().minKeyCclTimestr(key, ccl,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().minKeyCclTimestr(key,
+                            ccl, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().minKeyCclTime(key, ccl,
                             timestamp.getMicros(), concourse.creds(),
@@ -955,8 +955,8 @@ public class Calculator {
     public Number min(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().minKeyTimestr(key,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().minKeyTimestr(
+                            key, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().minKeyTime(key, timestamp.getMicros(),
                             concourse.creds(), concourse.transaction(),
@@ -1067,8 +1067,8 @@ public class Calculator {
     public Number sum(String key, Criteria criteria, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().sumKeyCriteriaTimestr(key,
-                            Language.translateToThriftCriteria(criteria),
+                    ? concourse.thrift().sumKeyCriteriaTimestr(
+                            key, Language.translateToThriftCriteria(criteria),
                             timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().sumKeyCriteriaTime(key,
@@ -1162,8 +1162,8 @@ public class Calculator {
     public Number sum(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().sumKeyCclTimestr(key, ccl,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().sumKeyCclTimestr(key,
+                            ccl, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().sumKeyCclTime(key, ccl,
                             timestamp.getMicros(), concourse.creds(),
@@ -1187,8 +1187,8 @@ public class Calculator {
     public Number sum(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.thrift().sumKeyTimestr(key,
-                            timestamp.toString(), concourse.creds(),
+                    ? concourse.thrift().sumKeyTimestr(
+                            key, timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.thrift().sumKeyTime(key, timestamp.getMicros(),
                             concourse.creds(), concourse.transaction(),

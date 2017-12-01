@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -78,8 +78,8 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     public static Value optimize(Value value) {
         if(value.getType() == Type.TAG) {
-            return Value.wrap(Convert
-                    .javaToThrift(value.getObject().toString()));
+            return Value
+                    .wrap(Convert.javaToThrift(value.getObject().toString()));
         }
         return value;
     }
@@ -149,8 +149,8 @@ public final class Value implements Byteable, Comparable<Value> {
      * @return {@code true} if the type is numeric
      */
     private static boolean isNumericType(Type type) {
-        return type == Type.DOUBLE || type == Type.FLOAT
-                || type == Type.INTEGER || type == Type.LONG;
+        return type == Type.DOUBLE || type == Type.FLOAT || type == Type.INTEGER
+                || type == Type.LONG;
     }
 
     /**
@@ -158,16 +158,16 @@ public final class Value implements Byteable, Comparable<Value> {
      * in normal operations, but should only be used to indicate an infinite
      * range.
      */
-    public static Value NEGATIVE_INFINITY = Value.wrap(Convert
-            .javaToThrift(Long.MIN_VALUE));
+    public static Value NEGATIVE_INFINITY = Value
+            .wrap(Convert.javaToThrift(Long.MIN_VALUE));
 
     /**
      * A constant representing the largest possible Value. This shouldn't be
      * used in normal operations, but should only be used to indicate an
      * infinite range.
      */
-    public static Value POSITIVE_INFINITY = Value.wrap(Convert
-            .javaToThrift(Long.MAX_VALUE));
+    public static Value POSITIVE_INFINITY = Value
+            .wrap(Convert.javaToThrift(Long.MAX_VALUE));
 
     /**
      * The minimum number of bytes needed to encode every Value.
@@ -232,7 +232,8 @@ public final class Value implements Byteable, Comparable<Value> {
             final Value other = (Value) obj;
             Type typeA = getType();
             Type typeB = other.getType();
-            if(typeA != typeB && (isNumericType(typeA) && isNumericType(typeB))) {
+            if(typeA != typeB
+                    && (isNumericType(typeA) && isNumericType(typeB))) {
                 return Numbers.areEqual((Number) getObject(),
                         (Number) other.getObject());
             }
@@ -346,9 +347,10 @@ public final class Value implements Byteable, Comparable<Value> {
             else {
                 Object o1 = v1.getObject();
                 Object o2 = v2.getObject();
-                if(o1 instanceof Number
-                        && o2 instanceof Number
-                        && ((!(o1 instanceof Link) && !(o2 instanceof Link)) || (o1 instanceof Link && o2 instanceof Link))) {
+                if(o1 instanceof Number && o2 instanceof Number
+                        && ((!(o1 instanceof Link) && !(o2 instanceof Link))
+                                || (o1 instanceof Link
+                                        && o2 instanceof Link))) {
                     return Numbers.compare((Number) o1, (Number) o2);
                 }
                 else if(o1 instanceof Number) {

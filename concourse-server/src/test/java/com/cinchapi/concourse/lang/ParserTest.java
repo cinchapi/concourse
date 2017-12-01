@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,32 +18,21 @@ package com.cinchapi.concourse.lang;
 import java.util.List;
 import java.util.Queue;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
-import com.cinchapi.concourse.lang.Criteria;
-import com.cinchapi.concourse.lang.Expression;
-import com.cinchapi.concourse.lang.KeySymbol;
-import com.cinchapi.concourse.lang.OperatorSymbol;
-import com.cinchapi.concourse.lang.ParenthesisSymbol;
-import com.cinchapi.concourse.lang.Parser;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.lang.SyntaxException;
-import com.cinchapi.concourse.lang.ValueSymbol;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
- * Unit tests for the {@link Parser}.
- * 
+ * Unit tests for the {@link com.cinchapi.concourse.lang.Parser}.
+ *
  * @author Jeff Nelson
  */
 public class ParserTest {
@@ -73,8 +62,8 @@ public class ParserTest {
         Operator operator1 = Operator.GREATER_THAN;
         Object value1 = TestData.getObject();
         Criteria criteria = Criteria.where().key(key0).operator(operator0)
-                .value(value0).and().key(key1).operator(operator1)
-                .value(value1).build();
+                .value(value0).and().key(key1).operator(operator1).value(value1)
+                .build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
         Expression exp0 = (Expression) symbols.get(0);
         ConjunctionSymbol sym = (ConjunctionSymbol) symbols.get(1);
@@ -136,15 +125,12 @@ public class ParserTest {
         String key2 = TestData.getString();
         Operator operator2 = Operator.LESS_THAN;
         Object value2 = TestData.getObject();
-        Criteria criteria = Criteria
-                .where()
-                .key(key0)
-                .operator(operator0)
-                .value(value0)
-                .and()
+        Criteria criteria = Criteria.where().key(key0).operator(operator0)
+                .value(value0).and()
                 .group(Criteria.where().key(key1).operator(operator1)
                         .value(value1).or().key(key2).operator(operator2)
-                        .value(value2).build()).build();
+                        .value(value2).build())
+                .build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
         Expression exp0 = (Expression) symbols.get(0);
         ConjunctionSymbol sym1 = (ConjunctionSymbol) symbols.get(1);
@@ -195,14 +181,15 @@ public class ParserTest {
     public void testToPostfixNotationSimple() {
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.EQUALS).value("bar").build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 1);
         Assert.assertEquals(
                 ((Expression) Iterables.getOnlyElement(pfn)).getKey(),
                 KeySymbol.create("foo"));
-        Assert.assertEquals(((Expression) Iterables.getOnlyElement(pfn))
-                .getValues().get(0), ValueSymbol.create("bar"));
+        Assert.assertEquals(
+                ((Expression) Iterables.getOnlyElement(pfn)).getValues().get(0),
+                ValueSymbol.create("bar"));
         Assert.assertEquals(
                 ((Expression) Iterables.getOnlyElement(pfn)).getOperator(),
                 OperatorSymbol.create(Operator.EQUALS));
@@ -222,16 +209,18 @@ public class ParserTest {
     public void testToPostfixNotationSimpleBetween() {
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.BETWEEN).value("bar").value("baz").build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 1);
         Assert.assertEquals(
                 ((Expression) Iterables.getOnlyElement(pfn)).getKey(),
                 KeySymbol.create("foo"));
-        Assert.assertEquals(((Expression) Iterables.getOnlyElement(pfn))
-                .getValues().get(0), ValueSymbol.create("bar"));
-        Assert.assertEquals(((Expression) Iterables.getOnlyElement(pfn))
-                .getValues().get(1), ValueSymbol.create("baz"));
+        Assert.assertEquals(
+                ((Expression) Iterables.getOnlyElement(pfn)).getValues().get(0),
+                ValueSymbol.create("bar"));
+        Assert.assertEquals(
+                ((Expression) Iterables.getOnlyElement(pfn)).getValues().get(1),
+                ValueSymbol.create("baz"));
         Assert.assertEquals(
                 ((Expression) Iterables.getOnlyElement(pfn)).getOperator(),
                 OperatorSymbol.create(Operator.BETWEEN));
@@ -254,16 +243,14 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
                 .value(1).and().key("b").operator(Operator.EQUALS).value(2)
                 .build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 3);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
@@ -285,16 +272,14 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
                 .value(1).or().key("b").operator(Operator.EQUALS).value(2)
                 .build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 3);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
@@ -316,22 +301,19 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
                 .value("1").and().key("b").operator(Operator.EQUALS).value(2)
                 .or().key("c").operator(Operator.EQUALS).value(3).build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 5);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.AND);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 3)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
                 Expression.create(KeySymbol.create("c"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(3)));
@@ -350,29 +332,23 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationAndGroupOr() {
-        Criteria criteria = Criteria
-                .where()
-                .key("a")
-                .operator(Operator.EQUALS)
-                .value(1)
-                .and()
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).and()
                 .group(Criteria.where().key("b").operator(Operator.EQUALS)
                         .value(2).or().key("c").operator(Operator.EQUALS)
-                        .value(3).build()).build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+                        .value(3).build())
+                .build();
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 2)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 2)),
                 Expression.create(KeySymbol.create("c"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(3)));
@@ -383,15 +359,12 @@ public class ParserTest {
 
     @Test
     public void testPostfixNotationAndGroupOr() {
-        Criteria criteria = Criteria
-                .where()
-                .key("a")
-                .operator(Operator.EQUALS)
-                .value(1)
-                .and()
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).and()
                 .group(Criteria.where().key("b").operator(Operator.EQUALS)
                         .value(2).or().key("c").operator(Operator.EQUALS)
-                        .value(3).build()).build();
+                        .value(3).build())
+                .build();
         String ccl = "a = 1 and (b = 2 or c = 3)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
@@ -399,35 +372,31 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationGroupOrAndGroupOr() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .and()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+                        .value(4).build())
+                .build();
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 3)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
                 Expression.create(KeySymbol.create("c"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(3)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 4)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 4)),
                 Expression.create(KeySymbol.create("d"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(4)));
@@ -438,84 +407,80 @@ public class ParserTest {
 
     @Test
     public void testParseCclGroupOrAndGroupOr() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .and()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
+                        .value(4).build())
+                .build();
         String ccl = "(a = 1 or b = 2) AND (c = 3 or d = 4)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
-    
+
     @Test
     public void testParseCclGroupOrAndGroupOrConjuctions() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .and()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
+                        .value(4).build())
+                .build();
         String ccl = "(a = 1 || b = 2) && (c = 3 || d = 4)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
-        
+
     }
-    
+
     @Test
     public void testParseCclGroupOrAndGroupOrConjuctionsWithSingleAmpersand() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .and()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
+                        .value(4).build())
+                .build();
         String ccl = "(a = 1 || b = 2) & (c = 3 || d = 4)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
-    
+
     @Test
     public void testToPostfixNotationGroupOrOrGroupOr() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .or()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
-        Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
-                .getSymbols());
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 0)),
+                        .value(4).build())
+                .build();
+        Queue<PostfixNotationSymbol> pfn = Parser
+                .toPostfixNotation(criteria.getSymbols());
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
                 Expression.create(KeySymbol.create("a"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(1)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 1)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
                 Expression.create(KeySymbol.create("b"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 3)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
                 Expression.create(KeySymbol.create("c"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(3)));
-        Assert.assertEquals(
-                ((Expression) Iterables.get(pfn, 4)),
+        Assert.assertEquals(((Expression) Iterables.get(pfn, 4)),
                 Expression.create(KeySymbol.create("d"),
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(4)));
@@ -526,15 +491,15 @@ public class ParserTest {
 
     @Test
     public void testParseCclGroupOrOrGroupOr() {
-        Criteria criteria = Criteria
-                .where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .or()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
+                        .value(4).build())
+                .build();
         String ccl = "(a = 1 or b = 2) or (c = 3 or d = 4)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
@@ -542,19 +507,20 @@ public class ParserTest {
 
     @Test
     public void testParseCclGroupOrOrConjuction() {
-        Criteria criteria = Criteria.
-                where()
+        Criteria criteria = Criteria.where()
                 .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .or()
                 .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
-                        .value(4).build()).build();
+                        .value(4).build())
+                .build();
         String ccl = "(a = 1 || b = 2) || (c = 3 || d = 4)";
         Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
                 Parser.toPostfixNotation(ccl));
     }
+
     @Test
     public void testParseCclTimestampComplexPhrase() {
         String ccl = "name = jeff at \"last christmas\"";
@@ -600,8 +566,8 @@ public class ParserTest {
         String ccl = "name = jeff nelson";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
         Expression expr = (Expression) symbols.poll();
-        Assert.assertEquals("jeff nelson", expr.getValues().get(0).getValue()
-                .getJavaFormat());
+        Assert.assertEquals("jeff nelson",
+                expr.getValues().get(0).getValue().getJavaFormat());
     }
 
     @Test
@@ -609,8 +575,8 @@ public class ParserTest {
         String ccl = "name = jeff nelson on last christmas day";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
         Expression expr = (Expression) symbols.poll();
-        Assert.assertEquals("jeff nelson", expr.getValues().get(0).getValue()
-                .getJavaFormat());
+        Assert.assertEquals("jeff nelson",
+                expr.getValues().get(0).getValue().getJavaFormat());
         Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
                                                            // timestamp was
                                                            // parsed
@@ -623,8 +589,8 @@ public class ParserTest {
         Assert.assertEquals(3, symbols.size());
         for (int i = 0; i < 2; ++i) {
             Expression expr = (Expression) symbols.poll();
-            Assert.assertTrue(expr.getValues().get(0).getValue()
-                    .getJavaFormat().toString().contains(" "));
+            Assert.assertTrue(expr.getValues().get(0).getValue().getJavaFormat()
+                    .toString().contains(" "));
         }
     }
 
@@ -635,32 +601,31 @@ public class ParserTest {
         Assert.assertEquals(3, symbols.size());
         for (int i = 0; i < 2; ++i) {
             Expression expr = (Expression) symbols.poll();
-            Assert.assertTrue(expr.getValues().get(0).getValue()
-                    .getJavaFormat().toString().contains(" "));
+            Assert.assertTrue(expr.getValues().get(0).getValue().getJavaFormat()
+                    .toString().contains(" "));
             Assert.assertNotEquals(0, expr.getTimestampRaw()); // this means a
                                                                // timestamp was
                                                                // parsed
         }
     }
-    
+
     @Test
     public void testParseCCLConjuctionsWithAnd() {
         String ccl = "name = chandresh pancholi on last christmas day && favovite_player != C. Ronaldo during last year";
         Queue<PostfixNotationSymbol> symbols = Parser.toPostfixNotation(ccl);
         Assert.assertEquals(3, symbols.size());
-        for(int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             Expression expr = (Expression) symbols.poll();
-            Assert.assertTrue(expr.getValues().get(0).getValue()
-                    .getJavaFormat().toString().contains(" "));
-            Assert.assertNotEquals(0,  expr.getTimestampRaw());
+            Assert.assertTrue(expr.getValues().get(0).getValue().getJavaFormat()
+                    .toString().contains(" "));
+            Assert.assertNotEquals(0, expr.getTimestampRaw());
         }
     }
 
     @Test
     public void testParseCclLocalReferences() {
         Criteria criteria = Criteria.where().key("name")
-                .operator(Operator.EQUALS).value("Lebron James")
-                .build();
+                .operator(Operator.EQUALS).value("Lebron James").build();
         String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -670,7 +635,7 @@ public class ParserTest {
                 Parser.toPostfixNotation(ccl, data));
     }
 
-    @Test (expected = IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testParseCclReferenceNotFound() {
         String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
@@ -679,7 +644,7 @@ public class ParserTest {
         Parser.toPostfixNotation(ccl, data);
     }
 
-    @Test (expected = IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testParseCclInvalidReference() {
         String ccl = "name = $name";
         Multimap<String, Object> data = LinkedHashMultimap.create();
@@ -692,9 +657,8 @@ public class ParserTest {
 
     @Test
     public void testParseCclBetweenWithBothReferences() {
-        Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("30").value("35")
-                .build();
+        Criteria criteria = Criteria.where().key("age")
+                .operator(Operator.BETWEEN).value("30").value("35").build();
         String ccl = "where age bw $age $retireAge";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -707,9 +671,8 @@ public class ParserTest {
 
     @Test
     public void testParseCclBetweenWithFirstReference() {
-        Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("30").value("100")
-                .build();
+        Criteria criteria = Criteria.where().key("age")
+                .operator(Operator.BETWEEN).value("30").value("100").build();
         String ccl = "where age bw $age 100";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -721,9 +684,8 @@ public class ParserTest {
 
     @Test
     public void testParseCclBetweenWithSecondReference() {
-        Criteria criteria = Criteria.where()
-                .key("age").operator(Operator.BETWEEN).value("5").value("30")
-                .build();
+        Criteria criteria = Criteria.where().key("age")
+                .operator(Operator.BETWEEN).value("5").value("30").build();
         String ccl = "where age bw 5 $age";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -742,7 +704,7 @@ public class ParserTest {
         Assert.assertEquals("Atlanta (HQ)",
                 expr.getValuesRaw()[0].getJavaFormat());
     }
-    
+
     @Test(expected = IllegalStateException.class)
     public void testParseCclNoSpaces() {
         String ccl = "name=jeff";

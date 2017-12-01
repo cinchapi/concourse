@@ -45,10 +45,10 @@ public class PluginReproTests extends ClientServerTest implements PluginTest {
         Set<Long> records = client.invokePlugin(TestPlugin.class.getName(),
                 "inventory");
         Assert.assertEquals(records, Sets.newHashSet(17L)); // Verify that the
-                                                          // access token is
-                                                          // renewed and the
-                                                          // correct value can
-                                                          // be retrieved
+                                                            // access token is
+                                                            // renewed and the
+                                                            // correct value can
+                                                            // be retrieved
     }
 
 }

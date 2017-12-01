@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server;
+
+import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -28,10 +30,10 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
@@ -72,12 +74,12 @@ import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
-import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
-import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
+import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
@@ -86,6 +88,7 @@ import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseService;
+import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.InvalidArgumentException;
@@ -97,12 +100,10 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
@@ -121,16 +122,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.matcher.Matchers;
 
-import static com.cinchapi.concourse.server.GlobalState.*;
-
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -2166,8 +2165,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match",
-                            Language.translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match", Language
+                                    .translateFromThriftCriteria(criteria)));
         }
     }
 

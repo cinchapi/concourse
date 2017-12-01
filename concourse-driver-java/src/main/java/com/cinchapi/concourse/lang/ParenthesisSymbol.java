@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,15 +33,16 @@ enum ParenthesisSymbol implements Symbol {
      * @return the symbol
      */
     public static ParenthesisSymbol parse(String string) {
-        if(string.equalsIgnoreCase("(") || string.equalsIgnoreCase(LEFT.name())) {
+        if(string.equalsIgnoreCase("(")
+                || string.equalsIgnoreCase(LEFT.name())) {
             return LEFT;
         }
         else if(string.equalsIgnoreCase(")")
                 || string.equalsIgnoreCase(RIGHT.name())) {
             return RIGHT;
         }
-        throw new RuntimeException(MessageFormat.format(
-                "Cannot parse {0} into a ParenthesisSymbol", string));
+        throw new RuntimeException(MessageFormat
+                .format("Cannot parse {0} into a ParenthesisSymbol", string));
     }
 
     @Override

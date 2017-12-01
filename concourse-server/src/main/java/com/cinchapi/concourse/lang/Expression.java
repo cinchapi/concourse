@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,30 +17,26 @@ package com.cinchapi.concourse.lang;
 
 import java.util.List;
 
-import com.cinchapi.concourse.lang.AbstractSymbol;
-import com.cinchapi.concourse.lang.KeySymbol;
-import com.cinchapi.concourse.lang.OperatorSymbol;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
-import com.cinchapi.concourse.lang.TimestampSymbol;
-import com.cinchapi.concourse.lang.ValueSymbol;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
- * An {@link Expression} is a {@link Symbol} that describes a query operation
- * on a key with respect to one or more values (e.g. key = value, key >=
- * value, etc).
+ * An {@link Expression} is a {@link com.cinchapi.concourse.lang.Symbol} that
+ * describes a query
+ * operation on a key with respect to one or more values (e.g. key = value, key
+ * >= value, etc).
+ *
  * <p>
  * This class is designed to make it easier to process the results of the
- * Shunting-Yard algorithm.
- * </p>
- * 
+ * Shunting-Yard
+ * algorithm.
+ *
  * @author Jeff Nelson
  */
-public class Expression extends AbstractSymbol implements PostfixNotationSymbol {
+public class Expression extends AbstractSymbol
+        implements PostfixNotationSymbol {
 
     /**
      * Create a new {@link Expression} that groups the specified {@code key},

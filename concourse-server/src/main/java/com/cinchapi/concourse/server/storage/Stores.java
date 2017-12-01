@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,16 +65,16 @@ public final class Stores {
             switch (operator) {
             case REGEX:
             case NOT_REGEX:
-                value = Convert.javaToThrift(((String) Convert
-                        .thriftToJava(value)).replaceAll(
-                        TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR, ".*")
-                        .replaceAll(
-                                TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
-                                "%"));
+                value = Convert.javaToThrift(
+                        ((String) Convert.thriftToJava(value)).replaceAll(
+                                TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
+                                ".*").replaceAll(
+                                        TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                        "%"));
                 break;
             case LINKS_TO:
-                value = Convert.javaToThrift(Link.to(((Number) Convert
-                        .thriftToJava(value)).longValue()));
+                value = Convert.javaToThrift(Link.to(
+                        ((Number) Convert.thriftToJava(value)).longValue()));
                 break;
             default:
                 // noop: default case added to suppress compiler warning
@@ -96,8 +96,8 @@ public final class Stores {
      */
     public static void validateWriteData(String key, TObject value) { // CON-21
         if(key.length() == 0 || !KEY_VALIDATION_REGEX.matcher(key).matches()) {
-            throw new IllegalArgumentException(Strings.joinWithSpace(key,
-                    "is not a valid key"));
+            throw new IllegalArgumentException(
+                    Strings.joinWithSpace(key, "is not a valid key"));
         }
         else if(value.isBlank()) {
             throw new IllegalArgumentException("Cannot use a blank value");

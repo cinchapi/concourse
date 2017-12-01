@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
@@ -47,12 +47,12 @@ import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.TSets;
-import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -108,8 +108,7 @@ final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -504,8 +503,7 @@ final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -515,7 +513,7 @@ final class Operations {
         }
         return array.size() == 1 ? array.get(0).toString() : array.toString();
     }
-    
+
     /**
      * Join the {@link AtomicOperation atomic} operation to compute the max
      * across all the values stored for {@code key} in {@code record} at
@@ -828,8 +826,7 @@ final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
