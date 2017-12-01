@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Checking code formatting..."
+echo "Checking for proper code formatting..."
 ./gradlew -Djenkins=true spotlessCheck
 
 STATUS=$?
