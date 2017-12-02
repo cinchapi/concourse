@@ -19,7 +19,8 @@ package com.cinchapi.concourse.thrift;
  * Enumerates the list of operators that can be used in criteria
  * specifications.
  */
-public enum Operator implements org.apache.thrift.TEnum {
+public enum Operator
+        implements org.apache.thrift.TEnum, com.cinchapi.ccl.type.Operator {
     REGEX(1),
     NOT_REGEX(2),
     EQUALS(3),
@@ -80,5 +81,10 @@ public enum Operator implements org.apache.thrift.TEnum {
         default:
             return null;
         }
+    }
+
+    @Override
+    public int operands() {
+        return this == BETWEEN ? 2 : 1;
     }
 }
