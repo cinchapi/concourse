@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.thrift;
 
+import com.cinchapi.concourse.util.Convert;
+
 /**
  * Enumerates the list of operators that can be used in criteria
  * specifications.
@@ -86,5 +88,10 @@ public enum Operator
     @Override
     public int operands() {
         return this == BETWEEN ? 2 : 1;
+    }
+
+    @Override
+    public String symbol() {
+        return Convert.operatorToString(this);
     }
 }
