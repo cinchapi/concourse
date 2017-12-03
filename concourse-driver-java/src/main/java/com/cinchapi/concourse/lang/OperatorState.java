@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.ValueSymbol;
+
 /**
  * The {@link State} that expects the next token to be a value.
  * 
@@ -38,7 +40,7 @@ public class OperatorState extends State {
      * @return the builder
      */
     public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
+        criteria.add(new ValueSymbol(value));
         return new ValueState(criteria);
     }
 

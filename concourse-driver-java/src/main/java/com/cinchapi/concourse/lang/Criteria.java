@@ -18,6 +18,8 @@ package com.cinchapi.concourse.lang;
 import java.util.Collections;
 import java.util.List;
 
+import com.cinchapi.ccl.grammar.ParenthesisSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 

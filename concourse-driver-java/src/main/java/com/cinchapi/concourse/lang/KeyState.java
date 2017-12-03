@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.OperatorSymbol;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 
@@ -42,7 +43,7 @@ public class KeyState extends State {
      * @return the builder
      */
     public OperatorState operator(Operator operator) {
-        criteria.add(OperatorSymbol.create(operator));
+        criteria.add(new OperatorSymbol(operator));
         return new OperatorState(criteria);
     }
 

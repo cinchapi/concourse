@@ -54,6 +54,9 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
+import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
@@ -64,9 +67,6 @@ import com.cinchapi.concourse.annotate.Batch;
 import com.cinchapi.concourse.annotate.HistoricalRead;
 import com.cinchapi.concourse.annotate.VersionControl;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.lang.NaturalLanguage;
-import com.cinchapi.concourse.lang.Parser;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -128,8 +128,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -378,6 +378,11 @@ public class ConcourseServer extends BaseConcourseServer
      * The Thrift server that handles all managed operations.
      */
     private TServer mgmtServer;
+
+    /**
+     * A {@link Parser} that is used for handling CCL statements.
+     */
+    private Parser parser;
 
     /**
      * The PluginManager seamlessly handles plugins that are running in separate
@@ -640,7 +645,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number average = 0;
@@ -672,7 +678,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number average = 0;
@@ -714,7 +721,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number average = 0;
@@ -742,7 +749,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number average = 0;
@@ -1241,7 +1248,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             long count = 0;
@@ -1273,7 +1281,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             long count = 0;
@@ -1314,7 +1323,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         long count = 0;
@@ -1342,7 +1351,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         long count = 0;
@@ -1942,7 +1951,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
@@ -1971,7 +1981,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
@@ -2111,11 +2121,11 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Queue<PostfixNotationSymbol> queue = Parser
-                        .toPostfixNotation(ccl);
+                Queue<PostfixNotationSymbol> queue = parser
+                        .order(parser.tokenize(ccl));
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findOrInsertAtomic(records, objects, queue, stack,
-                        atomic);
+                Operations.findOrInsertAtomic(parser, records, objects, queue,
+                        stack, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -2149,10 +2159,10 @@ public class ConcourseServer extends BaseConcourseServer
             atomic = store.startAtomicOperation();
             try {
                 Queue<PostfixNotationSymbol> queue = Operations
-                        .convertCriteriaToQueue(criteria);
+                        .convertCriteriaToQueue(parser, criteria);
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findOrInsertAtomic(records, objects, queue, stack,
-                        atomic);
+                Operations.findOrInsertAtomic(parser, records, objects, queue,
+                        stack, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -2165,8 +2175,8 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match",
+                            Language.translateFromThriftCriteria(criteria)));
         }
     }
 
@@ -2177,7 +2187,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2224,7 +2235,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2281,7 +2293,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2324,7 +2336,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2378,7 +2390,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2417,7 +2430,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2466,7 +2480,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2501,7 +2515,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2647,7 +2661,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2694,7 +2709,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2751,7 +2767,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -2794,7 +2810,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -3051,7 +3067,7 @@ public class ConcourseServer extends BaseConcourseServer
                         throw AtomicStateException.RETRY;
                     }
                 }
-                Operations.insertDeferredAtomic(deferred, atomic);
+                Operations.insertDeferredAtomic(parser, deferred, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -3074,7 +3090,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperation atomic = store.startAtomicOperation();
             List<DeferredWrite> deferred = Lists.newArrayList();
             return Operations.insertAtomic(data, record, atomic, deferred)
-                    && Operations.insertDeferredAtomic(deferred, atomic)
+                    && Operations.insertDeferredAtomic(parser, deferred, atomic)
                     && atomic.commit();
         }
         catch (TransactionStateException e) {
@@ -3105,7 +3121,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, Operations.insertAtomic(data, record,
                             atomic, deferred));
                 }
-                Operations.insertDeferredAtomic(deferred, atomic);
+                Operations.insertDeferredAtomic(parser, deferred, atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
@@ -3248,7 +3264,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number max = 0;
@@ -3280,7 +3297,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number max = 0;
@@ -3321,7 +3339,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number max = 0;
@@ -3349,7 +3367,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number max = 0;
@@ -3554,7 +3572,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number min = 0;
@@ -3587,7 +3606,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number min = 0;
@@ -3628,7 +3648,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number min = 0;
@@ -3656,7 +3676,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number min = 0;
@@ -3846,7 +3866,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
@@ -3886,7 +3907,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Map<Long, Set<TObject>> result = null;
@@ -3999,7 +4020,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Map<Long, Map<String, Set<TObject>>> result = null;
@@ -4047,7 +4069,7 @@ public class ConcourseServer extends BaseConcourseServer
         checkAccess(creds, transaction);
         try {
             Queue<PostfixNotationSymbol> queue = Operations
-                    .convertCriteriaToQueue(criteria);
+                    .convertCriteriaToQueue(parser, criteria);
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Map<Long, Map<String, Set<TObject>>> result = null;
@@ -4434,7 +4456,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
@@ -4473,7 +4496,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
@@ -4523,7 +4547,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -4559,7 +4583,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -4606,7 +4630,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -4639,7 +4664,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -4684,7 +4710,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -4714,7 +4740,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperation atomic = null;
@@ -4842,7 +4868,8 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
@@ -4881,7 +4908,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperation atomic = null;
@@ -4933,7 +4961,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -4968,7 +4996,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperation atomic = null;
@@ -5340,7 +5368,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number sum = 0;
@@ -5372,7 +5401,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         try {
-            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Queue<PostfixNotationSymbol> queue = parser
+                    .order(parser.tokenize(ccl));
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
             Number sum = 0;
@@ -5413,7 +5443,7 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number sum = 0;
@@ -5441,7 +5471,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         checkAccess(creds, transaction);
         Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
+                .convertCriteriaToQueue(parser, criteria);
         AtomicSupport store = getStore(transaction, environment);
         AtomicOperation atomic = null;
         Number sum = 0;
@@ -5872,6 +5902,9 @@ public class ConcourseServer extends BaseConcourseServer
         getEngine(); // load the default engine
         this.pluginManager = new PluginManager(this,
                 GlobalState.CONCOURSE_HOME + File.separator + "plugins");
+        this.parser = Parser.instance(
+                GlobalState.PARSER_TRANSFORM_VALUE_FUNCTION,
+                GlobalState.PARSER_TRANSFORM_OPERATOR_FUNCTION);
 
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(

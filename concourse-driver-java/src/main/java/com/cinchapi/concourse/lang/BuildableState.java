@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.ConjunctionSymbol;
+
 /**
  * The base class for a language state that can be transformed into a complete
  * and well-formed {@link Criteria}.

@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.KeySymbol;
+
 /**
  * The {@link StartState} marks the logical beginning of a new {@link Criteria}.
  * 
@@ -69,7 +71,7 @@ public class StartState extends State {
      * @return the builder
      */
     public KeyState key(String key) {
-        criteria.add(KeySymbol.create(key));
+        criteria.add(new KeySymbol(key));
         return new KeyState(criteria);
     }
 

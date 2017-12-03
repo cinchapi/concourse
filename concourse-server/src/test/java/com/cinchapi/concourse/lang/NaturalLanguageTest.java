@@ -18,6 +18,7 @@ package com.cinchapi.concourse.lang;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 

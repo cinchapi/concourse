@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.cinchapi.concourse.lang.NaturalLanguage;
+import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.EndpointContainer;

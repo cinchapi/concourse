@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.concourse.Timestamp;
 
 /**
@@ -41,7 +43,7 @@ public class ValueState extends BuildableState {
      * @return the builder
      */
     public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
+        criteria.add(new ValueSymbol(value));
         return new ValueState(criteria);
     }
 
@@ -53,7 +55,7 @@ public class ValueState extends BuildableState {
      * @return the builder
      */
     public TimestampState at(Timestamp timestamp) {
-        criteria.add(TimestampSymbol.create(timestamp));
+        criteria.add(new TimestampSymbol(timestamp.getMicros()));
         return new TimestampState(criteria);
     }
 
