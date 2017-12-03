@@ -25,7 +25,6 @@ import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.grammar.ValueSymbol;
-import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
@@ -63,8 +62,13 @@ public final class Language {
                     Convert.stringToOperator(tsymbol.getSymbol()));
         }
         else if(tsymbol.getType() == TSymbolType.TIMESTAMP) {
-            return new TimestampSymbol(
-                    NaturalLanguage.parseMicros(tsymbol.getSymbol()));
+            // NOTE: This depends on knowledge that TimestampSymbol#toString in
+            // the ccl library prepends "at " before the microseconds. This is
+            // brittle and we need a better solution in case the ccl library
+            // changes the toString format.
+            long micros = Long
+                    .parseLong(tsymbol.getSymbol().replace("at ", ""));
+            return new TimestampSymbol(micros);
         }
         else {
             throw new IllegalArgumentException(
