@@ -34,7 +34,7 @@ public class OperatorTest {
         Assert.assertTrue(Operator
                 .values()[index] instanceof com.cinchapi.ccl.type.Operator);
     }
-    
+
     @Test
     public void testBetweenHasTwoOperands() {
         Assert.assertEquals(2, Operator.BETWEEN.operands());
