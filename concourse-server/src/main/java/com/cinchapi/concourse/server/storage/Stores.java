@@ -39,7 +39,7 @@ public final class Stores {
      * 
      * @param operator
      * @param values
-     * @return the operationalize parameters
+     * @return the operationalized parameters
      */
     public static OperationParameters operationalize(Operator operator,
             TObject... values) {
