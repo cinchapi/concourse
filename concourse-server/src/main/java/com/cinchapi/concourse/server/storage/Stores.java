@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.storage;
 
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -32,59 +34,59 @@ import com.cinchapi.concourse.util.TStrings;
 public final class Stores {
 
     /**
-     * Perform any necessary normalization on {@code operator} so that it can be
-     * properly utilized in {@link Store} methods (i.e. convert a utility
-     * operator to a functional one).
-     * 
-     * @param operator
-     * @return the normalized Operator
-     */
-    public static Operator normalizeOperator(Operator operator) {
-        switch (operator) {
-        case LIKE:
-            return Operator.REGEX;
-        case NOT_LIKE:
-            return Operator.NOT_REGEX;
-        case LINKS_TO:
-            return Operator.EQUALS;
-        default:
-            return operator;
-        }
-    }
-
-    /**
      * Perform any necessary normalization on the {@code value} based on the
      * {@code operator}.
      * 
      * @param operator
      * @param values
-     * @return the normalized value
+     * @return the operationalize parameters
      */
-    public static TObject normalizeValue(Operator operator, TObject value) {
-        try {
-            switch (operator) {
-            case REGEX:
-            case NOT_REGEX:
-                value = Convert.javaToThrift(
-                        ((String) Convert.thriftToJava(value)).replaceAll(
-                                TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
-                                ".*").replaceAll(
-                                        TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
-                                        "%"));
-                break;
-            case LINKS_TO:
-                value = Convert.javaToThrift(Link.to(
-                        ((Number) Convert.thriftToJava(value)).longValue()));
-                break;
-            default:
-                // noop: default case added to suppress compiler warning
-                break;
+    public static OperationParameters operationalize(Operator operator,
+            TObject... values) {
+        TObject[] ovalues = new TObject[values.length];
+        for (int i = 0; i < ovalues.length; ++i) {
+            TObject value = values[i];
+            try {
+                switch (operator) {
+                case REGEX:
+                case NOT_REGEX:
+                    value = Convert.javaToThrift(
+                            ((String) Convert.thriftToJava(value)).replaceAll(
+                                    TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
+                                    ".*").replaceAll(
+                                            TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                            "%"));
+                    break;
+                case LINKS_TO:
+                    value = Convert.javaToThrift(
+                            Link.to(((Number) Convert.thriftToJava(value))
+                                    .longValue()));
+                    break;
+                default:
+                    break;
+                }
+
             }
-            return value;
+            catch (ClassCastException e) {/* ignore */}
+            ovalues[i] = value;
         }
-        catch (ClassCastException e) {
-            return value;
+
+        // Transform the operator to its functional alias, given the
+        // transformations made to the values.
+        switch (operator) {
+        case LIKE:
+            operator = Operator.REGEX;
+            break;
+        case NOT_LIKE:
+            operator = Operator.NOT_REGEX;
+            break;
+        case LINKS_TO:
+            operator = Operator.EQUALS;
+            break;
+        default:
+            break;
         }
+        return new OperationParameters(operator, ovalues);
     }
 
     /**
@@ -101,6 +103,26 @@ public final class Stores {
         }
         else if(value.isBlank()) {
             throw new IllegalArgumentException("Cannot use a blank value");
+        }
+    }
+
+    @Immutable
+    public static final class OperationParameters {
+
+        private final Operator operator;
+        private final TObject[] values;
+
+        private OperationParameters(Operator operator, TObject[] values) {
+            this.operator = operator;
+            this.values = values;
+        }
+
+        public Operator operator() {
+            return operator;
+        }
+
+        public TObject[] values() {
+            return values;
         }
     }
 
