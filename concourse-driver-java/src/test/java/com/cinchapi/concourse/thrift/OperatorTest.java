@@ -13,36 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.lang.ast;
+package com.cinchapi.concourse.thrift;
 
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.cinchapi.concourse.util.Random;
 
 /**
- * A {@link ConjunctionTree} that holds the AND {@link ConjunctionSymbol}.
- * 
+ * Unit tests to verify additional {@link Operator} functionality.
+ *
  * @author Jeff Nelson
  */
-public class OrTree extends ConjunctionTree {
+public class OperatorTest {
 
-    /**
-     * Create a new {@link OrTree}.
-     * 
-     * @param left
-     * @param right
-     * @return the new OrTree
-     */
-    public static OrTree create(AST left, AST right) {
-        return new OrTree(left, right);
+    @Test
+    public void testOperatorImplementsCclTypeInterface() {
+        int index = Random.getPositiveNumber().intValue()
+                % Operator.values().length;
+        Assert.assertTrue(Operator
+                .values()[index] instanceof com.cinchapi.ccl.type.Operator);
     }
 
-    /**
-     * Construct a new instance.
-     * 
-     * @param left
-     * @param right
-     */
-    protected OrTree(AST left, AST right) {
-        super(ConjunctionSymbol.OR, left, right);
+    @Test
+    public void testBetweenHasTwoOperands() {
+        Assert.assertEquals(2, Operator.BETWEEN.operands());
     }
-
 }

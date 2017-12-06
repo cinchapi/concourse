@@ -18,9 +18,17 @@ package com.cinchapi.concourse.lang;
 import java.text.MessageFormat;
 import java.util.List;
 
+import com.cinchapi.ccl.grammar.ConjunctionSymbol;
+import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.OperatorSymbol;
+import com.cinchapi.ccl.grammar.ParenthesisSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
+import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Lists;
 
 /**
@@ -41,19 +49,26 @@ public final class Language {
             return ConjunctionSymbol.valueOf(tsymbol.getSymbol().toUpperCase());
         }
         else if(tsymbol.getType() == TSymbolType.KEY) {
-            return KeySymbol.parse(tsymbol.getSymbol());
+            return new KeySymbol(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.VALUE) {
-            return ValueSymbol.parse(tsymbol.getSymbol());
+            return new ValueSymbol(Convert.stringToJava(tsymbol.getSymbol()));
         }
         else if(tsymbol.getType() == TSymbolType.PARENTHESIS) {
             return ParenthesisSymbol.parse(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.OPERATOR) {
-            return OperatorSymbol.parse(tsymbol.getSymbol());
+            return new OperatorSymbol(
+                    Convert.stringToOperator(tsymbol.getSymbol()));
         }
         else if(tsymbol.getType() == TSymbolType.TIMESTAMP) {
-            return TimestampSymbol.parse(tsymbol.getSymbol());
+            // NOTE: This depends on knowledge that TimestampSymbol#toString in
+            // the ccl library prepends "at " before the microseconds. This is
+            // brittle and we need a better solution in case the ccl library
+            // changes the toString format.
+            long micros = Long
+                    .parseLong(tsymbol.getSymbol().replace("at ", ""));
+            return new TimestampSymbol(micros);
         }
         else {
             throw new IllegalArgumentException(

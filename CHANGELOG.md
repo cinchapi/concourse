@@ -13,6 +13,7 @@
 	* across a key,
 	* for a key in a record, or
 	* for a key in multiple records.
+* Moved the `ccl` parsing logic into a [separate library](https://github.com/cinchapi/ccl) to make the process portable to plugins and other applications.
 
 #### Version 0.7.3 (TBD)
 * Fixed a bug that caused the temporal `average` and `sum` calculations to fail if the `timestamp` parameter was generated from a `String` instead of `long`.

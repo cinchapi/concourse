@@ -24,14 +24,15 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.grammar.ConjunctionSymbol;
+import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
-import com.cinchapi.concourse.lang.Expression;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.lang.Parser;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
@@ -220,16 +221,17 @@ final class Operations {
      * {@link PostfixNotationSymbol postfix notation symbols} that can be used
      * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
      *
+     * @param parser
      * @param criteria
      * @return
      */
     public static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
-            TCriteria criteria) {
+            Parser parser, TCriteria criteria) {
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : criteria.getSymbols()) {
             symbols.add(Language.translateFromThriftSymbol(tsymbol));
         }
-        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
+        Queue<PostfixNotationSymbol> queue = parser.order(symbols);
         return queue;
     }
 
@@ -329,39 +331,44 @@ final class Operations {
                 stack.push(TSets.union(stack.pop(), stack.pop()));
             }
             else if(symbol instanceof Expression) {
-                Expression exp = (Expression) symbol;
-                if(exp.getKeyRaw()
+                Expression expression = (Expression) symbol;
+                if(expression.raw().key()
                         .equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                     Set<Long> ids;
-                    if(exp.getOperatorRaw() == Operator.EQUALS) {
+                    if(expression.raw().operator() == Operator.EQUALS) {
                         ids = Sets.newTreeSet();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.add(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
+                        expression.raw().values().forEach(
+                                value -> ids.add(((Number) value).longValue()));
                         stack.push(ids);
                     }
-                    else if(exp.getOperatorRaw() == Operator.NOT_EQUALS) {
+                    else if(expression.raw()
+                            .operator() == Operator.NOT_EQUALS) {
                         ids = atomic.getAllRecords();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.remove(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
+                        expression.raw().values().forEach(value -> ids
+                                .remove(((Number) value).longValue()));
                         stack.push(ids);
                     }
                     else {
                         throw new IllegalArgumentException(
                                 "Cannot query on record id using "
-                                        + exp.getOperatorRaw());
+                                        + expression.raw().operator());
                     }
                 }
                 else {
-                    stack.push(exp.getTimestampRaw() == 0
-                            ? atomic.find(exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw())
-                            : atomic.find(exp.getTimestampRaw(),
-                                    exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw()));
+                    ArrayBuilder<TObject> values = ArrayBuilder.builder();
+                    expression.values().forEach(value -> values
+                            .add(Convert.javaToThrift(value.value())));
+                    stack.push(
+                            expression.raw().timestamp() == 0
+                                    ? atomic.find(expression.raw().key(),
+                                            (Operator) expression.raw()
+                                                    .operator(),
+                                            values.build())
+                                    : atomic.find(expression.raw().timestamp(),
+                                            expression.raw().key(),
+                                            (Operator) expression.raw()
+                                                    .operator(),
+                                            values.build()));
                 }
             }
             else {
@@ -378,6 +385,7 @@ final class Operations {
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
      *
+     * @param parser
      * @param records - the collection that holds the records that either match
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
@@ -391,7 +399,7 @@ final class Operations {
      * @param atomic - the atomic operation through which all operations are
      *            conducted
      */
-    public static void findOrInsertAtomic(Set<Long> records,
+    public static void findOrInsertAtomic(Parser parser, Set<Long> records,
             List<Multimap<String, Object>> objects,
             Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
             AtomicOperation atomic) {
@@ -409,7 +417,7 @@ final class Operations {
                     throw AtomicStateException.RETRY;
                 }
             }
-            insertDeferredAtomic(deferred, atomic);
+            insertDeferredAtomic(parser, deferred, atomic);
         }
     }
 
@@ -447,19 +455,20 @@ final class Operations {
      * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
      * made.
      *
+     * @param parser
      * @param deferred
      * @param atomic
      * @return {@code true} if all the writes are successful
      */
-    public static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
-            AtomicOperation atomic) {
+    public static boolean insertDeferredAtomic(Parser parser,
+            List<DeferredWrite> deferred, AtomicOperation atomic) {
         // NOTE: The validity of the key in each deferred write is assumed to
         // have already been checked
         for (DeferredWrite write : deferred) {
             if(write.getValue() instanceof ResolvableLink) {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Queue<PostfixNotationSymbol> queue = Parser
-                        .toPostfixNotation(rlink.getCcl());
+                Queue<PostfixNotationSymbol> queue = parser
+                        .order(parser.tokenize(rlink.getCcl()));
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findAtomic(queue, stack, atomic);
                 Set<Long> targets = stack.pop();

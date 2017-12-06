@@ -17,6 +17,7 @@ package com.cinchapi.concourse.lang;
 
 import org.junit.Test;
 
+import com.cinchapi.ccl.grammar.KeySymbol;
 import com.cinchapi.concourse.thrift.Operator;
 
 /**
@@ -31,7 +32,7 @@ public class CriteriaTest {
     public void testCannotAddSymbolToBuiltCriteria() {
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.EQUALS).value("bar").build();
-        criteria.add(KeySymbol.create("baz"));
+        criteria.add(new KeySymbol("baz"));
     }
 
     @Test
