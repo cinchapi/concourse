@@ -43,13 +43,33 @@ public final class Stores {
      */
     public static OperationParameters operationalize(Operator operator,
             TObject... values) {
+        // Transform the operator to its functional alias, given the
+        // transformations that will be made to the value(s).
+        Operator original = operator;
+        switch (operator) {
+        case LIKE:
+            operator = Operator.REGEX;
+            break;
+        case NOT_LIKE:
+            operator = Operator.NOT_REGEX;
+            break;
+        case LINKS_TO:
+            operator = Operator.EQUALS;
+            break;
+        default:
+            break;
+        }
+
+        // Transform the values based on the original operator, if necessary.
         TObject[] ovalues = new TObject[values.length];
         for (int i = 0; i < ovalues.length; ++i) {
             TObject value = values[i];
             try {
-                switch (operator) {
+                switch (original) {
                 case REGEX:
                 case NOT_REGEX:
+                case LIKE:
+                case NOT_LIKE:
                     value = Convert.javaToThrift(
                             ((String) Convert.thriftToJava(value)).replaceAll(
                                     TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
@@ -71,21 +91,6 @@ public final class Stores {
             ovalues[i] = value;
         }
 
-        // Transform the operator to its functional alias, given the
-        // transformations made to the values.
-        switch (operator) {
-        case LIKE:
-            operator = Operator.REGEX;
-            break;
-        case NOT_LIKE:
-            operator = Operator.NOT_REGEX;
-            break;
-        case LINKS_TO:
-            operator = Operator.EQUALS;
-            break;
-        default:
-            break;
-        }
         return new OperationParameters(operator, ovalues);
     }
 
