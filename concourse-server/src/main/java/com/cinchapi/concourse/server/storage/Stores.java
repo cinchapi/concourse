@@ -111,21 +111,41 @@ public final class Stores {
         }
     }
 
+    /**
+     * A container class that holds operational parameters that can be passed to
+     * various {@link Store} methods.
+     * 
+     * @author Jeff Nelson
+     */
     @Immutable
     public static final class OperationParameters {
 
         private final Operator operator;
         private final TObject[] values;
 
+        /**
+         * @param operator
+         * @param values
+         */
         private OperationParameters(Operator operator, TObject[] values) {
             this.operator = operator;
             this.values = values;
         }
 
+        /**
+         * Return the {@link #operator}.
+         * 
+         * @return the operator
+         */
         public Operator operator() {
             return operator;
         }
 
+        /**
+         * Return the {@link #values}.
+         * 
+         * @return the values
+         */
         public TObject[] values() {
             return values;
         }
