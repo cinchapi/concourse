@@ -40,6 +40,7 @@ import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.google.common.base.Preconditions;
 
 @SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked", "unused" })
 /**
@@ -346,6 +347,45 @@ public class TObject implements
     public int hashCode() {
         return Arrays.hashCode(
                 new int[] { data.hashCode(), getInternalType().ordinal() });
+    }
+
+    /**
+     * Return {@code true} of this {@link TObject} satisfies {@code operator} in
+     * relation to the {@code values}.
+     * 
+     * @param operator
+     * @param values
+     * @return {@code true} if the comparison is valid
+     */
+    public boolean is(Operator operator, TObject... values) {
+        TObject v1 = values[0];
+        switch (operator) {
+        case EQUALS:
+            return comparator().compare(this, v1) == 0;
+        case NOT_EQUALS:
+            return comparator().compare(this, v1) != 0;
+        case GREATER_THAN:
+            return comparator().compare(this, v1) > 0;
+        case GREATER_THAN_OR_EQUALS:
+            return comparator().compare(this, v1) >= 0;
+        case LESS_THAN:
+            return comparator().compare(this, v1) < 0;
+        case LESS_THAN_OR_EQUALS:
+            return comparator().compare(this, v1) <= 0;
+        case BETWEEN:
+            Preconditions.checkArgument(values.length > 1);
+            TObject v2 = values[1];
+            return comparator().compare(v1, this) <= 0
+                    && comparator().compare(v2, this) > 0;
+        case REGEX:
+            return Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        case NOT_REGEX:
+            return !Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        default:
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**

@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.server.storage.Stores.OperationParameters;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -41,21 +42,15 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(long timestamp, String key,
             Operator operator, TObject... values) {
-        for (int i = 0; i < values.length; ++i) {
-            values[i] = Stores.normalizeValue(operator, values[i]);
-        }
-        operator = Stores.normalizeOperator(operator);
-        return doExplore(timestamp, key, operator, values);
+        OperationParameters args = Stores.operationalize(operator, values);
+        return doExplore(timestamp, key, args.operator(), args.values());
     }
 
     @Override
     public final Map<Long, Set<TObject>> explore(String key, Operator operator,
             TObject... values) {
-        for (int i = 0; i < values.length; ++i) {
-            values[i] = Stores.normalizeValue(operator, values[i]);
-        }
-        operator = Stores.normalizeOperator(operator);
-        return doExplore(key, operator, values);
+        OperationParameters args = Stores.operationalize(operator, values);
+        return doExplore(key, args.operator(), args.values());
     }
 
     @Override

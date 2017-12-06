@@ -22,6 +22,7 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import com.cinchapi.common.base.Array;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -47,14 +48,19 @@ public class StoresTest {
         switch (operator) {
         case LIKE:
             expected = Operator.REGEX;
+            break;
         case NOT_LIKE:
             expected = Operator.NOT_REGEX;
+            break;
         case LINKS_TO:
-            operator = Operator.EQUALS;
+            expected = Operator.EQUALS;
+            break;
         default:
             expected = operator;
+            break;
         }
-        Assert.assertEquals(expected, Stores.normalizeOperator(operator));
+        Assert.assertEquals(expected,
+                Stores.operationalize(operator, Array.containing()).operator());
     }
 
     @Test
@@ -79,14 +85,15 @@ public class StoresTest {
             break;
         }
         Assert.assertEquals(Convert.javaToThrift(expected),
-                Stores.normalizeValue(operator, Convert.javaToThrift(value)));
+                Stores.operationalize(operator, Convert.javaToThrift(value))
+                        .values()[0]);
     }
 
     @Test
     public void testNormalizeLinksToNotLong() {
         TObject value = Convert.javaToThrift(TestData.getString());
         Assert.assertEquals(value,
-                Stores.normalizeValue(Operator.LINKS_TO, value));
+                Stores.operationalize(Operator.LINKS_TO, value).values()[0]);
     }
 
     /**

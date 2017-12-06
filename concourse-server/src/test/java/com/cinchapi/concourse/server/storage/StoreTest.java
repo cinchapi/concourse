@@ -1684,6 +1684,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .isEmpty());
     }
 
+    @Test
+    public void testFindLikeOperator() {
+        add("email", Convert.javaToThrift("jeff@gmail.com"), 1);
+        Assert.assertTrue(store.find("email", Operator.LIKE,
+                Convert.javaToThrift("%gmail.com%")).contains(1L));
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.
      * 

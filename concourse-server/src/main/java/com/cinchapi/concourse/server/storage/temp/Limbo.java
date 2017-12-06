@@ -41,7 +41,6 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.TStrings;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -82,33 +81,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     protected static boolean matches(Value input, Operator operator,
             TObject... values) {
-        Value v1 = Value.wrap(values[0]);
-        switch (operator) {
-        case EQUALS:
-            return v1.compareTo(input) == 0;
-        case NOT_EQUALS:
-            return v1.compareTo(input) != 0;
-        case GREATER_THAN:
-            return v1.compareTo(input) < 0;
-        case GREATER_THAN_OR_EQUALS:
-            return v1.compareTo(input) <= 0;
-        case LESS_THAN:
-            return v1.compareTo(input) > 0;
-        case LESS_THAN_OR_EQUALS:
-            return v1.compareTo(input) >= 0;
-        case BETWEEN:
-            Preconditions.checkArgument(values.length > 1);
-            Value v2 = Value.wrap(values[1]);
-            return v1.compareTo(input) <= 0 && v2.compareTo(input) > 0;
-        case REGEX:
-            return input.getObject().toString()
-                    .matches(v1.getObject().toString());
-        case NOT_REGEX:
-            return !input.getObject().toString()
-                    .matches(v1.getObject().toString());
-        default:
-            throw new UnsupportedOperationException();
-        }
+        return input.getTObject().is(operator, values);
     }
 
     /**
