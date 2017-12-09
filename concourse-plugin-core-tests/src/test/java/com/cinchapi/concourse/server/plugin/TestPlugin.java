@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.util.Set;
 
+import com.cinchapi.common.reflect.Reflection;
+
 import ch.qos.logback.classic.Level;
 
 /**
@@ -42,6 +44,10 @@ public class TestPlugin extends Plugin {
 
     public Set<Long> inventory() {
         return runtime.inventory();
+    }
+
+    public String environment() {
+        return Reflection.call(Thread.currentThread(), "environment");
     }
 
     @Override
