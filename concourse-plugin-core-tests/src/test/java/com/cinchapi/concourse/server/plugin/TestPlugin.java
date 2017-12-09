@@ -17,9 +17,9 @@ package com.cinchapi.concourse.server.plugin;
 
 import java.util.Set;
 
-import com.cinchapi.common.reflect.Reflection;
-
 import ch.qos.logback.classic.Level;
+
+import com.cinchapi.common.reflect.Reflection;
 
 /**
  * A plugin to be used in unit tests.
