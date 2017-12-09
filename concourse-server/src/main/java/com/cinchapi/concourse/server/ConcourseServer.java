@@ -2826,6 +2826,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
+        environment = Environments.sanitize(environment); // CON-605, CON-606
         return pluginManager.invoke(id, method, params, creds, transaction,
                 environment);
     }
