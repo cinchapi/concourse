@@ -178,7 +178,8 @@ public class ComplexTObjectTest {
                 .value("cinchapi").at(Timestamp.now()).build();
         TCriteria tcriteria = Language.translateToThriftCriteria(criteria);
         ComplexTObject expected = ComplexTObject.fromJavaObject(tcriteria);
-        ComplexTObject actual = ComplexTObject.fromByteBuffer(expected.toByteBuffer());
+        ComplexTObject actual = ComplexTObject
+                .fromByteBuffer(expected.toByteBuffer());
         Assert.assertEquals(expected, actual);
     }
 
