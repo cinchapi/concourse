@@ -109,7 +109,7 @@ public class ComplexTObject implements
             List<TSymbol> symbols = Lists.newArrayList();
             while (buffer.hasRemaining()) {
                 int length = buffer.getInt();
-                TSymbolType symbolType = TSymbolType.values()[buffer.getInt()];
+                TSymbolType symbolType = TSymbolType.values()[buffer.get()];
                 String symbol = ByteBuffers
                         .getString(ByteBuffers.get(buffer, length));
                 symbols.add(new TSymbol(symbolType, symbol));
@@ -512,7 +512,7 @@ public class ComplexTObject implements
                 try {
                     byte[] symbolBytes = item.symbol
                             .getBytes(StandardCharsets.UTF_8);
-                    int length = symbolBytes.length + 1;
+                    int length = symbolBytes.length;
                     bytes.write((byte[]) size.putInt(length).flip().array());
                     bytes.write(item.type.ordinal());
                     bytes.write(symbolBytes);
