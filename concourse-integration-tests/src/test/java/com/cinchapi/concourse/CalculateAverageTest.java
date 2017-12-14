@@ -78,7 +78,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
                 timestamp);
         Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
     }
-    
+
     @Test
     public void testAverageKeyCclTimestr() {
         String key = "age";

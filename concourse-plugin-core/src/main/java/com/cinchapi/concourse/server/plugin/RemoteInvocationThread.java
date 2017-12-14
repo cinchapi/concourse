@@ -36,8 +36,8 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-final class RemoteInvocationThread extends Thread implements
-        ConcourseRuntimeAuthorized {
+final class RemoteInvocationThread extends Thread
+        implements ConcourseRuntimeAuthorized {
 
     /**
      * A collection of responses from the upstream service. Made available for

@@ -286,7 +286,7 @@ public class TrackingMultimapTest
         tmmap.delete(30, 30L);
         Assert.assertEquals(4, tmmap.max());
     }
-    
+
     @Test
     public void testPercentKeyDataTypeWhenEmpty() {
         TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
