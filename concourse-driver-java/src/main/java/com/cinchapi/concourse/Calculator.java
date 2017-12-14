@@ -47,7 +47,122 @@ public class Calculator {
     }
 
     /**
-     * Return the sum of all the values stored for {@code key} in
+     * Return the average of all the values stored across {@code key}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @return the average of the values
+     */
+    public Number average(String key) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().averageKey(key,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @return the average of the values
+     */
+    public Number average(String key, Collection<Long> records) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().averageKeyRecords(key,
+                    Collections.toLongList(records), concourse.creds(),
+                    concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the average of the values
+     */
+    public Number average(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param {@link Criteria}
+     * @return the average of the values
+     */
+    public Number average(String key, Criteria criteria) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().averageKeyCriteria(key,
+                    Language.translateToThriftCriteria(criteria),
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public Number average(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values stored for {@code key} in
      * {@code record}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
@@ -56,13 +171,110 @@ public class Calculator {
      * 
      * @param key the field name
      * @param record the record id
-     * @return the sum of the values
+     * @return the average of the values
      */
-    public Number sum(String key, long record) {
+    public Number average(String key, long record) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyRecord(key, record,
+            TObject result = concourse.thrift().averageKeyRecord(key, record,
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the average of the values
+     */
+    public Number average(String key, long record, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values for {@code key} in
+     * each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param ccl
+     * @return the average of the values
+     */
+    public Number average(String key, String ccl) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().averageKeyCcl(key, ccl,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values at {@code timestamp} for {@code key}
+     * in each of the records that match the {@code criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param criteria a criteria written using the Concourse Criteria Language
+     *            (CCL)
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public Number average(String key, String ccl, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the average of all the values stored across {@code key} at
+     * {@code timestamp}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key a field name
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the average of the values
+     */
+    public Number average(String key, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().averageKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().averageKeyTime(key,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -80,47 +292,6 @@ public class Calculator {
     public Number sum(String key) {
         return concourse.execute(() -> {
             TObject result = concourse.thrift().sumKey(key, concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the sum of all the values stored across {@code key} at
-     * {@code timestamp}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key a field name
-     * @param timestamp the {@link Timestamp} at which the values are selected
-     * @return the sum of the values
-     */
-    public Number sum(String key, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyTime(key,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @return the sum of the values
-     */
-    public Number sum(String key, long record, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyRecordTime(key, record,
-                    timestamp.getMicros(), concourse.creds(),
                     concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
@@ -159,10 +330,15 @@ public class Calculator {
     public Number sum(String key, Collection<Long> records,
             Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyRecordsTime(key,
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyRecordsTimestr(key,
+                            Collections.toLongList(records),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyRecordsTime(key,
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -185,6 +361,79 @@ public class Calculator {
                     Language.translateToThriftCriteria(criteria),
                     concourse.creds(), concourse.transaction(),
                     concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the sum of all the values for {@code key} in
+     * each of the records that match the {@link Criteria}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param {@link Criteria}
+     * @param timestamp the {@link Timestamp} at which the values are selected
+     * @return the sum of the values
+     */
+    public Number sum(String key, Criteria criteria, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyCriteriaTimestr(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyCriteriaTime(key,
+                            Language.translateToThriftCriteria(criteria),
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * Return the sum of all the values stored for {@code key} in
+     * {@code record}.
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return the sum of the values
+     */
+    public Number sum(String key, long record) {
+        return concourse.execute(() -> {
+            TObject result = concourse.thrift().sumKeyRecord(key, record,
+                    concourse.creds(), concourse.transaction(),
+                    concourse.environment());
+            return (Number) Convert.thriftToJava(result);
+        });
+    }
+
+    /**
+     * <p>
+     * This method assumes that all the values are numeric. An exception will be
+     * thrown if any non-numeric values are encountered.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the sum of the values
+     */
+    public Number sum(String key, long record, Timestamp timestamp) {
+        return concourse.execute(() -> {
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyRecordTimestr(key, record,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyRecordTime(key, record,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
@@ -226,77 +475,19 @@ public class Calculator {
      */
     public Number sum(String key, String ccl, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyCclTime(key, ccl,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyCclTimestr(key, ccl,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyCclTime(key, ccl,
+                            timestamp.getMicros(), concourse.creds(),
+                            concourse.transaction(), concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }
 
     /**
-     * Return the sum of all the values for {@code key} in
-     * each of the records that match the {@link Criteria}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key the field name
-     * @param {@link Criteria}
-     * @param timestamp the {@link Timestamp} at which the values are selected
-     * @return the sum of the values
-     */
-    public Number sum(String key, Criteria criteria, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().sumKeyCriteriaTime(key,
-                    Language.translateToThriftCriteria(criteria),
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-    
-    /**
-     * Return the average of all the values stored for {@code key} in
-     * {@code record}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @return the average of the values
-     */
-    public Number average(String key, long record) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecord(key, record,
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values stored across {@code key}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key a field name
-     * @return the average of the values
-     */
-    public Number average(String key) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKey(key, concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values stored across {@code key} at
+     * Return the sum of all the values stored across {@code key} at
      * {@code timestamp}.
      * <p>
      * This method assumes that all the values are numeric. An exception will be
@@ -305,163 +496,17 @@ public class Calculator {
      * 
      * @param key a field name
      * @param timestamp the {@link Timestamp} at which the values are selected
-     * @return the average of the values
+     * @return the sum of the values
      */
-    public Number average(String key, Timestamp timestamp) {
+    public Number sum(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyTime(key,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @return the average of the values
-     */
-    public Number average(String key, long record, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecordTime(key, record,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key
-     * @param records
-     * @return the average of the values
-     */
-    public Number average(String key, Collection<Long> records) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecords(key,
-                    Collections.toLongList(records), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key
-     * @param records
-     * @param timestamp
-     * @return the average of the values
-     */
-    public Number average(String key, Collection<Long> records,
-            Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyRecordsTime(key,
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values for {@code key} in
-     * each of the records that match the {@link Criteria}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key
-     * @param {@link Criteria}
-     * @return the average of the values
-     */
-    public Number average(String key, Criteria criteria) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCriteria(key,
-                    Language.translateToThriftCriteria(criteria),
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values for {@code key} in
-     * each of the records that match the {@code criteria}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key the field name
-     * @param ccl
-     * @return the average of the values
-     */
-    public Number average(String key, String ccl) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCcl(key, ccl,
-                    concourse.creds(), concourse.transaction(),
-                    concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values at {@code timestamp} for {@code key} in
-     * each of the records that match the {@code criteria}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key the field name
-     * @param criteria a criteria written using the Concourse Criteria Language
-     *            (CCL)
-     * @param timestamp the {@link Timestamp} at which the values are selected
-     * @return the average of the values
-     */
-    public Number average(String key, String ccl, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCclTime(key, ccl,
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
-            return (Number) Convert.thriftToJava(result);
-        });
-    }
-
-    /**
-     * Return the average of all the values for {@code key} in
-     * each of the records that match the {@link Criteria}.
-     * <p>
-     * This method assumes that all the values are numeric. An exception will be
-     * thrown if any non-numeric values are encountered.
-     * </p>
-     * 
-     * @param key the field name
-     * @param {@link Criteria}
-     * @param timestamp the {@link Timestamp} at which the values are selected
-     * @return the average of the values
-     */
-    public Number average(String key, Criteria criteria, Timestamp timestamp) {
-        return concourse.execute(() -> {
-            TObject result = concourse.thrift().averageKeyCriteriaTime(key,
-                    Language.translateToThriftCriteria(criteria),
-                    timestamp.getMicros(), concourse.creds(),
-                    concourse.transaction(), concourse.environment());
+            TObject result = timestamp.isString()
+                    ? concourse.thrift().sumKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
+                            concourse.transaction(), concourse.environment())
+                    : concourse.thrift().sumKeyTime(key, timestamp.getMicros(),
+                            concourse.creds(), concourse.transaction(),
+                            concourse.environment());
             return (Number) Convert.thriftToJava(result);
         });
     }

@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.util.Convert;
@@ -167,6 +168,19 @@ public class ComplexTObjectTest {
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
+    }
+
+    @Test
+    public void testComplexTObjectBinaryFormat() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("jeff").at(Timestamp.now())
+                .and().key("comapny").operator(Operator.EQUALS)
+                .value("cinchapi").at(Timestamp.now()).build();
+        TCriteria tcriteria = Language.translateToThriftCriteria(criteria);
+        ComplexTObject expected = ComplexTObject.fromJavaObject(tcriteria);
+        ComplexTObject actual = ComplexTObject
+                .fromByteBuffer(expected.toByteBuffer());
+        Assert.assertEquals(expected, actual);
     }
 
     @Test

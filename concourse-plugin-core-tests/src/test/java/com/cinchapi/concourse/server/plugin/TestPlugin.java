@@ -19,6 +19,8 @@ import java.util.Set;
 
 import ch.qos.logback.classic.Level;
 
+import com.cinchapi.common.reflect.Reflection;
+
 /**
  * A plugin to be used in unit tests.
  * 
@@ -42,6 +44,10 @@ public class TestPlugin extends Plugin {
 
     public Set<Long> inventory() {
         return runtime.inventory();
+    }
+
+    public String environment() {
+        return Reflection.call(Thread.currentThread(), "environment");
     }
 
     @Override

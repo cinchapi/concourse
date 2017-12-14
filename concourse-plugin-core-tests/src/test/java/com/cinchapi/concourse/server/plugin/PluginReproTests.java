@@ -20,6 +20,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.test.PluginTest;
 import com.google.common.collect.Sets;
@@ -49,6 +50,22 @@ public class PluginReproTests extends ClientServerTest implements PluginTest {
                                                           // renewed and the
                                                           // correct value can
                                                           // be retrieved
+    }
+
+    @Test
+    public void testReproCON_605() {
+        String environment = "foo bar &!* baz";
+        client = Concourse.connect("localhost", server.getClientPort(), "admin",
+                "admin", environment);
+        Assert.assertNotEquals(environment,
+                client.invokePlugin(TestPlugin.class.getName(), "environment"));
+    }
+
+    @Test
+    public void testReproCON_606() {
+        String environment = client.invokePlugin(TestPlugin.class.getName(),
+                "environment");
+        Assert.assertEquals("default", environment);
     }
 
 }
