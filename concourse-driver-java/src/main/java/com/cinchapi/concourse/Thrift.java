@@ -17,6 +17,7 @@ package com.cinchapi.concourse;
 
 import java.util.Map;
 import java.util.Set;
+
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;

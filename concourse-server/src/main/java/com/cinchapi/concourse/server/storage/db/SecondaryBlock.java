@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,12 +45,12 @@ final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
     SecondaryBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
     }
-    
+
     @Override
     public final SecondaryRevision insert(Text locator, Value key,
             PrimaryKey value, long version, Action type) {
-        return (SecondaryRevision) super
-                .insert(locator, Value.optimize(key), value, version, type);
+        return (SecondaryRevision) super.insert(locator, Value.optimize(key),
+                value, version, type);
     }
 
     @Override

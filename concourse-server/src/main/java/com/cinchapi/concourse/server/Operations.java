@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,18 +20,19 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.grammar.ConjunctionSymbol;
+import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.lang.ConjunctionSymbol;
-import com.cinchapi.concourse.lang.Expression;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.lang.Parser;
-import com.cinchapi.concourse.lang.PostfixNotationSymbol;
-import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
@@ -47,12 +48,12 @@ import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.TSets;
-import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -117,7 +118,7 @@ final class Operations {
             Object value = Convert.thriftToJava(tobject);
             Calculations.checkCalculatable(value);
             Number number = (Number) value;
-            for(int i = 0; i < records.size(); ++i){
+            for (int i = 0; i < records.size(); ++i) {
                 count++;
                 avg = Numbers.incrementalAverage(avg, number, count);
             }
@@ -220,17 +221,71 @@ final class Operations {
      * {@link PostfixNotationSymbol postfix notation symbols} that can be used
      * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
      *
+     * @param parser
      * @param criteria
      * @return
      */
     public static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
-            TCriteria criteria) {
+            Parser parser, TCriteria criteria) {
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : criteria.getSymbols()) {
             symbols.add(Language.translateFromThriftSymbol(tsymbol));
         }
-        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
+        Queue<PostfixNotationSymbol> queue = parser.order(symbols);
         return queue;
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * across the {@code key} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyAtomic(String key, long timestamp,
+            AtomicOperation atomic) {
+        return calculateKeyAtomic(key, timestamp, 0, atomic,
+                Calculations.countKey()).longValue();
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+                Calculations.countKeyRecord()).longValue();
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the count
+     * of all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the count
+     */
+    public static long countKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        long count = 0;
+        for (long record : records) {
+            count = calculateKeyRecordAtomic(key, record, timestamp, count,
+                    atomic, Calculations.countKeyRecord()).longValue();
+        }
+        return count;
     }
 
     /**
@@ -276,39 +331,44 @@ final class Operations {
                 stack.push(TSets.union(stack.pop(), stack.pop()));
             }
             else if(symbol instanceof Expression) {
-                Expression exp = (Expression) symbol;
-                if(exp.getKeyRaw()
+                Expression expression = (Expression) symbol;
+                if(expression.raw().key()
                         .equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                     Set<Long> ids;
-                    if(exp.getOperatorRaw() == Operator.EQUALS) {
+                    if(expression.raw().operator() == Operator.EQUALS) {
                         ids = Sets.newTreeSet();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.add(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
+                        expression.raw().values().forEach(
+                                value -> ids.add(((Number) value).longValue()));
                         stack.push(ids);
                     }
-                    else if(exp.getOperatorRaw() == Operator.NOT_EQUALS) {
+                    else if(expression.raw()
+                            .operator() == Operator.NOT_EQUALS) {
                         ids = atomic.getAllRecords();
-                        for (TObject tObj : exp.getValuesRaw()) {
-                            ids.remove(((Number) Convert.thriftToJava(tObj))
-                                    .longValue());
-                        }
+                        expression.raw().values().forEach(value -> ids
+                                .remove(((Number) value).longValue()));
                         stack.push(ids);
                     }
                     else {
                         throw new IllegalArgumentException(
                                 "Cannot query on record id using "
-                                        + exp.getOperatorRaw());
+                                        + expression.raw().operator());
                     }
                 }
                 else {
-                    stack.push(exp.getTimestampRaw() == 0
-                            ? atomic.find(exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw())
-                            : atomic.find(exp.getTimestampRaw(),
-                                    exp.getKeyRaw(), exp.getOperatorRaw(),
-                                    exp.getValuesRaw()));
+                    ArrayBuilder<TObject> values = ArrayBuilder.builder();
+                    expression.values().forEach(value -> values
+                            .add(Convert.javaToThrift(value.value())));
+                    stack.push(
+                            expression.raw().timestamp() == 0
+                                    ? atomic.find(expression.raw().key(),
+                                            (Operator) expression.raw()
+                                                    .operator(),
+                                            values.build())
+                                    : atomic.find(expression.raw().timestamp(),
+                                            expression.raw().key(),
+                                            (Operator) expression.raw()
+                                                    .operator(),
+                                            values.build()));
                 }
             }
             else {
@@ -325,6 +385,7 @@ final class Operations {
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
      *
+     * @param parser
      * @param records - the collection that holds the records that either match
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
@@ -338,7 +399,7 @@ final class Operations {
      * @param atomic - the atomic operation through which all operations are
      *            conducted
      */
-    public static void findOrInsertAtomic(Set<Long> records,
+    public static void findOrInsertAtomic(Parser parser, Set<Long> records,
             List<Multimap<String, Object>> objects,
             Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
             AtomicOperation atomic) {
@@ -356,7 +417,7 @@ final class Operations {
                     throw AtomicStateException.RETRY;
                 }
             }
-            insertDeferredAtomic(deferred, atomic);
+            insertDeferredAtomic(parser, deferred, atomic);
         }
     }
 
@@ -394,19 +455,20 @@ final class Operations {
      * {@link #insertAtomic(Multimap, long, AtomicOperation, List)} have been
      * made.
      *
+     * @param parser
      * @param deferred
      * @param atomic
      * @return {@code true} if all the writes are successful
      */
-    public static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
-            AtomicOperation atomic) {
+    public static boolean insertDeferredAtomic(Parser parser,
+            List<DeferredWrite> deferred, AtomicOperation atomic) {
         // NOTE: The validity of the key in each deferred write is assumed to
         // have already been checked
         for (DeferredWrite write : deferred) {
             if(write.getValue() instanceof ResolvableLink) {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Queue<PostfixNotationSymbol> queue = Parser
-                        .toPostfixNotation(rlink.getCcl());
+                Queue<PostfixNotationSymbol> queue = parser
+                        .order(parser.tokenize(rlink.getCcl()));
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findAtomic(queue, stack, atomic);
                 Set<Long> targets = stack.pop();
@@ -459,6 +521,82 @@ final class Operations {
             array.add(object);
         }
         return array.size() == 1 ? array.get(0).toString() : array.toString();
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the max
+     * across all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the max
+     */
+    public static Number maxKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, Long.MIN_VALUE,
+                atomic, Calculations.maxKeyRecord());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the max
+     * across all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the max
+     */
+    public static Number maxKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Number max = Long.MIN_VALUE;
+        for (long record : records) {
+            max = calculateKeyRecordAtomic(key, record, timestamp, max, atomic,
+                    Calculations.maxKeyRecord());
+        }
+        return max;
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the min
+     * across all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the min
+     */
+    public static Number minKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, Long.MAX_VALUE,
+                atomic, Calculations.minKeyRecord());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the min
+     * across all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the min
+     */
+    public static Number minKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Number min = Long.MAX_VALUE;
+        for (long record : records) {
+            min = calculateKeyRecordAtomic(key, record, timestamp, min, atomic,
+                    Calculations.minKeyRecord());
+        }
+        return min;
     }
 
     public static Map<Long, Set<TObject>> navigateKeyQueueAtomic(String key,
@@ -576,13 +714,13 @@ final class Operations {
                 }
                 else {
                     data.forEach((key, values) -> {
-                       Set<TObject> vals = stored.get(key);
-                       if(vals == null){
-                           stored.put(key, values);
-                       }
-                       else {
-                           vals.addAll(values);
-                       }
+                        Set<TObject> vals = stored.get(key);
+                        if(vals == null) {
+                            stored.put(key, values);
+                        }
+                        else {
+                            vals.addAll(values);
+                        }
                     });
                 }
             });
@@ -719,7 +857,7 @@ final class Operations {
      * @param result the running result
      * @param atomic the {@link AtomicOperation} to use
      * @param calculation the calculation logic
-     * @return the result after appltying the {@code calculation}
+     * @return the result after applying the {@code calculation}
      */
     private static Number calculateKeyRecordAtomic(String key, long record,
             long timestamp, Number result, AtomicOperation atomic,

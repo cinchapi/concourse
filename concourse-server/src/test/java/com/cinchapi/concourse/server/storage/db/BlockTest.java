@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,11 +28,6 @@ import org.junit.runner.Description;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.db.Block;
-import com.cinchapi.concourse.server.storage.db.PrimaryBlock;
-import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.SearchBlock;
-import com.cinchapi.concourse.server.storage.db.SecondaryBlock;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -73,9 +68,11 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test(expected = IllegalStateException.class)
     public void testCannotInsertInImmutableBlock() {
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
         block.sync();
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
     }
 
     @Test
@@ -110,7 +107,8 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test(expected = IllegalStateException.class)
     public void testCannotGetIteratorForMutableBlock() {
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
         block.iterator();
     }
 
@@ -147,12 +145,12 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
     @Test
     public final void testEquals() {
         String id = Long.toString(TestData.getLong());
-        PrimaryBlock p = Block.createPrimaryBlock(id, directory
-                + File.separator + "cpb");
-        SecondaryBlock s = Block.createSecondaryBlock(id, directory
-                + File.separator + "csb");
-        SearchBlock t = Block.createSearchBlock(id, directory + File.separator
-                + "ctb");
+        PrimaryBlock p = Block.createPrimaryBlock(id,
+                directory + File.separator + "cpb");
+        SecondaryBlock s = Block.createSecondaryBlock(id,
+                directory + File.separator + "csb");
+        SearchBlock t = Block.createSearchBlock(id,
+                directory + File.separator + "ctb");
         Assert.assertEquals(p, s);
         Assert.assertEquals(p, t);
         Assert.assertEquals(s, t);

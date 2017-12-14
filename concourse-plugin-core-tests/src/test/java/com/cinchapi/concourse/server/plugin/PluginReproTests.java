@@ -46,10 +46,26 @@ public class PluginReproTests extends ClientServerTest implements PluginTest {
         Set<Long> records = client.invokePlugin(TestPlugin.class.getName(),
                 "inventory");
         Assert.assertEquals(records, Sets.newHashSet(17L)); // Verify that the
-                                                          // access token is
-                                                          // renewed and the
-                                                          // correct value can
-                                                          // be retrieved
+                                                            // access token is
+                                                            // renewed and the
+                                                            // correct value can
+                                                            // be retrieved
+    }
+
+    @Test
+    public void testReproCON_605() {
+        String environment = "foo bar &!* baz";
+        client = Concourse.connect("localhost", server.getClientPort(), "admin",
+                "admin", environment);
+        Assert.assertNotEquals(environment,
+                client.invokePlugin(TestPlugin.class.getName(), "environment"));
+    }
+
+    @Test
+    public void testReproCON_606() {
+        String environment = client.invokePlugin(TestPlugin.class.getName(),
+                "environment");
+        Assert.assertEquals("default", environment);
     }
 
     @Test

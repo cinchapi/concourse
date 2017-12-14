@@ -1,6 +1,21 @@
 ## Changelog
 
-#### Version 0.8.0 (TBD)
+#### Version 0.8.0 (December 14, 2017)
+* Added a `count` aggregation function that returns the number of values stored
+	* across a key,
+	* for a key in a record, or
+	* for a key in multiple records.
+* Added a `max` aggregation function that returns the largest numeric value stored
+	* across a key,
+	* for a key in a record, or
+	* for a key in multiple records.
+* Added a `min` aggregation function that returns the smallest numeric value stored
+	* across a key,
+	* for a key in a record, or
+	* for a key in multiple records.
+* Moved the `ccl` parsing logic into a [separate library](https://github.com/cinchapi/ccl) to make the process portable to plugins and other applications.
+* Fixed some bugs that could have caused incorrect evaluation of `select(criteria)`, `find(criteria)` and related methods in some cases.
+* Added a `TObject#is(operator, values...)` method so plugins can perform local operator based comparisons for values returned from the server.
 
 #### Version 0.7.3 (December 14, 2017)
 * Fixed a bug that caused the temporal `average` and `sum` calculations to fail if the `timestamp` parameter was generated from a `String` instead of `long`.
@@ -62,8 +77,6 @@
 * Fixed the CPU efficiency of the JavaApp host termination watcher.
 * Fix bug that caused JavaApp processes to hang if they ended before the host was terminated.
 * Added database-wide `describe` method.
-
-
 
 #### Version 0.6.0 (March 5, 2017)
 * Added `calculate` interface to the `java` driver to perform aggregations.

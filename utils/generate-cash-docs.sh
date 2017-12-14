@@ -28,7 +28,7 @@ HOME=`cd "${HOME}"; pwd`
 RONN_HOME=$HOME/ronn
 RONN_GEMS=$RONN_HOME/gems
 RONN=$RONN_HOME/bin/ronn
-DOCS=$HOME/../documentation/markdown
+DOCS=$HOME/../docs/shell
 TARGET=$HOME/../concourse-shell/src/main/resources
 
 # Setup Ronn

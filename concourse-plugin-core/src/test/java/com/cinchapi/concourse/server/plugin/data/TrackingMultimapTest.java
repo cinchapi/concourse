@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -141,8 +141,8 @@ public class TrackingMultimapTest
         }
         Assert.assertTrue(map.size() == count2);
         map.putAll(map1);
-        Variables.register("map", map);
-        Variables.register("map1", map1);
+        Variables.register("map", map.keySet());
+        Variables.register("map1", map1.keySet());
         Assert.assertTrue(map.size() == (count1 + count2));
     }
 
@@ -223,7 +223,7 @@ public class TrackingMultimapTest
         });
         Assert.assertEquals(tmmap.count(), count.get());
     }
-    
+
     @Test
     public void testDeleteWillRemoveKeyIfNoAssociatedValues() {
         TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
@@ -287,6 +287,13 @@ public class TrackingMultimapTest
         Assert.assertEquals(4, tmmap.max());
     }
     
+    @Test
+    public void testPercentKeyDataTypeWhenEmpty() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
+    }
+
     @Test
     public void testPercentKeyDataTypeWhenEmpty() {
         TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap

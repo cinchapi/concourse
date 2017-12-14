@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -102,8 +102,8 @@ public class ComplexTObjectTest {
 
     @Test
     public void testSerializeListOfLists() {
-        List<? extends Object> expected = Lists.<Object> newArrayList("1",
-                true, 1, Lists.<Object> newArrayList(1, 2, 3, "4"),
+        List<? extends Object> expected = Lists.<Object> newArrayList("1", true,
+                1, Lists.<Object> newArrayList(1, 2, 3, "4"),
                 Lists.newArrayList(1, 2), Sets.<Object> newHashSet("1", true));
         List<? extends Object> actual = ComplexTObject.fromJavaObject(expected)
                 .getJavaObject();;
@@ -275,21 +275,23 @@ public class ComplexTObjectTest {
             Assert.fail();
         }
     }
-    
+
     @Test
-    public void testNullToByteBuffer(){
+    public void testNullToByteBuffer() {
         ComplexTObject expected = ComplexTObject.fromJavaObject(null);
         ByteBuffer buffer = expected.toByteBuffer();
         ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
-    public void testMapWithLargeValueToByteBuffer(){
+    public void testMapWithLargeValueToByteBuffer() {
         Map<String, String> expected = Maps.newHashMap();
         RandomStringGenerator rand = new RandomStringGenerator();
         expected.put(rand.nextString(300), rand.nextString(400));
-        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected).toByteBuffer();
-        Assert.assertEquals(expected, ComplexTObject.fromByteBuffer(buffer).getJavaObject());
+        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected)
+                .toByteBuffer();
+        Assert.assertEquals(expected,
+                ComplexTObject.fromByteBuffer(buffer).getJavaObject());
     }
 }
