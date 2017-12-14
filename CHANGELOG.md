@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.8.0 (TBD)
+#### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored
 	* across a key,
 	* for a key in a record, or
