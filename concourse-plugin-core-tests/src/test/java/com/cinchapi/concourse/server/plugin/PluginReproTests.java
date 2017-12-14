@@ -68,20 +68,4 @@ public class PluginReproTests extends ClientServerTest implements PluginTest {
         Assert.assertEquals("default", environment);
     }
 
-    @Test
-    public void testReproCON_605() {
-        String environment = "foo bar &!* baz";
-        client = Concourse.connect("localhost", server.getClientPort(), "admin",
-                "admin", environment);
-        Assert.assertNotEquals(environment,
-                client.invokePlugin(TestPlugin.class.getName(), "environment"));
-    }
-
-    @Test
-    public void testReproCON_606() {
-        String environment = client.invokePlugin(TestPlugin.class.getName(),
-                "environment");
-        Assert.assertEquals("default", environment);
-    }
-
 }

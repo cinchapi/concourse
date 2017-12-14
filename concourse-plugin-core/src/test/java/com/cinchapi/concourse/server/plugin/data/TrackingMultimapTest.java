@@ -294,13 +294,6 @@ public class TrackingMultimapTest
         Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
     }
 
-    @Test
-    public void testPercentKeyDataTypeWhenEmpty() {
-        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
-                .create(ObjectResultDataset.OBJECT_COMPARATOR);
-        Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
-    }
-
     /**
      * Return a random {@link Set} to use within tests.
      * 

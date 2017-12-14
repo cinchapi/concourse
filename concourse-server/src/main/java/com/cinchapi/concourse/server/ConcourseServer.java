@@ -151,25 +151,6 @@ public class ConcourseServer extends BaseConcourseServer
                                                        // future release.
 
     /**
-     * Contains the credentials used by the {@link #accessManager}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
-     * The minimum heap size required to run Concourse Server.
-     */
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-    /**
-     * The number of worker threads that Concourse Server uses.
-     */
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
-
-    /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
