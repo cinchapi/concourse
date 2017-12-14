@@ -141,8 +141,8 @@ public class TrackingMultimapTest
         }
         Assert.assertTrue(map.size() == count2);
         map.putAll(map1);
-        Variables.register("map", map);
-        Variables.register("map1", map1);
+        Variables.register("map", map.keySet());
+        Variables.register("map1", map1.keySet());
         Assert.assertTrue(map.size() == (count1 + count2));
     }
 
