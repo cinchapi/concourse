@@ -2,7 +2,7 @@
 
 #### Version 0.8.0 (TBD)
 
-#### Version 0.7.3 (TBD)
+#### Version 0.7.3 (December 14, 2017)
 * Fixed a bug that caused the temporal `average` and `sum` calculations to fail if the `timestamp` parameter was generated from a `String` instead of `long`.
 * Fixed a couple of bugs that made it possible for Concourse Server to pass blank or unsanitized environment names to plugins during method invocations.
 * Fixed a bug that caused `Criteria` objects to be improperly serialized/deserialized when passed to plugin methods as arguments or used as return values.
