@@ -2122,8 +2122,15 @@ public class ConcourseServer extends BaseConcourseServer implements
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Queue<PostfixNotationSymbol> queue = parser
-                        .order(parser.tokenize(ccl));
+                Queue<PostfixNotationSymbol> queue;
+                if(objects.size() == 1) {
+                    // CON-321: Support local resolution when the data blob is a
+                    // single object
+                    queue = parser.order(parser.tokenize(ccl, objects.get(0)));
+                }
+                else {
+                    queue = parser.order(parser.tokenize(ccl));
+                }
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findOrInsertAtomic(parser, records, objects, queue,
                         stack, atomic);
