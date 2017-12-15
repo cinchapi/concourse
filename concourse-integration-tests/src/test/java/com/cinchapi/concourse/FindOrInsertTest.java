@@ -32,7 +32,7 @@ public class FindOrInsertTest extends ConcourseIntegrationTest {
 
     @Test
     public void testFindOrInsertCclWithLocalResolutionNoMatch() { // CON-609
-        String ccl = "ssn = $id";
+        String ccl = "ssn = $ssn";
         Map<String, Object> data = ImmutableMap.of("name", "Jeff Nelson", "ssn",
                 1);
         long expected = client.add("name", "Jeff Nelson");
@@ -42,6 +42,16 @@ public class FindOrInsertTest extends ConcourseIntegrationTest {
 
     @Test
     public void testFindOrInsertCclWithLocalResolutionYesMatch() { // CON-609
+        String ccl = "ssn = $ssn";
+        Map<String, Object> data = ImmutableMap.of("name", "Jeff Nelson", "ssn",
+                1);
+        long expected = client.insert(data);
+        long actual = client.findOrInsert(ccl, data);
+        Assert.assertEquals(expected, actual);
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testFindOrInsertCclWithLocalResolutionBadVariable() {
         String ccl = "ssn = $id";
         Map<String, Object> data = ImmutableMap.of("name", "Jeff Nelson", "ssn",
                 1);
