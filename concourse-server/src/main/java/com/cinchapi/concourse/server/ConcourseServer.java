@@ -55,6 +55,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
@@ -129,8 +130,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -2117,7 +2118,15 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Parser parser = Parsers.create(ccl);
+                Parser parser;
+                if(objects.size() == 1) {
+                    // CON-321: Support local resolution when the data blob is a
+                    // single object
+                    parser = Parsers.create(ccl, objects.get(0));
+                }
+                else {
+                    parser = Parsers.create(ccl);
+                }
                 Queue<PostfixNotationSymbol> queue = parser.order();
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findOrInsertAtomic(records, objects, queue, stack,
@@ -2171,8 +2180,8 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match",
+                            Language.translateFromThriftCriteria(criteria)));
         }
     }
 
@@ -6007,12 +6016,15 @@ public class ConcourseServer extends BaseConcourseServer
             catch (java.lang.SecurityException e) {
                 throw new SecurityException(e.getMessage());
             }
-            catch (IllegalStateException | JsonParseException e) {
+            catch (IllegalStateException | JsonParseException
+                    | SyntaxException e) {
                 // java.text.ParseException is checked, so internal server
                 // classes don't use it to indicate parse errors. Since most
                 // parsing using some sort of state machine, we've adopted the
                 // convention to throw IllegalStateExceptions whenever a parse
                 // error has occurred.
+                // CON-609: External SyntaxException should be propagated as
+                // ParseException
                 throw new ParseException(e.getMessage());
             }
             catch (PluginException e) {
