@@ -49,7 +49,7 @@ public class FindOrInsertTest extends ConcourseIntegrationTest {
         long actual = client.findOrInsert(ccl, data);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test(expected = ParseException.class)
     public void testFindOrInsertCclWithLocalResolutionBadVariable() {
         String ccl = "ssn = $id";
