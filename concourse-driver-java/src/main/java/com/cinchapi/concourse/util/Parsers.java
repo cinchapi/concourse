@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.util.function.Function;
+
 import com.cinchapi.ccl.Parser;
-import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.ccl.type.Operator;
 import com.google.common.collect.Multimap;
 
 /**
@@ -27,15 +29,28 @@ import com.google.common.collect.Multimap;
 public final class Parsers {
 
     /**
+     * The canonical function to transform strings to java values in a
+     * {@link Parser}.
+     */
+    public static final Function<String, Object> PARSER_TRANSFORM_VALUE_FUNCTION = value -> Convert
+            .stringToJava(value);
+
+    /**
+     * The canonical function to transform strings to operators in a
+     * {@link Parser}.
+     */
+    public static final Function<String, Operator> PARSER_TRANSFORM_OPERATOR_FUNCTION = operator -> Convert
+            .stringToOperator(operator);
+
+    /**
      * Return a {@link Parser} for the {@code ccl} statement.
      * 
      * @param ccl a CCL statement
      * @return a {@link Parser}
      */
     public static Parser create(String ccl) {
-        return Parser.newParser(ccl,
-                GlobalState.PARSER_TRANSFORM_VALUE_FUNCTION,
-                GlobalState.PARSER_TRANSFORM_OPERATOR_FUNCTION);
+        return Parser.newParser(ccl, PARSER_TRANSFORM_VALUE_FUNCTION,
+                PARSER_TRANSFORM_OPERATOR_FUNCTION);
     }
 
     /**
@@ -47,9 +62,8 @@ public final class Parsers {
      * @return a {@link Parser}
      */
     public static Parser create(String ccl, Multimap<String, Object> data) {
-        return Parser.newParser(ccl, data,
-                GlobalState.PARSER_TRANSFORM_VALUE_FUNCTION,
-                GlobalState.PARSER_TRANSFORM_OPERATOR_FUNCTION);
+        return Parser.newParser(ccl, data, PARSER_TRANSFORM_VALUE_FUNCTION,
+                PARSER_TRANSFORM_OPERATOR_FUNCTION);
     }
 
     private Parsers() {/* no-init */}
