@@ -1,5 +1,10 @@
 ## Changelog
 
+#### Version 0.9.0
+
+#### Version 0.8.1
+* Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
+
 #### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored
 	* across a key,
