@@ -129,8 +129,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -2183,8 +2183,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match",
-                            Language.translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match", Language
+                                    .translateFromThriftCriteria(criteria)));
         }
     }
 
