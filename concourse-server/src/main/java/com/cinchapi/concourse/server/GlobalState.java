@@ -26,13 +26,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
 import ch.qos.logback.classic.Level;
 
-import com.cinchapi.ccl.type.Operator;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
@@ -40,7 +38,6 @@ import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
@@ -428,22 +425,6 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "com.cinchapi.concourse.server.http.TransactionTokenAttribute";
-
-    /**
-     * The canonical function to transform strings to java values in a
-     * {@link Parser}.
-     */
-    @NonPreference
-    public static final Function<String, Object> PARSER_TRANSFORM_VALUE_FUNCTION = value -> Convert
-            .stringToJava(value);
-
-    /**
-     * The canonical function to transform strings to operators in a
-     * {@link Parser}.
-     */
-    @NonPreference
-    public static final Function<String, Operator> PARSER_TRANSFORM_OPERATOR_FUNCTION = operator -> Convert
-            .stringToOperator(operator);
 
     /**
      * The path to the underlying file from which the preferences are extracted.

@@ -25,6 +25,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
 import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
@@ -52,6 +53,7 @@ import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.TSets;
 import com.google.common.base.Preconditions;
@@ -221,18 +223,16 @@ final class Operations {
      * {@link PostfixNotationSymbol postfix notation symbols} that can be used
      * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
      *
-     * @param parser
      * @param criteria
      * @return
      */
     public static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
-            Parser parser, TCriteria criteria) {
+            TCriteria criteria) {
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : criteria.getSymbols()) {
             symbols.add(Language.translateFromThriftSymbol(tsymbol));
         }
-        Queue<PostfixNotationSymbol> queue = parser.order(symbols);
-        return queue;
+        return Parsing.toPostfixNotation(symbols);
     }
 
     /**
@@ -385,7 +385,6 @@ final class Operations {
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
      *
-     * @param parser
      * @param records - the collection that holds the records that either match
      *            the criteria or hold the inserted objects.
      * @param objects - a list of Multimaps, each of which containing data to
@@ -399,7 +398,7 @@ final class Operations {
      * @param atomic - the atomic operation through which all operations are
      *            conducted
      */
-    public static void findOrInsertAtomic(Parser parser, Set<Long> records,
+    public static void findOrInsertAtomic(Set<Long> records,
             List<Multimap<String, Object>> objects,
             Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
             AtomicOperation atomic) {
@@ -417,7 +416,7 @@ final class Operations {
                     throw AtomicStateException.RETRY;
                 }
             }
-            insertDeferredAtomic(parser, deferred, atomic);
+            insertDeferredAtomic(deferred, atomic);
         }
     }
 
@@ -460,15 +459,15 @@ final class Operations {
      * @param atomic
      * @return {@code true} if all the writes are successful
      */
-    public static boolean insertDeferredAtomic(Parser parser,
-            List<DeferredWrite> deferred, AtomicOperation atomic) {
+    public static boolean insertDeferredAtomic(List<DeferredWrite> deferred,
+            AtomicOperation atomic) {
         // NOTE: The validity of the key in each deferred write is assumed to
         // have already been checked
         for (DeferredWrite write : deferred) {
             if(write.getValue() instanceof ResolvableLink) {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Queue<PostfixNotationSymbol> queue = parser
-                        .order(parser.tokenize(rlink.getCcl()));
+                Parser parser = Parsers.create(rlink.getCcl());
+                Queue<PostfixNotationSymbol> queue = parser.order();
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findAtomic(queue, stack, atomic);
                 Set<Long> targets = stack.pop();
