@@ -1,6 +1,7 @@
 ## Changelog
 
 #### Version 0.9.0
+* Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 
 #### Version 0.8.1
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
