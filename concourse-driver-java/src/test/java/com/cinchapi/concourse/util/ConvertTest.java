@@ -745,7 +745,7 @@ public class ConvertTest {
         Map<Object, Object> actual = Convert.possibleThriftToJava(texpected);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testConvertStringToOperatorCaseInsensitive() {
         Assert.assertEquals(Operator.LIKE, Convert.stringToOperator("LIKE"));
