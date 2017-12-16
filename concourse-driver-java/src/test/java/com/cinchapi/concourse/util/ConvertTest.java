@@ -746,6 +746,11 @@ public class ConvertTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testConvertStringToOperatorCaseInsensitive() {
+        Assert.assertEquals(Operator.LIKE, Convert.stringToOperator("LIKE"));
+    }
+
     /**
      * Randomly flip the case of all the characters in {@code string}.
      * 
