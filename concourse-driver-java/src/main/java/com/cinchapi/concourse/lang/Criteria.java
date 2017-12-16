@@ -18,8 +18,15 @@ package com.cinchapi.concourse.lang;
 import java.util.Collections;
 import java.util.List;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.Parsing;
+import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.util.Parsers;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -65,6 +72,34 @@ public class Criteria implements Symbol {
      */
     protected Criteria() {
         this.symbols = Lists.newArrayList();
+    }
+
+    /**
+     * Return this {@link Criteria} with each expression (e.g. {key} {operator}
+     * {values}) pinned to the specified {@code timestamp}.
+     * 
+     * <strong>NOTE:</strong> Any timestamps that are pinned to any expressions
+     * within this Criteria will be replaced by the specified {@code timestamp}.
+     * 
+     * @param timestamp the {@link Timestamp} to which the returned
+     *            {@link Criteria} is pinned
+     * 
+     * @return this {@link Criteria} pinned to {@code timestamp}
+     */
+    public Criteria at(Timestamp timestamp) {
+        Parser parser = Parsers.create(getCclString());
+        List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
+        TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Reflection.set("timestamp", ts, expression); // (authorized)
+            }
+        });
+        Criteria criteria = new Criteria();
+        symbols = Parsing.ungroupExpressions(symbols);
+        criteria.symbols = symbols;
+        return criteria;
     }
 
     /**

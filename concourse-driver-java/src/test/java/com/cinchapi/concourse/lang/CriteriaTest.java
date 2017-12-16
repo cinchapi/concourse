@@ -15,9 +15,16 @@
  */
 package com.cinchapi.concourse.lang;
 
+import java.util.List;
+
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.Parsing;
+import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
 
 /**
@@ -43,6 +50,47 @@ public class CriteriaTest {
                         .key("name").operator(Operator.NOT_EQUALS)
                         .value("John Doe"))
                 .build();
+    }
+
+    @Test
+    public void testTimestampPinning() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("Jeff Nelson").and()
+                .group(Criteria.where().key("company").operator(Operator.EQUALS)
+                        .value("Cinchapi").or().key("company")
+                        .operator(Operator.EQUALS).value("Blavity"))
+                .build();
+        Timestamp timestamp = Timestamp.now();
+        criteria = criteria.at(timestamp);
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Assert.assertEquals(expression.raw().timestamp(),
+                        timestamp.getMicros());
+            }
+        });
+    }
+
+    @Test
+    public void testTimestampPinningSomeTimestamps() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("Jeff Nelson").and()
+                .group(Criteria.where().key("company").operator(Operator.EQUALS)
+                        .value("Cinchapi").at(Timestamp.now()).or()
+                        .key("company").operator(Operator.EQUALS)
+                        .value("Blavity"))
+                .build();
+        Timestamp timestamp = Timestamp.now();
+        criteria = criteria.at(timestamp);
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Assert.assertEquals(expression.raw().timestamp(),
+                        timestamp.getMicros());
+            }
+        });
     }
 
 }
