@@ -20,11 +20,13 @@ import java.util.List;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
+import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.util.Parsers;
 import com.google.common.base.Preconditions;
@@ -55,6 +57,27 @@ public class Criteria implements Symbol {
      */
     public static StartState where() {
         return new StartState(new Criteria());
+    }
+
+    /**
+     * Return a {@link Criteria} object that expresses the same as the
+     * {@code ccl} statement.
+     * 
+     * @param ccl the CCL statement to parse
+     * @return an equivalanet {@link Criteria} object
+     */
+    public static Criteria parse(String ccl) {
+        Parser parser = Parsers.create(ccl);
+        Criteria criteria = new Criteria();
+        try {
+            criteria.symbols = Lists.newArrayList(parser.tokenize());
+            return criteria;
+        }
+        catch (SyntaxException | IllegalStateException e) {
+            throw new ParseException(
+                    new com.cinchapi.concourse.thrift.ParseException(
+                            e.getMessage()));
+        }
     }
 
     /**
