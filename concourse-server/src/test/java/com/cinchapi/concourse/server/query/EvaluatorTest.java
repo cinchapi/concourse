@@ -51,7 +51,7 @@ public class EvaluatorTest {
         String ccl = "name = jeff";
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
-        Evaluator visitor = new Evaluator();
+        Evaluator visitor = Evaluator.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L), result);
     }
@@ -72,7 +72,7 @@ public class EvaluatorTest {
         String ccl = "name = jeff and company = Cinchapi";
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
-        Evaluator visitor = new Evaluator();
+        Evaluator visitor = Evaluator.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L), result);
     }
@@ -93,7 +93,7 @@ public class EvaluatorTest {
         String ccl = "name = jeff or age < 75";
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
-        Evaluator visitor = new Evaluator();
+        Evaluator visitor = Evaluator.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L, 3L), result);
     }
@@ -114,7 +114,7 @@ public class EvaluatorTest {
         String ccl = "(name = jeff or company = Cinchapi) and age = 70";
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
-        Evaluator visitor = new Evaluator();
+        Evaluator visitor = Evaluator.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(), result);
     }
