@@ -48,6 +48,7 @@ public final class Parsers {
      * @param ccl a CCL statement
      * @return a {@link Parser}
      */
+    @SuppressWarnings("deprecation")
     public static Parser create(String ccl) {
         return Parser.newParser(ccl, PARSER_TRANSFORM_VALUE_FUNCTION,
                 PARSER_TRANSFORM_OPERATOR_FUNCTION);
@@ -61,6 +62,7 @@ public final class Parsers {
      * @param data a dataset
      * @return a {@link Parser}
      */
+    @SuppressWarnings("deprecation")
     public static Parser create(String ccl, Multimap<String, Object> data) {
         return Parser.newParser(ccl, data, PARSER_TRANSFORM_VALUE_FUNCTION,
                 PARSER_TRANSFORM_OPERATOR_FUNCTION);

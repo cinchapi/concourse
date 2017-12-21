@@ -22,10 +22,8 @@ import com.cinchapi.ccl.grammar.ConjunctionSymbol;
 import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
-import com.cinchapi.ccl.syntax.BooleanTree;
 import com.cinchapi.ccl.syntax.ConjunctionTree;
 import com.cinchapi.ccl.syntax.ExpressionTree;
-import com.cinchapi.ccl.syntax.ResultSetTree;
 import com.cinchapi.ccl.syntax.Visitor;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.server.storage.Store;
@@ -41,47 +39,61 @@ import com.cinchapi.concourse.util.Transformers;
  * 
  * @author Jeff Nelson
  */
-public class Evaluator implements Visitor {
+public class Evaluator implements Visitor<Set<Long>> {
+
+    /**
+     * The singleton instance.
+     */
+    private static final Evaluator INSTANCE = new Evaluator();
+
+    /**
+     * Return an instance of this {@link Evaluator}.
+     * 
+     * @return the {@link Evaluator}
+     */
+    public static Evaluator instance() {
+        return INSTANCE;
+    }
+
+    private Evaluator() {/* singleton */}
 
     @Override
-    public Object visit(ConjunctionTree tree, Object... data) {
+    public Set<Long> visit(ConjunctionTree tree, Object... data) {
         if(tree.root() == ConjunctionSymbol.AND) {
-            ResultSetTree a;
+            Set<Long> a;
             AbstractSyntaxTree bTree;
             // Attempt to short circuit by evaluating the leaf node first to see
             // if its result set is empty
             if(!tree.left().isLeaf() && tree.right().isLeaf()) {
-                a = (ResultSetTree) tree.right().accept(this, data);
+                a = tree.right().accept(this, data);
                 bTree = tree.left();
             }
             else {
-                a = (ResultSetTree) tree.left().accept(this, data);
+                a = tree.left().accept(this, data);
                 bTree = tree.right();
             }
-            if(a.records().isEmpty()) {
+            if(a.isEmpty()) {
                 // Since the AND conjunction takes the intersection, we know
                 // that the result set is empty, regardless of what evaluation
                 // is done to the second branch
-                return new ResultSetTree(Collections.emptySet());
+                return Collections.emptySet();
             }
             else {
-                ResultSetTree b = (ResultSetTree) bTree.accept(this, data);
-                Set<Long> results = TSets.intersection(a.records(),
-                        b.records());
-                return new ResultSetTree(results);
+                Set<Long> b = bTree.accept(this, data);
+                Set<Long> results = TSets.intersection(a, b);
+                return results;
             }
         }
         else {
-            ResultSetTree left = (ResultSetTree) tree.left().accept(this, data);
-            ResultSetTree right = (ResultSetTree) tree.right().accept(this,
-                    data);
-            Set<Long> results = TSets.union(left.records(), right.records());
-            return new ResultSetTree(results);
+            Set<Long> left = tree.left().accept(this, data);
+            Set<Long> right = tree.right().accept(this, data);
+            Set<Long> results = TSets.union(left, right);
+            return results;
         }
     }
 
     @Override
-    public Object visit(ExpressionTree tree, Object... data) {
+    public Set<Long> visit(ExpressionTree tree, Object... data) {
         Verify.that(data.length >= 1);
         Verify.that(data[0] instanceof Store);
         Store store = (Store) data[0];
@@ -95,17 +107,7 @@ public class Evaluator implements Visitor {
                 ? store.find(key, operator, values)
                 : store.find(expression.raw().timestamp(), key, operator,
                         values);
-        return new ResultSetTree(results);
-    }
-
-    @Override
-    public Object visit(BooleanTree tree, Object... data) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object visit(ResultSetTree tree, Object... data) {
-        return tree;
+        return results;
     }
 
 }

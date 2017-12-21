@@ -57,6 +57,7 @@ import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
@@ -77,6 +78,7 @@ import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.query.Evaluator;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
@@ -1949,20 +1951,20 @@ public class ConcourseServer extends BaseConcourseServer
         checkAccess(creds, transaction);
         try {
             Parser parser = Parsers.create(ccl);
-            Queue<PostfixNotationSymbol> queue = parser.order();
-            Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+            AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             AtomicOperation atomic = null;
+            Set<Long> results = null;
             while (atomic == null || !atomic.commit()) {
                 atomic = store.startAtomicOperation();
                 try {
-                    Operations.findAtomic(queue, stack, atomic);
+                    results = ast.accept(Evaluator.instance(), store);
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
                 }
             }
-            return Sets.newTreeSet(stack.pop());
+            return results;
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());

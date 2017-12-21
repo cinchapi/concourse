@@ -15,12 +15,13 @@
  */
 package com.cinchapi.concourse.server.query;
 
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
-import com.cinchapi.ccl.syntax.ResultSetTree;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.util.Convert;
@@ -51,8 +52,8 @@ public class EvaluatorTest {
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
         Evaluator visitor = new Evaluator();
-        ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
-        Assert.assertEquals(Sets.newHashSet(1L, 2L), result.records());
+        Set<Long> result = ast.accept(visitor, store);
+        Assert.assertEquals(Sets.newHashSet(1L, 2L), result);
     }
 
     @Test
@@ -72,8 +73,8 @@ public class EvaluatorTest {
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
         Evaluator visitor = new Evaluator();
-        ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
-        Assert.assertEquals(Sets.newHashSet(1L), result.records());
+        Set<Long> result = ast.accept(visitor, store);
+        Assert.assertEquals(Sets.newHashSet(1L), result);
     }
 
     @Test
@@ -93,8 +94,8 @@ public class EvaluatorTest {
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
         Evaluator visitor = new Evaluator();
-        ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
-        Assert.assertEquals(Sets.newHashSet(1L, 2L, 3L), result.records());
+        Set<Long> result = ast.accept(visitor, store);
+        Assert.assertEquals(Sets.newHashSet(1L, 2L, 3L), result);
     }
 
     @Test
@@ -114,8 +115,8 @@ public class EvaluatorTest {
         Parser parser = Parsers.create(ccl);
         AbstractSyntaxTree ast = parser.parse();
         Evaluator visitor = new Evaluator();
-        ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
-        Assert.assertEquals(Sets.newHashSet(), result.records());
+        Set<Long> result = ast.accept(visitor, store);
+        Assert.assertEquals(Sets.newHashSet(), result);
     }
 
 }
