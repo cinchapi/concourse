@@ -41,7 +41,7 @@ import com.cinchapi.concourse.util.Transformers;
  * 
  * @author Jeff Nelson
  */
-public class EvaluationVisitor implements Visitor {
+public class Evaluator implements Visitor {
 
     @Override
     public Object visit(ConjunctionTree tree, Object... data) {
