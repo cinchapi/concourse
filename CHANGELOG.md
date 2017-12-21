@@ -3,6 +3,7 @@
 #### Version 0.9.0 (TBD)
 * Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 * Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
+* Added [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation) logic to the query parsing pipeline to improve performance. 
 
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
