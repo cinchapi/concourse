@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public class EvaluationVisitorTest {
-    
+
     @Test
     public void testBasicExpression() {
         Queue store = new Queue(16);
@@ -44,7 +44,8 @@ public class EvaluationVisitorTest {
         store.insert(Write.add("company", Convert.javaToThrift("Blavity"), 2));
         store.insert(Write.add("age", Convert.javaToThrift(100), 2));
         store.insert(Write.add("name", Convert.javaToThrift("ashleah"), 3));
-        store.insert(Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
+        store.insert(
+                Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff";
         Parser parser = Parsers.create(ccl);
@@ -53,7 +54,7 @@ public class EvaluationVisitorTest {
         ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L), result.records());
     }
-    
+
     @Test
     public void testAndConjunction() {
         Queue store = new Queue(16);
@@ -64,7 +65,8 @@ public class EvaluationVisitorTest {
         store.insert(Write.add("company", Convert.javaToThrift("Blavity"), 2));
         store.insert(Write.add("age", Convert.javaToThrift(100), 2));
         store.insert(Write.add("name", Convert.javaToThrift("ashleah"), 3));
-        store.insert(Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
+        store.insert(
+                Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff and company = Cinchapi";
         Parser parser = Parsers.create(ccl);
@@ -73,7 +75,7 @@ public class EvaluationVisitorTest {
         ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L), result.records());
     }
-    
+
     @Test
     public void testOrConjunction() {
         Queue store = new Queue(16);
@@ -84,7 +86,8 @@ public class EvaluationVisitorTest {
         store.insert(Write.add("company", Convert.javaToThrift("Blavity"), 2));
         store.insert(Write.add("age", Convert.javaToThrift(100), 2));
         store.insert(Write.add("name", Convert.javaToThrift("ashleah"), 3));
-        store.insert(Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
+        store.insert(
+                Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff or age < 75";
         Parser parser = Parsers.create(ccl);
@@ -93,7 +96,7 @@ public class EvaluationVisitorTest {
         ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L, 3L), result.records());
     }
-    
+
     @Test
     public void testAndConjunctionShortCircuit() {
         Queue store = new Queue(16);
@@ -104,7 +107,8 @@ public class EvaluationVisitorTest {
         store.insert(Write.add("company", Convert.javaToThrift("Blavity"), 2));
         store.insert(Write.add("age", Convert.javaToThrift(100), 2));
         store.insert(Write.add("name", Convert.javaToThrift("ashleah"), 3));
-        store.insert(Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
+        store.insert(
+                Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "(name = jeff or company = Cinchapi) and age = 70";
         Parser parser = Parsers.create(ccl);
@@ -113,5 +117,5 @@ public class EvaluationVisitorTest {
         ResultSetTree result = (ResultSetTree) ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(), result.records());
     }
-    
+
 }

@@ -75,8 +75,7 @@ public class EvaluationVisitor implements Visitor {
             ResultSetTree left = (ResultSetTree) tree.left().accept(this, data);
             ResultSetTree right = (ResultSetTree) tree.right().accept(this,
                     data);
-            Set<Long> results = TSets.union(left.records(),
-                    right.records());
+            Set<Long> results = TSets.union(left.records(), right.records());
             return new ResultSetTree(results);
         }
     }
