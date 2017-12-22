@@ -41,7 +41,6 @@ import com.cinchapi.concourse.server.calculate.KeyCalculation;
 import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
-import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
