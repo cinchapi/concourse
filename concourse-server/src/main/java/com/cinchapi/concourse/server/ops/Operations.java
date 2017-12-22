@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server;
+package com.cinchapi.concourse.server.ops;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -35,11 +35,13 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
 import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
+import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
@@ -70,7 +72,7 @@ import com.google.gson.JsonElement;
  * 
  * @author Jeff Nelson
  */
-final class Operations {
+public final class Operations {
 
     /**
      * Add {@code key} as {@code value} in {@code record} using the atomic
