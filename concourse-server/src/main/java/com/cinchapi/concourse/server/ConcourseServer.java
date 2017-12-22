@@ -62,12 +62,6 @@ import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.annotate.Alias;
-import com.cinchapi.concourse.annotate.Atomic;
-import com.cinchapi.concourse.annotate.AutoRetry;
-import com.cinchapi.concourse.annotate.Batch;
-import com.cinchapi.concourse.annotate.HistoricalRead;
-import com.cinchapi.concourse.annotate.VersionControl;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
@@ -416,8 +410,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @AutoRetry
     @ThrowsThriftExceptions
     public long addKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -449,8 +441,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> addKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -467,7 +457,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -477,8 +466,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
@@ -488,7 +475,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
             long start, long end, AccessToken creds,
@@ -513,7 +499,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStartstr(String key, long record,
             String start, AccessToken creds, TransactionToken transaction,
@@ -524,7 +509,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
@@ -537,7 +521,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -546,8 +529,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecordStart(long record, long start,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -557,7 +538,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @VersionControl
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecordStartEnd(long record, long start,
             long end, AccessToken creds, TransactionToken transaction,
@@ -581,7 +561,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecordStartstr(long record, String start,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -591,7 +570,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, String> auditRecordStartstrEndstr(long record,
             String start, String end, AccessToken creds,
@@ -840,8 +818,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeys(List<String> keys,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -858,8 +834,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTime(
             List<String> keys, long timestamp, AccessToken creds,
@@ -876,7 +850,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
             List<String> keys, String timestamp, AccessToken creds,
@@ -887,7 +860,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -897,7 +869,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<TObject, Set<Long>> browseKeyTimestr(String key,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -907,8 +878,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @AutoRetry
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecord(String key,
             long record, AccessToken creds, TransactionToken transaction,
@@ -919,8 +888,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
-    @AutoRetry
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
             long record, long start, AccessToken creds,
@@ -932,7 +899,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
             long record, long start, long end, AccessToken creds,
@@ -944,7 +910,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
@@ -957,7 +922,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstrEndstr(
             String key, long record, String start, String end,
@@ -971,8 +935,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @AutoRetry
     @ThrowsThriftExceptions
     public void clearKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -985,9 +947,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public void clearKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1002,9 +961,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public void clearKeysRecord(List<String> keys, long record,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1019,9 +975,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public void clearKeysRecords(List<String> keys, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1038,8 +991,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @AutoRetry
     @ThrowsThriftExceptions
     public void clearRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1052,9 +1003,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public void clearRecords(List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1303,8 +1251,6 @@ public class ConcourseServer extends BaseConcourseServer
                 transaction, environment);
     }
 
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Set<String> describe(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1330,8 +1276,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Set<String>> describeRecords(List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1348,8 +1292,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -1365,7 +1307,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -1376,7 +1317,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Set<String> describeRecordTime(long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1385,7 +1325,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<String> describeRecordTimestr(long record, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1395,8 +1334,6 @@ public class ConcourseServer extends BaseConcourseServer
                 environment);
     }
 
-    @Atomic
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Set<String> describeTime(long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1413,8 +1350,6 @@ public class ConcourseServer extends BaseConcourseServer
         return result;
     }
 
-    @Atomic
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Set<String> describeTimestr(String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1471,7 +1406,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
@@ -1483,7 +1417,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
@@ -1570,7 +1503,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
             String start, AccessToken creds, TransactionToken transaction,
@@ -1580,7 +1512,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
             String start, String end, AccessToken creds,
@@ -1665,7 +1596,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
             String start, AccessToken creds, TransactionToken transaction,
@@ -1675,7 +1605,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
             long record, String start, String end, AccessToken creds,
@@ -1708,8 +1637,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1726,7 +1653,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorstrValues(String key, String operator,
             List<TObject> values, AccessToken creds,
@@ -1737,7 +1663,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorstrValuesTime(String key, String operator,
             List<TObject> values, long timestamp, AccessToken creds,
@@ -1749,7 +1674,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorstrValuesTimestr(String key,
             String operator, List<TObject> values, String timestamp,
@@ -1772,7 +1696,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
@@ -1785,7 +1708,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<Long> findKeyOperatorValuesTimestr(String key, Operator operator,
             List<TObject> values, String timestamp, AccessToken creds,
@@ -1797,8 +1719,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @AutoRetry
-    @Atomic
     @ThrowsThriftExceptions
     public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1828,7 +1748,6 @@ public class ConcourseServer extends BaseConcourseServer
 
     @SuppressWarnings("unchecked")
     @Override
-    @Atomic
     @ThrowsThriftExceptions
     public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1866,7 +1785,6 @@ public class ConcourseServer extends BaseConcourseServer
 
     @SuppressWarnings("unchecked")
     @Override
-    @Atomic
     @ThrowsThriftExceptions
     public long findOrInsertCriteriaJson(TCriteria criteria, String json,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1978,7 +1896,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -2060,7 +1977,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
@@ -2137,7 +2053,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -2203,7 +2118,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
@@ -2226,8 +2140,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2251,8 +2163,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -2274,7 +2184,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
@@ -2286,7 +2195,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2297,7 +2205,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public TObject getKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -2389,7 +2296,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
@@ -2471,7 +2377,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
@@ -2483,8 +2388,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<String, TObject> getKeysRecord(List<String> keys, long record,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2507,8 +2410,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -2538,8 +2439,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTime(List<String> keys,
             List<Long> records, long timestamp, AccessToken creds,
@@ -2569,7 +2468,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
@@ -2581,8 +2479,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<String, TObject> getKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
@@ -2605,7 +2501,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
@@ -2632,8 +2527,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Set<Long> insertJson(String json, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2681,7 +2574,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
     @ThrowsThriftExceptions
     public boolean insertJsonRecord(String json, long record, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2705,8 +2597,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> insertJsonRecords(String json, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2747,8 +2637,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @AutoRetry
     @ThrowsThriftExceptions
     public String jsonifyRecords(List<Long> records, boolean identifier,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2763,7 +2651,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public String jsonifyRecordsTime(List<Long> records, long timestamp,
             boolean identifier, AccessToken creds, TransactionToken transaction,
@@ -2774,7 +2661,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
             boolean identifier, AccessToken creds, TransactionToken transaction,
@@ -3599,8 +3485,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> pingRecords(List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3617,7 +3501,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
     @ThrowsThriftExceptions
     public void reconcileKeyRecordValues(String key, long record,
             Set<TObject> values, AccessToken creds,
@@ -3655,8 +3538,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Boolean> removeKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -3673,10 +3554,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
-    @VersionControl
-    @AutoRetry
     @ThrowsThriftExceptions
     public void revertKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -3691,7 +3568,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public void revertKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -3702,9 +3578,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @VersionControl
-    @AutoRetry
     @ThrowsThriftExceptions
     public void revertKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3717,7 +3590,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public void revertKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -3727,10 +3599,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
-    @VersionControl
-    @AutoRetry
     @ThrowsThriftExceptions
     public void revertKeysRecordsTime(List<String> keys, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -3747,7 +3615,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -3758,10 +3625,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
-    @VersionControl
-    @AutoRetry
     @ThrowsThriftExceptions
     public void revertKeysRecordTime(List<String> keys, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -3776,7 +3639,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public void revertKeysRecordTimestr(List<String> keys, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -3861,7 +3723,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -3928,7 +3789,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
@@ -3994,7 +3854,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -4050,7 +3909,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
@@ -4071,8 +3929,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -4089,9 +3945,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
@@ -4108,7 +3961,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
@@ -4120,7 +3972,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -4131,7 +3982,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Set<TObject> selectKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -4207,7 +4057,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
@@ -4275,7 +4124,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
@@ -4287,8 +4135,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecord(List<String> keys,
             long record, AccessToken creds, TransactionToken transaction,
@@ -4305,8 +4151,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
@@ -4331,8 +4175,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
@@ -4356,7 +4198,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
@@ -4368,8 +4209,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTime(List<String> keys,
             long record, long timestamp, AccessToken creds,
@@ -4386,7 +4225,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
@@ -4407,8 +4245,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecords(
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -4426,8 +4262,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Batch
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTime(
             List<Long> records, long timestamp, AccessToken creds,
@@ -4445,7 +4279,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
@@ -4457,7 +4290,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectRecordTime(long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
@@ -4467,7 +4299,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public Map<String, Set<TObject>> selectRecordTimestr(long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -4477,7 +4308,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public long setKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4496,8 +4326,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Atomic
-    @Batch
     @ThrowsThriftExceptions
     public void setKeyValueRecords(String key, TObject value,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -4807,7 +4635,6 @@ public class ConcourseServer extends BaseConcourseServer
         }
     }
 
-    @Atomic
     @Override
     @ThrowsThriftExceptions
     public boolean verifyAndSwap(String key, TObject expected, long record,
@@ -4840,7 +4667,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @HistoricalRead
     @ThrowsThriftExceptions
     public boolean verifyKeyValueRecordTime(String key, TObject value,
             long record, long timestamp, AccessToken creds,
@@ -4852,7 +4678,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @Alias
     @ThrowsThriftExceptions
     public boolean verifyKeyValueRecordTimestr(String key, TObject value,
             long record, String timestamp, AccessToken creds,
@@ -4863,9 +4688,7 @@ public class ConcourseServer extends BaseConcourseServer
                 environment);
     }
 
-    @Atomic
     @Override
-    @AutoRetry
     @ThrowsThriftExceptions
     public void verifyOrSet(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String env)
