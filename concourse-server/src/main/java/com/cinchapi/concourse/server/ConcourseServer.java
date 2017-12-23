@@ -129,8 +129,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -1644,14 +1644,14 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         checkAccess(creds, transaction);
-        Queue<PostfixNotationSymbol> queue = Operations
-                .convertCriteriaToQueue(criteria);
-        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Operations.findAtomic(queue, stack, atomic);
+            results.set(ast.accept(Evaluator.instance(), store));
         });
-        return Sets.newTreeSet(stack.pop());
+        return results.get();
     }
 
     @Override
@@ -1810,8 +1810,8 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match",
+                            Language.translateFromThriftCriteria(criteria)));
         }
     }
 
