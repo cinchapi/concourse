@@ -340,7 +340,6 @@ public class AtomicOperation extends BufferedStore
             Token token = Token.wrap(key, record);
             source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
-            System.out.println("yo");
             return super.chronologize(key, record, start, end, true);
         }
         else {
