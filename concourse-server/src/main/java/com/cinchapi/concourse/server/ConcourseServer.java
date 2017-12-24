@@ -1629,7 +1629,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Set<Long>> results = new AtomicReference<>(null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                results.set(ast.accept(Evaluator.instance(), store));
+                results.set(ast.accept(Evaluator.instance(), atomic));
             });
             return results.get();
         }
@@ -1649,7 +1649,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            results.set(ast.accept(Evaluator.instance(), store));
+            results.set(ast.accept(Evaluator.instance(), atomic));
         });
         return results.get();
     }
