@@ -184,7 +184,7 @@ public class Criteria implements Symbol {
         expand(symbols, expanded);
         this.symbols = expanded;
     }
-    
+
     /**
      * Return the order list of symbols that make up this {@link Criteria}.
      * 
@@ -193,7 +193,7 @@ public class Criteria implements Symbol {
     protected List<Symbol> getSymbols() {
         return Collections.unmodifiableList(symbols);
     }
-    
+
     /**
      * Expand any sub/grouped Criteria.
      * 
