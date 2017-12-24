@@ -15,38 +15,27 @@
  */
 package com.cinchapi.concourse.server.ops;
 
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 
 import com.cinchapi.ccl.Parser;
-import com.cinchapi.ccl.Parsing;
-import com.cinchapi.ccl.grammar.ConjunctionSymbol;
-import com.cinchapi.ccl.grammar.Expression;
-import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
-import com.cinchapi.ccl.grammar.Symbol;
-import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
 import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
+import com.cinchapi.concourse.server.query.Evaluator;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
-import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -56,8 +45,6 @@ import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.StringSplitter;
-import com.cinchapi.concourse.util.TSets;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -221,23 +208,6 @@ public final class Operations {
     }
 
     /**
-     * Parse the thrift represented {@code criteria} into an {@link Queue} of
-     * {@link PostfixNotationSymbol postfix notation symbols} that can be used
-     * within the {@link #findAtomic(Queue, Deque, AtomicOperation)} method.
-     *
-     * @param criteria
-     * @return
-     */
-    public static Queue<PostfixNotationSymbol> convertCriteriaToQueue(
-            TCriteria criteria) {
-        List<Symbol> symbols = Lists.newArrayList();
-        for (TSymbol tsymbol : criteria.getSymbols()) {
-            symbols.add(Language.translateFromThriftSymbol(tsymbol));
-        }
-        return Parsing.toPostfixNotation(symbols);
-    }
-
-    /**
      * Join the {@link AtomicOperation atomic} operation to compute the count
      * across the {@code key} at {@code timestamp}.
      * 
@@ -291,102 +261,7 @@ public final class Operations {
     }
 
     /**
-     * Do the work necessary to complete a complex find operation based on the
-     * {@code queue} of symbols.
-     * <p>
-     * This method does not return a value. If you need to perform a complex
-     * find using an {@link AtomicOperation} and immediately get the results,
-     * then you should pass an empty stack into this method and then pop the
-     * results after the method executes.
-     *
-     * <pre>
-     * Queue&lt;PostfixNotationSymbol&gt; queue = Parser.toPostfixNotation(ccl);
-     * Deque&lt;Set&lt;Long&gt;&gt; stack = new ArrayDeque&lt;Set&lt;Long&gt;&gt;();
-     * findAtomic(queue, stack, atomic)
-     * Set&lt;Long&gt; matches = stack.pop();
-     * </pre>
-     *
-     * </p>
-     *
-     * @param queue - The criteria/ccl represented as a queue in postfix
-     *            notation. Use {@link Parser#toPostfixNotation(List)} or
-     *            {@link Parser#toPostfixNotation(String)} or
-     *            {@link #Operations.convertCriteriaToQueue(TCriteria)} to get
-     *            this value.
-     *            This is modified in place.
-     * @param stack - A stack that contains Sets of records that match the
-     *            corresponding criteria branches in the {@code queue}. This is
-     *            modified in-place.
-     * @param atomic - The atomic operation
-     * @deprecated Deprecated since version 0.9.0 in favor of using
-     *             {@link com.cinchapi.ccl.Parser#parse()} with an
-     *             {@link com.cinchapi.concourse.server.query.Evaluator}
-     */
-    @Deprecated
-    public static void findAtomic(Queue<PostfixNotationSymbol> queue,
-            Deque<Set<Long>> stack, AtomicOperation atomic) {
-        // NOTE: there is room to do some query planning/optimization by going
-        // through the pfn and plotting an Abstract Syntax Tree and looking for
-        // the optimal routes to start with
-        Preconditions.checkArgument(stack.isEmpty());
-        for (PostfixNotationSymbol symbol : queue) {
-            if(symbol == ConjunctionSymbol.AND) {
-                stack.push(TSets.intersection(stack.pop(), stack.pop()));
-            }
-            else if(symbol == ConjunctionSymbol.OR) {
-                stack.push(TSets.union(stack.pop(), stack.pop()));
-            }
-            else if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
-                if(expression.raw().key()
-                        .equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                    Set<Long> ids;
-                    if(expression.raw().operator() == Operator.EQUALS) {
-                        ids = Sets.newTreeSet();
-                        expression.raw().values().forEach(
-                                value -> ids.add(((Number) value).longValue()));
-                        stack.push(ids);
-                    }
-                    else if(expression.raw()
-                            .operator() == Operator.NOT_EQUALS) {
-                        ids = atomic.getAllRecords();
-                        expression.raw().values().forEach(value -> ids
-                                .remove(((Number) value).longValue()));
-                        stack.push(ids);
-                    }
-                    else {
-                        throw new IllegalArgumentException(
-                                "Cannot query on record id using "
-                                        + expression.raw().operator());
-                    }
-                }
-                else {
-                    ArrayBuilder<TObject> values = ArrayBuilder.builder();
-                    expression.values().forEach(value -> values
-                            .add(Convert.javaToThrift(value.value())));
-                    stack.push(
-                            expression.raw().timestamp() == 0
-                                    ? atomic.find(expression.raw().key(),
-                                            (Operator) expression.raw()
-                                                    .operator(),
-                                            values.build())
-                                    : atomic.find(expression.raw().timestamp(),
-                                            expression.raw().key(),
-                                            (Operator) expression.raw()
-                                                    .operator(),
-                                            values.build()));
-                }
-            }
-            else {
-                // If we reach here, then the conversion to postfix notation
-                // failed :-/
-                throw new IllegalStateException();
-            }
-        }
-    }
-
-    /**
-     * Find data matching the criteria described by the {@code queue} or insert
+     * Find data matching the criteria described by the {@code ast} or insert
      * each of the {@code objects} into a new record. Either way, place the
      * records that match the criteria or that contain the inserted data into
      * {@code records}.
@@ -396,20 +271,15 @@ public final class Operations {
      * @param objects - a list of Multimaps, each of which containing data to
      *            insert into a distinct record. Get this using the
      *            {@link Convert#anyJsonToJava(String)} method.
-     * @param queue - the parsed criteria attained from
-     *            {@link #Operations.convertCriteriaToQueue(TCriteria)} or
-     *            {@link Parser#toPostfixNotation(String)}.
-     * @param stack - a stack (usually empty) that is used while processing the
-     *            query
+     * @param ast - the parsed criteria attained from
+     *            {@link com.cinchapi.ccl.Parser#parse(String)}.
      * @param atomic - the atomic operation through which all operations are
      *            conducted
      */
     public static void findOrInsertAtomic(Set<Long> records,
-            List<Multimap<String, Object>> objects,
-            Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
+            List<Multimap<String, Object>> objects, AbstractSyntaxTree ast,
             AtomicOperation atomic) {
-        findAtomic(queue, stack, atomic);
-        records.addAll(stack.pop());
+        records.addAll(ast.accept(Evaluator.instance(), atomic));
         if(records.isEmpty()) {
             List<DeferredWrite> deferred = Lists.newArrayList();
             for (Multimap<String, Object> object : objects) {
@@ -473,10 +343,8 @@ public final class Operations {
             if(write.getValue() instanceof ResolvableLink) {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
                 Parser parser = Parsers.create(rlink.getCcl());
-                Queue<PostfixNotationSymbol> queue = parser.order();
-                Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-                Operations.findAtomic(queue, stack, atomic);
-                Set<Long> targets = stack.pop();
+                AbstractSyntaxTree ast = parser.parse();
+                Set<Long> targets = ast.accept(Evaluator.instance(), atomic);
                 for (long target : targets) {
                     if(target == write.getRecord()) {
                         // Here, if the target and source are the same, we skip
@@ -605,15 +473,6 @@ public final class Operations {
         return min;
     }
 
-    public static Map<Long, Set<TObject>> navigateKeyQueueAtomic(String key,
-            Queue<PostfixNotationSymbol> queue, long timestamp,
-            AtomicOperation atomic) {
-        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-        findAtomic(queue, stack, atomic);
-        Set<Long> records = stack.pop();
-        return navigateKeyRecordsAtomic(key, records, timestamp, atomic);
-    }
-
     /**
      * Do the work to atomically to navigate all the values for a key in a
      * record and if its of type {@value Type.LINK}, iterate until the key is
@@ -664,15 +523,6 @@ public final class Operations {
                     navigateKeyRecordAtomic(key, record, timestamp, atomic));
         }
         return result;
-    }
-
-    public static Map<Long, Map<String, Set<TObject>>> navigateKeysQueueAtomic(
-            List<String> keys, Queue<PostfixNotationSymbol> queue,
-            long timestamp, AtomicOperation atomic) {
-        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-        findAtomic(queue, stack, atomic);
-        Set<Long> records = stack.pop();
-        return navigateKeysRecordsAtomic(keys, records, timestamp, atomic);
     }
 
     /**

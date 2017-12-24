@@ -25,14 +25,14 @@ import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.syntax.ConjunctionTree;
 import com.cinchapi.ccl.syntax.ExpressionTree;
 import com.cinchapi.ccl.syntax.Visitor;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.util.Conversions;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
-import com.cinchapi.concourse.util.Transformers;
 import com.google.common.collect.Sets;
 
 /**
@@ -122,14 +122,14 @@ public class Evaluator implements Visitor<Set<Long>> {
             return ids;
         }
         else {
-            TObject[] values = Transformers.transformArray(
-                    expression.raw().values().toArray(),
-                    Conversions.javaToThrift(), TObject.class);
+            ArrayBuilder<TObject> values = ArrayBuilder.builder();
+            expression.values().forEach(
+                    value -> values.add(Convert.javaToThrift(value.value())));
             Set<Long> results = expression
                     .timestamp() == TimestampSymbol.PRESENT
-                            ? store.find(key, operator, values)
+                            ? store.find(key, operator, values.build())
                             : store.find(expression.raw().timestamp(), key,
-                                    operator, values);
+                                    operator, values.build());
             return results;
         }
 
