@@ -26,12 +26,14 @@ import com.cinchapi.ccl.syntax.ConjunctionTree;
 import com.cinchapi.ccl.syntax.ExpressionTree;
 import com.cinchapi.ccl.syntax.Visitor;
 import com.cinchapi.common.base.Verify;
+import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.collect.Sets;
 
 /**
  * An {@link AbstractSyntaxTree} {@link Visitor} that evaluates the represented
@@ -100,14 +102,37 @@ public class Evaluator implements Visitor<Set<Long>> {
         Expression expression = ((Expression) tree.root());
         String key = expression.raw().key();
         Operator operator = (Operator) expression.raw().operator();
-        TObject[] values = Transformers.transformArray(
-                expression.raw().values().toArray(), Conversions.javaToThrift(),
-                TObject.class);
-        Set<Long> results = expression.timestamp() == TimestampSymbol.PRESENT
-                ? store.find(key, operator, values)
-                : store.find(expression.raw().timestamp(), key, operator,
-                        values);
-        return results;
+        if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+            Set<Long> ids;
+            if(operator == Operator.EQUALS) {
+                ids = Sets.newTreeSet();
+                expression.raw().values().forEach(
+                        value -> ids.add(((Number) value).longValue()));
+            }
+            else if(operator == Operator.NOT_EQUALS) {
+                ids = store.getAllRecords();
+                expression.raw().values().forEach(
+                        value -> ids.remove(((Number) value).longValue()));
+            }
+            else {
+                throw new IllegalArgumentException(
+                        "Cannot query on record id using "
+                                + expression.raw().operator());
+            }
+            return ids;
+        }
+        else {
+            TObject[] values = Transformers.transformArray(
+                    expression.raw().values().toArray(),
+                    Conversions.javaToThrift(), TObject.class);
+            Set<Long> results = expression
+                    .timestamp() == TimestampSymbol.PRESENT
+                            ? store.find(key, operator, values)
+                            : store.find(expression.raw().timestamp(), key,
+                                    operator, values);
+            return results;
+        }
+
     }
 
 }
