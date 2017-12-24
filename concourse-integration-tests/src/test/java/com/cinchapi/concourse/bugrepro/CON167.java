@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.Sets;
@@ -39,6 +40,28 @@ public class CON167 extends ConcourseIntegrationTest {
         client.set("foo", value, 1);
         client.set("foo", Tag.create(value), 2);
         Set<Long> expected = Sets.newHashSet(1L, 2L);
+        Assert.assertEquals(expected,
+                client.find("foo", Operator.EQUALS, value));
+        Assert.assertEquals(expected, client.find(Criteria.where().key("foo")
+                .operator(Operator.EQUALS).value(value)));
+    }
+
+    @Test
+    public void testRoundTrip() {
+        String value = "`bar`";
+        Criteria expected = Criteria.where().key("foo")
+                .operator(Operator.EQUALS).value(value).build();
+        Criteria actual = Language.translateFromThriftCriteria(
+                Language.translateToThriftCriteria(expected));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testTagWorks() {
+        String value = "bar";
+        client.set("foo", value, 1);
+        client.set("foo", Tag.create("`" + value + "`"), 2);
+        Set<Long> expected = Sets.newHashSet(1L);
         Assert.assertEquals(expected,
                 client.find("foo", Operator.EQUALS, value));
         Assert.assertEquals(expected, client.find(Criteria.where().key("foo")
