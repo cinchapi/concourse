@@ -99,8 +99,7 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -385,8 +384,7 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -691,8 +689,7 @@ public final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
