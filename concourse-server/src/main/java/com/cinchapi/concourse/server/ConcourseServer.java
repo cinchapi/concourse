@@ -59,7 +59,6 @@ import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.security.AccessManager;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -125,8 +124,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #accessManager}. This file is
@@ -1786,8 +1785,7 @@ public class ConcourseServer extends BaseConcourseServer
         else {
             throw new DuplicateEntryException(
                     com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", Language
-                                    .translateFromThriftCriteria(criteria)));
+                            records.size(), "records that match", parser));
         }
     }
 
