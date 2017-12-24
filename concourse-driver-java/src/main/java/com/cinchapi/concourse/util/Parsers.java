@@ -19,6 +19,8 @@ import java.util.function.Function;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.type.Operator;
+import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.thrift.TCriteria;
 import com.google.common.collect.Multimap;
 
 /**
@@ -64,6 +66,32 @@ public final class Parsers {
     public static Parser create(String ccl, Multimap<String, Object> data) {
         return Parser.newParser(ccl, data, PARSER_TRANSFORM_VALUE_FUNCTION,
                 PARSER_TRANSFORM_OPERATOR_FUNCTION);
+    }
+
+    /**
+     * Return a {@link Parser} for the {@code ccl} statement.
+     * 
+     * @param criteria
+     * @return a {@link Parser}
+     */
+    public static Parser create(TCriteria criteria) {
+        return create(
+                Language.translateFromThriftCriteria(criteria).getCclString());
+    }
+
+    /**
+     * Return a {@link Parser} for the {@code ccl} statement that uses the
+     * provided {@code data} for local resolution.
+     * 
+     * @param criteria
+     * @param data a dataset
+     * @return a {@link Parser}
+     */
+    public static Parser create(TCriteria criteria,
+            Multimap<String, Object> data) {
+        return create(
+                Language.translateFromThriftCriteria(criteria).getCclString(),
+                data);
     }
 
     private Parsers() {/* no-init */}

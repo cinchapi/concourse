@@ -17,6 +17,7 @@ package com.cinchapi.concourse.lang;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
@@ -51,15 +52,6 @@ import com.google.common.collect.Lists;
 public class Criteria implements Symbol {
 
     /**
-     * Start building a new {@link Criteria}.
-     * 
-     * @return the Criteria builder
-     */
-    public static StartState where() {
-        return new StartState(new Criteria());
-    }
-
-    /**
      * Return a {@link Criteria} object that expresses the same as the
      * {@code ccl} statement.
      * 
@@ -78,6 +70,15 @@ public class Criteria implements Symbol {
                     new com.cinchapi.concourse.thrift.ParseException(
                             e.getMessage()));
         }
+    }
+
+    /**
+     * Start building a new {@link Criteria}.
+     * 
+     * @return the Criteria builder
+     */
+    public static StartState where() {
+        return new StartState(new Criteria());
     }
 
     /**
@@ -125,6 +126,16 @@ public class Criteria implements Symbol {
         return criteria;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Criteria) {
+            return Objects.equals(symbols, ((Criteria) obj).symbols);
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * Return a CCL string that is equivalent to this object.
      * 
@@ -141,6 +152,11 @@ public class Criteria implements Symbol {
             first = false;
         }
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(symbols);
     }
 
     @Override
