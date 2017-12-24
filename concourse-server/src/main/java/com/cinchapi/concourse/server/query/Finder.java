@@ -41,23 +41,23 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public class Evaluator implements Visitor<Set<Long>> {
+public class Finder implements Visitor<Set<Long>> {
 
     /**
      * The singleton instance.
      */
-    private static final Evaluator INSTANCE = new Evaluator();
+    private static final Finder INSTANCE = new Finder();
 
     /**
-     * Return an instance of this {@link Evaluator}.
+     * Return an instance of this {@link Finder}.
      * 
-     * @return the {@link Evaluator}
+     * @return the {@link Finder}
      */
-    public static Evaluator instance() {
+    public static Finder instance() {
         return INSTANCE;
     }
 
-    private Evaluator() {/* singleton */}
+    private Finder() {/* singleton */}
 
     @Override
     public Set<Long> visit(ConjunctionTree tree, Object... data) {

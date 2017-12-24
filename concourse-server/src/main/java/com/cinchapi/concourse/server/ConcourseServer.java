@@ -71,7 +71,7 @@ import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
-import com.cinchapi.concourse.server.query.Evaluator;
+import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
@@ -604,7 +604,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> average = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 average.set(Operations.avgKeyRecordsAtomic(key, records,
                         Time.NONE, atomic));
             });
@@ -627,7 +627,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> average = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 average.set(Operations.avgKeyRecordsAtomic(key, records,
                         timestamp, atomic));
             });
@@ -659,7 +659,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> average = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             average.set(Operations.avgKeyRecordsAtomic(key, records, Time.NONE,
                     atomic));
 
@@ -678,7 +678,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> average = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             average.set(Operations.avgKeyRecordsAtomic(key, records, timestamp,
                     atomic));
         });
@@ -1041,7 +1041,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Long> count = new AtomicReference<>(0L);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 count.set(Operations.countKeyRecordsAtomic(key, records,
                         Time.NONE, atomic));
             });
@@ -1064,7 +1064,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Long> count = new AtomicReference<>(0L);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 count.set(Operations.countKeyRecordsAtomic(key, records,
                         timestamp, atomic));
             });
@@ -1095,7 +1095,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Long> count = new AtomicReference<>(0L);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             count.set(Operations.countKeyRecordsAtomic(key, records, Time.NONE,
                     atomic));
         });
@@ -1113,7 +1113,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Long> count = new AtomicReference<>(0L);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             count.set(Operations.countKeyRecordsAtomic(key, records, timestamp,
                     atomic));
         });
@@ -1609,7 +1609,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Set<Long>> results = new AtomicReference<>(null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                results.set(ast.accept(Evaluator.instance(), atomic));
+                results.set(ast.accept(Finder.instance(), atomic));
             });
             return results.get();
         }
@@ -1629,7 +1629,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            results.set(ast.accept(Evaluator.instance(), atomic));
+            results.set(ast.accept(Finder.instance(), atomic));
         });
         return results.get();
     }
@@ -1804,7 +1804,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Set<String> keys = atomic.describe(record);
                     Map<String, TObject> entry = TMaps
@@ -1843,7 +1843,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Set<String> keys = atomic.describe(record, timestamp);
                     Map<String, TObject> entry = TMaps
@@ -1890,7 +1890,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Set<String> keys = atomic.describe(record);
                 Map<String, TObject> entry = TMaps
@@ -1924,7 +1924,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Set<String> keys = atomic.describe(record, timestamp);
                 Map<String, TObject> entry = TMaps
@@ -1969,7 +1969,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
                         result.put(record,
@@ -2000,7 +2000,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
                         result.put(record, Iterables.getLast(
@@ -2039,7 +2039,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
                     result.put(record,
@@ -2065,7 +2065,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, TObject> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
                     result.put(record, Iterables
@@ -2189,7 +2189,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -2228,7 +2228,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -2275,7 +2275,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -2309,7 +2309,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -2691,7 +2691,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> max = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 max.set(Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
                         atomic));
             });
@@ -2714,7 +2714,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> max = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 max.set(Operations.maxKeyRecordsAtomic(key, records, timestamp,
                         atomic));
             });
@@ -2745,7 +2745,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> max = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             max.set(Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
                     atomic));
         });
@@ -2763,7 +2763,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> max = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             max.set(Operations.maxKeyRecordsAtomic(key, records, timestamp,
                     atomic));
         });
@@ -2911,7 +2911,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> min = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 min.set(Operations.minKeyRecordsAtomic(key, records, Time.NONE,
                         atomic));
             });
@@ -2934,7 +2934,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> min = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 min.set(Operations.minKeyRecordsAtomic(key, records, timestamp,
                         atomic));
             });
@@ -2965,7 +2965,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> min = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             min.set(Operations.minKeyRecordsAtomic(key, records, Time.NONE,
                     atomic));
         });
@@ -2983,7 +2983,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> min = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             min.set(Operations.minKeyRecordsAtomic(key, records, timestamp,
                     atomic));
         });
@@ -3125,7 +3125,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                     null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 result.set(Operations.navigateKeyRecordsAtomic(key, records,
                         timestamp, atomic));
             });
@@ -3165,7 +3165,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                 null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             result.set(Operations.navigateKeyRecordsAtomic(key, records,
                     timestamp, atomic));
         });
@@ -3272,7 +3272,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                     null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
                         timestamp, atomic));
             });
@@ -3315,7 +3315,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                     null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
                         timestamp, atomic));
             });
@@ -3611,7 +3611,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Set<String> keys = atomic.describe(record);
                     Map<String, Set<TObject>> entry = TMaps
@@ -3642,7 +3642,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Set<String> keys = atomic.describe(record, timestamp);
                     Map<String, Set<TObject>> entry = TMaps
@@ -3681,7 +3681,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Set<String> keys = atomic.describe(record);
                 Map<String, Set<TObject>> entry = TMaps
@@ -3708,7 +3708,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Set<String> keys = atomic.describe(record, timestamp);
                 Map<String, Set<TObject>> entry = TMaps
@@ -3746,7 +3746,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     result.put(record, atomic.select(key, record));
                 }
@@ -3771,7 +3771,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     result.put(record, atomic.select(key, record, timestamp));
                 }
@@ -3805,7 +3805,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 result.put(record, atomic.select(key, record));
             }
@@ -3826,7 +3826,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 result.put(record, atomic.select(key, record, timestamp));
             }
@@ -3930,7 +3930,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -3961,7 +3961,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -4002,7 +4002,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -4028,7 +4028,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -4334,7 +4334,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> sum = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 sum.set(Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
                         atomic));
             });
@@ -4357,7 +4357,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Number> sum = new AtomicReference<>(0);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
                 sum.set(Operations.sumKeyRecordsAtomic(key, records, timestamp,
                         atomic));
             });
@@ -4388,7 +4388,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> sum = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             sum.set(Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
                     atomic));
         });
@@ -4406,7 +4406,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Number> sum = new AtomicReference<>(0);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Set<Long> records = ast.accept(Evaluator.instance(), atomic);
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
             sum.set(Operations.sumKeyRecordsAtomic(key, records, timestamp,
                     atomic));
         });

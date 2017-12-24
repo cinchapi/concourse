@@ -30,7 +30,7 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
 import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
-import com.cinchapi.concourse.server.query.Evaluator;
+import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.Store;
@@ -279,7 +279,7 @@ public final class Operations {
     public static void findOrInsertAtomic(Set<Long> records,
             List<Multimap<String, Object>> objects, AbstractSyntaxTree ast,
             AtomicOperation atomic) {
-        records.addAll(ast.accept(Evaluator.instance(), atomic));
+        records.addAll(ast.accept(Finder.instance(), atomic));
         if(records.isEmpty()) {
             List<DeferredWrite> deferred = Lists.newArrayList();
             for (Multimap<String, Object> object : objects) {
@@ -344,7 +344,7 @@ public final class Operations {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
                 Parser parser = Parsers.create(rlink.getCcl());
                 AbstractSyntaxTree ast = parser.parse();
-                Set<Long> targets = ast.accept(Evaluator.instance(), atomic);
+                Set<Long> targets = ast.accept(Finder.instance(), atomic);
                 for (long target : targets) {
                     if(target == write.getRecord()) {
                         // Here, if the target and source are the same, we skip
