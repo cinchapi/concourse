@@ -26,9 +26,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.time.Time;
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
 /**
@@ -238,13 +238,10 @@ public final class Timestamp {
      * @return the corresponding joda DateTime
      */
     public DateTime getJoda() {
-        if(joda == null) {
-            return new DateTime(TimeUnit.MILLISECONDS.convert(getMicros(),
-                    TimeUnit.MICROSECONDS));
-        }
-        else {
-            return joda;
-        }
+        Preconditions.checkState(!isString(),
+                "Only Concourse Server can parse a DateTime "
+                        + "from a Timestamp created from a string.");
+        return joda;
     }
 
     /**
@@ -254,8 +251,10 @@ public final class Timestamp {
      * @return the microseconds
      */
     public long getMicros() {
-        return isString() ? NaturalLanguage.parseMicros(description)
-                : microseconds;
+        Preconditions.checkState(!isString(),
+                "Only Concourse Server can parse microseconds "
+                        + "from a Timestamp created from a string.");
+        return microseconds;
     }
 
     @Override
