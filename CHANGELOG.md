@@ -4,7 +4,8 @@
 * Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 * Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
 * Streamlined the logic for server-side atomic operations to unlock higher performance potential.
-* Added [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation) logic to the query parsing pipeline to improve performance. 
+* Added [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation) logic to the query parsing pipeline to improve performance.
+* Added support for storing `Timestamp` objects as values in Concourse.
 
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
@@ -465,3 +466,4 @@
 
 #### Version 0.1.0 (October 18, 2013)
 * Hello World.
+concourse-server/src/main/java/com/cinchapi/concourse/server/ConcourseServer.java -

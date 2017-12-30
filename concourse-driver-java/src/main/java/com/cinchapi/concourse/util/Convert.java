@@ -32,6 +32,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.cinchapi.concourse.thrift.Operator;
@@ -266,6 +267,11 @@ public final class Convert {
                 bytes = ByteBuffer.wrap(
                         object.toString().getBytes(StandardCharsets.UTF_8));
                 type = Type.TAG;
+            }
+            else if(object instanceof Timestamp) {
+                bytes = ByteBuffer.allocate(8);
+                bytes.putLong(((Timestamp) object).getMicros());
+                type = Type.TIMESTAMP;
             }
             else {
                 bytes = ByteBuffer.wrap(
@@ -634,6 +640,9 @@ public final class Convert {
                 break;
             case TAG:
                 java = ByteBuffers.getString(buffer);
+                break;
+            case TIMESTAMP:
+                java = Timestamp.fromMicros(buffer.getLong());
                 break;
             case NULL:
                 java = null;

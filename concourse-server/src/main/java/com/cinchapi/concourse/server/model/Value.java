@@ -22,12 +22,14 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.google.common.primitives.Longs;
 
 /**
  * A Value is an abstraction for a {@link TObject} that records type information
@@ -359,8 +361,21 @@ public final class Value implements Byteable, Comparable<Value> {
                 else if(o2 instanceof Number) {
                     return 1;
                 }
+                else if(o1 instanceof Timestamp && o2 instanceof Timestamp) {
+                    return Longs.compare(((Timestamp) o1).getMicros(),
+                            ((Timestamp) o2).getMicros());
+                }
                 else {
-                    return o1.toString().compareToIgnoreCase(o2.toString());
+                    // NOTE: Timestamp's #toString may change depending upon the
+                    // configured formatter so we use the #toString for the
+                    // internal micros for consistency.
+                    String o1s = o1 instanceof Timestamp
+                            ? Long.toString(((Timestamp) o1).getMicros())
+                            : o1.toString();
+                    String o2s = o2 instanceof Timestamp
+                            ? Long.toString(((Timestamp) o2).getMicros())
+                            : o2.toString();
+                    return o1s.compareToIgnoreCase(o2s);
                 }
             }
 
