@@ -15,11 +15,16 @@
  */
 package com.cinchapi.concourse.type;
 
+import java.util.Map;
+
+import org.joda.time.format.DateTimeFormat;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.cinchapi.concourse.util.Convert;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Unit tests to verify writing and reading timestamps as a data type.
@@ -36,15 +41,32 @@ public class TimestampTypeTest extends ConcourseIntegrationTest {
         Assert.assertEquals(expected, actual);
     }
 
-    @Test
+    @Test(expected = UnsupportedOperationException.class)
     public void testWriteTimestampFromString() {
         Timestamp expected = Timestamp.fromString("last week");
         long record = client.add("join_date", expected);
         Timestamp actual = client.get("join_date", record);
         Assert.assertEquals(expected, actual);
-        // TODO: problem here is that hallow timestamps have their microseconds
-        // evaluated client side whereas in any other case the microseconds
-        // would be resolved server side
+    }
+
+    @Test
+    public void testInsertJsonTimestamp() {
+        Map<String, Object> data = ImmutableMap.of("birthdate",
+                "|December 30, 1987|");
+        String json = Convert.mapToJson(data);
+        long record = client.insert(json).iterator().next();
+        Assert.assertTrue(client.get("birthdate", record) instanceof Timestamp);
+    }
+
+    @Test
+    public void testInsertJsonTimestampWithFormatter() {
+        Map<String, Object> data = ImmutableMap.of("birthdate",
+                "|December 30, 1987|MMM DD, YYYY|");
+        String json = Convert.mapToJson(data);
+        long record = client.insert(json).iterator().next();
+        Timestamp expected = Timestamp.parse("December 30, 1987",
+                DateTimeFormat.forPattern("MMM DD, YYYY"));
+        Assert.assertEquals(expected, client.get("birthdate", record));
     }
 
 }
