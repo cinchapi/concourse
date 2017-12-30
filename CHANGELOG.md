@@ -466,4 +466,3 @@
 
 #### Version 0.1.0 (October 18, 2013)
 * Hello World.
-concourse-server/src/main/java/com/cinchapi/concourse/server/ConcourseServer.java -
