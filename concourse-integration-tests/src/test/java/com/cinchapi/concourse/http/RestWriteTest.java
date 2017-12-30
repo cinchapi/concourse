@@ -61,7 +61,7 @@ public class RestWriteTest extends RestTest {
         Assert.assertEquals(200, resp.code());
         Assert.assertEquals(value, client.get(key, record));
     }
-    
+
     @Test
     public void testWriteTimestamp() {
         String key = TestData.getSimpleString();
