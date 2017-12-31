@@ -30,6 +30,7 @@ import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
@@ -69,7 +70,9 @@ import groovy.json.JsonOutput;
  @Grab('org.slf4j:slf4j-api:1.7.5'),
  @Grab('org.slf4j:slf4j-nop:1.7.12'),
  @Grab('org.codehaus.groovy:groovy-json:2.4.3'),
- @Grab('com.google.guava:guava:19.0')
+ @Grab('com.google.guava:guava:19.0'),
+ @Grab('com.cinchapi:ccl:2.2.0'),
+ @Grab('com.google.code.gson:gson:2.5')
  ])
 class Mockcourse implements ConcourseService.Iface {
 
@@ -480,7 +483,7 @@ class Mockcourse implements ConcourseService.Iface {
     }
 
     @Override
-    public TObject invokePlugin(String clazz, String method, List<TObject> params, AccessToken creds, TransactionToken transaction, String environment) throws TException {
+    public ComplexTObject invokePlugin(String clazz, String method, List<TObject> params, AccessToken creds, TransactionToken transaction, String environment) throws TException {
         ByteBuffer data = ByteBuffer.allocate(4);
         data.putInt(params.size());
         data.rewind();
@@ -2141,6 +2144,1211 @@ class Mockcourse implements ConcourseService.Iface {
             throws TException {
         throw new UnsupportedOperationException();
     }
+
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKey(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCclTimestr(String key, String ccl, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyTime(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#maxKeyTimestr(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject maxKeyTimestr(String key, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKey(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCcl(String key, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCclTime(String key, String ccl, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCclTimestr(String key, String ccl, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyCriteriaTimestr(String key, TCriteria criteria,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecordsTimestr(String key, List<Long> records,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyTime(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyTime(String key, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#minKeyTimestr(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public TObject minKeyTimestr(String key, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCcl(String key, String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteria(String key,
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTime(String key,
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecords(String key,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordTime(String key,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCcl(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
+            List<String> keys, String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCclTime(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTime(
+            List<String> keys, String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCclTimestr(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCriteria(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
+            List<String> keys, TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCriteriaTime(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTime(
+            List<String> keys, TCriteria criteria, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysCriteriaTimestr(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecord(java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecord(
+            List<String> keys, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecords(java.util.List, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecordsTime(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecordsTimestr(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecordTime(java.util.List, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTime(
+            List<String> keys, long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#navigateKeysRecordTimestr(java.util.List, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestr(
+            List<String> keys, long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKey(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKey(String key, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCcl(String key, String ccl, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCclTime(String key, String ccl, long timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCclTimestr(String key, String ccl,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCriteria(String key, TCriteria criteria,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCriteriaTime(String key, TCriteria criteria,
+         long timestamp, AccessToken creds, TransactionToken transaction,
+         String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyCriteriaTimestr(String key, TCriteria criteria,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecord(String key, long record, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecords(String key, List<Long> records,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecordsTime(String key, List<Long> records,
+         long timestamp, AccessToken creds, TransactionToken transaction,
+         String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecordsTimestr(String key, List<Long> records,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecordTime(String key, long record, long timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyRecordTimestr(String key, long record,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyTime(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyTime(String key, long timestamp, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#averageKeyTimestr(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject averageKeyTimestr(String key, String timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKey(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKey(String key, AccessToken creds,
+          TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCcl(String key, String ccl, AccessToken creds,
+          TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, ParseException,
+          TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCclTime(String key, String ccl, long timestamp,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, ParseException,
+          TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCclTimestr(String key, String ccl, String timestamp,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, ParseException,
+          TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCriteria(String key, TCriteria criteria,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCriteriaTime(String key, TCriteria criteria,
+          long timestamp, AccessToken creds, TransactionToken transaction,
+          String environment) throws SecurityException, TransactionException,
+          ParseException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyCriteriaTimestr(String key, TCriteria criteria,
+          String timestamp, AccessToken creds, TransactionToken transaction,
+          String environment) throws SecurityException, TransactionException,
+          ParseException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecord(String key, long record, AccessToken creds,
+          TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecords(String key, List<Long> records,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecordsTime(String key, List<Long> records,
+          long timestamp, AccessToken creds, TransactionToken transaction,
+          String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecordsTimestr(String key, List<Long> records,
+          String timestamp, AccessToken creds, TransactionToken transaction,
+          String environment) throws SecurityException, TransactionException,
+          ParseException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecordTime(String key, long record, long timestamp,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyRecordTimestr(String key, long record, String timestamp,
+          AccessToken creds, TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, ParseException,
+          TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyTime(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyTime(String key, long timestamp, AccessToken creds,
+          TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+   * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#countKeyTimestr(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+   */
+  @Override
+  public long countKeyTimestr(String key, String timestamp, AccessToken creds,
+          TransactionToken transaction, String environment)
+          throws SecurityException, TransactionException, ParseException,
+          TException {
+      // TODO Auto-generated method stub
+      return 0;
+  }
+
+  /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKey(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKey(String key, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCcl(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCclTime(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCclTime(String key, String ccl, long timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCclTimestr(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCclTimestr(String key, String ccl, String timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCriteria(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCriteria(String key, TCriteria criteria,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCriteriaTime(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
+         long timestamp, AccessToken creds, TransactionToken transaction,
+         String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyCriteriaTimestr(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyCriteriaTimestr(String key, TCriteria criteria,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecord(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecord(String key, long record, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecords(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecords(String key, List<Long> records,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecordsTime(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecordsTime(String key, List<Long> records,
+         long timestamp, AccessToken creds, TransactionToken transaction,
+         String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecordsTimestr(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecordsTimestr(String key, List<Long> records,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecordTime(java.lang.String, long, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecordTime(String key, long record, long timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyRecordTimestr(java.lang.String, long, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyRecordTimestr(String key, long record,
+         String timestamp, AccessToken creds, TransactionToken transaction,
+         String environment) throws SecurityException, TransactionException,
+         ParseException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyTime(java.lang.String, long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
+         TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+  * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#sumKeyTimestr(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+  */
+ @Override
+ public TObject sumKeyTimestr(String key, String timestamp,
+         AccessToken creds, TransactionToken transaction, String environment)
+         throws SecurityException, TransactionException, ParseException,
+         TException {
+     // TODO Auto-generated method stub
+     return null;
+ }
+
+ /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#describeTime(long, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<String> describeTime(long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#describeTimestr(java.lang.String, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<String> describeTimestr(String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#describe(com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<String> describe(AccessToken creds, TransactionToken transaction,
+            String environment)
+            throws SecurityException, TransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
 }
 
 /**
