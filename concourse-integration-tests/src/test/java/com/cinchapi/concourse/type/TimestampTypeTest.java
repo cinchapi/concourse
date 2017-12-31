@@ -69,7 +69,7 @@ public class TimestampTypeTest extends ConcourseIntegrationTest {
                 DateTimeFormat.forPattern("MMM DD, YYYY"));
         Assert.assertEquals(expected, client.get("birthdate", record));
     }
- 
+
     @Test(expected = InvalidArgumentException.class)
     public void testInsertJsonTimestampIllegalArgumentExceptionPropagated() {
         Map<String, Object> data = ImmutableMap.of("birthdate",
