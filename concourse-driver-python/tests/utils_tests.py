@@ -16,6 +16,7 @@ from nose.tools import *
 import string
 import random
 from concourse.utils import *
+from datetime import datetime
 
 class TestUtils(object):
 
@@ -49,6 +50,10 @@ class TestUtils(object):
 
     def test_convert_float_roundtrip(self):
         orig = 3.14353
+        assert_equals(orig, thrift_to_python(python_to_thrift(orig)))
+
+    def test_convert_datetime_roundtrip(self):
+        orig = datetime.now()
         assert_equals(orig, thrift_to_python(python_to_thrift(orig)))
 
     def test_find_in_kwargs_bad_key(self):
