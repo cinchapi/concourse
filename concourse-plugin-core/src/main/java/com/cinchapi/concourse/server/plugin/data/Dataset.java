@@ -43,7 +43,9 @@ import io.atomix.catalyst.buffer.Buffer;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements PluginSerializable, Insertable<E, A, V> {
+        implements
+        PluginSerializable,
+        Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view
@@ -64,8 +66,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * The map returned from {@link #invertNullSafe(Object)} when the specified
      * attribute doesn't exist.
      */
-    private final Map<V, Set<E>> nullSafeInvertedMap = TrackingLinkedHashMultimap
-            .create();
+    private final Map<V, Set<E>> nullSafeInvertedMap = ImmutableTrackingMultimap
+            .of(TrackingLinkedHashMultimap.create());
 
     /**
      * Construct a new instance.
