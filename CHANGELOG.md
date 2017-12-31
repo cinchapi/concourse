@@ -11,6 +11,8 @@
 	* The `concourse-driver-python` uses the [`datetime`](https://docs.python.org/2/library/datetime.html) class to represent `TIMESTAMP` values.
 	* The `concourse-driver-ruby` uses the [`DateTime`](https://ruby-doc.org/stdlib-2.3.1/libdoc/date/rdoc/DateTime.html) class to represent `TIMESTAMP` values.
 	* The Concourse REST API allows specifying `TIMESTAMP` values as strings by prepending and appending a `|` to the value (e.g. `|December 30, 1987|`). It is also possible to specify a formatting pattern after the value like `|December 30, 1987|MMM dd, yyyy|`.
+* Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
+
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.

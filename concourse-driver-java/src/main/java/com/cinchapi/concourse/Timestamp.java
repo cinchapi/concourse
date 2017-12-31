@@ -54,6 +54,13 @@ public final class Timestamp {
             .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
 
     /**
+     * The default formatter that is used to display {@link #isDateOnly() date
+     * only} timestamps.
+     */
+    public static final DateTimeFormatter DEFAULT_DATE_ONLY_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy");
+
+    /**
      * Return a {@code Timestamp} that corresponds to the system
      * epoch timestamp with microsecond precision.
      * 
@@ -277,9 +284,22 @@ public final class Timestamp {
                 : Longs.hashCode(microseconds);
     }
 
+    /**
+     * Return {@code true} of this {@link Timestamp} does not have relevant
+     * temporal componet.
+     * 
+     * @return {@code true} if this {@link Timestamp} represents a date
+     */
+    public boolean isDateOnly() {
+        DateTime joda = getJoda();
+        return joda.getMillisOfDay() == 0;
+    }
+
     @Override
     public String toString() {
-        return isString() ? description : joda.toString(DEFAULT_FORMATTER);
+        return isString() ? description
+                : joda.toString(isDateOnly() ? DEFAULT_DATE_ONLY_FORMATTER
+                        : DEFAULT_FORMATTER);
     }
 
     /**

@@ -45,4 +45,18 @@ public class TimestampTest extends ConcourseBaseTest {
         Timestamp.fromString("yesterday").getJoda();
     }
 
+    @Test
+    public void testIsDateOnly() {
+        Timestamp timestamp = Timestamp.parse("December 30, 1987",
+                "MMM dd, yyyy");
+        Assert.assertTrue(timestamp.isDateOnly());
+    }
+
+    @Test
+    public void testIsDateOnlyFalse() {
+        Timestamp timestamp = Timestamp.parse("December 30, 1987 11:01pm",
+                "MMM dd, yyyy h:ma");
+        Assert.assertFalse(timestamp.isDateOnly());
+    }
+
 }
