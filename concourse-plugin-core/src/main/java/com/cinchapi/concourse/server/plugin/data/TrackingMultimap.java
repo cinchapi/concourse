@@ -35,6 +35,7 @@ import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
@@ -104,6 +105,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
                 || clazz == boolean.class) {
             return DataType.BOOLEAN;
+        }
+        else if(isTObjectType(object, Type.TIMESTAMP)
+                || clazz == Timestamp.class) {
+            return DataType.TIMESTAMP;
         }
         else {
             return DataType.UNKNOWN;
@@ -597,7 +602,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @author Jeff Nelson
      */
     public static enum DataType {
-        BOOLEAN, LINK, NUMBER, STRING, UNKNOWN;
+        BOOLEAN, LINK, NUMBER, STRING, UNKNOWN, TIMESTAMP;
     }
 
     /**
