@@ -16,6 +16,7 @@
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
+* Fixed a bug that caused the `putAll` method in the map returned from `TrackingMultimap#invert` to store data inconsistently.
 
 #### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored

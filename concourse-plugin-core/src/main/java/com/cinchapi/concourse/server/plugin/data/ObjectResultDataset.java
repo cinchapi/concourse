@@ -517,8 +517,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
             @Override
             public Set<Long> put(Object value, Set<Long> entities) {
-                return thrift.invertNullSafe(attribute)
-                        .put(Convert.javaToThrift(value), entities);
+                Set<Long> stored = get(value);
+                TObject tvalue = Convert.javaToThrift(value);
+                entities.forEach(
+                        entity -> thrift.insert(entity, attribute, tvalue));
+                return stored;
             }
 
             @Override
