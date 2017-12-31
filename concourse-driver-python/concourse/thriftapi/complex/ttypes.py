@@ -7,9 +7,7 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-import concourse.thriftapi.data.ttypes
-
-
+from ..data.ttypes import *  # must use relative import or pdoc breaks
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol, TProtocol
 from concourse.utils import python_to_thrift, thrift_to_python
@@ -128,7 +126,7 @@ class ComplexTObject:
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRUCT:
-                    self.tscalar = concourse.thriftapi.data.ttypes.TObject()
+                    self.tscalar = TObject()
                     self.tscalar.read(iprot)
                 else:
                     iprot.skip(ftype)
@@ -264,10 +262,10 @@ class ComplexTObject:
 ComplexTObject.thrift_spec = (
         None,  # 0
         (1, TType.I32, 'type', None, None, ), # 1
-        (2, TType.STRUCT, 'tscalar', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+        (2, TType.STRUCT, 'tscalar', (TObject, TObject.thrift_spec), None, ), # 2
         (3, TType.MAP, 'tmap', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec),TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 3
         (4, TType.LIST, 'tlist', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 4
         (5, TType.SET, 'tset', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 5
-        (6, TType.TOBJECT, 'tobject', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 6
-        (7, TType.TCRITERIA, 'tcriteria', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 7
+        (6, TType.STRUCT, 'tobject', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 6
+        (7, TType.STRUCT, 'tcriteria', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 7
     )

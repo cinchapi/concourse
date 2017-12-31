@@ -8,6 +8,7 @@
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
 import logging
+from .complex.ttypes import *
 from .data.ttypes import *
 from .shared.ttypes import *
 from .exceptions.ttypes import *
@@ -36990,7 +36991,7 @@ class invokePlugin_args:
     None, # 0
     (1, TType.STRING, 'id', None, None, ), # 1
     (2, TType.STRING, 'method', None, None, ), # 2
-    (3, TType.LIST, 'params', (TType.STRUCT,(concourse.thriftapi.complex.ttypes.ComplexTObject, concourse.thriftapi.complex.ttypes.ComplexTObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'params', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 3
     (4, TType.STRUCT, 'creds', (AccessToken, AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (TransactionToken, TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
@@ -37028,7 +37029,7 @@ class invokePlugin_args:
           self.params = []
           (_etype743, _size740) = iprot.readListBegin()
           for _i744 in range(_size740):
-            _elem745 = concourse.thriftapi.complex.ttypes.ComplexTObject()
+            _elem745 = ComplexTObject()
             _elem745.read(iprot)
             self.params.append(_elem745)
           iprot.readListEnd()
@@ -37126,7 +37127,7 @@ class invokePlugin_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.thriftapi.complex.ttypes.ComplexTObject, concourse.thriftapi.complex.ttypes.ComplexTObject.thrift_spec), None, ), # 0
+    (0, TType.STRUCT, 'success', (ComplexTObject, ComplexTObject.thrift_spec), None, ), # 0
     (1, TType.STRUCT, 'ex', (SecurityException, SecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (TransactionException, TransactionException.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'ex3', (InvalidArgumentException, InvalidArgumentException.thrift_spec), None, ), # 3
@@ -37149,7 +37150,7 @@ class invokePlugin_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.thriftapi.complex.ttypes.ComplexTObject()
+          self.success = ComplexTObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
