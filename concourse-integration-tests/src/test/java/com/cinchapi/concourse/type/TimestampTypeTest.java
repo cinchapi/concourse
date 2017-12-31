@@ -21,6 +21,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.InvalidArgumentException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Convert;
@@ -62,6 +63,17 @@ public class TimestampTypeTest extends ConcourseIntegrationTest {
     public void testInsertJsonTimestampWithFormatter() {
         Map<String, Object> data = ImmutableMap.of("birthdate",
                 "|December 30, 1987|MMM DD, YYYY|");
+        String json = Convert.mapToJson(data);
+        long record = client.insert(json).iterator().next();
+        Timestamp expected = Timestamp.parse("December 30, 1987",
+                DateTimeFormat.forPattern("MMM DD, YYYY"));
+        Assert.assertEquals(expected, client.get("birthdate", record));
+    }
+ 
+    @Test(expected = InvalidArgumentException.class)
+    public void testInsertJsonTimestampIllegalArgumentExceptionPropagated() {
+        Map<String, Object> data = ImmutableMap.of("birthdate",
+                "|December 30, 1987|dfasdfasfas|");
         String json = Convert.mapToJson(data);
         long record = client.insert(json).iterator().next();
         Timestamp expected = Timestamp.parse("December 30, 1987",

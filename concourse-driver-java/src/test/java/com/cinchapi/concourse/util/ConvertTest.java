@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
@@ -749,6 +750,24 @@ public class ConvertTest {
     @Test
     public void testConvertStringToOperatorCaseInsensitive() {
         Assert.assertEquals(Operator.LIKE, Convert.stringToOperator("LIKE"));
+    }
+
+    @Test
+    public void testConvertStringToTimestamp() {
+        String string = "|December 30, 1987|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConvertStringToTimestampInvalidFormat() {
+        String string = "|December 30, 1987|fsfsaf|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConvertStringToTimestampNotMatchingFormat() {
+        String string = "|December 30, 1987|MM/dd/yyyy|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
     }
 
     /**
