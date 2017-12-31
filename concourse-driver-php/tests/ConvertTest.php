@@ -74,4 +74,9 @@ class ConvertTest extends \PHPUnit_Framework_TestCase {
         $obj = 3.14353;
         $this->assertEquals($obj, Concourse\Convert::thriftToPhp(Concourse\Convert::phpToThrift($obj)));
     }
+
+    public function testConvertDateTimeRoundTrip(){
+        $obj = new DateTime();
+        $this->assertEquals($obj, Concourse\Convert::thriftToPhp(Concourse\Convert::phpToThrift($obj)));
+    }
 }
