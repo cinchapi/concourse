@@ -43,9 +43,7 @@ import io.atomix.catalyst.buffer.Buffer;
  */
 @NotThreadSafe
 public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
-        implements
-        PluginSerializable,
-        Insertable<E, A, V> {
+        implements PluginSerializable, Insertable<E, A, V> {
 
     /**
      * A mapping from each attribute to the inverted (e.g. index-oriented) view

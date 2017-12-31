@@ -204,7 +204,7 @@ public class ObjectResultDatasetTest {
         a.insert(1L, "name", "Jeff Nelson");
         Assert.assertNotNull(a.get(1L));
     }
-    
+
     @Test
     public void testInvertedPutAll() {
         ObjectResultDataset a = new ObjectResultDataset();
