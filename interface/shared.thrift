@@ -64,6 +64,7 @@ enum Type {
   STRING = 7,
   TAG = 8,
   NULL = 9,
+  TIMESTAMP = 10,
 }
 
 /** When re-constructing the state of a record/field/index from some base state,

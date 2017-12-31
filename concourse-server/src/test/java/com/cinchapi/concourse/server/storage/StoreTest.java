@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
@@ -1689,6 +1690,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add("email", Convert.javaToThrift("jeff@gmail.com"), 1);
         Assert.assertTrue(store.find("email", Operator.LIKE,
                 Convert.javaToThrift("%gmail.com%")).contains(1L));
+    }
+
+    @Test
+    public void testStoreTimestamp() {
+        Timestamp now = Timestamp.now();
+        add("time", Convert.javaToThrift(now), 1);
+        Assert.assertEquals(now,
+                store.select("time", 1).iterator().next().getJavaFormat());
+
     }
 
     /**

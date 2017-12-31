@@ -1999,7 +1999,8 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4);
 
   bool insertJsonRecord(
     1: string json
@@ -2010,7 +2011,8 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4);
 
   map<i64, bool> insertJsonRecords(
     1: string json
@@ -2021,7 +2023,8 @@ service ConcourseService {
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4);
 
   bool removeKeyValueRecord(
     1: string key,

@@ -48,6 +48,12 @@ public final class Timestamp {
     // data that happens within the same millisecond.
 
     /**
+     * The default formatter that is used to display objects of this class.
+     */
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
+    /**
      * Return a {@code Timestamp} that corresponds to the system
      * epoch timestamp with microsecond precision.
      * 
@@ -146,10 +152,18 @@ public final class Timestamp {
     }
 
     /**
-     * The default formatter that is used to display objects of this class.
+     * Parse a {@link Timestamp} from the specified string that adheres to the
+     * provided {@code format}.
+     * 
+     * @param str the string to parse, not {@code null}
+     * @param format the format of the string; see
+     *            {@link http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html}
+     *            for details
+     * @return the parsed timestamp
      */
-    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
-            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+    public static Timestamp parse(String str, String format) {
+        return parse(str, DateTimeFormat.forPattern(format));
+    }
 
     /**
      * A relative or absolute description of an instant that is translated to an

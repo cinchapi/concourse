@@ -108,6 +108,21 @@ class Convert {
                 }
             }
         }
+        else if(@get_class($value) == "DateTime") {
+            $type = Type::TIMESTAMP;
+            $micros = $value->getTimestamp() * 1000000;
+            if(!php_supports_64bit_pack()){
+                $data = pack_int64($micros);
+                // No need to change the by order here because pack_int64
+                // uses the 'N' format code which is BIG ENDIAN.
+            }
+            else {
+                $data = pack('q', $micros);
+                if (!BIG_ENDIAN) {
+                    $data = strrev($data);
+                }
+            }
+        }
         else {
             $type = Type::STRING;
             $data = utf8_encode(strval($value));
@@ -164,6 +179,19 @@ class Convert {
                     $php = unpack('q', $data)[1];
                 }
                 $php = Link::to($php);
+                break;
+            case Type::TIMESTAMP:
+                if(!php_supports_64bit_pack()){
+                    // No need to change the by order here because unpack_int64
+                    // uses the 'N' format code which is BIG ENDIAN.
+                    $php = unpack_int64($data);
+                }
+                else {
+                    $data = !BIG_ENDIAN ? strrev($data) : $data;
+                    $php = unpack('q', $data)[1];
+                }
+                $dt = new \DateTime();
+                $php = $dt->setTimestamp($php / 1000000);
                 break;
             case Type::STRING:
                 $php = utf8_decode($tobject->data);

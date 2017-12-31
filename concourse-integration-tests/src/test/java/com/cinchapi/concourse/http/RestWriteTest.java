@@ -18,6 +18,7 @@ package com.cinchapi.concourse.http;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.util.TestData;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -54,6 +55,17 @@ public class RestWriteTest extends RestTest {
     public void testInsertKeyAsValueInNewRecord() {
         String key = TestData.getSimpleString();
         Object value = TestData.getObject();
+        String strValue = prepareForJsonImport(value);
+        Response resp = post("/{0}", strValue, key);
+        long record = bodyAsJava(resp, TypeToken.get(Long.class));
+        Assert.assertEquals(200, resp.code());
+        Assert.assertEquals(value, client.get(key, record));
+    }
+
+    @Test
+    public void testWriteTimestamp() {
+        String key = TestData.getSimpleString();
+        Object value = Timestamp.now();
         String strValue = prepareForJsonImport(value);
         Response resp = post("/{0}", strValue, key);
         long record = bodyAsJava(resp, TypeToken.get(Long.class));

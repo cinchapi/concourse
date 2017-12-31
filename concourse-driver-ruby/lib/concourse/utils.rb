@@ -145,6 +145,8 @@ module Concourse
                     rb = Tag.create rb
                 when Type::NULL
                     rb = nil
+                when Type::TIMESTAMP
+                    rb = Time.at(tobject.data.unpack('q>')[0] / 1000000).to_datetime
                 else
                     rb = tobject.data.encode('UTF-8')
                 end
@@ -178,6 +180,10 @@ module Concourse
                 elsif value.is_a? Tag
                     data = value.to_s.encode('UTF-8')
                     type = Type::TAG
+                elsif value.is_a? DateTime
+                    value = value.to_time.to_i * 1000000
+                    data = [value].pack('q>')
+                    type = Type::TIMESTAMP
                 else
                     data = value.encode('UTF-8')
                     type = Type::STRING
