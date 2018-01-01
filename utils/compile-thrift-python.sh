@@ -39,8 +39,8 @@ rm $TARGET"/concourse/thriftapi/ConcourseService-remote"
 
 # Fix module importing in the $API file
 API=$TARGET"/concourse/thriftapi/ConcourseService.py"
-perl -i -0pe 's/from .ttypes import \*/from .data.ttypes import \*\nfrom .shared.ttypes import \*\nfrom .exceptions.ttypes import */g' $API
-perl -p -i -e 's/concourse.thriftapi.(data|shared|exceptions).ttypes.//g' $API
+perl -i -0pe 's/from .ttypes import \*/from .data.ttypes import \*\nfrom .shared.ttypes import \*\nfrom .exceptions.ttypes import *\nfrom .complex.ttypes import */g' $API
+perl -p -i -e 's/concourse.thriftapi.(data|shared|exceptions|complex).ttypes.//g' $API
 
 CONSTANTS=$TARGET"/concourse/thriftapi/constants.py"
 perl -p -i -e 's/.ttypes import \*/.data.ttypes import TObject/g' $CONSTANTS
