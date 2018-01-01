@@ -770,6 +770,13 @@ public class ConvertTest {
         Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testConvertTObjectWithNullType() {
+        TObject tobject = Convert.javaToThrift(Timestamp.now());
+        tobject.type = null;
+        Convert.thriftToJava(tobject);
+    }
+
     /**
      * Randomly flip the case of all the characters in {@code string}.
      * 

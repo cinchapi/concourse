@@ -43,6 +43,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -651,6 +652,10 @@ public final class Convert {
      * @return the Object
      */
     public static Object thriftToJava(TObject object) {
+        Preconditions.checkState(object.getType() != null,
+                "Cannot read value because it has been "
+                        + "created with a newer version of Concourse "
+                        + "Server. Please upgrade this client.");
         Object java = object.getJavaFormat();
         if(java == null) {
             ByteBuffer buffer = object.bufferForData();
