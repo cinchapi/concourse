@@ -21,7 +21,7 @@ Concourse **automatically indexes** data for search and analytics while guarante
 Concourse **automatically tracks changes** to data–like Git does for source code–giving the power to [query data from the past](time-travel.md), [audit](/) changes on the fly and [revert](/) to previous states without downtime. Version control in Concourse makes it easy to build applications that leverage definitive data across time.
 
 ## ACID Transactions
-Concourse uses a [novel protocol](/) to provide serializable distributed [transactions](transactions.md). Internally, dynamic resource management and [just-in-time locking](/) ensure that transactions have both the highest performance and strongest consistency possible. So there is no need to guess when your data will eventually become consistent. When Concourse responds to a query, you can **trust the results immediately**.
+Concourse uses a [novel protocol](/) to provide serializable distributed [transactions](transactions.md). Internally, dynamic resource allocation and [just-in-time locking](/) ensure that transactions have both the highest performance and strongest consistency possible. So there is no need to guess when your data will eventually become consistent. When Concourse responds to a query, you can **trust the results immediately**.
 
 By default, each change is [autocommited](/) and written to the database immediately. However, you can explicitly start a [transaction](transactions.md) to control when a group of changes are [atomically](/) [committed](/) or [aborted](/) using the [stage](/) functionality.
 
@@ -44,7 +44,7 @@ catch (TransactionException e) {
   concourse.abort();
 }
 ```
-* The same example above using Java [lambdas](/):
+* The same example above using Java 8+ [lambdas](/):
 ```java
 concourse.stage(() -> {
   int balance1 = concourse.get("balance", 1);
@@ -53,6 +53,9 @@ concourse.stage(() -> {
   concourse.set("balance", balance2 - 50, 2);
 });
 ```
+
+## Plugins
+Concourse can be extended by plugins.
 
 ## Environments
 Concourse separates records into [environments](/), which are similar to *databases*, *keyspaces*, or *schemas* in a other database systems. Beyond that, Concourse **doesn't** impose any other organization such as tables or collections.
