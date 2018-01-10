@@ -73,7 +73,7 @@ public class Criteria implements Symbol {
                             .getCause() instanceof com.cinchapi.ccl.v2.generated.ParseException) {
                 throw new ParseException(
                         new com.cinchapi.concourse.thrift.ParseException(
-                                e.getMessage())); 
+                                e.getMessage()));
             }
             else {
                 throw CheckedExceptions.throwAsRuntimeException(e);
