@@ -21,6 +21,7 @@ import java.util.Queue;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.JavaCCParser;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.SyntaxException;
@@ -729,10 +730,21 @@ public class ParserTest {
         Assert.assertEquals("Atlanta (HQ)", expr.raw().values().get(0));
     }
 
-    @Test(expected = IllegalStateException.class)
     public void testParseCclNoSpaces() {
         String ccl = "name=jeff";
         Parser parser = Parsers.create(ccl);
-        parser.order();
+        if(parser instanceof JavaCCParser) {
+            parser.order();
+            Assert.assertTrue(true); // lack of exception = success
+        }
+        else {
+            try {
+                parser.order();
+                Assert.fail(); // lack of exception = failure
+            }
+            catch (IllegalStateException e) {
+                Assert.assertTrue(true);
+            }
+        }
     }
 }
