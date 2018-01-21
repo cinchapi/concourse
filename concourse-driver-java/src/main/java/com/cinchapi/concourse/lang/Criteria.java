@@ -26,6 +26,7 @@ import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
@@ -65,10 +66,18 @@ public class Criteria implements Symbol {
             criteria.symbols = Lists.newArrayList(parser.tokenize());
             return criteria;
         }
-        catch (SyntaxException | IllegalStateException e) {
-            throw new ParseException(
-                    new com.cinchapi.concourse.thrift.ParseException(
-                            e.getMessage()));
+        catch (Exception e) {
+            if(e instanceof SyntaxException
+                    || e instanceof IllegalStateException
+                    || e.getCause() != null && e
+                            .getCause() instanceof com.cinchapi.ccl.v2.generated.ParseException) {
+                throw new ParseException(
+                        new com.cinchapi.concourse.thrift.ParseException(
+                                e.getMessage()));
+            }
+            else {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
         }
     }
 

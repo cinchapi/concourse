@@ -89,7 +89,14 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add("name", "bar", 2);
         client.add(key, 15, 2);
         int actual = 34;
-        Timestamp timestamp = Timestamp.fromString("1 second ago");
+        // Timestamp timestamp = Timestamp.fromString("1 second ago");
+        // NOTE: Replaced the above timestamp because the logic of the test is
+        // fundamentally flawed. The above will return a relative timestamp that
+        // is resolved by the server. Therefore, the preciseness of the
+        // resolution is subject to latency between message passing between the
+        // client and server. In general, we need to get rid of all Timestr
+        // methods because they suffer from this.
+        Timestamp timestamp = client.time("1 second ago");
         Threads.sleep(1000);
         client.add(key, 100, 2);
         Number expected = client.calculate().average(key, "name = bar",

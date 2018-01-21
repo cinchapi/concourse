@@ -12,12 +12,13 @@
 	* The `concourse-driver-ruby` uses the [`DateTime`](https://ruby-doc.org/stdlib-2.3.1/libdoc/date/rdoc/DateTime.html) class to represent `TIMESTAMP` values.
 	* The Concourse REST API allows specifying `TIMESTAMP` values as strings by prepending and appending a `|` to the value (e.g. `|December 30, 1987|`). It is also possible to specify a formatting pattern after the value like `|December 30, 1987|MMM dd, yyyy|`.
 * Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
+* Upgraded the CCL parser to a newer and more efficient version. This change will yield general performance improvements in methods that parse CCL statements during evaluation.
 
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
 * Fixed a bug that caused the `putAll` method in the map returned from `TrackingMultimap#invert` to store data inconsistently.
-* Added better error handling for cases when an attempt is made to read with a value with a type that is not available in the client's version. 
+* Added better error handling for cases when an attempt is made to read with a value with a type that is not available in the client's version.
 
 #### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored
