@@ -19,6 +19,8 @@
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
 * Fixed a bug that caused the `putAll` method in the map returned from `TrackingMultimap#invert` to store data inconsistently.
 * Added better error handling for cases when an attempt is made to read with a value with a type that is not available in the client's version.
+* Fixed a bug that caused Concourse Server to unreliably stream data when multiple real-time plugins were installed.
+* Fixed a bug that caused Concourse Server to frequently cause high CPU usage when multiple real-time plugins were installed.
 
 #### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored
