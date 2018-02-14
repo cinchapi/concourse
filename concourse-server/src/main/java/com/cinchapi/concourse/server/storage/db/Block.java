@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.bucket.Bucket;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
@@ -168,7 +170,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     /**
      * The namespace used for the {@link #sharedStorage}.
      */
-    private static final String SHARED_STORAGE_NAMESPACE = "metadata";
+    private static final String SHARED_STORAGE_STATS_NAMESPACE = "stats";
+
+    /**
+     * The schema version for the {@link Block} serialization schema.
+     */
+    private static final long SCHEMA_VERSION = 1;
 
     /**
      * The extension for the block file.
@@ -246,6 +253,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
+     * Returned from the {@link #stats()} method.
+     */
+    private final Stats stats;
+
+    /**
      * A hint that this Block uses the
      * {@link #insertUnsafe(Byteable, Byteable, Byteable, long, Action)} method
      * to add data without grabbing any locks. This is generally safe to do as
@@ -275,8 +287,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     protected final WriteLock write = master.writeLock();
 
     /**
-     * Database-wide internal {@link Bucket storage} in which metadata about
-     * this {@link Block} is maintained.
+     * Database-wide internal file for storage in which metadata about this
+     * {@link Block} is maintained.
      * <p>
      * <strong>WARNING:</strong> While each {@link Block} creates its own
      * instance/connection to the underlying storage file, the file is shared
@@ -287,7 +299,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * but internal wrapper classes should be used to expose a more fluent API.
      * </p>
      */
-    private final Bucket sharedStorage;
+    private final Path sharedStorageFile;
 
     /**
      * Construct a new instance.
@@ -327,9 +339,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                     directory + File.separator + id + INDEX_NAME_EXTENSION,
                     EXPECTED_INSERTIONS);
         }
-        this.sharedStorage = Bucket.persistent(
-                Paths.get(directory, SHARED_STORAGE_FILENAME),
-                SHARED_STORAGE_NAMESPACE);
+        this.sharedStorageFile = Paths.get(directory, SHARED_STORAGE_FILENAME);
+        this.stats = new Stats(Bucket.persistent(sharedStorageFile,
+                SHARED_STORAGE_STATS_NAMESPACE));
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
@@ -593,6 +605,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
                 filter.disableThreadSafety();
+                stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
             }
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
@@ -609,6 +622,15 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         finally {
             write.unlock();
         }
+    }
+
+    /**
+     * Return the {@link Stats} for this {@link Block}
+     * 
+     * @return the stats metadata
+     */
+    public Stats stats() {
+        return stats;
     }
 
     @Override
@@ -834,6 +856,80 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return the revision class
      */
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
+
+    /**
+     * Internal wrapper for Block-specific stats that are maintained in the
+     * {@link #sharedStorageFile}.
+     *
+     * @author Jeff Nelson
+     */
+    public class Stats {
+        // TODO: in the future, we can use Stats to keep track of information
+        // like how many reads hit the Block, etc
+
+        /**
+         * The underlying {@link Bucket store} where the stats are maintained.
+         * <p>
+         * <strong>NOTE:</strong> We don't explicitly cleanup this resource in
+         * this class's {@link #finalize()} method because the bucket takes care
+         * of that internally.
+         * </p>
+         */
+        private final Bucket bucket;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param bucket
+         */
+        public Stats(Bucket bucket) {
+            this.bucket = bucket;
+        }
+
+        /**
+         * Return the value associated with the {@code attribute} for this
+         * {@link Block}.
+         * 
+         * @param attribute
+         * @return the value
+         */
+        @Nullable
+        public <T> T get(Attribute attribute) {
+            return bucket.get(attribute.key(Block.this));
+        }
+
+        /**
+         * Associate the {@code value} with the {@code attribute} for this
+         * {@link Block}, overwriting any previously set values.
+         * 
+         * @param attribute
+         * @param value
+         */
+        private <T> void put(Attribute attribute, T value) {
+            bucket.put(attribute.key(Block.this), value);
+        }
+
+    }
+
+    /**
+     * The keys that can be used to read/write {@link Stats stats}.
+     *
+     * @author Jeff Nelson
+     */
+    public enum Attribute {
+        SCHEMA_VERSION;
+
+        /**
+         * Return the key for this {@link Attribute} associated with this
+         * {@link Block} in the {@link #sharedStorage}.
+         * 
+         * @param block
+         * @return the canonical key
+         */
+        public String key(Block<?, ?, ?> block) {
+            return AnyStrings.format("{}_{}", block.id, name());
+        }
+    }
 
     /**
      * A Comparator that sorts Revisions in a block. The sort order is
