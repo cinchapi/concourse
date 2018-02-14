@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.bucket.Bucket;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
@@ -90,7 +92,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -154,6 +159,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * The extension for the {@link BlockIndex} file.
      */
     private static final String INDEX_NAME_EXTENSION = ".indx";
+
+    /**
+     * The filename used for the {@link #sharedStorage}.
+     */
+    private static final String SHARED_STORAGE_FILENAME = "metadata";
+
+    /**
+     * The namespace used for the {@link #sharedStorage}.
+     */
+    private static final String SHARED_STORAGE_NAMESPACE = "metadata";
 
     /**
      * The extension for the block file.
@@ -260,6 +275,21 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     protected final WriteLock write = master.writeLock();
 
     /**
+     * Database-wide internal {@link Bucket storage} in which metadata about
+     * this {@link Block} is maintained.
+     * <p>
+     * <strong>WARNING:</strong> While each {@link Block} creates its own
+     * instance/connection to the underlying storage file, the file is shared
+     * among all the {@link Block} instances of a certain type.
+     * </p>
+     * <p>
+     * There should be no direct interaction with this store at the Block level,
+     * but internal wrapper classes should be used to expose a more fluent API.
+     * </p>
+     */
+    private final Bucket sharedStorage;
+
+    /**
      * Construct a new instance.
      * 
      * @param id
@@ -297,6 +327,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                     directory + File.separator + id + INDEX_NAME_EXTENSION,
                     EXPECTED_INSERTIONS);
         }
+        this.sharedStorage = Bucket.persistent(
+                Paths.get(directory, SHARED_STORAGE_FILENAME),
+                SHARED_STORAGE_NAMESPACE);
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
@@ -565,9 +598,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
