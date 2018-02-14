@@ -113,6 +113,10 @@ subprojects {
 
     group = 'com.cinchapi'
     version = globalVersion
+
+    // Versions for some shared (but non-global) dependencies
+    ext.bucketVersion = '1.2.0'
+
     // Drop the build component from version number and use that for
     // publishing
     ext.mavenVersion = version.split('\\.')
