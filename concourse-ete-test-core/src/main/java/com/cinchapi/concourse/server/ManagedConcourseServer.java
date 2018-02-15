@@ -467,12 +467,30 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Return the directory where the server stores buffer files.
+     * 
+     * @return the buffer directory
+     */
+    public Path getBufferDirectory() {
+        return Paths.get(prefs.getBufferDirectory());
+    }
+
+    /**
      * Return the client port for this server.
      * 
      * @return the client port
      */
     public int getClientPort() {
         return prefs.getClientPort();
+    }
+
+    /**
+     * Return the directory where the server stores database files.
+     * 
+     * @return the database directory
+     */
+    public Path getDatabaseDirectory() {
+        return Paths.get(prefs.getDatabaseDirectory());
     }
 
     /**
