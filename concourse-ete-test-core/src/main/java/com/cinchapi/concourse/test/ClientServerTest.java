@@ -28,6 +28,7 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
@@ -85,6 +86,14 @@ public abstract class ClientServerTest {
     public final TestWatcher __watcher = new TestWatcher() {
 
         @Override
+        protected void succeeded(Description description) {
+            server.destroy();
+            System.out.println(AnyStrings.format(
+                    "The test succeded, so the server installation at {} has been deleted",
+                    server.getInstallDirectory()));
+        }
+
+        @Override
         protected void failed(Throwable t, Description description) {
             System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
@@ -99,13 +108,18 @@ public abstract class ClientServerTest {
                     .isAssignableFrom(ClientServerTest.this.getClass())) {
 
             }
+            System.out.println(AnyStrings.format(
+                    "The test failed, so the server installation at {} has "
+                            + "NOT been deleted. Please manually delete the directory after "
+                            + "inspecting its content",
+                    server.getInstallDirectory()));
         }
 
         @Override
         protected void finished(Description description) {
             afterEachTest();
             client.exit();
-            server.destroy();
+            server.stop();
             client = null;
             server = null;
         }
