@@ -172,7 +172,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     /**
      * The schema version for the {@link Block} serialization schema.
      */
-    private static final long SCHEMA_VERSION = 1;
+    protected static final long SCHEMA_VERSION = 1L;
 
     /**
      * The extension for the block file.
