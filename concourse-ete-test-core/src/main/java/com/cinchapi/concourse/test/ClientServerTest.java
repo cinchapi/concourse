@@ -88,9 +88,6 @@ public abstract class ClientServerTest {
         @Override
         protected void succeeded(Description description) {
             server.destroy();
-            System.out.println(AnyStrings.format(
-                    "The test succeded, so the server installation at {} has been deleted",
-                    server.getInstallDirectory()));
         }
 
         @Override
@@ -108,18 +105,18 @@ public abstract class ClientServerTest {
                     .isAssignableFrom(ClientServerTest.this.getClass())) {
 
             }
-            System.out.println(AnyStrings.format(
-                    "The test failed, so the server installation at {} has "
+            System.err.println(AnyStrings.format(
+                    "NOTE: The test failed, so the server installation at {} has "
                             + "NOT been deleted. Please manually delete the directory after "
                             + "inspecting its content",
                     server.getInstallDirectory()));
+            server.stop();
         }
 
         @Override
         protected void finished(Description description) {
             afterEachTest();
             client.exit();
-            server.stop();
             client = null;
             server = null;
         }
