@@ -30,7 +30,7 @@ import com.cinchapi.concourse.util.Random;
  * @author Jeff Nelson
  */
 public class BlockStatsTest {
-    
+
     @Test
     public void testDataDoesNotPersistOnSync() {
         Path file = Paths.get(FileOps.tempFile());
@@ -41,7 +41,7 @@ public class BlockStatsTest {
         stats = new BlockStats(file);
         Assert.assertNull(stats.get(key));
     }
-    
+
     @Test
     public void testDataPersistsOnSync() {
         Path file = Paths.get(FileOps.tempFile());
