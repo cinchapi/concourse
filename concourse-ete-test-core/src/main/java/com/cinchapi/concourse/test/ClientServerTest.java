@@ -110,6 +110,7 @@ public abstract class ClientServerTest {
                             + "NOT been deleted. Please manually delete the directory after "
                             + "inspecting its content",
                     server.getInstallDirectory()));
+            server.destroyOnExit(false);
             server.stop();
         }
 

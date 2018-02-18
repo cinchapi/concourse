@@ -348,6 +348,8 @@ public class ManagedConcourseServer {
      */
     private final ConcourseServerPreferences prefs;
 
+    private boolean destroyOnExit = true;
+
     /**
      * Construct a new instance.
      * 
@@ -362,7 +364,9 @@ public class ManagedConcourseServer {
 
             @Override
             public void run() {
-                destroy();
+                if(destroyOnExit) {
+                    destroy();
+                }
             }
 
         }));
@@ -388,6 +392,16 @@ public class ManagedConcourseServer {
      */
     public Concourse connect(String username, String password) {
         return new Client(username, password);
+    }
+
+    /**
+     * Set a flag that determines whether this instance will be destroyed on
+     * exit.
+     * 
+     * @param destroyOnExit
+     */
+    public void destroyOnExit(boolean destroyOnExit) {
+        this.destroyOnExit = destroyOnExit;
     }
 
     /**
