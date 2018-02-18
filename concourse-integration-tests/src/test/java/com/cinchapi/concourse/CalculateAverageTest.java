@@ -18,6 +18,7 @@ package com.cinchapi.concourse;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
@@ -80,6 +81,7 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void testAverageKeyCclTimestr() {
         String key = "age";
         client.add("name", "foo", 1);
