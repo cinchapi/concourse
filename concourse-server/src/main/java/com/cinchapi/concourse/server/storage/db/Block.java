@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +46,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -156,6 +158,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private static final String INDEX_NAME_EXTENSION = ".indx";
 
     /**
+     * The extension for the {@link Blockstats} file
+     */
+    private static final String STATS_NAME_EXTENSION = ".stts";
+
+    /**
+     * The schema version for the {@link Block} serialization schema.
+     */
+    protected static final long SCHEMA_VERSION = 1L;
+
+    /**
      * The extension for the block file.
      */
     @PackagePrivate
@@ -231,6 +243,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
+     * Returned from the {@link #stats()} method.
+     */
+    private final BlockStats stats;
+
+    /**
      * A hint that this Block uses the
      * {@link #insertUnsafe(Byteable, Byteable, Byteable, long, Action)} method
      * to add data without grabbing any locks. This is generally safe to do as
@@ -271,6 +288,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         FileSystem.mkdirs(directory);
         this.id = id;
         this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
+        this.stats = new BlockStats(
+                Paths.get(directory, id + STATS_NAME_EXTENSION));
         if(diskLoad) {
             this.mutable = false;
             this.size = (int) FileSystem.getFileSize(this.file);
@@ -296,6 +315,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.index = BlockIndex.create(
                     directory + File.separator + id + INDEX_NAME_EXTENSION,
                     EXPECTED_INSERTIONS);
+            stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -556,6 +576,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 channel.force(true);
                 filter.sync();
                 index.sync();
+                stats.sync();
                 FileSystem.closeFileChannel(channel);
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
@@ -577,6 +598,15 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         finally {
             write.unlock();
         }
+    }
+
+    /**
+     * Return the {@link Stats} for this {@link Block}
+     * 
+     * @return the stats metadata
+     */
+    public BlockStats stats() {
+        return stats;
     }
 
     @Override

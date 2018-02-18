@@ -28,6 +28,7 @@ import org.junit.runner.Description;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -154,6 +155,12 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         Assert.assertEquals(p, s);
         Assert.assertEquals(p, t);
         Assert.assertEquals(s, t);
+    }
+
+    @Test
+    public void testStatsSchemaVersion() {
+        Assert.assertEquals((long) Block.SCHEMA_VERSION,
+                (long) block.stats().get(Attribute.SCHEMA_VERSION));
     }
 
     protected abstract L getLocator();
