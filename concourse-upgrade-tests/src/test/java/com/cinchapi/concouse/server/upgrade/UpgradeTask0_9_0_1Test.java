@@ -18,14 +18,20 @@ package com.cinchapi.concouse.server.upgrade;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.Random;
+import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Longs;
 
 /**
  * Unit tests to verify the validity of {@link UpgradeTask0_9_0_1}.
@@ -54,10 +60,27 @@ public class UpgradeTask0_9_0_1Test extends UpgradeTest {
                 server.getClientPort(), "admin", "admin", environment2);
         client1.add("name", "jeff nelson", 17);
         try {
-            while (Files.list(directory1).count() < 1
-                    || Files.list(directory2).count() < 1) {
-                client1.add(Random.getSimpleString(), Random.getObject());
-                client2.add(Random.getSimpleString(), Random.getObject());
+            int count = TestData.getScaleCount();
+            Stream<Path> stream1 = null;
+            Stream<Path> stream2 = null;
+            try {
+                while ((stream1 == null || stream2 == null)
+                        || stream1.count() < count || stream2.count() < count) {
+                    client1.add(Random.getSimpleString(), Random.getObject());
+                    client2.add(Random.getSimpleString(), Random.getObject());
+                    if(stream1 != null) {
+                        stream1.close();
+                    }
+                    if(stream2 != null) {
+                        stream2.close();
+                    }
+                    stream1 = Files.list(directory1);
+                    stream2 = Files.list(directory2);
+                }
+            }
+            finally {
+                stream1.close();
+                stream2.close();
             }
         }
         catch (IOException e) {
@@ -70,6 +93,33 @@ public class UpgradeTask0_9_0_1Test extends UpgradeTest {
         Concourse client1 = Concourse.connect("localhost",
                 server.getClientPort(), "admin", "admin", environment1);
         Assert.assertEquals("jeff nelson", client1.get("name", 17));
+    }
+
+    @Test
+    public void testEachBlockHasStatsFile() {
+        ImmutableList.of(environment1, environment2).forEach(environment -> {
+            server.executeCli("debug", "list", "-e", environment)
+                    .forEach(line -> {
+                        String[] toks = line.split(Pattern.quote(")"));
+                        if(toks.length > 1) {
+                            Long id = Longs.tryParse(toks[1].trim());
+                            if(id != null) {
+                                ImmutableList.of("cpb", "csb", "ctb")
+                                        .forEach(block -> {
+                                            String file = server
+                                                    .getDatabaseDirectory()
+                                                    .resolve(environment)
+                                                    .resolve(block)
+                                                    .resolve(id + ".stts")
+                                                    .toString();
+                                            Assert.assertTrue(
+                                                    FileSystem.hasFile(file));
+                                        });
+                            }
+                        }
+                    });
+        });
+
     }
 
 }

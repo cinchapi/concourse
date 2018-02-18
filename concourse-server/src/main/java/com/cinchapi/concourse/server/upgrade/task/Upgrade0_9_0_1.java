@@ -20,7 +20,9 @@ import java.util.List;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.db.BlockStats;
 import com.cinchapi.concourse.server.storage.db.Database;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
 import com.cinchapi.concourse.util.Environments;
 import com.google.common.collect.ImmutableList;
@@ -46,19 +48,16 @@ public class Upgrade0_9_0_1 extends SmartUpgradeTask {
                     Database database = new Database(FileSystem.makePath(
                             GlobalState.DATABASE_DIRECTORY, environment));
                     database.start();
-                    Object attribute = Reflection.getEnumValue(
+                    long schemaVersion = Reflection.getStatic("SCHEMA_VERSION",
                             Reflection.getClassCasted(
-                                    "com.cinchapi.concourse.server.storage.db.Block$Attribute"),
-                            "SCHEMA_VERSION");
+                                    "com.cinchapi.concourse.server.storage.db.Block"));
                     // Go through all the blocks and set the schema version
                     ImmutableList.of("cpb", "csb", "ctb").forEach(variable -> {
                         List<?> list = Reflection.get(variable, database);
                         list.forEach(block -> {
-                            Object stats = Reflection.get("stats", block);
-                            Reflection.call(stats, "put", attribute,
-                                    Reflection.getStatic("SCHEMA_VERSION",
-                                            Reflection.getClassCasted(
-                                                    "com.cinchapi.concourse.server.storage.db.Block")));
+                            BlockStats stats = Reflection.get("stats", block);
+                            stats.put(Attribute.SCHEMA_VERSION, schemaVersion);
+                            stats.sync();
                         });
                     });
                 });
