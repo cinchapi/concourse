@@ -14,6 +14,7 @@
 * Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
 * Upgraded the CCL parser to a newer and more efficient version. This change will yield general performance improvements in methods that parse CCL statements during evaluation.
 * The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
+* Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 
 #### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
