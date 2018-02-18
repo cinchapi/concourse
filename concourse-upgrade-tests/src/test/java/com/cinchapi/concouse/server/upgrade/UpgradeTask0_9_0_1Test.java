@@ -18,6 +18,7 @@ package com.cinchapi.concouse.server.upgrade;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -25,8 +26,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.db.BlockStats;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
+import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -118,6 +123,30 @@ public class UpgradeTask0_9_0_1Test extends UpgradeTest {
                             }
                         }
                     });
+        });
+
+    }
+
+    @Test
+    public void testEachBlockHasSchemaVersion() {
+        ImmutableList.of(environment1, environment2).forEach(environment -> {
+            Database database = new Database(server.getDatabaseDirectory()
+                    .resolve(environment).toString());
+            database.start();
+            try {
+                ImmutableList.of("cpb", "csb", "ctb").forEach(variable -> {
+                    List<?> blocks = Reflection.get(variable, database);
+                    blocks.forEach(block -> {
+                        BlockStats stats = Reflection.get("stats", block);
+                        Assert.assertNotNull(
+                                stats.get(Attribute.SCHEMA_VERSION));
+                    });
+                });
+            }
+            finally {
+                database.stop();
+            }
+
         });
 
     }
