@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -340,6 +341,7 @@ public final class GlobalState extends Constants {
             }
             reader.close();
         }
+        catch (FileNotFoundException e) {}
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
