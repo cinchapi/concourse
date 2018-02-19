@@ -171,7 +171,7 @@ public class BlockStats implements Syncable {
      * @author Jeff Nelson
      */
     public enum Attribute {
-        SCHEMA_VERSION;
+        SCHEMA_VERSION, MIN_REVISION_VERSION, MAX_REVISION_VERSION;
     }
 
 }
