@@ -30,11 +30,10 @@ public class Upgrade0_9_0_2 extends SmartUpgradeTask {
         return "Populate min and max revision version in each Block";
     }
 
-
     @Override
     protected void doTask() {
         // TODO implement me
-        
+
     }
 
 }
