@@ -161,8 +161,7 @@ public class BlockStats implements Syncable {
     @VisibleForTesting
     protected <T1, T2> boolean putIf(String key, T2 value,
             BiCheck<T1, T2> currentValueCondition) {
-        // TODO: implement me
-        return false;
+        return bucket.putIf(key, value, currentValueCondition);
     }
 
     /**
