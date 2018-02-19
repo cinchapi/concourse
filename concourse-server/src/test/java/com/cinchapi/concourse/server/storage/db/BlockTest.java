@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
@@ -161,6 +162,72 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
     public void testStatsSchemaVersion() {
         Assert.assertEquals((long) Block.SCHEMA_VERSION,
                 (long) block.stats().get(Attribute.SCHEMA_VERSION));
+    }
+
+    @Test
+    public void testRevisionVersionTracking() {
+        long version1 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version1, Action.ADD);
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version2 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version2, Action.ADD);
+        Assert.assertEquals(version2,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version4 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version4, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version3 = version4 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version3, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version0 = version1 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version0, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        block.sync();
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRevisionVersionTrackingPersistence() {
+        long version1 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version1, Action.ADD);
+
+        long version2 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version2, Action.ADD);
+
+        long version4 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version4, Action.ADD);
+
+        long version3 = version4 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version3, Action.ADD);
+
+        long version0 = version1 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version0, Action.ADD);
+
+        block.sync();
+        block = Reflection.newInstance(block.getClass(), block.getId(),
+                directory, true); /* (Authorized) */
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
     }
 
     protected abstract L getLocator();
