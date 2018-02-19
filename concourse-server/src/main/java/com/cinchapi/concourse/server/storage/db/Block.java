@@ -476,10 +476,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                           // #mightContain(L,K,V) without
                                           // seeking
             size += revision.size() + 4;
-            stats.putIf(Attribute.MIN_REVISION_VERSION, version,
-                    MIN_REVISION_VERSION_CHECK);
-            stats.putIf(Attribute.MAX_REVISION_VERSION, version,
-                    MAX_REVISION_VERSION_CHECK);
+
+            // CON-587: Set the min/max version of this Block because it cannot
+            // be assumed that revisions are inserted in monotonically
+            // increasing order of version.
+            if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
+                    MAX_REVISION_VERSION_CHECK) || revisions.size() < 2) {
+                stats.putIf(Attribute.MIN_REVISION_VERSION, version,
+                        MIN_REVISION_VERSION_CHECK);
+            }
+
             return revision;
         }
         finally {
