@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.bucket.Bucket;
 import com.cinchapi.bucket.PersistentBucket;
+import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.google.common.annotations.VisibleForTesting;
@@ -99,6 +100,21 @@ public class BlockStats implements Syncable {
         put(attribute.name(), value);
     }
 
+    /**
+     * Atomically associate {@code value} with {@code attribute} if the
+     * {@code currentValueCondition} passes.
+     * 
+     * @param attribute
+     * @param value
+     * @param currentValueCondition
+     * @return {@code true} if the association from {@code attribute} to
+     *         {@code value} is added
+     */
+    public <T1, T2> boolean putIf(Attribute attribute, T2 value,
+            BiCheck<T1, T2> currentValueCondition) {
+        return putIf(attribute.name(), value, currentValueCondition);
+    }
+
     @Override
     public void sync() {
         if(!(bucket instanceof PersistentBucket)) {
@@ -130,6 +146,23 @@ public class BlockStats implements Syncable {
     @VisibleForTesting
     protected <T> void put(String key, T value) {
         bucket.put(key, value);
+    }
+
+    /**
+     * Atomically associate {@code value} with {@code attribute} if the
+     * {@code currentValueCondition} passes.
+     * 
+     * @param attribute
+     * @param value
+     * @param currentValueCondition
+     * @return {@code true} if the association from {@code attribute} to
+     *         {@code value} is added
+     */
+    @VisibleForTesting
+    protected <T1, T2> boolean putIf(String key, T2 value,
+            BiCheck<T1, T2> currentValueCondition) {
+        // TODO: implement me
+        return false;
     }
 
     /**
