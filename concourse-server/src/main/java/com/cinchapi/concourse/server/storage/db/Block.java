@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
@@ -92,7 +93,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -151,6 +155,24 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * The extension for the {@link BloomFilter} file.
      */
     private static final String FILTER_NAME_EXTENSION = ".fltr";
+
+    /**
+     * A {@link BiCheck check} that determines if a version is smaller than the
+     * current minimum revision version.
+     */
+    // @formatter:off
+    private static BiCheck<Long, Long> MIN_REVISION_VERSION_CHECK = 
+            (current, replacement) -> replacement < current;
+    // @formatter:on
+
+    /**
+     * A {@link BiCheck check} that determines if a version is larger than the
+     * current maximum revision version.
+     */
+    // @formatter:off
+    private static BiCheck<Long, Long> MAX_REVISION_VERSION_CHECK = 
+            (current, replacement) -> replacement > current;
+   // @formatter:on
 
     /**
      * The extension for the {@link BlockIndex} file.
@@ -454,6 +476,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                           // #mightContain(L,K,V) without
                                           // seeking
             size += revision.size() + 4;
+            stats.putIf(Attribute.MIN_REVISION_VERSION, version,
+                    MIN_REVISION_VERSION_CHECK);
+            stats.putIf(Attribute.MAX_REVISION_VERSION, version,
+                    MAX_REVISION_VERSION_CHECK);
             return revision;
         }
         finally {
@@ -586,9 +612,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
