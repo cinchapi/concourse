@@ -48,18 +48,28 @@ public class Upgrade0_9_0_1 extends SmartUpgradeTask {
                     Database database = new Database(FileSystem.makePath(
                             GlobalState.DATABASE_DIRECTORY, environment));
                     database.start();
-                    long schemaVersion = Reflection.getStatic("SCHEMA_VERSION",
-                            Reflection.getClassCasted(
-                                    "com.cinchapi.concourse.server.storage.db.Block"));
-                    // Go through all the blocks and set the schema version
-                    ImmutableList.of("cpb", "csb", "ctb").forEach(variable -> {
-                        List<?> list = Reflection.get(variable, database);
-                        list.forEach(block -> {
-                            BlockStats stats = Reflection.get("stats", block);
-                            stats.put(Attribute.SCHEMA_VERSION, schemaVersion);
-                            stats.sync();
-                        });
-                    });
+                    try {
+                        long schemaVersion = Reflection.getStatic(
+                                "SCHEMA_VERSION", Reflection.getClassCasted(
+                                        "com.cinchapi.concourse.server.storage.db.Block"));
+                        // Go through all the blocks and set the schema version
+                        ImmutableList.of("cpb", "csb", "ctb")
+                                .forEach(variable -> {
+                                    List<?> list = Reflection.get(variable,
+                                            database);
+                                    list.forEach(block -> {
+                                        BlockStats stats = Reflection
+                                                .get("stats", block);
+                                        stats.put(Attribute.SCHEMA_VERSION,
+                                                schemaVersion);
+                                        stats.sync();
+                                    });
+                                });
+                    }
+                    finally {
+                        database.stop();
+                    }
+
                 });
     }
 
