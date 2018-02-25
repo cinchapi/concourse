@@ -32,7 +32,6 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.server.ManagedConcourseServer.LogLevel;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -96,11 +95,6 @@ public abstract class ClientServerTest {
                     + ": " + t.getMessage());
             System.err.println("---");
             System.err.println(Variables.dump());
-            System.err.println("");
-            System.err.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
-                    LogLevel.DEBUG);
-            server.printLog("console");
             if(PluginTest.class
                     .isAssignableFrom(ClientServerTest.this.getClass())) {
 
