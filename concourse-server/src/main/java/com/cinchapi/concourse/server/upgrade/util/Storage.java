@@ -101,6 +101,15 @@ public class Storage {
         public BlockStats stats() {
             return Reflection.call(source, "stats");
         }
+
+        /**
+         * Return {@code true} if this Block is mutable.
+         * 
+         * @return a boolean indicating the Block's mutability
+         */
+        public boolean isMutable() {
+            return Reflection.get("mutable", source);
+        }
     }
 
     /**
@@ -126,7 +135,8 @@ public class Storage {
         }
 
         /**
-         * Return a simulated for each block in the Database.
+         * Return a simulated for each immutable (e.g. stored on disk) block in
+         * the Database.
          * 
          * @return the blocks
          */
@@ -144,7 +154,18 @@ public class Storage {
                         @Override
                         protected Block findNext() {
                             if(it.hasNext()) {
-                                return new Block(it.next());
+                                Block block = new Block(it.next());
+                                if(block.isMutable()) {
+                                    // The database creates a new mutable block
+                                    // during the #start routine. Since the
+                                    // mutable block isn't stored on disk, there
+                                    // is no need to upgrade it so it is
+                                    // filtered out in the Blocks returned here.
+                                    return findNext();
+                                }
+                                else {
+                                    return block;
+                                }
                             }
                             else {
                                 return null;
