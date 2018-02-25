@@ -15,17 +15,12 @@
  */
 package com.cinchapi.concourse.server.upgrade.task;
 
-import java.util.List;
-
-import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.db.BlockStats;
 import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
-import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
-import com.cinchapi.concourse.util.Environments;
-import com.google.common.collect.ImmutableList;
+import com.cinchapi.concourse.server.upgrade.util.Storage;
+import com.cinchapi.concourse.server.upgrade.util.Storage.Block;
+import com.cinchapi.concourse.server.upgrade.util.Storage.Database;
 
 /**
  * An {@link UpgradeTask} to initialize the {@link Block#Stats}.
@@ -41,36 +36,21 @@ public class Upgrade0_9_0_1 extends SmartUpgradeTask {
 
     @Override
     protected void doTask() {
-        Environments
-                .iterator(GlobalState.BUFFER_DIRECTORY,
-                        GlobalState.DATABASE_DIRECTORY)
-                .forEachRemaining(environment -> {
-                    Database database = new Database(FileSystem.makePath(
-                            GlobalState.DATABASE_DIRECTORY, environment));
-                    database.start();
-                    try {
-                        long schemaVersion = Reflection.getStatic(
-                                "SCHEMA_VERSION", Reflection.getClassCasted(
-                                        "com.cinchapi.concourse.server.storage.db.Block"));
-                        // Go through all the blocks and set the schema version
-                        ImmutableList.of("cpb", "csb", "ctb")
-                                .forEach(variable -> {
-                                    List<?> list = Reflection.get(variable,
-                                            database);
-                                    list.forEach(block -> {
-                                        BlockStats stats = Reflection
-                                                .get("stats", block);
-                                        stats.put(Attribute.SCHEMA_VERSION,
-                                                schemaVersion);
-                                        stats.sync();
-                                    });
-                                });
-                    }
-                    finally {
-                        database.stop();
-                    }
-
+        Storage.environments().forEach(environment -> {
+            Database database = environment.database();
+            database.start();
+            try {
+                long schemaVersion = Block.SCHEMA_VERSION;
+                database.blocks().forEach(block -> {
+                    BlockStats stats = block.stats();
+                    stats.put(Attribute.SCHEMA_VERSION, schemaVersion);
+                    stats.sync();
                 });
+            }
+            finally {
+                database.stop();
+            }
+        });
     }
 
 }
