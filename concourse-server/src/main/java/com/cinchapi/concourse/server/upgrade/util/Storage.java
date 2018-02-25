@@ -23,6 +23,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.db.BlockStats;
+import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.util.Environments;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -91,6 +92,23 @@ public class Storage {
          */
         private Block(Object source) {
             this.source = source;
+        }
+
+        /**
+         * Return an {@link Iterable} over all the revisions in the Block.
+         * 
+         * @return the block's revisions
+         */
+        public Iterable<Revision<?, ?, ?>> revisions() {
+            return Reflection.call(source, "revisions");
+        }
+
+        /**
+         * If possible, flush the content to disk in a block file, sync the
+         * stats, filter and index and finally make the Block immutable.
+         */
+        public void sync() {
+            Reflection.call(source, "sync");
         }
 
         /**
