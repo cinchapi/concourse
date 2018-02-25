@@ -401,6 +401,11 @@ public class ManagedConcourseServer {
         return new Client(username, password);
     }
 
+    public Concourse connect(String username, String password,
+            String environment) {
+        return new Client(username, password, environment);
+    }
+
     /**
      * Set a flag that determines whether this instance will be destroyed on
      * exit.
@@ -866,7 +871,18 @@ public class ManagedConcourseServer {
          * @throws Exception
          */
         public Client(String username, String password) {
-            this(username, password, 5);
+            this(username, password, "");
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
+         * @param environment
+         */
+        public Client(String username, String password, String environment) {
+            this(username, password, environment, 5);
         }
 
         /**
@@ -876,7 +892,8 @@ public class ManagedConcourseServer {
          * @param password
          * @param retries
          */
-        private Client(String username, String password, int retries) {
+        private Client(String username, String password, String environment,
+                int retries) {
             Object delegate = null;
             while (retries > 0) {
                 --retries;
@@ -893,10 +910,11 @@ public class ManagedConcourseServer {
                         packageBase = "org.cinchapi.concourse.";
                         clazz = loader.loadClass(packageBase + "Concourse");
                     }
-                    delegate = clazz.getMethod("connect", String.class,
-                            int.class, String.class, String.class).invoke(null,
-                                    "localhost", getClientPort(), username,
-                                    password);
+                    delegate = clazz
+                            .getMethod("connect", String.class, int.class,
+                                    String.class, String.class, String.class)
+                            .invoke(null, "localhost", getClientPort(),
+                                    username, password, environment);
                 }
                 catch (InvocationTargetException e) {
                     Throwable target = e.getTargetException();
@@ -920,10 +938,11 @@ public class ManagedConcourseServer {
                 }
                 catch (Exception e) {
                     throw CheckedExceptions.throwAsRuntimeException(e);
-                }               
+                }
             }
             if(delegate == null) {
-                throw new RuntimeException("Could not connect to server before timeout...");
+                throw new RuntimeException(
+                        "Could not connect to server before timeout...");
             }
             this.delegate = delegate;
         }
