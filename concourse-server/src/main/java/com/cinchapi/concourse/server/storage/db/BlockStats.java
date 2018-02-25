@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.annotation.Nullable;
@@ -68,7 +69,8 @@ public class BlockStats implements Syncable {
      */
     /* package */ BlockStats(Path file) {
         this.file = file;
-        if(FileSystem.getFileSize(file.toAbsolutePath().toString()) == 0) {
+        if(!Files.exists(file) || FileSystem
+                .getFileSize(file.toAbsolutePath().toString()) == 0) {
             bucket = Bucket.memory();
         }
         else {
