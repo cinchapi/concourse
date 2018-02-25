@@ -15,11 +15,17 @@
  */
 package com.cinchapi.concourse.server.upgrade.task;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+import com.cinchapi.concourse.server.storage.db.BlockStats;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
+import com.cinchapi.concourse.server.upgrade.util.Storage;
+import com.cinchapi.concourse.server.upgrade.util.Storage.Database;
 
 /**
- * An {@link UpgradeTask} that populates the min and max revision version in
- * each Block.
+ * An {@link UpgradeTask} that populates the min/max revision version in each
+ * existing {@link Block}.
  *
  * @author Jeff Nelson
  */
@@ -27,12 +33,36 @@ public class Upgrade0_9_0_2 extends SmartUpgradeTask {
 
     @Override
     public String getDescription() {
-        return "Populate min and max revision version in each Block";
+        return "Populate the min/max revision version in each existing database block";
     }
 
     @Override
     protected void doTask() {
-        // TODO implement me
+        Storage.environments().forEach(environment -> {
+            Database database = environment.database();
+            database.start();
+            try {
+                database.blocks().forEach(block -> {
+                    AtomicLong min = new AtomicLong(Long.MAX_VALUE);
+                    AtomicLong max = new AtomicLong(Long.MIN_VALUE);
+                    block.revisions().forEach(revision -> {
+                        if(revision.getVersion() > max.get()) {
+                            max.set(revision.getVersion());
+                        }
+                        if(revision.getVersion() < min.get()) {
+                            min.set(revision.getVersion());
+                        }
+                    });
+                    BlockStats stats = block.stats();
+                    stats.put(Attribute.MIN_REVISION_VERSION, min.get());
+                    stats.put(Attribute.MAX_REVISION_VERSION, max.get());
+                    stats.sync();
+                });
+            }
+            finally {
+                database.stop();
+            }
+        });
 
     }
 
