@@ -348,7 +348,11 @@ public class ManagedConcourseServer {
      */
     private final ConcourseServerPreferences prefs;
 
-    private boolean destroyOnExit = true;
+    /**
+     * The file whose existence determines whether or not this server should be
+     * destroyed on exit.
+     */
+    private final Path destroyOnExitFlag;
 
     /**
      * Construct a new instance.
@@ -360,11 +364,14 @@ public class ManagedConcourseServer {
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
         prefs.setLogLevel(Level.DEBUG);
+        this.destroyOnExitFlag = Paths.get(installDirectory)
+                .resolve(".destroyOnExit");
+        destroyOnExit(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
-                if(destroyOnExit) {
+                if(destroyOnExit()) {
                     destroy();
                 }
             }
@@ -400,8 +407,28 @@ public class ManagedConcourseServer {
      * 
      * @param destroyOnExit
      */
-    public void destroyOnExit(boolean destroyOnExit) {
-        this.destroyOnExit = destroyOnExit;
+    public synchronized void destroyOnExit(boolean destroyOnExit) {
+        try {
+            if(destroyOnExit) {
+                Files.write(destroyOnExitFlag, new byte[] { 1 });
+            }
+            else {
+                Files.deleteIfExists(destroyOnExitFlag);
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return {@code true} if this server should be destroyed when the JVM
+     * exits.
+     * 
+     * @return whether the server should be destroyed or not when the JVM exits
+     */
+    public synchronized boolean destroyOnExit() {
+        return Files.exists(destroyOnExitFlag);
     }
 
     /**
