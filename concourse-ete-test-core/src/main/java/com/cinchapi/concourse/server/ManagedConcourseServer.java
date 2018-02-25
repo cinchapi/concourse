@@ -849,7 +849,7 @@ public class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
-        private Object delegate;
+        private final Object delegate;
         private ClassLoader loader;
 
         /**
@@ -877,6 +877,7 @@ public class ManagedConcourseServer {
          * @param retries
          */
         private Client(String username, String password, int retries) {
+            Object delegate = null;
             while (retries > 0) {
                 --retries;
                 try {
@@ -892,7 +893,7 @@ public class ManagedConcourseServer {
                         packageBase = "org.cinchapi.concourse.";
                         clazz = loader.loadClass(packageBase + "Concourse");
                     }
-                    this.delegate = clazz.getMethod("connect", String.class,
+                    delegate = clazz.getMethod("connect", String.class,
                             int.class, String.class, String.class).invoke(null,
                                     "localhost", getClientPort(), username,
                                     password);
@@ -908,7 +909,7 @@ public class ManagedConcourseServer {
                         // get around that by retrying the connection a handful
                         // of times before failing.
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(2000);
                             continue;
                         }
                         catch (InterruptedException t) {/* ignore */}
@@ -919,8 +920,12 @@ public class ManagedConcourseServer {
                 }
                 catch (Exception e) {
                     throw CheckedExceptions.throwAsRuntimeException(e);
-                }
+                }               
             }
+            if(delegate == null) {
+                throw new RuntimeException("Could not connect to server before timeout...");
+            }
+            this.delegate = delegate;
         }
 
         @Override
