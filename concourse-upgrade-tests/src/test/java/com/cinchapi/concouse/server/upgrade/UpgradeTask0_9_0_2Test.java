@@ -15,11 +15,15 @@
  */
 package com.cinchapi.concouse.server.upgrade;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.storage.db.BlockStats;
 import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
@@ -74,6 +78,34 @@ public class UpgradeTask0_9_0_2Test extends UpgradeTest {
             }
 
         });
+    }
+
+    @Test
+    public void testNoExtraneousStatsFiles() {
+        AtomicInteger blkFiles = new AtomicInteger(0);
+        AtomicInteger sttsFiles = new AtomicInteger(0);
+        ImmutableList.of("default", environment1, environment2)
+                .forEach(environment -> {
+                    ImmutableList.of("cpb", "csb", "ctb").forEach(variable -> {
+                        try {
+                            Files.list(server.getDatabaseDirectory()
+                                    .resolve(environment).resolve(variable))
+                                    .forEach(file -> {
+                                        if(file.toString().endsWith("blk")) {
+                                            blkFiles.incrementAndGet();
+                                        }
+                                        else if(file.toString()
+                                                .endsWith("stts")) {
+                                            sttsFiles.incrementAndGet();
+                                        }
+                                    });
+                        }
+                        catch (IOException e) {
+                            throw CheckedExceptions.throwAsRuntimeException(e);
+                        }
+                    });
+                });
+        Assert.assertEquals(blkFiles.get(), sttsFiles.get());
     }
 
 }
