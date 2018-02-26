@@ -246,6 +246,20 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         // Direct insert for SearchBlock is unsupported
     }
 
+    @Override
+    @Test
+    @Ignore
+    public void testRevisionVersionTracking() {
+        // Direct insert for SearchBlock is unsupported
+    }
+
+    @Override
+    @Test
+    @Ignore
+    public void testRevisionVersionTrackingPersistence() {
+        // Direct insert for SearchBlock is unsupported
+    }
+
     /**
      * The implementation of {@link #testMightContainLocatorKeyValue()}.
      * 
