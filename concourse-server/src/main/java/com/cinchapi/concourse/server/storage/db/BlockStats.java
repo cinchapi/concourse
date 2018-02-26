@@ -172,7 +172,29 @@ public class BlockStats implements Syncable {
      * @author Jeff Nelson
      */
     public enum Attribute {
-        SCHEMA_VERSION, MIN_REVISION_VERSION, MAX_REVISION_VERSION;
+
+        /**
+         * The data storage schema version used in the Block. This attribute is
+         * used to determine whether a in-memory Block code version is able to
+         * handle contents from a Block file on dick.
+         */
+        SCHEMA_VERSION,
+
+        /**
+         * The smallest revision version contained in the corresponding Block.
+         * This attribute is nullable if no data has been inserted. But, if the
+         * Block has at least one revision, this attribute is guaranteed to have
+         * a value.
+         */
+        MIN_REVISION_VERSION,
+
+        /**
+         * The largest revision version contained in the corresponding Block.
+         * This attribute is nullable if no data has been inserted. But, if the
+         * Block has at least one revision, this attribute is guaranteed to have
+         * a value.
+         */
+        MAX_REVISION_VERSION;
     }
 
 }
