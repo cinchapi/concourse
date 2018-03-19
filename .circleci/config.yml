@@ -27,7 +27,7 @@ jobs:
       GRADLE_OPTS: "-Djenkins=true"
       TERM: dumb
       CONTAINER_BUILD: "true"
-      ORG_GRADLE_PROJECT_signing.secretKeyRingFile: ~/secring.gpg
+      ORG_GRADLE_PROJECT_signing.secretKeyRingFile: $HOME/secring.gpg
     steps:
       - checkout
       - run:
