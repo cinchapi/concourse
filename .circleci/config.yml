@@ -27,14 +27,13 @@ jobs:
       GRADLE_OPTS: "-Djenkins=true"
       TERM: dumb
       CONTAINER_BUILD: "true"
+      ORG_GRADLE_PROJECT_signing.secretKeyRingFile: ~/secring.gpg
     steps:
       - checkout
       - run:
           name: Get Sonatype Credentials
           command: |
             git clone git@github.com:cinchapi/sonatype-credentials.git
-            git fetch
-            git checkout feature/circleci-2.0-support
             cp sonatype-credentials/gradle.properties .
             cp sonatype-credentials/secring.gpg ~
       - run: 
