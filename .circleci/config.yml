@@ -34,7 +34,7 @@ jobs:
           command: |
             git clone git@github.com:cinchapi/sonatype-credentials.git
             cp sonatype-credentials/gradle.properties .
-            cp sonatype-credentials/secring.gpg ~
+            cp sonatype-credentials/secring.gpg /home/ubuntu
       - run: 
           name: Build and Publish
           command: ./gradlew clean build installer uploadArchives bintrayUpload
