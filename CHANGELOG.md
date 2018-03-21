@@ -17,13 +17,14 @@
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
-#### Version 0.8.1 (March 20, 2018)
+#### Version 0.8.1 (TBD)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
 * Fixed a bug that caused the `putAll` method in the map returned from `TrackingMultimap#invert` to store data inconsistently.
 * Added better error handling for cases when an attempt is made to read with a value with a type that is not available in the client's version.
 * Fixed a bug that caused Concourse Server to unreliably stream data when multiple real-time plugins were installed.
 * Fixed a bug that caused Concourse Server to frequently cause high CPU usage when multiple real-time plugins were installed.
+* Added an **isolation** feature to the `ImportDryRunConcourse` client (from the `concourse-import` framework). This feature allows the client to import data into an isolated store instead of one shared among all instances. This functionality is not exposed to the `import` CLI (because it isn't necessary), but can be benefical to applications that use the dry-run client to programmatically preview how data will be imported into Concourse.
 
 #### Version 0.8.0 (December 14, 2017)
 * Added a `count` aggregation function that returns the number of values stored
