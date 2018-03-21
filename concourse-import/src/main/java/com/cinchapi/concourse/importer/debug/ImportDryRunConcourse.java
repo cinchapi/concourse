@@ -32,6 +32,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link Concourse} API that holds {@link #insert(String) inserted} data in
@@ -208,7 +209,11 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public Set<String> describe() {
-        throw new UnsupportedOperationException();
+        synchronized (imported) {
+            Set<String> keys = Sets.newHashSet();
+            imported.forEach(record -> keys.addAll(record.keySet()));
+            return keys;
+        }
     }
 
     @Override
