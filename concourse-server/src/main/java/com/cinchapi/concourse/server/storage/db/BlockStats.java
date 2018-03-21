@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.bucket.Bucket;
 import com.cinchapi.bucket.PersistentBucket;
+import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.google.common.annotations.VisibleForTesting;
@@ -101,6 +102,21 @@ public class BlockStats implements Syncable {
         put(attribute.name(), value);
     }
 
+    /**
+     * Atomically associate {@code value} with {@code attribute} if the
+     * {@code currentValueCondition} passes.
+     * 
+     * @param attribute
+     * @param value
+     * @param currentValueCondition
+     * @return {@code true} if the association from {@code attribute} to
+     *         {@code value} is added
+     */
+    public <T1, T2> boolean putIf(Attribute attribute, T2 value,
+            BiCheck<T1, T2> currentValueCondition) {
+        return putIf(attribute.name(), value, currentValueCondition);
+    }
+
     @Override
     public void sync() {
         if(!(bucket instanceof PersistentBucket)) {
@@ -135,12 +151,50 @@ public class BlockStats implements Syncable {
     }
 
     /**
+     * Atomically associate {@code value} with {@code attribute} if the
+     * {@code currentValueCondition} passes.
+     * 
+     * @param attribute
+     * @param value
+     * @param currentValueCondition
+     * @return {@code true} if the association from {@code attribute} to
+     *         {@code value} is added
+     */
+    @VisibleForTesting
+    protected <T1, T2> boolean putIf(String key, T2 value,
+            BiCheck<T1, T2> currentValueCondition) {
+        return bucket.putIf(key, value, currentValueCondition);
+    }
+
+    /**
      * The keys that can be used to read/write {@link BlockStats stats}.
      *
      * @author Jeff Nelson
      */
     public enum Attribute {
-        SCHEMA_VERSION;
+
+        /**
+         * The data storage schema version used in the Block. This attribute is
+         * used to determine whether a in-memory Block code version is able to
+         * handle contents from a Block file on dick.
+         */
+        SCHEMA_VERSION,
+
+        /**
+         * The smallest revision version contained in the corresponding Block.
+         * This attribute is nullable if no data has been inserted. But, if the
+         * Block has at least one revision, this attribute is guaranteed to have
+         * a value.
+         */
+        MIN_REVISION_VERSION,
+
+        /**
+         * The largest revision version contained in the corresponding Block.
+         * This attribute is nullable if no data has been inserted. But, if the
+         * Block has at least one revision, this attribute is guaranteed to have
+         * a value.
+         */
+        MAX_REVISION_VERSION;
     }
 
 }

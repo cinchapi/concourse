@@ -36,6 +36,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.AdHocIterator;
+import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
@@ -151,6 +153,24 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * The extension for the {@link BloomFilter} file.
      */
     private static final String FILTER_NAME_EXTENSION = ".fltr";
+
+    /**
+     * A {@link BiCheck check} that determines if a version is smaller than the
+     * current minimum revision version.
+     */
+    // @formatter:off
+    private static BiCheck<Long, Long> MIN_REVISION_VERSION_CHECK = 
+            (current, replacement) -> current == null || replacement < current;
+    // @formatter:on
+
+    /**
+     * A {@link BiCheck check} that determines if a version is larger than the
+     * current maximum revision version.
+     */
+    // @formatter:off
+    private static BiCheck<Long, Long> MAX_REVISION_VERSION_CHECK = 
+            (current, replacement) -> current == null || replacement > current;
+   // @formatter:on
 
     /**
      * The extension for the {@link BlockIndex} file.
@@ -454,6 +474,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                           // #mightContain(L,K,V) without
                                           // seeking
             size += revision.size() + 4;
+
+            // CON-587: Set the min/max version of this Block because it cannot
+            // be assumed that revisions are inserted in monotonically
+            // increasing order of version.
+            if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
+                    MAX_REVISION_VERSION_CHECK) || revisions.size() < 2) {
+                stats.putIf(Attribute.MIN_REVISION_VERSION, version,
+                        MIN_REVISION_VERSION_CHECK);
+            }
+
             return revision;
         }
         finally {
@@ -562,8 +592,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
-     * Flush the content to disk in a block file, sync the filter and index and
-     * finally make the Block immutable.
+     * Flush the content to disk in a block file, sync the stats, filter and
+     * index and finally make the Block immutable.
      */
     @Override
     public void sync() {
@@ -656,6 +686,49 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         else {
             throw e;
         }
+    }
+
+    /**
+     * Return an {@link Iterable} over this Block's {@link Revision revisions},
+     * streamed from disk.
+     * <p>
+     * <strong>NOTE:</strong> This method should be used with caution and only
+     * as a last resort. There are likely more efficient ways to iterate over
+     * this Block's revisions (e.g. checking to see if the Block is still
+     * mutable OR has its revisions loaded in memory via the
+     * {@link #softRevisions} collection). This method should only be used when
+     * the caller intentionally wants to iterate over the revisions by streaming
+     * them entirely from disk.
+     * </p>
+     * 
+     * @return an iterable over the revisions
+     */
+    private Iterable<Revision<L, K, V>> revisions() {
+        ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                FileSystem.getFileSize(file));
+        Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+        return new Iterable<Revision<L, K, V>>() {
+
+            @Override
+            public Iterator<Revision<L, K, V>> iterator() {
+                return new AdHocIterator<Revision<L, K, V>>() {
+
+                    @Override
+                    protected Revision<L, K, V> findNext() {
+                        if(it.hasNext()) {
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
+                            return revision;
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+
+                };
+            }
+
+        };
     }
 
     /**
@@ -773,15 +846,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 }
             }
             else {
-                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                        FileSystem.getFileSize(file));
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-                while (it.hasNext()) {
-                    Revision<L, K, V> revision = Byteables.read(it.next(),
-                            xRevisionClass());
+                revisions().forEach(revision -> {
                     sb.append(revision);
                     sb.append("\n");
-                }
+                });
             }
             sb.append("\n");
             return sb.toString();
