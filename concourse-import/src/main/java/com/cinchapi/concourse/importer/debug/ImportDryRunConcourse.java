@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.beust.jcommander.internal.Lists;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Timestamp;
@@ -31,6 +30,7 @@ import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -41,9 +41,10 @@ import com.google.common.collect.Multimap;
  * dry-run data imports.
  * </p>
  * <p>
- * <strong>NOTE:</strong> This class intentionally contains <em>static
- * state.</em>. In order to support multi-threaded imports, this class maintains
- * a global view of data that has been inserted from multiple instances.
+ * <strong>NOTE:</strong> By default, this class intentionally contains
+ * <em>static state.</em>. In order to support multi-threaded imports, this
+ * class maintains a global view of data that has been inserted from multiple
+ * instances.
  * </p>
  * 
  * @author Jeff Nelson
@@ -55,6 +56,28 @@ public class ImportDryRunConcourse extends Concourse {
      */
     private static final List<Multimap<String, Object>> IMPORTED = Lists
             .newArrayList();
+
+    /**
+     * The list that holds each of the imported records, represented as a
+     * multimap.
+     */
+    private final List<Multimap<String, Object>> imported;
+
+    /**
+     * Construct a new instance.
+     */
+    public ImportDryRunConcourse() {
+        this(false);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param isolated
+     */
+    public ImportDryRunConcourse(boolean isolated) {
+        imported = isolated ? Lists.newArrayList() : IMPORTED;
+    }
 
     @Override
     public void abort() {
@@ -184,6 +207,11 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public Set<String> describe() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Map<Long, Set<String>> describe(Collection<Long> records) {
         throw new UnsupportedOperationException();
     }
@@ -195,22 +223,17 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Set<String> describe() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<String> describe(Timestamp timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Set<String> describe(long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<String> describe(long record, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<String> describe(Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
@@ -256,8 +279,8 @@ public class ImportDryRunConcourse extends Concourse {
      */
     public String dump() {
         StringBuilder sb = new StringBuilder();
-        synchronized (IMPORTED) {
-            for (Multimap<String, Object> map : IMPORTED) {
+        synchronized (imported) {
+            for (Multimap<String, Object> map : imported) {
                 sb.append(Convert.mapToJson(map))
                         .append(System.lineSeparator());
             }
@@ -515,9 +538,9 @@ public class ImportDryRunConcourse extends Concourse {
     public Set<Long> insert(String json) {
         List<Multimap<String, Object>> data = Convert.anyJsonToJava(json);
         if(!data.isEmpty()) {
-            synchronized (IMPORTED) {
-                IMPORTED.addAll(data);
-                long start = IMPORTED.size() + 1;
+            synchronized (imported) {
+                imported.addAll(data);
+                long start = imported.size() + 1;
                 long end = start + data.size() - 1;
                 return TSets.sequence(start, end);
             }
