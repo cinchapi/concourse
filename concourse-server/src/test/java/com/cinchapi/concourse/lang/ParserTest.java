@@ -748,7 +748,7 @@ public class ParserTest {
             }
         }
     }
-    
+
     @Test
     public void testReproCCL_11() {
         String ccl = "user LINKS_TO 1234";
