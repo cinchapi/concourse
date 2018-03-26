@@ -17,7 +17,7 @@
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
-#### Version 0.8.1 (TBD)
+#### Version 0.8.1 (March 26, 2018)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
 * Fixed a bug that caused the `putAll` method in the map returned from `TrackingMultimap#invert` to store data inconsistently.
