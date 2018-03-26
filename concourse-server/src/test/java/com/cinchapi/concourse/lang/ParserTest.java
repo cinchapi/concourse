@@ -711,4 +711,11 @@ public class ParserTest {
         String ccl = "name=jeff";
         parser.order(parser.tokenize(ccl));
     }
+
+    @Test
+    public void testReproCCL_11() {
+        String ccl = "user LINKS_TO 1234";
+        parser.tokenize(ccl);
+        Assert.assertTrue(true); // lack of Exception means we pass
+    }
 }
