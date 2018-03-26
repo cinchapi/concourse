@@ -730,6 +730,7 @@ public class ParserTest {
         Assert.assertEquals("Atlanta (HQ)", expr.raw().values().get(0));
     }
 
+    @Test
     public void testParseCclNoSpaces() {
         String ccl = "name=jeff";
         Parser parser = Parsers.create(ccl);
