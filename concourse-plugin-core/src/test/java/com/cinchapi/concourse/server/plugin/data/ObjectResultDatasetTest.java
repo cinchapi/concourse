@@ -27,6 +27,8 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 /**
@@ -201,6 +203,16 @@ public class ObjectResultDatasetTest {
         ObjectResultDataset a = new ObjectResultDataset();
         a.insert(1L, "name", "Jeff Nelson");
         Assert.assertNotNull(a.get(1L));
+    }
+
+    @Test
+    public void testInvertedPutAll() {
+        ObjectResultDataset a = new ObjectResultDataset();
+        a.insert(1L, "name", "Jeff Nelson");
+        Map<String, Map<Object, Set<Long>>> data = Maps.newLinkedHashMap();
+        data.put("age", ImmutableMap.of(100, ImmutableSet.of(1L)));
+        a.invert().putAll(data);
+        Assert.assertTrue(a.invert().keySet().contains("age"));
     }
 
 }

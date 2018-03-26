@@ -15,10 +15,10 @@
  */
 package com.cinchapi.concourse.thrift;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.cinchapi.concourse.util.Random;
 
 /**
  * Unit tests to verify additional {@link Operator} functionality.
@@ -29,8 +29,8 @@ public class OperatorTest {
 
     @Test
     public void testOperatorImplementsCclTypeInterface() {
-        int index = Random.getPositiveNumber().intValue()
-                % Operator.values().length;
+        Random random = new Random();
+        int index = Math.abs(random.nextInt() % Operator.values().length);
         Assert.assertTrue(Operator
                 .values()[index] instanceof com.cinchapi.ccl.type.Operator);
     }

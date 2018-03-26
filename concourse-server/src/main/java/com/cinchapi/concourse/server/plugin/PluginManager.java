@@ -342,7 +342,8 @@ public class PluginManager {
                     List<Future<InterProcessCommunication>> awaiting = Lists
                             .newArrayList();
                     for (InterProcessCommunication stream : streams) {
-                        awaiting.add(executor.submit(() -> stream.write(data)));
+                        awaiting.add(executor
+                                .submit(() -> stream.write(data.slice())));
                     }
                     for (Future<InterProcessCommunication> status : awaiting) {
                         // Ensure that the Packet was written to all the streams

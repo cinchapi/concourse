@@ -64,8 +64,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * The map returned from {@link #invertNullSafe(Object)} when the specified
      * attribute doesn't exist.
      */
-    private final Map<V, Set<E>> nullSafeInvertedMap = TrackingLinkedHashMultimap
-            .create();
+    private final Map<V, Set<E>> nullSafeInvertedMap = ImmutableTrackingMultimap
+            .of(TrackingLinkedHashMultimap.create());
 
     /**
      * Construct a new instance.

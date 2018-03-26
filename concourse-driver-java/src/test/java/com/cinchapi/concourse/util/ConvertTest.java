@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
@@ -744,6 +745,18 @@ public class ConvertTest {
         }
         Map<Object, Object> actual = Convert.possibleThriftToJava(texpected);
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testConvertStringToOperatorCaseInsensitive() {
+        Assert.assertEquals(Operator.LIKE, Convert.stringToOperator("LIKE"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testConvertTObjectWithNullType() {
+        TObject tobject = Convert.javaToThrift(Timestamp.now());
+        tobject.type = null;
+        Convert.thriftToJava(tobject);
     }
 
     /**

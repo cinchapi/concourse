@@ -38,6 +38,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -66,33 +67,37 @@ public final class Convert {
      * operators} to the operations to which they can be translated.
      */
     @PackagePrivate
-    static Map<String, Operator> OPERATOR_STRINGS = ImmutableMap
-            .<String, Operator> builder()
-            // @formatter:off
-            .put("==", Operator.EQUALS)
-            .put("=", Operator.EQUALS)
-            .put("eq", Operator.EQUALS)
-            .put("!=", Operator.NOT_EQUALS)
-            .put("ne", Operator.NOT_EQUALS)
-            .put(">", Operator.GREATER_THAN)
-            .put("gt", Operator.GREATER_THAN)
-            .put(">=", Operator.GREATER_THAN_OR_EQUALS)
-            .put("gte", Operator.GREATER_THAN_OR_EQUALS)
-            .put("<", Operator.LESS_THAN)
-            .put("lt", Operator.LESS_THAN)
-            .put("<=", Operator.LESS_THAN_OR_EQUALS)
-            .put("lte", Operator.LESS_THAN_OR_EQUALS)
-            .put("><", Operator.BETWEEN)
-            .put("bw", Operator.BETWEEN)
-            .put("->", Operator.LINKS_TO)
-            .put("lnks2", Operator.LINKS_TO)
-            .put("lnk2", Operator.LINKS_TO)
-            .put("regex", Operator.REGEX)
-            .put("nregex", Operator.NOT_REGEX)
-            .put("like", Operator.LIKE)
-            .put("nlike", Operator.NOT_LIKE)
-            .build();
-            // @formatter:on
+    static Map<String, Operator> OPERATOR_STRINGS;
+    static {
+        OPERATOR_STRINGS = Maps.newHashMap();
+        OPERATOR_STRINGS.put("==", Operator.EQUALS);
+        OPERATOR_STRINGS.put("=", Operator.EQUALS);
+        OPERATOR_STRINGS.put("eq", Operator.EQUALS);
+        OPERATOR_STRINGS.put("!=", Operator.NOT_EQUALS);
+        OPERATOR_STRINGS.put("ne", Operator.NOT_EQUALS);
+        OPERATOR_STRINGS.put(">", Operator.GREATER_THAN);
+        OPERATOR_STRINGS.put("gt", Operator.GREATER_THAN);
+        OPERATOR_STRINGS.put(">=", Operator.GREATER_THAN_OR_EQUALS);
+        OPERATOR_STRINGS.put("gte", Operator.GREATER_THAN_OR_EQUALS);
+        OPERATOR_STRINGS.put("<", Operator.LESS_THAN);
+        OPERATOR_STRINGS.put("lt", Operator.LESS_THAN);
+        OPERATOR_STRINGS.put("<=", Operator.LESS_THAN_OR_EQUALS);
+        OPERATOR_STRINGS.put("lte", Operator.LESS_THAN_OR_EQUALS);
+        OPERATOR_STRINGS.put("><", Operator.BETWEEN);
+        OPERATOR_STRINGS.put("bw", Operator.BETWEEN);
+        OPERATOR_STRINGS.put("->", Operator.LINKS_TO);
+        OPERATOR_STRINGS.put("lnks2", Operator.LINKS_TO);
+        OPERATOR_STRINGS.put("lnk2", Operator.LINKS_TO);
+        OPERATOR_STRINGS.put("regex", Operator.REGEX);
+        OPERATOR_STRINGS.put("nregex", Operator.NOT_REGEX);
+        OPERATOR_STRINGS.put("like", Operator.LIKE);
+        OPERATOR_STRINGS.put("nlike", Operator.NOT_LIKE);
+        for (Operator operator : Operator.values()) {
+            OPERATOR_STRINGS.put(operator.name(), operator);
+            OPERATOR_STRINGS.put(operator.symbol(), operator);
+        }
+        OPERATOR_STRINGS = ImmutableMap.copyOf(OPERATOR_STRINGS);
+    }
 
     /**
      * The component of a resolvable link symbol that comes after the
@@ -606,6 +611,10 @@ public final class Convert {
      * @return the Object
      */
     public static Object thriftToJava(TObject object) {
+        Preconditions.checkState(object.getType() != null,
+                "Cannot read value because it has been "
+                        + "created with a newer version of Concourse "
+                        + "Server. Please upgrade this client.");
         Object java = object.getJavaFormat();
         if(java == null) {
             ByteBuffer buffer = object.bufferForData();

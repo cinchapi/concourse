@@ -55,6 +55,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.PostfixNotationSymbol;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
@@ -2121,8 +2122,15 @@ public class ConcourseServer extends BaseConcourseServer
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                Queue<PostfixNotationSymbol> queue = parser
-                        .order(parser.tokenize(ccl));
+                Queue<PostfixNotationSymbol> queue;
+                if(objects.size() == 1) {
+                    // CON-321: Support local resolution when the data blob is a
+                    // single object
+                    queue = parser.order(parser.tokenize(ccl, objects.get(0)));
+                }
+                else {
+                    queue = parser.order(parser.tokenize(ccl));
+                }
                 Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
                 Operations.findOrInsertAtomic(parser, records, objects, queue,
                         stack, atomic);
@@ -6014,12 +6022,15 @@ public class ConcourseServer extends BaseConcourseServer
             catch (java.lang.SecurityException e) {
                 throw new SecurityException(e.getMessage());
             }
-            catch (IllegalStateException | JsonParseException e) {
+            catch (IllegalStateException | JsonParseException
+                    | SyntaxException e) {
                 // java.text.ParseException is checked, so internal server
                 // classes don't use it to indicate parse errors. Since most
                 // parsing using some sort of state machine, we've adopted the
                 // convention to throw IllegalStateExceptions whenever a parse
                 // error has occurred.
+                // CON-609: External SyntaxException should be propagated as
+                // ParseException
                 throw new ParseException(e.getMessage());
             }
             catch (PluginException e) {
