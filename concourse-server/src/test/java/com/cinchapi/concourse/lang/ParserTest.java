@@ -748,4 +748,12 @@ public class ParserTest {
             }
         }
     }
+
+    @Test
+    public void testReproCCL_11() {
+        String ccl = "user LINKS_TO 1234";
+        Parser parser = Parsers.create(ccl);
+        parser.parse();
+        Assert.assertTrue(true); // lack of Exception means we pass
+    }
 }
