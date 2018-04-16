@@ -86,6 +86,8 @@ else
       sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]-SNAPSHOT'+/pom.version = '$NEW_VERSION-SNAPSHOT'/g" $file
     done
 
+    sed -i '' -E "s/const string VERSION = \"[0-9]+\.[0-9]+\.[0-9]+\"/const string VERSION = \"$NEW_VERSION\"/g" interface/concourse.thrift
+
     # concourse-driver-java
     sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-java/README.md
 

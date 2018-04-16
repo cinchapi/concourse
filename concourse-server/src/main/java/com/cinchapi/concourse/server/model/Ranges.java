@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,11 +43,11 @@ public final class Ranges {
      *         less than, equal to, or greater than {@code b}.
      */
     public static int compareToLower(Range<Value> a, Range<Value> b) {
-        return ComparisonChain
-                .start()
+        return ComparisonChain.start()
                 .compare(getLowerEndpoint(a), getLowerEndpoint(b))
                 .compare(getLowerBoundType(a), getLowerBoundType(b),
-                        LOWER_BOUND_COMPARATOR).result();
+                        LOWER_BOUND_COMPARATOR)
+                .result();
     }
 
     /**
@@ -60,11 +60,11 @@ public final class Ranges {
      *         less than, equal to, or greater than {@code b}.
      */
     public static int compareToUpper(Range<Value> a, Range<Value> b) {
-        return ComparisonChain
-                .start()
+        return ComparisonChain.start()
                 .compare(getUpperEndpoint(a), getUpperEndpoint(b))
                 .compare(getUpperBoundType(a), getUpperBoundType(b),
-                        UPPER_BOUND_COMPARATOR).result();
+                        UPPER_BOUND_COMPARATOR)
+                .result();
     }
 
     /**
@@ -188,8 +188,10 @@ public final class Ranges {
         if(a.isConnected(b)) {
             boolean aStart = compareToLower(a, b) < 0;
             boolean aEnd = compareToUpper(a, b) > 0;
-            boolean lower = getLowerBoundType(aStart ? a : b) == BoundType.CLOSED;
-            boolean upper = getUpperBoundType(aStart ? a : b) == BoundType.CLOSED;
+            boolean lower = getLowerBoundType(
+                    aStart ? a : b) == BoundType.CLOSED;
+            boolean upper = getUpperBoundType(
+                    aStart ? a : b) == BoundType.CLOSED;
             if(lower && upper) {
                 return Range.closed(getLowerEndpoint(aStart ? a : b),
                         getUpperEndpoint(aEnd ? a : b));
@@ -234,10 +236,13 @@ public final class Ranges {
             Range<Value> intersection = a.intersection(b);
             boolean aStart = compareToLower(a, b) < 0;
             boolean aEnd = compareToUpper(a, b) > 0;
-            boolean lower = getLowerBoundType(aStart ? a : b) == BoundType.CLOSED;
+            boolean lower = getLowerBoundType(
+                    aStart ? a : b) == BoundType.CLOSED;
             boolean upper = getUpperBoundType(aEnd ? a : b) == BoundType.CLOSED;
-            boolean interLower = getLowerBoundType(intersection) == BoundType.OPEN;
-            boolean interUpper = getUpperBoundType(intersection) == BoundType.OPEN;
+            boolean interLower = getLowerBoundType(
+                    intersection) == BoundType.OPEN;
+            boolean interUpper = getUpperBoundType(
+                    intersection) == BoundType.OPEN;
             Range<Value> first;
             if(lower && interLower) {
                 first = Range.closed(getLowerEndpoint(aStart ? a : b),

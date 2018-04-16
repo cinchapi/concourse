@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -186,7 +186,8 @@ public class BlockIndex implements Byteable, Syncable {
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
                 "Cannot set the end position before setting "
-                        + "the start position. Tried to put %s", end);
+                        + "the start position. Tried to put %s",
+                end);
         entry.setEnd(end);
     }
 
@@ -263,15 +264,15 @@ public class BlockIndex implements Byteable, Syncable {
         if(mutable && entries != null) {
             return entries;
         }
-        else if(!mutable && (softEntries == null || softEntries.get() == null)) { // do
-                                                                                  // lazy
-                                                                                  // load
+        else if(!mutable
+                && (softEntries == null || softEntries.get() == null)) { // do
+                                                                         // lazy
+                                                                         // load
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-            Map<Composite, Entry> entries = Maps
-                    .newHashMapWithExpectedSize(bytes.capacity()
-                            / Entry.CONSTANT_SIZE);
+            Map<Composite, Entry> entries = Maps.newHashMapWithExpectedSize(
+                    bytes.capacity() / Entry.CONSTANT_SIZE);
             while (it.hasNext()) {
                 Entry entry = new Entry(it.next());
                 entries.put(entry.getKey(), entry);
@@ -314,8 +315,8 @@ public class BlockIndex implements Byteable, Syncable {
         public Entry(ByteBuffer bytes) {
             this.start = bytes.getInt();
             this.end = bytes.getInt();
-            this.key = Composite.fromByteBuffer(ByteBuffers.get(bytes,
-                    bytes.remaining()));
+            this.key = Composite
+                    .fromByteBuffer(ByteBuffers.get(bytes, bytes.remaining()));
         }
 
         /**

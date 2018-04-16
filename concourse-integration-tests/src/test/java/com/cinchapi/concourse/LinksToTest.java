@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,30 +28,33 @@ import com.cinchapi.concourse.util.TestData;
  * @author Jeff Nelson
  */
 public class LinksToTest extends ConcourseIntegrationTest {
-    
+
     @Test
-    public void testNoLinksButLong(){
+    public void testNoLinksButLong() {
         long value = TestData.getLong();
         client.add("foo", value, 1);
-        Assert.assertFalse(client.find("foo", Operator.LINKS_TO, value).contains(1L));    
+        Assert.assertFalse(
+                client.find("foo", Operator.LINKS_TO, value).contains(1L));
     }
-    
+
     @Test
-    public void testLinkAndLong(){
+    public void testLinkAndLong() {
         long value = TestData.getLong();
-        while(value == 1){
+        while (value == 1) {
             value = TestData.getLong();
         }
         client.add("foo", value, 1);
         client.link("foo", value, 1);
-        Assert.assertTrue(client.find("foo", Operator.LINKS_TO, value).contains(1L));  
+        Assert.assertTrue(
+                client.find("foo", Operator.LINKS_TO, value).contains(1L));
     }
-    
+
     @Test
-    public void testLinkAndNoLong(){
+    public void testLinkAndNoLong() {
         long value = TestData.getLong();
         client.link("foo", value, 1);
-        Assert.assertTrue(client.find("foo", Operator.LINKS_TO, value).contains(1L));
+        Assert.assertTrue(
+                client.find("foo", Operator.LINKS_TO, value).contains(1L));
     }
 
 }

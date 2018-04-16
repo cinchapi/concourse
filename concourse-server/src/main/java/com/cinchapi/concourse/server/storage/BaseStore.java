@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.server.storage.Stores.OperationParameters;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -41,21 +42,15 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(long timestamp, String key,
             Operator operator, TObject... values) {
-        for (int i = 0; i < values.length; ++i) {
-            values[i] = Stores.normalizeValue(operator, values[i]);
-        }
-        operator = Stores.normalizeOperator(operator);
-        return doExplore(timestamp, key, operator, values);
+        OperationParameters args = Stores.operationalize(operator, values);
+        return doExplore(timestamp, key, args.operator(), args.values());
     }
 
     @Override
     public final Map<Long, Set<TObject>> explore(String key, Operator operator,
             TObject... values) {
-        for (int i = 0; i < values.length; ++i) {
-            values[i] = Stores.normalizeValue(operator, values[i]);
-        }
-        operator = Stores.normalizeOperator(operator);
-        return doExplore(key, operator, values);
+        OperationParameters args = Stores.operationalize(operator, values);
+        return doExplore(key, args.operator(), args.values());
     }
 
     @Override
@@ -94,9 +89,9 @@ public abstract class BaseStore implements Store {
      */
     protected abstract Map<Long, Set<TObject>> doExplore(String key,
             Operator operator, TObject... values);
-    
+
     @Override
-    public Set<Long> getAllRecords(){
+    public Set<Long> getAllRecords() {
         throw new UnsupportedOperationException();
     }
 

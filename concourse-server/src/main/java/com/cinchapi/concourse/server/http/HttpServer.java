@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -158,11 +158,10 @@ public class HttpServer {
                     // ConcourseServer.
                     AccessToken creds = (AccessToken) request
                             .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
-                    String environment = MoreObjects
-                            .firstNonNull(
-                                    (String) request
-                                            .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
-                                    GlobalState.DEFAULT_ENVIRONMENT);
+                    String environment = MoreObjects.firstNonNull(
+                            (String) request.attribute(
+                                    GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
+                            GlobalState.DEFAULT_ENVIRONMENT);
                     String fingerprint = (String) request
                             .attribute(GlobalState.HTTP_FINGERPRINT_ATTRIBUTE);
 
@@ -173,9 +172,8 @@ public class HttpServer {
                             && creds == null) {
                         halt(401);
                     }
-                    if(!Strings.isNullOrEmpty(fingerprint)
-                            && !fingerprint.equals(HttpRequests
-                                    .getFingerprint(request))) {
+                    if(!Strings.isNullOrEmpty(fingerprint) && !fingerprint
+                            .equals(HttpRequests.getFingerprint(request))) {
                         Logger.warn(
                                 "Request made with mismatching fingerprint. Expecting {} but got {}",
                                 HttpRequests.getFingerprint(request),
@@ -185,10 +183,11 @@ public class HttpServer {
                     TransactionToken transaction = null;
                     try {
                         Long timestamp = Longs
-                                .tryParse((String) request
-                                        .attribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE));
-                        transaction = creds != null && timestamp != null ? new TransactionToken(
-                                creds, timestamp) : transaction;
+                                .tryParse((String) request.attribute(
+                                        GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE));
+                        transaction = creds != null && timestamp != null
+                                ? new TransactionToken(creds, timestamp)
+                                : transaction;
                     }
                     catch (NullPointerException e) {}
                     try {
@@ -201,7 +200,8 @@ public class HttpServer {
                         }
                         else if(e instanceof SecurityException
                                 || e instanceof java.lang.SecurityException) {
-                            response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
+                            response.removeCookie(
+                                    GlobalState.HTTP_AUTH_TOKEN_COOKIE);
                             response.status(401);
                         }
                         else if(e instanceof IllegalArgumentException) {

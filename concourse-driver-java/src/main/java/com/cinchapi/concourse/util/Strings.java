@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -114,8 +114,10 @@ public final class Strings {
      * If those conditions are met, the original string will be wrapped in
      * either
      * <ul>
-     * <li>double quotes if a single quote appears in the original string, or</li>
-     * <li>single quotes if a double quote appears in the original string, or</li>
+     * <li>double quotes if a single quote appears in the original string,
+     * or</li>
+     * <li>single quotes if a double quote appears in the original string,
+     * or</li>
      * <li>double quotes if both a single and double quote appear in the
      * original string; furthermore, all instances of double quotes within the
      * original string will be escaped</li>
@@ -201,9 +203,8 @@ public final class Strings {
         while (i < schars.length) {
             if(i > 0 && i < schars.length - 1) {
                 char schar = schars[i];
-                if(pchar != '\\'
-                        && ((c != '\0' && c == schar) || (chars != null && chars
-                                .contains(schar)))) {
+                if(pchar != '\\' && ((c != '\0' && c == schar)
+                        || (chars != null && chars.contains(schar)))) {
                     sb = MoreObjects.firstNonNull(sb, new StringBuilder());
                     sb.append(schars, offset, i - offset);
                     sb.append('\\');
@@ -535,8 +536,8 @@ public final class Strings {
      *            {@code string} is split
      * @return the tokens that result from the split
      */
-    public static String[] splitStringByDelimiterButRespectQuotes(
-            String string, String delimiter) {
+    public static String[] splitStringByDelimiterButRespectQuotes(String string,
+            String delimiter) {
         // This is pretty inefficient: convert all single quotes to double
         // quotes (except one off single quotes that are used as apostrophes) so
         // the regex below works
@@ -631,6 +632,9 @@ public final class Strings {
                 else {
                     return d;
                 }
+            }
+            else if(value.equals("-")) { // CON-597
+                return null;
             }
             else {
                 return MoreObjects.firstNonNull(Ints.tryParse(value),

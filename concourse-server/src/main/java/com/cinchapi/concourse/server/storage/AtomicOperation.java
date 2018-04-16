@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,8 +57,8 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
-public class AtomicOperation extends BufferedStore implements
-        VersionChangeListener {
+public class AtomicOperation extends BufferedStore
+        implements VersionChangeListener {
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in
@@ -340,7 +340,6 @@ public class AtomicOperation extends BufferedStore implements
             Token token = Token.wrap(key, record);
             source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
-            System.out.println("yo");
             return super.chronologize(key, record, start, end, true);
         }
         else {
@@ -445,8 +444,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp)
-            throws AtomicStateException {
+    public boolean verify(String key, TObject value, long record,
+            long timestamp) throws AtomicStateException {
         if(timestamp > Time.now()) {
             return verify(key, value, record);
         }
@@ -492,8 +491,9 @@ public class AtomicOperation extends BufferedStore implements
                             if(containing != null) {
                                 rangeReads2Lock.remove(rangeToken.getKey(),
                                         containing);
-                                Iterable<Range<Value>> xor = Ranges.xor(Range
-                                        .singleton(rangeToken.getValues()[0]),
+                                Iterable<Range<Value>> xor = Ranges.xor(
+                                        Range.singleton(
+                                                rangeToken.getValues()[0]),
                                         containing);
                                 for (Range<Value> range : xor) {
                                     rangeReads2Lock.put(rangeToken.getKey(),
@@ -795,7 +795,8 @@ public class AtomicOperation extends BufferedStore implements
                         rangeLockService.getReadLock((RangeToken) token), type);
             case RANGE_WRITE:
                 return new LockDescription(token,
-                        rangeLockService.getWriteLock((RangeToken) token), type);
+                        rangeLockService.getWriteLock((RangeToken) token),
+                        type);
             case READ:
                 return new LockDescription(token,
                         lockService.getReadLock(token), type);

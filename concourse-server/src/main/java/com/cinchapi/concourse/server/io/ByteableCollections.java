@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -188,8 +188,8 @@ public class ByteableCollections {
         for (Byteable object : collection) {
             Preconditions.checkArgument(object.size() == sizePerElement,
                     "'%s' must be '%s' bytes but it is "
-                            + "actually '%s' bytes", object, sizePerElement,
-                    object.size());
+                            + "actually '%s' bytes",
+                    object, sizePerElement, object.size());
             object.copyTo(buffer);
         }
         buffer.rewind();
@@ -206,8 +206,8 @@ public class ByteableCollections {
      * 
      * @author Jeff Nelson
      */
-    private static class ByteableCollectionIterator implements
-            Iterator<ByteBuffer> {
+    private static class ByteableCollectionIterator
+            implements Iterator<ByteBuffer> {
 
         protected final ByteBuffer bytes;
         protected ByteBuffer next;
@@ -269,8 +269,8 @@ public class ByteableCollections {
      * 
      * @author Jeff Nelson
      */
-    private static class FixedSizeByteableCollectionIterator extends
-            ByteableCollectionIterator {
+    private static class FixedSizeByteableCollectionIterator
+            extends ByteableCollectionIterator {
 
         private int nextSequence = 0;
         private final int numSequences;
@@ -314,7 +314,8 @@ public class ByteableCollections {
 
         private void readFixedNext() {
             next = null;
-            if(nextSequence < numSequences && bytes.remaining() >= sequenceSize) {
+            if(nextSequence < numSequences
+                    && bytes.remaining() >= sequenceSize) {
                 next = ByteBuffers.slice(bytes, bytes.position(), sequenceSize);
             }
         }

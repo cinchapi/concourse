@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,9 +34,6 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.server.storage.temp.Buffer;
-import com.cinchapi.concourse.server.storage.temp.Limbo;
-import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -45,7 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link Buffer}.
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.temp.Buffer}.
  *
  * @author Jeff Nelson
  */
@@ -132,8 +129,8 @@ public class BufferTest extends LimboTest {
         List<Write> writes = getWrites();
         int j = 0;
         for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
+            add(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
             Variables.register("write_" + j, write);
             j++;
         }
@@ -177,7 +174,8 @@ public class BufferTest extends LimboTest {
         long before = Time.now();
         while (!((Buffer) store).canTransport()) {
             before = Time.now();
-            add(TestData.getString(), TestData.getTObject(), TestData.getLong());
+            add(TestData.getString(), TestData.getTObject(),
+                    TestData.getLong());
         }
         thread.join(); // make sure thread finishes before comparing
         Assert.assertTrue(later.get() > before);
@@ -276,8 +274,9 @@ public class BufferTest extends LimboTest {
         List<Write> stored = addRandomElementsToBufferAndList(buffer,
                 TestData.getScaleCount());
         for (Write write : stored) {
-            buffer.verify(write.getKey().toString(), write.getValue()
-                    .getTObject(), write.getRecord().longValue());
+            buffer.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue());
         }
         float percent = Reflection.call(buffer, "getPercentVerifyScans");
         Assert.assertEquals(1.0f, percent, 0f);
@@ -302,8 +301,9 @@ public class BufferTest extends LimboTest {
             writes.add(write);
         }
         for (Write write : writes) {
-            buffer.verify(write.getKey().toString(), write.getValue()
-                    .getTObject(), write.getRecord().longValue());
+            buffer.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue());
         }
         float percentVerifyScans = Reflection.call(buffer,
                 "getPercentVerifyScans");
@@ -333,15 +333,19 @@ public class BufferTest extends LimboTest {
 
     /**
      * Helper method used by multiple test cases to add a random number of
-     * random elements to
-     * the {@link Buffer} and a {@code List<Write>}, and returns the list.
+     * random elements to the
+     * {@link com.cinchapi.concourse.server.storage.temp.Buffer} and a
+     * {@code List<Write>}, and
+     * returns the list.
      *
      * @param buff: the buffer into which objects are inserted
      * @param size: the number of objects to insert
-     * @return: a {@code List} of {@link Write} objects that were also inserted
-     *          into the buffer
+     * @return: a {@code List} of
+     *          {@link com.cinchapi.concourse.server.storage.temp.Write} objects
+     *          that were also inserted into the buffer
      */
-    private List<Write> addRandomElementsToBufferAndList(Buffer buff, int size) {
+    private List<Write> addRandomElementsToBufferAndList(Buffer buff,
+            int size) {
         List<Write> stored = Lists.newArrayList();
         for (int i = 0; i < size; ++i) {
             Write write = Write.add(TestData.getSimpleString(),

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,9 @@ import java.io.File;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
 import ch.qos.logback.classic.Level;
+
+import com.google.common.base.Throwables;
 
 /**
  * A wrapper around the {@code concourse.prefs} file that is used to
@@ -56,7 +56,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
         // Prevent logging from showing up in the console
         ((ch.qos.logback.classic.Logger) LoggerFactory
                 .getLogger(ConcourseServerPreferences.class))
-                .setLevel(Level.OFF);
+                        .setLevel(Level.OFF);
     }
 
     // Defaults
@@ -202,8 +202,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @return the log level
      */
     public Level getLogLevel() {
-        return Level.valueOf(getString("log_level",
-                DEFAULT_LOG_LEVEL.toString()));
+        return Level
+                .valueOf(getString("log_level", DEFAULT_LOG_LEVEL.toString()));
     }
 
     /**

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -101,8 +101,8 @@ public class BloomFilter implements Syncable {
                 protected ObjectStreamClass readClassDescriptor()
                         throws IOException, ClassNotFoundException {
                     ObjectStreamClass read = super.readClassDescriptor();
-                    if(read.getName()
-                            .equals("com.cinchapi.concourse.server.storage.ByteableFunnel")) {
+                    if(read.getName().equals(
+                            "com.cinchapi.concourse.server.storage.ByteableFunnel")) {
                         upgrade.set(true);
                         return ObjectStreamClass.lookup(ByteableFunnel.class);
                     }
@@ -169,10 +169,11 @@ public class BloomFilter implements Syncable {
      * @param expectedInsertions
      */
     private BloomFilter(String file, int expectedInsertions) {
-        this.source = com.google.common.hash.BloomFilter.create(
-                ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
-                                                              // positive
-                                                              // probability
+        this.source = com.google.common.hash.BloomFilter
+                .create(ByteableFunnel.INSTANCE, expectedInsertions); // uses 3%
+                                                                      // false
+                                                                      // positive
+                                                                      // probability
         this.file = file;
     }
 

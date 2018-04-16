@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,8 +59,8 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class EndpointContainer implements
-        Comparable<EndpointContainer> {
+public abstract class EndpointContainer
+        implements Comparable<EndpointContainer> {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
@@ -181,8 +181,8 @@ public abstract class EndpointContainer implements
             return 0;
         }
         else if(p0 == p1) {
-            int c = getClass().getSimpleName().compareTo(
-                    other.getClass().getSimpleName());
+            int c = getClass().getSimpleName()
+                    .compareTo(other.getClass().getSimpleName());
             if(c != 0) {
                 return c;
             }
@@ -223,19 +223,20 @@ public abstract class EndpointContainer implements
                             Field field = fields[i];
                             String name = field.getName();
                             ++i;
-                            if(Endpoint.class.isAssignableFrom(field.getType())) {
+                            if(Endpoint.class
+                                    .isAssignableFrom(field.getType())) {
                                 Endpoint callable = Reflection.getCasted(field,
                                         EndpointContainer.this);
                                 String action = callable.getAction();
                                 String path = callable.getPath();
-                                if(action == null
-                                        && path == null
+                                if(action == null && path == null
                                         && (name.startsWith("get")
                                                 || name.startsWith("post")
                                                 || name.startsWith("put")
                                                 || name.startsWith("delete")
-                                                || name.startsWith("upsert") || name
-                                                    .startsWith("options"))) {
+                                                || name.startsWith("upsert")
+                                                || name.startsWith(
+                                                        "options"))) {
                                     List<String> args = Strings
                                             .splitCamelCase(field.getName());
                                     action = args.remove(0);

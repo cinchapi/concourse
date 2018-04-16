@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,10 +71,10 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * inserts.
      * </p>
      */
-    private static final ExecutorService indexer = Executors
-            .newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
-                    new ThreadFactoryBuilder().setDaemon(true)
-                            .setNameFormat("Search Indexer" + " %d").build());
+    private static final ExecutorService indexer = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors(),
+            new ThreadFactoryBuilder().setDaemon(true)
+                    .setNameFormat("Search Indexer" + " %d").build());
 
     @SuppressWarnings("rawtypes")
     @Override
@@ -123,8 +123,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
                 "Cannot modify a block that is not mutable");
         if(value.getType() == Type.STRING) {
             String string = value.getObject().toString().toLowerCase(); // CON-10
-            String[] toks = string
-                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+            String[] toks = string.split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             int pos = 0;
             List<Future<?>> futures = Lists.newArrayList();
             for (String tok : toks) {
@@ -145,8 +145,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
     @Override
     protected SearchRevision makeRevision(Text locator, Text key,
             Position value, long version, Action type) {
-        return Revision
-                .createSearchRevision(locator, key, value, version, type);
+        return Revision.createSearchRevision(locator, key, value, version,
+                type);
     }
 
     @Override

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.concurrent.ReadWriteSharedLock;
-import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -174,8 +172,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
                 long t1 = Time.now();
                 lock.readLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS.convert(Time.now()
-                            - t1, TimeUnit.MICROSECONDS);
+                    long elapsed = TimeUnit.MILLISECONDS
+                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
                     Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
                                                                // imprecise, so
                                                                // accept 80%
@@ -222,8 +220,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
                 long t1 = Time.now();
                 lock.writeLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS.convert(Time.now()
-                            - t1, TimeUnit.MICROSECONDS);
+                    long elapsed = TimeUnit.MILLISECONDS
+                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
                     Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
                                                                // imprecise, so
                                                                // accept 80%
@@ -321,8 +319,8 @@ public class ReadWriteSharedLockTest extends ConcourseBaseTest {
             }
 
         };
-        for(int i = 0; i < TestData.getScaleCount(); i++){
-            Thread t = i %3 == 0 ? new Thread(a) : new Thread(b);
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            Thread t = i % 3 == 0 ? new Thread(a) : new Thread(b);
             t.start();
         }
     }

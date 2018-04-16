@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,22 +19,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.data.Dataset;
-import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 
 /**
- * <p>
- * Tests to confirm that data is entered correctly into the {@link Dataset}, and
- * retrieved via inversion.
- * </p>
- * 
+ * Tests to confirm that data is entered correctly into the {@link
+ * com.cinchapi.concourse.server.plugin.data.Dataset}, and retrieved via
+ * inversion.
+ *
  * @author Aditya Srinivasan
  */
 public class TObjectResultDatasetTest extends ConcourseBaseTest {

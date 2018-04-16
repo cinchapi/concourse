@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,14 +25,11 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.db.Block;
-import com.cinchapi.concourse.server.storage.db.PrimaryBlock;
-import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.SearchBlock;
-import com.cinchapi.concourse.server.storage.db.SecondaryBlock;
+import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -73,9 +70,11 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test(expected = IllegalStateException.class)
     public void testCannotInsertInImmutableBlock() {
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
         block.sync();
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
     }
 
     @Test
@@ -110,7 +109,8 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test(expected = IllegalStateException.class)
     public void testCannotGetIteratorForMutableBlock() {
-        block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                Action.ADD);
         block.iterator();
     }
 
@@ -147,15 +147,87 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
     @Test
     public final void testEquals() {
         String id = Long.toString(TestData.getLong());
-        PrimaryBlock p = Block.createPrimaryBlock(id, directory
-                + File.separator + "cpb");
-        SecondaryBlock s = Block.createSecondaryBlock(id, directory
-                + File.separator + "csb");
-        SearchBlock t = Block.createSearchBlock(id, directory + File.separator
-                + "ctb");
+        PrimaryBlock p = Block.createPrimaryBlock(id,
+                directory + File.separator + "cpb");
+        SecondaryBlock s = Block.createSecondaryBlock(id,
+                directory + File.separator + "csb");
+        SearchBlock t = Block.createSearchBlock(id,
+                directory + File.separator + "ctb");
         Assert.assertEquals(p, s);
         Assert.assertEquals(p, t);
         Assert.assertEquals(s, t);
+    }
+
+    @Test
+    public void testStatsSchemaVersion() {
+        Assert.assertEquals((long) Block.SCHEMA_VERSION,
+                (long) block.stats().get(Attribute.SCHEMA_VERSION));
+    }
+
+    @Test
+    public void testRevisionVersionTracking() {
+        long version1 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version1, Action.ADD);
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version2 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version2, Action.ADD);
+        Assert.assertEquals(version2,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version4 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version4, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version3 = version4 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version3, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version1,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        long version0 = version1 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version0, Action.ADD);
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+        block.sync();
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRevisionVersionTrackingPersistence() {
+        long version1 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version1, Action.ADD);
+
+        long version2 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version2, Action.ADD);
+
+        long version4 = Time.now();
+        block.insert(getLocator(), getKey(), getValue(), version4, Action.ADD);
+
+        long version3 = version4 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version3, Action.ADD);
+
+        long version0 = version1 - 1;
+        block.insert(getLocator(), getKey(), getValue(), version0, Action.ADD);
+
+        block.sync();
+        block = Reflection.newInstance(block.getClass(), block.getId(),
+                directory, true); /* (Authorized) */
+        Assert.assertEquals(version4,
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals(version0,
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
     }
 
     protected abstract L getLocator();

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.concourse.Timestamp;
 
 /**
@@ -41,17 +43,19 @@ public class ValueState extends BuildableState {
      * @return the builder
      */
     public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
+        criteria.add(new ValueSymbol(value));
         return new ValueState(criteria);
     }
-    
+
     /**
-     * Add the specified {@code timestamp} to the {@link Criteria} that is building.
+     * Add the specified {@code timestamp} to the {@link Criteria} that is
+     * building.
+     * 
      * @param timestamp
      * @return the builder
      */
-    public TimestampState at(Timestamp timestamp){
-        criteria.add(TimestampSymbol.create(timestamp));
+    public TimestampState at(Timestamp timestamp) {
+        criteria.add(new TimestampSymbol(timestamp.getMicros()));
         return new TimestampState(criteria);
     }
 

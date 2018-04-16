@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,13 +21,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.Variables;
-import com.cinchapi.concourse.util.Random;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for the {@link Strings} utility class.
- * 
+ * Unit tests for the {@link com.cinchapi.concourse.util.Strings} utility class.
+ *
  * @author Jeff Nelson
  */
 public class StringsTest {
@@ -35,8 +33,8 @@ public class StringsTest {
     @Test
     public void testSplitStringByDelimterAndRespectQuotes() {
         String string = "Sachin,,M,\"Maths,Science,English\",Need to improve in these subjects.";
-        String[] splitted = Strings.splitStringByDelimiterButRespectQuotes(
-                string, ",");
+        String[] splitted = Strings
+                .splitStringByDelimiterButRespectQuotes(string, ",");
         Assert.assertEquals(
                 "[Sachin, , M, \"Maths,Science,English\", Need to improve in these subjects.]",
                 Arrays.toString(splitted));
@@ -45,8 +43,8 @@ public class StringsTest {
     @Test
     public void testSplitStringByDelimeterWithTrailiningSpaceAndRespectQuotes() {
         String string = "\"New Leaf, Same Page \"";
-        String[] splitted = Strings.splitStringByDelimiterButRespectQuotes(
-                string, ",");
+        String[] splitted = Strings
+                .splitStringByDelimiterButRespectQuotes(string, ",");
         Assert.assertEquals("[\"New Leaf, Same Page \"]",
                 Arrays.toString(splitted));
     }
@@ -117,10 +115,9 @@ public class StringsTest {
 
     @Test
     public void testIsSubStringReproA() {
-        Assert.assertTrue(Strings
-                .isSubString(
-                        "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we",
-                        "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
+        Assert.assertTrue(Strings.isSubString(
+                "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we",
+                "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
     }
 
     @Test
@@ -139,15 +136,15 @@ public class StringsTest {
 
     @Test
     public void testIsValidJsonArray() {
-        Assert.assertTrue(Strings
-                .isValidJson("[{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true}]"));
+        Assert.assertTrue(Strings.isValidJson(
+                "[{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true}]"));
     }
 
     @Test
     public void testIsValidJsonFalse() {
         Assert.assertFalse(Strings.isValidJson("foo"));
-        Assert.assertFalse(Strings
-                .isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":}"));
+        Assert.assertFalse(
+                Strings.isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":}"));
     }
 
     @Test
@@ -222,15 +219,16 @@ public class StringsTest {
 
     @Test
     public void testParseStringAsNumberIfDecimalWithLeadingZero() {
-        Assert.assertTrue(Strings.tryParseNumberStrict("0.0123") instanceof Number);
+        Assert.assertTrue(
+                Strings.tryParseNumberStrict("0.0123") instanceof Number);
     }
 
     @Test
     public void testEnsureStartsWithAlreadyTrue() {
         String prefix = Random.getString();
         String string = prefix + Random.getString();
-        Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
-                prefix));
+        Assert.assertTrue(
+                Strings.ensureStartsWith(string, prefix).startsWith(prefix));
     }
 
     @Test
@@ -240,8 +238,8 @@ public class StringsTest {
         while (string == null || string.startsWith(prefix)) {
             string = Random.getString();
         }
-        Assert.assertTrue(Strings.ensureStartsWith(string, prefix).startsWith(
-                prefix));
+        Assert.assertTrue(
+                Strings.ensureStartsWith(string, prefix).startsWith(prefix));
     }
 
     @Test
@@ -293,11 +291,27 @@ public class StringsTest {
         String string = "\"\"";
         Assert.assertEquals("\"\"\"\"", Strings.ensureWithinQuotes(string));
     }
-    
+
     @Test
-    public void testReplaceUnicodeConfusables(){
+    public void testTryParseNumberDash() {
+        String string = "-";
+        Assert.assertNull(Strings.tryParseNumber(string));
+    }
+
+    @Test
+    public void testTryParseNumberDashes() {
+        String string = "-";
+        for (int i = 0; i < Random.getScaleCount(); ++i) {
+            string += "-";
+        }
+        Assert.assertNull(Strings.tryParseNumber(string));
+    }
+
+    @Test
+    public void testReplaceUnicodeConfusables() {
         String expected = "\"a\"";
-        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables(expected));
+        Assert.assertEquals(expected,
+                Strings.replaceUnicodeConfusables(expected));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("˝a˝"));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("″a‶"));
     }

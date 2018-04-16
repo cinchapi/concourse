@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,18 +39,21 @@ import com.google.common.base.Throwables;
  * @author Jeff Nelson
  */
 public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
-    
+
     @Test
     public void testBasicRead() {
         String location = FileOps.tempFile();
-        InterProcessCommunication queue = getInterProcessCommunication(location);
+        InterProcessCommunication queue = getInterProcessCommunication(
+                location);
         String expected = Random.getString();
         queue.write(ByteBuffers.fromString(expected));
-        InterProcessCommunication queue2 = getInterProcessCommunication(location);
+        InterProcessCommunication queue2 = getInterProcessCommunication(
+                location);
         Assert.assertNotEquals(queue, queue2);
         String actual = ByteBuffers.getString(queue.read());
         Assert.assertEquals(expected, actual);
     }
+
     @Test
     public void testBasicWrite() {
         InterProcessCommunication queue = getInterProcessCommunication();
@@ -59,7 +62,6 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         String actual = ByteBuffers.getString(queue.read());
         Assert.assertEquals(expected, actual);
     }
-    
 
     @Test
     public void testCompactionAcrossInstancesForReads() {
@@ -229,11 +231,11 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
 
     protected abstract InterProcessCommunication getInterProcessCommunication();
 
-    protected abstract InterProcessCommunication getInterProcessCommunication(String file);
+    protected abstract InterProcessCommunication getInterProcessCommunication(
+            String file);
 
-    protected abstract InterProcessCommunication getInterProcessCommunication(String file, int capacity);
-
-    
+    protected abstract InterProcessCommunication getInterProcessCommunication(
+            String file, int capacity);
 
 // @formatter:off
 //    @Test

@@ -1,13 +1,12 @@
 /*
- * Copyright 2011- Per Wendel, Michael Heuer
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +16,11 @@
 package spark.template;
 
 import java.io.StringWriter;
-
 import java.util.Map;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-
 
 /**
  * Template route based on Mustache.java.
@@ -61,7 +58,8 @@ public abstract class MustacheTemplateRoute extends TemplateRoute {
      *            users/:name)
      * @param mustacheFactory The mustache factory, must not be null.
      */
-    protected MustacheTemplateRoute(String path, MustacheFactory mustacheFactory) {
+    protected MustacheTemplateRoute(String path,
+            MustacheFactory mustacheFactory) {
         super(path);
         if(mustacheFactory == null) {
             throw new NullPointerException("mustacheFactory must not be null");

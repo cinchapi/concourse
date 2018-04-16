@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,8 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import io.atomix.catalyst.buffer.Buffer;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -24,6 +22,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.collect.Lists;
+import io.atomix.catalyst.buffer.Buffer;
 
 /**
  * A a chronological sequence of {@link WriteEvent WriteEvents} that is

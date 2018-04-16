@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +20,16 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Throwables;
 
 /**
- * Tests for {@link Byteable} objects.
- * 
+ * Tests for {@link com.cinchapi.concourse.server.io.Byteable} objects.
+ *
  * @author Jeff Nelson
  */
-public abstract class ByteableTest extends ConcourseBaseTest{
+public abstract class ByteableTest extends ConcourseBaseTest {
 
     /**
      * Return a random instance of the test class defined in
@@ -69,8 +67,8 @@ public abstract class ByteableTest extends ConcourseBaseTest{
     @Test
     public void testSerialization() {
         Byteable object = getRandomTestInstance();
-        Assert.assertTrue(Byteables.readStatic(object.getBytes(),
-                getTestClass()).equals(object));
+        Assert.assertTrue(Byteables
+                .readStatic(object.getBytes(), getTestClass()).equals(object));
     }
 
 }

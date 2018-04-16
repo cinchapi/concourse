@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -64,8 +64,9 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 
 /**
- * Base unit tests for {@link Store} services.
- * 
+ * Base unit tests for {@link com.cinchapi.concourse.server.storage.Store}
+ * services.
+ *
  * @author Jeff Nelson
  */
 @RunWith(Theories.class)
@@ -1682,6 +1683,22 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertTrue(
                 store.find("friend", Operator.LINKS_TO, Convert.javaToThrift(1))
                         .isEmpty());
+    }
+
+    @Test
+    public void testFindLikeOperator() {
+        add("email", Convert.javaToThrift("jeff@gmail.com"), 1);
+        Assert.assertTrue(store.find("email", Operator.LIKE,
+                Convert.javaToThrift("%gmail.com%")).contains(1L));
+    }
+
+    @Test
+    public void testStoreTimestamp() {
+        Timestamp now = Timestamp.now();
+        add("time", Convert.javaToThrift(now), 1);
+        Assert.assertEquals(now,
+                store.select("time", 1).iterator().next().getJavaFormat());
+
     }
 
     /**

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +27,6 @@ import org.junit.experimental.theories.Theory;
 
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.BufferedStore;
-import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -46,9 +43,11 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
 /**
- * Unit tests for {@link BufferedStore} that try to stress scenarios that occur
- * when data offsetting data is split between the destination and buffer.
- * 
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.BufferedStore}
+ * that try to stress
+ * scenarios that occur when data offsetting data is split between the
+ * destination and buffer.
+ *
  * @author Jeff Nelson
  */
 public abstract class BufferedStoreTest extends StoreTest {
@@ -90,7 +89,8 @@ public abstract class BufferedStoreTest extends StoreTest {
      * @return a Table with the data
      */
     @SuppressWarnings("unused")
-    private Table<Long, String, Set<TObject>> convertDataToTable(List<Data> data) {
+    private Table<Long, String, Set<TObject>> convertDataToTable(
+            List<Data> data) {
         Table<Long, String, Set<TObject>> table = HashBasedTable.create();
         Iterator<Data> it = data.iterator();
         while (it.hasNext()) {
@@ -273,7 +273,8 @@ public abstract class BufferedStoreTest extends StoreTest {
         TObject tag = Convert.javaToThrift(Tag.create("A"));
         TObject string = Convert.javaToThrift("A");
         data.add(d = (Data.positive("foo", tag, 1)));
-        data.add(Data.positive("foo", Convert.javaToThrift(Tag.create("B")), 1));
+        data.add(
+                Data.positive("foo", Convert.javaToThrift(Tag.create("B")), 1));
         data.add(Data.negative(d));
         insertData(data, 2);
         Assert.assertFalse(store.select("foo", 1).contains(string));
@@ -305,7 +306,8 @@ public abstract class BufferedStoreTest extends StoreTest {
      * @param d
      * @param operator
      */
-    private void doTestFindBuffered(List<Data> data, Data d, Operator operator) {
+    private void doTestFindBuffered(List<Data> data, Data d,
+            Operator operator) {
         Variables.register("d", d);
         Variables.register("operator", operator);
         Map<Long, Set<TObject>> rtv = Maps.newHashMap();
@@ -406,8 +408,8 @@ public abstract class BufferedStoreTest extends StoreTest {
         List<Data> posData = Lists.newArrayList();
         List<Data> negData = Lists.newArrayList();
         for (int i = 0; i < numNegData; i++) {
-            Data pos = Data
-                    .positive(keys.next(), values.next(), records.next());
+            Data pos = Data.positive(keys.next(), values.next(),
+                    records.next());
             Data neg = Data.negative(pos);
             posData.add(pos);
             negData.add(neg);
@@ -418,8 +420,8 @@ public abstract class BufferedStoreTest extends StoreTest {
         // adds that aren't offset
         int numAddlPosData = TestData.getScaleCount() % POSSIBLE_KEYS.size();
         for (int i = 0; i < numAddlPosData; i++) {
-            Data pos = Data
-                    .positive(keys.next(), values.next(), records.next());
+            Data pos = Data.positive(keys.next(), values.next(),
+                    records.next());
             posData.add(pos);
         }
 
@@ -474,12 +476,12 @@ public abstract class BufferedStoreTest extends StoreTest {
         for (int i = 0; i < numForDestination; i++) {
             Data d = it.next();
             if(d.type == Action.ADD) {
-                ((BufferedStore) store).destination.accept(Write.add(d.key,
-                        d.value, d.record));
+                ((BufferedStore) store).destination
+                        .accept(Write.add(d.key, d.value, d.record));
             }
             else {
-                ((BufferedStore) store).destination.accept(Write.remove(d.key,
-                        d.value, d.record));
+                ((BufferedStore) store).destination
+                        .accept(Write.remove(d.key, d.value, d.record));
             }
             if(store instanceof Engine) { // The Engine uses the inventory to
                                           // check if records exist when
@@ -494,12 +496,12 @@ public abstract class BufferedStoreTest extends StoreTest {
         while (it.hasNext()) {
             Data d = it.next();
             if(d.type == Action.ADD) {
-                ((BufferedStore) store).buffer.insert(Write.add(d.key, d.value,
-                        d.record));
+                ((BufferedStore) store).buffer
+                        .insert(Write.add(d.key, d.value, d.record));
             }
             else {
-                ((BufferedStore) store).buffer.insert(Write.remove(d.key,
-                        d.value, d.record));
+                ((BufferedStore) store).buffer
+                        .insert(Write.remove(d.key, d.value, d.record));
             }
         }
     }

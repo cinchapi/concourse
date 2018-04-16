@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -194,8 +194,9 @@ public class NavigateTest extends ConcourseIntegrationTest {
         String direction = "friends.name";
         Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
         expected.put(3L, Sets.newHashSet("hello"));
-        Map<Long, Set<String>> actual = client.navigate(direction, Criteria.where()
-                .key("age").operator(Operator.LESS_THAN).value(30).build());
+        Map<Long, Set<String>> actual = client.navigate(direction,
+                Criteria.where().key("age").operator(Operator.LESS_THAN)
+                        .value(30).build());
         Assert.assertEquals(expected, actual);
     }
 
@@ -206,11 +207,10 @@ public class NavigateTest extends ConcourseIntegrationTest {
         expected.put(3L, Sets.newHashSet("hello"));
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client
-                .navigate(
-                        direction, Criteria.where().key("age")
-                                .operator(Operator.LESS_THAN).value(30).build(),
-                        timestamp);
+        Map<Long, Set<String>> actual = client.navigate(
+                direction, Criteria.where().key("age")
+                        .operator(Operator.LESS_THAN).value(30).build(),
+                timestamp);
         Assert.assertEquals(expected, actual);
     }
 
@@ -248,7 +248,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
         Map<Long, Set<String>> expected = setupNavigateKeyRecord(client);
         Timestamp timestamp = Timestamp.now();
         client.add("name", "john", 3);
-        Map<Long, Set<String>> actual = client.navigate(direction, 1, timestamp);
+        Map<Long, Set<String>> actual = client.navigate(direction, 1,
+                timestamp);
         Assert.assertEquals(expected, actual);
     }
 

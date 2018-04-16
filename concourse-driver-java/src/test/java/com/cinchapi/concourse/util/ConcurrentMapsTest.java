@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +42,8 @@ public class ConcurrentMapsTest {
         long salt = Random.getLong();
         long timestamp = Time.now();
         final AccessToken token0 = createAccessToken(username, salt, timestamp);
-        final AtomicReference<String> actual = new AtomicReference<String>(null);
+        final AtomicReference<String> actual = new AtomicReference<String>(
+                null);
         final AtomicBoolean done = new AtomicBoolean(false);
         Thread waiter = new Thread(new Runnable() {
 
@@ -118,8 +119,8 @@ public class ConcurrentMapsTest {
         sb.append(username);
         sb.append(salt);
         sb.append(timestamp);
-        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
-                .hashUnencodedChars(sb.toString()).asBytes()));
+        AccessToken token = new AccessToken(ByteBuffer.wrap(
+                Hashing.sha256().hashUnencodedChars(sb.toString()).asBytes()));
         return token;
     }
 

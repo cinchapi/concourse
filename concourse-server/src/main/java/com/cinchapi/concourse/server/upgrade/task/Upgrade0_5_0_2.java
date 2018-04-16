@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,8 +51,8 @@ public class Upgrade0_5_0_2 extends SmartUpgradeTask {
             Inventory inventory = Inventory.create(FileSystem.makePath(
                     GlobalState.BUFFER_DIRECTORY, env, "meta", "inventory"));
             // Get records from thTexttabase via the Primary Blocks
-            String dbStore = FileSystem.makePath(
-                    GlobalState.DATABASE_DIRECTORY, env);
+            String dbStore = FileSystem.makePath(GlobalState.DATABASE_DIRECTORY,
+                    env);
             Iterator<Revision<PrimaryKey, Text, Value>> dbIt = Database
                     .onDiskStreamingIterator(dbStore);
             while (dbIt.hasNext()) {
@@ -60,8 +60,8 @@ public class Upgrade0_5_0_2 extends SmartUpgradeTask {
                 inventory.add(revision.getLocator().longValue());
             }
             // Get records from the Buffer
-            String bufferStore = FileSystem.makePath(
-                    GlobalState.BUFFER_DIRECTORY, env);
+            String bufferStore = FileSystem
+                    .makePath(GlobalState.BUFFER_DIRECTORY, env);
             Iterator<Write> bufIt = Buffer.onDiskIterator(bufferStore);
             while (bufIt.hasNext()) {
                 Write write = bufIt.next();

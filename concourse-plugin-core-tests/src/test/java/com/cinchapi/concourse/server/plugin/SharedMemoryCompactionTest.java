@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,19 +27,22 @@ import com.cinchapi.concourse.util.Random;
  * 
  * @author Jeff Nelson
  */
-public class SharedMemoryCompactionTest extends ClientServerTest implements PluginTest {
+public class SharedMemoryCompactionTest extends ClientServerTest
+        implements PluginTest {
 
     @Override
     protected String getServerVersion() {
         return ClientServerTest.LATEST_SNAPSHOT_VERSION;
     }
-    
+
     @Test
-    public void testCompactionDoesntDropMessages(){
+    public void testCompactionDoesntDropMessages() {
         long stop = System.currentTimeMillis() + (6000 * 2);
-        while(System.currentTimeMillis() < stop){
+        while (System.currentTimeMillis() < stop) {
             String expected = Random.getString();
-            String actual = client.invokePlugin("com.cinchapi.concourse.server.plugin.TestPlugin", "echo", expected);
+            String actual = client.invokePlugin(
+                    "com.cinchapi.concourse.server.plugin.TestPlugin", "echo",
+                    expected);
             System.out.println(actual);
             Assert.assertEquals(expected, actual);
         }

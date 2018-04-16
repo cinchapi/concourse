@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,8 +47,8 @@ public final class Position implements Byteable, Comparable<Position> {
      * @return the Position
      */
     public static Position fromByteBuffer(ByteBuffer bytes) {
-        PrimaryKey primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(
-                bytes, PrimaryKey.SIZE));
+        PrimaryKey primaryKey = PrimaryKey
+                .fromByteBuffer(ByteBuffers.get(bytes, PrimaryKey.SIZE));
         int index = bytes.getInt();
         return new Position(primaryKey, index);
     }
@@ -104,8 +104,8 @@ public final class Position implements Byteable, Comparable<Position> {
      */
     private Position(PrimaryKey primaryKey, int index,
             @Nullable ByteBuffer bytes) {
-        Preconditions
-                .checkArgument(index >= 0, "Cannot have an negative index");
+        Preconditions.checkArgument(index >= 0,
+                "Cannot have an negative index");
         this.primaryKey = primaryKey;
         this.index = index;
         this.bytes = bytes;
@@ -114,8 +114,8 @@ public final class Position implements Byteable, Comparable<Position> {
     @Override
     public int compareTo(Position other) {
         int comparison;
-        return (comparison = primaryKey.compareTo(other.primaryKey)) != 0 ? comparison
-                : Integer.compare(index, other.index);
+        return (comparison = primaryKey.compareTo(other.primaryKey)) != 0
+                ? comparison : Integer.compare(index, other.index);
     }
 
     @Override

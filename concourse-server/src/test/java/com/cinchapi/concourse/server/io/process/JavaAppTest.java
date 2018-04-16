@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -155,19 +155,21 @@ public class JavaAppTest extends ConcourseBaseTest {
     @Test
     @Ignore
     public void testPid() {
-        if(Platform.isLinux() || Platform.isMacOsX() || Platform.isSolaris()){
+        if(Platform.isLinux() || Platform.isMacOsX() || Platform.isSolaris()) {
             String id = UUID.randomUUID().toString();
             JavaApp app = new JavaApp(System.getProperty("java.class.path"),
                     GOOD_SOURCE,
                     "-Dcom.cinchapi.concourse.server.io.process.pid=" + id);
             app.run();
-            ProcessBuilder pb = Processes.getBuilderWithPipeSupport("ps aux | grep "
-                    + id + " | grep -v \"grep\" | awk '{print $2}' ");
+            ProcessBuilder pb = Processes
+                    .getBuilderWithPipeSupport("ps aux | grep " + id
+                            + " | grep -v \"grep\" | awk '{print $2}' ");
             try {
                 Process process = pb.start();
-                ProcessResult result = Processes.waitForSuccessfulCompletion(process);
+                ProcessResult result = Processes
+                        .waitForSuccessfulCompletion(process);
                 long expected = Long.parseLong(result.out().get(0));
-                Assert.assertEquals(expected, app.pid());              
+                Assert.assertEquals(expected, app.pid());
             }
             catch (IOException e) {
                 throw CheckedExceptions.throwAsRuntimeException(e);
@@ -176,7 +178,7 @@ public class JavaAppTest extends ConcourseBaseTest {
         else {
             Assert.assertTrue(true);
         }
-        
+
     }
 
 }

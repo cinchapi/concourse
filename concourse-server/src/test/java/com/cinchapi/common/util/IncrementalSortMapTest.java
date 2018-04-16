@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.cinchapi.common.util;
 
 /*
@@ -5,6 +20,8 @@ package com.cinchapi.common.util;
  * Expert Group and released to the public domain, as explained at
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
+
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +37,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.cinchapi.common.util.IncrementalSortMap;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-
-import static org.junit.Assert.*;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class IncrementalSortMapTest extends ConcourseBaseTest {
@@ -1103,31 +1117,29 @@ public class IncrementalSortMapTest extends ConcourseBaseTest {
             NavigableMap<Integer, Integer> sm = map.subMap(endpoints[0],
                     lowIncl, endpoints[1], highIncl);
             if(rnd.nextBoolean())
-                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                        - (highIncl ? 0 : 1), true);
+                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), true);
             else
-                bashSubMap(sm.descendingMap(),
-                        endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                                - (highIncl ? 0 : 1), false);
+                bashSubMap(sm.descendingMap(), endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), false);
         }
         else {
             NavigableMap<Integer, Integer> sm = map.subMap(endpoints[1],
                     highIncl, endpoints[0], lowIncl);
             if(rnd.nextBoolean())
-                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                        - (highIncl ? 0 : 1), false);
+                bashSubMap(sm, endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), false);
             else
-                bashSubMap(sm.descendingMap(),
-                        endpoints[0] + (lowIncl ? 0 : 1), endpoints[1]
-                                - (highIncl ? 0 : 1), true);
+                bashSubMap(sm.descendingMap(), endpoints[0] + (lowIncl ? 0 : 1),
+                        endpoints[1] - (highIncl ? 0 : 1), true);
         }
     }
 
     /**
      * min and max are both inclusive. If max < min, interval is empty.
      */
-    void check(NavigableMap<Integer, Integer> map, final int min,
-            final int max, final boolean ascending) {
+    void check(NavigableMap<Integer, Integer> map, final int min, final int max,
+            final boolean ascending) {
         class ReferenceSet {
             private int firstAscending() {
                 int result = ceilingAscending(min);
@@ -1213,9 +1225,8 @@ public class IncrementalSortMapTest extends ConcourseBaseTest {
         for (int key : map.keySet()) {
             assertTrue(bs.get(key));
             size2++;
-            assertTrue(previousKey < 0
-                    || (ascending ? key - previousKey > 0
-                            : key - previousKey < 0));
+            assertTrue(previousKey < 0 || (ascending ? key - previousKey > 0
+                    : key - previousKey < 0));
             previousKey = key;
         }
         assertEquals(size2, size);

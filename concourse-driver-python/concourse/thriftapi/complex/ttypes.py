@@ -7,9 +7,7 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-import concourse.thriftapi.data.ttypes
-
-
+from ..data.ttypes import *  # must use relative import or pdoc breaks
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol, TProtocol
 from concourse.utils import python_to_thrift, thrift_to_python
@@ -85,7 +83,7 @@ class ComplexTObject:
             complex.type = ComplexTObjectType.MAP
             tmap = {}
             print(obj)
-            for k, v in obj.items():
+            for k, v in list(obj.items()):
                 tmap[ComplexTObject.from_python_object(k)] = ComplexTObject.from_python_object(v)
             complex.tmap = tmap;
         elif isinstance(obj, list):
@@ -128,7 +126,7 @@ class ComplexTObject:
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRUCT:
-                    self.tscalar = concourse.thriftapi.data.ttypes.TObject()
+                    self.tscalar = TObject()
                     self.tscalar.read(iprot)
                 else:
                     iprot.skip(ftype)
@@ -227,7 +225,7 @@ class ComplexTObject:
 
     def __repr__(self):
         L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
+             for key, value in list(self.__dict__.items())]
         return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
     def __eq__(self, other):
@@ -244,7 +242,7 @@ class ComplexTObject:
         """
         if self.type == ComplexTObjectType.MAP:
             ret = {}
-            for k, v in self.tmap.items():
+            for k, v in list(self.tmap.items()):
                 ret[k.get_python_object()] = v.get_python_object()
             return ret
         elif self.type == ComplexTObjectType.LIST:
@@ -264,10 +262,10 @@ class ComplexTObject:
 ComplexTObject.thrift_spec = (
         None,  # 0
         (1, TType.I32, 'type', None, None, ), # 1
-        (2, TType.STRUCT, 'tscalar', (concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec), None, ), # 2
+        (2, TType.STRUCT, 'tscalar', (TObject, TObject.thrift_spec), None, ), # 2
         (3, TType.MAP, 'tmap', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec),TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 3
         (4, TType.LIST, 'tlist', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 4
         (5, TType.SET, 'tset', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 5
-        (6, TType.TOBJECT, 'tobject', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 6
-        (7, TType.TCRITERIA, 'tcriteria', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 7
+        (6, TType.STRUCT, 'tobject', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 6
+        (7, TType.STRUCT, 'tcriteria', (TType.STRUCT,(ComplexTObject, ComplexTObject.thrift_spec)), None, ), # 7
     )

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,9 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.storage.AtomicOperation;
-import com.cinchapi.concourse.server.storage.AtomicStateException;
-import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -34,8 +31,8 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link AtomicOperation}.
- * 
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.AtomicOperation}.
+ *
  * @author Jeff Nelson
  */
 public abstract class AtomicOperationTest extends BufferedStoreTest {
@@ -131,7 +128,8 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                destination.accept(Write.add(key, TestData.getTObject(), record));
+                destination
+                        .accept(Write.add(key, TestData.getTObject(), record));
 
             }
 

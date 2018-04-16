@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,20 @@ package com.cinchapi.concourse.lang;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.Parsing;
+import com.cinchapi.ccl.SyntaxException;
+import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ParenthesisSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.ParseException;
+import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.util.Parsers;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -38,6 +51,35 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 public class Criteria implements Symbol {
+
+    /**
+     * Return a {@link Criteria} object that expresses the same as the
+     * {@code ccl} statement.
+     * 
+     * @param ccl the CCL statement to parse
+     * @return an equivalanet {@link Criteria} object
+     */
+    public static Criteria parse(String ccl) {
+        Parser parser = Parsers.create(ccl);
+        Criteria criteria = new Criteria();
+        try {
+            criteria.symbols = Lists.newArrayList(parser.tokenize());
+            return criteria;
+        }
+        catch (Exception e) {
+            if(e instanceof SyntaxException
+                    || e instanceof IllegalStateException
+                    || e.getCause() != null && e
+                            .getCause() instanceof com.cinchapi.ccl.v2.generated.ParseException) {
+                throw new ParseException(
+                        new com.cinchapi.concourse.thrift.ParseException(
+                                e.getMessage()));
+            }
+            else {
+                throw CheckedExceptions.throwAsRuntimeException(e);
+            }
+        }
+    }
 
     /**
      * Start building a new {@link Criteria}.
@@ -66,6 +108,44 @@ public class Criteria implements Symbol {
     }
 
     /**
+     * Return this {@link Criteria} with each expression (e.g. {key} {operator}
+     * {values}) pinned to the specified {@code timestamp}.
+     * 
+     * <strong>NOTE:</strong> Any timestamps that are pinned to any expressions
+     * within this Criteria will be replaced by the specified {@code timestamp}.
+     * 
+     * @param timestamp the {@link Timestamp} to which the returned
+     *            {@link Criteria} is pinned
+     * 
+     * @return this {@link Criteria} pinned to {@code timestamp}
+     */
+    public Criteria at(Timestamp timestamp) {
+        Parser parser = Parsers.create(getCclString());
+        List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
+        TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Reflection.set("timestamp", ts, expression); // (authorized)
+            }
+        });
+        Criteria criteria = new Criteria();
+        symbols = Parsing.ungroupExpressions(symbols);
+        criteria.symbols = symbols;
+        return criteria;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Criteria) {
+            return Objects.equals(symbols, ((Criteria) obj).symbols);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Return a CCL string that is equivalent to this object.
      * 
      * @return an equivalent CCL string
@@ -81,6 +161,11 @@ public class Criteria implements Symbol {
             first = false;
         }
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(symbols);
     }
 
     @Override

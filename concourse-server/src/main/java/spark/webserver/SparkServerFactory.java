@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,8 +16,7 @@
 package spark.webserver;
 
 import spark.route.RouteMatcherFactory;
-import spark.webserver.MatcherFilter;
-import spark.webserver.SparkServer;
+
 import com.cinchapi.concourse.server.http.webserver.ConcourseHttpHandler;
 
 /**
@@ -29,12 +27,13 @@ import com.cinchapi.concourse.server.http.webserver.ConcourseHttpHandler;
 public final class SparkServerFactory {
 
     private SparkServerFactory() {}
-    
+
     public static SparkServer create(boolean hasMultipleHandler) {
-        MatcherFilter matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), false, hasMultipleHandler);
+        MatcherFilter matcherFilter = new MatcherFilter(
+                RouteMatcherFactory.get(), false, hasMultipleHandler);
         matcherFilter.init(null);
         ConcourseHttpHandler handler = new ConcourseHttpHandler(matcherFilter);
         return new SparkServerImpl(handler);
     }
-    
+
 }

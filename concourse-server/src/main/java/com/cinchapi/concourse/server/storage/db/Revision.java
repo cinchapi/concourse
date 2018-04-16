@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,9 +44,8 @@ import com.google.common.base.Preconditions;
  * @param <V> - the value type
  */
 @Immutable
-public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable> implements
-        Byteable,
-        Versioned {
+public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable>
+        implements Byteable, Versioned {
 
     /**
      * Create a PrimaryRevision for {@code key} as {@code value} in
@@ -165,12 +164,18 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         this.bytes = bytes;
         this.type = Action.values()[bytes.get()];
         this.version = bytes.getLong();
-        this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
-                xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
-                        : xLocatorSize()), xLocatorClass());
-        this.key = Byteables.readStatic(ByteBuffers.get(bytes,
-                xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
-                xKeyClass());
+        this.locator = Byteables
+                .readStatic(
+                        ByteBuffers.get(bytes, xLocatorSize() == VARIABLE_SIZE
+                                ? bytes.getInt() : xLocatorSize()),
+                        xLocatorClass());
+        this.key = Byteables
+                .readStatic(
+                        ByteBuffers
+                                .get(bytes,
+                                        xKeySize() == VARIABLE_SIZE
+                                                ? bytes.getInt() : xKeySize()),
+                        xKeyClass());
         this.value = Byteables.readStatic(
                 ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
         this.size = bytes.capacity();

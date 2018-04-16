@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.util.Convert;
@@ -101,8 +102,8 @@ public class ComplexTObjectTest {
 
     @Test
     public void testSerializeListOfLists() {
-        List<? extends Object> expected = Lists.<Object> newArrayList("1",
-                true, 1, Lists.<Object> newArrayList(1, 2, 3, "4"),
+        List<? extends Object> expected = Lists.<Object> newArrayList("1", true,
+                1, Lists.<Object> newArrayList(1, 2, 3, "4"),
                 Lists.newArrayList(1, 2), Sets.<Object> newHashSet("1", true));
         List<? extends Object> actual = ComplexTObject.fromJavaObject(expected)
                 .getJavaObject();;
@@ -167,6 +168,19 @@ public class ComplexTObjectTest {
         TCriteria expected = Language.translateToThriftCriteria(criteria);
         ComplexTObject complex = ComplexTObject.fromJavaObject(expected);
         Assert.assertEquals(expected, complex.getJavaObject());
+    }
+
+    @Test
+    public void testComplexTObjectBinaryFormat() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("jeff").at(Timestamp.now())
+                .and().key("comapny").operator(Operator.EQUALS)
+                .value("cinchapi").at(Timestamp.now()).build();
+        TCriteria tcriteria = Language.translateToThriftCriteria(criteria);
+        ComplexTObject expected = ComplexTObject.fromJavaObject(tcriteria);
+        ComplexTObject actual = ComplexTObject
+                .fromByteBuffer(expected.toByteBuffer());
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
@@ -261,21 +275,23 @@ public class ComplexTObjectTest {
             Assert.fail();
         }
     }
-    
+
     @Test
-    public void testNullToByteBuffer(){
+    public void testNullToByteBuffer() {
         ComplexTObject expected = ComplexTObject.fromJavaObject(null);
         ByteBuffer buffer = expected.toByteBuffer();
         ComplexTObject actual = ComplexTObject.fromByteBuffer(buffer);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
-    public void testMapWithLargeValueToByteBuffer(){
+    public void testMapWithLargeValueToByteBuffer() {
         Map<String, String> expected = Maps.newHashMap();
         RandomStringGenerator rand = new RandomStringGenerator();
         expected.put(rand.nextString(300), rand.nextString(400));
-        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected).toByteBuffer();
-        Assert.assertEquals(expected, ComplexTObject.fromByteBuffer(buffer).getJavaObject());
+        ByteBuffer buffer = ComplexTObject.fromJavaObject(expected)
+                .toByteBuffer();
+        Assert.assertEquals(expected,
+                ComplexTObject.fromByteBuffer(buffer).getJavaObject());
     }
 }

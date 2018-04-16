@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -119,7 +119,8 @@ public class PluginSerializerTest {
             records.add(Random.getLong());
         }
         Set<String> keys = Sets.newLinkedHashSet();
-        for (int i = 0; i < Math.min(Random.getScaleCount(), records.size()); ++i) {
+        for (int i = 0; i < Math.min(Random.getScaleCount(),
+                records.size()); ++i) {
             keys.add(Random.getSimpleString());
         }
         records.forEach((record) -> {
@@ -142,14 +143,13 @@ public class PluginSerializerTest {
         int seed = Random.getInt();
         RemoteMessage message;
         if(seed % 3 == 0) {
-            message = Reflection
-                    .newInstance(
-                            "com.cinchapi.concourse.server.plugin.RemoteAttributeExchange",
-                            Random.getString(), Random.getString());
+            message = Reflection.newInstance(
+                    "com.cinchapi.concourse.server.plugin.RemoteAttributeExchange",
+                    Random.getString(), Random.getString());
         }
         else if(seed % 2 == 0) {
-            AccessToken creds = new AccessToken(ByteBuffer.wrap(Random
-                    .getString().getBytes(StandardCharsets.UTF_8)));
+            AccessToken creds = new AccessToken(ByteBuffer
+                    .wrap(Random.getString().getBytes(StandardCharsets.UTF_8)));
             TransactionToken transaction = new TransactionToken(creds,
                     Time.now());
             String method = Random.getSimpleString();
@@ -164,14 +164,13 @@ public class PluginSerializerTest {
                     method, creds, transaction, environment, args);
         }
         else {
-            AccessToken creds = new AccessToken(ByteBuffer.wrap(Random
-                    .getString().getBytes(StandardCharsets.UTF_8)));
-            ComplexTObject response = ComplexTObject.fromJavaObject(Random
-                    .getObject());
-            message = Reflection
-                    .newInstance(
-                            "com.cinchapi.concourse.server.plugin.RemoteMethodResponse",
-                            creds, response);
+            AccessToken creds = new AccessToken(ByteBuffer
+                    .wrap(Random.getString().getBytes(StandardCharsets.UTF_8)));
+            ComplexTObject response = ComplexTObject
+                    .fromJavaObject(Random.getObject());
+            message = Reflection.newInstance(
+                    "com.cinchapi.concourse.server.plugin.RemoteMethodResponse",
+                    creds, response);
         }
         return message;
     }

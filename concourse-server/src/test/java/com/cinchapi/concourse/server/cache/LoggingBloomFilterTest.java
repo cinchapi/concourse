@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -117,7 +117,8 @@ public class LoggingBloomFilterTest extends ConcourseBaseTest {
         long diff = loggingMs - guavaMs;
         if(diff > 0 && diff / guavaMs >= 0.1) { // TODO watch out for division
                                                 // by zero if guavaMs is 0
-            Assert.fail("Inserting into the logging bloom filter saw a more than 10% slowdown");
+            Assert.fail(
+                    "Inserting into the logging bloom filter saw a more than 10% slowdown");
         }
         else {
             Assert.assertTrue(true);

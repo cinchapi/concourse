@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,6 @@ import org.junit.Test;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.db.Record;
-import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TestData;
@@ -33,9 +31,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link Record} and its subclasses.
- * 
- * 
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.db.Record} and
+ * its subclasses.
+ *
  * @author Jeff Nelson
  * @param <L>
  * @param <K>
@@ -136,8 +134,8 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         while (k2 == null || k1.equals(k2)) {
             k2 = getKey();
         }
-        Assert.assertFalse(getRecord(locator, k1)
-                .equals(getRecord(locator, k2)));
+        Assert.assertFalse(
+                getRecord(locator, k1).equals(getRecord(locator, k2)));
     }
 
     @Test
@@ -148,32 +146,32 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         Set<V> values = populateRecord(record, locator, key);
         Assert.assertEquals(values, record.get(key));
     }
-    
+
     @Test
-    public void testDescribe(){
+    public void testDescribe() {
         L locator = getLocator();
         Set<K> keys = Sets.newHashSet();
         record = getRecord(locator);
-        for(int i = 0; i < TestData.getScaleCount(); i++){
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
             K key = getKey();
             keys.add(key);
             populateRecord(record, locator, key);
         }
         Assert.assertEquals(keys, record.describe());
     }
-    
+
     @Test
-    public void testDescribeWithTime(){
+    public void testDescribeWithTime() {
         L locator = getLocator();
         Set<K> keys = Sets.newHashSet();
         record = getRecord(locator);
-        for(int i = 0; i < TestData.getScaleCount(); i++){
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
             K key = getKey();
             keys.add(key);
             populateRecord(record, locator, key);
         }
         long timestamp = Time.now();
-        for(int i = 0; i < TestData.getScaleCount(); i++){
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
             K key = getKey();
             populateRecord(record, locator, key);
         }
@@ -192,8 +190,8 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         for (int i = 0; i < count; i++) {
             if(TestData.getInt() % 3 == 0) {
                 Object[] array;
-                V value = (V) (array = (values.toArray()))[Math.abs(TestData
-                        .getInt()) % array.length];
+                V value = (V) (array = (values.toArray()))[Math
+                        .abs(TestData.getInt()) % array.length];
                 record.append(getRevision(locator, key, value));
             }
             else if(TestData.getInt() % 5 == 0) {
@@ -249,9 +247,9 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         }
         Assert.assertTrue(record.get(key).contains(value));
     }
-    
+
     @Test
-    public void testIsEmpty(){
+    public void testIsEmpty() {
         L locator = getLocator();
         K key = getKey();
         V value = getValue();

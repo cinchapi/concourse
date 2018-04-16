@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,8 +45,8 @@ public final class Processes {
         ProcessBuilder pb = new ProcessBuilder(commands);
         if(!Platform.isWindows()) {
             Map<String, String> env = pb.environment();
-            env.put("BASH_ENV", System.getProperty("user.home")
-                    + "/.bash_profile");
+            env.put("BASH_ENV",
+                    System.getProperty("user.home") + "/.bash_profile");
         }
         return pb;
     }
@@ -97,8 +97,8 @@ public final class Processes {
      */
     private static List<String> readStream(InputStream stream) {
         try {
-            BufferedReader out = new BufferedReader(new InputStreamReader(
-                    stream));
+            BufferedReader out = new BufferedReader(
+                    new InputStreamReader(stream));
             String line;
             List<String> output = Lists.newArrayList();
             while ((line = out.readLine()) != null) {

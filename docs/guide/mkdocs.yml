@@ -1,0 +1,57 @@
+site_name: Concourse Guide
+site_description: Concourse is a self-tuning database for ACID transactions and ad-hoc analytics across time.
+site_author: Cinchapi Inc.
+site_url: https://concoursedb.com
+site_favicon: images/logo.png
+repo_name: 'GitHub'
+repo_url: https://github.com/cinchapi/concourse
+copyright: Copyright (c) 2013-2018 Cinchapi Inc.
+docs_dir: src
+google_analytics:
+  - 'UA-XXXXXXXX-X'
+  - 'auto'
+pages:
+    - Home: index.md
+    - Introduction: introduction.md
+    - Installation: installation.md
+    - Upgrade: upgrade.md
+    - Data Types: data-types.md
+    - Shell: shell.md
+    - Writes: writes.md
+    - Reads: reads.md
+    - Queries: queries.md
+    - Imports: imports.md
+    - Transactions: transactions.md
+    - Time Travel: time-travel.md
+    - Aggregations: aggregations.md
+    - Search: search.md
+    - Graph: graph.md
+    - Configuration: configuration.md
+    - Administration: administration.md
+    - Plugins:
+        - Overview: plugins/index.md
+        - Using Plugins: plugins/usage.md
+        - Developing Plugins: plugins/development.md
+    - Distributed: distributed.md
+    - Internals: internals.md
+    - Glossary: glossary.md
+theme: material
+extra_css:
+    - css/extra.css
+    - css/highlight.css
+extra_javascript:
+    - javascript/highlight.pack.js
+    - javascript/extra.js
+markdown_extensions:
+    - codehilite(css_class=code)
+    - admonition
+    - sane_lists
+    - smarty
+    - fenced_code
+    - toc:
+        permalink: '#'
+extra:
+    author:
+        github: cinchapi
+        twitter: cinchapi
+    logo: images/logo.png

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,12 +22,12 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
+import jline.console.ConsoleReader;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-
-import jline.console.ConsoleReader;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -215,6 +215,11 @@ public abstract class ManagementCli {
         if(client != null) {
             try {
                 client.logout(token);
+            }
+            catch (com.cinchapi.concourse.thrift.SecurityException e) {
+                // CON-590: The token has been invalidated, but we can ignore
+                // it at this point since the work that requires authorization
+                // has already been done.
             }
             catch (TException e) {
                 e.printStackTrace();

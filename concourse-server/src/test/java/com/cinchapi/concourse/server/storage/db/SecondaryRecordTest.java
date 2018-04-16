@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,22 +24,19 @@ import org.junit.Test;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.db.Record;
-import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.SecondaryRecord;
-import com.cinchapi.concourse.server.storage.db.SecondaryRevision;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link SecondaryRecord}.
- * 
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.storage.db.SecondaryRecord}.
+ *
  * @author Jeff Nelson
  */
-public class SecondaryRecordTest extends
-        BrowsableRecordTest<Text, Value, PrimaryKey> {
+public class SecondaryRecordTest
+        extends BrowsableRecordTest<Text, Value, PrimaryKey> {
 
     @Override
     protected Value getKey() {
@@ -64,8 +61,8 @@ public class SecondaryRecordTest extends
     @Override
     protected SecondaryRevision getRevision(Text locator, Value key,
             PrimaryKey value) {
-        return Revision.createSecondaryRevision(locator, key, value,
-                Time.now(), getAction(locator, key, value));
+        return Revision.createSecondaryRevision(locator, key, value, Time.now(),
+                getAction(locator, key, value));
     }
 
     @Override
@@ -80,7 +77,8 @@ public class SecondaryRecordTest extends
         for (int i = 0; i < 100; i++) {
             for (int j = 0; j <= i; j++) {
                 record.append(getRevision(locator,
-                        Value.wrap(Convert.javaToThrift(j)), PrimaryKey.wrap(i)));
+                        Value.wrap(Convert.javaToThrift(j)),
+                        PrimaryKey.wrap(i)));
             }
         }
         Map<PrimaryKey, Set<Value>> data = ((SecondaryRecord) record).explore(
@@ -91,8 +89,8 @@ public class SecondaryRecordTest extends
                 Assert.assertTrue(data.containsKey(pk));
                 Assert.assertEquals(i - 50, data.get(pk).size());
                 for (Value value : data.get(pk)) {
-                    Assert.assertTrue(value.compareTo(Value.wrap(Convert
-                            .javaToThrift(50))) > 0);
+                    Assert.assertTrue(value.compareTo(
+                            Value.wrap(Convert.javaToThrift(50))) > 0);
                 }
             }
             else {

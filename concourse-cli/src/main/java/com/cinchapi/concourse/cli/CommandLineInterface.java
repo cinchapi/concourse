@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,20 +19,19 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import jline.console.ConsoleReader;
+
 import org.apache.commons.lang.StringUtils;
-
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
-import com.cinchapi.concourse.util.FileOps;
-
 import org.slf4j.LoggerFactory;
 
-import jline.console.ConsoleReader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 
@@ -102,8 +101,8 @@ public abstract class CommandLineInterface {
                 options.environment = prefs.getEnvironment();
             }
             if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("password for ["
-                        + options.username + "]: ", '*');
+                options.password = console.readLine(
+                        "password for [" + options.username + "]: ", '*');
             }
             int attemptsRemaining = 5;
             while (concourse == null && attemptsRemaining > 0) {
@@ -116,14 +115,14 @@ public abstract class CommandLineInterface {
                     System.err.println("Error processing login. Please check "
                             + "username/password combination and try again.");
                     concourse = null;
-                    options.password = console.readLine("password for ["
-                            + options.username + "]: ", '*');
+                    options.password = console.readLine(
+                            "password for [" + options.username + "]: ", '*');
                     attemptsRemaining--;
                 }
             }
             if(concourse == null) {
-                System.err
-                        .println("Unable to connect to Concourse. Is the server running?");
+                System.err.println(
+                        "Unable to connect to Concourse. Is the server running?");
                 System.exit(1);
             }
         }

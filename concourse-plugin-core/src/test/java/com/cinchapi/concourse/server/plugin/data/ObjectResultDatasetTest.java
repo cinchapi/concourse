@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,18 +22,19 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
-import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 /**
- * Unit tests for {@link ObjectResultDataset}
- * 
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.plugin.data.ObjectResultDataset}
+ *
  * @author Jeff Nelson
  */
 public class ObjectResultDatasetTest {
@@ -202,6 +203,16 @@ public class ObjectResultDatasetTest {
         ObjectResultDataset a = new ObjectResultDataset();
         a.insert(1L, "name", "Jeff Nelson");
         Assert.assertNotNull(a.get(1L));
+    }
+
+    @Test
+    public void testInvertedPutAll() {
+        ObjectResultDataset a = new ObjectResultDataset();
+        a.insert(1L, "name", "Jeff Nelson");
+        Map<String, Map<Object, Set<Long>>> data = Maps.newLinkedHashMap();
+        data.put("age", ImmutableMap.of(100, ImmutableSet.of(1L)));
+        a.invert().putAll(data);
+        Assert.assertTrue(a.invert().keySet().contains("age"));
     }
 
 }

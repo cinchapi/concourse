@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,11 +61,11 @@ public class LoggingBloomFilter {
      * @param fpp
      * @return the LoggingBloomFilter
      */
-    public static LoggingBloomFilter create(String file,
-            int expectedInsertions, double fpp) {
+    public static LoggingBloomFilter create(String file, int expectedInsertions,
+            double fpp) {
         int numBits = getNumBits(expectedInsertions, fpp);
-        return new LoggingBloomFilter(file, numBits, getNumHashFunctions(
-                expectedInsertions, numBits));
+        return new LoggingBloomFilter(file, numBits,
+                getNumHashFunctions(expectedInsertions, numBits));
     }
 
     /**
@@ -103,7 +103,8 @@ public class LoggingBloomFilter {
      * @param numBits
      * @return the ideal number of hash function
      */
-    private static int getNumHashFunctions(int expectedInsertions, int numBits) {
+    private static int getNumHashFunctions(int expectedInsertions,
+            int numBits) {
         return (int) Math.round(Math.log(2) * (numBits / expectedInsertions));
     }
 

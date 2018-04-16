@@ -1,12 +1,11 @@
 /*
- * Licensed to Cinchapi Inc, under one or more contributor license 
- * agreements. See the NOTICE file distributed with this work for additional 
- * information regarding copyright ownership. Cinchapi Inc. licenses this 
- * file to you under the Apache License, Version 2.0 (the "License"); you may 
- * not use this file except in compliance with the License. You may obtain a 
- * copy of the License at
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,8 +60,8 @@ public class LegacyAccessManager {
      * @param backingStore
      */
     private LegacyAccessManager(String backingStore) {
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
-                .readBytes(backingStore));
+        Iterator<ByteBuffer> it = ByteableCollections
+                .iterator(FileSystem.readBytes(backingStore));
         while (it.hasNext()) {
             LegacyAccessManager.Credentials creds = Credentials
                     .fromByteBuffer(it.next());
@@ -118,8 +117,8 @@ public class LegacyAccessManager {
                                                    // for
                                                    // testing
         FileChannel channel = FileSystem.getFileChannel(backingStore);
-        ByteBuffer bytes = ByteableCollections.toByteBuffer(credentials
-                .values());
+        ByteBuffer bytes = ByteableCollections
+                .toByteBuffer(credentials.values());
         try {
             channel.write(bytes);
         }
@@ -160,12 +159,12 @@ public class LegacyAccessManager {
          * @return the Credentials
          */
         public static Credentials fromByteBuffer(ByteBuffer bytes) {
-            String password = ByteBuffers.encodeAsHex(ByteBuffers.get(bytes,
-                    Passwords.PASSWORD_LENGTH));
-            String salt = ByteBuffers.encodeAsHex(ByteBuffers.get(bytes,
-                    Passwords.SALT_LENGTH));
-            String username = ByteBuffers.encodeAsHex(ByteBuffers.get(bytes,
-                    bytes.remaining()));
+            String password = ByteBuffers.encodeAsHex(
+                    ByteBuffers.get(bytes, Passwords.PASSWORD_LENGTH));
+            String salt = ByteBuffers
+                    .encodeAsHex(ByteBuffers.get(bytes, Passwords.SALT_LENGTH));
+            String username = ByteBuffers
+                    .encodeAsHex(ByteBuffers.get(bytes, bytes.remaining()));
             return new Credentials(username, password, salt);
         }
 
@@ -233,12 +232,12 @@ public class LegacyAccessManager {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
-            sb.append("username: " + username).append(
-                    System.getProperty("line.separator"));
-            sb.append("password: " + password).append(
-                    System.getProperty("line.separator"));
-            sb.append("salt: " + salt).append(
-                    System.getProperty("line.separator"));
+            sb.append("username: " + username)
+                    .append(System.getProperty("line.separator"));
+            sb.append("password: " + password)
+                    .append(System.getProperty("line.separator"));
+            sb.append("salt: " + salt)
+                    .append(System.getProperty("line.separator"));
             return sb.toString();
         }
 

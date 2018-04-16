@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.lang;
+
+import com.cinchapi.ccl.grammar.ValueSymbol;
 
 /**
  * The {@link State} that expects the next token to be a value.
@@ -38,7 +40,7 @@ public class OperatorState extends State {
      * @return the builder
      */
     public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
+        criteria.add(new ValueSymbol(value));
         return new ValueState(criteria);
     }
 

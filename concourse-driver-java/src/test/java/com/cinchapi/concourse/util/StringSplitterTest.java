@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,18 @@ package com.cinchapi.concourse.util;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
-import com.cinchapi.concourse.util.Random;
-import com.cinchapi.concourse.util.StringSplitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@link StringSplitter} class.
- * 
+ * Unit tests for the {@link com.cinchapi.concourse.util.StringSplitter} class.
+ *
  * @author Jeff Nelson
  */
 public class StringSplitterTest extends ConcourseBaseTest {
@@ -38,8 +37,8 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testStringSplitter() {
         String string = Random.getString();
-        char delimiter = string.charAt(Math.abs(Random.getInt()
-                % string.length()));
+        char delimiter = string
+                .charAt(Math.abs(Random.getInt() % string.length()));
         doTestStringSplitter(string, delimiter);
     }
 
@@ -79,8 +78,8 @@ public class StringSplitterTest extends ConcourseBaseTest {
         while (splitter.hasNext()) {
             actual.add(splitter.next());
         }
-        List<String> expected = Lists.newArrayList(string.split(String
-                .valueOf(delimiter)));
+        List<String> expected = Lists
+                .newArrayList(string.split(String.valueOf(delimiter)));
         Variables.register("expected", expected);
         Variables.register("actual", actual);
         Assert.assertEquals(expected, actual);
@@ -254,41 +253,45 @@ public class StringSplitterTest extends ConcourseBaseTest {
             }
         }
     }
-    
+
     @Test
-    public void testTrimTokens(){
+    public void testTrimTokens() {
         String string = "a, b, c, d, e";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimSingleTokenLeading(){
+    public void testTrimSingleTokenLeading() {
         String string = "  a";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimSingleTokenTrailing(){
+    public void testTrimSingleTokenTrailing() {
         String string = "a  ";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
     @Test
-    public void testTrimTokensLeadingAndTrailing(){
+    public void testTrimTokensLeadingAndTrailing() {
         String string = "  a  ,c  ,  d,e";
-        StringSplitter it = new StringSplitter(string, ',', SplitOption.TRIM_WHITESPACE);
-        while(it.hasNext()){
+        StringSplitter it = new StringSplitter(string, ',',
+                SplitOption.TRIM_WHITESPACE);
+        while (it.hasNext()) {
             Assert.assertFalse(it.next().contains(" "));
         }
     }
-    
+
 }

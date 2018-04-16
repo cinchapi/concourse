@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.importer.LineBasedImporter;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Lists;
@@ -33,8 +32,8 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public abstract class DelimitedLineImporterTest extends
-        ConcourseIntegrationTest {
+public abstract class DelimitedLineImporterTest
+        extends ConcourseIntegrationTest {
 
     /**
      * The importer. A new instance of this is instantiated before each test.
@@ -42,7 +41,9 @@ public abstract class DelimitedLineImporterTest extends
     protected DelimitedLineImporter importer;
 
     /**
-     * A {@link LineBasedImporter legacy} importer that is used for comparisons.
+     * A {@link com.cinchapi.concourse.importer.LineBasedImporter legacy}
+     * importer that is used for
+     * comparisons.
      */
     private LineBasedImporter legacy;
 
@@ -78,9 +79,10 @@ public abstract class DelimitedLineImporterTest extends
     protected abstract Class<? extends DelimitedLineImporter> getImporterClass();
 
     /**
-     * Return a {@link LineBasedImporter legacy} importer to use for validation
-     * of the new importer.
-     * 
+     * Return a {@link com.cinchapi.concourse.importer.LineBasedImporter legacy}
+     * importer to use for
+     * validation of the new importer.
+     *
      * @return the legacy Importer
      */
     protected abstract LineBasedImporter getLegacyImporter();

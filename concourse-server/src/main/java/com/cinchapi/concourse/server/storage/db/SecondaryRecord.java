@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -139,7 +139,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      *         criteria
      */
     private Map<PrimaryKey, Set<Value>> explore(boolean historical,
-            long timestamp, Operator operator, Value... values) { /* Authorized */
+            long timestamp, Operator operator,
+            Value... values) { /* Authorized */
         read.lock();
         try {
             Map<PrimaryKey, Set<Value>> data = Maps.newHashMap();
@@ -151,11 +152,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.NOT_EQUALS) {
-                for (Value stored : historical ? history.keySet() : present
-                        .keySet()) {
+                for (Value stored : historical ? history.keySet()
+                        : present.keySet()) {
                     if(!value.equals(stored)) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -163,11 +164,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.GREATER_THAN) {
                 for (Value stored : historical ? history.keySet()
-                        : ((NavigableSet<Value>) present.keySet()).tailSet(
-                                value, false)) {
+                        : ((NavigableSet<Value>) present.keySet())
+                                .tailSet(value, false)) {
                     if(!historical || stored.compareTo(value) > 0) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -175,11 +176,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
                 for (Value stored : historical ? history.keySet()
-                        : ((NavigableSet<Value>) present.keySet()).tailSet(
-                                value, true)) {
+                        : ((NavigableSet<Value>) present.keySet())
+                                .tailSet(value, true)) {
                     if(!historical || stored.compareTo(value) >= 0) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -187,11 +188,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.LESS_THAN) {
                 for (Value stored : historical ? history.keySet()
-                        : ((NavigableSet<Value>) present.keySet()).headSet(
-                                value, false)) {
+                        : ((NavigableSet<Value>) present.keySet())
+                                .headSet(value, false)) {
                     if(!historical || stored.compareTo(value) < 0) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -199,11 +200,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.LESS_THAN_OR_EQUALS) {
                 for (Value stored : historical ? history.keySet()
-                        : ((NavigableSet<Value>) present.keySet()).headSet(
-                                value, true)) {
+                        : ((NavigableSet<Value>) present.keySet())
+                                .headSet(value, true)) {
                     if(!historical || stored.compareTo(value) <= 0) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -213,13 +214,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 Preconditions.checkArgument(values.length > 1);
                 Value value2 = values[1];
                 for (Value stored : historical ? history.keySet()
-                        : ((NavigableSet<Value>) present.keySet()).subSet(
-                                value, true, value2, false)) {
-                    if(!historical
-                            || (stored.compareTo(value) >= 0 && stored
-                                    .compareTo(value2) < 0)) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        : ((NavigableSet<Value>) present.keySet()).subSet(value,
+                                true, value2, false)) {
+                    if(!historical || (stored.compareTo(value) >= 0
+                            && stored.compareTo(value2) < 0)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -227,12 +227,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.REGEX) {
                 Pattern p = Pattern.compile(value.getObject().toString());
-                for (Value stored : historical ? history.keySet() : present
-                        .keySet()) {
+                for (Value stored : historical ? history.keySet()
+                        : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -240,12 +240,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.NOT_REGEX) {
                 Pattern p = Pattern.compile(value.getObject().toString());
-                for (Value stored : historical ? history.keySet() : present
-                        .keySet()) {
+                for (Value stored : historical ? history.keySet()
+                        : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(!m.matches()) {
-                        for (PrimaryKey record : historical ? get(stored,
-                                timestamp) : get(stored)) {
+                        for (PrimaryKey record : historical
+                                ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }

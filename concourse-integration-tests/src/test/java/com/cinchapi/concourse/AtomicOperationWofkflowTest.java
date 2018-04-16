@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +22,6 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.DuplicateEntryException;
-import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
@@ -318,7 +315,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     // TODO testClearCompletesEvenIfInterrupted
 
     @Test
-    public void testSetCompletesEvenIfInterrupted() throws InterruptedException {
+    public void testSetCompletesEvenIfInterrupted()
+            throws InterruptedException {
         final Concourse client2 = Concourse.connect(SERVER_HOST, SERVER_PORT,
                 "admin", "admin");
         final int count = 100;
@@ -412,8 +410,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     public void testVerifyAndSwapMultiValues() {
         String key = Variables.register("key", TestData.getSimpleString());
         long record = Variables.register("record", TestData.getLong());
-        HashSet<Object> values = Variables
-                .register("values", Sets.newHashSet());
+        HashSet<Object> values = Variables.register("values",
+                Sets.newHashSet());
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             Object value = null;
             while (value == null || values.contains(value)) {
@@ -429,8 +427,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         Object expected = Variables.register("expected",
                 values.toArray()[TestData.getScaleCount() % values.size()]);
-        Assert.assertTrue(client.verifyAndSwap(key, expected, record,
-                replacement));
+        Assert.assertTrue(
+                client.verifyAndSwap(key, expected, record, replacement));
         Assert.assertFalse(client.select(key, record).contains(expected));
         Assert.assertTrue(client.select(key, record).contains(replacement));
     }
@@ -451,8 +449,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
                     TestData.getObject());
         }
         client.add(key, actual, record);
-        Assert.assertFalse(client.verifyAndSwap(key, expected, record,
-                replacement));
+        Assert.assertFalse(
+                client.verifyAndSwap(key, expected, record, replacement));
         Assert.assertFalse(client.select(key, record).contains(replacement));
         Assert.assertTrue(client.select(key, record).contains(actual));
     }
@@ -468,8 +466,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             replacement = Variables.register("replacement",
                     TestData.getObject());
         }
-        Assert.assertTrue(client.verifyAndSwap(key, expected, record,
-                replacement));
+        Assert.assertTrue(
+                client.verifyAndSwap(key, expected, record, replacement));
         Assert.assertTrue(client.select(key, record).contains(replacement));
         Assert.assertFalse(client.select(key, record).contains(expected));
     }
@@ -498,9 +496,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         String json = toJsonString(getInsertData(key, value));
         long existing = TestData.getLong();
         client.insert(json, existing);
-        long record = client.findOrInsert(
-                Criteria.where().key(key).operator(Operator.GREATER_THAN)
-                        .value(5), json);
+        long record = client.findOrInsert(Criteria.where().key(key)
+                .operator(Operator.GREATER_THAN).value(5), json);
         Assert.assertEquals(existing, record);
     }
 
@@ -521,8 +518,11 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         String json = toJsonString(getInsertData(key, value));
         long record = TestData.getLong();
         client.insert(json, record);
-        Assert.assertNotEquals(record, client.findOrInsert(Criteria.where()
-                .key(key).operator(Operator.GREATER_THAN).value(11), json));
+        Assert.assertNotEquals(record,
+                client.findOrInsert(
+                        Criteria.where().key(key)
+                                .operator(Operator.GREATER_THAN).value(11),
+                        json));
     }
 
     @Test
@@ -557,8 +557,9 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             records.add(TestData.getLong());
         }
         client.insert(json, records);
-        client.findOrInsert(Criteria.where().key(key).operator(Operator.EQUALS)
-                .value(10), json);
+        client.findOrInsert(
+                Criteria.where().key(key).operator(Operator.EQUALS).value(10),
+                json);
     }
 
     @Test(expected = DuplicateEntryException.class)

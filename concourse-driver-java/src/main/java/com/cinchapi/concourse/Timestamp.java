@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,6 +46,19 @@ public final class Timestamp {
     // Joda DateTime uses millisecond instead of microsecond precision, so this
     // class is a wrapper that will handle microseconds so we don't ever lose
     // data that happens within the same millisecond.
+
+    /**
+     * The default formatter that is used to display objects of this class.
+     */
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
+    /**
+     * The default formatter that is used to display {@link #isDateOnly() date
+     * only} timestamps.
+     */
+    public static final DateTimeFormatter DEFAULT_DATE_ONLY_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy");
 
     /**
      * Return a {@code Timestamp} that corresponds to the system
@@ -117,9 +130,8 @@ public final class Timestamp {
      */
     public static Timestamp now(Chronology chronology) {
         long microseconds = Time.now();
-        return new Timestamp(microseconds, new DateTime(
-                TimeUnit.MILLISECONDS.convert(microseconds,
-                        TimeUnit.MICROSECONDS), chronology));
+        return new Timestamp(microseconds, new DateTime(TimeUnit.MILLISECONDS
+                .convert(microseconds, TimeUnit.MICROSECONDS), chronology));
     }
 
     /**
@@ -131,9 +143,8 @@ public final class Timestamp {
      */
     public static Timestamp now(DateTimeZone zone) {
         long microseconds = Time.now();
-        return new Timestamp(microseconds, new DateTime(
-                TimeUnit.MILLISECONDS.convert(microseconds,
-                        TimeUnit.MICROSECONDS), zone));
+        return new Timestamp(microseconds, new DateTime(TimeUnit.MILLISECONDS
+                .convert(microseconds, TimeUnit.MICROSECONDS), zone));
     }
 
     /**
@@ -148,10 +159,18 @@ public final class Timestamp {
     }
 
     /**
-     * The default formatter that is used to display objects of this class.
+     * Parse a {@link Timestamp} from the specified string that adheres to the
+     * provided {@code format}.
+     * 
+     * @param str the string to parse, not {@code null}
+     * @param format the format of the string; see
+     *            {@link http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html}
+     *            for details
+     * @return the parsed timestamp
      */
-    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
-            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+    public static Timestamp parse(String str, String format) {
+        return parse(str, DateTimeFormat.forPattern(format));
+    }
 
     /**
      * A relative or absolute description of an instant that is translated to an
@@ -226,7 +245,8 @@ public final class Timestamp {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Timestamp && !isString()) {
-            return Longs.compare(microseconds, ((Timestamp) obj).microseconds) == 0;
+            return Longs.compare(microseconds,
+                    ((Timestamp) obj).microseconds) == 0;
         }
         // NOTE: By convention, two hollow timestamps are NEVER equal
         return false;
@@ -260,13 +280,26 @@ public final class Timestamp {
 
     @Override
     public int hashCode() {
-        return isString() ? description.hashCode() : Longs
-                .hashCode(microseconds);
+        return isString() ? description.hashCode()
+                : Longs.hashCode(microseconds);
+    }
+
+    /**
+     * Return {@code true} of this {@link Timestamp} does not have relevant
+     * temporal componet.
+     * 
+     * @return {@code true} if this {@link Timestamp} represents a date
+     */
+    public boolean isDateOnly() {
+        DateTime joda = getJoda();
+        return joda.getMillisOfDay() == 0;
     }
 
     @Override
     public String toString() {
-        return isString() ? description : joda.toString(DEFAULT_FORMATTER);
+        return isString() ? description
+                : joda.toString(isDateOnly() ? DEFAULT_DATE_ONLY_FORMATTER
+                        : DEFAULT_FORMATTER);
     }
 
     /**

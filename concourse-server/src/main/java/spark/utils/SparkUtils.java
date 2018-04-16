@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,20 +26,20 @@ import java.util.List;
 public final class SparkUtils {
 
     public static final String ALL_PATHS = "+/*paths";
-    
+
     private SparkUtils() {}
-    
+
     public static List<String> convertRouteToList(String route) {
         String[] pathArray = route.split("/");
         List<String> path = new ArrayList<String>();
         for (String p : pathArray) {
-            if (p.length() > 0) {
+            if(p.length() > 0) {
                 path.add(p);
             }
         }
         return path;
     }
-    
+
     public static boolean isParam(String routePart) {
         return routePart.startsWith(":");
     }
@@ -48,5 +47,5 @@ public final class SparkUtils {
     public static boolean isSplat(String routePart) {
         return routePart.equals("*");
     }
-    
+
 }

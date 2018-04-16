@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -28,6 +29,8 @@ import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.Nullable;
+
+import ch.qos.logback.classic.Level;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
@@ -41,8 +44,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import ch.qos.logback.classic.Level;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -340,6 +341,7 @@ public final class GlobalState extends Constants {
             }
             reader.close();
         }
+        catch (FileNotFoundException e) {}
         catch (IOException e) {
             throw Throwables.propagate(e);
         }

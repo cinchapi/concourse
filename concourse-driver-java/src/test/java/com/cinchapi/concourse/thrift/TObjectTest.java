@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,13 +20,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Tag;
-import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 
 /**
- * Unit tests for the constraints promised by the {@link TObject} class.
- * 
+ * Unit tests for the constraints promised by the
+ * {@link com.cinchapi.concourse.thrift.TObject}
+ * class.
+ *
  * @author Jeff Nelson
  */
 public class TObjectTest {
@@ -55,38 +56,38 @@ public class TObjectTest {
         Assert.assertFalse(tag.matches(string));
         Assert.assertFalse(string.matches(tag));
     }
-    
+
     @Test
-    public void testNullIsAlwaysBlank(){
+    public void testNullIsAlwaysBlank() {
         Assert.assertTrue(TObject.NULL.isBlank());
     }
-    
+
     @Test
-    public void testIsBlankPositive(){
+    public void testIsBlankPositive() {
         int count = Random.getScaleCount();
-        String s ="";
-        for(int i =0; i< count; ++i){
-            s+=" ";
+        String s = "";
+        for (int i = 0; i < count; ++i) {
+            s += " ";
         }
         TObject t = Convert.javaToThrift(s);
         Assert.assertTrue(t.isBlank());
     }
-    
+
     @Test
-    public void testIsBlankNegative(){
+    public void testIsBlankNegative() {
         int count = Random.getScaleCount();
-        String s ="";
-        for(int i =0; i< count; ++i){
-            s+=" ";
+        String s = "";
+        for (int i = 0; i < count; ++i) {
+            s += " ";
         }
-        String extra="";
-        while(StringUtils.isBlank(extra)){
+        String extra = "";
+        while (StringUtils.isBlank(extra)) {
             extra = Random.getString();
         }
-        s+=extra;
+        s += extra;
         count = Random.getScaleCount();
-        for(int i =0; i< count; ++i){
-            s+=" ";
+        for (int i = 0; i < count; ++i) {
+            s += " ";
         }
         TObject t = Convert.javaToThrift(s);
         Assert.assertFalse(t.isBlank());

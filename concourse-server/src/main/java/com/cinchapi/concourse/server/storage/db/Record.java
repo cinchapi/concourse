@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -219,12 +219,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // for PrimaryRecords because Secondary and Search records will be
             // populated from Blocks that were sorted based primarily on
             // non-version factors.
-            Preconditions
-                    .checkArgument((this instanceof PrimaryRecord && revision
-                            .getVersion() >= version) || true, "Cannot "
-                            + "append %s because its version(%s) is lower "
+            Preconditions.checkArgument(
+                    (this instanceof PrimaryRecord
+                            && revision.getVersion() >= version) || true,
+                    "Cannot " + "append %s because its version(%s) is lower "
                             + "than the Record's current version(%s). The",
-                            revision, revision.getVersion(), version);
+                    revision, revision.getVersion(), version);
             Preconditions.checkArgument(revision.getLocator().equals(locator),
                     "Cannot append %s because it does not belong to %s",
                     revision, this);
@@ -241,11 +241,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // been added if similar data is added to the same key in a record
             // at different times (i.e. adding John Doe and Johnny Doe to the
             // "name")
-            Preconditions.checkArgument(this instanceof SearchRecord
-                    || isOffset(revision), "Cannot append "
-                    + "%s because it represents an action "
-                    + "involving a key, value and locator that has not "
-                    + "been offset.", revision);
+            Preconditions.checkArgument(
+                    this instanceof SearchRecord || isOffset(revision),
+                    "Cannot append " + "%s because it represents an action "
+                            + "involving a key, value and locator that has not "
+                            + "been offset.",
+                    revision);
 
             // Update present index
             Set<V> values = present.get(revision.getKey());
@@ -348,7 +349,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     protected Set<K> describe() {
         read.lock();
         try {
-            return Collections.unmodifiableSet(present.keySet()); /* Authorized */
+            return Collections
+                    .unmodifiableSet(present.keySet()); /* Authorized */
         }
         finally {
             read.unlock();
@@ -453,8 +455,9 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     private boolean isOffset(Revision<L, K, V> revision) {
         boolean contained = get(revision.getKey())
                 .contains(revision.getValue());
-        return ((revision.getType() == Action.ADD && !contained) || (revision
-                .getType() == Action.REMOVE && contained)) ? true : false;
+        return ((revision.getType() == Action.ADD && !contained)
+                || (revision.getType() == Action.REMOVE && contained)) ? true
+                        : false;
     }
 
     /**

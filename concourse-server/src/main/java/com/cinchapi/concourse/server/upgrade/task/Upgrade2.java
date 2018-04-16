@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,8 +81,8 @@ public class Upgrade2 extends UpgradeTask {
 
             // Migrate the legacy data in the buffer
             FileSystem.mkdirs(defaultBufferEnv);
-            for (Path path : Files.newDirectoryStream(Paths
-                    .get(GlobalState.BUFFER_DIRECTORY))) {
+            for (Path path : Files.newDirectoryStream(
+                    Paths.get(GlobalState.BUFFER_DIRECTORY))) {
 
                 if(path.toString().endsWith(".buf") || path.endsWith("txn")) {
                     File src = new File(path.toString());
@@ -95,8 +95,8 @@ public class Upgrade2 extends UpgradeTask {
 
             // Migrating the legacy data in the db
             FileSystem.mkdirs(defaultDbEnv);
-            for (Path path : Files.newDirectoryStream(Paths
-                    .get(GlobalState.DATABASE_DIRECTORY))) {
+            for (Path path : Files.newDirectoryStream(
+                    Paths.get(GlobalState.DATABASE_DIRECTORY))) {
                 if(path.endsWith("cpb") || path.endsWith("csb")
                         || path.endsWith("ctb")) {
                     File src = new File(path.toString());

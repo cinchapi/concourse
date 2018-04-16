@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,17 @@ package com.cinchapi.concourse.lang;
 import java.text.MessageFormat;
 import java.util.List;
 
+import com.cinchapi.ccl.grammar.ConjunctionSymbol;
+import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.OperatorSymbol;
+import com.cinchapi.ccl.grammar.ParenthesisSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
+import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
+import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Lists;
 
 /**
@@ -41,23 +49,30 @@ public final class Language {
             return ConjunctionSymbol.valueOf(tsymbol.getSymbol().toUpperCase());
         }
         else if(tsymbol.getType() == TSymbolType.KEY) {
-            return KeySymbol.parse(tsymbol.getSymbol());
+            return new KeySymbol(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.VALUE) {
-            return ValueSymbol.parse(tsymbol.getSymbol());
+            return new ValueSymbol(Convert.stringToJava(tsymbol.getSymbol()));
         }
         else if(tsymbol.getType() == TSymbolType.PARENTHESIS) {
             return ParenthesisSymbol.parse(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.OPERATOR) {
-            return OperatorSymbol.parse(tsymbol.getSymbol());
+            return new OperatorSymbol(
+                    Convert.stringToOperator(tsymbol.getSymbol()));
         }
         else if(tsymbol.getType() == TSymbolType.TIMESTAMP) {
-            return TimestampSymbol.parse(tsymbol.getSymbol());
+            // NOTE: This depends on knowledge that TimestampSymbol#toString in
+            // the ccl library prepends "at " before the microseconds. This is
+            // brittle and we need a better solution in case the ccl library
+            // changes the toString format.
+            long micros = Long
+                    .parseLong(tsymbol.getSymbol().replace("at ", ""));
+            return new TimestampSymbol(micros);
         }
         else {
-            throw new IllegalArgumentException("Unrecognized TSymbol "
-                    + tsymbol);
+            throw new IllegalArgumentException(
+                    "Unrecognized TSymbol " + tsymbol);
         }
     }
 
@@ -103,7 +118,7 @@ public final class Language {
             return new TSymbol(TSymbolType.KEY, symbol.toString());
         }
         else if(symbol.getClass() == ValueSymbol.class) {
-            return new TSymbol(TSymbolType.VALUE, escape(symbol.toString()));
+            return new TSymbol(TSymbolType.VALUE, symbol.toString());
         }
         else if(symbol.getClass() == ParenthesisSymbol.class) {
             return new TSymbol(TSymbolType.PARENTHESIS, symbol.toString());
@@ -115,30 +130,8 @@ public final class Language {
             return new TSymbol(TSymbolType.TIMESTAMP, symbol.toString());
         }
         else {
-            throw new IllegalArgumentException(MessageFormat.format(
-                    "Cannot translate {0} to Thrift", symbol));
-        }
-    }
-
-    /**
-     * Do any escaping of the {@code value} in order to preserve it during the
-     * translation.
-     * 
-     * @param value
-     * @return the escaped value
-     */
-    private static String escape(String value) {
-        if(value.matches("`([^`]+)`")) { // CON-167: surround by quotes so the
-                                         // backticks are not interpreted as
-                                         // indicators of an encoded Tag. This
-                                         // case would happen if the user
-                                         // manually placed text wrapped in
-                                         // backticks in the Criteria instead of
-                                         // using the #Tag.create() method.
-            return "\"" + value + "\"";
-        }
-        else {
-            return value;
+            throw new IllegalArgumentException(MessageFormat
+                    .format("Cannot translate {0} to Thrift", symbol));
         }
     }
 

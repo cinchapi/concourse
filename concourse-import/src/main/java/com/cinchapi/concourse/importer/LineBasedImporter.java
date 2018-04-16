@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -83,7 +83,8 @@ public abstract class LineBasedImporter extends JsonImporter {
      *         records created/affected from the import and whether any errors
      *         occurred.
      */
-    public final Set<Long> importFile(String file, @Nullable String resolveKey) {
+    public final Set<Long> importFile(String file,
+            @Nullable String resolveKey) {
         // TODO add option to specify batchSize, which is how many objects to
         // send over the wire in one atomic batch
         List<String> lines = FileOps.readLines(file);
@@ -97,7 +98,7 @@ public abstract class LineBasedImporter extends JsonImporter {
             }
             if(keys == null) {
                 keys = parseKeys(line);
-                 log.info("Parsed keys from header: " + line);
+                log.info("Parsed keys from header: " + line);
             }
             else {
                 JsonObject object = parseLine(line, keys);
@@ -108,7 +109,8 @@ public abstract class LineBasedImporter extends JsonImporter {
                         temp.add(resolveValue);
                         resolveValue = temp;
                     }
-                    for (int i = 0; i < resolveValue.getAsJsonArray().size(); ++i) {
+                    for (int i = 0; i < resolveValue.getAsJsonArray()
+                            .size(); ++i) {
                         String value = resolveValue.getAsJsonArray().get(i)
                                 .toString();
                         Object stored = Convert.stringToJava(value);
@@ -130,7 +132,7 @@ public abstract class LineBasedImporter extends JsonImporter {
                 else {
                     array.add(object);
                 }
-                 log.info("Importing {}", line);
+                log.info("Importing {}", line);
             }
 
         }
@@ -168,7 +170,8 @@ public abstract class LineBasedImporter extends JsonImporter {
      * be used by subclasses to define dynamic intermediary transformations to
      * data to better prepare it for import.
      * </p>
-     * <h1>Examples</h1> <h2>Specifying Link Resolution</h2>
+     * <h1>Examples</h1>
+     * <h2>Specifying Link Resolution</h2>
      * <p>
      * The server will convert raw data of the form
      * <code>@&lt;key&gt;@value@&lt;key&gt;@</code> into a Link to all the

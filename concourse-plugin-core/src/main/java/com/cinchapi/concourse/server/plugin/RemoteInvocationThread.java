@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentMap;
 
+import com.cinchapi.common.logging.Logger;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.InterProcessCommunication;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
@@ -73,6 +74,11 @@ final class RemoteInvocationThread extends Thread
     private final boolean useLocalThriftArgs;
 
     /**
+     * A {@link Logger}.
+     */
+    private final Logger logger;
+
+    /**
      * Construct a new instance.
      * 
      * @param request
@@ -85,11 +91,31 @@ final class RemoteInvocationThread extends Thread
             InterProcessCommunication outgoing, Object invokable,
             boolean useLocalThriftArgs,
             ConcurrentMap<AccessToken, RemoteMethodResponse> responses) {
+        this(request, outgoing, invokable, useLocalThriftArgs, responses,
+                Logger.none());
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param request
+     * @param outgoing
+     * @param invokable
+     * @param useLocalThriftArgs
+     * @param responses
+     * @param logger
+     */
+    public RemoteInvocationThread(RemoteMethodRequest request,
+            InterProcessCommunication outgoing, Object invokable,
+            boolean useLocalThriftArgs,
+            ConcurrentMap<AccessToken, RemoteMethodResponse> responses,
+            Logger logger) {
         this.request = request;
         this.outgoing = outgoing;
         this.invokable = invokable;
         this.useLocalThriftArgs = useLocalThriftArgs;
         this.responses = responses;
+        this.logger = logger;
         setDaemon(true);
     }
 
@@ -153,6 +179,7 @@ final class RemoteInvocationThread extends Thread
         catch (Exception e) {
             e = (Exception) Throwables.getRootCause(e);
             response = new RemoteMethodResponse(request.creds, e);
+            logger.error("Remote invocation error: {}", e, e);
         }
         ByteBuffer buffer = serializer().serialize(response);
         outgoing.write(buffer);

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,16 +24,19 @@ import com.cinchapi.concourse.util.Version;
  * @author Jeff Nelson
  */
 public final class VersionCli {
-    
+
     /**
      * Run the program...
+     * 
      * @param args
      */
-    public static void main(String...args){
+    public static void main(String... args) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Copyright (c) 2013-2017, Cinchapi Inc. All Rights Reserved.").append(System.lineSeparator());
-        sb.append("Concourse Server "+Version.getVersion(VersionCli.class)).append(System.lineSeparator());
-        sb.append("System Id: "+GlobalState.SYSTEM_ID);
+        sb.append("Copyright (c) 2013-2018, Cinchapi Inc. All Rights Reserved.")
+                .append(System.lineSeparator());
+        sb.append("Concourse Server " + Version.getVersion(VersionCli.class))
+                .append(System.lineSeparator());
+        sb.append("System Id: " + GlobalState.SYSTEM_ID);
         System.out.println(sb.toString());
     }
 

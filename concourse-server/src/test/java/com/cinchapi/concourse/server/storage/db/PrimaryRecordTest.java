@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,8 @@
 package com.cinchapi.concourse.server.storage.db;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,21 +25,19 @@ import org.junit.Test;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.db.PrimaryRecord;
-import com.cinchapi.concourse.server.storage.db.Record;
-import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link PrimaryRecord}.
- * 
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.storage.db.PrimaryRecord}.
+ *
  * @author Jeff Nelson
  */
-public class PrimaryRecordTest extends
-        BrowsableRecordTest<PrimaryKey, Text, Value> {
+public class PrimaryRecordTest
+        extends BrowsableRecordTest<PrimaryKey, Text, Value> {
 
     @Override
     protected Text getKey() {
@@ -87,8 +85,8 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
             set.add(value);
         }
         long start = Time.now();
@@ -98,8 +96,8 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
             set.add(value);
             map.put(i, set);
         }
@@ -109,11 +107,11 @@ public class PrimaryRecordTest extends
             while (value == null || !allValues.add(value)) {
                 value = TestData.getValue();
             }
-            record.append(getRevision(primaryKey, Text.wrapCached("name"),
-                    value));
+            record.append(
+                    getRevision(primaryKey, Text.wrapCached("name"), value));
         }
-        Map<Long, Set<Value>> newMap = record.chronologize(
-                Text.wrapCached("name"), start, end);
+        Map<Long, Set<Value>> newMap = record
+                .chronologize(Text.wrapCached("name"), start, end);
         long key = 36;
         for (Entry<Long, Set<Value>> e : newMap.entrySet()) {
             Set<Value> result = e.getValue();

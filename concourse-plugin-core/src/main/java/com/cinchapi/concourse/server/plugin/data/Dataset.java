@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.plugin.data;
-
-import io.atomix.catalyst.buffer.Buffer;
 
 import java.lang.ref.SoftReference;
 import java.util.AbstractMap;
@@ -29,6 +27,7 @@ import com.cinchapi.concourse.server.plugin.io.PluginSerializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.atomix.catalyst.buffer.Buffer;
 
 /**
  * A data collection that associates the intersection of two keys, an
@@ -65,8 +64,8 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
      * The map returned from {@link #invertNullSafe(Object)} when the specified
      * attribute doesn't exist.
      */
-    private final Map<V, Set<E>> nullSafeInvertedMap = TrackingLinkedHashMultimap
-            .create();
+    private final Map<V, Set<E>> nullSafeInvertedMap = ImmutableTrackingMultimap
+            .of(TrackingLinkedHashMultimap.create());
 
     /**
      * Construct a new instance.

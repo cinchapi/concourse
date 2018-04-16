@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -114,7 +114,8 @@ public class HttpTest extends ConcourseIntegrationTest {
      * @param args
      * @return the filtered args
      */
-    private static Object[] filterArgs(Request.Builder builder, Object... args) {
+    private static Object[] filterArgs(Request.Builder builder,
+            Object... args) {
         List<Object> argsList = Lists.newArrayList(args);
         Iterator<Object> it = argsList.iterator();
         while (it.hasNext()) {
@@ -166,8 +167,8 @@ public class HttpTest extends ConcourseIntegrationTest {
     @Override
     public void beforeEachTest() {
         int port = Networking.getOpenPort();
-        httpServer = HttpServer.create(
-                Reflection.<ConcourseServer> get("server", this), port);
+        httpServer = HttpServer
+                .create(Reflection.<ConcourseServer> get("server", this), port);
         httpServer.start();
         // Wait for the HTTP server to start
         Request req = new Request.Builder().url(base).head().build();
@@ -262,8 +263,8 @@ public class HttpTest extends ConcourseIntegrationTest {
      * @return the response
      */
     protected Response login(String environment) {
-        environment = Strings.isNullOrEmpty(environment) ? "" : "/"
-                + environment;
+        environment = Strings.isNullOrEmpty(environment) ? ""
+                : "/" + environment;
         JsonObject creds = new JsonObject();
         creds.addProperty("username", "admin");
         creds.addProperty("password", "admin");

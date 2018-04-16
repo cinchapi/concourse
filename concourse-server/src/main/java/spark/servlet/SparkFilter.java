@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,14 +28,12 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 import spark.Access;
 import spark.route.RouteMatcherFactory;
-import spark.servlet.FilterTools;
-import spark.servlet.SparkApplication;
-import spark.servlet.SparkFilter;
 import spark.webserver.MatcherFilter;
 
 /**
  * Filter that can be configured to be used in a web.xml file.
- * Needs the init parameter 'applicationClass' set to the application class where
+ * Needs the init parameter 'applicationClass' set to the application class
+ * where
  * the adding of routes should be made.
  *
  * @author Per Wendel
@@ -44,7 +41,7 @@ import spark.webserver.MatcherFilter;
 public class SparkFilter implements Filter {
 
     public static final String APPLICATION_CLASS_PARAM = "applicationClass";
-    
+
     private String filterPath;
 
     private MatcherFilter matcherFilter;
@@ -57,34 +54,48 @@ public class SparkFilter implements Filter {
         application.init();
 
         filterPath = FilterTools.getFilterPath(filterConfig);
-        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
+        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true,
+                false);
     }
 
     /**
-     * Returns an instance of {@link SparkApplication} which on which {@link SparkApplication#init() init()} will be called.
-     * Default implementation looks up the class name in the filterConfig using the key {@link #APPLICATION_CLASS_PARAM}.
-     * Subclasses can override this method to use different techniques to obtain an instance (i.e. dependency injection).
+     * Returns an instance of {@link spark.servlet.SparkApplication} which on
+     * which {@link
+     * spark.servlet.SparkApplication#init() init()} will be called. Default
+     * implementation looks up
+     * the class name in the filterConfig using the key
+     * {@link #APPLICATION_CLASS_PARAM}. Subclasses
+     * can override this method to use different techniques to obtain an
+     * instance (i.e. dependency
+     * injection).
      *
-     * @param filterConfig the filter configuration for retrieving parameters passed to this filter.
+     * @param filterConfig the filter configuration for retrieving parameters
+     *            passed to this filter.
      * @return the spark application containing the configuration.
      * @throws ServletException if anything went wrong.
      */
-    protected SparkApplication getApplication(FilterConfig filterConfig) throws ServletException {
+    protected SparkApplication getApplication(FilterConfig filterConfig)
+            throws ServletException {
         try {
-            String applicationClassName = filterConfig.getInitParameter(APPLICATION_CLASS_PARAM);
+            String applicationClassName = filterConfig
+                    .getInitParameter(APPLICATION_CLASS_PARAM);
             Class<?> applicationClass = Class.forName(applicationClassName);
             return (SparkApplication) applicationClass.newInstance();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new ServletException(e);
         }
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response,
+            FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request; // NOSONAR
-        
-        final String relativePath = FilterTools.getRelativePath(httpRequest, filterPath);
-        HttpServletRequestWrapper requestWrapper = new HttpServletRequestWrapper(httpRequest) {
+
+        final String relativePath = FilterTools.getRelativePath(httpRequest,
+                filterPath);
+        HttpServletRequestWrapper requestWrapper = new HttpServletRequestWrapper(
+                httpRequest) {
             @Override
             public String getRequestURI() {
                 return relativePath;

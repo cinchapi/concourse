@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,10 +17,6 @@ package com.cinchapi.concourse.server.storage.db;
 
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.storage.db.Record;
-import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.SearchRecord;
-import com.cinchapi.concourse.server.storage.db.SearchRevision;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 
@@ -57,7 +53,8 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
     }
 
     @Override
-    protected SearchRevision getRevision(Text locator, Text key, Position value) {
+    protected SearchRevision getRevision(Text locator, Text key,
+            Position value) {
         return Revision.createSearchRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }

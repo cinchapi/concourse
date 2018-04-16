@@ -1,12 +1,11 @@
 /*
- * Licensed to Cinchapi Inc, under one or more contributor license 
- * agreements. See the NOTICE file distributed with this work for additional 
- * information regarding copyright ownership. Cinchapi Inc. licenses this 
- * file to you under the Apache License, Version 2.0 (the "License"); you may 
- * not use this file except in compliance with the License. You may obtain a 
- * copy of the License at
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,8 +56,7 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
 
     @Test
     public void testLessThanOrEqualsOperatorConversion() {
-        Assert.assertEquals(
-                client.find("age", Operator.LESS_THAN_OR_EQUALS, 2),
+        Assert.assertEquals(client.find("age", Operator.LESS_THAN_OR_EQUALS, 2),
                 client.find("age", "<=", 2));
     }
 
@@ -96,23 +94,29 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
     // Testing CriteriaBuilder
     @Test
     public void testLessThanOperatorConversionCb() {
-        Assert.assertEquals(client.find(Criteria.where().key("age")
-                .operator(Operator.LESS_THAN).value(25)), client.find(Criteria
-                .where().key("age").operator("<").value(25)));
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.LESS_THAN).value(25)),
+                client.find(
+                        Criteria.where().key("age").operator("<").value(25)));
     }
 
     @Test
     public void testLessThanOrEqualsOperatorConversionCb() {
-        Assert.assertEquals(client.find(Criteria.where().key("age")
-                .operator(Operator.LESS_THAN_OR_EQUALS).value(2)), client
-                .find(Criteria.where().key("age").operator("<=").value(2)));
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.LESS_THAN_OR_EQUALS).value(2)),
+                client.find(
+                        Criteria.where().key("age").operator("<=").value(2)));
     }
 
     @Test
     public void testGreaterThanOperatorConversionCb() {
-        Assert.assertEquals(client.find(Criteria.where().key("age")
-                .operator(Operator.GREATER_THAN).value(50)), client
-                .find(Criteria.where().key("age").operator(">").value(50)));
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.GREATER_THAN).value(50)),
+                client.find(
+                        Criteria.where().key("age").operator(">").value(50)));
     }
 
     @Test
@@ -120,15 +124,17 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
         Assert.assertEquals(
                 client.find(Criteria.where().key("age")
                         .operator(Operator.GREATER_THAN_OR_EQUALS).value(99)),
-                client.find(Criteria.where().key("age").operator(">=")
-                        .value(99)));
+                client.find(
+                        Criteria.where().key("age").operator(">=").value(99)));
     }
 
     @Test
     public void testEqualsOperatorConversionCb() {
-        Assert.assertEquals(client.find(Criteria.where().key("age")
-                .operator(Operator.EQUALS).value(15)), client.find(Criteria
-                .where().key("age").operator("=").value(15)));
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.EQUALS).value(15)),
+                client.find(
+                        Criteria.where().key("age").operator("=").value(15)));
     }
 
     @Test
@@ -136,8 +142,8 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
         Assert.assertEquals(
                 client.find(Criteria.where().key("age")
                         .operator(Operator.NOT_EQUALS).value(19)),
-                client.find(Criteria.where().key("age").operator("!=")
-                        .value(19)));
+                client.find(
+                        Criteria.where().key("age").operator("!=").value(19)));
     }
 
     @Test
@@ -145,7 +151,7 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
         Assert.assertEquals(
                 client.find(Criteria.where().key("age")
                         .operator(Operator.BETWEEN).value(40).value(50)),
-                client.find(Criteria.where().key("age").operator("><")
-                        .value(40).value(50)));
+                client.find(Criteria.where().key("age").operator("><").value(40)
+                        .value(50)));
     }
 }

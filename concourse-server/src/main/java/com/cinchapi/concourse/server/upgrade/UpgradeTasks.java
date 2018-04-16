@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,7 +43,8 @@ public final class UpgradeTasks {
     /**
      * The package that contains all upgrade tasks.
      */
-    private static final String[] pkgs = { "com.cinchapi.concourse.server.upgrade.task" };
+    private static final String[] pkgs = {
+            "com.cinchapi.concourse.server.upgrade.task" };
 
     /**
      * Run all the upgrade tasks that are greater than the
@@ -63,8 +64,8 @@ public final class UpgradeTasks {
                             + "have write permission. Please check the prefs file at {} to make sure "
                             + "you have properly configured the buffer_directory and database_directory. "
                             + "If those properties are properly configured, please give \"{}\" write "
-                            + "permission to those directories.", user,
-                    GlobalState.getPrefsFilePath(), user);
+                            + "permission to those directories.",
+                    user, GlobalState.getPrefsFilePath(), user);
             throw e;
         }
 
@@ -94,9 +95,11 @@ public final class UpgradeTasks {
                     // data, still set the system version so we aren't
                     // blocked on this task in the future.
                     UpgradeTask.setCurrentSystemVersion(task.version());
-                    Logger.info("Due to a bug in a previous "
-                            + "release, the system version has "
-                            + "been force upgraded " + "to {}", task.version());
+                    Logger.info(
+                            "Due to a bug in a previous "
+                                    + "release, the system version has "
+                                    + "been force upgraded " + "to {}",
+                            task.version());
                 }
                 else {
                     throw e; // fail fast because we assume subsequent tasks
@@ -131,8 +134,8 @@ public final class UpgradeTasks {
                 Reflections reflections = new Reflections(pkg);
                 Set<Class<? extends UpgradeTask>> classes = reflections
                         .getSubTypesOf(UpgradeTask.class);
-                classes.addAll(reflections
-                        .getSubTypesOf(SmartUpgradeTask.class));
+                classes.addAll(
+                        reflections.getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = Reflection.newInstance(clazz);
                     if(theTask == null || task.version() > theTask.version()) {

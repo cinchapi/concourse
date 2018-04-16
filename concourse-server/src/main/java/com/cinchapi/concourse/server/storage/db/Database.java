@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.storage.db;
+
+import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -64,8 +66,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
-
-import static com.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * The {@code Database} is the {@link PermanentStore} for data. The
@@ -220,7 +220,7 @@ public final class Database extends BaseStore implements PermanentStore {
     private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
     private final transient List<SecondaryBlock> csb = Lists.newArrayList();
     private final transient List<SearchBlock> ctb = Lists.newArrayList();
-    
+
     /*
      * CURRENT BLOCK POINTERS
      * ----------------------
@@ -230,7 +230,7 @@ public final class Database extends BaseStore implements PermanentStore {
     private transient PrimaryBlock cpb0;
     private transient SecondaryBlock csb0;
     private transient SearchBlock ctb0;
-    
+
     /*
      * RECORD CACHES
      * -------------
@@ -278,12 +278,14 @@ public final class Database extends BaseStore implements PermanentStore {
     public void accept(Write write) {
         // CON-83: Keeping manually verifying writes until we find one that is
         // acceptable, after which assume all subsequent writes are acceptable.
-        if(!acceptable
-                && ((write.getType() == Action.ADD && !verify(write.getKey()
-                        .toString(), write.getValue().getTObject(), write
-                        .getRecord().longValue())) || (write.getType() == Action.REMOVE && verify(
-                        write.getKey().toString(), write.getValue()
-                                .getTObject(), write.getRecord().longValue())))) {
+        if(!acceptable && ((write.getType() == Action.ADD
+                && !verify(write.getKey().toString(),
+                        write.getValue().getTObject(),
+                        write.getRecord().longValue()))
+                || (write.getType() == Action.REMOVE
+                        && verify(write.getKey().toString(),
+                                write.getValue().getTObject(),
+                                write.getRecord().longValue())))) {
             acceptable = true;
         }
         if(acceptable) {
@@ -295,9 +297,10 @@ public final class Database extends BaseStore implements PermanentStore {
                     new BlockWriter(ctb0, write));
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
+            Logger.warn(
+                    "The Engine refused to accept {} because "
+                            + "it appears that the data was already transported. "
+                            + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -344,8 +347,8 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
         return Transformers.transformMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).chronologize(
-                        Text.wrapCached(key), start, end),
+                getPrimaryRecord(PrimaryKey.wrap(record))
+                        .chronologize(Text.wrapCached(key), start, end),
                 com.google.common.base.Functions.<Long> identity(),
                 Functions.VALUE_TO_TOBJECT);
     }
@@ -428,9 +431,11 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<Long> search(String key, String query) {
-        return Transformers.transformSet(
-                getSearchRecord(Text.wrapCached(key), Text.wrap(query)).search(
-                        Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
+        return Transformers
+                .transformSet(
+                        getSearchRecord(Text.wrapCached(key), Text.wrap(query))
+                                .search(Text.wrap(query)),
+                        Functions.PRIMARY_KEY_TO_LONG);
     }
 
     @Override
@@ -460,9 +465,9 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
         Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
-                        timestamp), Functions.VALUE_TO_TOBJECT);
+        return Transformers
+                .transformSet(getPrimaryRecord(PrimaryKey.wrap(record), key0)
+                        .fetch(key0, timestamp), Functions.VALUE_TO_TOBJECT);
     }
 
     @SuppressWarnings("unlikely-arg-type")
@@ -470,10 +475,12 @@ public final class Database extends BaseStore implements PermanentStore {
     public void start() {
         if(!running) {
             running = true;
-            Logger.info("Database configured to store data in {}", backingStore);
+            Logger.info("Database configured to store data in {}",
+                    backingStore);
             ConcourseExecutors.executeAndAwaitTerminationAndShutdown(
-                    "Storage Block Loader", new BlockLoader<PrimaryBlock>(
-                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb),
+                    "Storage Block Loader",
+                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
+                            PRIMARY_BLOCK_DIRECTORY, cpb),
                     new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
                             SECONDARY_BLOCK_DIRECTORY, csb),
                     new BlockLoader<SearchBlock>(SearchBlock.class,
@@ -524,7 +531,8 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(String key, TObject value, long record,
+            long timestamp) {
         Text key0 = Text.wrapCached(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
                 Value.wrap(value), timestamp);
@@ -599,10 +607,8 @@ public final class Database extends BaseStore implements PermanentStore {
             for (SearchBlock block : ctb) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
-                String[] toks = query
-                        .toString()
-                        .toLowerCase()
-                        .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+                String[] toks = query.toString().toLowerCase().split(
+                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
                     block.seek(key, Text.wrap(tok), record);
                 }
@@ -659,12 +665,12 @@ public final class Database extends BaseStore implements PermanentStore {
                         new BlockSyncer(ctb0));
             }
             String id = Long.toString(Time.now());
-            cpb.add((cpb0 = Block.createPrimaryBlock(id, backingStore
-                    + File.separator + PRIMARY_BLOCK_DIRECTORY)));
+            cpb.add((cpb0 = Block.createPrimaryBlock(id,
+                    backingStore + File.separator + PRIMARY_BLOCK_DIRECTORY)));
             csb.add((csb0 = Block.createSecondaryBlock(id, backingStore
                     + File.separator + SECONDARY_BLOCK_DIRECTORY)));
-            ctb.add((ctb0 = Block.createSearchBlock(id, backingStore
-                    + File.separator + SEARCH_BLOCK_DIRECTORY)));
+            ctb.add((ctb0 = Block.createSearchBlock(id,
+                    backingStore + File.separator + SEARCH_BLOCK_DIRECTORY)));
         }
         finally {
             masterLock.writeLock().unlock();
@@ -678,8 +684,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>> implements
-            Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>>
+            implements Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
@@ -711,8 +717,8 @@ public final class Database extends BaseStore implements PermanentStore {
 
                     @Override
                     public boolean accept(File dir, String name) {
-                        return dir.getAbsolutePath().equals(
-                                new File(path).getAbsolutePath())
+                        return dir.getAbsolutePath()
+                                .equals(new File(path).getAbsolutePath())
                                 && name.endsWith(Block.BLOCK_NAME_EXTENSION);
                     }
 
@@ -732,10 +738,11 @@ public final class Database extends BaseStore implements PermanentStore {
                         checksums.add(checksum);
                     }
                     else {
-                        Logger.warn("{} {} contains duplicate data, so "
-                                + "it was not loaded. You can safely "
-                                + "delete this file.", clazz.getSimpleName(),
-                                id);
+                        Logger.warn(
+                                "{} {} contains duplicate data, so "
+                                        + "it was not loaded. You can safely "
+                                        + "delete this file.",
+                                clazz.getSimpleName(), id);
                     }
 
                 }
@@ -824,8 +831,8 @@ public final class Database extends BaseStore implements PermanentStore {
                         .insert(write.getKey(), write.getValue(),
                                 write.getRecord(), write.getVersion(),
                                 write.getType());
-                SecondaryRecord record = csc.getIfPresent(Composite
-                        .create(write.getKey()));
+                SecondaryRecord record = csc
+                        .getIfPresent(Composite.create(write.getKey()));
                 if(record != null) {
                     record.append(revision);
                 }

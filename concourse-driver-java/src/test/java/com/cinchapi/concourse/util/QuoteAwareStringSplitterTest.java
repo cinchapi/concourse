@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,13 +20,12 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for the {@link QuoteAwareStringSplitter class}.
- * 
+ * Unit tests for the
+ * {@link com.cinchapi.concourse.util.QuoteAwareStringSplitter class}.
+ *
  * @author Jeff Nelson
  */
 public class QuoteAwareStringSplitterTest {
@@ -183,8 +182,8 @@ public class QuoteAwareStringSplitterTest {
         String string = "a, b, \"c, d, e\", f  ,g";
         StringSplitter it = new QuoteAwareStringSplitter(string, ',',
                 SplitOption.TRIM_WHITESPACE);
-        List<String> expected = Lists.newArrayList("a", "b", "\"c, d, e\"",
-                "f", "g");
+        List<String> expected = Lists.newArrayList("a", "b", "\"c, d, e\"", "f",
+                "g");
         int index = 0;
         while (it.hasNext()) {
             String next = it.next();

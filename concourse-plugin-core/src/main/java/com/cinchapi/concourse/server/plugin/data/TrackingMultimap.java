@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,6 +35,7 @@ import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
@@ -104,6 +105,10 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
         else if(isTObjectType(object, Type.BOOLEAN) || clazz == Boolean.class
                 || clazz == boolean.class) {
             return DataType.BOOLEAN;
+        }
+        else if(isTObjectType(object, Type.TIMESTAMP)
+                || clazz == Timestamp.class) {
+            return DataType.TIMESTAMP;
         }
         else {
             return DataType.UNKNOWN;
@@ -399,8 +404,9 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @return the percent of keys of the {@code type}
      */
     public double percentKeyDataType(DataType type) {
-        return ((double) keyTypeCounts[type.ordinal()].get())
-                / totalValueCount.get();
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0
+                : ((double) keyTypeCounts[type.ordinal()].get()) / tvc;
     }
 
     /**
@@ -413,7 +419,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      */
     public double proportion(K element) {
         double frequency = data.get(element).size();
-        return frequency / totalValueCount.get();
+        double tvc = totalValueCount.get();
+        return (tvc == 0) ? 0 : frequency / tvc;
     }
 
     /**
@@ -461,7 +468,8 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
 
         // Check to see if the min/max need to be recalculated because the key
         // was at one of the extremes
-        if(comparator != null && (min != null && min.equals(key)) || (max != null && max.equals(key))) {
+        if(comparator != null && (min != null && min.equals(key))
+                || (max != null && max.equals(key))) {
             SortedSet<K> sorted = Sets.newTreeSet(comparator);
             sorted.addAll(data.keySet());
             min = sorted.isEmpty() ? null : sorted.first();
@@ -594,7 +602,7 @@ public abstract class TrackingMultimap<K, V> extends AbstractMap<K, Set<V>> {
      * @author Jeff Nelson
      */
     public static enum DataType {
-        BOOLEAN, LINK, NUMBER, STRING, UNKNOWN;
+        BOOLEAN, LINK, NUMBER, STRING, UNKNOWN, TIMESTAMP;
     }
 
     /**

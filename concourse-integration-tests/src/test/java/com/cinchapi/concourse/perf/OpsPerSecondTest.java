@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,9 +35,9 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
         client.add("id", 1, 1);
         client.add("bar", 1, 1);
     }
-    
+
     @Override
-    public void afterEachTest(){
+    public void afterEachTest() {
         System.gc();
     }
 
@@ -82,9 +82,9 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
         double ops = count / seconds;
         System.out.println("Verify and swap operations per second: " + ops);
     }
-    
+
     @Test
-    public void testAddDifferentRecords(){
+    public void testAddDifferentRecords() {
         int count = 5000;
         Stopwatch watch = Stopwatch.createStarted();
         for (int i = 0; i < count; ++i) {
@@ -94,11 +94,12 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
         long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
         double seconds = elapsed / 1000.0;
         double ops = count / seconds;
-        System.out.println("Add to different records operations per second: " + ops);
+        System.out.println(
+                "Add to different records operations per second: " + ops);
     }
-    
+
     @Test
-    public void testAddSameRecord(){
+    public void testAddSameRecord() {
         int count = 5000;
         Stopwatch watch = Stopwatch.createStarted();
         for (int i = 0; i < count; ++i) {

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,6 +29,8 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.session.SessionHandler;
 
+import spark.webserver.NotConsumedException;
+
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpAuthToken;
@@ -36,8 +38,6 @@ import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Throwables;
-
-import spark.webserver.NotConsumedException;
 
 /**
  * Simple Jetty Handler
@@ -107,8 +107,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                 // information
                 String token = ObjectUtils.firstNonNullOrNull(
                         findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                                request), request
-                                .getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
+                                request),
+                        request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
 
                 if(token != null) {
                     try {
@@ -134,8 +134,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
                                 || (e instanceof RuntimeException && e
-                                        .getCause() != null
-                                        & e.getCause() instanceof GeneralSecurityException)) {}
+                                        .getCause() != null & e
+                                                .getCause() instanceof GeneralSecurityException)) {}
                         else {
                             throw Throwables.propagate(e);
                         }
@@ -152,25 +152,24 @@ public class ConcourseHttpHandler extends SessionHandler {
             }
         }
         else {
-            String token = ObjectUtils
-                    .firstNonNullOrNull(
-                            findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                                    request),
-                            request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
+            String token = ObjectUtils.firstNonNullOrNull(
+                    findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                            request),
+                    request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
             if(token != null) {
                 try {
                     HttpAuthToken auth = HttpRequests.decodeAuthToken(token);
                     request.setAttribute(
                             GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE,
                             auth.getAccessToken());
-                    request.setAttribute(
-                            GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE,
+                    request.setAttribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE,
                             auth.getEnvironment());
                 }
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
-                            || (e instanceof RuntimeException && e.getCause() != null
-                                    & e.getCause() instanceof GeneralSecurityException)) {}
+                            || (e instanceof RuntimeException && e
+                                    .getCause() != null & e
+                                            .getCause() instanceof GeneralSecurityException)) {}
                     else {
                         throw Throwables.propagate(e);
                     }
@@ -235,7 +234,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                 }
                 if(GlobalState.HTTP_CORS_DEFAULT_ALLOW_HEADERS.equals("*")) {
                     response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_HEADERS,
-                            request.getHeader("Access-Control-Request-Headers"));
+                            request.getHeader(
+                                    "Access-Control-Request-Headers"));
                 }
                 else {
                     response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_HEADERS,

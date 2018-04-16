@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,15 +21,15 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.common.util.NonBlockingHashMultimap;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.AbstractMultimapTest;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@link NonBlockingHashMultimap} data structure.
- * 
+ * Unit tests for the {@link com.cinchapi.common.util.NonBlockingHashMultimap}
+ * data structure.
+ *
  * @author Jeff Nelson
  */
 public class NonBlockingHashMultimapTest extends AbstractMultimapTest {

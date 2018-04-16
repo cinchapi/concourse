@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
 import com.cinchapi.concourse.server.io.ByteableTest;
-import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
@@ -36,8 +35,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link Value}
- * 
+ * Unit tests for {@link com.cinchapi.concourse.server.model.Value}
+ *
  * @author Jeff Nelson
  */
 @RunWith(Theories.class)

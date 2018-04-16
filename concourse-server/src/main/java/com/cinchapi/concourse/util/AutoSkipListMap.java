@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,8 +31,8 @@ import com.google.common.base.Function;
  * @author Jeff Nelson
  */
 @Experimental
-public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> implements
-        NavigableMap<K, V> {
+public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V>
+        implements NavigableMap<K, V> {
 
     /**
      * Construct a new instance.
@@ -97,7 +97,8 @@ public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> i
 
     @Override
     public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
-        return ((ConcurrentSkipListMap<K, V>) backingStore).headMap(toKey, inclusive);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).headMap(toKey,
+                inclusive);
     }
 
     @Override
@@ -148,13 +149,14 @@ public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> i
     @Override
     public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey,
             boolean toInclusive) {
-        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey, fromInclusive,
-                toKey, toInclusive);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey,
+                fromInclusive, toKey, toInclusive);
     }
 
     @Override
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
-        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey, toKey);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey,
+                toKey);
     }
 
     @Override
@@ -164,7 +166,8 @@ public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> i
 
     @Override
     public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
-        return ((ConcurrentSkipListMap<K, V>) backingStore).tailMap(fromKey, inclusive);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).tailMap(fromKey,
+                inclusive);
     }
 
 }

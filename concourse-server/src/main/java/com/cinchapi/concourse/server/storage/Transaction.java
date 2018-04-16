@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +50,8 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public final class Transaction extends AtomicOperation implements AtomicSupport {
+public final class Transaction extends AtomicOperation
+        implements AtomicSupport {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
     // the safe counterparts in the super class (AtomicOperation) because those
     // have logic to tell the BufferedStore class to perform unsafe reads.
@@ -81,8 +82,9 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
                     + "Concourse Server shutdown before the transaction "
                     + "could properly commit, so none of the data "
                     + "in the transaction has persisted.", file);
-            Logger.debug("Transaction backup in {} is corrupt because "
-                    + "of {}", file, e);
+            Logger.debug(
+                    "Transaction backup in {} is corrupt because " + "of {}",
+                    file, e);
             FileSystem.deleteFile(file);
         }
     }
@@ -183,7 +185,7 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
     public Map<Long, String> auditUnsafe(String key, long record) {
         return audit(key, record);
     }
-    
+
     @Override
     public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
             long start, long end) {
@@ -225,7 +227,8 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
         // in this method will simply cause the invocation of verifyAndSwap to
         // return false while this transaction would stay alive.
         boolean callSuper = true;
-        for (AtomicOperation operation : managedVersionChangeListeners.keySet()) {
+        for (AtomicOperation operation : managedVersionChangeListeners
+                .keySet()) {
             for (Token tok : managedVersionChangeListeners.get(operation)) {
                 if(tok.equals(token)) {
                     operation.onVersionChange(tok);
@@ -274,8 +277,8 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
      */
     private void deserialize(ByteBuffer bytes) {
         locks = Maps.newHashMap();
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(ByteBuffers
-                .slice(bytes, bytes.getInt()));
+        Iterator<ByteBuffer> it = ByteableCollections
+                .iterator(ByteBuffers.slice(bytes, bytes.getInt()));
         while (it.hasNext()) {
             LockDescription lock = LockDescription.fromByteBuffer(it.next(),
                     lockService, rangeLockService);
@@ -314,10 +317,10 @@ public final class Transaction extends AtomicOperation implements AtomicSupport 
      */
     private ByteBuffer serialize() {
         ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
-        ByteBuffer _writes = ByteableCollections.toByteBuffer(((Queue) buffer)
-                .getWrites());
-        ByteBuffer bytes = ByteBuffer.allocate(4 + _locks.capacity()
-                + _writes.capacity());
+        ByteBuffer _writes = ByteableCollections
+                .toByteBuffer(((Queue) buffer).getWrites());
+        ByteBuffer bytes = ByteBuffer
+                .allocate(4 + _locks.capacity() + _writes.capacity());
         bytes.putInt(_locks.capacity());
         bytes.put(_locks);
         bytes.put(_writes);

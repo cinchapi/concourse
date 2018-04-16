@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,10 @@ dependencies {
     compile 'com.google.inject:guice:4.0'
     compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
     compile 'com.cinchapi:process-watcher:1.0.0'
+    compile (group:'com.cinchapi', name: 'bucket', version: bucketVersion, changing:true) {
+      exclude group: 'com.google.guava', module: 'guava'
+      exclude group: 'com.cinchapi'
+  }
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'

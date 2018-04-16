@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,12 @@
  */
 package com.cinchapi.concourse.util;
 
+import static com.cinchapi.concourse.util.SplitOption.*;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.google.common.collect.Lists;
-
-import static com.cinchapi.concourse.util.SplitOption.*;
 
 /**
  * An in-place utility to traverse and split a string into substring.
@@ -149,7 +149,8 @@ public class StringSplitter {
      * @param options an array of {@link SplitOption options} to supplement the
      *            split behaviour
      */
-    public StringSplitter(String string, char delimiter, SplitOption... options) {
+    public StringSplitter(String string, char delimiter,
+            SplitOption... options) {
         this.chars = string.toCharArray();
         this.delimiter = delimiter;
         int opts = 0;

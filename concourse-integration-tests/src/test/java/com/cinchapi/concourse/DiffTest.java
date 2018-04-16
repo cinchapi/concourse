@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Diff;
@@ -34,9 +33,9 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public class DiffTest extends ConcourseIntegrationTest {
-    
+
     @Test
-    public void testDiffKeyRecordNoValuesAdded(){
+    public void testDiffKeyRecordNoValuesAdded() {
         client.add("foo", 1, 1);
         client.add("foo", 2, 1);
         client.add("foo", 3, 1);
@@ -59,17 +58,17 @@ public class DiffTest extends ConcourseIntegrationTest {
                 client.add("name", "Jeff Nelson"));
         client.clear(record1);
         Timestamp end = Timestamp.now();
-        Map<Object, Map<Diff, Set<Long>>> diff = client
-                .diff("name", start, end);
+        Map<Object, Map<Diff, Set<Long>>> diff = client.diff("name", start,
+                end);
         Map<Diff, Set<Long>> inner = diff.get("Jeff Nelson");
         Set<Long> added = inner.get(Diff.ADDED);
         Set<Long> removed = inner.get(Diff.REMOVED);
         Assert.assertEquals(Sets.newHashSet(record2, record3), added);
         Assert.assertEquals(Sets.newHashSet(record1), removed);
     }
-    
+
     @Test
-    public void testDiffKeyWithEmptyIntersection(){
+    public void testDiffKeyWithEmptyIntersection() {
         String key = TestData.getSimpleString();
         client.add(key, 1, 1);
         Timestamp start = Timestamp.now();

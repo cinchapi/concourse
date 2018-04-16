@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,9 +20,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
@@ -183,8 +180,8 @@ public class TransactionIsolationTest extends ConcourseIntegrationTest {
         while (!done1.get() || !done2.get()) {
             continue;
         }
-        Assert.assertEquals(0,
-                (int) client.get("balance", 1) + (int) client.get("balance", 2));
+        Assert.assertEquals(0, (int) client.get("balance", 1)
+                + (int) client.get("balance", 2));
     }
 
 }

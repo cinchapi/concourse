@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,9 +88,9 @@ public abstract class PluginConfiguration {
     /**
      * The absolute path to the prefs file in the plugin's home directory.
      */
-    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime
-            .getRuntime().home()
-            .resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME)).toAbsolutePath();
+    private static final Path PLUGIN_PREFS_LOCATION = PluginRuntime.getRuntime()
+            .home().resolve(Paths.get("conf", PLUGIN_PREFS_FILENAME))
+            .toAbsolutePath();
 
     static {
         // Prevent logging from showing up in the console
@@ -98,8 +98,8 @@ public abstract class PluginConfiguration {
 
         // Set location of the plugin preferences files depending on the
         // existence of the preferences files
-        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION) ? PLUGIN_PREFS_DEV_LOCATION
-                : PLUGIN_PREFS_LOCATION;
+        PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION)
+                ? PLUGIN_PREFS_DEV_LOCATION : PLUGIN_PREFS_LOCATION;
     }
 
     /**
@@ -132,7 +132,7 @@ public abstract class PluginConfiguration {
      * @param location
      */
     protected PluginConfiguration(Path location) {
-        if (Files.exists(location)) {
+        if(Files.exists(location)) {
             try {
                 this.prefs = new PreferencesHandler(location.toString()) {};
             }
@@ -143,7 +143,8 @@ public abstract class PluginConfiguration {
         else {
             this.prefs = null;
         }
-        addDefault(SystemPreference.REMOTE_DEBUGGER_PORT, DEFAULT_REMOTE_DEBUGGER_PORT);
+        addDefault(SystemPreference.REMOTE_DEBUGGER_PORT,
+                DEFAULT_REMOTE_DEBUGGER_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
         addDefault(SystemPreference.LOG_LEVEL, Level.INFO.levelStr);
     }
@@ -156,8 +157,8 @@ public abstract class PluginConfiguration {
      */
     public List<String> getAliases() {
         if(prefs != null) {
-            List<Object> aliases = prefs.getList(SystemPreference.ALIAS
-                    .getKey());
+            List<Object> aliases = prefs
+                    .getList(SystemPreference.ALIAS.getKey());
             aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
             return aliases.stream().map(alias -> Objects.toString(alias))
                     .collect(Collectors.toList());
@@ -173,8 +174,8 @@ public abstract class PluginConfiguration {
      * @return the heap_size preference
      */
     public long getHeapSize() {
-        long theDefault = (long) defaults.get(SystemPreference.HEAP_SIZE
-                .getKey());
+        long theDefault = (long) defaults
+                .get(SystemPreference.HEAP_SIZE.getKey());
         if(prefs != null) {
             return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
                     theDefault);
@@ -190,8 +191,8 @@ public abstract class PluginConfiguration {
      * @return the log_level preference
      */
     public Level getLogLevel() {
-        Level theDefault = Level.valueOf((String) defaults
-                .get(SystemPreference.LOG_LEVEL.getKey()));
+        Level theDefault = Level.valueOf(
+                (String) defaults.get(SystemPreference.LOG_LEVEL.getKey()));
         if(prefs != null) {
             return Level.valueOf(prefs.getString(
                     SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
@@ -217,12 +218,11 @@ public abstract class PluginConfiguration {
      * @return int
      */
     public int getRemoteDebuggerPort() {
-        int theDefault = (int) defaults.get(
-            SystemPreference.REMOTE_DEBUGGER_PORT.getKey());
-        if (prefs != null) {
-            return prefs.getInt(
-                SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
-                theDefault);
+        int theDefault = (int) defaults
+                .get(SystemPreference.REMOTE_DEBUGGER_PORT.getKey());
+        if(prefs != null) {
+            return prefs.getInt(SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
+                    theDefault);
         }
         else {
             return theDefault;
@@ -238,8 +238,8 @@ public abstract class PluginConfiguration {
     protected void addDefault(String key, Object value) {
         SystemPreference sys = null;
         try {
-            sys = SystemPreference.valueOf(CaseFormat.LOWER_UNDERSCORE.to(
-                    CaseFormat.UPPER_UNDERSCORE, key));
+            sys = SystemPreference.valueOf(CaseFormat.LOWER_UNDERSCORE
+                    .to(CaseFormat.UPPER_UNDERSCORE, key));
         }
         catch (IllegalArgumentException e) {/* no-op */}
         if(sys != null) {
@@ -325,8 +325,8 @@ public abstract class PluginConfiguration {
                     }
                 }
             }
-            throw new IllegalArgumentException(value
-                    + " is not a valid value for " + getKey());
+            throw new IllegalArgumentException(
+                    value + " is not a valid value for " + getKey());
         }
     }
 

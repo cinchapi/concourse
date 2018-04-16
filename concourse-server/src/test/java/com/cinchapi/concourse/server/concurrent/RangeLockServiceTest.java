@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.concurrent.LockType;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
-import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -35,8 +32,9 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link RangeLockService}.
- * 
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.concurrent.RangeLockService}.
+ *
  * @author Jeff Nelson
  */
 public class RangeLockServiceTest extends ConcourseBaseTest {
@@ -50,12 +48,11 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
     @Test
     public void testWriteIsRangeBlockedIfReadingAllValues() {
-        ReadLock readLock = rangeLockService.getReadLock(RangeToken.forReading(
-                Text.wrapCached("foo"), Operator.BETWEEN,
-                Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY));
+        ReadLock readLock = rangeLockService.getReadLock(
+                RangeToken.forReading(Text.wrapCached("foo"), Operator.BETWEEN,
+                        Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY));
         readLock.lock();
-        Assert.assertTrue(rangeLockService.isRangeBlocked(
-                LockType.RANGE_WRITE,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.RANGE_WRITE,
                 RangeToken.forWriting(Text.wrapCached("foo"),
                         TestData.getValue())));
         readLock.unlock();
@@ -95,8 +92,8 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        WriteLock writeLock = rangeLockService.getWriteLock(
-                                "foo", Convert.javaToThrift(1));
+                        WriteLock writeLock = rangeLockService
+                                .getWriteLock("foo", Convert.javaToThrift(1));
                         writeLock.lock();
                         writeLock.unlock();
                     }
@@ -147,8 +144,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
-                        value2).lock();
+                rangeLockService
+                        .getReadLock(key, Operator.BETWEEN, value1, value2)
+                        .lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -156,8 +154,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
-                        value2).unlock();
+                rangeLockService
+                        .getReadLock(key, Operator.BETWEEN, value1, value2)
+                        .unlock();
             }
 
         });
@@ -181,8 +180,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
-                        value2).lock();
+                rangeLockService
+                        .getReadLock(key, Operator.BETWEEN, value1, value2)
+                        .lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -190,8 +190,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
-                        value2).unlock();
+                rangeLockService
+                        .getReadLock(key, Operator.BETWEEN, value1, value2)
+                        .unlock();
             }
 
         });
@@ -446,9 +447,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(rangeLockService
-                .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
-                        Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertFalse(
+                rangeLockService.isRangeBlocked(LockType.READ, RangeToken
+                        .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -477,9 +478,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(rangeLockService
-                .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
-                        Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertTrue(
+                rangeLockService.isRangeBlocked(LockType.READ, RangeToken
+                        .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -509,9 +510,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(rangeLockService
-                .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
-                        Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertTrue(
+                rangeLockService.isRangeBlocked(LockType.READ, RangeToken
+                        .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 

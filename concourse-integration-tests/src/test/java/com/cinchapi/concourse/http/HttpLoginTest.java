@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,7 +66,8 @@ public class HttpLoginTest extends HttpTest {
     public void testLoginWithMalformedCredSyntaxThrowsAppropriateError() {
         Response resp = post("/login", "{'user': 'admin', 'pass': 'admin'}");
         JsonObject body = (JsonObject) bodyAsJson(resp);
-        Assert.assertEquals(resp.code(), BadLoginSyntaxError.INSTANCE.getCode());
+        Assert.assertEquals(resp.code(),
+                BadLoginSyntaxError.INSTANCE.getCode());
         Assert.assertEquals(body.get("error").getAsString(),
                 BadLoginSyntaxError.INSTANCE.getMessage());
     }
@@ -77,8 +78,8 @@ public class HttpLoginTest extends HttpTest {
         JsonObject body = (JsonObject) bodyAsJson(resp);
         String token = body.get("token").getAsString();
         clearClientCookies();
-        Headers headers = new Headers.Builder().add(
-                GlobalState.HTTP_AUTH_TOKEN_HEADER, token).build();
+        Headers headers = new Headers.Builder()
+                .add(GlobalState.HTTP_AUTH_TOKEN_HEADER, token).build();
         resp = get("/", headers);
         Assert.assertEquals(200, resp.code());
     }

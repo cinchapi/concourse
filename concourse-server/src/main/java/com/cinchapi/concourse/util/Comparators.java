@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,7 +98,8 @@ public final class Comparators {
      * 
      * @author Jeff Nelson
      */
-    private static class EqualOrArbitraryComparator<T> implements Comparator<T> {
+    private static class EqualOrArbitraryComparator<T>
+            implements Comparator<T> {
 
         @Override
         public int compare(T o1, T o2) {
@@ -112,7 +113,7 @@ public final class Comparators {
 
     }
 
-/**
+    /**
      * A {@link Comparator} that uses the functionality of the {@link Ordering
      * @natural()} comparator if the objects are {@link Comparable}. Otherwise,
      * the functionality is similar to the {@link Ordering#arbitrary()}
@@ -121,8 +122,8 @@ public final class Comparators {
      * 
      * @author Jeff Nelson
      */
-    private static class NaturalOrArbitraryComparator<T> implements
-            Comparator<T> {
+    private static class NaturalOrArbitraryComparator<T>
+            implements Comparator<T> {
 
         @SuppressWarnings("unchecked")
         @Override

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,9 +45,9 @@ public class RestInventoryTest extends RestTest {
         Set<Long> body = bodyAsJava(response, new TypeToken<Set<Long>>() {});
         Assert.assertEquals(Sets.newHashSet(record), body);
     }
-    
+
     @Test
-    public void testInventoryDefaultEnvironment(){
+    public void testInventoryDefaultEnvironment() {
         long record = client.add("name", "jeff");
         Response response = get("/");
         Set<Long> body = bodyAsJava(response, new TypeToken<Set<Long>>() {});

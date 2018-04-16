@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -211,9 +211,8 @@ public abstract class ByteBuffers {
      * @return a ByteBuffer that has {@code length} bytes from {@code buffer}
      */
     public static ByteBuffer get(ByteBuffer buffer, int length) {
-        Preconditions
-                .checkArgument(buffer.remaining() >= length,
-                        "The number of bytes remaining in the buffer cannot be less than length");
+        Preconditions.checkArgument(buffer.remaining() >= length,
+                "The number of bytes remaining in the buffer cannot be less than length");
         byte[] backingArray = new byte[length];
         buffer.get(backingArray);
         return ByteBuffer.wrap(backingArray);
@@ -393,7 +392,8 @@ public abstract class ByteBuffers {
      * @return the new ByteBuffer slice
      * @see ByteBuffer#slice()
      */
-    public static ByteBuffer slice(ByteBuffer buffer, int position, int length) {
+    public static ByteBuffer slice(ByteBuffer buffer, int position,
+            int length) {
         int oldPosition = buffer.position();
         int oldLimit = buffer.limit();
         buffer.position(position);

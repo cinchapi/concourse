@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,17 +21,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.AtomicOperation;
-import com.cinchapi.concourse.server.storage.Engine;
-import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for an {@link AtomicOperation} that commits to a
- * {@link Transaction}
- * 
+ * Unit tests for an
+ * {@link com.cinchapi.concourse.server.storage.AtomicOperation} that commits to
+ * a
+ * {@link com.cinchapi.concourse.server.storage.Transaction}
+ *
  * @author Jeff Nelson
  */
 public class TransactionAtomicOperationTest extends AtomicOperationTest {

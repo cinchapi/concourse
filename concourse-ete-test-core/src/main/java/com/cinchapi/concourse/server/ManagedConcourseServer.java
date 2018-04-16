@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,6 +48,12 @@ import javax.management.remote.JMXServiceURL;
 
 import jline.TerminalFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+
+import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
@@ -61,16 +67,9 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
-import com.cinchapi.concourse.lang.Symbol;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
@@ -350,6 +349,12 @@ public class ManagedConcourseServer {
     private final ConcourseServerPreferences prefs;
 
     /**
+     * The file whose existence determines whether or not this server should be
+     * destroyed on exit.
+     */
+    private final Path destroyOnExitFlag;
+
+    /**
      * Construct a new instance.
      * 
      * @param installDirectory
@@ -359,11 +364,16 @@ public class ManagedConcourseServer {
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
         prefs.setLogLevel(Level.DEBUG);
+        this.destroyOnExitFlag = Paths.get(installDirectory)
+                .resolve(".destroyOnExit");
+        destroyOnExit(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
-                destroy();
+                if(destroyOnExit()) {
+                    destroy();
+                }
             }
 
         }));
@@ -389,6 +399,41 @@ public class ManagedConcourseServer {
      */
     public Concourse connect(String username, String password) {
         return new Client(username, password);
+    }
+
+    public Concourse connect(String username, String password,
+            String environment) {
+        return new Client(username, password, environment);
+    }
+
+    /**
+     * Set a flag that determines whether this instance will be destroyed on
+     * exit.
+     * 
+     * @param destroyOnExit
+     */
+    public synchronized void destroyOnExit(boolean destroyOnExit) {
+        try {
+            if(destroyOnExit) {
+                Files.write(destroyOnExitFlag, new byte[] { 1 });
+            }
+            else {
+                Files.deleteIfExists(destroyOnExitFlag);
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return {@code true} if this server should be destroyed when the JVM
+     * exits.
+     * 
+     * @return whether the server should be destroyed or not when the JVM exits
+     */
+    public synchronized boolean destroyOnExit() {
+        return Files.exists(destroyOnExitFlag);
     }
 
     /**
@@ -468,12 +513,30 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Return the directory where the server stores buffer files.
+     * 
+     * @return the buffer directory
+     */
+    public Path getBufferDirectory() {
+        return Paths.get(prefs.getBufferDirectory());
+    }
+
+    /**
      * Return the client port for this server.
      * 
      * @return the client port
      */
     public int getClientPort() {
         return prefs.getClientPort();
+    }
+
+    /**
+     * Return the directory where the server stores database files.
+     * 
+     * @return the database directory
+     */
+    public Path getDatabaseDirectory() {
+        return Paths.get(prefs.getDatabaseDirectory());
     }
 
     /**
@@ -791,7 +854,7 @@ public class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
-        private Object delegate;
+        private final Object delegate;
         private ClassLoader loader;
 
         /**
@@ -808,7 +871,18 @@ public class ManagedConcourseServer {
          * @throws Exception
          */
         public Client(String username, String password) {
-            this(username, password, 5);
+            this(username, password, "");
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
+         * @param environment
+         */
+        public Client(String username, String password, String environment) {
+            this(username, password, environment, 5);
         }
 
         /**
@@ -818,7 +892,9 @@ public class ManagedConcourseServer {
          * @param password
          * @param retries
          */
-        private Client(String username, String password, int retries) {
+        private Client(String username, String password, String environment,
+                int retries) {
+            Object delegate = null;
             while (retries > 0) {
                 --retries;
                 try {
@@ -834,10 +910,11 @@ public class ManagedConcourseServer {
                         packageBase = "org.cinchapi.concourse.";
                         clazz = loader.loadClass(packageBase + "Concourse");
                     }
-                    this.delegate = clazz.getMethod("connect", String.class,
-                            int.class, String.class, String.class).invoke(null,
-                                    "localhost", getClientPort(), username,
-                                    password);
+                    delegate = clazz
+                            .getMethod("connect", String.class, int.class,
+                                    String.class, String.class, String.class)
+                            .invoke(null, "localhost", getClientPort(),
+                                    username, password, environment);
                 }
                 catch (InvocationTargetException e) {
                     Throwable target = e.getTargetException();
@@ -850,7 +927,7 @@ public class ManagedConcourseServer {
                         // get around that by retrying the connection a handful
                         // of times before failing.
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(2000);
                             continue;
                         }
                         catch (InterruptedException t) {/* ignore */}
@@ -863,6 +940,11 @@ public class ManagedConcourseServer {
                     throw CheckedExceptions.throwAsRuntimeException(e);
                 }
             }
+            if(delegate == null) {
+                throw new RuntimeException(
+                        "Could not connect to server before timeout...");
+            }
+            this.delegate = delegate;
         }
 
         @Override

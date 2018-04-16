@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,8 +34,6 @@ import com.cinchapi.concourse.server.storage.db.SecondaryRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Random;
 import com.google.common.base.Throwables;
 
 /**
@@ -134,8 +132,8 @@ public final class TestData extends Random {
      */
     public static Iterable<String> getWordsDotTxt() {
         try {
-            File file = new File(TestData.class.getResource("/words.txt")
-                    .getFile());
+            File file = new File(
+                    TestData.class.getResource("/words.txt").getFile());
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
             List<String> lines = Lists.newArrayList();

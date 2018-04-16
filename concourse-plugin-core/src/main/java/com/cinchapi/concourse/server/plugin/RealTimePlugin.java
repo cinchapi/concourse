@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -107,6 +107,17 @@ abstract class RealTimePlugin extends Plugin {
      * <p>
      * This method is called asynchronously by the parent class, so the subclass
      * doesn't need to fork the implementation to a separate thread.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> It isn't possible for the logic implemented in
+     * this method, by the subclass, to use the {@link Plugin#runtime
+     * ConcourseRuntime} to make upstream calls to Concourse Server. It is
+     * possible to work around this limitation by forking a
+     * {@link BackgroundThread background thread} using the
+     * {@link PluginExecutors} framework; however this is not recommended.
+     * Making upstream calls to Concourse Server in this method defeats the
+     * purpose of incrementally streaming writes to the plugin. If you feel the
+     * need to do this, rethink your implementation.
      * </p>
      * 
      * @param packet a {@link Packet} that contains one or more

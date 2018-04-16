@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.plugin.data;
-
-import io.atomix.catalyst.buffer.Buffer;
 
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
@@ -33,6 +31,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Maps;
+import io.atomix.catalyst.buffer.Buffer;
 
 /**
  * A {@link ResultDataset} that wraps a {@link TObjectDataset} and lazily
@@ -518,8 +517,11 @@ public class ObjectResultDataset extends ResultDataset<Object> {
 
             @Override
             public Set<Long> put(Object value, Set<Long> entities) {
-                return thrift.invertNullSafe(attribute)
-                        .put(Convert.javaToThrift(value), entities);
+                Set<Long> stored = get(value);
+                TObject tvalue = Convert.javaToThrift(value);
+                entities.forEach(
+                        entity -> thrift.insert(entity, attribute, tvalue));
+                return stored;
             }
 
             @Override

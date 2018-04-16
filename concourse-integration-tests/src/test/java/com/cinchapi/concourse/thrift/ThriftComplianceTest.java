@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,6 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -58,23 +56,22 @@ public class ThriftComplianceTest extends ConcourseIntegrationTest {
 
     @Test
     public void testGetTObjectInternalType() {
-        TObject tObject = new TObject(ByteBuffer.wrap(Random.getString()
-                .getBytes()), Type.TAG);
+        TObject tObject = new TObject(
+                ByteBuffer.wrap(Random.getString().getBytes()), Type.TAG);
         Assert.assertEquals(Type.STRING, tObject.getInternalType());
     }
 
     @Test
     public void testTObjectHashCode() {
-        TObject tObject = new TObject(ByteBuffer.wrap(Random.getString()
-                .getBytes()), Type.TAG);
-        Assert.assertEquals(
-                tObject.hashCode(),
+        TObject tObject = new TObject(
+                ByteBuffer.wrap(Random.getString().getBytes()), Type.TAG);
+        Assert.assertEquals(tObject.hashCode(),
                 Arrays.hashCode(new int[] { tObject.data.hashCode(),
                         tObject.getInternalType().ordinal() }));
     }
-    
+
     @Test
-    public void testTObjectToString(){
+    public void testTObjectToString() {
         Object object = TestData.getObject();
         TObject tObject = Convert.javaToThrift(object);
         Assert.assertEquals(object.toString(), tObject.toString());

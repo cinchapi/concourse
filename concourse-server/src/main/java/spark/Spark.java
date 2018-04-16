@@ -1,12 +1,11 @@
 /*
- * Copyright 2011- Per Wendel
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +15,6 @@
  */
 package spark;
 
-import spark.Filter;
-import spark.Route;
-import spark.Spark;
 import spark.route.HttpMethod;
 import spark.route.RouteMatcher;
 import spark.route.RouteMatcherFactory;
@@ -37,6 +33,7 @@ import spark.webserver.SparkServerFactory;
  * <p/>
  * Example:
  * <p/>
+ * 
  * <pre>
  * {@code
  * Spark.get(new Route("/hello") {
@@ -72,8 +69,7 @@ public final class Spark {
     private static String externalStaticFileFolder = null;
 
     // Hide constructor
-    private Spark() {
-    }
+    private Spark() {}
 
     /**
      * Set the IP address that Spark should listen on. If not called the default
@@ -83,7 +79,7 @@ public final class Spark {
      * @param ipAddress The ipAddress
      */
     public static synchronized void setIpAddress(String ipAddress) {
-        if (initialized) {
+        if(initialized) {
             throwBeforeRouteMappingException();
         }
         Spark.ipAddress = ipAddress;
@@ -96,7 +92,7 @@ public final class Spark {
      * @param port The port number
      */
     public static synchronized void setPort(int port) {
-        if (initialized) {
+        if(initialized) {
             throwBeforeRouteMappingException();
         }
         Spark.port = port;
@@ -112,20 +108,21 @@ public final class Spark {
      * not be used if you are using Servlets, where you will need to secure the
      * connection in the servlet container
      *
-     * @param keystoreFile       The keystore file location as string
-     * @param keystorePassword   the password for the keystore
-     * @param truststoreFile     the truststore file location as string, leave null to reuse
-     *                           keystore
+     * @param keystoreFile The keystore file location as string
+     * @param keystorePassword the password for the keystore
+     * @param truststoreFile the truststore file location as string, leave null
+     *            to reuse
+     *            keystore
      * @param truststorePassword the trust store password
      */
     public static synchronized void setSecure(String keystoreFile,
-                                              String keystorePassword, String truststoreFile,
-                                              String truststorePassword) {
-        if (initialized) {
+            String keystorePassword, String truststoreFile,
+            String truststorePassword) {
+        if(initialized) {
             throwBeforeRouteMappingException();
         }
 
-        if (keystoreFile == null) {
+        if(keystoreFile == null) {
             throw new IllegalArgumentException(
                     "Must provide a keystore file to run secured");
         }
@@ -137,13 +134,14 @@ public final class Spark {
     }
 
     /**
-     * Sets the folder in classpath serving static files. <b>Observe: this method
+     * Sets the folder in classpath serving static files. <b>Observe: this
+     * method
      * must be called before all other methods.</b>
      *
      * @param folder the folder in classpath.
      */
     public static synchronized void staticFileLocation(String folder) {
-        if (initialized) {
+        if(initialized) {
             throwBeforeRouteMappingException();
         }
         staticFileFolder = folder;
@@ -155,8 +153,9 @@ public final class Spark {
      *
      * @param externalFolder the external folder serving static files.
      */
-    public static synchronized void externalStaticFileLocation(String externalFolder) {
-        if (initialized) {
+    public static synchronized void externalStaticFileLocation(
+            String externalFolder) {
+        if(initialized) {
             throwBeforeRouteMappingException();
         }
         externalStaticFileFolder = externalFolder;
@@ -262,7 +261,7 @@ public final class Spark {
     }
 
     static synchronized void runFromServlet() {
-        if (!initialized) {
+        if(!initialized) {
             routeMatcher = RouteMatcherFactory.get();
             initialized = true;
         }
@@ -275,7 +274,7 @@ public final class Spark {
 
     // Used for jUnit testing!
     static synchronized void stop() {
-        if (server != null) {
+        if(server != null) {
             server.stop();
         }
         initialized = false;
@@ -283,35 +282,32 @@ public final class Spark {
 
     private static void addRoute(String httpMethod, Route route) {
         init();
-        routeMatcher.parseValidateAddRoute(httpMethod + " '" + route.getPath()
-                + "'", route.getAcceptType(), route);
+        routeMatcher.parseValidateAddRoute(
+                httpMethod + " '" + route.getPath() + "'",
+                route.getAcceptType(), route);
     }
 
     private static void addFilter(String httpMethod, Filter filter) {
         init();
-        routeMatcher.parseValidateAddRoute(httpMethod + " '" + filter.getPath()
-                + "'", filter.getAcceptType(), filter);
+        routeMatcher.parseValidateAddRoute(
+                httpMethod + " '" + filter.getPath() + "'",
+                filter.getAcceptType(), filter);
     }
-    
+
     private static boolean hasMultipleHandlers() {
         return staticFileFolder != null || externalStaticFileFolder != null;
     }
 
     private static synchronized void init() {
-        if (!initialized) {
+        if(!initialized) {
             routeMatcher = RouteMatcherFactory.get();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     server = SparkServerFactory.create(hasMultipleHandlers());
-                    server.ignite(
-                            ipAddress,
-                            port,
-                            keystoreFile,
-                            keystorePassword,
-                            truststoreFile,
-                            truststorePassword,
-                            staticFileFolder,
+                    server.ignite(ipAddress, port, keystoreFile,
+                            keystorePassword, truststoreFile,
+                            truststorePassword, staticFileFolder,
                             externalStaticFileFolder);
                 }
             }).start();
@@ -323,41 +319,45 @@ public final class Spark {
         throw new IllegalStateException(
                 "This must be done before route mapping has begun");
     }
-    
+
     /*
      * TODO: discover new TODOs.
      * 
      * 
-     * TODO: Make available as maven dependency, upload on repo etc... 
-     * TODO: Add *, splat possibility 
-     * TODO: Add validation of routes, invalid characters and stuff, also validate parameters, check static, ONGOING
+     * TODO: Make available as maven dependency, upload on repo etc...
+     * TODO: Add *, splat possibility
+     * TODO: Add validation of routes, invalid characters and stuff, also
+     * validate parameters, check static, ONGOING
      * 
      * TODO: Javadoc
      * 
-     * TODO: Create maven archetype, "ONGOING" 
+     * TODO: Create maven archetype, "ONGOING"
      * TODO: Add cache-control helpers
      * 
-     * advanced TODO list: 
+     * advanced TODO list:
      * TODO: Add regexp URIs
      * 
      * Ongoing
      * 
-     * Done 
-     * TODO: Routes are matched in the order they are defined. The rirst route that matches the request is invoked. ??? 
-     * TODO: Before method for filters...check sinatra page 
-     * TODO: Setting Headers 
-     * TODO: Do we want get-prefixes for all *getters* or do we want a more ruby like approach???
-     * (Maybe have two choices?) 
-     * TODO: Setting Body, Status Code 
-     * TODO: Add possibility to set content type on return, DONE 
-     * TODO: Add possibility to access HttpServletContext in method impl, DONE 
-     * TODO: Redirect func in web context, DONE 
-     * TODO: Refactor, extract interfaces, DONE 
-     * TODO: Figure out a nice name, DONE - SPARK 
-     * TODO: Add /uri/{param} possibility, DONE 
-     * TODO: Tweak log4j config, DONE 
-     * TODO: Query string in web context, DONE 
-     * TODO: Add URI-param fetching from webcontext ie. ?param=value&param2=...etc, AND headers, DONE
+     * Done
+     * TODO: Routes are matched in the order they are defined. The rirst route
+     * that matches the request is invoked. ???
+     * TODO: Before method for filters...check sinatra page
+     * TODO: Setting Headers
+     * TODO: Do we want get-prefixes for all *getters* or do we want a more ruby
+     * like approach???
+     * (Maybe have two choices?)
+     * TODO: Setting Body, Status Code
+     * TODO: Add possibility to set content type on return, DONE
+     * TODO: Add possibility to access HttpServletContext in method impl, DONE
+     * TODO: Redirect func in web context, DONE
+     * TODO: Refactor, extract interfaces, DONE
+     * TODO: Figure out a nice name, DONE - SPARK
+     * TODO: Add /uri/{param} possibility, DONE
+     * TODO: Tweak log4j config, DONE
+     * TODO: Query string in web context, DONE
+     * TODO: Add URI-param fetching from webcontext ie.
+     * ?param=value&param2=...etc, AND headers, DONE
      * TODO: sessions? (use session servlet context?) DONE
      */
 }

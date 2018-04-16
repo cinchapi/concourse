@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +57,7 @@ public final class ZipFiles {
                 }
                 entry = in.getNextEntry();
             }
-            throw new ZipException("Cannot find "+relativeEntryPath);
+            throw new ZipException("Cannot find " + relativeEntryPath);
 
         }
         catch (IOException e) {
@@ -93,7 +93,8 @@ public final class ZipFiles {
                     "Unzip destination must be a directory");
         }
         try {
-            ZipInputStream in = new ZipInputStream(new FileInputStream(zipPath));
+            ZipInputStream in = new ZipInputStream(
+                    new FileInputStream(zipPath));
             ZipEntry entry = in.getNextEntry();
             while (entry != null) {
                 String target = destination + File.separator + entry.getName();
@@ -149,8 +150,8 @@ public final class ZipFiles {
      */
     private static String extract(ZipInputStream in) {
         try {
-            return CharStreams.toString(new InputStreamReader(in,
-                    StandardCharsets.UTF_8));
+            return CharStreams.toString(
+                    new InputStreamReader(in, StandardCharsets.UTF_8));
         }
         catch (IOException e) {
             throw Throwables.propagate(e);

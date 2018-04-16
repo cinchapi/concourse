@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +21,6 @@ import org.apache.thrift.ProcessFunction;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.server.GlobalState;
-
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -30,6 +28,8 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+
+import com.cinchapi.concourse.server.GlobalState;
 
 /**
  * Contains methods to print log messages in the appropriate files.
@@ -102,7 +102,8 @@ public final class Logger {
      * @param file
      * @return the logger
      */
-    private static ch.qos.logback.classic.Logger setup(String name, String file) {
+    private static ch.qos.logback.classic.Logger setup(String name,
+            String file) {
         if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
             ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
                     .getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
@@ -126,8 +127,8 @@ public final class Logger {
         rolling.setMaxIndex(1);
         rolling.setMaxIndex(5);
         rolling.setContext(context);
-        rolling.setFileNamePattern(LOG_DIRECTORY + File.separator + file
-                + ".%i.zip");
+        rolling.setFileNamePattern(
+                LOG_DIRECTORY + File.separator + file + ".%i.zip");
         rolling.setParent(appender);
         rolling.start();
 

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.shell;
+
+import static java.text.MessageFormat.format;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,30 +27,20 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static java.text.MessageFormat.format;
-
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
-import groovy.lang.GroovyShell;
-import groovy.lang.MissingMethodException;
-import groovy.lang.Script;
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
 
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
-
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
-
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
@@ -58,6 +50,7 @@ import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.StartState;
 import com.cinchapi.concourse.thrift.Diff;
@@ -73,6 +66,12 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import groovy.lang.Binding;
+import groovy.lang.Closure;
+import groovy.lang.GroovyShell;
+import groovy.lang.MissingMethodException;
+import groovy.lang.Script;
 
 /**
  * The main program runner for the ConcourseShell client. ConcourseShell wraps a
@@ -118,8 +117,8 @@ public final class ConcourseShell {
             }
             if(Strings.isNullOrEmpty(opts.password)) {
                 cash.setExpandEvents(false);
-                opts.password = cash.console.readLine("Password ["
-                        + opts.username + "]: ", '*');
+                opts.password = cash.console
+                        .readLine("Password [" + opts.username + "]: ", '*');
             }
             try {
                 cash.concourse = Concourse.connect(opts.host, opts.port,
@@ -174,12 +173,9 @@ public final class ConcourseShell {
                     catch (HelpRequest e) {
                         String text = getHelpText(e.topic);
                         if(!Strings.isNullOrEmpty(text)) {
-                            Process p = Runtime.getRuntime().exec(
-                                    new String[] {
-                                            "sh",
-                                            "-c",
-                                            "echo \"" + text
-                                                    + "\" | less > /dev/tty" });
+                            Process p = Runtime.getRuntime()
+                                    .exec(new String[] { "sh", "-c", "echo \""
+                                            + text + "\" | less > /dev/tty" });
                             p.waitFor();
                         }
                         cash.console.getHistory().removeLast();
@@ -319,8 +315,8 @@ public final class ConcourseShell {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     line = line.replaceAll("\"", "\\\\\"");
-                    builder.append(line).append(
-                            System.getProperty("line.separator"));
+                    builder.append(line)
+                            .append(System.getProperty("line.separator"));
                 }
                 String text = builder.toString().trim();
                 reader.close();
@@ -351,8 +347,8 @@ public final class ConcourseShell {
     private static String tryGetCorrectApiMethod(String alias) {
         String camel = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
                 alias);
-        String expanded = com.cinchapi.concourse.util.Strings.ensureStartsWith(
-                camel, "concourse.");
+        String expanded = com.cinchapi.concourse.util.Strings
+                .ensureStartsWith(camel, "concourse.");
         return methods.contains(expanded) && !camel.equals(alias) ? camel
                 : null;
     }
@@ -524,7 +520,8 @@ public final class ConcourseShell {
     /**
      * A closure that responds to time/date alias functions.
      */
-    private final Closure<Timestamp> timeFunction = new Closure<Timestamp>(null) {
+    private final Closure<Timestamp> timeFunction = new Closure<Timestamp>(
+            null) {
 
         private static final long serialVersionUID = 1L;
 
@@ -630,8 +627,8 @@ public final class ConcourseShell {
                 long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
                 double seconds = elapsed / 1000.0;
                 if(value != null) {
-                    result.append("Returned '" + value + "' in " + seconds
-                            + " sec");
+                    result.append(
+                            "Returned '" + value + "' in " + seconds + " sec");
                 }
                 else {
                     result.append("Completed in " + seconds + " sec");
@@ -658,9 +655,12 @@ public final class ConcourseShell {
                                     + "session cannot continue");
                 }
                 else if(e instanceof MissingMethodException
-                        && ErrorCause.determine(e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
-                        && ((methodCorrected = tryGetCorrectApiMethod((method = ((MissingMethodException) e)
-                                .getMethod()))) != null || hasExternalScript())) {
+                        && ErrorCause.determine(
+                                e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                        && ((methodCorrected = tryGetCorrectApiMethod(
+                                (method = ((MissingMethodException) e)
+                                        .getMethod()))) != null
+                                || hasExternalScript())) {
                     if(methodCorrected != null) {
                         input = input.replaceAll(method, methodCorrected);
                     }
@@ -670,8 +670,15 @@ public final class ConcourseShell {
                     return evaluate(input);
                 }
                 else {
-                    String message = e.getCause() instanceof ParseException ? e
-                            .getCause().getMessage() : e.getMessage();
+                    String message;
+                    if(e.getCause() instanceof TApplicationException) {
+                        message = e.getCause().getMessage()
+                                + ". Please check server logs for more details.";
+                    }
+                    else {
+                        message = e.getCause() instanceof ParseException
+                                ? e.getCause().getMessage() : e.getMessage();
+                    }
                     throw new EvaluationException("ERROR: " + message);
                 }
             }
@@ -707,8 +714,8 @@ public final class ConcourseShell {
                 }
                 String scriptText = sb.toString();
                 try {
-                    this.script = groovy
-                            .parse(scriptText, EXTERNAL_SCRIPT_NAME);
+                    this.script = groovy.parse(scriptText,
+                            EXTERNAL_SCRIPT_NAME);
                     evaluate(scriptText);
                 }
                 catch (IrregularEvaluationResult e) {
@@ -719,10 +726,8 @@ public final class ConcourseShell {
                     msg = msg.substring(msg.indexOf('\n') + 1);
                     msg = msg.replaceAll("ext: ", "");
                     die("A fatal error occurred while parsing the run-commands file at "
-                            + script
-                            + System.getProperty("line.separator")
-                            + msg
-                            + System.getProperty("line.separator")
+                            + script + System.getProperty("line.separator")
+                            + msg + System.getProperty("line.separator")
                             + "Fix these errors or start concourse shell with the --no-run-commands flag");
                 }
             }
@@ -768,8 +773,8 @@ public final class ConcourseShell {
         CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
         setDefaultPrompt();
-        console.println("Client Version "
-                + Version.getVersion(ConcourseShell.class));
+        console.println(
+                "Client Version " + Version.getVersion(ConcourseShell.class));
         console.println("Server Version " + concourse.getServerVersion());
         console.println("");
         console.println("Connected to the '" + env + "' environment.");
@@ -815,35 +820,42 @@ public final class ConcourseShell {
             }
         }
 
-        @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = prefsHandler != null ? prefsHandler
-                .getEnvironment() : "";
+        @Parameter(names = { "-e",
+                "--environment" }, description = "The environment of the Concourse Server to use")
+        public String environment = prefsHandler != null
+                ? prefsHandler.getEnvironment() : "";
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
 
-        @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
+        @Parameter(names = { "-h",
+                "--host" }, description = "The hostname where the Concourse Server is located")
         public String host = prefsHandler != null ? prefsHandler.getHost()
                 : "localhost";
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-        public String password = prefsHandler != null ? new String(
-                prefsHandler.getPasswordExplicit()) : null;
+        public String password = prefsHandler != null
+                ? new String(prefsHandler.getPasswordExplicit()) : null;
 
-        @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
+        @Parameter(names = { "-p",
+                "--port" }, description = "The port on which the Concourse Server is listening")
         public int port = prefsHandler != null ? prefsHandler.getPort() : 1717;
 
-        @Parameter(names = { "-r", "--run" }, description = "The command to run non-interactively")
+        @Parameter(names = { "-r",
+                "--run" }, description = "The command to run non-interactively")
         public String run = "";
 
-        @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-        public String username = prefsHandler != null ? prefsHandler
-                .getUsername() : "admin";
+        @Parameter(names = { "-u",
+                "--username" }, description = "The username with which to connect")
+        public String username = prefsHandler != null
+                ? prefsHandler.getUsername() : "admin";
 
-        @Parameter(names = { "--run-commands", "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
+        @Parameter(names = { "--run-commands",
+                "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
         public String ext = FileOps.getUserHome() + "/.cashrc";
 
-        @Parameter(names = { "--no-run-commands", "--no-rc" }, description = "A flag to disable loading any run commands file")
+        @Parameter(names = { "--no-run-commands",
+                "--no-rc" }, description = "A flag to disable loading any run commands file")
         public boolean ignoreRunCommands = false;
 
         @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")

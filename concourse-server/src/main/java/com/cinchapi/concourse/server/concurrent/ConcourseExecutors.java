@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,8 +63,8 @@ public final class ConcourseExecutors {
      */
     public static void executeAndAwaitTerminationAndShutdown(
             String threadNamePrefix, Runnable... commands) {
-        ExecutorService executor = Executors.newFixedThreadPool(
-                commands.length, getThreadFactory(threadNamePrefix));
+        ExecutorService executor = Executors.newFixedThreadPool(commands.length,
+                getThreadFactory(threadNamePrefix));
         for (Runnable command : commands) {
             executor.execute(command);
         }
@@ -90,7 +90,8 @@ public final class ConcourseExecutors {
      * @param threadNamePrefix
      * @return a new thread pool
      */
-    public static ExecutorService newThreadPool(int num, String threadNamePrefix) {
+    public static ExecutorService newThreadPool(int num,
+            String threadNamePrefix) {
         return Executors.newFixedThreadPool(num,
                 getThreadFactory(threadNamePrefix));
     }

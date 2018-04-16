@@ -1,12 +1,29 @@
+/*
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.cinchapi.concourse;
 
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Numbers;
@@ -57,6 +74,32 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         client.add(key, 15, 2);
         int actual = 34;
         Timestamp timestamp = Timestamp.now();
+        client.add(key, 100, 2);
+        Number expected = client.calculate().average(key, "name = bar",
+                timestamp);
+        Assert.assertTrue(Numbers.areEqual(expected, actual / 2));
+    }
+
+    @Test
+    @Ignore
+    public void testAverageKeyCclTimestr() {
+        String key = "age";
+        client.add("name", "foo", 1);
+        client.add(key, 30, 1);
+        client.add("name", "bar", 2);
+        client.add(key, 19, 2);
+        client.add("name", "bar", 2);
+        client.add(key, 15, 2);
+        int actual = 34;
+        // Timestamp timestamp = Timestamp.fromString("1 second ago");
+        // NOTE: Replaced the above timestamp because the logic of the test is
+        // fundamentally flawed. The above will return a relative timestamp that
+        // is resolved by the server. Therefore, the preciseness of the
+        // resolution is subject to latency between message passing between the
+        // client and server. In general, we need to get rid of all Timestr
+        // methods because they suffer from this.
+        Timestamp timestamp = client.time("1 second ago");
+        Threads.sleep(1000);
         client.add(key, 100, 2);
         Number expected = client.calculate().average(key, "name = bar",
                 timestamp);

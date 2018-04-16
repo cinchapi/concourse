@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,8 +68,10 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
@@ -84,8 +86,10 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
@@ -93,11 +97,10 @@ public class ConcourseCodebaseTest {
     public void testCloneFromGithubDetectStaleCache() {
         System.setProperty("user.dir", Files.createTempDir().toString());
         ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        Path path = Paths
-                .get(FileOps
-                        .readLines(
-                                Paths.get(ConcourseCodebase.REPO_CACHE_FILE)
-                                        .toString()).iterator().next());
+        Path path = Paths.get(FileOps
+                .readLines(
+                        Paths.get(ConcourseCodebase.REPO_CACHE_FILE).toString())
+                .iterator().next());
         path.toFile().delete();
         codebase = ConcourseCodebase.cloneFromGithub();
         Path codepath = Paths.get(codebase.getPath());
@@ -105,12 +108,15 @@ public class ConcourseCodebaseTest {
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
         Assert.assertTrue(cache.toFile().exists());
-        Assert.assertTrue(isDirectoryOrSubdirectoryOf(Paths.get(FileOps
-                .readLines(cache.toString()).iterator().next()), codepath));
+        Assert.assertTrue(isDirectoryOrSubdirectoryOf(
+                Paths.get(
+                        FileOps.readLines(cache.toString()).iterator().next()),
+                codepath));
         cache.toFile().delete();
     }
 
-    private static boolean isDirectoryOrSubdirectoryOf(Path parent, Path child) {
+    private static boolean isDirectoryOrSubdirectoryOf(Path parent,
+            Path child) {
         parent = parent.normalize().toAbsolutePath();
         if(child != null) {
             child = child.normalize().toAbsolutePath();

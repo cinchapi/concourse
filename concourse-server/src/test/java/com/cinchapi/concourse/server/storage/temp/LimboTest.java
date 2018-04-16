@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,16 +23,15 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.StoreTest;
-import com.cinchapi.concourse.server.storage.temp.Limbo;
-import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
 /**
- * Base unit tests for {@link Limbo} services.
- * 
+ * Base unit tests for {@link com.cinchapi.concourse.server.storage.temp.Limbo}
+ * services.
+ *
  * @author Jeff Nelson
  */
 public abstract class LimboTest extends StoreTest {
@@ -41,8 +40,8 @@ public abstract class LimboTest extends StoreTest {
     public void testIterator() {
         List<Write> writes = getWrites();
         for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
+            add(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
         }
         Iterator<Write> it0 = ((Limbo) store).iterator();
         Iterator<Write> it1 = writes.iterator();
@@ -54,7 +53,7 @@ public abstract class LimboTest extends StoreTest {
         }
         Assert.assertFalse(it0.hasNext());
     }
-    
+
     @Test
     public void testGetLastWriteActionWithTimestamp() {
         String key = TestData.getSimpleString();
@@ -63,10 +62,8 @@ public abstract class LimboTest extends StoreTest {
         add(key, value, record);
         long timestamp = Time.now();
         remove(key, value, record);
-        Assert.assertEquals(
-                Action.ADD,
-                ((Limbo) store).getLastWriteAction(
-                        Write.notStorable(key, value, record), timestamp));
+        Assert.assertEquals(Action.ADD, ((Limbo) store).getLastWriteAction(
+                Write.notStorable(key, value, record), timestamp));
     }
 
     @Override
@@ -82,14 +79,14 @@ public abstract class LimboTest extends StoreTest {
 
     @Override
     protected void add(String key, TObject value, long record) {
-        if (!store.verify(key, value, record)) {
+        if(!store.verify(key, value, record)) {
             ((Limbo) store).insert(Write.add(key, value, record));
         }
     }
 
     @Override
     protected void remove(String key, TObject value, long record) {
-        if (store.verify(key, value, record)) {
+        if(store.verify(key, value, record)) {
             ((Limbo) store).insert(Write.remove(key, value, record));
         }
     }

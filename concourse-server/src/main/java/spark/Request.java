@@ -1,13 +1,12 @@
 /*
- * Copyright 2011- Per Wendel
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,9 +29,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import spark.QueryParamsMap;
-import spark.Request;
-import spark.Session;
 import spark.route.HttpMethod;
 import spark.route.RouteMatch;
 import spark.utils.IOUtils;
@@ -73,7 +69,8 @@ public class Request implements HttpRequest {
 
         List<String> splat = new ArrayList<String>();
 
-        for (int i = 0; (i < nbrOfRequestParts) && (i < nbrOfMatchedParts); i++) {
+        for (int i = 0; (i < nbrOfRequestParts)
+                && (i < nbrOfMatchedParts); i++) {
             String matchedPart = matched.get(i);
 
             if(SparkUtils.isSplat(matchedPart)) {
@@ -145,10 +142,10 @@ public class Request implements HttpRequest {
         this.httpMethod = match.getHttpMethod();
         this.servletRequest = request;
 
-        List<String> requestList = SparkUtils.convertRouteToList(match
-                .getRequestURI());
-        List<String> matchedList = SparkUtils.convertRouteToList(match
-                .getMatchUri());
+        List<String> requestList = SparkUtils
+                .convertRouteToList(match.getRequestURI());
+        List<String> matchedList = SparkUtils
+                .convertRouteToList(match.getMatchUri());
 
         params = getParams(requestList, matchedList);
         splat = getSplat(requestList, matchedList);

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,8 +23,6 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.TestData;
@@ -33,10 +31,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link Concourse#select(long)} API method. Basically the idea
- * is to add/remove some data and ensure browse(record) returns the same thing
- * as fetch(describe(record), record)
- * 
+ * Unit tests for {@link com.cinchapi.concourse.Concourse#select(long)} API
+ * method. Basically the
+ * idea is to add/remove some data and ensure browse(record) returns the same
+ * thing as
+ * fetch(describe(record), record)
+ *
  * @author Jeff Nelson
  */
 public class BrowseTest extends ConcourseIntegrationTest {
@@ -102,12 +102,12 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.add("d", 2, record);
         client.add("d", 3, record);
         client.remove("c", 2, record);
-        Assert.assertEquals(client.select(record, timestamp), client.select(
-                client.describe(record, timestamp), record, timestamp));
+        Assert.assertEquals(client.select(record, timestamp), client
+                .select(client.describe(record, timestamp), record, timestamp));
     }
-    
+
     @Test
-    public void testBrowseKeysTime(){
+    public void testBrowseKeysTime() {
         long a = 1;
         long b = 2;
         client.add("a", 1, a);
@@ -123,7 +123,8 @@ public class BrowseTest extends ConcourseIntegrationTest {
         Map<Object, Set<Long>> expectedB = Maps.newHashMap();
         expectedB.put(1, Sets.newHashSet(1L));
         expected.put("b", expectedB);
-        Assert.assertEquals(expected, client.browse(Sets.newHashSet("a", "b"), timestamp));
+        Assert.assertEquals(expected,
+                client.browse(Sets.newHashSet("a", "b"), timestamp));
     }
 
 }

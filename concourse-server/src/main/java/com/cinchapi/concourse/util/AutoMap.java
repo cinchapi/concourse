@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,8 +83,8 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
      * @param cleaner
      * @return the AutoMap
      */
-    public static <K, V> AutoHashMap<K, V> newAutoHashMap(
-            Function<K, V> loader, Function<V, Boolean> cleaner) {
+    public static <K, V> AutoHashMap<K, V> newAutoHashMap(Function<K, V> loader,
+            Function<V, Boolean> cleaner) {
         return new AutoHashMap<K, V>(loader, cleaner);
     }
 

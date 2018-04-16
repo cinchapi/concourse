@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,8 +39,8 @@ public final class ServerProcesses {
      * The template to use for {@link #fork(Forkable) forked} routines run in a
      * separate {@link JavaApp}.
      */
-    private static String FORK_TEMPLATE = FileSystem.read(Resources
-            .getAbsolutePath("/META-INF/ForkRunner.tpl"));
+    private static String FORK_TEMPLATE = FileSystem
+            .read(Resources.getAbsolutePath("/META-INF/ForkRunner.tpl"));
 
     /**
      * Fork the {@code routine} to a separate JVM process and block until the
@@ -91,8 +91,9 @@ public final class ServerProcesses {
 
         // Since the #routine is forked, we offer the external JVM process the
         // local classpath
-        String classpath = StringUtils.join(((URLClassLoader) Thread
-                .currentThread().getContextClassLoader()).getURLs(),
+        String classpath = StringUtils.join(
+                ((URLClassLoader) Thread.currentThread()
+                        .getContextClassLoader()).getURLs(),
                 JavaApp.CLASSPATH_SEPARATOR);
         FileChannel inputChannel = FileSystem.getFileChannel(input);
         try {
@@ -102,16 +103,15 @@ public final class ServerProcesses {
             new Thread(new Runnable() { // Wait for completion in separate
                                         // thread so as to not block the caller
 
-                        @Override
-                        public void run() {
-                            Processes.waitForSuccessfulCompletion(app);
-                            ByteBuffer result = FileSystem.readBytes(output);
-                            T ret = Serializables.read(result,
-                                    routine.getReturnType());
-                            callback.result(ret);
-                        }
+                @Override
+                public void run() {
+                    Processes.waitForSuccessfulCompletion(app);
+                    ByteBuffer result = FileSystem.readBytes(output);
+                    T ret = Serializables.read(result, routine.getReturnType());
+                    callback.result(ret);
+                }
 
-                    }).start();
+            }).start();
         }
         finally {
             FileSystem.closeFileChannel(inputChannel);

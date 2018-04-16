@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,14 +20,12 @@ import java.util.Collection;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.util.TCollections;
-import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link TCollections} until class.
- * 
+ * Unit tests for {@link com.cinchapi.concourse.util.TCollections} until class.
+ *
  * @author Jeff Nelson
  */
 public class TCollectionsTest {
@@ -40,13 +38,13 @@ public class TCollectionsTest {
         Collection<Integer> b = getCollection(bSize);
         Assert.assertEquals(b, TCollections.largerBetween(a, b));
     }
-    
+
     @Test
-    public void testLargerBetweenSameSize(){
+    public void testLargerBetweenSameSize() {
         int aSize = TestData.getScaleCount();
         Collection<Integer> a = getCollection(aSize);
         Collection<Integer> b = getCollection(aSize);
-        Assert.assertEquals(b, TCollections.largerBetween(a, b)); 
+        Assert.assertEquals(b, TCollections.largerBetween(a, b));
     }
 
     @Test
@@ -57,13 +55,13 @@ public class TCollectionsTest {
         Collection<Integer> b = getCollection(bSize);
         Assert.assertEquals(a, TCollections.smallerBetween(a, b));
     }
-    
+
     @Test
-    public void testSmallerBetweenSameSize(){
+    public void testSmallerBetweenSameSize() {
         int aSize = TestData.getScaleCount();
         Collection<Integer> a = getCollection(aSize);
         Collection<Integer> b = getCollection(aSize);
-        Assert.assertEquals(a, TCollections.smallerBetween(a, b)); 
+        Assert.assertEquals(a, TCollections.smallerBetween(a, b));
     }
 
     /**

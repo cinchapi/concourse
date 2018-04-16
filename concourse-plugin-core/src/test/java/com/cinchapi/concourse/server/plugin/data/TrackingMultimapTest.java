@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.DataType;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Sets;
@@ -140,8 +142,8 @@ public class TrackingMultimapTest
         }
         Assert.assertTrue(map.size() == count2);
         map.putAll(map1);
-        Variables.register("map", map);
-        Variables.register("map1", map1);
+        Variables.register("map", map.keySet());
+        Variables.register("map1", map1.keySet());
         Assert.assertTrue(map.size() == (count1 + count2));
     }
 
@@ -222,7 +224,7 @@ public class TrackingMultimapTest
         });
         Assert.assertEquals(tmmap.count(), count.get());
     }
-    
+
     @Test
     public void testDeleteWillRemoveKeyIfNoAssociatedValues() {
         TrackingMultimap<String, Integer> tmmap = (TrackingMultimap<String, Integer>) map;
@@ -284,6 +286,29 @@ public class TrackingMultimapTest
         Assert.assertEquals(30, tmmap.max());
         tmmap.delete(30, 30L);
         Assert.assertEquals(4, tmmap.max());
+    }
+
+    @Test
+    public void testPercentKeyDataTypeWhenEmpty() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
+    }
+
+    @Test
+    public void testPercentKeyDataTypeTimestamp() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        Timestamp t1 = Timestamp.now();
+        Timestamp t2 = Timestamp.now();
+        Timestamp t3 = Timestamp.now();
+        Object t4 = Random.getObject();
+        tmmap.insert(t1, 1L);
+        tmmap.insert(t2, 2L);
+        tmmap.insert(t3, 1L);
+        tmmap.insert(t4, 17L);
+        Assert.assertEquals(0.75, tmmap.percentKeyDataType(DataType.TIMESTAMP),
+                0);
     }
 
     /**

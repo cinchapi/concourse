@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
- * 
+ * Copyright (c) 2013-2018 Cinchapi Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
@@ -122,6 +123,9 @@ public class TypeAdapters {
             }
             else if(value instanceof String) {
                 writer.value((String) value);
+            }
+            else if(value instanceof Timestamp) {
+                writer.jsonValue("|" + ((Timestamp) value).getMicros() + "|");
             }
             else {
                 generic.write(writer, value);
