@@ -1,14 +1,19 @@
 FROM openjdk:8
 MAINTAINER Cinchapi Inc. <opensource@cinchapi.com>
 
+RUN apt-get update && \
+    apt-get -y install sudo
+
+RUN mkdir -p /opt/concourse-server
+WORKDIR /opt/concourse-server
+COPY . /opt/concourse-server
+
 RUN \
-    ./gradlew installer
+    ./gradlew installer && \
     cp concourse-server/build/distributions/*.bin /opt && \
     cd /opt && \
     sh *bin && \
     cd concourse-server
-
-WORKDIR /opt/concourse-server
 
 RUN \
     ln -fsv /dev/stdout ./log/console.log && \
@@ -19,6 +24,7 @@ RUN \
 
 CMD [ "./bin/concourse", "console" ]
 
-EXPOSE 1717 8817
+EXPOSE 1717
+EXPOSE 3434
 
 VOLUME [ "/data/concourse" ]
