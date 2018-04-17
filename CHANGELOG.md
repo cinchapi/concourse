@@ -17,6 +17,9 @@
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
+#### Version 0.8.2 (April 17, 2018)
+* Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
+
 #### Version 0.8.1 (March 26, 2018)
 * Fixed a bug that caused local CCL resolution to not work in the `findOrInsert` methods.
 * Fixed an issue that caused conversion from string to `Operator` to be case sensitive.
