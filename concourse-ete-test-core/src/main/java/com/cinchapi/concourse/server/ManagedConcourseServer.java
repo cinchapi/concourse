@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -240,23 +241,39 @@ public class ManagedConcourseServer {
                     binary.toString(), "--", "skip-integration"));
             builder.directory(new File(directory));
             builder.redirectErrorStream();
-            Process process = builder.start();
-            // The concourse-server installer prompts for an admin password in
-            // order to make optional system wide In order to get around this
-            // prompt, we have to "kill" the process, otherwise the server
-            // install will hang.
+            AtomicBoolean terminated = new AtomicBoolean(false);
+            Process proc1 = builder.start();
             Stopwatch watch = Stopwatch.createStarted();
-            while (watch.elapsed(TimeUnit.SECONDS) < 1) {
-                continue;
-            }
-            watch.stop();
-            process.destroy();
+            new Thread(() -> {
+                // The concourse-server installer prompts for an admin password
+                // in order to complete optional system wide integration.
+                // Concourse versions >= 0.5.0 have a skip-integration flag that
+                // skips the prompt. Since older versions don't support the
+                // prompt, we have to "kill" the process, otherwise the server
+                // install will hang.
+                while (!terminated.get()) {
+                    if(watch.elapsed(TimeUnit.SECONDS) > 10) {
+                        proc1.destroy();
+                        watch.stop();
+                    }
+                    else {
+                        log.debug("Waiting for server install to finish...");
+                        try {
+                            Thread.sleep(1000);
+                        }
+                        catch (InterruptedException e) {}
+                        continue;
+                    }
+                }
+            }).start();
+            proc1.waitFor();
+            terminated.set(true);
             TerminalFactory.get().restore();
             String application = directory + File.separator
                     + "concourse-server"; // the install directory for the
                                           // concourse-server application
-            process = Runtime.getRuntime().exec("ls " + application);
-            List<String> output = Processes.getStdOut(process);
+            Process proc2 = Runtime.getRuntime().exec("ls " + application);
+            List<String> output = Processes.getStdOut(proc2);
             if(!output.isEmpty()) {
                 // delete the dev prefs because those would take precedence over
                 // what is configured in this class
