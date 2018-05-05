@@ -285,12 +285,15 @@ public class ImportDryRunConcourse extends Concourse {
     public String dump() {
         StringBuilder sb = new StringBuilder();
         synchronized (imported) {
+            sb.append("[");
             for (Multimap<String, Object> map : imported) {
-                sb.append(Convert.mapToJson(map))
-                        .append(System.lineSeparator());
+                sb.append(Convert.mapToJson(map)).append(",");
             }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("]");
             return sb.toString();
         }
+
     }
 
     @Override
