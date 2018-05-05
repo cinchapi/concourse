@@ -18,7 +18,8 @@
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
 #### Version 0.8.3 (TBD)
-* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method. 
+* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
+* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
