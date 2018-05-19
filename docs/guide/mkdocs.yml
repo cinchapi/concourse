@@ -8,7 +8,7 @@ repo_url: https://github.com/cinchapi/concourse
 copyright: Copyright (c) 2013-2018 Cinchapi Inc.
 docs_dir: src
 google_analytics:
-  - 'UA-XXXXXXXX-X'
+  - 'UA-72515849-1'
   - 'auto'
 pages:
     - Home: index.md
