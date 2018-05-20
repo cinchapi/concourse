@@ -35,7 +35,10 @@ pages:
     - Distributed: distributed.md
     - Internals: internals.md
     - Glossary: glossary.md
-theme: material
+theme:
+    name: material
+    logo: images/logo.png
+    favicon: images/logo.png
 extra_css:
     - css/extra.css
     - css/highlight.css
