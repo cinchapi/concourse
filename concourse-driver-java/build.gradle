@@ -25,7 +25,7 @@ dependencies {
     compile 'org.slf4j:log4j-over-slf4j:1.7.5'
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
     compile 'com.google.code.gson:gson:2.5'
-    compile (group: 'com.cinchapi', name: 'ccl', version:'2.3.3'){
+    compile (group: 'com.cinchapi', name: 'ccl', version:'2.4.0'){
         exclude group: 'com.google.guava', module:'guava'
     }
 
@@ -35,4 +35,4 @@ dependencies {
 
 ext.uploadEnabled = true
 ext.title = 'Concourse'
-ext.description = 'Concourse is a self-tuning database that is designed for both ad hoc analytics and high volume transactions at scale. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'
+ext.description = 'Concourse is a distributed database warehouse for transactions, search, and analytics across time. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'
