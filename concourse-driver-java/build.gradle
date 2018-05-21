@@ -35,4 +35,4 @@ dependencies {
 
 ext.uploadEnabled = true
 ext.title = 'Concourse'
-ext.description = 'Concourse is a self-tuning database that is designed for both ad hoc analytics and high volume transactions at scale. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'
+ext.description = 'Concourse is a distributed database warehouse for transactions, search, and analytics across time. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'
