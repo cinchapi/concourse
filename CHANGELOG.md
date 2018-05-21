@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.9.0 (TBD)
+#### Version 0.9.0 (May 21, 2018)
 * Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 * Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
 * Streamlined the logic for server-side atomic operations to unlock higher performance potential.
@@ -16,10 +16,9 @@
 * The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 * Added the ability for the storage engine to track stats and metadata about database structures.
-
-#### Version 0.8.3 (TBD)
 * Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
 * Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
+* Added additional logging for plugin errors.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
