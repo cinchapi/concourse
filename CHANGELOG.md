@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.9.0 (May 21, 2018)
+#### Version 0.9.0 (TBD)
 * Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 * Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
 * Streamlined the logic for server-side atomic operations to unlock higher performance potential.
@@ -19,6 +19,8 @@
 * Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
 * Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
 * Added additional logging for plugin errors.
+* Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
+* Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.  
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
