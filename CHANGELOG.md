@@ -20,7 +20,10 @@
 * Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
 * Added additional logging for plugin errors.
 * Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
-* Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.  
+* Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
+	* All previously existing users are assigned the `ADMIN` role upon upgrade. You can change a user's status use the `users` CLI.
+	* The `users create` command now requires a role to be provided interactively when prompted or non-interactively using the `--set-role` parameter.
+* Added an `edit` option to the `users` CLI that allows for setting a user's role and/or changing the password. The password can still also be changed using the `password` option of the `users` CLI. 
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
