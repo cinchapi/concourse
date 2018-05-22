@@ -59,7 +59,7 @@ import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.security.AccessManager;
+import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -128,7 +128,7 @@ public class ConcourseServer extends BaseConcourseServer
         implements ConcourseService.Iface {
 
     /**
-     * Contains the credentials used by the {@link #accessManager}. This file is
+     * Contains the credentials used by the {@link #users}. This file is
      * typically located in the root of the server installation.
      */
     private static final String ACCESS_FILE = ".access";
@@ -343,9 +343,9 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * The AccessManager controls access to the server.
+     * The UserService controls access to the server.
      */
-    private AccessManager accessManager;
+    private UserService users;
 
     /**
      * The base location where the indexed buffer pages are stored.
@@ -2645,7 +2645,7 @@ public class ConcourseServer extends BaseConcourseServer
             String environment) throws TException {
         validate(username, password);
         getEngine(environment);
-        return accessManager.getNewAccessToken(username);
+        return users.tokens.issue(username);
     }
 
     @Override
@@ -2659,7 +2659,7 @@ public class ConcourseServer extends BaseConcourseServer
     public void logout(AccessToken creds, String environment)
             throws TException {
         checkAccess(creds, null);
-        accessManager.expireAccessToken(creds);
+        users.tokens.expire(creds);
     }
 
     @Override
@@ -3412,7 +3412,7 @@ public class ConcourseServer extends BaseConcourseServer
      */
     @PluginRestricted
     public AccessToken newServiceToken() {
-        return accessManager.getNewServiceToken();
+        return users.tokens.issue();
     }
 
     @Override
@@ -4622,8 +4622,8 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    protected AccessManager getAccessManager() {
-        return accessManager;
+    protected UserService userService() {
+        return users;
     }
 
     @Override
@@ -4669,7 +4669,7 @@ public class ConcourseServer extends BaseConcourseServer
     private void checkAccess(AccessToken creds,
             @Nullable TransactionToken transaction)
             throws SecurityException, IllegalArgumentException {
-        if(!accessManager.isValidAccessToken(creds)) {
+        if(!users.tokens.isValid(creds)) {
             throw new SecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
@@ -4762,7 +4762,7 @@ public class ConcourseServer extends BaseConcourseServer
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
-        this.accessManager = AccessManager.create(ACCESS_FILE);
+        this.users = UserService.create(ACCESS_FILE);
         this.httpServer = GlobalState.HTTP_PORT > 0
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
@@ -4788,7 +4788,7 @@ public class ConcourseServer extends BaseConcourseServer
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
-        if(!accessManager.isExistingUsernamePasswordCombo(username, password)) {
+        if(!users.authenticate(username, password)) {
             throw new SecurityException(
                     "Invalid username/password combination.");
         }

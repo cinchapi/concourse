@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
-import com.cinchapi.concourse.security.AccessManager;
-import com.cinchapi.concourse.security.AccessManager.Role;
+import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
@@ -42,8 +42,8 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer
-        implements ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer implements
+        ConcourseManagementService.Iface {
 
     @Override
     @PluginRestricted
@@ -51,7 +51,7 @@ public abstract class BaseConcourseServer
             String role, AccessToken creds) throws TException {
         checkAccess(creds);
         Role userRole = Role.valueOfIgnoreCase(role);
-        getAccessManager().createUser(username, password, userRole);
+        userService().create(username, password, userRole);
 
     }
 
@@ -60,7 +60,7 @@ public abstract class BaseConcourseServer
     public final void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getAccessManager().deleteUser(username);
+        userService().delete(username);
     }
 
     @Override
@@ -68,7 +68,7 @@ public abstract class BaseConcourseServer
     public final void disableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getAccessManager().disableUser(username);
+        userService().disable(username);
 
     }
 
@@ -85,7 +85,7 @@ public abstract class BaseConcourseServer
     public final void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getAccessManager().enableUser(username);
+        userService().enable(username);
 
     }
 
@@ -102,7 +102,7 @@ public abstract class BaseConcourseServer
     public final boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        return getAccessManager().isExistingUsername(username);
+        return userService().exists(username);
     }
 
     @Override
@@ -134,7 +134,7 @@ public abstract class BaseConcourseServer
             throws TException {
         checkAccess(creds);
         return TCollections.toOrderedListString(
-                getAccessManager().describeAllAccessTokens());
+                userService().tokens.describeActiveSessions());
     }
 
     @Override
@@ -157,8 +157,8 @@ public abstract class BaseConcourseServer
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
             AccessToken creds) throws TException {
         checkAccess(creds);
-        AccessManager manager = getAccessManager();
-        manager.setUserPassword(username, password);
+        UserService users = userService();
+        users.setPassword(username, password);
 
     }
 
@@ -167,8 +167,8 @@ public abstract class BaseConcourseServer
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        AccessManager manager = getAccessManager();
-        manager.setUserRole(username, Role.valueOfIgnoreCase(role));
+        UserService users = userService();
+        users.setRole(username, Role.valueOfIgnoreCase(role));
 
     }
 
@@ -191,11 +191,11 @@ public abstract class BaseConcourseServer
     protected abstract void checkAccess(AccessToken creds) throws TException;
 
     /**
-     * Return the {@link AccessManager} used by the server.
+     * Return the {@link UserService} used by the server.
      * 
-     * @return the {@link AccessManager}
+     * @return the {@link UserService}
      */
-    protected abstract AccessManager getAccessManager();
+    protected abstract UserService userService();
 
     /**
      * Return the location where the server store's contents in the buffer.

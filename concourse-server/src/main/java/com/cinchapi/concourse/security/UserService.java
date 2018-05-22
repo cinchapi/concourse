@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.StampedLock;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -60,12 +60,12 @@ import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
 
 /**
- * The {@link AccessManager} controls access to the server by keeping tracking
+ * The {@link UserService} controls access to the server by keeping tracking
  * of valid credentials and handling authentication requests.
  * 
  * @author Jeff Nelson
  */
-public class AccessManager {
+public class UserService {
 
     /**
      * The number of hours for which an AccessToken is valid.
@@ -149,8 +149,8 @@ public class AccessManager {
      * @param backingStore
      * @return the AccessManager
      */
-    public static AccessManager create(String backingStore) {
-        return new AccessManager(backingStore, ACCESS_TOKEN_TTL,
+    public static UserService create(String backingStore) {
+        return new UserService(backingStore, ACCESS_TOKEN_TTL,
                 ACCESS_TOKEN_TTL_UNIT);
     }
 
@@ -164,10 +164,9 @@ public class AccessManager {
      * @return the AccessManager
      */
     @Restricted
-    protected static AccessManager createForTesting(String backingStore,
+    protected static UserService createForTesting(String backingStore,
             int accessTokenTtl, TimeUnit accessTokeTtlUnit) {
-        return new AccessManager(backingStore, accessTokenTtl,
-                accessTokeTtlUnit);
+        return new UserService(backingStore, accessTokenTtl, accessTokeTtlUnit);
     }
 
     /**
@@ -217,6 +216,12 @@ public class AccessManager {
     }
 
     /**
+     * An interface for managing tokens that are issued to perform actions on
+     * behalf of user and service accounts.
+     */
+    public final AccessTokenManager tokens;
+
+    /**
      * A table in memory that holds the user credentials.
      */
     private final HashBasedTable<Short, String, Object> accounts;
@@ -237,11 +242,6 @@ public class AccessManager {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
-     * Handles access tokens.
-     */
-    private final AccessTokenManager tokenManager;
-
-    /**
      * Construct a new instance.
      * 
      * @param backingStore
@@ -249,10 +249,10 @@ public class AccessManager {
      * @param accessTokenTtlUnit
      */
     @SuppressWarnings("unchecked")
-    private AccessManager(String backingStore, int accessTokenTtl,
+    private UserService(String backingStore, int accessTokenTtl,
             TimeUnit accessTokenTtlUnit) {
         this.backingStore = backingStore;
-        this.tokenManager = AccessTokenManager.create(accessTokenTtl,
+        this.tokens = new AccessTokenManager(accessTokenTtl,
                 accessTokenTtlUnit);
         if(FileSystem.getFileSize(backingStore) > 0) {
             ByteBuffer bytes = FileSystem.readBytes(backingStore);
@@ -265,9 +265,36 @@ public class AccessManager {
             accounts = HashBasedTable.create();
             // If there are no credentials (which implies this is a new server)
             // add the default admin username/password
-            createUser(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
+            create(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
                     ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD),
                     Role.ADMIN);
+        }
+    }
+
+    /**
+     * Return {@code true} if {@code username} and {@code password} is a valid
+     * combination.
+     * 
+     * @param username
+     * @param password
+     * @return {@code true} if {@code username}/{@code password} is valid
+     */
+    public boolean authenticate(ByteBuffer username, ByteBuffer password) {
+        lock.readLock().lock();
+        try {
+            if(exists(username)) {
+                short uid = getUserId(username);
+                ByteBuffer salt = ByteBuffers
+                        .decodeFromHex((String) accounts.get(uid, SALT_KEY));
+                password.rewind();
+                password = Passwords.hash(password, salt);
+                return ByteBuffers.encodeAsHex(password)
+                        .equals((String) accounts.get(uid, PASSWORD_KEY));
+            }
+            return false;
+        }
+        finally {
+            lock.readLock().unlock();
         }
     }
 
@@ -278,17 +305,15 @@ public class AccessManager {
      * <strong>WARNING:</strong> A previous version of this method allowed an
      * existing user's password to be updated. That functionality has been
      * deleted. To update a user's password, using the
-     * {@link #setUserPassword(ByteBuffer, ByteBuffer)} method.
+     * {@link #setPassword(ByteBuffer, ByteBuffer)} method.
      * </p>
      * 
      * @param username
      * @param password
      * @param role
      */
-    public void createUser(ByteBuffer username, ByteBuffer password,
-            Role role) {
-        Preconditions.checkArgument(!isExistingUsername(username),
-                "User already exists");
+    public void create(ByteBuffer username, ByteBuffer password, Role role) {
+        Preconditions.checkArgument(!exists(username), "User already exists");
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
@@ -313,7 +338,7 @@ public class AccessManager {
      * 
      * @param username
      */
-    public void deleteUser(ByteBuffer username) {
+    public void delete(ByteBuffer username) {
         lock.writeLock().lock();
         try {
             User user = getUser(username);
@@ -334,28 +359,11 @@ public class AccessManager {
     }
 
     /**
-     * Return a list of strings, each of which describes a currently existing
-     * access token.
-     * 
-     * @return a list of token descriptions
-     */
-    public List<String> describeAllAccessTokens() {
-        List<String> sessions = Lists.newArrayList();
-        List<AccessTokenWrapper> tokens = Lists
-                .newArrayList(tokenManager.tokens.asMap().values());
-        Collections.sort(tokens);
-        for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
-            sessions.add(token.getDescription());
-        }
-        return sessions;
-    }
-
-    /**
      * Check if the user exists and updates {@link #ENABLED} flag as false.
      *
      * @param username the username to disable
      */
-    public void disableUser(ByteBuffer username) {
+    public void disable(ByteBuffer username) {
         lock.writeLock().lock();
         try {
             User user = getUserStrict(username);
@@ -371,7 +379,7 @@ public class AccessManager {
      *
      * @param username the username to enable
      */
-    public void enableUser(ByteBuffer username) {
+    public void enable(ByteBuffer username) {
         lock.writeLock().lock();
         try {
             User user = getUserStrict(username);
@@ -383,43 +391,15 @@ public class AccessManager {
     }
 
     /**
-     * Logout {@code token} so that it is not valid for subsequent access.
-     * 
-     * @param token
-     */
-    public void expireAccessToken(AccessToken token) {
-        tokenManager.deleteToken(token); // the #tokenManager handles locking
-    }
-
-    /**
-     * Remove the service {@code token} from the list of those that are valid.
-     * <p>
-     * <em>This is an alias for the {@link #expireAccessToken(AccessToken)}
-     * method.</em>
-     * </p>
-     * 
-     * @param token the service token to remove
-     */
-    public void expireServiceToken(AccessToken token) {
-        expireAccessToken(token);
-    }
-
-    /**
-     * Login {@code username} for subsequent access with the returned
-     * {@link AccessToken}.
+     * Return {@code true} if {@code username} exists in {@link #backingStore}.
      * 
      * @param username
-     * @return the AccessToken
+     * @return {@code true} if {@code username} exists in {@link #backingStore}
      */
-    public AccessToken getNewAccessToken(ByteBuffer username) {
+    public boolean exists(ByteBuffer username) {
         lock.readLock().lock();
         try {
-            User user = getUserStrict(username);
-            return tokenManager.addToken(user.usernameAsHex()); // NOTE: the
-                                                                // tokenManager
-                                                                // handles
-                                                                // its own
-                                                                // locking
+            return getUser(username) != null;
         }
         finally {
             lock.readLock().unlock();
@@ -427,22 +407,89 @@ public class AccessManager {
     }
 
     /**
-     * Return a new service token.
+     * Execute a routine on all of the usernames known to this service.
      * 
-     * <p>
-     * A service token is an {@link AccessToken} that is not associated with an
-     * actual user, but is instead generated based on the
-     * {@link #SERVICE_USERNAME} and can be assigned to a non-user service or
-     * process.
-     * </p>
-     * <p>
-     * Service tokens do not expire!
-     * </p>
-     * 
-     * @return the new service token
+     * @param consumer
      */
-    public AccessToken getNewServiceToken() {
-        return tokenManager.addToken(SERVICE_USERNAME_HEX);
+    public void forEachUser(Consumer<ByteBuffer> consumer) {
+        accounts.rowKeySet().forEach(id -> {
+            ByteBuffer username = ByteBuffers
+                    .decodeFromHex((String) accounts.get(id, USERNAME_KEY));
+            consumer.accept(username);
+        });
+    }
+
+    /**
+     * Return {@code true} if {@code username} exists and is enabled.
+     * 
+     * @param username the username to check
+     * @return {@code true} if {@code username} exists and is enabled
+     */
+    public boolean isEnabled(ByteBuffer username) {
+        lock.readLock().lock();
+        try {
+            User user = getUserStrict(username);
+            return user.isEnabled();
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return the role for the account associated with the specified
+     * {@code username}.
+     * 
+     * @param username
+     * @return the role
+     */
+    public Role role(ByteBuffer username) {
+        lock.readLock().lock();
+        try {
+            User user = getUserStrict(username);
+            return user.role();
+
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Set the password associated with the
+     * 
+     * @param username
+     * @param password
+     */
+    public void setPassword(ByteBuffer username, ByteBuffer password) {
+        Preconditions.checkArgument(isSecurePassword(password),
+                "Password must not be empty, or have fewer than 3 characters.");
+        lock.writeLock().lock();
+        try {
+            User user = getUserStrict(username);
+            user.setPassword(password);
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Set the role for the account with the specified {@code username}.
+     * 
+     * @param username
+     * @param role
+     */
+    public void setRole(ByteBuffer username, Role role) {
+        lock.writeLock().lock();
+        try {
+            User user = getUserStrict(username);
+            user.setRole(role);
+
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -451,10 +498,11 @@ public class AccessManager {
      * @param token
      * @return the uid
      */
-    public short getUidByAccessToken(AccessToken token) {
+    @VisibleForTesting
+    protected short getUserId(AccessToken token) {
         lock.readLock().lock();
         try {
-            ByteBuffer username = tokenManager.getUsernameByAccessToken(token);
+            ByteBuffer username = tokens.identify(token);
             User user = getUser(username);
             if(user != null) {
                 return user.id();
@@ -464,8 +512,7 @@ public class AccessManager {
                 // account in which case we should throw an
                 // IllegalArgumentException to differentiate from when there is
                 // an internal state error.
-                String hex = ByteBuffers.encodeAsHex(
-                        tokenManager.getUsernameByAccessToken(token));
+                String hex = ByteBuffers.encodeAsHex(tokens.identify(token));
                 if(hex.equals(SERVICE_USERNAME_HEX)) {
                     throw new IllegalArgumentException(
                             "The specified token is associated with a service and not a user");
@@ -487,10 +534,11 @@ public class AccessManager {
      * @param username
      * @return the uid
      */
-    public short getUidByUsername(ByteBuffer username) {
+    @VisibleForTesting
+    protected short getUserId(ByteBuffer username) {
         lock.readLock().lock();
         try {
-            Preconditions.checkArgument(isExistingUsername(username),
+            Preconditions.checkArgument(exists(username),
                     "The specified user does not exist");
             Map<Short, Object> credsCol = accounts.column(USERNAME_KEY);
             for (Map.Entry<Short, Object> creds : credsCol.entrySet()) {
@@ -506,182 +554,6 @@ public class AccessManager {
         finally {
             lock.readLock().unlock();
         }
-    }
-
-    /**
-     * Return the binary format of username associated with {@code token}.
-     * 
-     * @param token
-     * @return the username
-     */
-    public ByteBuffer getUsernameByAccessToken(AccessToken token) {
-        lock.readLock().lock();
-        try {
-            return tokenManager.getUsernameByAccessToken(token);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return the role for the account associated with the specified
-     * {@code username}.
-     * 
-     * @param username
-     * @return the role
-     */
-    public Role getUserRole(ByteBuffer username) {
-        lock.readLock().lock();
-        try {
-            User user = getUserStrict(username);
-            return user.role();
-
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code username} exists and is enabled.
-     * 
-     * @param username the username to check
-     * @return {@code true} if {@code username} exists and is enabled
-     */
-    public boolean isEnabledUsername(ByteBuffer username) {
-        lock.readLock().lock();
-        try {
-            boolean existing = isExistingUsername(username);
-            if(existing) {
-                short uid = getUidByUsername(username);
-                Object enabled = accounts.get(uid, ENABLED);
-                if(enabled == null) {
-                    enabled = true;
-                    accounts.put(uid, ENABLED, enabled);
-                }
-                return (boolean) enabled;
-            }
-            else {
-                return false;
-            }
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code username} exists in {@link #backingStore}.
-     * 
-     * @param username
-     * @return {@code true} if {@code username} exists in {@link #backingStore}
-     */
-    public boolean isExistingUsername(ByteBuffer username) {
-        lock.readLock().lock();
-        try {
-            return getUser(username) != null;
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code username} and {@code password} is a valid
-     * combination.
-     * 
-     * @param username
-     * @param password
-     * @return {@code true} if {@code username}/{@code password} is valid
-     */
-    public boolean isExistingUsernamePasswordCombo(ByteBuffer username,
-            ByteBuffer password) {
-        lock.readLock().lock();
-        try {
-            if(isExistingUsername(username)) {
-                short uid = getUidByUsername(username);
-                ByteBuffer salt = ByteBuffers
-                        .decodeFromHex((String) accounts.get(uid, SALT_KEY));
-                password.rewind();
-                password = Passwords.hash(password, salt);
-                return ByteBuffers.encodeAsHex(password)
-                        .equals((String) accounts.get(uid, PASSWORD_KEY));
-            }
-            return false;
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code token} is a valid AccessToken.
-     * 
-     * @param token
-     * @return {@code true} if {@code token} is valid
-     */
-    public boolean isValidAccessToken(AccessToken token) {
-        return tokenManager.isValidToken(token); // the #tokenManager does
-                                                 // locking
-    }
-
-    /**
-     * Set the password associated with the
-     * 
-     * @param username
-     * @param password
-     */
-    public void setUserPassword(ByteBuffer username, ByteBuffer password) {
-        Preconditions.checkArgument(isSecurePassword(password),
-                "Password must not be empty, or have fewer than 3 characters.");
-        lock.writeLock().lock();
-        try {
-            User user = getUserStrict(username);
-            user.setPassword(password);
-        }
-        finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    /**
-     * Set the role for the account with the specified {@code username}.
-     * 
-     * @param username
-     * @param role
-     */
-    public void setUserRole(ByteBuffer username, Role role) {
-        lock.writeLock().lock();
-        try {
-            User user = getUserStrict(username);
-            user.setRole(role);
-
-        }
-        finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    // public void forEachUser()
-
-    /**
-     * Return a {@link Set} containing all the registered usernames.
-     * 
-     * @return the usernames
-     */
-    public Set<ByteBuffer> users() {
-        lock.readLock().lock();
-        try {
-            Set<ByteBuffer> users = Sets.newLinkedHashSet();
-            accounts.rowKeySet().forEach(id -> users.add(ByteBuffers
-                    .decodeFromHex((String) accounts.get(id, USERNAME_KEY))));
-            return users;
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-
     }
 
     /**
@@ -712,6 +584,18 @@ public class AccessManager {
         finally {
             lock.writeLock().unlock();
         }
+    }
+
+    /**
+     * Return a {@link Set} containing all the registered usernames.
+     * 
+     * @return the usernames
+     */
+    @VisibleForTesting
+    protected Set<ByteBuffer> users() {
+        Set<ByteBuffer> users = Sets.newLinkedHashSet();
+        forEachUser(username -> users.add(username));
+        return users;
     }
 
     /**
@@ -791,6 +675,239 @@ public class AccessManager {
     }
 
     /**
+     * The {@link AccessTokenManager} handles the work necessary to create,
+     * validate and delete AccessTokens for the {@link UserService}.
+     * 
+     * @author Jeff Nelson
+     */
+    public final class AccessTokenManager {
+
+        // NOTE: This class does not define #hasCode() or #equals() because the
+        // defaults are the desired behaviour.
+
+        /**
+         * The collection of currently valid tokens is maintained as a cache
+         * mapping from a raw AccessToken to an AccessTokenWrapper. Each raw
+         * AccessToken is unique and "equal" to its corresponding wrapper, which
+         * contains metadata about the user and timestamp associated with the
+         * access token.
+         */
+        private final Cache<AccessToken, AccessTokenWrapper> active;
+        private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+        private final SecureRandom srand = new SecureRandom();
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param accessTokenTtl
+         * @param accessTokenTtlUnit
+         */
+        private AccessTokenManager(int accessTokenTtl,
+                TimeUnit accessTokenTtlUnit) {
+            this.active = CacheBuilder.newBuilder()
+                    .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit)
+                    .removalListener(
+                            new RemovalListener<AccessToken, AccessTokenWrapper>() {
+
+                                @Override
+                                public void onRemoval(
+                                        RemovalNotification<AccessToken, AccessTokenWrapper> notification) {
+                                    AccessToken token = notification.getKey();
+                                    AccessTokenWrapper wrapper = notification
+                                            .getValue();
+                                    if(notification.wasEvicted()
+                                            && wrapper.isServiceToken()) {
+                                        active.put(token, wrapper);
+                                    }
+
+                                }
+                            })
+                    .build();
+
+        }
+
+        /**
+         * Return a list of strings, each of which describes a currently
+         * existing
+         * access token.
+         * 
+         * @return a list of token descriptions
+         */
+        public List<String> describeActiveSessions() {
+            UserService.this.lock.readLock().lock();
+            lock.readLock().lock();
+            try {
+                List<String> sessions = Lists.newArrayList();
+                List<AccessTokenWrapper> active = Lists
+                        .newArrayList(this.active.asMap().values());
+                Collections.sort(active);
+                active.forEach(token -> sessions.add(token.getDescription()));
+                return sessions;
+            }
+            finally {
+                lock.readLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+
+        /**
+         * Invalidate {@code token} if it exists.
+         * 
+         * @param token
+         */
+        public void expire(AccessToken token) {
+            UserService.this.lock.readLock().lock();
+            lock.writeLock().lock();
+            try {
+                active.invalidate(token);
+            }
+            finally {
+                lock.writeLock().unlock();
+                UserService.this.lock.readLock().unlock();
+
+            }
+
+        }
+
+        /**
+         * Invalidate any and all tokens that exist for {@code username}.
+         * 
+         * @param username
+         */
+        public void expireAll(ByteBuffer username) {
+            UserService.this.lock.readLock().lock();
+            lock.writeLock().lock();
+            try {
+                User user = getUserStrict(username);
+                for (AccessToken token : active.asMap().keySet()) {
+                    if(active.getIfPresent(token).getUsername()
+                            .equals(user.usernameAsHex())) {
+                        active.invalidate(token);
+                    }
+                }
+            }
+            finally {
+                lock.writeLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+
+        /**
+         * Return a new service token.
+         * 
+         * <p>
+         * A service token is an {@link AccessToken} that is not associated with
+         * an
+         * actual user, but is instead generated based on the
+         * {@link #SERVICE_USERNAME} and can be assigned to a non-user service
+         * or
+         * process.
+         * </p>
+         * <p>
+         * Service tokens do not expire!
+         * </p>
+         * 
+         * @return the new service token
+         */
+        public AccessToken issue() {
+            return issue(ByteBuffers.decodeFromHex(SERVICE_USERNAME_HEX));
+        }
+
+        /**
+         * Add and return a new access token for {@code username}.
+         * 
+         * @param username
+         * @return the AccessToken
+         */
+        public AccessToken issue(ByteBuffer username) {
+            UserService.this.lock.readLock().lock();
+            lock.writeLock().lock();
+            try {
+                String hex = ByteBuffers.encodeAsHex(username);
+                if(!hex.equals(SERVICE_USERNAME_HEX)) {
+                    // Ensure tokens are only being issued for real users that
+                    // are enabled
+                    User user = getUserStrict(username);
+                    hex = user.usernameAsHex();
+                    if(!user.isEnabled()) {
+                        throw new SecurityException(
+                                "Cannot issue a token for a user whose access has been disabled");
+                    }
+                }
+                long timestamp = Time.now();
+                StringBuilder sb = new StringBuilder();
+                sb.append(username);
+                sb.append(srand.nextLong());
+                sb.append(timestamp);
+                AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing
+                        .sha256().hashUnencodedChars(sb.toString()).asBytes()));
+                AccessTokenWrapper wapper = AccessTokenWrapper.create(token,
+                        hex, timestamp);
+                active.put(token, wapper);
+                return token;
+            }
+            finally {
+                lock.writeLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+
+        /**
+         * Return {@code true} if {@code token} is valid.
+         * 
+         * @param token
+         * @return {@code true} if {@code token} is valid
+         */
+        public boolean isValid(AccessToken token) {
+            UserService.this.lock.readLock().lock();
+            lock.readLock().lock();
+            try {
+                boolean valid = active.getIfPresent(token) != null;
+                if(!valid) {
+                    // If the token is invalid, force cleanup of the cache to
+                    // trigger the cache removal listener that detects when
+                    // service token's have expired and regenerates them.
+                    active.cleanUp();
+                    valid = active.getIfPresent(token) != null;
+                }
+                return valid;
+            }
+            finally {
+                lock.readLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+
+        /**
+         * Return the username associated with the valid {@code token}.
+         * 
+         * @param token
+         * @return the username if {@code token} is valid
+         */
+        protected ByteBuffer identify(AccessToken token) {
+            UserService.this.lock.readLock().lock();
+            lock.readLock().lock();
+            try {
+                Preconditions.checkArgument(isValid(token),
+                        "Access token is no longer invalid.");
+                String username = active.getIfPresent(token).getUsername();
+                if(!Strings.isNullOrEmpty(username)) {
+                    return ByteBuffers.decodeFromHex(username);
+                }
+                else {
+                    throw new IllegalArgumentException(
+                            "Token is no longer valid");
+                }
+            }
+            finally {
+                lock.readLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+    }
+
+    /**
      * An enum that describes that possible roles for a user.
      *
      * @author Jeff Nelson
@@ -806,187 +923,6 @@ public class AccessManager {
          */
         public static Role valueOfIgnoreCase(String role) {
             return Role.valueOf(role.toUpperCase());
-        }
-    }
-
-    /**
-     * The {@link AccessTokenManager} handles the work necessary to create,
-     * validate and delete AccessTokens for the {@link AccessManager}.
-     * 
-     * @author Jeff Nelson
-     */
-    private final static class AccessTokenManager {
-
-        // NOTE: This class does not define #hasCode() or #equals() because the
-        // defaults are the desired behaviour.
-
-        /**
-         * Return a new {@link AccessTokenManager}.
-         * 
-         * @param accessTokenTtl
-         * @param accessTokenTtlUnit
-         * @return the AccessTokenManager
-         */
-        private static AccessTokenManager create(int accessTokenTtl,
-                TimeUnit accessTokenTtlUnit) {
-            return new AccessTokenManager(accessTokenTtl, accessTokenTtlUnit);
-        }
-
-        private final StampedLock lock = new StampedLock();
-        private final SecureRandom srand = new SecureRandom();
-
-        /**
-         * The collection of currently valid tokens is maintained as a cache
-         * mapping from a raw AccessToken to an AccessTokenWrapper. Each raw
-         * AccessToken is unique and "equal" to its corresponding wrapper, which
-         * contains metadata about the user and timestamp associated with the
-         * access token.
-         */
-        private final Cache<AccessToken, AccessTokenWrapper> tokens;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param accessTokenTtl
-         * @param accessTokenTtlUnit
-         */
-        private AccessTokenManager(int accessTokenTtl,
-                TimeUnit accessTokenTtlUnit) {
-            this.tokens = CacheBuilder.newBuilder()
-                    .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit)
-                    .removalListener(
-                            new RemovalListener<AccessToken, AccessTokenWrapper>() {
-
-                                @Override
-                                public void onRemoval(
-                                        RemovalNotification<AccessToken, AccessTokenWrapper> notification) {
-                                    AccessToken token = notification.getKey();
-                                    AccessTokenWrapper wrapper = notification
-                                            .getValue();
-                                    if(notification.wasEvicted()
-                                            && wrapper.isServiceToken()) {
-                                        tokens.put(token, wrapper);
-                                    }
-
-                                }
-                            })
-                    .build();
-
-        }
-
-        /**
-         * Add and return a new access token for {@code username}.
-         * 
-         * @param username
-         * @return the AccessToken
-         */
-        public AccessToken addToken(String username) {
-            long stamp = lock.writeLock();
-            try {
-                long timestamp = Time.now();
-                StringBuilder sb = new StringBuilder();
-                sb.append(username);
-                sb.append(srand.nextLong());
-                sb.append(timestamp);
-                AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing
-                        .sha256().hashUnencodedChars(sb.toString()).asBytes()));
-                AccessTokenWrapper wapper = AccessTokenWrapper.create(token,
-                        username, timestamp);
-                tokens.put(token, wapper);
-                return token;
-            }
-            finally {
-                lock.unlockWrite(stamp);
-            }
-        }
-
-        /**
-         * Invalidate any and all tokens that exist for {@code username}.
-         * 
-         * @param username
-         */
-        public void deleteAllUserTokens(ByteBuffer username) {
-            String hex = ByteBuffers.encodeAsHex(username);
-            long stamp = lock.writeLock();
-            try {
-                for (AccessToken token : tokens.asMap().keySet()) {
-                    if(tokens.getIfPresent(token).getUsername().equals(hex)) {
-                        tokens.invalidate(token);
-                    }
-                }
-            }
-            finally {
-                lock.unlockWrite(stamp);
-            }
-        }
-
-        /**
-         * Invalidate {@code token} if it exists.
-         * 
-         * @param token
-         */
-        public void deleteToken(AccessToken token) {
-            long stamp = lock.writeLock();
-            try {
-                tokens.invalidate(token);
-            }
-            finally {
-                lock.unlockWrite(stamp);
-            }
-
-        }
-
-        /**
-         * Return the username associated with the valid {@code token}.
-         * 
-         * @param token
-         * @return the username if {@code token} is valid
-         */
-        public ByteBuffer getUsernameByAccessToken(AccessToken token) {
-            Preconditions.checkArgument(isValidToken(token),
-                    "Access token is no longer invalid.");
-            long stamp = lock.tryOptimisticRead();
-            String username = tokens.getIfPresent(token).getUsername();
-            if(!lock.validate(stamp)) {
-                stamp = lock.readLock();
-                try {
-                    username = tokens.getIfPresent(token).getUsername();
-                }
-                finally {
-                    lock.unlockRead(stamp);
-                }
-            }
-            if(Strings.isNullOrEmpty(username)) {
-                throw new IllegalArgumentException(
-                        "Access token is no longer valid");
-            }
-            else {
-                return ByteBuffers.decodeFromHex(username);
-            }
-        }
-
-        /**
-         * Return {@code true} if {@code token} is valid.
-         * 
-         * @param token
-         * @return {@code true} if {@code token} is valid
-         */
-        public boolean isValidToken(AccessToken token) {
-            long stamp = lock.readLock();
-            try {
-                boolean valid = tokens.getIfPresent(token) != null;
-                if(!valid) {
-                    // If the token is invalid, force cleanup of the cache to
-                    // trigger the cache removal listener that detects when
-                    // service token's have expired and regenerates them.
-                    tokens.cleanUp();
-                    valid = tokens.getIfPresent(token) != null;
-                }
-                return valid;
-            }
-            finally {
-                lock.unlockRead(stamp);
-            }
         }
     }
 
@@ -1157,7 +1093,7 @@ public class AccessManager {
          * Delete the user.
          */
         private void delete() {
-            tokenManager.deleteAllUserTokens(username());
+            tokens.expireAll(username());
             accounts.remove(id, USERNAME_KEY);
             accounts.remove(id, PASSWORD_KEY);
             accounts.remove(id, SALT_KEY);
@@ -1170,7 +1106,7 @@ public class AccessManager {
          * Disable the user.
          */
         private void disable() {
-            tokenManager.deleteAllUserTokens(username());
+            tokens.expireAll(username());
             accounts.put(id, ENABLED, false);
             flush();
         }
@@ -1179,9 +1115,23 @@ public class AccessManager {
          * Enable the user.
          */
         private void enable() {
-            tokenManager.deleteAllUserTokens(username());
+            tokens.expireAll(username());
             accounts.put(id, ENABLED, true);
             flush();
+        }
+
+        /**
+         * Return {@code true} if this user is enabled.
+         * 
+         * @return {@code true} if this user is enabled
+         */
+        private boolean isEnabled() {
+            Object enabled = accounts.get(id, ENABLED);
+            if(enabled == null) {
+                enabled = true;
+                accounts.put(id, ENABLED, enabled);
+            }
+            return (boolean) enabled;
         }
 
         /**
@@ -1216,7 +1166,7 @@ public class AccessManager {
          * @param password
          */
         private void setPassword(ByteBuffer password) {
-            tokenManager.deleteAllUserTokens(username());
+            tokens.expireAll(username());
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
             accounts.put(id, SALT_KEY, ByteBuffers.encodeAsHex(salt));
@@ -1230,7 +1180,7 @@ public class AccessManager {
          * @param role
          */
         private void setRole(Role role) {
-            tokenManager.deleteAllUserTokens(username());
+            tokens.expireAll(username());
             accounts.put(id, ROLE_KEY, role.ordinal());
             flush();
         }

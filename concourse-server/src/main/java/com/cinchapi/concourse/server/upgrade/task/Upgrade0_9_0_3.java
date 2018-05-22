@@ -17,8 +17,8 @@ package com.cinchapi.concourse.server.upgrade.task;
 
 import java.io.File;
 
-import com.cinchapi.concourse.security.AccessManager;
-import com.cinchapi.concourse.security.AccessManager.Role;
+import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
@@ -45,9 +45,8 @@ public class Upgrade0_9_0_3 extends SmartUpgradeTask {
                 + ACCESS_FILE_BACKUP;
         if(FileSystem.hasFile(accessFile)) {
             FileSystem.copyBytes(accessFile, accessBackupFile);
-            AccessManager manager = AccessManager.create(accessFile);
-            manager.users().forEach(
-                    username -> manager.setUserRole(username, Role.ADMIN));
+            UserService users = UserService.create(accessFile);
+            users.forEachUser(username -> users.setRole(username, Role.ADMIN));
             FileSystem.deleteFile(accessBackupFile);
         }
 

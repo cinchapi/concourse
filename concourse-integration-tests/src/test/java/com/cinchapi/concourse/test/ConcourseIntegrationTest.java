@@ -150,6 +150,25 @@ public abstract class ConcourseIntegrationTest {
     }
 
     /**
+     * Set the {@code password} associated with the {@code username}.
+     * 
+     * @param username
+     * @param password
+     */
+    protected final void setUserPassword(String username, String password) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.setUserPassword(ByteBuffers.fromUtf8String(username),
+                    ByteBuffers.fromUtf8String(password), token);
+        }
+        catch (TException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Delete the user account identified by {@code username}.
      * 
      * @param username the username of the account to delete

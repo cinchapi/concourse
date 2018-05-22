@@ -33,7 +33,7 @@ import com.google.common.collect.Maps;
  * The {@link LegacyAccessManager} controls access to the pre-0.5.0
  * Concourse server by keeping tracking of valid credentials and
  * handling authentication requests. This LegacyAccessManager is used
- * to upgrade pre-0.5.0 user credentials to work with {@link AccessManager}.
+ * to upgrade pre-0.5.0 user credentials to work with {@link UserService}.
  * 
  * @author knd
  */
@@ -76,9 +76,10 @@ public class LegacyAccessManager {
      * 
      * @param manager
      */
-    public void transferCredentials(AccessManager manager) {
+    public void transferCredentials(UserService manager) {
         for (LegacyAccessManager.Credentials creds : credentials.values()) {
-            manager.insertFromLegacy(ByteBuffers.decodeFromHex(creds.getUsername()),
+            manager.insertFromLegacy(
+                    ByteBuffers.decodeFromHex(creds.getUsername()),
                     ByteBuffers.decodeFromHex(creds.getPassword()),
                     creds.getSalt());
         }

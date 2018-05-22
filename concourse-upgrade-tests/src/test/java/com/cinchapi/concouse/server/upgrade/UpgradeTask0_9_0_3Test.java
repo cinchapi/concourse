@@ -21,8 +21,8 @@ import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.security.AccessManager;
-import com.cinchapi.concourse.security.AccessManager.Role;
+import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.Random;
@@ -55,10 +55,10 @@ public class UpgradeTask0_9_0_3Test extends UpgradeTest {
     public void testEachUserIsAssignedAdminRole() {
         Path accessFile = Paths.get(server.getInstallDirectory(),
                 GlobalState.ACCESS_FILE);
-        AccessManager access = AccessManager
+        UserService users = UserService
                 .create(accessFile.toAbsolutePath().toString());
-        access.users().forEach(username -> Assert.assertEquals(Role.ADMIN,
-                access.getUserRole(username)));
+        users.forEachUser(username -> Assert.assertEquals(Role.ADMIN,
+                users.role(username)));
     }
 
 }

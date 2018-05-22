@@ -349,7 +349,7 @@ public final class GlobalState extends Constants {
 
     /**
      * The file which contains the credentials used by the
-     * {@link com.cinchapi.concourse.security.AccessManager}.
+     * {@link com.cinchapi.concourse.security.UserService}.
      * This file is typically located in the root of the server installation.
      */
     @NonPreference

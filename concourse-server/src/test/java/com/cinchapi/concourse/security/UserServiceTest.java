@@ -32,7 +32,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
-import com.cinchapi.concourse.security.AccessManager.Role;
+import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -46,14 +46,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link com.cinchapi.concourse.security.AccessManager}.
+ * Unit tests for {@link com.cinchapi.concourse.security.UserService}.
  *
  * @author Jeff Nelson
  */
-public class AccessManagerTest extends ConcourseBaseTest {
+public class UserServiceTest extends ConcourseBaseTest {
 
     private String current = null;
-    private AccessManager manager = null;
+    private UserService service = null;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -66,7 +66,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         @Override
         protected void starting(Description desc) {
             current = TestData.DATA_DIR + File.separator + Time.now();
-            manager = AccessManager.create(current);
+            service = UserService.create(current);
 
         }
     };
@@ -75,8 +75,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDefaultAdminLogin() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        Assert.assertTrue(
-                manager.isExistingUsernamePasswordCombo(username, password));
+        Assert.assertTrue(service.authenticate(username, password));
     }
 
     @Test
@@ -84,11 +83,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = getSecurePassword();
-        manager.setUserPassword(username, newPassword);
-        Assert.assertFalse(
-                manager.isExistingUsernamePasswordCombo(username, password));
-        Assert.assertTrue(
-                manager.isExistingUsernamePasswordCombo(username, newPassword));
+        service.setPassword(username, newPassword);
+        Assert.assertFalse(service.authenticate(username, password));
+        Assert.assertTrue(service.authenticate(username, newPassword));
     }
 
     @Test
@@ -98,11 +95,11 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = getAcceptableUsername();
             ByteBuffer password = getSecurePassword();
             users.put(username, password);
-            manager.createUser(username, password, Role.ADMIN);
+            service.create(username, password, Role.ADMIN);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(manager.isExistingUsernamePasswordCombo(
-                    entry.getKey(), entry.getValue()));
+            Assert.assertTrue(
+                    service.authenticate(entry.getKey(), entry.getValue()));
         }
     }
 
@@ -110,22 +107,22 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAllUsersHaveUniqueUids() {
         Set<ByteBuffer> emptySet = Sets.newHashSet();
         Set<ByteBuffer> users = (Set<ByteBuffer>) addMoreUsers(emptySet,
-                manager);
+                service);
         Set<Short> uniqueUids = Sets.newHashSet();
         for (ByteBuffer username : users) {
-            short uid = manager.getUidByUsername(username);
+            short uid = service.getUserId(username);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
         users = (Set<ByteBuffer>) addMoreUsers(users, manager2);
         uniqueUids = Sets.newHashSet();
         for (ByteBuffer username : users) {
-            short uid = manager2.getUidByUsername(username);
+            short uid = manager2.getUserId(username);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
@@ -135,19 +132,19 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAllUsersHaveUniqueUidsAfterSomeUserDeletions() {
         List<ByteBuffer> emptyList = Lists.newArrayList();
         List<ByteBuffer> users = (List<ByteBuffer>) addMoreUsers(emptyList,
-                manager);
-        users = deleteSomeUsers(users, manager);
+                service);
+        users = deleteSomeUsers(users, service);
         Set<Short> uniqueUids = Sets.newHashSet();
         for (ByteBuffer username : users) {
-            short uid = manager.getUidByUsername(username);
+            short uid = service.getUserId(username);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
         Variables.register("users", users);
         users = deleteSomeUsers(users, manager2);
         Variables.register("users_after_delete", Lists.newArrayList(users));
@@ -156,7 +153,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         uniqueUids = Sets.newHashSet();
         Variables.register("uniqueUids", uniqueUids);
         for (ByteBuffer username : users) {
-            short uid = manager2.getUidByUsername(username);
+            short uid = manager2.getUserId(username);
             Variables.register("uid", uid);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
@@ -167,35 +164,35 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testUsersHaveSameUidsAsBeforeSomeUserDeletions() {
         List<ByteBuffer> emptySet = Lists.newArrayList();
         List<ByteBuffer> users = (List<ByteBuffer>) addMoreUsers(emptySet,
-                manager);
+                service);
         Map<ByteBuffer, Short> uids = Maps.newHashMap();
         for (ByteBuffer username : users) { // retrieve
-            short uid = manager.getUidByUsername(username); // valid uids
+            short uid = service.getUserId(username); // valid uids
             uids.put(username, uid); // after add users
         }
-        users = deleteSomeUsers(users, manager);
+        users = deleteSomeUsers(users, service);
         uids = Maps.newHashMap();
         for (ByteBuffer username : users) { // retrieve
-            short uid = manager.getUidByUsername(username); // valid uids
+            short uid = service.getUserId(username); // valid uids
             uids.put(username, uid); // after delete users
         }
         for (ByteBuffer username : users) {
-            short uid = manager.getUidByUsername(username);
+            short uid = service.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);// check
                                                                  // uniqueness
         }
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
         users = (List<ByteBuffer>) addMoreUsers(users, manager2);
         for (ByteBuffer username : users) { // retrieve
-            short uid = manager2.getUidByUsername(username); // valid uids
+            short uid = manager2.getUserId(username); // valid uids
             uids.put(username, uid); // after add users
         }
         for (ByteBuffer username : users) {
-            short uid = manager2.getUidByUsername(username);
+            short uid = manager2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);// check
                                                                  // uniqueness
         }
@@ -205,19 +202,19 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAllUsersHaveSameUidsAsBeforeServerRestarts() {
         Set<ByteBuffer> emptySet = Sets.newHashSet();
         Set<ByteBuffer> users = (Set<ByteBuffer>) addMoreUsers(emptySet,
-                manager);
+                service);
         Map<ByteBuffer, Short> uids = Maps.newHashMap();
         for (ByteBuffer username : users) { // retrieve valid
-            short uid = manager.getUidByUsername(username); // uids after
+            short uid = service.getUserId(username); // uids after
             uids.put(username, uid); // add users
         }
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
         for (ByteBuffer username : users) {
-            short uid = manager2.getUidByUsername(username);
+            short uid = manager2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
     }
@@ -226,80 +223,79 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAllUsersHaveSameUidsAsBeforePasswordChange() {
         Set<ByteBuffer> emptySet = Sets.newHashSet();
         Set<ByteBuffer> users = (Set<ByteBuffer>) addMoreUsers(emptySet,
-                manager);
+                service);
         Map<ByteBuffer, Short> uids = Maps.newHashMap();
         for (ByteBuffer username : users) { // retrieve valid
-            short uid = manager.getUidByUsername(username); // uids after
+            short uid = service.getUserId(username); // uids after
             uids.put(username, uid); // add users
         }
         for (ByteBuffer username : users) { // change password
-            manager.setUserPassword(username, getSecurePassword());
+            service.setPassword(username, getSecurePassword());
         }
         for (ByteBuffer username : users) {
-            short uid = manager.getUidByUsername(username);
+            short uid = service.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
         for (ByteBuffer username : users) {
-            manager2.setUserPassword(username, getSecurePassword()); // change
-                                                                     // password
+            manager2.setPassword(username, getSecurePassword()); // change
+                                                                 // password
         }
         for (ByteBuffer username : users) {
-            short uid = manager2.getUidByUsername(username);
+            short uid = manager2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantRevokeAdmin() {
-        manager.deleteUser(toByteBuffer("admin"));
+        service.delete(toByteBuffer("admin"));
     }
 
     @Test
     public void testRevokeUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        manager.deleteUser(username);
-        Assert.assertFalse(
-                manager.isExistingUsernamePasswordCombo(username, password));
+        service.create(username, password, Role.ADMIN);
+        service.delete(username);
+        Assert.assertFalse(service.authenticate(username, password));
     }
 
     @Test
     public void testEnableUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        manager.disableUser(username);
-        manager.enableUser(username);
-        Assert.assertTrue(manager.isEnabledUsername(username));
+        service.create(username, password, Role.ADMIN);
+        service.disable(username);
+        service.enable(username);
+        Assert.assertTrue(service.isEnabled(username));
     }
 
     @Test
     public void testDisableUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        manager.disableUser(username);
-        Assert.assertFalse(manager.isEnabledUsername(username));
+        service.create(username, password, Role.ADMIN);
+        service.disable(username);
+        Assert.assertFalse(service.isEnabled(username));
     }
 
     @Test
     public void testDisablingUserInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
+        service.create(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            tokens.add(manager.getNewAccessToken(username));
+            tokens.add(service.tokens.issue(username));
         }
-        manager.disableUser(username);
+        service.disable(username);
         for (AccessToken token : tokens) {
-            Assert.assertFalse(manager.isValidAccessToken(token));
+            Assert.assertFalse(service.tokens.isValid(token));
         }
     }
 
@@ -307,8 +303,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testNewlyCreatedUserIsEnabled() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        Assert.assertTrue(manager.isEnabledUsername(username));
+        service.create(username, password, Role.ADMIN);
+        Assert.assertTrue(service.isEnabled(username));
     }
 
     @Test
@@ -316,11 +312,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
-        manager.createUser(username, password, Role.ADMIN);
-        Assert.assertTrue(
-                manager.isExistingUsernamePasswordCombo(username, password));
-        Assert.assertFalse(
-                manager.isExistingUsernamePasswordCombo(username, badpassword));
+        service.create(username, password, Role.ADMIN);
+        Assert.assertTrue(service.authenticate(username, password));
+        Assert.assertFalse(service.authenticate(username, badpassword));
     }
 
     @Test
@@ -330,41 +324,41 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = getAcceptableUsername();
             ByteBuffer password = getSecurePassword();
             users.put(username, password);
-            manager.createUser(username, password, Role.ADMIN);
+            service.create(username, password, Role.ADMIN);
         }
-        AccessManager manager2 = AccessManager.create(current);
+        UserService manager2 = UserService.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(manager2.isExistingUsernamePasswordCombo(
-                    entry.getKey(), entry.getValue()));
+            Assert.assertTrue(
+                    manager2.authenticate(entry.getKey(), entry.getValue()));
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantCreateAccessTokenForInvalidUser() {
-        manager.getNewAccessToken(toByteBuffer(TestData.getString() + "foo"));
+        service.tokens.issue(toByteBuffer(TestData.getString() + "foo"));
     }
 
     @Test
     public void testCanCreateAccessTokenForValidUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
-        Assert.assertTrue(manager.isValidAccessToken(token));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
+        Assert.assertTrue(service.tokens.isValid(token));
     }
 
     @Test
     public void testAccessTokenIsNotValidIfServerRestarts() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
-        AccessManager manager2 = AccessManager.create(current); // simulate
-                                                                // server
-                                                                // restart by
-                                                                // creating new
-                                                                // manager
-        Assert.assertFalse(manager2.isValidAccessToken(token));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
+        UserService manager2 = UserService.create(current); // simulate
+                                                            // server
+                                                            // restart by
+                                                            // creating new
+                                                            // manager
+        Assert.assertFalse(manager2.tokens.isValid(token));
     }
 
     @Test
@@ -372,79 +366,79 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         ByteBuffer password2 = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
-        manager.setUserPassword(username, password2);
-        Assert.assertFalse(manager.isValidAccessToken(token));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
+        service.setPassword(username, password2);
+        Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test
     public void testAccessTokenIsNotValidIfAccessIsRevoked() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
-        manager.deleteUser(username);
-        Assert.assertFalse(manager.isValidAccessToken(token));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
+        service.delete(username);
+        Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test
     public void testAccessTokenAutoExpiration() throws InterruptedException {
-        manager = AccessManager.createForTesting(current, 60,
+        service = UserService.createForTesting(current, 60,
                 TimeUnit.MILLISECONDS);
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
         TimeUnit.MILLISECONDS.sleep(60);
-        Assert.assertFalse(manager.isValidAccessToken(token));
+        Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test
     public void testInvalidateAccessToken() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token = manager.getNewAccessToken(username);
-        manager.expireAccessToken(token);
-        Assert.assertFalse(manager.isValidAccessToken(token));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token = service.tokens.issue(username);
+        service.tokens.expire(token);
+        Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test
     public void testTwoAccessTokensForSameUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token1 = manager.getNewAccessToken(username);
-        AccessToken token2 = manager.getNewAccessToken(username);
+        service.create(username, password, Role.ADMIN);
+        AccessToken token1 = service.tokens.issue(username);
+        AccessToken token2 = service.tokens.issue(username);
         Assert.assertNotEquals(token1, token2);
-        Assert.assertTrue(manager.isValidAccessToken(token1));
-        Assert.assertTrue(manager.isValidAccessToken(token2));
+        Assert.assertTrue(service.tokens.isValid(token1));
+        Assert.assertTrue(service.tokens.isValid(token2));
     }
 
     @Test
     public void testInvalidatingOneAccessTokenDoesNotAffectOther() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
-        AccessToken token1 = manager.getNewAccessToken(username);
-        AccessToken token2 = manager.getNewAccessToken(username);
-        manager.expireAccessToken(token2);
-        Assert.assertTrue(manager.isValidAccessToken(token1));
+        service.create(username, password, Role.ADMIN);
+        AccessToken token1 = service.tokens.issue(username);
+        AccessToken token2 = service.tokens.issue(username);
+        service.tokens.expire(token2);
+        Assert.assertTrue(service.tokens.isValid(token1));
     }
 
     @Test
     public void testRevokingAccessInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
+        service.create(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            tokens.add(manager.getNewAccessToken(username));
+            tokens.add(service.tokens.issue(username));
         }
-        manager.deleteUser(username);
+        service.delete(username);
         for (AccessToken token : tokens) {
-            Assert.assertFalse(manager.isValidAccessToken(token));
+            Assert.assertFalse(service.tokens.isValid(token));
         }
     }
 
@@ -452,81 +446,124 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testChangingPasswordInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password, Role.ADMIN);
+        service.create(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
-            tokens.add(manager.getNewAccessToken(username));
+            tokens.add(service.tokens.issue(username));
         }
-        manager.setUserPassword(username, getSecurePassword());
+        service.setPassword(username, getSecurePassword());
         for (AccessToken token : tokens) {
-            Assert.assertFalse(manager.isValidAccessToken(token));
+            Assert.assertFalse(service.tokens.isValid(token));
         }
     }
 
     @Test
     public void testEmptyPasswordNotSecure() {
         Assert.assertFalse(
-                AccessManager.isSecurePassword(ByteBuffers.fromString("")));
+                UserService.isSecurePassword(ByteBuffers.fromString("")));
     }
 
     @Test
     public void testAllWhitespacePasswordNotSecure() {
-        Assert.assertFalse(AccessManager
-                .isSecurePassword(ByteBuffers.fromString("     ")));
+        Assert.assertFalse(
+                UserService.isSecurePassword(ByteBuffers.fromString("     ")));
     }
 
     @Test
     public void testUsernameWithWhitespaceNotAcceptable() {
-        Assert.assertFalse(AccessManager
+        Assert.assertFalse(UserService
                 .isAcceptableUsername(ByteBuffers.fromString("   f  ")));
     }
 
     @Test
     public void testServiceTokenIsValid() {
-        AccessToken token = manager.getNewServiceToken();
-        Assert.assertTrue(manager.isValidAccessToken(token));
+        AccessToken token = service.tokens.issue();
+        Assert.assertTrue(service.tokens.isValid(token));
     }
 
     @Test
     public void testServiceTokenInvalidation() {
-        AccessToken token = manager.getNewServiceToken();
-        manager.expireAccessToken(token);
-        Assert.assertFalse(manager.isValidAccessToken(token));
+        AccessToken token = service.tokens.issue();
+        service.tokens.expire(token);
+        Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testServiceTokenNotTiedToUser() {
-        AccessToken token = manager.getNewServiceToken();
-        manager.getUidByAccessToken(token);
+        AccessToken token = service.tokens.issue();
+        service.getUserId(token);
     }
 
     @Test
     public void testServiceTokenUsesInvalidUsername() {
-        AccessToken token = manager.getNewServiceToken();
-        ByteBuffer username = manager.getUsernameByAccessToken(token);
-        Assert.assertFalse(AccessManager.isAcceptableUsername(username));
+        AccessToken token = service.tokens.issue();
+        ByteBuffer username = service.tokens.identify(token);
+        Assert.assertFalse(UserService.isAcceptableUsername(username));
     }
 
     @Test
     public void testServerTokenNotAutoExpire() {
-        manager = AccessManager.createForTesting(current, 100,
+        service = UserService.createForTesting(current, 100,
                 TimeUnit.MILLISECONDS);
-        AccessToken token = manager.getNewServiceToken();
+        AccessToken token = service.tokens.issue();
         Threads.sleep(100);
-        Assert.assertTrue(manager.isValidAccessToken(token));
+        Assert.assertTrue(service.tokens.isValid(token));
     }
 
     @Test
     public void testUsers() {
         Collection<ByteBuffer> added = addMoreUsers(
-                Sets.newHashSet(ByteBuffers.fromString("admin")), manager);
+                Sets.newHashSet(ByteBuffers.fromString("admin")), service);
         Set<String> existing = added.stream()
                 .map(bytes -> ByteBuffers.getString(bytes))
                 .collect(Collectors.toSet());
         Assert.assertEquals(existing,
-                manager.users().stream()
+                service.users().stream()
                         .map(bytes -> ByteBuffers.getString(bytes))
                         .collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testRecreateDeletedUser() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.USER);
+        service.delete(username);
+        service.create(username, getSecurePassword(), Role.ADMIN);
+    }
+    
+    @Test(expected = SecurityException.class)
+    public void testDisabledUserCannotGetToken() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.USER);
+        service.disable(username);
+        service.tokens.issue(username);
+    }
+    
+    @Test
+    public void testRenabledUserCanGetToken() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.USER);
+        service.disable(username);
+        service.enable(username);
+        AccessToken token = service.tokens.issue(username);
+        Assert.assertNotNull(token);
+    }
+    
+    @Test
+    public void testChangeRole() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.setRole(username, Role.USER);
+        Assert.assertEquals(Role.USER, service.role(username));
+    }
+    
+    @Test
+    public void testChangingPasswordDoesNotReenableUser() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.disable(username);
+        service.setPassword(username, getSecurePassword());
+        Assert.assertFalse(service.isEnabled(username));
     }
 
     /**
@@ -547,7 +584,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     protected static ByteBuffer getAcceptableUsername() {
         ByteBuffer username = null;
         while (username == null
-                || !AccessManager.isAcceptableUsername(username)) {
+                || !UserService.isAcceptableUsername(username)) {
             username = toByteBuffer(TestData.getString());
         }
         return username;
@@ -560,7 +597,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
      */
     protected static ByteBuffer getSecurePassword() {
         ByteBuffer password = null;
-        while (password == null || !AccessManager.isSecurePassword(password)) {
+        while (password == null || !UserService.isSecurePassword(password)) {
             password = toByteBuffer(TestData.getString());
         }
         return password;
@@ -577,17 +614,18 @@ public class AccessManagerTest extends ConcourseBaseTest {
      * @return the valid usernames
      */
     private static Collection<ByteBuffer> addMoreUsers(
-            Collection<ByteBuffer> existingUsers, AccessManager manager) {
-        Set<ByteBuffer> usernames = Sets.newHashSet();
+            Collection<ByteBuffer> existingUsers, UserService manager) {
         int count = TestData.getScaleCount();
-        while (usernames.size() < count) {
-            ByteBuffer username = getAcceptableUsername();
-            if(!usernames.contains(username)) {
-                ByteBuffer password = getSecurePassword();
-                manager.createUser(username, password, Role.ADMIN);
-                existingUsers.add(username);
-                usernames.add(username);
+        int added = 0;
+        while (added < count) {
+            ByteBuffer username = null;
+            while (username == null || existingUsers.contains(username)) {
+                username = getAcceptableUsername();
             }
+            ByteBuffer password = getSecurePassword();
+            manager.create(username, password, Role.ADMIN);
+            existingUsers.add(username);
+            ++added;
         }
         return existingUsers;
     }
@@ -602,7 +640,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
      * @return the valid usernames
      */
     private static List<ByteBuffer> deleteSomeUsers(
-            List<ByteBuffer> existingUsers, AccessManager manager) {
+            List<ByteBuffer> existingUsers, UserService manager) {
         java.util.Random rand = new java.util.Random();
         Set<ByteBuffer> removedUsers = Sets.newHashSet();
         int count = rand.nextInt(existingUsers.size());
@@ -612,7 +650,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             removedUsers.add(username);
         }
         for (ByteBuffer username : removedUsers) {
-            manager.deleteUser(username);
+            manager.delete(username);
             existingUsers.remove(username);
         }
         return existingUsers;
