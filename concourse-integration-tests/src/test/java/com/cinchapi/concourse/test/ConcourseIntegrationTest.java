@@ -184,11 +184,28 @@ public abstract class ConcourseIntegrationTest {
      * Disable access to the server for the user identified by {@code username}.
      * 
      * @param username the username for which access should be disabled
-     * @deprecated since version 0.9.0; use {@link #deleteUser(String)} instead
+     */
+    protected final void disableUser(String username) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.disableUser(ByteBuffers.fromUtf8String(username), token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Disable access to the server for the user identified by {@code username}.
+     * 
+     * @param username the username for which access should be disabled
+     * @deprecated since version 0.9.0; use {@link #disableUser(String)} instead
      */
     @Deprecated
     protected final void disableAccess(String username) {
-        deleteUser(username);
+        disableUser(username);
     }
 
     /**
