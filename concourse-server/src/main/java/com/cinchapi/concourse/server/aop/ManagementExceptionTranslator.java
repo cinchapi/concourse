@@ -27,7 +27,7 @@ import com.google.common.base.Throwables;
  * method, but catches specific exceptions and translates them to the
  * appropriate Thrift counterparts.
  */
-public class ManagementExceptionHandler implements MethodInterceptor {
+public class ManagementExceptionTranslator implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {

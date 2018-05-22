@@ -29,4 +29,4 @@ import com.cinchapi.concourse.server.ConcourseServer;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ThrowsThriftExceptions {}
+public @interface ThrowsClientExceptions {}

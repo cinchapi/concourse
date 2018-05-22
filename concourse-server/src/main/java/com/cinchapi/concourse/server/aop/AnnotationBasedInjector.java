@@ -23,21 +23,21 @@ import com.google.inject.matcher.Matchers;
  * A {@link com.google.inject.Module Module} that configures AOP
  * interceptors and injectors that handle Thrift specific needs.
  */
-public class ThriftModule extends AbstractModule {
+public class AnnotationBasedInjector extends AbstractModule {
 
     @Override
     protected void configure() {
         // Intercept client exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                Matchers.annotatedWith(ThrowsThriftExceptions.class),
-                new ThriftExceptionHandler());
+                Matchers.annotatedWith(ThrowsClientExceptions.class),
+                new ClientExceptionTranslator());
 
         // Intercept management exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(ThrowsManagementExceptions.class),
-                new ManagementExceptionHandler());
+                new ManagementExceptionTranslator());
 
     }
 

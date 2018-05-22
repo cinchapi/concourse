@@ -36,7 +36,7 @@ import com.google.gson.JsonParseException;
  * method, but catches specific exceptions and translates them to the
  * appropriate Thrift counterparts.
  */
-public class ThriftExceptionHandler implements MethodInterceptor {
+public class ClientExceptionTranslator implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -55,8 +55,7 @@ public class ThriftExceptionHandler implements MethodInterceptor {
         catch (java.lang.SecurityException e) {
             throw new SecurityException(e.getMessage());
         }
-        catch (IllegalStateException | JsonParseException
-                | SyntaxException e) {
+        catch (IllegalStateException | JsonParseException | SyntaxException e) {
             // java.text.ParseException is checked, so internal server
             // classes don't use it to indicate parse errors. Since most
             // parsing using some sort of state machine, we've adopted the
