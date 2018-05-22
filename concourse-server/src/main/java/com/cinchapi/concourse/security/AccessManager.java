@@ -271,12 +271,11 @@ public class AccessManager {
     /**
      * Create access to the user identified by {@code username} with
      * {@code password}.
-     * 
      * <p>
-     * If the existing user simply changes the password, the new auto-generated
-     * id will not be generated and this username still has the same uid as the
-     * time it has been assigned when this {@link AccessManager} is
-     * instantiated.
+     * <strong>WARNING:</strong> A previous version of this method allowed an
+     * existing user's password to be updated. That functionality has been
+     * deleted. To update a user's password, using the
+     * {@link #setUserPassword(ByteBuffer, ByteBuffer)} method.
      * </p>
      * 
      * @param username
@@ -285,6 +284,8 @@ public class AccessManager {
      */
     public void createUser(ByteBuffer username, ByteBuffer password,
             Role role) {
+        Preconditions.checkArgument(!isExistingUsername(username),
+                "User already exists");
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
@@ -294,9 +295,7 @@ public class AccessManager {
         try {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
-            boolean enabled = true;
-            insert0(username, password, salt, enabled, role);
-            tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
+            upsertUnsafe(username, password, salt, true, role);
             diskSync();
         }
         finally {
@@ -320,7 +319,7 @@ public class AccessManager {
             credentials.remove(uid, PASSWORD_KEY);
             credentials.remove(uid, SALT_KEY);
             credentials.remove(uid, ENABLED);
-            tokenManager.deleteAllUserTokens(hex);
+            tokenManager.deleteAllUserTokens(username);
             diskSync();
         }
         finally {
@@ -351,12 +350,13 @@ public class AccessManager {
      * @param username the username to disable
      */
     public void disableUser(ByteBuffer username) {
+        Preconditions.checkArgument(isExistingUsername(username),
+                "The specified user does not exist");
         long stamp = lock.writeLock();
         try {
             short uid = getUidByUsername0(username);
-            String hex = ByteBuffers.encodeAsHex(username);
             credentials.put(uid, ENABLED, false);
-            tokenManager.deleteAllUserTokens(hex);
+            tokenManager.deleteAllUserTokens(username);
             diskSync();
         }
         finally {
@@ -370,6 +370,8 @@ public class AccessManager {
      * @param username the username to enable
      */
     public void enableUser(ByteBuffer username) {
+        Preconditions.checkArgument(isExistingUsername(username),
+                "The specified user does not exist");
         long stamp = lock.writeLock();
         try {
             short uid = getUidByUsername0(username);
@@ -447,32 +449,6 @@ public class AccessManager {
     }
 
     /**
-     * Return the role for the account associated with the specified
-     * {@code username}.
-     * 
-     * @param username
-     * @return the role
-     */
-    public Role getRole(ByteBuffer username) {
-        long stamp = lock.readLock();
-        try {
-            short id = getUidByUsername0(username);
-            Integer ordinal = (Integer) credentials.get(id, ROLE_KEY);
-            if(ordinal != null) {
-                Role role = Role.values()[ordinal];
-                return role;
-            }
-            else {
-                throw new IllegalStateException(
-                        "The specified user does not have a role");
-            }
-        }
-        finally {
-            lock.unlockRead(stamp);
-        }
-    }
-
-    /**
      * Return the uid of the user associated with {@code token}.
      * 
      * @param token
@@ -480,10 +456,10 @@ public class AccessManager {
      */
     public short getUidByAccessToken(AccessToken token) {
         long stamp = lock.tryOptimisticRead();
-        ByteBuffer username = getUsernameByAccessToken0(token);
+        ByteBuffer username = tokenManager.getUsernameByAccessToken(token);
         short uid = getUidByUsername0(username);
         if(!lock.validate(stamp)) {
-            username = getUsernameByAccessToken0(token);
+            username = tokenManager.getUsernameByAccessToken(token);
             uid = getUidByUsername0(username);
         }
         return uid;
@@ -496,6 +472,8 @@ public class AccessManager {
      * @return the uid
      */
     public short getUidByUsername(ByteBuffer username) {
+        Preconditions.checkArgument(isExistingUsername(username),
+                "The specified user does not exist");
         long stamp = lock.tryOptimisticRead();
         short uid = getUidByUsername0(username);
         if(!lock.validate(stamp)) {
@@ -518,17 +496,43 @@ public class AccessManager {
      */
     public ByteBuffer getUsernameByAccessToken(AccessToken token) {
         long stamp = lock.tryOptimisticRead();
-        ByteBuffer username = getUsernameByAccessToken0(token);
+        ByteBuffer username = tokenManager.getUsernameByAccessToken(token);
         if(!lock.validate(stamp)) {
             stamp = lock.readLock();
             try {
-                username = getUsernameByAccessToken0(token);
+                username = tokenManager.getUsernameByAccessToken(token);
             }
             finally {
                 lock.unlock(stamp);
             }
         }
         return username;
+    }
+
+    /**
+     * Return the role for the account associated with the specified
+     * {@code username}.
+     * 
+     * @param username
+     * @return the role
+     */
+    public Role getUserRole(ByteBuffer username) {
+        long stamp = lock.readLock();
+        try {
+            short id = getUidByUsername0(username);
+            Integer ordinal = (Integer) credentials.get(id, ROLE_KEY);
+            if(ordinal != null) {
+                Role role = Role.values()[ordinal];
+                return role;
+            }
+            else {
+                throw new IllegalStateException(
+                        "The specified user does not have a role");
+            }
+        }
+        finally {
+            lock.unlockRead(stamp);
+        }
     }
 
     /**
@@ -611,14 +615,43 @@ public class AccessManager {
     }
 
     /**
+     * Set the password associated with the
+     * 
+     * @param username
+     * @param password
+     */
+    public void setUserPassword(ByteBuffer username, ByteBuffer password) {
+        Preconditions.checkArgument(isExistingUsername(username),
+                "The specified user does not exist");
+        Preconditions.checkArgument(isSecurePassword(password),
+                "Password must not be empty, or have fewer than 3 characters.");
+        long stamp = lock.writeLock();
+        try {
+            tokenManager.deleteAllUserTokens(username);
+            ByteBuffer salt = Passwords.getSalt();
+            password = Passwords.hash(password, salt);
+            boolean enabled = isEnabledUsername(username);
+            Role role = getUserRole(username);
+            upsertUnsafe(username, password, salt, enabled, role);
+            diskSync();
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
      * Set the role for the account with the specified {@code username}.
      * 
      * @param username
      * @param role
      */
-    public void setRole(ByteBuffer username, Role role) {
+    public void setUserRole(ByteBuffer username, Role role) {
+        Preconditions.checkArgument(isExistingUsername(username),
+                "The specified user does not exist");
         long stamp = lock.writeLock();
         try {
+            tokenManager.deleteAllUserTokens(username);
             short id = getUidByUsername0(username);
             credentials.put(id, ROLE_KEY, role.ordinal());
             diskSync();
@@ -655,13 +688,12 @@ public class AccessManager {
      * @param password
      * @param salt
      */
-    protected void insert(ByteBuffer username, ByteBuffer password,
+    protected void upsert(ByteBuffer username, ByteBuffer password,
             ByteBuffer salt) { // visible for
                                // upgrade task
         long stamp = lock.writeLock();
         try {
-            boolean enabled = true;
-            insert0(username, password, salt, enabled, Role.ADMIN);
+            upsertUnsafe(username, password, salt, true, Role.ADMIN);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -704,36 +736,6 @@ public class AccessManager {
         return -1; // suppress compiler error
                    // but this statement will
                    // never actually execute
-    }
-
-    /**
-     * Implementation of {@link #getUsernameByAccessToken(AccessToken)}.
-     * 
-     * @param token
-     * @return the username
-     */
-    private ByteBuffer getUsernameByAccessToken0(AccessToken token) {
-        String username = tokenManager.getUsernameByAccessToken(token);
-        return ByteBuffers.decodeFromHex(username);
-    }
-
-    /**
-     * Implementation of {@link #insert(ByteBuffer, ByteBuffer, ByteBuffer)}
-     * without locking.
-     * 
-     * @param username
-     * @param password
-     * @param salt
-     */
-    private void insert0(ByteBuffer username, ByteBuffer password,
-            ByteBuffer salt, boolean enabled, Role role) {
-        short uid = isExistingUsername0(username) ? getUidByUsername0(username)
-                : (short) counter.incrementAndGet();
-        credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
-        credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
-        credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
-        credentials.put(uid, ENABLED, enabled);
-        credentials.put(uid, ROLE_KEY, role.ordinal());
     }
 
     /**
@@ -787,12 +789,41 @@ public class AccessManager {
     }
 
     /**
+     * Implementation of {@link #upsert(ByteBuffer, ByteBuffer, ByteBuffer)}
+     * without locking.
+     * 
+     * @param username
+     * @param password
+     * @param salt
+     */
+    private void upsertUnsafe(ByteBuffer username, ByteBuffer password,
+            ByteBuffer salt, boolean enabled, Role role) {
+        short uid = isExistingUsername0(username) ? getUidByUsername0(username)
+                : (short) counter.incrementAndGet();
+        credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
+        credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
+        credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+        credentials.put(uid, ENABLED, enabled);
+        credentials.put(uid, ROLE_KEY, role.ordinal());
+    }
+
+    /**
      * An enum that describes that possible roles for a user.
      *
      * @author Jeff Nelson
      */
     public enum Role {
         ADMIN, USER;
+
+        /**
+         * Case insensitive implementation of {@link #valueOf(String)}.
+         * 
+         * @param role
+         * @return the parsed Role
+         */
+        public static Role valueOfIgnoreCase(String role) {
+            return Role.valueOf(role.toUpperCase());
+        }
     }
 
     /**
@@ -891,12 +922,12 @@ public class AccessManager {
          * 
          * @param username
          */
-        public void deleteAllUserTokens(String username) {
+        public void deleteAllUserTokens(ByteBuffer username) {
+            String hex = ByteBuffers.encodeAsHex(username);
             long stamp = lock.writeLock();
             try {
                 for (AccessToken token : tokens.asMap().keySet()) {
-                    if(tokens.getIfPresent(token).getUsername()
-                            .equals(username)) {
+                    if(tokens.getIfPresent(token).getUsername().equals(hex)) {
                         tokens.invalidate(token);
                     }
                 }
@@ -928,7 +959,7 @@ public class AccessManager {
          * @param token
          * @return the username if {@code token} is valid
          */
-        public String getUsernameByAccessToken(AccessToken token) {
+        public ByteBuffer getUsernameByAccessToken(AccessToken token) {
             Preconditions.checkArgument(isValidToken(token),
                     "Access token is no longer invalid.");
             long stamp = lock.tryOptimisticRead();
@@ -947,7 +978,7 @@ public class AccessManager {
                         "Access token is no longer valid");
             }
             else {
-                return username;
+                return ByteBuffers.decodeFromHex(username);
             }
         }
 
@@ -991,8 +1022,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable

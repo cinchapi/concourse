@@ -58,7 +58,7 @@ public class UpgradeTask0_9_0_3Test extends UpgradeTest {
         AccessManager access = AccessManager
                 .create(accessFile.toAbsolutePath().toString());
         access.users().forEach(username -> Assert.assertEquals(Role.ADMIN,
-                access.getRole(username)));
+                access.getUserRole(username)));
     }
 
 }

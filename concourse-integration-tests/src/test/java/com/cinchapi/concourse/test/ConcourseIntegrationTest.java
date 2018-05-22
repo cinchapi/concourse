@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.server.ConcourseServer;
@@ -127,19 +128,21 @@ public abstract class ConcourseIntegrationTest {
     protected void beforeEachTest() {}
 
     /**
-     * Grant access to the server for a user identified by {@code username} and
-     * {@code password}.
+     * Create a user account identified by {@code username} and {@code password}
+     * with the specified {@code role}.
      * 
      * @param username
      * @param password
+     * @param role
      */
-    protected final void grantAccess(String username, String password) {
+    protected final void createUser(String username, String password,
+            String role) {
         try {
             AccessToken token = server.login(
                     ByteBuffers.fromUtf8String("admin"),
                     ByteBuffers.fromUtf8String("admin"));
-            server.grant(ByteBuffers.fromUtf8String(username),
-                    ByteBuffers.fromUtf8String(password), token);
+            server.createUser(ByteBuffers.fromUtf8String(username),
+                    ByteBuffers.fromUtf8String(password), role, token);
         }
         catch (TException e) {
             throw Throwables.propagate(e);
@@ -147,20 +150,45 @@ public abstract class ConcourseIntegrationTest {
     }
 
     /**
-     * Disable access to the server for the user identified by {@code username}.
+     * Delete the user account identified by {@code username}.
      * 
-     * @param username the username for which access should be disabled
+     * @param username the username of the account to delete
      */
-    protected final void disableAccess(String username) {
+    protected final void deleteUser(String username) {
         try {
             AccessToken token = server.login(
                     ByteBuffers.fromUtf8String("admin"),
                     ByteBuffers.fromUtf8String("admin"));
-            server.disableUser(ByteBuffers.fromUtf8String(username), token);
+            server.deleteUser(ByteBuffers.fromUtf8String(username), token);
         }
         catch (TException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Grant access to the server for a user identified by {@code username} and
+     * {@code password}.
+     * 
+     * @param username
+     * @param password
+     * @deprecated since version 0.9.0; use
+     *             {@link #createUser(String, String, String)} instead
+     */
+    @Deprecated
+    protected final void grantAccess(String username, String password) {
+        createUser(username, password, "admin");
+    }
+
+    /**
+     * Disable access to the server for the user identified by {@code username}.
+     * 
+     * @param username the username for which access should be disabled
+     * @deprecated since version 0.9.0; use {@link #deleteUser(String)} instead
+     */
+    @Deprecated
+    protected final void disableAccess(String username) {
+        deleteUser(username);
     }
 
     /**

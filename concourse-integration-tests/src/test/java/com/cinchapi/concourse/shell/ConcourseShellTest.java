@@ -82,7 +82,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
 
     @Test(expected = ProgramCrash.class)
     public void testSecurityChangeCausesCrash() throws Throwable {
-        grantAccess("admin", "admin2");
+        createUser("admin", "admin2", "admin");
         cash.evaluate("add \"name\", \"jeff\", 1");
     }
 

@@ -32,8 +32,8 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
     @Test
     public void testDisabledUserCannotAuthenticate() {
         String username = TestData.getSimpleString();
-        grantAccess(username, username);
-        disableAccess(username);
+        createUser(username, username, "admin");
+        deleteUser(username);
         try {
             Concourse.connect(SERVER_HOST, SERVER_PORT, username, username);
             Assert.fail();
@@ -46,11 +46,11 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
     @Test
     public void testDisabledUserSessionsEndedImmediately() {
         String username = TestData.getSimpleString();
-        grantAccess(username, username);
+        createUser(username, username, "admin");
         Concourse con = Concourse.connect(SERVER_HOST, SERVER_PORT, username,
                 username);
         con.getServerEnvironment();
-        disableAccess(username);
+        deleteUser(username);
         try {
             con.getServerEnvironment();
             Assert.fail();

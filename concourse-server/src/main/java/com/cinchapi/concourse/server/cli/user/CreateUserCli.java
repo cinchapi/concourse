@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.cli.user;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -35,7 +36,7 @@ public class CreateUserCli extends UserCli {
      * @param args
      */
     public CreateUserCli(String[] args) {
-        super(new UserOptions(), args);
+        super(new EditUserOptions(), args);
     }
 
     @Override
@@ -45,7 +46,7 @@ public class CreateUserCli extends UserCli {
 
     @Override
     protected void doTask(Client client) {
-        UserOptions opts = (UserOptions) options;
+        EditUserOptions opts = (EditUserOptions) options;
         try {
             String username;
             if(opts.args.isEmpty()) {
@@ -70,8 +71,13 @@ public class CreateUserCli extends UserCli {
                                         + "' HAS NOT been created");
                     }
                 }
-                client.grant(ByteBuffers.fromString(username),
-                        ByteBuffers.fromString(opts.userPassword), token);
+                if(Strings.isNullOrEmpty(opts.userRole)) {
+                    opts.userRole = console.readLine(
+                            AnyStrings.format("Role for {}:", username));
+                }
+                client.createUser(ByteBuffers.fromString(username),
+                        ByteBuffers.fromString(opts.userPassword), opts.userRole,
+                        token);
                 System.out.println(
                         "New user '" + username + "' has been created");
             }

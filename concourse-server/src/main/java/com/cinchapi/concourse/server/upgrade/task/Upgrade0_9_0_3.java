@@ -46,8 +46,8 @@ public class Upgrade0_9_0_3 extends SmartUpgradeTask {
         if(FileSystem.hasFile(accessFile)) {
             FileSystem.copyBytes(accessFile, accessBackupFile);
             AccessManager manager = AccessManager.create(accessFile);
-            manager.users()
-                    .forEach(username -> manager.setRole(username, Role.ADMIN));
+            manager.users().forEach(
+                    username -> manager.setUserRole(username, Role.ADMIN));
             FileSystem.deleteFile(accessBackupFile);
         }
 

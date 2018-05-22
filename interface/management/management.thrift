@@ -124,9 +124,22 @@ service ConcourseManagementService {
    * @param username
    * @param password
    */
-  void grant(
+  void createUser(
 	  1: binary username,
 	  2: binary password,
+    3: string role,
+    4: shared.AccessToken creds
+  );
+
+  void setUserPassword(
+    1: binary username,
+    2: binary password,
+    3: shared.AccessToken creds
+  );
+
+  void setUserRole(
+    1: binary username,
+    2: string role,
     3: shared.AccessToken creds
   );
 
@@ -201,7 +214,7 @@ service ConcourseManagementService {
    *                the user on behalf of whom the client is connected
    * @param username
    */
-  void revoke(
+  void deleteUser(
 	  1: binary username
  	  2: shared.AccessToken creds
   );

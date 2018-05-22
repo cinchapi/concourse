@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.thrift.TException;
 
 import com.cinchapi.concourse.security.AccessManager;
+import com.cinchapi.concourse.security.AccessManager.Role;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
@@ -41,8 +42,26 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer
-        implements ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer implements
+        ConcourseManagementService.Iface {
+
+    @Override
+    @PluginRestricted
+    public final void createUser(ByteBuffer username, ByteBuffer password,
+            String role, AccessToken creds) throws TException {
+        checkAccess(creds);
+        Role userRole = Role.valueOfIgnoreCase(role);
+        getAccessManager().createUser(username, password, userRole);
+
+    }
+
+    @Override
+    @PluginRestricted
+    public final void deleteUser(ByteBuffer username, AccessToken creds)
+            throws TException {
+        checkAccess(creds);
+        getAccessManager().deleteUser(username);
+    }
 
     @Override
     @PluginRestricted
@@ -76,15 +95,6 @@ public abstract class BaseConcourseServer
             throws TException {
         checkAccess(creds);
         return getEngine(environment).getDumpList();
-    }
-
-    @Override
-    @PluginRestricted
-    public final void grant(ByteBuffer username, ByteBuffer password,
-            AccessToken creds) throws TException {
-        checkAccess(creds);
-        getAccessManager().createUser(username, password);
-
     }
 
     @Override
@@ -137,17 +147,29 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    public final void revoke(ByteBuffer username, AccessToken creds)
+    public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
-        checkAccess(creds);
-        getAccessManager().deleteUser(username);
+        return getPluginManager().runningPlugins();
     }
 
     @Override
     @PluginRestricted
-    public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
+    public void setUserPassword(ByteBuffer username, ByteBuffer password,
+            AccessToken creds) throws TException {
+        checkAccess(creds);
+        AccessManager manager = getAccessManager();
+        manager.setUserPassword(username, password);
+
+    }
+
+    @Override
+    @PluginRestricted
+    public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
-        return getPluginManager().runningPlugins();
+        checkAccess(creds);
+        AccessManager manager = getAccessManager();
+        manager.setUserRole(username, Role.valueOfIgnoreCase(role));
+
     }
 
     @Override
