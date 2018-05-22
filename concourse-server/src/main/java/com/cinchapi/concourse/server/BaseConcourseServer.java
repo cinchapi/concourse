@@ -49,8 +49,8 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer implements
-        ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer
+        implements ConcourseManagementService.Iface {
 
     @Override
     @PluginRestricted
