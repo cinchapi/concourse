@@ -114,15 +114,15 @@ public class UserServiceTest extends ConcourseBaseTest {
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
-        users = (Set<ByteBuffer>) addMoreUsers(users, manager2);
+                                                            // service
+        users = (Set<ByteBuffer>) addMoreUsers(users, service2);
         uniqueUids = Sets.newHashSet();
         for (ByteBuffer username : users) {
-            short uid = manager2.getUserId(username);
+            short uid = service2.getUserId(username);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
@@ -140,20 +140,20 @@ public class UserServiceTest extends ConcourseBaseTest {
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
         }
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
+                                                            // service
         Variables.register("users", users);
-        users = deleteSomeUsers(users, manager2);
+        users = deleteSomeUsers(users, service2);
         Variables.register("users_after_delete", Lists.newArrayList(users));
-        users = (List<ByteBuffer>) addMoreUsers(users, manager2);
+        users = (List<ByteBuffer>) addMoreUsers(users, service2);
         Variables.register("users_after_add", Lists.newArrayList(users));
         uniqueUids = Sets.newHashSet();
         Variables.register("uniqueUids", uniqueUids);
         for (ByteBuffer username : users) {
-            short uid = manager2.getUserId(username);
+            short uid = service2.getUserId(username);
             Variables.register("uid", uid);
             Assert.assertFalse(uniqueUids.contains(uid)); // check uniqueness
             uniqueUids.add(uid);
@@ -181,18 +181,18 @@ public class UserServiceTest extends ConcourseBaseTest {
             Assert.assertEquals((short) uids.get(username), uid);// check
                                                                  // uniqueness
         }
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
-        users = (List<ByteBuffer>) addMoreUsers(users, manager2);
+                                                            // service
+        users = (List<ByteBuffer>) addMoreUsers(users, service2);
         for (ByteBuffer username : users) { // retrieve
-            short uid = manager2.getUserId(username); // valid uids
+            short uid = service2.getUserId(username); // valid uids
             uids.put(username, uid); // after add users
         }
         for (ByteBuffer username : users) {
-            short uid = manager2.getUserId(username);
+            short uid = service2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);// check
                                                                  // uniqueness
         }
@@ -208,13 +208,13 @@ public class UserServiceTest extends ConcourseBaseTest {
             short uid = service.getUserId(username); // uids after
             uids.put(username, uid); // add users
         }
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
+                                                            // service
         for (ByteBuffer username : users) {
-            short uid = manager2.getUserId(username);
+            short uid = service2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
     }
@@ -236,17 +236,17 @@ public class UserServiceTest extends ConcourseBaseTest {
             short uid = service.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
+                                                            // service
         for (ByteBuffer username : users) {
-            manager2.setPassword(username, getSecurePassword()); // change
+            service2.setPassword(username, getSecurePassword()); // change
                                                                  // password
         }
         for (ByteBuffer username : users) {
-            short uid = manager2.getUserId(username);
+            short uid = service2.getUserId(username);
             Assert.assertEquals((short) uids.get(username), uid);
         }
     }
@@ -326,10 +326,10 @@ public class UserServiceTest extends ConcourseBaseTest {
             users.put(username, password);
             service.create(username, password, Role.ADMIN);
         }
-        UserService manager2 = UserService.create(current);
+        UserService service2 = UserService.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
             Assert.assertTrue(
-                    manager2.authenticate(entry.getKey(), entry.getValue()));
+                    service2.authenticate(entry.getKey(), entry.getValue()));
         }
     }
 
@@ -353,12 +353,12 @@ public class UserServiceTest extends ConcourseBaseTest {
         ByteBuffer password = getSecurePassword();
         service.create(username, password, Role.ADMIN);
         AccessToken token = service.tokens.issue(username);
-        UserService manager2 = UserService.create(current); // simulate
+        UserService service2 = UserService.create(current); // simulate
                                                             // server
                                                             // restart by
                                                             // creating new
-                                                            // manager
-        Assert.assertFalse(manager2.tokens.isValid(token));
+                                                            // service
+        Assert.assertFalse(service2.tokens.isValid(token));
     }
 
     @Test
@@ -530,7 +530,7 @@ public class UserServiceTest extends ConcourseBaseTest {
         service.delete(username);
         service.create(username, getSecurePassword(), Role.ADMIN);
     }
-    
+
     @Test(expected = SecurityException.class)
     public void testDisabledUserCannotGetToken() {
         ByteBuffer username = getAcceptableUsername();
@@ -538,7 +538,7 @@ public class UserServiceTest extends ConcourseBaseTest {
         service.disable(username);
         service.tokens.issue(username);
     }
-    
+
     @Test
     public void testRenabledUserCanGetToken() {
         ByteBuffer username = getAcceptableUsername();
@@ -548,7 +548,7 @@ public class UserServiceTest extends ConcourseBaseTest {
         AccessToken token = service.tokens.issue(username);
         Assert.assertNotNull(token);
     }
-    
+
     @Test
     public void testChangeRole() {
         ByteBuffer username = getAcceptableUsername();
@@ -556,7 +556,7 @@ public class UserServiceTest extends ConcourseBaseTest {
         service.setRole(username, Role.USER);
         Assert.assertEquals(Role.USER, service.role(username));
     }
-    
+
     @Test
     public void testChangingPasswordDoesNotReenableUser() {
         ByteBuffer username = getAcceptableUsername();
@@ -605,16 +605,16 @@ public class UserServiceTest extends ConcourseBaseTest {
 
     /**
      * Return a collection of unique binary usernames that is
-     * added to the specified {@code manager}, which is also a
+     * added to the specified {@code service}, which is also a
      * superset of the {@code existingUsers} and newly added
      * usernames.
      * 
      * @param existingUsers
-     * @param manager
+     * @param service
      * @return the valid usernames
      */
     private static Collection<ByteBuffer> addMoreUsers(
-            Collection<ByteBuffer> existingUsers, UserService manager) {
+            Collection<ByteBuffer> existingUsers, UserService service) {
         int count = TestData.getScaleCount();
         int added = 0;
         while (added < count) {
@@ -623,7 +623,7 @@ public class UserServiceTest extends ConcourseBaseTest {
                 username = getAcceptableUsername();
             }
             ByteBuffer password = getSecurePassword();
-            manager.create(username, password, Role.ADMIN);
+            service.create(username, password, Role.ADMIN);
             existingUsers.add(username);
             ++added;
         }
@@ -633,14 +633,14 @@ public class UserServiceTest extends ConcourseBaseTest {
     /**
      * Return a list of binary usernames that is still valid
      * after some usernames in {@code existingUsers} has been
-     * randomly deleted from {@code manager}.
+     * randomly deleted from {@code service}.
      * 
      * @param existingUsers
-     * @param manager
+     * @param service
      * @return the valid usernames
      */
     private static List<ByteBuffer> deleteSomeUsers(
-            List<ByteBuffer> existingUsers, UserService manager) {
+            List<ByteBuffer> existingUsers, UserService service) {
         java.util.Random rand = new java.util.Random();
         Set<ByteBuffer> removedUsers = Sets.newHashSet();
         int count = rand.nextInt(existingUsers.size());
@@ -650,7 +650,7 @@ public class UserServiceTest extends ConcourseBaseTest {
             removedUsers.add(username);
         }
         for (ByteBuffer username : removedUsers) {
-            manager.delete(username);
+            service.delete(username);
             existingUsers.remove(username);
         }
         return existingUsers;
