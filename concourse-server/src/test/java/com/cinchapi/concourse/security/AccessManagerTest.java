@@ -32,6 +32,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.concourse.security.AccessManager.Role;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -83,7 +84,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = getSecurePassword();
-        manager.createUser(username, newPassword);
+        manager.createUser(username, newPassword, Role.ADMIN);
         Assert.assertFalse(
                 manager.isExistingUsernamePasswordCombo(username, password));
         Assert.assertTrue(
@@ -97,7 +98,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = getAcceptableUsername();
             ByteBuffer password = getSecurePassword();
             users.put(username, password);
-            manager.createUser(username, password);
+            manager.createUser(username, password, Role.ADMIN);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
             Assert.assertTrue(manager.isExistingUsernamePasswordCombo(
@@ -232,7 +233,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             uids.put(username, uid); // add users
         }
         for (ByteBuffer username : users) { // change password
-            manager.createUser(username, getSecurePassword());
+            manager.createUser(username, getSecurePassword(), Role.ADMIN);
         }
         for (ByteBuffer username : users) {
             short uid = manager.getUidByUsername(username);
@@ -244,8 +245,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
                                                                 // creating new
                                                                 // manager
         for (ByteBuffer username : users) {
-            manager2.createUser(username, getSecurePassword()); // change
-                                                                // password
+            manager2.createUser(username, getSecurePassword(), Role.ADMIN); // change
+            // password
         }
         for (ByteBuffer username : users) {
             short uid = manager2.getUidByUsername(username);
@@ -262,7 +263,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testRevokeUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         manager.deleteUser(username);
         Assert.assertFalse(
                 manager.isExistingUsernamePasswordCombo(username, password));
@@ -272,7 +273,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testEnableUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         manager.disableUser(username);
         manager.enableUser(username);
         Assert.assertTrue(manager.isEnabledUsername(username));
@@ -282,7 +283,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDisableUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         manager.disableUser(username);
         Assert.assertFalse(manager.isEnabledUsername(username));
     }
@@ -291,7 +292,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDisablingUserInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.getNewAccessToken(username));
@@ -306,7 +307,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testNewlyCreatedUserIsEnabled() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         Assert.assertTrue(manager.isEnabledUsername(username));
     }
 
@@ -315,7 +316,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         Assert.assertTrue(
                 manager.isExistingUsernamePasswordCombo(username, password));
         Assert.assertFalse(
@@ -329,7 +330,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = getAcceptableUsername();
             ByteBuffer password = getSecurePassword();
             users.put(username, password);
-            manager.createUser(username, password);
+            manager.createUser(username, password, Role.ADMIN);
         }
         AccessManager manager2 = AccessManager.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
@@ -347,7 +348,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testCanCreateAccessTokenForValidUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
         Assert.assertTrue(manager.isValidAccessToken(token));
     }
@@ -356,7 +357,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAccessTokenIsNotValidIfServerRestarts() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
         AccessManager manager2 = AccessManager.create(current); // simulate
                                                                 // server
@@ -371,9 +372,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         ByteBuffer password2 = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
-        manager.createUser(username, password2);
+        manager.createUser(username, password2, Role.ADMIN);
         Assert.assertFalse(manager.isValidAccessToken(token));
     }
 
@@ -381,7 +382,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testAccessTokenIsNotValidIfAccessIsRevoked() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
         manager.deleteUser(username);
         Assert.assertFalse(manager.isValidAccessToken(token));
@@ -393,7 +394,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
                 TimeUnit.MILLISECONDS);
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
         TimeUnit.MILLISECONDS.sleep(60);
         Assert.assertFalse(manager.isValidAccessToken(token));
@@ -403,7 +404,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testInvalidateAccessToken() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
         manager.expireAccessToken(token);
         Assert.assertFalse(manager.isValidAccessToken(token));
@@ -413,7 +414,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testTwoAccessTokensForSameUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token1 = manager.getNewAccessToken(username);
         AccessToken token2 = manager.getNewAccessToken(username);
         Assert.assertNotEquals(token1, token2);
@@ -425,7 +426,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testInvalidatingOneAccessTokenDoesNotAffectOther() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         AccessToken token1 = manager.getNewAccessToken(username);
         AccessToken token2 = manager.getNewAccessToken(username);
         manager.expireAccessToken(token2);
@@ -436,7 +437,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testRevokingAccessInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.getNewAccessToken(username));
@@ -451,12 +452,12 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testChangingPasswordInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
-        manager.createUser(username, password);
+        manager.createUser(username, password, Role.ADMIN);
         List<AccessToken> tokens = Lists.newArrayList();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.getNewAccessToken(username));
         }
-        manager.createUser(username, getSecurePassword());
+        manager.createUser(username, getSecurePassword(), Role.ADMIN);
         for (AccessToken token : tokens) {
             Assert.assertFalse(manager.isValidAccessToken(token));
         }
@@ -583,7 +584,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = getAcceptableUsername();
             if(!usernames.contains(username)) {
                 ByteBuffer password = getSecurePassword();
-                manager.createUser(username, password);
+                manager.createUser(username, password, Role.ADMIN);
                 existingUsers.add(username);
                 usernames.add(username);
             }

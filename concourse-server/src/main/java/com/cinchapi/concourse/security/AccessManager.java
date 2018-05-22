@@ -280,24 +280,48 @@ public class AccessManager {
      * 
      * @param username
      * @param password
+     * @param role
      */
-    public void createUser(ByteBuffer username, ByteBuffer password) {
+    public void createUser(ByteBuffer username, ByteBuffer password,
+            Role role) {
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
                 "Password must not be empty, or have fewer than 3 characters.");
+        Preconditions.checkArgument(role != null, "Please specify a role");
         long stamp = lock.writeLock();
         try {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
             boolean enabled = true;
-            insert0(username, password, salt, enabled);
+            insert0(username, password, salt, enabled, role);
             tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
             diskSync();
         }
         finally {
             lock.unlockWrite(stamp);
         }
+    }
+
+    /**
+     * Create access to the user identified by {@code username} with
+     * {@code password}.
+     * 
+     * <p>
+     * If the existing user simply changes the password, the new auto-generated
+     * id will not be generated and this username still has the same uid as the
+     * time it has been assigned when this {@link AccessManager} is
+     * instantiated.
+     * </p>
+     * 
+     * @param username
+     * @param password
+     * @deprecated in version 0.9.0; use
+     *             {@link #createUser(ByteBuffer, ByteBuffer, Role)} instead
+     */
+    @Deprecated
+    public void createUser(ByteBuffer username, ByteBuffer password) {
+        createUser(username, password, Role.ADMIN);
     }
 
     /**
@@ -657,7 +681,7 @@ public class AccessManager {
         long stamp = lock.writeLock();
         try {
             boolean enabled = true;
-            insert0(username, password, salt, enabled);
+            insert0(username, password, salt, enabled, Role.ADMIN);
         }
         finally {
             lock.unlockWrite(stamp);
@@ -722,13 +746,14 @@ public class AccessManager {
      * @param salt
      */
     private void insert0(ByteBuffer username, ByteBuffer password,
-            ByteBuffer salt, boolean enabled) {
+            ByteBuffer salt, boolean enabled, Role role) {
         short uid = isExistingUsername0(username) ? getUidByUsername0(username)
                 : (short) counter.incrementAndGet();
         credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
         credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
         credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
         credentials.put(uid, ENABLED, enabled);
+        credentials.put(uid, ROLE_KEY, role.ordinal());
     }
 
     /**
