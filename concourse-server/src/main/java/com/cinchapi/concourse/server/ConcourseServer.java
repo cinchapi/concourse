@@ -18,10 +18,6 @@ package com.cinchapi.concourse.server;
 import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.io.File;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
@@ -41,8 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -53,20 +47,20 @@ import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.cinchapi.ccl.Parser;
-import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.server.aop.ThriftModule;
+import com.cinchapi.concourse.server.aop.ThrowsThriftExceptions;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.ops.AtomicOperations;
 import com.cinchapi.concourse.server.ops.Operations;
-import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
@@ -86,7 +80,6 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
-import com.cinchapi.concourse.thrift.InvalidArgumentException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
@@ -105,18 +98,14 @@ import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.google.gson.JsonParseException;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.matcher.Matchers;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
@@ -4852,94 +4841,5 @@ public class ConcourseServer extends BaseConcourseServer
         }
 
     }
-
-    /**
-     * A {@link MethodInterceptor} that delegates to the underlying annotated
-     * method, but catches specific exceptions and translates them to the
-     * appropriate Thrift counterparts.
-     */
-    static class ThriftExceptionHandler implements MethodInterceptor {
-
-        @Override
-        public Object invoke(MethodInvocation invocation) throws Throwable {
-            try {
-                return invocation.proceed();
-            }
-            catch (IllegalArgumentException e) {
-                throw new InvalidArgumentException(e.getMessage());
-            }
-            catch (AtomicStateException e) {
-                // If an AtomicStateException makes it here, then it must really
-                // be a TransactionStateException.
-                assert e.getClass() == TransactionStateException.class;
-                throw new TransactionException();
-            }
-            catch (java.lang.SecurityException e) {
-                throw new SecurityException(e.getMessage());
-            }
-            catch (IllegalStateException | JsonParseException
-                    | SyntaxException e) {
-                // java.text.ParseException is checked, so internal server
-                // classes don't use it to indicate parse errors. Since most
-                // parsing using some sort of state machine, we've adopted the
-                // convention to throw IllegalStateExceptions whenever a parse
-                // error has occurred.
-                // CON-609: External SyntaxException should be propagated as
-                // ParseException
-                throw new ParseException(e.getMessage());
-            }
-            catch (PluginException e) {
-                throw new TException(e);
-            }
-            catch (TException e) {
-                // This clause may seem unnecessary, but some of the server
-                // methods manually throw TExceptions, so we need to catch them
-                // here and re-throw so that they don't get propagated as
-                // TTransportExceptions.
-                throw e;
-            }
-            catch (Throwable t) {
-                Logger.warn(
-                        "The following exception occurred "
-                                + "but was not propagated to the client: {}",
-                        t.getMessage(), t);
-                throw Throwables.propagate(t);
-            }
-        }
-
-    }
-
-    /**
-     * A {@link com.google.inject.Module Module} that configures AOP
-     * interceptors and injectors that handle Thrift specific needs.
-     */
-    static class ThriftModule extends AbstractModule {
-
-        @Override
-        protected void configure() {
-            // Intercept client exceptions and re-throw them in a thrift
-            // friendly manner
-            bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                    Matchers.annotatedWith(ThrowsThriftExceptions.class),
-                    new ThriftExceptionHandler());
-
-            // Intercept management exceptions and re-throw them in a thrift
-            // friendly manner
-            bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                    Matchers.annotatedWith(ThrowsManagementExceptions.class),
-                    new ManagementExceptionHandler());
-
-        }
-
-    }
-
-    /**
-     * Indicates that a {@link ConcourseServer server} method propagates certain
-     * Java exceptions to the client using analogous ones in the
-     * {@code com.cinchapi.concourse.thrift} package.
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    @interface ThrowsThriftExceptions {}
 
 }

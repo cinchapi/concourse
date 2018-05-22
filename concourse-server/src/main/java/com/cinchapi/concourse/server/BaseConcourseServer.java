@@ -15,30 +15,23 @@
  */
 package com.cinchapi.concourse.server;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.security.UserService.Role;
+import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
-import com.google.common.base.Throwables;
 
 /**
  * Base implementation of Concourse Server.
@@ -242,42 +235,5 @@ public abstract class BaseConcourseServer
      * @return the {@link PluginManager}
      */
     protected abstract PluginManager getPluginManager();
-
-    /**
-     * A {@link MethodInterceptor} that delegates to the underlying annotated
-     * method, but catches specific exceptions and translates them to the
-     * appropriate Thrift counterparts.
-     */
-    static class ManagementExceptionHandler implements MethodInterceptor {
-
-        @Override
-        public Object invoke(MethodInvocation invocation) throws Throwable {
-            try {
-                return invocation.proceed();
-            }
-            catch (SecurityException e) {
-                throw e;
-            }
-            catch (ManagementException e) {
-                throw e;
-            }
-            catch (Exception e) {
-                Throwable cause = Throwables.getRootCause(e);
-                ManagementException ex = new ManagementException(
-                        cause.getMessage());
-                ex.setStackTrace(cause.getStackTrace());
-                throw ex;
-            }
-        }
-
-    }
-
-    /**
-     * Indicates that a method propagates exceptions to the client as a
-     * {@link ManagementException}..
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
-    @interface ThrowsManagementExceptions {}
 
 }
