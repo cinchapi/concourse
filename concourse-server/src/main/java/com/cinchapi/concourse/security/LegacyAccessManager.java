@@ -78,7 +78,7 @@ public class LegacyAccessManager {
      */
     public void transferCredentials(AccessManager manager) {
         for (LegacyAccessManager.Credentials creds : credentials.values()) {
-            manager.upsert(ByteBuffers.decodeFromHex(creds.getUsername()),
+            manager.insertFromLegacy(ByteBuffers.decodeFromHex(creds.getUsername()),
                     ByteBuffers.decodeFromHex(creds.getPassword()),
                     creds.getSalt());
         }

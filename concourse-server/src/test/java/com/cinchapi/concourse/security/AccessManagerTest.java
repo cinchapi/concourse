@@ -84,7 +84,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = getSecurePassword();
-        manager.createUser(username, newPassword, Role.ADMIN);
+        manager.setUserPassword(username, newPassword);
         Assert.assertFalse(
                 manager.isExistingUsernamePasswordCombo(username, password));
         Assert.assertTrue(
@@ -233,7 +233,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
             uids.put(username, uid); // add users
         }
         for (ByteBuffer username : users) { // change password
-            manager.createUser(username, getSecurePassword(), Role.ADMIN);
+            manager.setUserPassword(username, getSecurePassword());
         }
         for (ByteBuffer username : users) {
             short uid = manager.getUidByUsername(username);
@@ -245,8 +245,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
                                                                 // creating new
                                                                 // manager
         for (ByteBuffer username : users) {
-            manager2.createUser(username, getSecurePassword(), Role.ADMIN); // change
-            // password
+            manager2.setUserPassword(username, getSecurePassword()); // change
+                                                                     // password
         }
         for (ByteBuffer username : users) {
             short uid = manager2.getUidByUsername(username);
@@ -374,7 +374,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password2 = getSecurePassword();
         manager.createUser(username, password, Role.ADMIN);
         AccessToken token = manager.getNewAccessToken(username);
-        manager.createUser(username, password2, Role.ADMIN);
+        manager.setUserPassword(username, password2);
         Assert.assertFalse(manager.isValidAccessToken(token));
     }
 
@@ -457,7 +457,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.getNewAccessToken(username));
         }
-        manager.createUser(username, getSecurePassword(), Role.ADMIN);
+        manager.setUserPassword(username, getSecurePassword());
         for (AccessToken token : tokens) {
             Assert.assertFalse(manager.isValidAccessToken(token));
         }
