@@ -76,8 +76,8 @@ public class CreateUserCli extends UserCli {
                             AnyStrings.format("Role for {}:", username));
                 }
                 client.createUser(ByteBuffers.fromString(username),
-                        ByteBuffers.fromString(opts.userPassword), opts.userRole,
-                        token);
+                        ByteBuffers.fromString(opts.userPassword),
+                        opts.userRole, token);
                 System.out.println(
                         "New user '" + username + "' has been created");
             }

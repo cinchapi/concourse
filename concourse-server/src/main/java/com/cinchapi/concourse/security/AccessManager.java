@@ -1022,8 +1022,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper implements
-            Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper
+            implements Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable
