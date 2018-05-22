@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.cli.user;
 import java.nio.ByteBuffer;
 
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
-import com.cinchapi.concourse.server.cli.core.Options;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Strings;
@@ -31,7 +30,7 @@ import com.google.common.base.Strings;
 @CommandLineInterfaceInformation(description = "Edit an existing user")
 public class EditUserCli extends UserCli {
 
-    public EditUserCli(Options options, String[] args) {
+    public EditUserCli(String[] args) {
         super(new EditUserOptions(), args);
     }
 
