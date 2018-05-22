@@ -29,7 +29,7 @@ import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
  * @author Jeff Nelson
  */
 public class Upgrade0_9_0_3 extends SmartUpgradeTask {
-    
+
     private static String ACCESS_FILE_BACKUP = GlobalState.ACCESS_FILE + ".bak";
 
     @Override
@@ -46,10 +46,11 @@ public class Upgrade0_9_0_3 extends SmartUpgradeTask {
         if(FileSystem.hasFile(accessFile)) {
             FileSystem.copyBytes(accessFile, accessBackupFile);
             AccessManager manager = AccessManager.create(accessFile);
-            manager.users().forEach(username -> manager.setRole(username, Role.ADMIN));
+            manager.users()
+                    .forEach(username -> manager.setRole(username, Role.ADMIN));
             FileSystem.deleteFile(accessBackupFile);
         }
-        
+
     }
 
 }
