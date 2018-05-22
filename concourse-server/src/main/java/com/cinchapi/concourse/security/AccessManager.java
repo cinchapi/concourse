@@ -263,7 +263,8 @@ public class AccessManager {
             // If there are no credentials (which implies this is a new server)
             // add the default admin username/password
             createUser(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
-                    ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD));
+                    ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD),
+                    Role.ADMIN);
         }
     }
 
@@ -301,27 +302,6 @@ public class AccessManager {
         finally {
             lock.unlockWrite(stamp);
         }
-    }
-
-    /**
-     * Create access to the user identified by {@code username} with
-     * {@code password}.
-     * 
-     * <p>
-     * If the existing user simply changes the password, the new auto-generated
-     * id will not be generated and this username still has the same uid as the
-     * time it has been assigned when this {@link AccessManager} is
-     * instantiated.
-     * </p>
-     * 
-     * @param username
-     * @param password
-     * @deprecated in version 0.9.0; use
-     *             {@link #createUser(ByteBuffer, ByteBuffer, Role)} instead
-     */
-    @Deprecated
-    public void createUser(ByteBuffer username, ByteBuffer password) {
-        createUser(username, password, Role.ADMIN);
     }
 
     /**
@@ -1011,8 +991,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable
