@@ -43,18 +43,19 @@ public class EditUserCli extends UserCli {
     protected void doTask(Client client) {
         EditUserOptions opts = (EditUserOptions) options;
         try {
+            // Verify that the user has specified an edit action
+            if(Strings.isNullOrEmpty(opts.userPassword)
+                    && Strings.isNullOrEmpty(opts.userRole)) {
+                parser.usage();
+                throw new IllegalStateException(
+                        "Please specify an edit action");
+            }
             String username;
             if(opts.args.isEmpty()) {
                 username = console.readLine("Which user do you want to edit? ");
             }
             else {
                 username = opts.args.get(0);
-            }
-            if(Strings.isNullOrEmpty(opts.userPassword)
-                    && Strings.isNullOrEmpty(opts.userRole)) {
-                parser.usage();
-                throw new IllegalStateException(
-                        "Please specify an edit action");
             }
             ByteBuffer uname = ByteBuffers.fromString(username);
 
@@ -76,6 +77,8 @@ public class EditUserCli extends UserCli {
             if(!Strings.isNullOrEmpty(opts.userRole)) {
                 try {
                     client.setUserRole(uname, opts.userRole, token);
+                    System.out.println("Successfully set the user's role to "
+                            + opts.userRole);
                 }
                 catch (Exception e) {
                     System.err.println(
