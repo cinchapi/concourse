@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -512,6 +513,16 @@ public class AccessManagerTest extends ConcourseBaseTest {
         AccessToken token = manager.getNewServiceToken();
         Threads.sleep(100);
         Assert.assertTrue(manager.isValidAccessToken(token));
+    }
+
+    @Test
+    public void testUsers() {
+        Collection<ByteBuffer> added = addMoreUsers(
+                Sets.newHashSet(ByteBuffers.fromString("admin")), manager);
+        Set<String> existing = added.stream()
+                .map(bytes -> ByteBuffers.getString(bytes))
+                .collect(Collectors.toSet());
+        Assert.assertEquals(existing, manager.users());
     }
 
     /**

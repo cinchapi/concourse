@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
@@ -51,6 +52,7 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
 
@@ -571,6 +573,25 @@ public class AccessManager {
     }
 
     /**
+     * Return a {@link Set} containing all the registered usernames.
+     * 
+     * @return the usernames
+     */
+    public Set<String> users() {
+        long stamp = lock.readLock();
+        try {
+            Set<String> users = Sets.newLinkedHashSet();
+            credentials.rowKeySet().forEach(id -> users
+                    .add(ByteBuffers.getString(ByteBuffers.decodeFromHex(
+                            (String) credentials.get(id, USERNAME_KEY)))));
+            return users;
+        }
+        finally {
+            lock.unlockRead(stamp);
+        }
+    }
+
+    /**
      * Insert credential with {@code username}, {@code password},
      * and {@code salt} into the memory store.
      * 
@@ -904,8 +925,8 @@ public class AccessManager {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -1028,5 +1049,4 @@ public class AccessManager {
             return token.toString();
         }
     }
-
 }
