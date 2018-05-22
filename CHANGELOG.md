@@ -24,6 +24,8 @@
 	* All previously existing users are assigned the `ADMIN` role upon upgrade. You can change a user's status use the `users` CLI.
 	* The `users create` command now requires a role to be provided interactively when prompted or non-interactively using the `--set-role` parameter.
 * Added an `edit` option to the `users` CLI that allows for setting a user's role and/or changing the password. The password can still also be changed using the `password` option of the `users` CLI. 
+* Added additional logging around the upgrade process.
+* Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
