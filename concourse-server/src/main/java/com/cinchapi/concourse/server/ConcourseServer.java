@@ -124,8 +124,8 @@ import com.google.inject.matcher.Matchers;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /**
      * Contains the credentials used by the {@link #users}. This file is
@@ -4917,9 +4917,17 @@ public class ConcourseServer extends BaseConcourseServer
 
         @Override
         protected void configure() {
+            // Intercept client exceptions and re-throw them in a thrift
+            // friendly manner
             bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                     Matchers.annotatedWith(ThrowsThriftExceptions.class),
                     new ThriftExceptionHandler());
+
+            // Intercept management exceptions and re-throw them in a thrift
+            // friendly manner
+            bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                    Matchers.annotatedWith(ThrowsManagementExceptions.class),
+                    new ManagementExceptionHandler());
 
         }
 

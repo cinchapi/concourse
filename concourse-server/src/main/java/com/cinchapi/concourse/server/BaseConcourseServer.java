@@ -15,9 +15,15 @@
  */
 package com.cinchapi.concourse.server;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 
 import com.cinchapi.concourse.security.UserService;
@@ -32,6 +38,7 @@ import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
+import com.google.common.base.Throwables;
 
 /**
  * Base implementation of Concourse Server.
@@ -42,11 +49,12 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer
-        implements ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer implements
+        ConcourseManagementService.Iface {
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {
         checkAccess(creds);
@@ -57,6 +65,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -65,6 +74,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void disableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -74,6 +84,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final String dump(String id, String environment, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -82,6 +93,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -91,6 +103,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final String getDumpList(String environment, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -99,6 +112,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -107,19 +121,16 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void installPluginBundle(String file, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        try {
-            getPluginManager().installBundle(file);
-        }
-        catch (Exception e) {
-            throw new ManagementException(e.getMessage());
-        }
+        getPluginManager().installBundle(file);
     }
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final String listAllEnvironments(AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -130,6 +141,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final String listAllUserSessions(AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -139,6 +151,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final String listPluginBundles(AccessToken creds) throws TException {
         checkAccess(creds);
         return TCollections
@@ -147,6 +160,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
         return getPluginManager().runningPlugins();
@@ -154,6 +168,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
             AccessToken creds) throws TException {
         checkAccess(creds);
@@ -164,6 +179,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -174,6 +190,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
     public final void uninstallPluginBundle(String name, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -225,5 +242,42 @@ public abstract class BaseConcourseServer
      * @return the {@link PluginManager}
      */
     protected abstract PluginManager getPluginManager();
+
+    /**
+     * A {@link MethodInterceptor} that delegates to the underlying annotated
+     * method, but catches specific exceptions and translates them to the
+     * appropriate Thrift counterparts.
+     */
+    static class ManagementExceptionHandler implements MethodInterceptor {
+
+        @Override
+        public Object invoke(MethodInvocation invocation) throws Throwable {
+            try {
+                return invocation.proceed();
+            }
+            catch (SecurityException e) {
+                throw e;
+            }
+            catch (ManagementException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                Throwable cause = Throwables.getRootCause(e);
+                ManagementException ex = new ManagementException(
+                        cause.getMessage());
+                ex.setStackTrace(cause.getStackTrace());
+                throw ex;
+            }
+        }
+
+    }
+
+    /**
+     * Indicates that a method propagates exceptions to the client as a
+     * {@link ManagementException}..
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface ThrowsManagementExceptions {}
 
 }
