@@ -42,8 +42,8 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer implements
-        ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer
+        implements ConcourseManagementService.Iface {
 
     @Override
     @PluginRestricted

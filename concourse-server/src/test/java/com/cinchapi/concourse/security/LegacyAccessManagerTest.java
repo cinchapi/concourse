@@ -71,8 +71,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         legacyManager.diskSync(legacy);
         LegacyAccessManager legacyManager1 = LegacyAccessManager.create(legacy);
         legacyManager1.transferCredentials(manager);
-        Assert.assertTrue(manager
-                .exists(ByteBuffer.wrap("admin".getBytes())));
+        Assert.assertTrue(manager.exists(ByteBuffer.wrap("admin".getBytes())));
     }
 
     @Test
@@ -95,8 +94,8 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         legacyManager1.transferCredentials(manager);
         for (Entry<ByteBuffer, ByteBuffer> legacyCreds : legacyCredentials
                 .entrySet()) {
-            Assert.assertTrue(manager.authenticate(
-                    legacyCreds.getKey(), legacyCreds.getValue()));
+            Assert.assertTrue(manager.authenticate(legacyCreds.getKey(),
+                    legacyCreds.getValue()));
         }
     }
 
