@@ -65,6 +65,81 @@ import com.google.common.primitives.Longs;
 public class AccessManager {
 
     /**
+     * The number of hours for which an AccessToken is valid.
+     */
+    private static final int ACCESS_TOKEN_TTL = 24;
+
+    /**
+     * The unit of time for which an AccessToken is valid.
+     */
+    private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
+
+    /**
+     * The default admin password. If the AccessManager does not have any users,
+     * it will automatically create an admin with this password.
+     */
+    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
+            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+
+    /**
+     * The default admin username. If the AccessManager does not have any users,
+     * it will automatically create an admin with this username.
+     */
+    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
+            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+
+    /**
+     * The column that contains a boolean which indicates if a user is enabled
+     * or not {@link #credentials} table(When a user is created, its enabled by
+     * default).
+     */
+    private static final String ENABLED = "user_enabled";
+
+    /**
+     * The minimum number of character that must be contained in a password.
+     */
+    private static final int MIN_PASSWORD_LENGTH = 3;
+
+    /**
+     * The column that contains a user's password in the {@link #credentials}
+     * table.
+     */
+    private static final String PASSWORD_KEY = "password";
+
+    /**
+     * The column that contain's a user's role in the {@link #credentials}
+     * table.
+     */
+    private static final String ROLE_KEY = "role";
+
+    /**
+     * The column that contains a user's salt in the {@link #credentials} table.
+     */
+    private static final String SALT_KEY = "salt";
+
+    /**
+     * A randomly chosen username for AccessToken's that act as service token's
+     * for plugins and other non-user processes. The randomly generated name is
+     * chosen so that it is impossible for it to conflict with an actual
+     * username, based on the rules that govern valid usernames (e.g. usernames
+     * cannot contain spaces)
+     */
+    private static final String SERVICE_USERNAME = Random.getSimpleString()
+            + " " + Random.getSimpleString();
+
+    /**
+     * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
+     */
+    private static final String SERVICE_USERNAME_HEX = ByteBuffers
+            .encodeAsHex(ByteBuffers.fromString(SERVICE_USERNAME));
+
+    /**
+     * The column that contains a user's username in the {@link #credentials}
+     * table.
+     */
+    private static final String USERNAME_KEY = "username";
+
+    /**
      * Create a new AccessManager that stores its credentials in
      * {@code backingStore}.
      * 
@@ -137,75 +212,6 @@ public class AccessManager {
         }
         return false;
     }
-
-    /**
-     * The number of hours for which an AccessToken is valid.
-     */
-    private static final int ACCESS_TOKEN_TTL = 24;
-
-    /**
-     * The unit of time for which an AccessToken is valid.
-     */
-    private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
-
-    /**
-     * The default admin password. If the AccessManager does not have any users,
-     * it will automatically create an admin with this password.
-     */
-    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
-
-    /**
-     * The default admin username. If the AccessManager does not have any users,
-     * it will automatically create an admin with this username.
-     */
-    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
-
-    /**
-     * The column that contains a boolean which indicates if a user is enabled
-     * or not {@link #credentials} table(When a user is created, its enabled by
-     * default).
-     */
-    private static final String ENABLED = "user_enabled";
-
-    /**
-     * The minimum number of character that must be contained in a password.
-     */
-    private static final int MIN_PASSWORD_LENGTH = 3;
-
-    /**
-     * The column that contains a user's password in the {@link #credentials}
-     * table.
-     */
-    private static final String PASSWORD_KEY = "password";
-
-    /**
-     * The column that contains a user's salt in the {@link #credentials} table.
-     */
-    private static final String SALT_KEY = "salt";
-
-    /**
-     * A randomly chosen username for AccessToken's that act as service token's
-     * for plugins and other non-user processes. The randomly generated name is
-     * chosen so that it is impossible for it to conflict with an actual
-     * username, based on the rules that govern valid usernames (e.g. usernames
-     * cannot contain spaces)
-     */
-    private static final String SERVICE_USERNAME = Random.getSimpleString()
-            + " " + Random.getSimpleString();
-
-    /**
-     * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
-     */
-    private static final String SERVICE_USERNAME_HEX = ByteBuffers
-            .encodeAsHex(ByteBuffers.fromString(SERVICE_USERNAME));
-
-    /**
-     * The column that contains a user's username in the {@link #credentials}
-     * table.
-     */
-    private static final String USERNAME_KEY = "username";
 
     /**
      * The store where the credentials are serialized on disk.
@@ -347,6 +353,7 @@ public class AccessManager {
             String hex = ByteBuffers.encodeAsHex(username);
             credentials.put(uid, ENABLED, false);
             tokenManager.deleteAllUserTokens(hex);
+            diskSync();
         }
         finally {
             lock.unlockWrite(stamp);
@@ -363,6 +370,7 @@ public class AccessManager {
         try {
             short uid = getUidByUsername0(username);
             credentials.put(uid, ENABLED, true);
+            diskSync();
         }
         finally {
             lock.unlockWrite(stamp);
@@ -432,6 +440,32 @@ public class AccessManager {
      */
     public AccessToken getNewServiceToken() {
         return tokenManager.addToken(SERVICE_USERNAME_HEX);
+    }
+
+    /**
+     * Return the role for the account associated with the specified
+     * {@code username}.
+     * 
+     * @param username
+     * @return the role
+     */
+    public Role getRole(ByteBuffer username) {
+        long stamp = lock.readLock();
+        try {
+            short id = getUidByUsername0(username);
+            Integer ordinal = (Integer) credentials.get(id, ROLE_KEY);
+            if(ordinal != null) {
+                Role role = Role.values()[ordinal];
+                return role;
+            }
+            else {
+                throw new IllegalStateException(
+                        "The specified user does not have a role");
+            }
+        }
+        finally {
+            lock.unlockRead(stamp);
+        }
     }
 
     /**
@@ -573,17 +607,35 @@ public class AccessManager {
     }
 
     /**
+     * Set the role for the account with the specified {@code username}.
+     * 
+     * @param username
+     * @param role
+     */
+    public void setRole(ByteBuffer username, Role role) {
+        long stamp = lock.writeLock();
+        try {
+            short id = getUidByUsername0(username);
+            credentials.put(id, ROLE_KEY, role.ordinal());
+            diskSync();
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
      * Return a {@link Set} containing all the registered usernames.
      * 
      * @return the usernames
      */
-    public Set<String> users() {
+    public Set<ByteBuffer> users() {
         long stamp = lock.readLock();
         try {
-            Set<String> users = Sets.newLinkedHashSet();
-            credentials.rowKeySet().forEach(id -> users
-                    .add(ByteBuffers.getString(ByteBuffers.decodeFromHex(
-                            (String) credentials.get(id, USERNAME_KEY)))));
+            Set<ByteBuffer> users = Sets.newLinkedHashSet();
+            credentials.rowKeySet()
+                    .forEach(id -> users.add(ByteBuffers.decodeFromHex(
+                            (String) credentials.get(id, USERNAME_KEY))));
             return users;
         }
         finally {
@@ -727,6 +779,15 @@ public class AccessManager {
                     .equals((String) credentials.get(uid, PASSWORD_KEY));
         }
         return false;
+    }
+
+    /**
+     * An enum that describes that possible roles for a user.
+     *
+     * @author Jeff Nelson
+     */
+    public enum Role {
+        ADMIN, USER;
     }
 
     /**
@@ -929,6 +990,18 @@ public class AccessManager {
             Comparable<AccessTokenWrapper> {
 
         /**
+         * The formatter that is used to when constructing a human readable
+         * description of the access token.
+         */
+        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+                .appendMonthOfYearShortText().appendLiteral(" ")
+                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
+                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
+                .appendMinuteOfHour(2).appendLiteral(":")
+                .appendSecondOfMinute(2).appendLiteral(" ")
+                .appendHalfdayOfDayText().toFormatter();
+
+        /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
          * {@code username} at {@code timestamp}.
          * 
@@ -941,18 +1014,6 @@ public class AccessManager {
                 String username, long timestamp) {
             return new AccessTokenWrapper(token, username, timestamp);
         }
-
-        /**
-         * The formatter that is used to when constructing a human readable
-         * description of the access token.
-         */
-        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-                .appendMonthOfYearShortText().appendLiteral(" ")
-                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
-                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
-                .appendMinuteOfHour(2).appendLiteral(":")
-                .appendSecondOfMinute(2).appendLiteral(" ")
-                .appendHalfdayOfDayText().toFormatter();
 
         private final long timestamp;
         private final AccessToken token;
@@ -1029,6 +1090,11 @@ public class AccessManager {
             return username;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(token);
+        }
+
         /**
          * Return {@code true} if the wrapped {@link AccessToken} is a service
          * token.
@@ -1037,11 +1103,6 @@ public class AccessManager {
          */
         public boolean isServiceToken() {
             return username.equals(SERVICE_USERNAME_HEX);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(token);
         }
 
         @Override

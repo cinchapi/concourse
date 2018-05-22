@@ -522,7 +522,10 @@ public class AccessManagerTest extends ConcourseBaseTest {
         Set<String> existing = added.stream()
                 .map(bytes -> ByteBuffers.getString(bytes))
                 .collect(Collectors.toSet());
-        Assert.assertEquals(existing, manager.users());
+        Assert.assertEquals(existing,
+                manager.users().stream()
+                        .map(bytes -> ByteBuffers.getString(bytes))
+                        .collect(Collectors.toSet()));
     }
 
     /**
