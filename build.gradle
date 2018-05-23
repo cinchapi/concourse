@@ -89,6 +89,16 @@ subprojects {
         all*.exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
 
+    // Ensure that these transitive dependencies are excluded so we don't get version clashes
+    def exclusions = [[group : 'com.google.guava', module: 'guava']]
+    exclusions.each { exclusion ->
+        configurations.compile.dependencies.all {
+            if (name != exclusion.name || group != exclusion.group) {
+                exclude group: exclusion.group, module: exclusion.module
+            }
+        }
+    }
+
     dependencies {
         compile 'com.google.guava:guava:19.0'
         compile 'org.mockito:mockito-all:1.9.5'
