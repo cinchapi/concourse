@@ -304,7 +304,7 @@ public class UserService {
      * <p>
      * <strong>WARNING:</strong> A previous version of this method allowed an
      * existing user's password to be updated. That functionality has been
-     * deleted. To update a user's password, using the
+     * removed. To update a user's password, using the
      * {@link #setPassword(ByteBuffer, ByteBuffer)} method.
      * </p>
      * 
@@ -356,7 +356,7 @@ public class UserService {
     }
 
     /**
-     * Check if the user exists and updates {@link #ENABLED} flag as false.
+     * Check if the user exists and update {@link #ENABLED} flag as false.
      *
      * @param username the username to disable
      */
