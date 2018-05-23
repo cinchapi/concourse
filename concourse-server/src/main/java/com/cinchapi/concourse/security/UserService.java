@@ -597,6 +597,34 @@ public class UserService {
     }
 
     /**
+     * Check to see if there exists at least one admin besides the specified
+     * {@code user}.
+     * 
+     * @param user the {@link User} to exclude from the search.
+     * @return {@code true} if there is an admin besides the {@code user}
+     */
+    private boolean existsAtLeastOneAdminBesides(User user) {
+        lock.readLock().lock();
+        try {
+            for (ByteBuffer username : users()) {
+                if(username.equals(user.username())) {
+                    continue;
+                }
+                else if(role(username) == Role.ADMIN) {
+                    return true;
+                }
+                else {
+                    continue;
+                }
+            }
+            return false;
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
      * Sync any changes made in the memory store to disk.
      */
     private void flush() {
@@ -682,34 +710,6 @@ public class UserService {
         if(!existsAtLeastOneAdminBesides(user)) {
             throw new IllegalStateException("The action cannot be performed "
                     + "because doing so would leave no other ADMIN users.");
-        }
-    }
-
-    /**
-     * Check to see if there exists at least one admin besides the specified
-     * {@code user}.
-     * 
-     * @param user the {@link User} to exclude from the search.
-     * @return {@code true} if there is an admin besides the {@code user}
-     */
-    private boolean existsAtLeastOneAdminBesides(User user) {
-        lock.readLock().lock();
-        try {
-            for (ByteBuffer username : users()) {
-                if(username.equals(user.username())) {
-                    continue;
-                }
-                else if(role(username) == Role.ADMIN) {
-                    return true;
-                }
-                else {
-                    continue;
-                }
-            }
-            return false;
-        }
-        finally {
-            lock.readLock().unlock();
         }
     }
 
@@ -1160,6 +1160,15 @@ public class UserService {
         }
 
         /**
+         * Return the user's id.
+         * 
+         * @return the id
+         */
+        private short id() {
+            return id;
+        }
+
+        /**
          * Return {@code true} if this user is enabled.
          * 
          * @return {@code true} if this user is enabled
@@ -1171,15 +1180,6 @@ public class UserService {
                 accounts.put(id, ENABLED, enabled);
             }
             return (boolean) enabled;
-        }
-
-        /**
-         * Return the user's id.
-         * 
-         * @return the id
-         */
-        private short id() {
-            return id;
         }
 
         /**
