@@ -251,9 +251,11 @@ public class UserServiceTest extends ConcourseBaseTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testCantRevokeAdmin() {
+    @Test
+    public void testCanDeleteDefaultAdminAccount() {
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.ADMIN);
         service.delete(toByteBuffer("admin"));
+        Assert.assertFalse(service.exists(toByteBuffer("admin")));
     }
 
     @Test
@@ -564,6 +566,60 @@ public class UserServiceTest extends ConcourseBaseTest {
         service.disable(username);
         service.setPassword(username, getSecurePassword());
         Assert.assertFalse(service.isEnabled(username));
+    }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testCannotDeleteAdminRoleUserIfNoOtherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.USER);
+        service.delete(toByteBuffer("admin"));
+        service.delete(username);
+    }
+    
+    @Test
+    public void testCanDeleteAdminRoleUserIfAnotherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.ADMIN);
+        service.delete(toByteBuffer("admin"));
+        service.delete(username);
+    }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testCannotDisableAdminRoleUserIfNoOtherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.USER);
+        service.delete(toByteBuffer("admin"));
+        service.disable(username);
+    }
+    
+    @Test
+    public void testCanDisableAdminRoleUserIfAnotherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.ADMIN);
+        service.delete(toByteBuffer("admin"));
+        service.disable(username);
+    }
+    
+    @Test(expected = IllegalStateException.class)
+    public void testCannotChangeRoleOfAdminRoleUserIfNoOtherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.USER);
+        service.delete(toByteBuffer("admin"));
+        service.setRole(username, Role.USER);
+    }
+    
+    @Test
+    public void testCanChangeRoleOfAdminRoleUserIfAnotherAdminRoleUserExists() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.create(getAcceptableUsername(), getSecurePassword(), Role.ADMIN);
+        service.delete(toByteBuffer("admin"));
+        service.setRole(username, Role.USER);
     }
 
     /**

@@ -345,11 +345,8 @@ public class UserService {
             if(user == null) {
                 return;
             }
-            else if(user.usernameAsHex().equals(DEFAULT_ADMIN_USERNAME)) {
-                throw new IllegalArgumentException(
-                        "Cannot delete the default admin user!");
-            }
             else {
+                verifyExistsAtLeastOneAdminBesides(user);
                 user.delete();
             }
         }
@@ -367,6 +364,7 @@ public class UserService {
         lock.writeLock().lock();
         try {
             User user = getUserStrict(username);
+            verifyExistsAtLeastOneAdminBesides(user);
             user.disable();
         }
         finally {
@@ -484,8 +482,8 @@ public class UserService {
         lock.writeLock().lock();
         try {
             User user = getUserStrict(username);
+            verifyExistsAtLeastOneAdminBesides(user);
             user.setRole(role);
-
         }
         finally {
             lock.writeLock().unlock();
@@ -671,6 +669,47 @@ public class UserService {
         }
         else {
             return user;
+        }
+    }
+
+    /**
+     * Throw an {@link IllegalStateException} if
+     * {@link #existsAtLeastOneAdminBesides(User)} is false.
+     * 
+     * @param user
+     */
+    private void verifyExistsAtLeastOneAdminBesides(User user) {
+        if(!existsAtLeastOneAdminBesides(user)) {
+            throw new IllegalStateException("The action cannot be performed "
+                    + "because doing so would leave no other ADMIN users.");
+        }
+    }
+
+    /**
+     * Check to see if there exists at least one admin besides the specified
+     * {@code user}.
+     * 
+     * @param user the {@link User} to exclude from the search.
+     * @return {@code true} if there is an admin besides the {@code user}
+     */
+    private boolean existsAtLeastOneAdminBesides(User user) {
+        lock.readLock().lock();
+        try {
+            for (ByteBuffer username : users()) {
+                if(username.equals(user.username())) {
+                    continue;
+                }
+                else if(role(username) == Role.ADMIN) {
+                    return true;
+                }
+                else {
+                    continue;
+                }
+            }
+            return false;
+        }
+        finally {
+            lock.readLock().unlock();
         }
     }
 
@@ -941,8 +980,8 @@ public class UserService {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable

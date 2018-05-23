@@ -235,5 +235,5 @@ public abstract class BaseConcourseServer
      * @return the {@link PluginManager}
      */
     protected abstract PluginManager getPluginManager();
-
+    
 }
