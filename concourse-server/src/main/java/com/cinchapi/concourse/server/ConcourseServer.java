@@ -52,6 +52,8 @@ import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.security.Role;
+import com.cinchapi.concourse.security.TokenInspector;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
@@ -65,8 +67,6 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.query.Finder;
-import com.cinchapi.concourse.security.Role;
-import com.cinchapi.concourse.security.TokenInspector;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
@@ -115,8 +115,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE

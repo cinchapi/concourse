@@ -624,19 +624,20 @@ public class UserServiceTest extends ConcourseBaseTest {
         service.delete(toByteBuffer("admin"));
         service.setRole(username, Role.USER);
     }
-    
+
     @Test
     public void testRoleOfServiceUserTokenIsAlwaysServiceRole() {
         AccessToken token = service.tokens.issue();
         ByteBuffer username = service.tokens.identify(token);
         Assert.assertEquals(Role.SERVICE, service.getRole(username));
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testCannotSetUserRoleToServiceOnCreation() {
-        service.create(getAcceptableUsername(), getSecurePassword(), Role.SERVICE);
+        service.create(getAcceptableUsername(), getSecurePassword(),
+                Role.SERVICE);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testCannotSetUserRoleToServiceAfterCreation() {
         ByteBuffer username = getAcceptableUsername();
