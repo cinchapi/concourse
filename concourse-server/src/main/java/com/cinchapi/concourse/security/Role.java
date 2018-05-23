@@ -6,7 +6,7 @@ package com.cinchapi.concourse.security;
  * @author Jeff Nelson
  */
 public enum Role {
-    ADMIN, USER;
+    ADMIN, USER, SERVICE;
 
     /**
      * Case insensitive implementation of {@link #valueOf(String)}.

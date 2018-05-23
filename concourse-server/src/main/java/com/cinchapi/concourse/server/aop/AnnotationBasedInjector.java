@@ -26,7 +26,7 @@ import com.google.inject.matcher.Matchers;
 public class AnnotationBasedInjector extends AbstractModule {
 
     @Override
-    protected void configure() {
+    protected void configure() {      
         // Intercept client exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
@@ -38,7 +38,11 @@ public class AnnotationBasedInjector extends AbstractModule {
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(ThrowsManagementExceptions.class),
                 new ManagementExceptionTranslator());
-
+        
+        // Enforce access restrictions on method invocations.
+        bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                Matchers.annotatedWith(RequiresAdminAccess.class),
+                new AdminAccessEnforcer());
     }
 
 }

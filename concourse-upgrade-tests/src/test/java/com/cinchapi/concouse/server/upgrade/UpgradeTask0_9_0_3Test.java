@@ -58,7 +58,7 @@ public class UpgradeTask0_9_0_3Test extends UpgradeTest {
         UserService users = UserService
                 .create(accessFile.toAbsolutePath().toString());
         users.forEachUser(username -> Assert.assertEquals(Role.ADMIN,
-                users.role(username)));
+                users.getRole(username)));
     }
 
 }

@@ -65,6 +65,8 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.query.Finder;
+import com.cinchapi.concourse.security.Role;
+import com.cinchapi.concourse.security.TokenInspector;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
@@ -113,8 +115,16 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
+
+    /*
+     * IMPORTANT NOTICE
+     * ----------------
+     * DO NOT declare as FINAL any methods that are intercepted by Guice because
+     * doing so will cause the interception to silently fail. See
+     * https://github.com/google/guice/wiki/AOP#limitations for more details.
+     */
 
     /**
      * Contains the credentials used by the {@link #users}. This file is
@@ -332,11 +342,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     /**
-     * The UserService controls access to the server.
-     */
-    private UserService users;
-
-    /**
      * The base location where the indexed buffer pages are stored.
      */
     private String bufferStore;
@@ -358,6 +363,12 @@ public class ConcourseServer extends BaseConcourseServer
      */
     @Nullable
     private HttpServer httpServer;
+
+    /**
+     * A {@link TokenInspector} facade that calls through to the {@link #users
+     * user service} to inspect access tokens.
+     */
+    private TokenInspector inspector;
 
     /**
      * The Thrift server that handles all managed operations.
@@ -385,6 +396,11 @@ public class ConcourseServer extends BaseConcourseServer
      * that Transaction in future calls.
      */
     private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
+
+    /**
+     * The UserService controls access to the server.
+     */
+    private UserService users;
 
     @Override
     @ThrowsClientExceptions
@@ -2557,6 +2573,10 @@ public class ConcourseServer extends BaseConcourseServer
         return result;
     }
 
+    public TokenInspector inspector() {
+        return inspector;
+    }
+
     @Override
     @ThrowsClientExceptions
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
@@ -4611,11 +4631,6 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    protected UserService users() {
-        return users;
-    }
-
-    @Override
     protected String getBufferStore() {
         return bufferStore;
     }
@@ -4644,6 +4659,11 @@ public class ConcourseServer extends BaseConcourseServer
     @Override
     protected PluginManager plugins() {
         return pluginManager;
+    }
+
+    @Override
+    protected UserService users() {
+        return users;
     }
 
     /**
@@ -4752,6 +4772,20 @@ public class ConcourseServer extends BaseConcourseServer
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
         this.users = UserService.create(ACCESS_FILE);
+        this.inspector = new TokenInspector() {
+
+            @Override
+            public boolean isValidToken(AccessToken token) {
+                return users.tokens.isValid(token);
+            }
+
+            @Override
+            public Role getTokenUserRole(AccessToken token) {
+                ByteBuffer username = users.tokens.identify(token);
+                return users.getRole(username);
+            }
+
+        };
         this.httpServer = GlobalState.HTTP_PORT > 0
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();

@@ -127,14 +127,20 @@ public class UserService {
      * username, based on the rules that govern valid usernames (e.g. usernames
      * cannot contain spaces)
      */
-    private static final String SERVICE_USERNAME = Random.getSimpleString()
-            + " " + Random.getSimpleString();
+    private static final String SERVICE_USERNAME_STRING = Random
+            .getSimpleString() + " " + Random.getSimpleString();
+
+    /**
+     * A {@link ByteBuffer} containing the {@link #SERVICE_USERNAME_STRING}.
+     */
+    private static final ByteBuffer SERVICE_USERNAME_BYTES = ByteBuffers
+            .fromString(SERVICE_USERNAME_STRING);
 
     /**
      * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
      */
     private static final String SERVICE_USERNAME_HEX = ByteBuffers
-            .encodeAsHex(ByteBuffers.fromString(SERVICE_USERNAME));
+            .encodeAsHex(SERVICE_USERNAME_BYTES);
 
     /**
      * The column that contains a user's username in the {@link #accounts}
@@ -418,6 +424,29 @@ public class UserService {
     }
 
     /**
+     * Return the role for the account associated with the specified
+     * {@code username}.
+     * 
+     * @param username
+     * @return the role
+     */
+    public Role getRole(ByteBuffer username) {
+        lock.readLock().lock();
+        try {
+            if(ByteBuffers.encodeAsHex(username).equals(SERVICE_USERNAME_HEX)) {
+                return Role.SERVICE;
+            }
+            else {
+                User user = getUserStrict(username);
+                return user.role();
+            }
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
      * Return {@code true} if {@code username} exists and is enabled.
      * 
      * @param username the username to check
@@ -428,25 +457,6 @@ public class UserService {
         try {
             User user = getUserStrict(username);
             return user.isEnabled();
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return the role for the account associated with the specified
-     * {@code username}.
-     * 
-     * @param username
-     * @return the role
-     */
-    public Role role(ByteBuffer username) {
-        lock.readLock().lock();
-        try {
-            User user = getUserStrict(username);
-            return user.role();
-
         }
         finally {
             lock.readLock().unlock();
@@ -612,7 +622,7 @@ public class UserService {
                 if(username.equals(user.username())) {
                     continue;
                 }
-                else if(role(username) == Role.ADMIN) {
+                else if(getRole(username) == Role.ADMIN) {
                     return true;
                 }
                 else {
@@ -835,13 +845,41 @@ public class UserService {
         }
 
         /**
+         * Return the username associated with the valid {@code token}.
+         * 
+         * @param token
+         * @return the username if {@code token} is valid
+         */
+        public ByteBuffer identify(AccessToken token) {
+            UserService.this.lock.readLock().lock();
+            lock.readLock().lock();
+            try {
+                Preconditions.checkArgument(isValid(token),
+                        "Access token is no longer invalid.");
+                String username = active.getIfPresent(token).getUsername();
+                if(!Strings.isNullOrEmpty(username)) {
+                    return ByteBuffers.decodeFromHex(username);
+                }
+                else {
+                    throw new IllegalArgumentException(
+                            "Token is no longer valid");
+                }
+            }
+            finally {
+                lock.readLock().unlock();
+                UserService.this.lock.readLock().unlock();
+            }
+        }
+
+        /**
          * Return a new service token.
          * 
          * <p>
          * A service token is an {@link AccessToken} that is not associated with
          * an
          * actual user, but is instead generated based on the
-         * {@link #SERVICE_USERNAME} and can be assigned to a non-user service
+         * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
+         * service
          * or
          * process.
          * </p>
@@ -852,7 +890,7 @@ public class UserService {
          * @return the new service token
          */
         public AccessToken issue() {
-            return issue(ByteBuffers.decodeFromHex(SERVICE_USERNAME_HEX));
+            return issue(SERVICE_USERNAME_BYTES);
         }
 
         /**
@@ -919,33 +957,6 @@ public class UserService {
                 UserService.this.lock.readLock().unlock();
             }
         }
-
-        /**
-         * Return the username associated with the valid {@code token}.
-         * 
-         * @param token
-         * @return the username if {@code token} is valid
-         */
-        protected ByteBuffer identify(AccessToken token) {
-            UserService.this.lock.readLock().lock();
-            lock.readLock().lock();
-            try {
-                Preconditions.checkArgument(isValid(token),
-                        "Access token is no longer invalid.");
-                String username = active.getIfPresent(token).getUsername();
-                if(!Strings.isNullOrEmpty(username)) {
-                    return ByteBuffers.decodeFromHex(username);
-                }
-                else {
-                    throw new IllegalArgumentException(
-                            "Token is no longer valid");
-                }
-            }
-            finally {
-                lock.readLock().unlock();
-                UserService.this.lock.readLock().unlock();
-            }
-        }
     }
 
     /**
@@ -963,8 +974,8 @@ public class UserService {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable
@@ -1041,7 +1052,7 @@ public class UserService {
         public String getDescription() {
             String uname = ByteBuffers
                     .getString(ByteBuffers.decodeFromHex(username));
-            uname = uname.equals(SERVICE_USERNAME) ? "BACKGROUND SERVICE"
+            uname = uname.equals(SERVICE_USERNAME_STRING) ? "BACKGROUND SERVICE"
                     : uname;
             return uname + " logged in since " + Timestamp.fromMicros(timestamp)
                     .getJoda().toString(DATE_TIME_FORMATTER);
@@ -1202,6 +1213,8 @@ public class UserService {
          * @param role
          */
         private void setRole(Role role) {
+            Preconditions.checkArgument(role != Role.SERVICE,
+                    "Cannot assign the SERVICE role to a user account");
             tokens.expireAll(username());
             accounts.put(id, ROLE_KEY, role.ordinal());
             flush();

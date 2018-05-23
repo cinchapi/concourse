@@ -22,6 +22,7 @@ import org.apache.thrift.TException;
 
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.server.aop.RequiresAdminAccess;
 import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
@@ -45,10 +46,19 @@ import com.cinchapi.concourse.util.TSets;
 public abstract class BaseConcourseServer implements
         ConcourseManagementService.Iface {
 
+    /*
+     * IMPORTANT NOTICE
+     * ----------------
+     * DO NOT declare as FINAL any methods that are intercepted by Guice because
+     * doing so will cause the interception to silently fail. See
+     * https://github.com/google/guice/wiki/AOP#limitations for more details.
+     */
+
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void createUser(ByteBuffer username, ByteBuffer password,
+    @RequiresAdminAccess
+    public void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {
         checkAccess(creds);
         users().create(username, password, Role.valueOfIgnoreCase(role));
@@ -58,7 +68,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void deleteUser(ByteBuffer username, AccessToken creds)
+    @RequiresAdminAccess
+    public void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
         users().delete(username);
@@ -67,7 +78,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void disableUser(ByteBuffer username, AccessToken creds)
+    @RequiresAdminAccess
+    public void disableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
         users().disable(username);
@@ -77,7 +89,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final String dump(String id, String environment, AccessToken creds)
+    @RequiresAdminAccess
+    public String dump(String id, String environment, AccessToken creds)
             throws TException {
         checkAccess(creds);
         return getEngine(environment).dump(id);
@@ -86,7 +99,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void enableUser(ByteBuffer username, AccessToken creds)
+    @RequiresAdminAccess
+    public void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
         users().enable(username);
@@ -96,7 +110,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final String getDumpList(String environment, AccessToken creds)
+    @RequiresAdminAccess
+    public String getDumpList(String environment, AccessToken creds)
             throws TException {
         checkAccess(creds);
         return getEngine(environment).getDumpList();
@@ -105,7 +120,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final boolean hasUser(ByteBuffer username, AccessToken creds)
+    @RequiresAdminAccess
+    public boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
         return users().exists(username);
@@ -114,7 +130,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void installPluginBundle(String file, AccessToken creds)
+    @RequiresAdminAccess
+    public void installPluginBundle(String file, AccessToken creds)
             throws TException {
         checkAccess(creds);
         plugins().installBundle(file);
@@ -123,8 +140,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final String listAllEnvironments(AccessToken creds)
-            throws TException {
+    @RequiresAdminAccess
+    public String listAllEnvironments(AccessToken creds) throws TException {
         checkAccess(creds);
         return TCollections.toOrderedListString(
                 TSets.intersection(FileSystem.getSubDirs(getBufferStore()),
@@ -134,8 +151,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final String listAllUserSessions(AccessToken creds)
-            throws TException {
+    @RequiresAdminAccess
+    public String listAllUserSessions(AccessToken creds) throws TException {
         checkAccess(creds);
         return TCollections
                 .toOrderedListString(users().tokens.describeActiveSessions());
@@ -144,7 +161,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final String listPluginBundles(AccessToken creds) throws TException {
+    @RequiresAdminAccess
+    public String listPluginBundles(AccessToken creds) throws TException {
         checkAccess(creds);
         return TCollections.toOrderedListString(plugins().listBundles());
     }
@@ -152,6 +170,7 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
+    @RequiresAdminAccess
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
         return plugins().runningPlugins();
@@ -160,6 +179,7 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
+    @RequiresAdminAccess
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
             AccessToken creds) throws TException {
         checkAccess(creds);
@@ -170,6 +190,7 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
+    @RequiresAdminAccess
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
         checkAccess(creds);
@@ -180,7 +201,8 @@ public abstract class BaseConcourseServer implements
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    public final void uninstallPluginBundle(String name, AccessToken creds)
+    @RequiresAdminAccess
+    public void uninstallPluginBundle(String name, AccessToken creds)
             throws TException {
         checkAccess(creds);
         plugins().uninstallBundle(name);

@@ -73,7 +73,7 @@ public class CreateUserCli extends UserCli {
                 }
                 if(Strings.isNullOrEmpty(opts.userRole)) {
                     opts.userRole = console.readLine(
-                            AnyStrings.format("Role for {}:", username));
+                            AnyStrings.format("Role for {}: ", username));
                 }
                 client.createUser(ByteBuffers.fromString(username),
                         ByteBuffers.fromString(opts.userPassword),
