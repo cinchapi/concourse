@@ -27,9 +27,22 @@ import com.cinchapi.concourse.thrift.AccessToken;
  * @author Jeff Nelson
  */
 public interface TokenInspector {
-    
+
+    /**
+     * Return {@code true} if the {@code token} is valid.
+     * 
+     * @param token
+     * @return {@code true} if the {@code token} is valid
+     */
     public boolean isValidToken(AccessToken token);
-    
+
+    /**
+     * Return the {@link Role role} of the user represented by the
+     * {@code token}.
+     * 
+     * @param token
+     * @return the represented user's role
+     */
     public Role getTokenUserRole(AccessToken token);
 
 }
