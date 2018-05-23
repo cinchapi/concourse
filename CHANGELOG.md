@@ -27,6 +27,7 @@
 * Removed a constraint the prevented the default `admin` user account from being deleted.
 * Added additional logging around the upgrade process.
 * Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
+* Upgraded some internal libraries to help make server startup time faster.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
