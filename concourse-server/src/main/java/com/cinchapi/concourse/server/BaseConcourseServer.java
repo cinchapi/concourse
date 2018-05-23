@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
+import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
@@ -42,8 +42,8 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer
-        implements ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer implements
+        ConcourseManagementService.Iface {
 
     @Override
     @PluginRestricted
@@ -51,8 +51,7 @@ public abstract class BaseConcourseServer
     public final void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {
         checkAccess(creds);
-        Role userRole = Role.valueOfIgnoreCase(role);
-        userService().create(username, password, userRole);
+        users().create(username, password, Role.valueOfIgnoreCase(role));
 
     }
 
@@ -62,7 +61,7 @@ public abstract class BaseConcourseServer
     public final void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        userService().delete(username);
+        users().delete(username);
     }
 
     @Override
@@ -71,7 +70,7 @@ public abstract class BaseConcourseServer
     public final void disableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        userService().disable(username);
+        users().disable(username);
 
     }
 
@@ -90,7 +89,7 @@ public abstract class BaseConcourseServer
     public final void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        userService().enable(username);
+        users().enable(username);
 
     }
 
@@ -109,7 +108,7 @@ public abstract class BaseConcourseServer
     public final boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        return userService().exists(username);
+        return users().exists(username);
     }
 
     @Override
@@ -118,7 +117,7 @@ public abstract class BaseConcourseServer
     public final void installPluginBundle(String file, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getPluginManager().installBundle(file);
+        plugins().installBundle(file);
     }
 
     @Override
@@ -138,8 +137,8 @@ public abstract class BaseConcourseServer
     public final String listAllUserSessions(AccessToken creds)
             throws TException {
         checkAccess(creds);
-        return TCollections.toOrderedListString(
-                userService().tokens.describeActiveSessions());
+        return TCollections
+                .toOrderedListString(users().tokens.describeActiveSessions());
     }
 
     @Override
@@ -147,8 +146,7 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     public final String listPluginBundles(AccessToken creds) throws TException {
         checkAccess(creds);
-        return TCollections
-                .toOrderedListString(getPluginManager().listBundles());
+        return TCollections.toOrderedListString(plugins().listBundles());
     }
 
     @Override
@@ -156,7 +154,7 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
-        return getPluginManager().runningPlugins();
+        return plugins().runningPlugins();
     }
 
     @Override
@@ -165,8 +163,7 @@ public abstract class BaseConcourseServer
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
             AccessToken creds) throws TException {
         checkAccess(creds);
-        UserService users = userService();
-        users.setPassword(username, password);
+        users().setPassword(username, password);
 
     }
 
@@ -176,8 +173,7 @@ public abstract class BaseConcourseServer
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        UserService users = userService();
-        users.setRole(username, Role.valueOfIgnoreCase(role));
+        users().setRole(username, Role.valueOfIgnoreCase(role));
 
     }
 
@@ -187,7 +183,7 @@ public abstract class BaseConcourseServer
     public final void uninstallPluginBundle(String name, AccessToken creds)
             throws TException {
         checkAccess(creds);
-        getPluginManager().uninstallBundle(name);
+        plugins().uninstallBundle(name);
     }
 
     /**
@@ -199,13 +195,6 @@ public abstract class BaseConcourseServer
      * @throws IllegalArgumentException
      */
     protected abstract void checkAccess(AccessToken creds) throws TException;
-
-    /**
-     * Return the {@link UserService} used by the server.
-     * 
-     * @return the {@link UserService}
-     */
-    protected abstract UserService userService();
 
     /**
      * Return the location where the server store's contents in the buffer.
@@ -234,6 +223,13 @@ public abstract class BaseConcourseServer
      * 
      * @return the {@link PluginManager}
      */
-    protected abstract PluginManager getPluginManager();
+    protected abstract PluginManager plugins();
+
+    /**
+     * Return the {@link UserService} used by the server.
+     * 
+     * @return the {@link UserService}
+     */
+    protected abstract UserService users();
 
 }

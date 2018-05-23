@@ -21,8 +21,8 @@ import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.Random;

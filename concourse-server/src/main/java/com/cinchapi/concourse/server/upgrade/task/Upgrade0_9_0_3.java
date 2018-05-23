@@ -17,8 +17,8 @@ package com.cinchapi.concourse.server.upgrade.task;
 
 import java.io.File;
 
+import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.security.UserService.Role;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;

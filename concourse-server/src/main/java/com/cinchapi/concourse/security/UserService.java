@@ -949,25 +949,6 @@ public class UserService {
     }
 
     /**
-     * An enum that describes that possible roles for a user.
-     *
-     * @author Jeff Nelson
-     */
-    public enum Role {
-        ADMIN, USER;
-
-        /**
-         * Case insensitive implementation of {@link #valueOf(String)}.
-         * 
-         * @param role
-         * @return the parsed Role
-         */
-        public static Role valueOfIgnoreCase(String role) {
-            return Role.valueOf(role.toUpperCase());
-        }
-    }
-
-    /**
      * An {@link AccessTokenWrapper} associates metadata with an
      * {@link AccessToken}. This data isn't stored directly with the access
      * token because it would provide unnecessary bloat when the token is

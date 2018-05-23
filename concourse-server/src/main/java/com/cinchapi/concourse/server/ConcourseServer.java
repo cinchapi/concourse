@@ -4611,7 +4611,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    protected UserService userService() {
+    protected UserService users() {
         return users;
     }
 
@@ -4642,7 +4642,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    protected PluginManager getPluginManager() {
+    protected PluginManager plugins() {
         return pluginManager;
     }
 
