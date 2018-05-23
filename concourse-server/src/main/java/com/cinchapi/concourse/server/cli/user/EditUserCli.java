@@ -59,20 +59,6 @@ public class EditUserCli extends UserCli {
             }
             ByteBuffer uname = ByteBuffers.fromString(username);
 
-            // Set user password, if requested
-            if(!Strings.isNullOrEmpty(opts.userPassword)) {
-                try {
-                    ByteBuffer pword = ByteBuffers
-                            .fromString(opts.userPassword);
-                    client.setUserPassword(uname, pword, token);
-                    System.out.println("Successfully set the user's password");
-                }
-                catch (Exception e) {
-                    System.err.println("Unable to set the user's password: "
-                            + e.getMessage());
-                }
-            }
-
             // Set the user role, if requested
             if(!Strings.isNullOrEmpty(opts.userRole)) {
                 try {
@@ -83,6 +69,22 @@ public class EditUserCli extends UserCli {
                 catch (Exception e) {
                     System.err.println(
                             "Unable to set the user's role: " + e.getMessage());
+                }
+            }
+
+            // Set user password, if requested. NOTE: The password change must
+            // be executed last because it'll invalidate the user's current
+            // token if the user is changing her own password
+            if(!Strings.isNullOrEmpty(opts.userPassword)) {
+                try {
+                    ByteBuffer pword = ByteBuffers
+                            .fromString(opts.userPassword);
+                    client.setUserPassword(uname, pword, token);
+                    System.out.println("Successfully set the user's password");
+                }
+                catch (Exception e) {
+                    System.err.println("Unable to set the user's password: "
+                            + e.getMessage());
                 }
             }
         }

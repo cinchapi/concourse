@@ -482,7 +482,9 @@ public class UserService {
         lock.writeLock().lock();
         try {
             User user = getUserStrict(username);
-            verifyExistsAtLeastOneAdminBesides(user);
+            if(role != Role.ADMIN) {
+                verifyExistsAtLeastOneAdminBesides(user);
+            }
             user.setRole(role);
         }
         finally {

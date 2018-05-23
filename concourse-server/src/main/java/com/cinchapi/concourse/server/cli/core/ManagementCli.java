@@ -214,7 +214,7 @@ public abstract class ManagementCli {
      * @param status the exit status
      */
     private void exit(int status) {
-        if(client != null) {
+        if(client != null && token != null) {
             try {
                 client.logout(token);
             }
