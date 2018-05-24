@@ -53,7 +53,6 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.security.Role;
-import com.cinchapi.concourse.security.TokenInspector;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
@@ -115,8 +114,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -365,10 +364,10 @@ public class ConcourseServer extends BaseConcourseServer
     private HttpServer httpServer;
 
     /**
-     * A {@link TokenInspector} facade that calls through to the {@link #users
+     * A {@link Inspector} facade that calls through to the {@link #users
      * user service} to inspect access tokens.
      */
-    private TokenInspector inspector;
+    private Inspector inspector;
 
     /**
      * The Thrift server that handles all managed operations.
@@ -2571,7 +2570,7 @@ public class ConcourseServer extends BaseConcourseServer
         return result;
     }
 
-    public TokenInspector inspector() {
+    public Inspector inspector() {
         return inspector;
     }
 
@@ -4770,7 +4769,7 @@ public class ConcourseServer extends BaseConcourseServer
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
         this.users = UserService.create(ACCESS_FILE);
-        this.inspector = new TokenInspector() {
+        this.inspector = new Inspector() {
 
             @Override
             public boolean isValidToken(AccessToken token) {
@@ -4781,6 +4780,11 @@ public class ConcourseServer extends BaseConcourseServer
             public Role getTokenUserRole(AccessToken token) {
                 ByteBuffer username = users.tokens.identify(token);
                 return users.getRole(username);
+            }
+
+            @Override
+            public boolean isValidTransaction(TransactionToken transaction) {
+                return transactions.containsKey(transaction);
             }
 
         };
