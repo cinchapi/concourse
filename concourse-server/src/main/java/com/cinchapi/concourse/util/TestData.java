@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.beust.jcommander.internal.Lists;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -34,7 +35,6 @@ import com.cinchapi.concourse.server.storage.db.SecondaryRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.google.common.base.Throwables;
 
 /**
  * A utility class for getting test data.
@@ -144,7 +144,7 @@ public final class TestData extends Random {
             return lines;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }

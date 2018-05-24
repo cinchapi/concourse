@@ -29,12 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * A {@link ClientServerTest} is one that interacts with a Concourse server via
@@ -152,7 +152,7 @@ public abstract class ClientServerTest {
                     }
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
             else if(installerPath() == null) {

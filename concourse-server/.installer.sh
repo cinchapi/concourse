@@ -70,6 +70,7 @@ if [ \$files -gt 0 ]; then
 	rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
 	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
+	rm ../.douge 2>/dev/null # CON-622: Prevent upgrade tasks from being skipped if server was never started prior to upgrade
 else
 	# Indicate that this is a brand new installation
 	touch .douge #fresh

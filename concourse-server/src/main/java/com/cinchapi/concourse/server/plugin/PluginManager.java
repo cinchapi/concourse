@@ -48,6 +48,7 @@ import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -712,7 +713,7 @@ public class PluginManager {
             Logger.error(
                     "An error occurred while trying to activate the plugin bundle '{}'",
                     bundle, e);
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -825,7 +826,7 @@ public class PluginManager {
                 launch(bundle, prefs, plugin, classpath);
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         });
 

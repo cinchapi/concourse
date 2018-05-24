@@ -75,7 +75,6 @@ import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -207,7 +206,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -292,7 +291,7 @@ public class ManagedConcourseServer {
 
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -313,7 +312,7 @@ public class ManagedConcourseServer {
             return false;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -485,7 +484,7 @@ public class ManagedConcourseServer {
                         installDirectory);
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -525,7 +524,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -570,7 +569,7 @@ public class ManagedConcourseServer {
             return memory.getHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -599,7 +598,7 @@ public class ManagedConcourseServer {
                 mBeanServerConnection = connector.getMBeanServerConnection();
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
         return mBeanServerConnection;
@@ -619,7 +618,7 @@ public class ManagedConcourseServer {
             return memory.getNonHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -698,7 +697,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -713,7 +712,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -763,7 +762,7 @@ public class ManagedConcourseServer {
             ccp.setPassword("admin".toCharArray());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -786,7 +785,7 @@ public class ManagedConcourseServer {
             dir.delete();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -816,7 +815,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -2057,7 +2056,7 @@ public class ManagedConcourseServer {
                         method, parameterTypes));
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -2159,7 +2158,7 @@ public class ManagedConcourseServer {
                             method.invoke(delegate, args));
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
 

@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.Experimental;
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 
 /**
  * An AutoMap automatically and atomically manages entry creation and removal
@@ -187,7 +187,7 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
                     getCleanupDelayUnit().sleep(getCleanupDelay());
                 }
                 catch (InterruptedException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
         }

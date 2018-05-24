@@ -46,6 +46,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -62,7 +63,6 @@ import com.cinchapi.concourse.util.Version;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -323,7 +323,7 @@ public final class ConcourseShell {
                 return text;
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
@@ -733,7 +733,7 @@ public final class ConcourseShell {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

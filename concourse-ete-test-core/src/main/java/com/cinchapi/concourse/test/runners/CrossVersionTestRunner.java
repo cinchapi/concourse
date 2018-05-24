@@ -32,9 +32,9 @@ import org.junit.runners.ParentRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.CrossVersionTest;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
@@ -170,7 +170,7 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
                     }
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
         }

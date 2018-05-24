@@ -24,11 +24,11 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
-import com.google.common.base.Throwables;
 
 /**
  * Unit tests for all the subclasses of
@@ -83,7 +83,7 @@ public class RevisionTest {
                     revision.getValue(), Time.now(), revision.getType());
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }

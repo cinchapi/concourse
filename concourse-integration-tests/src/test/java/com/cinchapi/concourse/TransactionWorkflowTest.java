@@ -50,7 +50,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         while (Strings.isNullOrEmpty(password) || password.length() < 3) {
             password = TestData.getString();
         }
-        grantAccess(username, password);
+        createUser(username, password, "admin");
         client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, username,
                 password);
     }

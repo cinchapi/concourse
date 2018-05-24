@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import spark.utils.IOUtils;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * Abstractions for system commands.
@@ -79,7 +79,7 @@ public class Commands {
             }
         }
         catch (IOException | InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -33,6 +33,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -44,7 +45,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -172,7 +172,7 @@ public final class Convert {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         return result;
     }
@@ -320,7 +320,7 @@ public final class Convert {
             return jsonToJava(reader);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
