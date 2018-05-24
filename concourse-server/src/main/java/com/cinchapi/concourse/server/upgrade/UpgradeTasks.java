@@ -85,7 +85,7 @@ public final class UpgradeTasks {
         }
 
         // Run the new upgrade tasks
-        Logger.info("Running {} upgrade task{}", tasks.size(),
+        Logger.info("Found {} upgrade task{}", tasks.size(),
                 tasks.size() != 1 ? "s" : "");
         for (UpgradeTask task : tasks) {
             try {
