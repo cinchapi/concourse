@@ -47,9 +47,10 @@ public interface Inspector {
      * @return {@code true} if the {@code token} is valid
      */
     public boolean isValidToken(AccessToken token);
-    
+
     /**
      * Return {@code true} if the specified {@code transaction} exists.
+     * 
      * @param transaction
      * @return {@code true} if the {@code transaction} exists.
      */

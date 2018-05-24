@@ -55,8 +55,8 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
-import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
+import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -115,8 +115,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
