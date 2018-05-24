@@ -1489,6 +1489,17 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Theory
+    public void testSearchReproJ(SearchType type) {
+        String query = "j6 0 3d  30ts 58kccxj289c2w0ltrvq7l5izsq1w0ijglflziauimx4j8q4u6b6 jd5rers2fvhaul0jep39q75ww0z";
+        String key = "aykyzbbvhfnfwcmkahgznuntgmezvdfqitiyfgsvwpfjdhfgzrqnvorktqgmzighdkwlflstbmmfdjdbpeazpzmry";
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(-6133512025041655722L), Lists.newArrayList(
+                        "2sknz7mcn8clxncb3pch4yu0fvxih02w9x4dg3qg61htrmzgj6vvjpl1p9r v0d6j6 0 3d  30ts 58kccxj289c2w0ltrvq7l5izsq1w0ijglflziauimx4j8q4u6b6 jd5rers2fvhaul0jep39q75ww0z"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
     @Ignore("not implemented in Limbo")
     public void testSearchResultSorting() {
         // FIXME this is not implemented in Limbo (cause its very difficult) so
