@@ -15,6 +15,11 @@
  */
 package com.cinchapi.concourse.server.aop;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Indicates that a method requires an {@link AccessToken} that
  * <ul>
@@ -25,4 +30,6 @@ package com.cinchapi.concourse.server.aop;
  *
  * @author Jeff Nelson
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface VerifyAccessToken {}
