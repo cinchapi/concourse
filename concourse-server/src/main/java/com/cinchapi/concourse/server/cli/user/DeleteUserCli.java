@@ -60,7 +60,7 @@ public class DeleteUserCli extends UserCli {
                         "A user named '" + username + "' does not exist. ");
             }
             else {
-                client.revoke(ByteBuffers.fromString(username), token);
+                client.deleteUser(ByteBuffers.fromString(username), token);
                 System.out.println(
                         "The user named '" + username + "' has been deleted");
             }

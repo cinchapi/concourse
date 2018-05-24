@@ -21,7 +21,7 @@ import java.nio.channels.FileLock;
 
 import javax.annotation.Nullable;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * A util class for dealing with {@link FileLock} objects.
@@ -57,7 +57,7 @@ public class FileLocks {
                 lock.release();
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }

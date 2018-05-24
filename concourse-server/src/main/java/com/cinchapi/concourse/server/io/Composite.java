@@ -153,6 +153,7 @@ public final class Composite implements Byteable {
         return bytes.capacity();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String toString() {
         return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))

@@ -37,6 +37,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 
 /**
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
@@ -138,7 +139,8 @@ public abstract class ManagementCli {
                     + "that Concourse Server is running.");
         }
         catch (Exception e) {
-            die(e.getMessage());
+            Throwable cause = Throwables.getRootCause(e);
+            die(cause.getMessage());
         }
     }
 
@@ -212,7 +214,7 @@ public abstract class ManagementCli {
      * @param status the exit status
      */
     private void exit(int status) {
-        if(client != null) {
+        if(client != null && token != null) {
             try {
                 client.logout(token);
             }

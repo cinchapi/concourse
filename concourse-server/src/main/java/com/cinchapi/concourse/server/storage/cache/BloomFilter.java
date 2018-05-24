@@ -27,13 +27,13 @@ import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods
@@ -120,10 +120,10 @@ public class BloomFilter implements Syncable {
             return filter;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         catch (ClassNotFoundException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -285,7 +285,7 @@ public class BloomFilter implements Syncable {
                 Serializables.write(source, channel); // CON-164
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
             finally {
                 lock.unlockRead(stamp);

@@ -130,7 +130,6 @@ public class ImportablesTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testDelimitedStringToJsonArrayMultiValues() {
         String lines = "a,b\nfoo,bar";
         String resolveKey = null;
@@ -151,7 +150,6 @@ public class ImportablesTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testDelimitedStringToJsonObjectMultiValues() {
         String lines = "foo,bar";
         String resolveKey = null;

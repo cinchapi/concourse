@@ -34,7 +34,7 @@ public class SecurityExceptionTest extends ConcourseIntegrationTest {
     @Test
     public void testTSecurityExceptionIsThrown() {
         try {
-            grantAccess("admin", "admin2");
+            setUserPassword("admin", "admin2");
             client.add("name", "brad", 1); // this should throw
                                            // SecurityException
             Assert.fail("Expecting SecurityException");

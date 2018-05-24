@@ -119,7 +119,6 @@ public class InsertTest extends ConcourseIntegrationTest {
                 client.find("spouse", Operator.LINKS_TO, 1).contains(record));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testInsertResolvableLinkWithLocalTargets() {
         Multimap<String, Object> a = HashMultimap.create();

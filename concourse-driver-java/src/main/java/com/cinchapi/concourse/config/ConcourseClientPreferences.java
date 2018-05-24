@@ -17,8 +17,8 @@ package com.cinchapi.concourse.config;
 
 import org.apache.commons.configuration.ConfigurationException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.Logging;
-import com.google.common.base.Throwables;
 
 /**
  * A wrapper around the {@code concourse_client.prefs} file that is used to
@@ -44,7 +44,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
             return new ConcourseClientPreferences(file);
         }
         catch (ConfigurationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

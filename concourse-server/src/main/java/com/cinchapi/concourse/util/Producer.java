@@ -22,7 +22,7 @@ import java.util.concurrent.SynchronousQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -55,7 +55,7 @@ public class Producer<T> {
                     }
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
 
             }
@@ -83,7 +83,7 @@ public class Producer<T> {
             return queue.take();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -23,8 +23,9 @@ import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.google.common.base.Throwables;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 /**
@@ -47,7 +48,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
                     .toString();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -58,11 +59,11 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
      */
     private void appendLine(String line) {
         try {
-            Files.append(line + System.lineSeparator(), new File(prefsPath),
-                    StandardCharsets.UTF_8);
+            Files.asCharSink(new File(prefsPath), StandardCharsets.UTF_8,
+                    FileWriteMode.APPEND).write(line + System.lineSeparator());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -73,7 +74,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
             prefsPath = null;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

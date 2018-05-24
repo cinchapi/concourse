@@ -29,6 +29,7 @@ import java.util.logging.LogManager;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
@@ -37,7 +38,6 @@ import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -174,7 +174,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
                 return (T) ret;
             }
             else {
-                throw Throwables.propagate(response.error);
+                throw CheckedExceptions.wrapAsRuntimeException(response.error);
             }
         }
         catch (ClassCastException e) {

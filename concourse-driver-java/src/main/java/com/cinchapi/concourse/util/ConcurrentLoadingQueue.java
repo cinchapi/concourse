@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * A {@link ConcurrentLinkedQueue} that uses a specified supplier
@@ -112,7 +112,7 @@ public class ConcurrentLoadingQueue<E> extends ConcurrentLinkedQueue<E> {
             offer(element);
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

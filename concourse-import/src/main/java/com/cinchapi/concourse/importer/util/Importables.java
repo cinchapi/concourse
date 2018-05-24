@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.util.SplitOption;
 import com.cinchapi.concourse.util.StringBuilderWriter;
@@ -31,7 +32,6 @@ import com.cinchapi.concourse.util.StringSplitter;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.etl.Transformer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonWriter;
 
@@ -123,7 +123,7 @@ public class Importables {
             return out.toString();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -235,7 +235,7 @@ public class Importables {
                 json.endObject();
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
