@@ -704,6 +704,7 @@ public final class Database extends BaseStore implements PermanentStore {
             this.blocks = blocks;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void run() {
             File _file = null;
@@ -728,8 +729,8 @@ public final class Database extends BaseStore implements PermanentStore {
                     Constructor<T> constructor = clazz.getDeclaredConstructor(
                             String.class, String.class, Boolean.TYPE);
                     constructor.setAccessible(true);
-                    String checksum = Files.hash(file, Hashing.md5())
-                            .toString();
+                    String checksum = Files.asByteSource(file)
+                            .hash(Hashing.md5()).toString();
                     if(!checksums.contains(checksum)) {
                         blockSorter.put(file, constructor.newInstance(id,
                                 path.toString(), true));

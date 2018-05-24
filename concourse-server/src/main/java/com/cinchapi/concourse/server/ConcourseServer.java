@@ -1732,7 +1732,6 @@ public class ConcourseServer extends BaseConcourseServer
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     @ThrowsClientExceptions
     public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
@@ -1767,7 +1766,6 @@ public class ConcourseServer extends BaseConcourseServer
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     @ThrowsClientExceptions
     public long findOrInsertCriteriaJson(TCriteria criteria, String json,

@@ -28,7 +28,6 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.base.Throwables;
 import com.google.gson.JsonParseException;
 
 /**
@@ -80,7 +79,7 @@ public class ClientExceptionTranslator implements MethodInterceptor {
                     "The following exception occurred "
                             + "but was not propagated to the client: {}",
                     t.getMessage(), t);
-            throw Throwables.propagate(t);
+            throw t instanceof RuntimeException ? t : new RuntimeException(t);
         }
     }
 

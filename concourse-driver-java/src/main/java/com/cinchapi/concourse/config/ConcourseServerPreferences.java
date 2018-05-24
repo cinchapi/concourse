@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * A wrapper around the {@code concourse.prefs} file that is used to
@@ -48,7 +48,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
             return new ConcourseServerPreferences(file);
         }
         catch (ConfigurationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

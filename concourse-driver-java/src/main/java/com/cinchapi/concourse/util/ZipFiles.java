@@ -26,8 +26,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.io.CharStreams;
 
 /**
@@ -61,7 +61,7 @@ public final class ZipFiles {
 
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             if(in != null) {
@@ -70,7 +70,7 @@ public final class ZipFiles {
                     in.close();
                 }
                 catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
         }
@@ -111,7 +111,7 @@ public final class ZipFiles {
 
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -135,7 +135,7 @@ public final class ZipFiles {
             baos.close();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -154,7 +154,7 @@ public final class ZipFiles {
                     new InputStreamReader(in, StandardCharsets.UTF_8));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 }

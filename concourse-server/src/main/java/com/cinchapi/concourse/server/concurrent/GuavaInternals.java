@@ -17,7 +17,7 @@ package com.cinchapi.concourse.server.concurrent;
 
 import java.lang.reflect.Method;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
@@ -56,7 +56,7 @@ public final class GuavaInternals {
             createSynchronizedMultisetMethod.setAccessible(true);
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -76,7 +76,7 @@ public final class GuavaInternals {
                     HashMultiset.create(), new Object());
         }
         catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

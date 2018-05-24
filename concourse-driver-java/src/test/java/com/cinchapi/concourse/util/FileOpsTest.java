@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.google.common.base.Throwables;
 
 /**
  * Unit tests for {@link FileOps}.
@@ -137,7 +137,7 @@ public class FileOpsTest extends ConcourseBaseTest {
                     }
                 }
                 catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             });
             raceConditionDetector.setDaemon(true);

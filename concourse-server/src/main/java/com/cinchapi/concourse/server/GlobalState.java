@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 
 import ch.qos.logback.classic.Level;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
@@ -41,7 +42,6 @@ import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -343,7 +343,7 @@ public final class GlobalState extends Constants {
         }
         catch (FileNotFoundException e) {}
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

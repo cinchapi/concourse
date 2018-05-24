@@ -30,7 +30,6 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
-import com.google.common.base.Throwables;
 
 /**
  * This is the base class for all integration tests. This class contains logic
@@ -145,7 +144,7 @@ public abstract class ConcourseIntegrationTest {
                     ByteBuffers.fromUtf8String(password), role, token);
         }
         catch (TException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -164,7 +163,7 @@ public abstract class ConcourseIntegrationTest {
                     ByteBuffers.fromUtf8String(password), token);
         }
         catch (TException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -261,7 +260,7 @@ public abstract class ConcourseIntegrationTest {
                     SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
         }
         catch (TTransportException e1) {
-            throw Throwables.propagate(e1);
+            throw CheckedExceptions.wrapAsRuntimeException(e1);
         }
         Thread t = new Thread(new Runnable() {
 
@@ -271,7 +270,7 @@ public abstract class ConcourseIntegrationTest {
                     server.start();
                 }
                 catch (TTransportException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
 
             }

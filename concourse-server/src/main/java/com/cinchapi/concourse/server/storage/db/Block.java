@@ -37,6 +37,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AdHocIterator;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
@@ -51,7 +52,6 @@ import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
@@ -623,7 +623,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             write.unlock();

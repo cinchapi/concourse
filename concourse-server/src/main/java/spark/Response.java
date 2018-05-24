@@ -20,8 +20,8 @@ import java.io.IOException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.http.HttpResponse;
-import com.google.common.base.Throwables;
 
 /**
  * Provides functionality for modifying the response
@@ -83,7 +83,7 @@ public class Response implements HttpResponse {
             response.sendRedirect(location);
         }
         catch (IOException ioException) {
-            throw Throwables.propagate(ioException);
+            throw CheckedExceptions.wrapAsRuntimeException(ioException);
         }
     }
 
@@ -101,7 +101,7 @@ public class Response implements HttpResponse {
             response.sendError(httpStatusCode);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

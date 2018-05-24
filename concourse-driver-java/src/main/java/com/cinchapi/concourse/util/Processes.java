@@ -23,8 +23,8 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.UtilityClass;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 /**
@@ -126,7 +126,7 @@ public final class Processes {
             }
         }
         catch (IOException e) {
-            Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         if(process != null) {
             waitForSuccessfulCompletion(process);
@@ -158,7 +158,7 @@ public final class Processes {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -189,7 +189,7 @@ public final class Processes {
             return output;
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

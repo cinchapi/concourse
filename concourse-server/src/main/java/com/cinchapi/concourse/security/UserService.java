@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -48,7 +49,6 @@ import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
@@ -647,7 +647,7 @@ public class UserService {
             Serializables.write(accounts, channel);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             FileSystem.closeFileChannel(channel);

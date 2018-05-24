@@ -116,6 +116,7 @@ public class ReferenceCache<T> {
      * @param args
      * @return the identifier.
      */
+    @SuppressWarnings("deprecation")
     private HashCode getCacheKey(Object... args) {
         StringBuilder key = new StringBuilder();
         for (Object o : args) {

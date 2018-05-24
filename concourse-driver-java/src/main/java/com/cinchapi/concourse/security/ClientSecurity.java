@@ -21,8 +21,8 @@ import java.security.SecureRandom;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.google.common.base.Throwables;
 
 /**
  * A collection of tools to deal with security on the client. <strong>These
@@ -63,7 +63,7 @@ public class ClientSecurity {
                     .wrap(cipher.doFinal(ByteBuffers.toByteArray(data)));
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -82,7 +82,7 @@ public class ClientSecurity {
             return ByteBuffer.wrap(cipher.doFinal(data));
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

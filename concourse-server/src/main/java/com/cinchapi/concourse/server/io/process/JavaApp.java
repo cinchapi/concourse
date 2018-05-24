@@ -34,6 +34,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.ProcessTerminationListener;
 import com.cinchapi.common.process.ProcessWatcher;
 import com.cinchapi.common.reflect.Reflection;
@@ -43,7 +44,6 @@ import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.TLists;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
@@ -340,7 +340,7 @@ public class JavaApp extends Process {
                             cpList);
                 }
                 catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
                 Iterable<? extends JavaFileObject> compilationUnits = fileManager
                         .getJavaFileObjectsFromStrings(
@@ -404,7 +404,7 @@ public class JavaApp extends Process {
                     return !hasExited.getBoolean(process);
                 }
                 catch (ReflectiveOperationException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
             else {
@@ -495,7 +495,7 @@ public class JavaApp extends Process {
             catch (ReflectiveOperationException e) {}
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

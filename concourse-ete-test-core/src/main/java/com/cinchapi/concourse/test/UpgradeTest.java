@@ -18,10 +18,10 @@ package com.cinchapi.concourse.test;
 import java.io.File;
 import java.io.IOException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.cinchapi.concourse.util.Processes;
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
 /**
@@ -70,7 +70,7 @@ public abstract class UpgradeTest extends ClientServerTest {
             client = server.connect();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -18,11 +18,11 @@ package com.cinchapi.concourse;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.ConnectionPool}.
@@ -123,7 +123,7 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
                     }
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
 

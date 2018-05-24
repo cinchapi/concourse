@@ -21,12 +21,12 @@ import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
@@ -124,7 +124,7 @@ public class LegacyAccessManager {
             channel.write(bytes);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             FileSystem.closeFileChannel(channel);

@@ -17,9 +17,9 @@ package com.cinchapi.concourse.server;
 
 import org.apache.thrift.transport.TTransportException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Networking;
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
 /**
@@ -45,7 +45,7 @@ public class ConcourseServerBaseTest extends ConcourseBaseTest {
                     Files.createTempDir().getAbsolutePath());
         }
         catch (TTransportException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
