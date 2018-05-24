@@ -25,4 +25,4 @@ package com.cinchapi.concourse.server.aop;
  *
  * @author Jeff Nelson
  */
-public interface RequiresValidAccess {}
+public @interface VerifyAccessToken {}

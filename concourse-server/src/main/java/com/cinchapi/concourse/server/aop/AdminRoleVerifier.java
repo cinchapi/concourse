@@ -18,54 +18,44 @@ package com.cinchapi.concourse.server.aop;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.server.Inspector;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.SecurityException;
-import com.cinchapi.concourse.thrift.TransactionToken;
 
 /**
  * Intercepts method invocations to verify that the provided {@link AccessToken}
- * is valid and associated with the correct transaction (if necessary).
+ * represents a user with the {@link Role#ADMIN ADMIN} role.
  *
  * @author Jeff Nelson
  */
-public class ValidAccessEnforcer implements MethodInterceptor {
+public class AdminRoleVerifier implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         AccessToken token = null;
-        TransactionToken transaction = null;
-        Object[] args = invocation.getArguments();
-        int index = 0;
-        while (token == null && (transaction == null || index < args.length)) {
-            Object arg = args[index];
+        for (Object arg : invocation.getArguments()) {
             if(arg instanceof AccessToken) {
                 token = (AccessToken) arg;
+                break;
             }
-            else if(arg instanceof TransactionToken) {
-                transaction = (TransactionToken) arg;
+            else {
+                continue;
             }
-            ++index;
         }
         if(token != null) {
             ConcourseServer concourse = (ConcourseServer) invocation.getThis();
-            if(concourse.inspector().isValidToken(token)) {
-                if(transaction == null || (transaction != null
-                        && transaction.getAccessToken().equals(token)
-                        && concourse.inspector()
-                                .isValidTransaction(transaction))) {
-                    return invocation.proceed();
-                }
-                else {
-                    throw new IllegalArgumentException("Invalid transaction");
-                }
+            Inspector inspector = concourse.inspector();
+            if(inspector.getTokenUserRole(token) == Role.ADMIN) {
+                return invocation.proceed();
             }
             else {
-                throw new SecurityException("Invalid access token");
+                throw new SecurityException("Unauthorized");
             }
         }
         else {
-            throw new SecurityException("Unauthorized");
+            throw new SecurityException(
+                    "No token was provided to a method that requires a user with the ADMIN role");
         }
     }
 
