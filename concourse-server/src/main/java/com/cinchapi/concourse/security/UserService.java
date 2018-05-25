@@ -872,28 +872,6 @@ public class UserService {
         }
 
         /**
-         * Return a new service token.
-         * 
-         * <p>
-         * A service token is an {@link AccessToken} that is not associated with
-         * an
-         * actual user, but is instead generated based on the
-         * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
-         * service
-         * or
-         * process.
-         * </p>
-         * <p>
-         * Service tokens do not expire!
-         * </p>
-         * 
-         * @return the new service token
-         */
-        public AccessToken issue() {
-            return issue(SERVICE_USERNAME_BYTES);
-        }
-
-        /**
          * Add and return a new access token for {@code username}.
          * 
          * @param username
@@ -956,6 +934,28 @@ public class UserService {
                 lock.readLock().unlock();
                 UserService.this.lock.readLock().unlock();
             }
+        }
+
+        /**
+         * Return a new service token.
+         * 
+         * <p>
+         * A service token is an {@link AccessToken} that is not associated with
+         * an
+         * actual user, but is instead generated based on the
+         * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
+         * service
+         * or
+         * process.
+         * </p>
+         * <p>
+         * Service tokens do not expire!
+         * </p>
+         * 
+         * @return the new service token
+         */
+        public AccessToken serviceIssue() {
+            return issue(SERVICE_USERNAME_BYTES);
         }
     }
 
