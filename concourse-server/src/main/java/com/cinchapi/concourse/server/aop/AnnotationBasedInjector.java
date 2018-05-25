@@ -41,8 +41,11 @@ public class AnnotationBasedInjector extends AbstractModule {
 
         // Enforce access restrictions on method invocations.
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                Matchers.annotatedWith(RequiresAdminAccess.class),
-                new AdminAccessEnforcer());
+                Matchers.annotatedWith(VerifyAccessToken.class),
+                new AccessTokenVerifier());
+        bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                Matchers.annotatedWith(VerifyAdminRole.class),
+                new AdminRoleVerifier());
     }
 
 }
