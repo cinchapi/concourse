@@ -38,6 +38,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -47,6 +48,7 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -54,7 +56,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
@@ -291,8 +295,17 @@ public class UserService {
             String environment) {
         lock.readLock().lock();
         try {
-            User user = getUserStrict(username);
-            return user.can(permission, environment);
+            Role role = getRole(username);
+            if(role == Role.SERVICE || role == Role.ADMIN) {
+                // SERVICE and ADMIN users always have permission to every
+                // environment (regardless of their underlying grants, in the
+                // case of an ADMIN user)
+                return true;
+            }
+            else {
+                User user = getUserStrict(username);
+                return user.can(permission, environment);
+            }
         }
         finally {
             lock.readLock().unlock();
@@ -439,6 +452,32 @@ public class UserService {
         }
         finally {
             lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Grant the {@code permission} in {@code environment} to the user with
+     * {@code username}.
+     * <p>
+     * <strong>NOTE:</strong: A service user cannot receive an explicit
+     * permission grant.
+     * </p>
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     */
+    public void grant(ByteBuffer username, Permission permission,
+            String environment) {
+        lock.writeLock().lock();
+        try {
+            Verify.that(getRole(username) != Role.SERVICE,
+                    "Cannot grant a permission to a service user");
+            User user = getUserStrict(username);
+            user.grant(permission, environment);
+        }
+        finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -1136,7 +1175,14 @@ public class UserService {
          * The column that contains a user's username in the {@link #accounts}
          * table.
          */
-        USERNAME("username");
+        USERNAME("username"),
+
+        /**
+         * The column that contains a mapping with the user's permission grants.
+         * That mapping is of an environment name to the permission the user
+         * contains in that environment.
+         */
+        PERMISSIONS("permission");
 
         /**
          * Return a list of all the {@link AccountAttribute account attributes}.
@@ -1200,8 +1246,32 @@ public class UserService {
          * @param environment
          * @return {@code true} of user can perform the described action
          */
-        public boolean can(Permission permission, String environment) {
-            return false;
+        @SuppressWarnings("unchecked")
+        private boolean can(Permission permission, String environment) {
+            Map<String, Object> permissions = MoreObjects.firstNonNull(
+                    (Map<String, Object>) accounts.get(id,
+                            AccountAttribute.PERMISSIONS.key()),
+                    ImmutableMap.of());
+            Permission granted = (Permission) permissions.get(environment);
+            if(granted == null) {
+                return false;
+            }
+            else {
+                switch (granted) {
+                case WRITE:
+                    // NOTE: A user with WRITE permission can also read, so this
+                    // case is trivially true. However, an explicit return
+                    // condition is used to future proof in case more
+                    // permissions are added.
+                    return permission == Permission.READ
+                            || permission == Permission.WRITE;
+                case READ:
+                    return permission == Permission.READ;
+                default:
+                    throw new IllegalStateException(
+                            "Unknown permission " + granted);
+                }
+            }
         }
 
         /**
@@ -1253,6 +1323,26 @@ public class UserService {
                 accounts.put(id, AccountAttribute.ENABLED.key(), enabled);
             }
             return (boolean) enabled;
+        }
+
+        /**
+         * Grant the {@code permission} in {@code environment} to this
+         * {@link User}
+         * 
+         * @param permission
+         * @param environment
+         */
+        @SuppressWarnings("unchecked")
+        private void grant(Permission permission, String environment) {
+            Map<String, Permission> permissions = (Map<String, Permission>) accounts
+                    .get(id, AccountAttribute.PERMISSIONS.key());
+            if(permissions == null) {
+                permissions = Maps.newHashMap();
+                accounts.put(id, AccountAttribute.PERMISSIONS.key(),
+                        permissions);
+            }
+            permissions.put(environment, permission);
+            flush();
         }
 
         /**
