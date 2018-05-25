@@ -305,6 +305,28 @@ public class UserService {
     }
 
     /**
+     * Return {@code true} if the user with {@code username} has the
+     * {@code permission} in the specified {@code environment}.
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     * @return {@code true} if the user with {@code username} can perform the
+     *         described action
+     */
+    public boolean can(ByteBuffer username, Permission permission,
+            String environment) {
+        lock.readLock().lock();
+        try {
+            User user = getUserStrict(username);
+            return user.can(permission, environment);
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
      * Create access to the user identified by {@code username} with
      * {@code password}.
      * <p>
@@ -974,8 +996,8 @@ public class UserService {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper
-            implements Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable
@@ -1120,6 +1142,18 @@ public class UserService {
          */
         private User(short id) {
             this.id = id;
+        }
+
+        /**
+         * Return {@code true} if this {@link User} has the {@code permission}
+         * in the specified {@code environment}.
+         * 
+         * @param permission
+         * @param environment
+         * @return {@code true} of user can perform the described action
+         */
+        public boolean can(Permission permission, String environment) {
+            return false;
         }
 
         /**
