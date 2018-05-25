@@ -28,6 +28,7 @@
 * Added additional logging around the upgrade process.
 * Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
 * Upgraded some internal libraries to help make server startup time faster.
+* Fixed a bug in `concourse-driver-java` that caused the `navigate` functions to report errors incorrectly.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
