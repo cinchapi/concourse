@@ -22,15 +22,15 @@ import org.apache.thrift.TException;
 
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.server.aop.RequiresAdminAccess;
 import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
+import com.cinchapi.concourse.server.aop.VerifyAccessToken;
+import com.cinchapi.concourse.server.aop.VerifyAdminRole;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 
@@ -57,10 +57,10 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {
-        checkAccess(creds);
         users().create(username, password, Role.valueOfIgnoreCase(role));
 
     }
@@ -68,20 +68,20 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         users().delete(username);
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void disableUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         users().disable(username);
 
     }
@@ -89,20 +89,20 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public String dump(String id, String environment, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         return getEngine(environment).dump(id);
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         users().enable(username);
 
     }
@@ -110,39 +110,39 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public String getDumpList(String environment, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         return getEngine(environment).getDumpList();
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         return users().exists(username);
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void installPluginBundle(String file, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         plugins().installBundle(file);
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public String listAllEnvironments(AccessToken creds) throws TException {
-        checkAccess(creds);
         return TCollections.toOrderedListString(
                 TSets.intersection(FileSystem.getSubDirs(getBufferStore()),
                         FileSystem.getSubDirs(getDbStore())));
@@ -151,9 +151,9 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public String listAllUserSessions(AccessToken creds) throws TException {
-        checkAccess(creds);
         return TCollections
                 .toOrderedListString(users().tokens.describeActiveSessions());
     }
@@ -161,16 +161,17 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public String listPluginBundles(AccessToken creds) throws TException {
-        checkAccess(creds);
         return TCollections.toOrderedListString(plugins().listBundles());
     }
 
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
         return plugins().runningPlugins();
@@ -179,10 +180,10 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
             AccessToken creds) throws TException {
-        checkAccess(creds);
         users().setPassword(username, password);
 
     }
@@ -190,10 +191,10 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         users().setRole(username, Role.valueOfIgnoreCase(role));
 
     }
@@ -201,22 +202,12 @@ public abstract class BaseConcourseServer
     @Override
     @PluginRestricted
     @ThrowsManagementExceptions
-    @RequiresAdminAccess
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void uninstallPluginBundle(String name, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         plugins().uninstallBundle(name);
     }
-
-    /**
-     * Check to make sure that {@code creds} and {@code transaction} are valid
-     * and are associated with one another.
-     *
-     * @param creds
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     */
-    protected abstract void checkAccess(AccessToken creds) throws TException;
 
     /**
      * Return the location where the server store's contents in the buffer.

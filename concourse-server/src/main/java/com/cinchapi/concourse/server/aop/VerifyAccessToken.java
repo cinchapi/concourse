@@ -21,11 +21,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method requires an {@link AccessToken} that represents a
- * user with the ADMIN role.
+ * Indicates that a method requires an {@link AccessToken} that
+ * <ul>
+ * <li>is valid (authoritatively issued and not expired)</li>,
+ * <li>is associated with the correct transaction
+ * <li>
+ * </ul>
+ *
+ * @author Jeff Nelson
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface RequiresAdminAccess {
-
-}
+public @interface VerifyAccessToken {}
