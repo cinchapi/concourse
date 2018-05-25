@@ -480,26 +480,26 @@ public class UserServiceTest extends ConcourseBaseTest {
 
     @Test
     public void testServiceTokenIsValid() {
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         Assert.assertTrue(service.tokens.isValid(token));
     }
 
     @Test
     public void testServiceTokenInvalidation() {
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         service.tokens.expire(token);
         Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testServiceTokenNotTiedToUser() {
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         service.getUserId(token);
     }
 
     @Test
     public void testServiceTokenUsesInvalidUsername() {
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         ByteBuffer username = service.tokens.identify(token);
         Assert.assertFalse(UserService.isAcceptableUsername(username));
     }
@@ -508,7 +508,7 @@ public class UserServiceTest extends ConcourseBaseTest {
     public void testServerTokenNotAutoExpire() {
         service = UserService.createForTesting(current, 100,
                 TimeUnit.MILLISECONDS);
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         Threads.sleep(100);
         Assert.assertTrue(service.tokens.isValid(token));
     }
@@ -628,7 +628,7 @@ public class UserServiceTest extends ConcourseBaseTest {
 
     @Test
     public void testRoleOfServiceUserTokenIsAlwaysServiceRole() {
-        AccessToken token = service.tokens.issue();
+        AccessToken token = service.tokens.serviceIssue();
         ByteBuffer username = service.tokens.identify(token);
         Assert.assertEquals(Role.SERVICE, service.getRole(username));
     }
