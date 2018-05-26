@@ -118,8 +118,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -4968,7 +4968,8 @@ public class ConcourseServer extends BaseConcourseServer
             public boolean tokenUserHasPermission(AccessToken token,
                     Permission permission, String environment) {
                 ByteBuffer username = users.tokens.identify(token);
-                return users.can(username, permission, environment);
+                return users.can(username, permission,
+                        Environments.sanitize(environment));
             }
 
         };
