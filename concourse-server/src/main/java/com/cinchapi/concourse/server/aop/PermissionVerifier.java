@@ -22,6 +22,7 @@ import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.Inspector;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.thrift.PermissionException;
 
 /**
  * Intercepts method invocations to verify that the provided {@link AccessToken}
@@ -31,6 +32,9 @@ import com.cinchapi.concourse.thrift.AccessToken;
  */
 public class PermissionVerifier implements MethodInterceptor {
 
+    /**
+     * The permission to check for.
+     */
     private final Permission permission;
 
     /**
@@ -69,7 +73,7 @@ public class PermissionVerifier implements MethodInterceptor {
                 return invocation.proceed();
             }
             else {
-                throw new SecurityException("Insufficient Permissions");
+                throw new PermissionException("Insufficient Permission");
             }
         }
         else {
