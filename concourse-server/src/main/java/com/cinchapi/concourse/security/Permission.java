@@ -21,5 +21,15 @@ package com.cinchapi.concourse.security;
  * @author Jeff Nelson
  */
 public enum Permission {
-    READ, WRITE
+    READ, WRITE;
+
+    /**
+     * Case insensitive version of {@link Permission#valueOf(String)}.
+     * 
+     * @param value
+     * @return the parsed {@link Permission}
+     */
+    public static Permission valueOfIgnoreCase(String value) {
+        return Permission.valueOf(value.toUpperCase());
+    }
 }
