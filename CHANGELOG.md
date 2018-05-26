@@ -1,25 +1,8 @@
 ## Changelog
 
 #### Version 0.9.0 (TBD)
-* Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
-* Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
-* Streamlined the logic for server-side atomic operations to unlock higher performance potential.
-* Added [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation) logic to the query parsing pipeline to improve performance.
-* Added a `TIMESTAMP` data type which makes it possible to store temporal values in Concourse.
-	* The `concourse-driver-java` API uses the [`Timestamp`](https://docs.cinchapi.com/concourse/api/java/com/cinchapi/concourse/Timestamp.html) class to represent `TIMESTAMP` values. Please note that hallow `Timestamps` (e.g. those created using the `Timestamp#fromString` method cannot be stored as values). An attempt to do so will throw an `UnsupportedOperationException`.
-	* The `concourse-driver-php` uses the [`DateTime`](http://php.net/manual/en/class.datetime.php) class to represent `TIMESTAMP` values.
-	* The `concourse-driver-python` uses the [`datetime`](https://docs.python.org/2/library/datetime.html) class to represent `TIMESTAMP` values.
-	* The `concourse-driver-ruby` uses the [`DateTime`](https://ruby-doc.org/stdlib-2.3.1/libdoc/date/rdoc/DateTime.html) class to represent `TIMESTAMP` values.
-	* The Concourse REST API allows specifying `TIMESTAMP` values as strings by prepending and appending a `|` to the value (e.g. `|December 30, 1987|`). It is also possible to specify a formatting pattern after the value like `|December 30, 1987|MMM dd, yyyy|`.
-* Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
-* Upgraded the CCL parser to a newer and more efficient version. This change will yield general performance improvements in methods that parse CCL statements during evaluation.
-* The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
-* Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
-* Added the ability for the storage engine to track stats and metadata about database structures.
-* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
-* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
-* Added additional logging for plugin errors.
-* Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
+
+##### Security Model
 * Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
 	* All previously existing users are assigned the `ADMIN` role on upgrade. You can change a user's role using the `users` CLI.
 	* The `users create` command now requires a role to be provided interactively when prompted or non-interactively using the `--set-role` parameter.
@@ -40,6 +23,35 @@
 	* A user with the admin role cannot have any of her permissions revoked.
 	* Plugins automatically inherit a user's access (based on role and permission).
 	* Service users that operate on behalf of plugins have `WRITE` access to every environment.
+
+##### Data Types
+* Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
+* Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
+* Streamlined the logic for server-side atomic operations to unlock higher performance potential.
+* Added [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation) logic to the query parsing pipeline to improve performance.
+* Added a `TIMESTAMP` data type which makes it possible to store temporal values in Concourse.
+	* The `concourse-driver-java` API uses the [`Timestamp`](https://docs.cinchapi.com/concourse/api/java/com/cinchapi/concourse/Timestamp.html) class to represent `TIMESTAMP` values. Please note that hallow `Timestamps` (e.g. those created using the `Timestamp#fromString` method cannot be stored as values). An attempt to do so will throw an `UnsupportedOperationException`.
+	* The `concourse-driver-php` uses the [`DateTime`](http://php.net/manual/en/class.datetime.php) class to represent `TIMESTAMP` values.
+	* The `concourse-driver-python` uses the [`datetime`](https://docs.python.org/2/library/datetime.html) class to represent `TIMESTAMP` values.
+	* The `concourse-driver-ruby` uses the [`DateTime`](https://ruby-doc.org/stdlib-2.3.1/libdoc/date/rdoc/DateTime.html) class to represent `TIMESTAMP` values.
+	* The Concourse REST API allows specifying `TIMESTAMP` values as strings by prepending and appending a `|` to the value (e.g. `|December 30, 1987|`). It is also possible to specify a formatting pattern after the value like `|December 30, 1987|MMM dd, yyyy|`.
+* Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
+
+##### Performance
+* Upgraded the CCL parser to a newer and more efficient version. This change will yield general performance improvements in methods that parse CCL statements during evaluation.
+
+##### Developer Experience
+* The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
+* Added additional logging for plugin errors.
+
+##### Bug Fixes
+* Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
+* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
+* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
+* Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
+
+##### Miscellaneous 
+* Added the ability for the storage engine to track stats and metadata about database structures.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
