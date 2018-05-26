@@ -2660,6 +2660,7 @@ public class ConcourseServer extends BaseConcourseServer
 
     /**
      * Return an {@link Inspector} for this server.
+     * 
      * @return an {@link Inspector}
      */
     public Inspector inspector() {
