@@ -64,7 +64,7 @@ public interface Inspector {
      * @param token
      * @param permission
      * @param environment
-     * @return {@code true} if the tokken user has the permission
+     * @return {@code true} if the token user has the permission
      */
     public boolean tokenUserHasPermission(AccessToken token,
             Permission permission, String environment);
