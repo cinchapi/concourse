@@ -328,6 +328,8 @@ public class UserService {
      */
     public void create(ByteBuffer username, ByteBuffer password, Role role) {
         Preconditions.checkArgument(!exists(username), "User already exists");
+        Preconditions.checkArgument(!username.equals(SERVICE_USERNAME_BYTES),
+                "User already exists");
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
@@ -471,7 +473,7 @@ public class UserService {
             String environment) {
         lock.writeLock().lock();
         try {
-            Verify.that(getRole(username) != Role.SERVICE,
+            Verify.thatArgument(getRole(username) != Role.SERVICE,
                     "Cannot grant a permission to a service user");
             User user = getUserStrict(username);
             user.grant(permission, environment);
@@ -495,6 +497,35 @@ public class UserService {
         }
         finally {
             lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Revoke any permission that the user with {@code username} has to
+     * {@code environment}.
+     * 
+     * @param username
+     * @param environment
+     */
+    public void revoke(ByteBuffer username, String environment) {
+        lock.writeLock().lock();
+        try {
+            Role role = getRole(username);
+            if(role == Role.SERVICE) {
+                throw new IllegalArgumentException(
+                        "Cannot revoke permissions for a service user");
+            }
+            else if(role == Role.ADMIN) {
+                throw new IllegalArgumentException(
+                        "Cannot revoke permissions for an ADMIN user. Please downgrade the user's role and try again");
+            }
+            else {
+                User user = getUserStrict(username);
+                user.revoke(environment);
+            }
+        }
+        finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -1343,6 +1374,20 @@ public class UserService {
             }
             permissions.put(environment, permission);
             flush();
+        }
+
+        /**
+         * Revoke any of the user's permissions to the {@code environment}.
+         * 
+         * @param environment
+         */
+        @SuppressWarnings("unchecked")
+        private void revoke(String environment) {
+            Map<String, Object> permissions = (Map<String, Object>) accounts
+                    .get(id, AccountAttribute.PERMISSIONS.key());
+            if(permissions != null) {
+                permissions.remove(environment);
+            }
         }
 
         /**
