@@ -30,11 +30,12 @@ import com.cinchapi.concourse.thrift.AccessToken;
  * @author Jeff Nelson
  */
 public class PermissionVerifier implements MethodInterceptor {
-    
+
     private final Permission permission;
-    
+
     /**
      * Construct a new instance.
+     * 
      * @param permission
      */
     public PermissionVerifier(Permission permission) {
@@ -63,7 +64,8 @@ public class PermissionVerifier implements MethodInterceptor {
         if(token != null && environment != null) {
             ConcourseServer concourse = (ConcourseServer) invocation.getThis();
             Inspector inspector = concourse.inspector();
-            if(inspector.tokenUserHasPermission(token, permission, environment)) {
+            if(inspector.tokenUserHasPermission(token, permission,
+                    environment)) {
                 return invocation.proceed();
             }
             else {
