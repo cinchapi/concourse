@@ -52,6 +52,7 @@ import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
@@ -115,8 +116,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -4789,6 +4790,13 @@ public class ConcourseServer extends BaseConcourseServer
             @Override
             public boolean isValidTransaction(TransactionToken transaction) {
                 return transactions.containsKey(transaction);
+            }
+
+            @Override
+            public boolean tokenUserHasPermission(AccessToken token,
+                    Permission permission, String environment) {
+                ByteBuffer username = users.tokens.identify(token);
+                return users.can(username, permission, environment);
             }
 
         };

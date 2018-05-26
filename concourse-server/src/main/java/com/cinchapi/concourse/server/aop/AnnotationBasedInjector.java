@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.aop;
 
+import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
@@ -46,6 +47,13 @@ public class AnnotationBasedInjector extends AbstractModule {
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyAdminRole.class),
                 new AdminRoleVerifier());
+        bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                Matchers.annotatedWith(VerifyReadPermission.class),
+                new PermissionVerifier(Permission.READ));
+        bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                Matchers.annotatedWith(VerifyWritePermission.class),
+                new PermissionVerifier(Permission.WRITE));
+
     }
 
 }
