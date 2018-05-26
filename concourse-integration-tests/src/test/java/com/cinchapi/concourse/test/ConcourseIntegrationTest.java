@@ -185,6 +185,27 @@ public abstract class ConcourseIntegrationTest {
     }
 
     /**
+     * Grant permissions
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     */
+    protected final void grant(String username, String permission,
+            String environment) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.grant(ByteBuffers.fromUtf8String(username), permission,
+                    environment, token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
      * Grant access to the server for a user identified by {@code username} and
      * {@code password}.
      * 

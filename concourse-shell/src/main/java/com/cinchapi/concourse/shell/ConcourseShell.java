@@ -49,6 +49,7 @@ import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.PermissionException;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
@@ -152,7 +153,12 @@ public final class ConcourseShell {
                 }
             }
             else {
-                cash.enableInteractiveSettings();
+                try {
+                    cash.enableInteractiveSettings();
+                }
+                catch (PermissionException e) {
+                    die(e.getMessage());
+                }
                 boolean running = true;
                 String input = "";
                 while (running) {
@@ -770,8 +776,8 @@ public final class ConcourseShell {
             }
 
         }));
-        CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
+        CommandLine.displayWelcomeBanner();
         setDefaultPrompt();
         console.println(
                 "Client Version " + Version.getVersion(ConcourseShell.class));

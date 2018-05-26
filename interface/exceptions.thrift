@@ -101,3 +101,11 @@ exception TransactionException {}
 exception ManagementException {
     1: string message
 }
+
+/**
+ * Thrown when a user attempts an operation for which she has insufficient 
+ * permission.
+ */
+exception PermissionException {
+    1: string message
+}
