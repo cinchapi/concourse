@@ -3085,7 +3085,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
-    4: exceptions.PermissionException ex
+    4: exceptions.PermissionException ex4
   );
 
   map<i64, data.TObject> getKeyCcl(
@@ -4528,7 +4528,7 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
-    3: exceptions.PermissionException ex3
+    4: exceptions.PermissionException ex4
   );
 
   data.TObject minKeyRecord(
@@ -5127,6 +5127,6 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
-    3: exceptions.PermissionException ex3
+    4: exceptions.PermissionException ex4
   );
 }
