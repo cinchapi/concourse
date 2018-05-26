@@ -74,4 +74,28 @@ public abstract class UserCli extends OptionalArgsCli {
                 "--set-role" }, description = "The role to set for the user that is being managed (e.g. the non-invoking user)")
         public String userRole;
     }
+
+    /**
+     * Special options for managing permissions.
+     *
+     * @author Jeff Nelson
+     */
+    protected static class PermissionOptions extends Options {
+
+        @Parameter(names = { "--environment",
+                "-e" }, description = "The environment in which the permission is granted", required = true)
+        public String environment;
+    }
+
+    /**
+     * Special options for managing permissions.
+     *
+     * @author Jeff Nelson
+     */
+    protected static class GrantPermissionOptions extends PermissionOptions {
+
+        @Parameter(names = {
+                "--permission", }, description = "The permission to grant", required = true)
+        public String permission;
+    }
 }
