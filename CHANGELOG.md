@@ -29,6 +29,17 @@
 * Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
 * Upgraded some internal libraries to help make server startup time faster.
 * Fixed a bug in `concourse-driver-java` that caused the `navigate` functions to report errors incorrectly.
+* Added *user permissions*. Each non-admin user account can be granted permission to `READ` or `WRITE` data within a specific environment:
+	* Permissions can be granted and revoked for a non-admin role user by a user who has the admin role.
+	* Permissions are granted on a per environment basis.
+	* A user with `READ` permission can read data from an environment but cannot write data.
+	* A user with `WRITE` permission can read and write data in an environment.
+	* Users with the admin role implictly have `WRITE` permission to every environment.
+	* If a user's role is downgraded from admin to user, she will have the permissions she has before being assigned the admin role.
+	* If a user attempts to invoke a function for which she doesn't have permission, a `PermissionException` will be thrown, but the user's session will not terminate.
+	* A user with the admin role cannot have any of her permissions revoked.
+	* Plugins automatically inherit a user's access (based on role and permission).
+	* Service users that operate on behalf of plugins have `WRITE` access to every environment.
 
 #### Version 0.8.2 (April 17, 2018)
 * Fixed a bug in the `ManagedConcourseServer#install` method that caused the server installation to randomly fail due to race conditions. This caused unit tests that extended the `concourse-ete-test-core` framework to intermittently fail.
