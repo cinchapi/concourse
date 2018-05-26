@@ -297,4 +297,26 @@ service ConcourseManagementService {
     1: exceptions.SecurityException ex,
     2: exceptions.ManagementException ex2,
   );
+
+  void grant(
+	  1: binary username,
+    2: string permission,
+    3: string environment
+	  4: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
+  void revoke(
+	  1: binary username,
+    3: string environment
+	  4: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
 }

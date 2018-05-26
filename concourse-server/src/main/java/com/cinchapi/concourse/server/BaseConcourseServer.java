@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
+import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
@@ -31,6 +32,7 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 
@@ -43,8 +45,8 @@ import com.cinchapi.concourse.util.TSets;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseConcourseServer
-        implements ConcourseManagementService.Iface {
+public abstract class BaseConcourseServer implements
+        ConcourseManagementService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -122,6 +124,18 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    public void grant(ByteBuffer username, String permission,
+            String environment, AccessToken creds) throws TException {
+        users().grant(username, Permission.valueOfIgnoreCase(permission),
+                Environments.sanitize(environment));
+
+    }
+
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
     public boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
         return users().exists(username);
@@ -172,6 +186,16 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    public void revoke(ByteBuffer username, String environment,
+            AccessToken creds) throws TException {
+        users().revoke(username, Environments.sanitize(environment));
+    }
+
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
         return plugins().runningPlugins();
@@ -196,7 +220,6 @@ public abstract class BaseConcourseServer
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
             throws TException {
         users().setRole(username, Role.valueOfIgnoreCase(role));
-
     }
 
     @Override
