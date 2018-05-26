@@ -62,7 +62,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
-
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
@@ -1045,8 +1044,8 @@ public class UserService {
      * 
      * @author Jeff Nelson
      */
-    private static class AccessTokenWrapper implements
-            Comparable<AccessTokenWrapper> {
+    private static class AccessTokenWrapper
+            implements Comparable<AccessTokenWrapper> {
 
         /**
          * The formatter that is used to when constructing a human readable
