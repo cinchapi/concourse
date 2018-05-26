@@ -49,6 +49,7 @@ import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.PermissionException;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
@@ -152,7 +153,12 @@ public final class ConcourseShell {
                 }
             }
             else {
-                cash.enableInteractiveSettings();
+                try {
+                    cash.enableInteractiveSettings();
+                }
+                catch (PermissionException e) {
+                    die(e.getMessage());
+                }
                 boolean running = true;
                 String input = "";
                 while (running) {
@@ -655,8 +661,8 @@ public final class ConcourseShell {
                                     + "session cannot continue");
                 }
                 else if(e instanceof MissingMethodException
-                        && ErrorCause.determine(
-                                e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                        && ErrorCause.determine(e
+                                .getMessage()) == ErrorCause.MISSING_CASH_METHOD
                         && ((methodCorrected = tryGetCorrectApiMethod(
                                 (method = ((MissingMethodException) e)
                                         .getMethod()))) != null
@@ -677,7 +683,8 @@ public final class ConcourseShell {
                     }
                     else {
                         message = e.getCause() instanceof ParseException
-                                ? e.getCause().getMessage() : e.getMessage();
+                                ? e.getCause().getMessage()
+                                : e.getMessage();
                     }
                     throw new EvaluationException("ERROR: " + message);
                 }
@@ -770,8 +777,8 @@ public final class ConcourseShell {
             }
 
         }));
-        CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
+        CommandLine.displayWelcomeBanner();
         setDefaultPrompt();
         console.println(
                 "Client Version " + Version.getVersion(ConcourseShell.class));
@@ -823,7 +830,8 @@ public final class ConcourseShell {
         @Parameter(names = { "-e",
                 "--environment" }, description = "The environment of the Concourse Server to use")
         public String environment = prefsHandler != null
-                ? prefsHandler.getEnvironment() : "";
+                ? prefsHandler.getEnvironment()
+                : "";
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
@@ -835,7 +843,8 @@ public final class ConcourseShell {
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
         public String password = prefsHandler != null
-                ? new String(prefsHandler.getPasswordExplicit()) : null;
+                ? new String(prefsHandler.getPasswordExplicit())
+                : null;
 
         @Parameter(names = { "-p",
                 "--port" }, description = "The port on which the Concourse Server is listening")
@@ -848,7 +857,8 @@ public final class ConcourseShell {
         @Parameter(names = { "-u",
                 "--username" }, description = "The username with which to connect")
         public String username = prefsHandler != null
-                ? prefsHandler.getUsername() : "admin";
+                ? prefsHandler.getUsername()
+                : "admin";
 
         @Parameter(names = { "--run-commands",
                 "--rc" }, description = "Path to a script that contains commands to run when the shell starts")
