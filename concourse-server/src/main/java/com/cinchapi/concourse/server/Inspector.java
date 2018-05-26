@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server;
 
+import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -55,5 +56,17 @@ public interface Inspector {
      * @return {@code true} if the {@code transaction} exists.
      */
     public boolean isValidTransaction(TransactionToken transaction);
+
+    /**
+     * Return {@code true} if the {@code token} user has the specified
+     * {@code permission} in the specified {@code environment}.
+     * 
+     * @param token
+     * @param permission
+     * @param environment
+     * @return {@code true} if the token user has the permission
+     */
+    public boolean tokenUserHasPermission(AccessToken token,
+            Permission permission, String environment);
 
 }

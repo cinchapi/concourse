@@ -39,6 +39,7 @@ import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -643,6 +644,137 @@ public class UserServiceTest extends ConcourseBaseTest {
         ByteBuffer username = getAcceptableUsername();
         service.create(username, getSecurePassword(), Role.USER);
         service.setRole(username, Role.SERVICE);
+    }
+
+    @Test
+    public void testAdminUserAlwaysHasPermissionRegardlessOfUnderlyingGrant() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        Assert.assertTrue(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+        Assert.assertTrue(service.can(username, Permission.WRITE,
+                Random.getSimpleString()));
+    }
+
+    @Test
+    public void testNonAdminUserNeverHasPermissionsNotGranted() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.USER);
+        Assert.assertFalse(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+        Assert.assertFalse(service.can(username, Permission.WRITE,
+                Random.getSimpleString()));
+    }
+
+    @Test
+    public void testGrantPermission() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.USER);
+        String e1 = Random.getSimpleString();
+        String e2 = Random.getSimpleString();
+        service.grant(username, Permission.READ, e1);
+        service.grant(username, Permission.WRITE, e2);
+        Assert.assertTrue(service.can(username, Permission.READ, e1));
+        Assert.assertFalse(service.can(username, Permission.WRITE, e1));
+        Assert.assertTrue(service.can(username, Permission.READ, e2));
+        Assert.assertTrue(service.can(username, Permission.WRITE, e2));
+        service.grant(username, Permission.READ, e2);
+        Assert.assertFalse(service.can(username, Permission.WRITE, e2));
+        service.grant(username, Permission.WRITE, e2);
+        service.revoke(username, e2);
+        Assert.assertTrue(service.can(username, Permission.READ, e1));
+        Assert.assertFalse(service.can(username, Permission.WRITE, e1));
+        Assert.assertFalse(service.can(username, Permission.READ, e2));
+        Assert.assertFalse(service.can(username, Permission.WRITE, e2));
+        service.setRole(username, Role.ADMIN);
+        Assert.assertTrue(service.can(username, Permission.READ, e1));
+        Assert.assertTrue(service.can(username, Permission.WRITE, e1));
+        Assert.assertTrue(service.can(username, Permission.READ, e2));
+        Assert.assertTrue(service.can(username, Permission.WRITE, e2));
+        service.setRole(username, Role.USER);
+        Assert.assertTrue(service.can(username, Permission.READ, e1));
+        Assert.assertFalse(service.can(username, Permission.WRITE, e1));
+        Assert.assertFalse(service.can(username, Permission.READ, e2));
+        Assert.assertFalse(service.can(username, Permission.WRITE, e2));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotRevokePermissionsForAdminUser() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.revoke(username, Random.getSimpleString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotRevokePermissionForServiceUser() {
+        ByteBuffer username = service.tokens
+                .identify(service.tokens.serviceIssue());
+        service.revoke(username, Random.getSimpleString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotGrantPermissionForServiceUser() {
+        ByteBuffer username = service.tokens
+                .identify(service.tokens.serviceIssue());
+        service.grant(username, Permission.READ, Random.getSimpleString());
+    }
+
+    @Test
+    public void testServiceUserAlwaysHasPermission() {
+        ByteBuffer username = service.tokens
+                .identify(service.tokens.serviceIssue());
+        Assert.assertTrue(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+        Assert.assertTrue(service.can(username, Permission.WRITE,
+                Random.getSimpleString()));
+    }
+
+    @Test
+    public void testAdminUserRoleAlwaysHasPermission() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        Assert.assertTrue(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+        Assert.assertTrue(service.can(username, Permission.WRITE,
+                Random.getSimpleString()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotCreateUserWithServiceUsername() {
+        ByteBuffer username = service.tokens
+                .identify(service.tokens.serviceIssue());
+        service.create(username, getSecurePassword(), Role.ADMIN);
+    }
+
+    @Test
+    public void testCannotDeleteUserWithServiceUsername() {
+        ByteBuffer username = service.tokens
+                .identify(service.tokens.serviceIssue());
+        service.delete(username);
+        Assert.assertTrue(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testDeletedUserHasNoPermissions() {
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.delete(username);
+        Assert.assertFalse(service.can(username, Permission.READ,
+                Random.getSimpleString()));
+    }
+
+    @Test
+    public void testDisabledUserHasPermissions() {
+        // NOTE: This is to lock in the invariant that a user's permission alone
+        // is not an indicator of access. Access is determined by both the
+        // user's 1) permission, and 2) enabled/disable status. This needs to be
+        // enforced outside of the user service.
+        ByteBuffer username = getAcceptableUsername();
+        service.create(username, getSecurePassword(), Role.ADMIN);
+        service.disable(username);
+        Assert.assertTrue(service.can(username, Permission.READ,
+                Random.getSimpleString()));
     }
 
     /**

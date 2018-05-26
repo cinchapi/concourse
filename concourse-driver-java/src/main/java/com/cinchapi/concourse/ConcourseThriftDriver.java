@@ -2662,6 +2662,9 @@ class ConcourseThriftDriver extends Concourse {
         catch (com.cinchapi.concourse.thrift.ParseException e) {
             throw new ParseException(e);
         }
+        catch (com.cinchapi.concourse.thrift.PermissionException e) {
+            throw new PermissionException(e);
+        }
         catch (Exception e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }

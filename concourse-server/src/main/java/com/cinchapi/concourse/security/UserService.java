@@ -38,6 +38,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -47,6 +48,7 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -54,10 +56,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * The {@link UserService} controls access to the server by keeping tracking
@@ -92,33 +97,9 @@ public class UserService {
             .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
 
     /**
-     * The column that contains a boolean which indicates if a user is enabled
-     * or not {@link #accounts} table(When a user is created, its enabled by
-     * default).
-     */
-    private static final String ENABLED = "user_enabled";
-
-    /**
      * The minimum number of character that must be contained in a password.
      */
     private static final int MIN_PASSWORD_LENGTH = 3;
-
-    /**
-     * The column that contains a user's password in the {@link #accounts}
-     * table.
-     */
-    private static final String PASSWORD_KEY = "password";
-
-    /**
-     * The column that contain's a user's role in the {@link #accounts}
-     * table.
-     */
-    private static final String ROLE_KEY = "role";
-
-    /**
-     * The column that contains a user's salt in the {@link #accounts} table.
-     */
-    private static final String SALT_KEY = "salt";
 
     /**
      * A randomly chosen username for AccessToken's that act as service token's
@@ -141,12 +122,6 @@ public class UserService {
      */
     private static final String SERVICE_USERNAME_HEX = ByteBuffers
             .encodeAsHex(SERVICE_USERNAME_BYTES);
-
-    /**
-     * The column that contains a user's username in the {@link #accounts}
-     * table.
-     */
-    private static final String USERNAME_KEY = "username";
 
     /**
      * Create a new AccessManager that stores its credentials in
@@ -290,14 +265,46 @@ public class UserService {
         try {
             if(exists(username)) {
                 short uid = getUserId(username);
-                ByteBuffer salt = ByteBuffers
-                        .decodeFromHex((String) accounts.get(uid, SALT_KEY));
+                ByteBuffer salt = ByteBuffers.decodeFromHex((String) accounts
+                        .get(uid, AccountAttribute.SALT.key()));
                 password.rewind();
                 password = Passwords.hash(password, salt);
                 return ByteBuffers.encodeAsHex(password)
-                        .equals((String) accounts.get(uid, PASSWORD_KEY));
+                        .equals((String) accounts.get(uid,
+                                AccountAttribute.PASSWORD.key()));
             }
             return false;
+        }
+        finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if the user with {@code username} has the
+     * {@code permission} in the specified {@code environment}.
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     * @return {@code true} if the user with {@code username} can perform the
+     *         described action
+     */
+    public boolean can(ByteBuffer username, Permission permission,
+            String environment) {
+        lock.readLock().lock();
+        try {
+            Role role = getRole(username);
+            if(role == Role.SERVICE || role == Role.ADMIN) {
+                // SERVICE and ADMIN users always have permission to every
+                // environment (regardless of their underlying grants, in the
+                // case of an ADMIN user)
+                return true;
+            }
+            else {
+                User user = getUserStrict(username);
+                return user.can(permission, environment);
+            }
         }
         finally {
             lock.readLock().unlock();
@@ -320,6 +327,8 @@ public class UserService {
      */
     public void create(ByteBuffer username, ByteBuffer password, Role role) {
         Preconditions.checkArgument(!exists(username), "User already exists");
+        Preconditions.checkArgument(!username.equals(SERVICE_USERNAME_BYTES),
+                "User already exists");
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
         Preconditions.checkArgument(isSecurePassword(password),
@@ -328,7 +337,8 @@ public class UserService {
         lock.writeLock().lock();
         try {
             short id = (short) counter.incrementAndGet();
-            accounts.put(id, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
+            accounts.put(id, AccountAttribute.USERNAME.key(),
+                    ByteBuffers.encodeAsHex(username));
             User user = getUser(id);
             user.setPassword(password);
             user.setRole(role);
@@ -417,8 +427,8 @@ public class UserService {
      */
     public void forEachUser(Consumer<ByteBuffer> consumer) {
         accounts.rowKeySet().forEach(id -> {
-            ByteBuffer username = ByteBuffers
-                    .decodeFromHex((String) accounts.get(id, USERNAME_KEY));
+            ByteBuffer username = ByteBuffers.decodeFromHex(
+                    (String) accounts.get(id, AccountAttribute.USERNAME.key()));
             consumer.accept(username);
         });
     }
@@ -447,6 +457,32 @@ public class UserService {
     }
 
     /**
+     * Grant the {@code permission} in {@code environment} to the user with
+     * {@code username}.
+     * <p>
+     * <strong>NOTE:</strong: A service user cannot receive an explicit
+     * permission grant.
+     * </p>
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     */
+    public void grant(ByteBuffer username, Permission permission,
+            String environment) {
+        lock.writeLock().lock();
+        try {
+            Verify.thatArgument(getRole(username) != Role.SERVICE,
+                    "Cannot grant a permission to a service user");
+            User user = getUserStrict(username);
+            user.grant(permission, environment);
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
      * Return {@code true} if {@code username} exists and is enabled.
      * 
      * @param username the username to check
@@ -460,6 +496,35 @@ public class UserService {
         }
         finally {
             lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Revoke any permission that the user with {@code username} has to
+     * {@code environment}.
+     * 
+     * @param username
+     * @param environment
+     */
+    public void revoke(ByteBuffer username, String environment) {
+        lock.writeLock().lock();
+        try {
+            Role role = getRole(username);
+            if(role == Role.SERVICE) {
+                throw new IllegalArgumentException(
+                        "Cannot revoke permissions for a service user");
+            }
+            else if(role == Role.ADMIN) {
+                throw new IllegalArgumentException(
+                        "Cannot revoke permissions for an ADMIN user. Please downgrade the user's role and try again");
+            }
+            else {
+                User user = getUserStrict(username);
+                user.revoke(environment);
+            }
+        }
+        finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -550,7 +615,8 @@ public class UserService {
         try {
             Preconditions.checkArgument(exists(username),
                     "The specified user does not exist");
-            Map<Short, Object> credsCol = accounts.column(USERNAME_KEY);
+            Map<Short, Object> credsCol = accounts
+                    .column(AccountAttribute.USERNAME.key());
             for (Map.Entry<Short, Object> creds : credsCol.entrySet()) {
                 String value = (String) creds.getValue();
                 if(value.equals(ByteBuffers.encodeAsHex(username))) {
@@ -583,9 +649,12 @@ public class UserService {
         lock.writeLock().lock();
         try {
             short id = (short) counter.incrementAndGet();
-            accounts.put(id, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
-            accounts.put(id, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
-            accounts.put(id, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+            accounts.put(id, AccountAttribute.USERNAME.key(),
+                    ByteBuffers.encodeAsHex(username));
+            accounts.put(id, AccountAttribute.PASSWORD.key(),
+                    ByteBuffers.encodeAsHex(password));
+            accounts.put(id, AccountAttribute.SALT.key(),
+                    ByteBuffers.encodeAsHex(salt));
             flush();
             User user = getUser(id);
             user.setRole(Role.ADMIN);
@@ -664,7 +733,8 @@ public class UserService {
     private User getUser(ByteBuffer username) {
         lock.readLock().lock();
         try {
-            Map<Short, Object> usernames = accounts.column(USERNAME_KEY);
+            Map<Short, Object> usernames = accounts
+                    .column(AccountAttribute.USERNAME.key());
             String seeking = ByteBuffers.encodeAsHex(username);
             for (Entry<Short, Object> profile : usernames.entrySet()) {
                 String stored = (String) profile.getValue();
@@ -1100,6 +1170,82 @@ public class UserService {
     }
 
     /**
+     * The attributes that are contained in the {@link #accounts} table.
+     *
+     * @author Jeff Nelson
+     */
+    private enum AccountAttribute {
+
+        /**
+         * The column that contains a boolean which indicates if a user is
+         * enabled or not {@link #accounts} table(When a user is created, its
+         * enabled by default).
+         */
+        ENABLED("user_enabled"),
+
+        /**
+         * The column that contains a user's password in the {@link #accounts}
+         * table.
+         */
+        PASSWORD("password"),
+
+        /**
+         * The column that contain's a user's role in the {@link #accounts}
+         * table.
+         */
+        ROLE("role"),
+
+        /**
+         * The column that contains a user's salt in the {@link #accounts}
+         * table.
+         */
+        SALT("salt"),
+
+        /**
+         * The column that contains a user's username in the {@link #accounts}
+         * table.
+         */
+        USERNAME("username"),
+
+        /**
+         * The column that contains a mapping with the user's permission grants.
+         * That mapping is of an environment name to the permission the user
+         * contains in that environment.
+         */
+        PERMISSIONS("permission");
+
+        /**
+         * Return a list of all the {@link AccountAttribute account attributes}.
+         * 
+         * @return the account attributes
+         */
+        @SuppressWarnings("unchecked")
+        public static List<AccountAttribute> all() {
+            return Arrays.asList(AccountAttribute.values());
+        }
+
+        private final String key;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         */
+        AccountAttribute(String key) {
+            this.key = key;
+        }
+
+        public String key() {
+            return key;
+        }
+
+        @Override
+        public String toString() {
+            return key();
+        }
+    }
+
+    /**
      * A read-through encapsulation of all the data stored for a user in the
      * {@link #accounts} table.
      *
@@ -1123,15 +1269,48 @@ public class UserService {
         }
 
         /**
+         * Return {@code true} if this {@link User} has the {@code permission}
+         * in the specified {@code environment}.
+         * 
+         * @param permission
+         * @param environment
+         * @return {@code true} of user can perform the described action
+         */
+        @SuppressWarnings("unchecked")
+        private boolean can(Permission permission, String environment) {
+            Map<String, Object> permissions = MoreObjects.firstNonNull(
+                    (Map<String, Object>) accounts.get(id,
+                            AccountAttribute.PERMISSIONS.key()),
+                    ImmutableMap.of());
+            Permission granted = (Permission) permissions.get(environment);
+            if(granted == null) {
+                return false;
+            }
+            else {
+                switch (granted) {
+                case WRITE:
+                    // NOTE: A user with WRITE permission can also read, so this
+                    // case is trivially true. However, an explicit return
+                    // condition is used to future proof in case more
+                    // permissions are added.
+                    return permission == Permission.READ
+                            || permission == Permission.WRITE;
+                case READ:
+                    return permission == Permission.READ;
+                default:
+                    throw new IllegalStateException(
+                            "Unknown permission " + granted);
+                }
+            }
+        }
+
+        /**
          * Delete the user.
          */
         private void delete() {
             tokens.expireAll(username());
-            accounts.remove(id, USERNAME_KEY);
-            accounts.remove(id, PASSWORD_KEY);
-            accounts.remove(id, SALT_KEY);
-            accounts.remove(id, ENABLED);
-            accounts.remove(id, ROLE_KEY);
+            AccountAttribute.all()
+                    .forEach(attribute -> accounts.remove(id, attribute.key()));
             flush();
         }
 
@@ -1140,7 +1319,7 @@ public class UserService {
          */
         private void disable() {
             tokens.expireAll(username());
-            accounts.put(id, ENABLED, false);
+            accounts.put(id, AccountAttribute.ENABLED.key(), false);
             flush();
         }
 
@@ -1149,7 +1328,7 @@ public class UserService {
          */
         private void enable() {
             tokens.expireAll(username());
-            accounts.put(id, ENABLED, true);
+            accounts.put(id, AccountAttribute.ENABLED.key(), true);
             flush();
         }
 
@@ -1168,12 +1347,46 @@ public class UserService {
          * @return {@code true} if this user is enabled
          */
         private boolean isEnabled() {
-            Object enabled = accounts.get(id, ENABLED);
+            Object enabled = accounts.get(id, AccountAttribute.ENABLED.key());
             if(enabled == null) {
                 enabled = true;
-                accounts.put(id, ENABLED, enabled);
+                accounts.put(id, AccountAttribute.ENABLED.key(), enabled);
             }
             return (boolean) enabled;
+        }
+
+        /**
+         * Grant the {@code permission} in {@code environment} to this
+         * {@link User}
+         * 
+         * @param permission
+         * @param environment
+         */
+        @SuppressWarnings("unchecked")
+        private void grant(Permission permission, String environment) {
+            Map<String, Permission> permissions = (Map<String, Permission>) accounts
+                    .get(id, AccountAttribute.PERMISSIONS.key());
+            if(permissions == null) {
+                permissions = Maps.newHashMap();
+                accounts.put(id, AccountAttribute.PERMISSIONS.key(),
+                        permissions);
+            }
+            permissions.put(environment, permission);
+            flush();
+        }
+
+        /**
+         * Revoke any of the user's permissions to the {@code environment}.
+         * 
+         * @param environment
+         */
+        @SuppressWarnings("unchecked")
+        private void revoke(String environment) {
+            Map<String, Object> permissions = (Map<String, Object>) accounts
+                    .get(id, AccountAttribute.PERMISSIONS.key());
+            if(permissions != null) {
+                permissions.remove(environment);
+            }
         }
 
         /**
@@ -1182,7 +1395,8 @@ public class UserService {
          * @return the user's role
          */
         private Role role() {
-            Integer ordinal = (Integer) accounts.get(id, ROLE_KEY);
+            Integer ordinal = (Integer) accounts.get(id,
+                    AccountAttribute.ROLE.key());
             if(ordinal != null) {
                 Role role = Role.values()[ordinal];
                 return role;
@@ -1202,8 +1416,10 @@ public class UserService {
             tokens.expireAll(username());
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
-            accounts.put(id, SALT_KEY, ByteBuffers.encodeAsHex(salt));
-            accounts.put(id, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
+            accounts.put(id, AccountAttribute.SALT.key(),
+                    ByteBuffers.encodeAsHex(salt));
+            accounts.put(id, AccountAttribute.PASSWORD.key(),
+                    ByteBuffers.encodeAsHex(password));
             flush();
         }
 
@@ -1216,7 +1432,7 @@ public class UserService {
             Preconditions.checkArgument(role != Role.SERVICE,
                     "Cannot assign the SERVICE role to a user account");
             tokens.expireAll(username());
-            accounts.put(id, ROLE_KEY, role.ordinal());
+            accounts.put(id, AccountAttribute.ROLE.key(), role.ordinal());
             flush();
         }
 
@@ -1235,7 +1451,7 @@ public class UserService {
          * @return the username
          */
         private String usernameAsHex() {
-            return (String) accounts.get(id, USERNAME_KEY);
+            return (String) accounts.get(id, AccountAttribute.USERNAME.key());
         }
 
     }
