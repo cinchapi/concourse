@@ -82,8 +82,8 @@ public abstract class UserCli extends OptionalArgsCli {
      */
     protected static class PermissionOptions extends Options {
 
-        @Parameter(names = { "--environment",
-                "-e" }, description = "The environment in which the permission is granted", required = true)
+        @Parameter(names = { "-e",
+                "--environment" }, description = "The environment in which the permission is granted", required = true)
         public String environment;
     }
 
