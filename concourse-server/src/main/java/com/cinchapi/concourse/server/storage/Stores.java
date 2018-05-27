@@ -22,7 +22,6 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TStrings;
@@ -109,9 +108,6 @@ public final class Stores {
         }
         else if(value.isBlank()) {
             throw new IllegalArgumentException("Cannot use a blank value");
-        }
-        else if(value.getType() == Type.BINARY) {
-            throw new IllegalArgumentException("Cannot store binary data");
         }
     }
 

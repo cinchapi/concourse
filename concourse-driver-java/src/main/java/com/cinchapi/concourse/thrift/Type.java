@@ -28,8 +28,7 @@ public enum Type implements org.apache.thrift.TEnum {
     STRING(7),
     TAG(8),
     NULL(9),
-    TIMESTAMP(10),
-    BINARY(11);
+    TIMESTAMP(10);
 
     private final int value;
 
@@ -71,8 +70,6 @@ public enum Type implements org.apache.thrift.TEnum {
             return NULL;
         case 10:
             return TIMESTAMP;
-        case 11:
-            return BINARY;
         default:
             return null;
         }
