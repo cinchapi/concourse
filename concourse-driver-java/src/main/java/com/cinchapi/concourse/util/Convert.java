@@ -285,6 +285,14 @@ public final class Convert {
                             "Cannot convert string based Timestamp to a TObject");
                 }
             }
+            else if(object instanceof ByteBuffer) {
+                bytes = ByteBuffers.clone((ByteBuffer) object);
+                type = Type.BINARY;
+            }
+            else if(object instanceof byte[]) {
+                bytes = ByteBuffer.wrap((byte[]) object);
+                type = Type.BINARY;
+            }
             else {
                 bytes = ByteBuffer.wrap(
                         object.toString().getBytes(StandardCharsets.UTF_8));
@@ -684,6 +692,8 @@ public final class Convert {
             case TIMESTAMP:
                 java = Timestamp.fromMicros(buffer.getLong());
                 break;
+            case BINARY:
+                java = ByteBuffers.asReadOnlyBuffer(buffer);
             case NULL:
                 java = null;
                 break;
