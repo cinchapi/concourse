@@ -87,6 +87,7 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
+import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
@@ -2679,6 +2680,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    @PluginRestricted
     public ComplexTObject invokeManagement(String method,
             List<ComplexTObject> params, AccessToken creds) throws TException {
         Object[] args = new Object[params.size() + 1];
@@ -2686,11 +2688,22 @@ public class ConcourseServer extends BaseConcourseServer
             ComplexTObject arg = params.get(i);
             args[i] = arg.getJavaObject();
         }
-        args[args.length] = creds;
-        Object result = Reflection.callIf(
-                invoked -> invoked.isAnnotationPresent(ClientInvokable.class),
-                this, method, args);
-        return ComplexTObject.fromJavaObject(result);
+        args[args.length - 1] = creds;
+        try {
+            Object result = Reflection.callIf(invoked -> Reflection
+                    .isDeclaredAnnotationPresentInHierarchy(invoked,
+                            ClientInvokable.class),
+                    this, method, args);
+            return ComplexTObject.fromJavaObject(result);
+        }
+        catch (IllegalStateException e) {
+            throw new ManagementException(
+                    "The requested method invocation is either or not "
+                            + "eligble for client-side invocation");
+        }
+        catch (Exception e) {
+            throw new ManagementException(e.getMessage());
+        }
     }
 
     @Override
