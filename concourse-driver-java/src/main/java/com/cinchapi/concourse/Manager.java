@@ -30,15 +30,6 @@ import com.google.common.collect.ImmutableList;
  */
 public class Manager {
 
-    /*
-     * NOTE: methods in this class do not use the ConcourseThriftDriver#execute
-     * construct because it contains logic to auto-login whenever a security
-     * exception is thrown. Instead, here, we catch security exceptions and
-     * re-throw them because that are usually indicative of a user trying to
-     * access management methods to which they don't have access (instead of the
-     * access token being stale).
-     */
-
     /**
      * The parent driver that contains the connection to thrift.
      */
