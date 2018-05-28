@@ -121,8 +121,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -2698,7 +2698,7 @@ public class ConcourseServer extends BaseConcourseServer
         }
         catch (IllegalStateException e) {
             throw new ManagementException(
-                    "The requested method invocation is either or not "
+                    "The requested method invocation is either invalid or not "
                             + "eligble for client-side invocation");
         }
         catch (Exception e) {
