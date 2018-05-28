@@ -49,6 +49,7 @@ import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
@@ -63,6 +64,7 @@ import com.cinchapi.concourse.server.aop.VerifyWritePermission;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.management.ClientInvokable;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.ops.AtomicOperations;
 import com.cinchapi.concourse.server.ops.Operations;
@@ -85,6 +87,7 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
+import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
@@ -2677,6 +2680,33 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    @PluginRestricted
+    public ComplexTObject invokeManagement(String method,
+            List<ComplexTObject> params, AccessToken creds) throws TException {
+        Object[] args = new Object[params.size() + 1];
+        for (int i = 0; i < params.size(); ++i) {
+            ComplexTObject arg = params.get(i);
+            args[i] = arg.getJavaObject();
+        }
+        args[args.length - 1] = creds;
+        try {
+            Object result = Reflection.callIf(invoked -> Reflection
+                    .isDeclaredAnnotationPresentInHierarchy(invoked,
+                            ClientInvokable.class),
+                    this, method, args);
+            return ComplexTObject.fromJavaObject(result);
+        }
+        catch (IllegalStateException e) {
+            throw new ManagementException(
+                    "The requested method invocation is either invalid or not "
+                            + "eligble for client-side invocation");
+        }
+        catch (Exception e) {
+            throw new ManagementException(e.getMessage());
+        }
+    }
+
+    @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
@@ -4949,14 +4979,14 @@ public class ConcourseServer extends BaseConcourseServer
         this.inspector = new Inspector() {
 
             @Override
-            public boolean isValidToken(AccessToken token) {
-                return users.tokens.isValid(token);
-            }
-
-            @Override
             public Role getTokenUserRole(AccessToken token) {
                 ByteBuffer username = users.tokens.identify(token);
                 return users.getRole(username);
+            }
+
+            @Override
+            public boolean isValidToken(AccessToken token) {
+                return users.tokens.isValid(token);
             }
 
             @Override

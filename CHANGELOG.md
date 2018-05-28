@@ -43,6 +43,7 @@
 ##### Developer Experience
 * The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
 * Added additional logging for plugin errors.
+* Added a `manage` interface to the driver APIs. This interface exposes a limited number of management methods that can be invoked programatically.
 
 ##### Bug Fixes
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
