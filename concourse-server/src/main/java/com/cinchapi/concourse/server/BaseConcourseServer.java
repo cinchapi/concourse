@@ -27,6 +27,7 @@ import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyAdminRole;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.management.ClientInvokable;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
@@ -61,6 +62,7 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    @ClientInvokable
     public void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {
         users().create(username, password, Role.valueOfIgnoreCase(role));
@@ -124,6 +126,7 @@ public abstract class BaseConcourseServer
     @ThrowsManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    @ClientInvokable
     public void grant(ByteBuffer username, String permission,
             String environment, AccessToken creds) throws TException {
         users().grant(username, Permission.valueOfIgnoreCase(permission),

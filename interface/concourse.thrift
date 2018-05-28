@@ -5129,4 +5129,14 @@ service ConcourseService {
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4
   );
+
+  complex.ComplexTObject invokeManagement(
+    2: string method,
+    3: list<complex.ComplexTObject> params,
+    4: shared.AccessToken creds,
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
 }
