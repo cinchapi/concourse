@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
@@ -122,6 +123,9 @@ public class TypeAdapters {
             }
             else if(value instanceof String) {
                 writer.value((String) value);
+            }
+            else if(value instanceof Timestamp) {
+                writer.jsonValue("|" + ((Timestamp) value).getMicros() + "|");
             }
             else {
                 generic.write(writer, value);

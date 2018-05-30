@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017 Cinchapi Inc.
+# Copyright (c) 2013-2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -68,6 +68,10 @@ service ConcourseManagementService {
   void disableUser(
     1: binary username,
 	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -85,6 +89,10 @@ service ConcourseManagementService {
 	  1: string id,
 	  2: string environment,
 	  3: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -98,6 +106,10 @@ service ConcourseManagementService {
   void enableUser(
 	  1: binary username
 	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -113,6 +125,10 @@ service ConcourseManagementService {
   string getDumpList(
 	  1: string environment
 	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -124,10 +140,35 @@ service ConcourseManagementService {
    * @param username
    * @param password
    */
-  void grant(
+  void createUser(
 	  1: binary username,
 	  2: binary password,
+    3: string role,
+    4: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
+  void setUserPassword(
+    1: binary username,
+    2: binary password,
     3: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
+  void setUserRole(
+    1: binary username,
+    2: string role,
+    3: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -142,6 +183,10 @@ service ConcourseManagementService {
   bool hasUser(
 	  1: binary username,
 	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -155,7 +200,8 @@ service ConcourseManagementService {
 	  2: shared.AccessToken creds
   )
   throws (
-    1: exceptions.ManagementException ex
+    1: exceptions.ManagementException ex,
+    2: exceptions.SecurityException ex2,
   );
 
   /**
@@ -169,6 +215,10 @@ service ConcourseManagementService {
    */
   string listAllEnvironments(
 	  1: shared.AccessToken token
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -181,6 +231,10 @@ service ConcourseManagementService {
    */
   string listAllUserSessions(
 	   1: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -192,6 +246,10 @@ service ConcourseManagementService {
    */
   string listPluginBundles(
 	  1: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -201,9 +259,13 @@ service ConcourseManagementService {
    *                the user on behalf of whom the client is connected
    * @param username
    */
-  void revoke(
+  void deleteUser(
 	  1: binary username
  	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
 
   /**
@@ -215,6 +277,10 @@ service ConcourseManagementService {
   map<i64, map<string, string>> runningPluginsInfo(
     1: shared.AccessToken creds
   )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
 
   /**
    * Uninstall the plugin bundled referred to as {@code name}.
@@ -226,5 +292,31 @@ service ConcourseManagementService {
   void uninstallPluginBundle(
 	  1: string name
 	  2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
   );
+
+  void grant(
+	  1: binary username,
+    2: string permission,
+    3: string environment
+	  4: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
+  void revoke(
+	  1: binary username,
+    3: string environment
+	  4: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  );
+
 }

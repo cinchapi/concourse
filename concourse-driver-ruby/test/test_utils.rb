@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017 Cinchapi Inc.
+# Copyright (c) 2013-2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 require 'test/unit'
 require 'concourse'
+require 'date'
 
 class TestUtils < Test::Unit::TestCase
 
@@ -49,6 +50,11 @@ class TestUtils < Test::Unit::TestCase
 
     def test_convert_float_round_trip
         orig = 3.14353
+        assert_equal(orig, Concourse::Utils::Convert::thrift_to_ruby(Concourse::Utils::Convert::ruby_to_thrift(orig)))
+    end
+
+    def test_convert_datetime_round_trip
+        orig = DateTime.now
         assert_equal(orig, Concourse::Utils::Convert::thrift_to_ruby(Concourse::Utils::Convert::ruby_to_thrift(orig)))
     end
 

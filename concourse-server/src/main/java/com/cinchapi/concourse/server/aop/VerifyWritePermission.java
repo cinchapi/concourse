@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concourse.server.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,13 +21,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method defined in {@link ConcourseServer} is merely an
- * alias for another method.
- * 
- * @author Jeff Nelson
+ * Indicates that a method requires an {@link AccessToken} that represents a
+ * user with the WRITE permission in the provided environment.
  */
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
-public @interface Alias {
-
-}
+public @interface VerifyWritePermission {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -750,6 +750,24 @@ public class ConvertTest {
     @Test
     public void testConvertStringToOperatorCaseInsensitive() {
         Assert.assertEquals(Operator.LIKE, Convert.stringToOperator("LIKE"));
+    }
+
+    @Test
+    public void testConvertStringToTimestamp() {
+        String string = "|December 30, 1987|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConvertStringToTimestampInvalidFormat() {
+        String string = "|December 30, 1987|fsfsaf|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConvertStringToTimestampNotMatchingFormat() {
+        String string = "|December 30, 1987|MM/dd/yyyy|";
+        Assert.assertTrue(Convert.stringToJava(string) instanceof Timestamp);
     }
 
     @Test(expected = IllegalStateException.class)

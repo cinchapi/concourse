@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package com.cinchapi.concourse.server;
 
 import org.apache.thrift.transport.TTransportException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.Networking;
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
 /**
@@ -45,7 +45,7 @@ public class ConcourseServerBaseTest extends ConcourseBaseTest {
                     Files.createTempDir().getAbsolutePath());
         }
         catch (TTransportException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

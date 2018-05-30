@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,20 @@
  */
 package com.cinchapi.concourse.lang;
 
+import java.util.List;
+
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.Parsing;
+import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.concourse.ParseException;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.util.Parsers;
 
 /**
  * Unit tests for the {@link com.cinchapi.concourse.lang.Criteria} building
@@ -43,6 +53,64 @@ public class CriteriaTest {
                         .key("name").operator(Operator.NOT_EQUALS)
                         .value("John Doe"))
                 .build();
+    }
+
+    @Test
+    public void testTimestampPinning() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("Jeff Nelson").and()
+                .group(Criteria.where().key("company").operator(Operator.EQUALS)
+                        .value("Cinchapi").or().key("company")
+                        .operator(Operator.EQUALS).value("Blavity"))
+                .build();
+        Timestamp timestamp = Timestamp.now();
+        criteria = criteria.at(timestamp);
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Assert.assertEquals(expression.raw().timestamp(),
+                        timestamp.getMicros());
+            }
+        });
+    }
+
+    @Test
+    public void testTimestampPinningSomeTimestamps() {
+        Criteria criteria = Criteria.where().key("name")
+                .operator(Operator.EQUALS).value("Jeff Nelson").and()
+                .group(Criteria.where().key("company").operator(Operator.EQUALS)
+                        .value("Cinchapi").at(Timestamp.now()).or()
+                        .key("company").operator(Operator.EQUALS)
+                        .value("Blavity"))
+                .build();
+        Timestamp timestamp = Timestamp.now();
+        criteria = criteria.at(timestamp);
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Assert.assertEquals(expression.raw().timestamp(),
+                        timestamp.getMicros());
+            }
+        });
+    }
+
+    @Test
+    public void testParseCcl() {
+        String ccl = "name = jeff AND (company = Cinchapi at 12345 or company = Blavity)";
+        Criteria criteria = Criteria.parse(ccl);
+        Parser parser1 = Parsers.create(ccl);
+        Parser parser2 = Parsers.create(criteria.getCclString());
+        Assert.assertEquals(Parsing.groupExpressions(parser1.tokenize()),
+                Parsing.groupExpressions(parser2.tokenize()));
+    }
+
+    @Test(expected = ParseException.class)
+    public void testParseCclInvalid() {
+        String ccl = "name = jeff AND (company ? Cinchapi at 12345 or company = Blavity) ";
+        Criteria criteria = Criteria.parse(ccl);
+        System.out.println(criteria);
     }
 
 }

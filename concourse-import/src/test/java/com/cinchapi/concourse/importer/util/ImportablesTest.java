@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,6 @@ public class ImportablesTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testDelimitedStringToJsonArrayMultiValues() {
         String lines = "a,b\nfoo,bar";
         String resolveKey = null;
@@ -151,7 +150,6 @@ public class ImportablesTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testDelimitedStringToJsonObjectMultiValues() {
         String lines = "foo,bar";
         String resolveKey = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,11 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
         valueLength = Math.max(value != null ? value.toString().length() : 4,
                 valueLength);
         return super.put(key, value);
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends V> map) {
+        map.forEach((key, value) -> put(key, value));
     }
 
     /**

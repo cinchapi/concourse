@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.server.ManagedConcourseServer.LogLevel;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * A {@link ClientServerTest} is one that interacts with a Concourse server via
@@ -85,27 +85,33 @@ public abstract class ClientServerTest {
     public final TestWatcher __watcher = new TestWatcher() {
 
         @Override
+        protected void succeeded(Description description) {
+            server.destroy();
+        }
+
+        @Override
         protected void failed(Throwable t, Description description) {
             System.err.println("TEST FAILURE in " + description.getMethodName()
                     + ": " + t.getMessage());
             System.err.println("---");
             System.err.println(Variables.dump());
-            System.err.println("");
-            System.err.println("Printing relevant server logs...");
-            server.printLogs(LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO,
-                    LogLevel.DEBUG);
-            server.printLog("console");
             if(PluginTest.class
                     .isAssignableFrom(ClientServerTest.this.getClass())) {
 
             }
+            System.err.println(AnyStrings.format(
+                    "NOTE: The test failed, so the server installation at {} has "
+                            + "NOT been deleted. Please manually delete the directory after "
+                            + "inspecting its content",
+                    server.getInstallDirectory()));
+            server.destroyOnExit(false);
+            server.stop();
         }
 
         @Override
         protected void finished(Description description) {
             afterEachTest();
             client.exit();
-            server.destroy();
             client = null;
             server = null;
         }
@@ -146,7 +152,7 @@ public abstract class ClientServerTest {
                     }
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
             else if(installerPath() == null) {

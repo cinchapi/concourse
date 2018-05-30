@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -197,7 +197,7 @@ public abstract class ByteBuffers {
             return ByteBuffer.wrap(string.getBytes(CHARSET));
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -288,7 +288,7 @@ public abstract class ByteBuffers {
             return decoder.decode(buffer).toString();
         }
         catch (CharacterCodingException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             if(decoder != null && charset == StandardCharsets.UTF_8) {
@@ -326,7 +326,7 @@ public abstract class ByteBuffers {
             destination.put(bytes);
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -501,7 +501,7 @@ public abstract class ByteBuffers {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

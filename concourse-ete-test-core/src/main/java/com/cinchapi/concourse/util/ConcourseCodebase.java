@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.process.Processes.ProcessResult;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
 /**
@@ -117,7 +117,7 @@ public class ConcourseCodebase {
                         }
                     }
                     catch (Exception e) {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
                 else {
@@ -145,7 +145,7 @@ public class ConcourseCodebase {
                         FileOps.write(dir, cache.toString());
                     }
                     catch (Exception e) {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
             }
@@ -164,7 +164,7 @@ public class ConcourseCodebase {
             return Files.createTempDirectory("concourse").toString();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -242,7 +242,7 @@ public class ConcourseCodebase {
             return getInstallerPath();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -281,7 +281,7 @@ public class ConcourseCodebase {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -310,7 +310,7 @@ public class ConcourseCodebase {
             return changed;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

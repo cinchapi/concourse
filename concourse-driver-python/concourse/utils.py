@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017 Cinchapi Inc.
+# Copyright (c) 2013-2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ __author__ = 'jnelson'
 from .thriftapi.shared.ttypes import Type
 from .thriftapi.data.ttypes import TObject
 from .types import *
+from datetime import datetime, timezone
 import struct
 import inspect
 
@@ -45,6 +46,10 @@ def python_to_thrift(value):
     elif isinstance(value, Tag):
         ttype = Type.TAG
         data = bytes(value.__str__(), 'utf-8')
+    elif isinstance(value, datetime):
+        ttype = Type.TIMESTAMP
+        value = value.replace(tzinfo=timezone.utc).timestamp() * 1000000
+        data = struct.pack(">q", value)
     else:
         ttype = Type.STRING
         data = bytes(value.__str__(), 'utf-8')
@@ -75,6 +80,9 @@ def thrift_to_python(tobject):
         py = Tag.create(s)
     elif tobject.type == Type.NULL:
         py = None
+    elif tobject.type == Type.TIMESTAMP:
+        micros = struct.unpack_from(">q", data)[0]
+        py = datetime.fromtimestamp(micros / 1000000, timezone.utc)
     else:
         py = data.decode('utf-8')
     return py

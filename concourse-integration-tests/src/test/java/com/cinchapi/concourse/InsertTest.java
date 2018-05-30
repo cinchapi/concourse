@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,7 +119,6 @@ public class InsertTest extends ConcourseIntegrationTest {
                 client.find("spouse", Operator.LINKS_TO, 1).contains(record));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testInsertResolvableLinkWithLocalTargets() {
         Multimap<String, Object> a = HashMultimap.create();

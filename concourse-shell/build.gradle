@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 dependencies {
     compile project(':concourse-driver-java')
-    compile 'com.google.guava:guava:15.0'
     compile 'org.codehaus.groovy:groovy-all:2.1.8'
     compile 'jline:jline:2.11'
     compile 'com.beust:jcommander:1.32'

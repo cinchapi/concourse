@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.Immutable;
@@ -46,6 +47,19 @@ public final class Timestamp {
     // Joda DateTime uses millisecond instead of microsecond precision, so this
     // class is a wrapper that will handle microseconds so we don't ever lose
     // data that happens within the same millisecond.
+
+    /**
+     * The default formatter that is used to display objects of this class.
+     */
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
+    /**
+     * The default formatter that is used to display {@link #isDateOnly() date
+     * only} timestamps.
+     */
+    public static final DateTimeFormatter DEFAULT_DATE_ONLY_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy");
 
     /**
      * Return a {@code Timestamp} that corresponds to the system
@@ -99,6 +113,18 @@ public final class Timestamp {
     }
 
     /**
+     * Return a {@link Timestamp} that corresponds to the specified
+     * {@code instant}.
+     * 
+     * @param instant an {@linm Instant} instance
+     * @return the corresponding {@link Timestamp}
+     */
+    public static Timestamp fromInstant(Instant instant) {
+        return new Timestamp(
+                TimeUnit.MILLISECONDS.toMicros(instant.toEpochMilli()));
+    }
+
+    /**
      * Return a {@code Timestamp} set the current system microsecond time using
      * <code>ISOChronology</code> in the default time zone.
      * 
@@ -146,10 +172,18 @@ public final class Timestamp {
     }
 
     /**
-     * The default formatter that is used to display objects of this class.
+     * Parse a {@link Timestamp} from the specified string that adheres to the
+     * provided {@code format}.
+     * 
+     * @param str the string to parse, not {@code null}
+     * @param format the format of the string; see
+     *            {@link http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html}
+     *            for details
+     * @return the parsed timestamp
      */
-    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
-            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+    public static Timestamp parse(String str, String format) {
+        return parse(str, DateTimeFormat.forPattern(format));
+    }
 
     /**
      * A relative or absolute description of an instant that is translated to an
@@ -257,15 +291,39 @@ public final class Timestamp {
         return microseconds;
     }
 
+    /**
+     * Return an {@link Instant} that corresponds to the point on the time-line
+     * represented by this {@link Timestamp}.
+     * 
+     * @return the corresponding {@link Instant}
+     */
+    public Instant getInstant() {
+        return Instant
+                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(microseconds));
+    }
+
     @Override
     public int hashCode() {
         return isString() ? description.hashCode()
                 : Longs.hashCode(microseconds);
     }
 
+    /**
+     * Return {@code true} of this {@link Timestamp} does not have relevant
+     * temporal componet.
+     * 
+     * @return {@code true} if this {@link Timestamp} represents a date
+     */
+    public boolean isDateOnly() {
+        DateTime joda = getJoda();
+        return joda.getMillisOfDay() == 0;
+    }
+
     @Override
     public String toString() {
-        return isString() ? description : joda.toString(DEFAULT_FORMATTER);
+        return isString() ? description
+                : joda.toString(isDateOnly() ? DEFAULT_DATE_ONLY_FORMATTER
+                        : DEFAULT_FORMATTER);
     }
 
     /**

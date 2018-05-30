@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.server.cli.user;
+
+import java.nio.ByteBuffer;
 
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
@@ -35,7 +37,7 @@ public class PasswordUserCli extends UserCli {
      * @param args
      */
     public PasswordUserCli(String[] args) {
-        super(new UserOptions(), args);
+        super(new UserPasswordOptions(), args);
     }
 
     @Override
@@ -45,20 +47,15 @@ public class PasswordUserCli extends UserCli {
 
     @Override
     protected void doTask(Client client) {
-        UserOptions opts = (UserOptions) options;
+        UserPasswordOptions opts = (UserPasswordOptions) options;
         try {
             String username;
             if(opts.args.isEmpty()) {
-                username = console.readLine("User to edit: ");
+                username = console.readLine(
+                        "Which user's password do you want to change? ");
             }
             else {
                 username = opts.args.get(0);
-            }
-            if(!client.hasUser(ByteBuffers.fromString(username), token)) {
-                console.readLine(
-                        "A user named '" + username + "' does not exist. "
-                                + "Use CTRL-C to terminate or press RETURN to "
-                                + "create this user.");
             }
             if(Strings.isNullOrEmpty(opts.userPassword)) {
                 opts.userPassword = console
@@ -71,8 +68,9 @@ public class PasswordUserCli extends UserCli {
                                     + username + "' HAS NOT been modifed");
                 }
             }
-            client.grant(ByteBuffers.fromString(username),
-                    ByteBuffers.fromString(opts.userPassword), token);
+            ByteBuffer uname = ByteBuffers.fromString(username);
+            ByteBuffer pword = ByteBuffers.fromString(opts.userPassword);
+            client.setUserPassword(uname, pword, token);
             System.out.println(
                     "Password for user '" + username + "' has been set");
         }

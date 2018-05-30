@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,19 @@ import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
  * The {@link LegacyAccessManager} controls access to the pre-0.5.0
  * Concourse server by keeping tracking of valid credentials and
  * handling authentication requests. This LegacyAccessManager is used
- * to upgrade pre-0.5.0 user credentials to work with {@link AccessManager}.
+ * to upgrade pre-0.5.0 user credentials to work with {@link UserService}.
  * 
  * @author knd
  */
@@ -76,9 +76,10 @@ public class LegacyAccessManager {
      * 
      * @param manager
      */
-    public void transferCredentials(AccessManager manager) {
+    public void transferCredentials(UserService manager) {
         for (LegacyAccessManager.Credentials creds : credentials.values()) {
-            manager.insert(ByteBuffers.decodeFromHex(creds.getUsername()),
+            manager.insertFromLegacy(
+                    ByteBuffers.decodeFromHex(creds.getUsername()),
                     ByteBuffers.decodeFromHex(creds.getPassword()),
                     creds.getSalt());
         }
@@ -123,7 +124,7 @@ public class LegacyAccessManager {
             channel.write(bytes);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             FileSystem.closeFileChannel(channel);

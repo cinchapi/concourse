@@ -1,6 +1,33 @@
 ## Changelog
 
-#### Version 0.9.0 (TBD)
+#### Version 0.9.0 (May 30, 2018)
+
+##### Vulnerabilities
+* Fixed a vulnerability that made it possible for a malicious plugin archive that contained entry names with path traversal elements to execute arbitrary code on the filesystem, if installed. This vulnerability, which was first disclosed by the [Snyk Security Research Team](https://snyk.io/docs/security), existed because Concourse did not verify that an entry, potentially extracted from a zipfile, would exist within the target directory if actually extracted. We've fixed this vulnerability by switching to the [zt-zip](https://github.com/zeroturnaround/zt-zip) library for internal zip handling. In addition to having protections against this vulnerability, `zt-zip` is battle-tested and well maintained by [ZeroTurnaround](https://zeroturnaround.com/). Thanks again to the Snyk Security Research Team for disclosing this vulnerability.
+
+##### Security Model
+* Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
+	* All previously existing users are assigned the `ADMIN` role on upgrade. You can change a user's role using the `users` CLI.
+	* The `users create` command now requires a role to be provided interactively when prompted or non-interactively using the `--set-role` parameter.
+* Added an `edit` option to the `users` CLI that allows for setting a user's role and/or changing the password. The password can also still be changed using the `password` option of the `users` CLI.
+* Removed a constraint the prevented the default `admin` user account from being deleted.
+* Added additional logging around the upgrade process.
+* Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
+* Upgraded some internal libraries to help make server startup time faster.
+* Fixed a bug in `concourse-driver-java` that caused the `navigate` functions to report errors incorrectly.
+* Added *user permissions*. Each non-admin user account can be granted permission to `READ` or `WRITE` data within a specific environment:
+	* Permissions can be granted and revoked for a non-admin role user by a user who has the admin role.
+	* Permissions are granted on a per environment basis.
+	* A user with `READ` permission can read data from an environment but cannot write data.
+	* A user with `WRITE` permission can read and write data in an environment.
+	* Users with the admin role implicitly have `WRITE` permission to every environment.
+	* If a user's role is downgraded from admin to user, she will have the permissions she has before being assigned the admin role.
+	* If a user attempts to invoke a function for which she doesn't have permission, a `PermissionException` will be thrown, but the user's session will not terminate.
+	* A user with the admin role cannot have any of her permissions revoked.
+	* Plugins automatically inherit a user's access (based on role and permission).
+	* Service users that operate on behalf of plugins have `WRITE` access to every environment.
+
+##### Data Types
 * Added a `Criteria#at(Timestamp)` method to transform any `Criteria` object into one that has all clauses pinned to a specific `Timestamp`.
 * Added a static `Criteria#parse(String)` method to parse a CCL statement and produce an analogous `Criteria` object.
 * Streamlined the logic for server-side atomic operations to unlock higher performance potential.
@@ -12,9 +39,22 @@
 	* The `concourse-driver-ruby` uses the [`DateTime`](https://ruby-doc.org/stdlib-2.3.1/libdoc/date/rdoc/DateTime.html) class to represent `TIMESTAMP` values.
 	* The Concourse REST API allows specifying `TIMESTAMP` values as strings by prepending and appending a `|` to the value (e.g. `|December 30, 1987|`). It is also possible to specify a formatting pattern after the value like `|December 30, 1987|MMM dd, yyyy|`.
 * Added a `Timestamp#isDateOnly` method that returns `true` if a `Timestamp` does not contain a relevant temporal component (e.g. the `Timestamp` was created from a date string instead of a datetime string or a timestring).
+
+##### Performance
 * Upgraded the CCL parser to a newer and more efficient version. This change will yield general performance improvements in methods that parse CCL statements during evaluation.
+
+##### Developer Experience
 * The test Concourse instance used in a `ClientServerTest` will no longer be automatically deleted when the test fails. This will allow for manual inspection of the instance when debugging the test failure.
+* Added additional logging for plugin errors.
+* Added a `manage` interface to the driver APIs. This interface exposes a limited number of management methods that can be invoked programatically.
+
+##### Bug Fixes
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
+* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render improperly if data was added using the `putAll` method.
+* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string.
+* Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
+
+##### Miscellaneous
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
 #### Version 0.8.2 (April 17, 2018)

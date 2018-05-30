@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,10 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.PermissionException;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
@@ -62,7 +64,6 @@ import com.cinchapi.concourse.util.Version;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -152,7 +153,12 @@ public final class ConcourseShell {
                 }
             }
             else {
-                cash.enableInteractiveSettings();
+                try {
+                    cash.enableInteractiveSettings();
+                }
+                catch (PermissionException e) {
+                    die(e.getMessage());
+                }
                 boolean running = true;
                 String input = "";
                 while (running) {
@@ -323,7 +329,7 @@ public final class ConcourseShell {
                 return text;
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
@@ -733,7 +739,7 @@ public final class ConcourseShell {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -770,8 +776,8 @@ public final class ConcourseShell {
             }
 
         }));
-        CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
+        CommandLine.displayWelcomeBanner();
         setDefaultPrompt();
         console.println(
                 "Client Version " + Version.getVersion(ConcourseShell.class));

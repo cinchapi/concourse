@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,6 +160,12 @@ public abstract class Concourse implements AutoCloseable {
      * The interface to use for all {@link #calculate() calculation} methods.
      */
     private Calculator calculator = null;
+
+    /**
+     * The interface to all of Concourse's client-side {@link #manage()
+     * management} methods.
+     */
+    private Manager manager = null;
 
     /**
      * Abort the current transaction and discard any changes that are currently
@@ -2225,6 +2231,19 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code true} if the link is added
      */
     public abstract boolean link(String key, long destination, long source);
+
+    /**
+     * Return a {@link Manager} to perform management operations to the
+     * connected Concourse Server deployment.
+     * 
+     * @return the {@link Manager management} interface
+     */
+    public Manager manage() {
+        if(manager == null) {
+            manager = new Manager(this);
+        }
+        return manager;
+    }
 
     /**
      * Traverse the document-graph along each of the navigation {@code keys},

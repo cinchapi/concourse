@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import spark.route.RouteMatch;
 import spark.utils.IOUtils;
 import spark.utils.SparkUtils;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.http.HttpRequest;
 import com.cinchapi.concourse.util.DataServices;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 
@@ -197,7 +197,7 @@ public class Request implements HttpRequest {
                 body = IOUtils.toString(servletRequest.getInputStream());
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
         return body;

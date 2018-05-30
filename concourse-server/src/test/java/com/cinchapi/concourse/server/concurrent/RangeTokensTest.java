@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Assert.assertEquals(range, Range.singleton(value));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testConvertNotEqualRangeToken() {
         Text key = TestData.getText();

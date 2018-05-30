@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,13 @@ import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.server.AbstractNonblockingServer.*;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.Longs;
 
 @SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked", "unused" })
 /**
@@ -111,8 +113,21 @@ public class TObject implements
                 else if(o2 instanceof Number) {
                     return 1;
                 }
+                else if(o1 instanceof Timestamp && o2 instanceof Timestamp) {
+                    return Longs.compare(((Timestamp) o1).getMicros(),
+                            ((Timestamp) o2).getMicros());
+                }
                 else {
-                    return o1.toString().compareToIgnoreCase(o2.toString());
+                    // NOTE: Timestamp's #toString may change depending upon the
+                    // configured formatter so we use the #toString for the
+                    // internal micros for consistency.
+                    String o1s = o1 instanceof Timestamp
+                            ? Long.toString(((Timestamp) o1).getMicros())
+                            : o1.toString();
+                    String o2s = o2 instanceof Timestamp
+                            ? Long.toString(((Timestamp) o2).getMicros())
+                            : o2.toString();
+                    return o1s.compareToIgnoreCase(o2s);
                 }
             }
         };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concourse.server.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,12 +21,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method defined in {@link ConcourseServer} is considered an
- * atomic operation that compounds multiple steps which must all succeed or fail
- * together.
- * 
+ * Indicates that a method requires an {@link AccessToken} that
+ * <ul>
+ * <li>is valid (authoritatively issued and not expired)</li>,
+ * <li>is associated with the correct transaction
+ * <li>
+ * </ul>
+ *
  * @author Jeff Nelson
  */
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@Retention(RetentionPolicy.SOURCE)
-public @interface Atomic {}
+public @interface VerifyAccessToken {}

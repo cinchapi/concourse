@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.nio.file.StandardOpenOption;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
-import com.google.common.base.Throwables;
 
 /**
  * A 32-bit integer value that is maintained within a {@link MappedByteBuffer
@@ -95,7 +95,7 @@ public final class MappedAtomicInteger {
             this.storage = channel.map(MapMode.READ_WRITE, position, SIZE);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -125,7 +125,7 @@ public final class MappedAtomicInteger {
             this.storage = channel.map(MapMode.READ_WRITE, position, SIZE);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -155,7 +155,7 @@ public final class MappedAtomicInteger {
             channel.close();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

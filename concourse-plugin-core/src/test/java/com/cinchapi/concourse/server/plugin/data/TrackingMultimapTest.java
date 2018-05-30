@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.DataType;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
@@ -292,6 +293,22 @@ public class TrackingMultimapTest
         TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
                 .create(ObjectResultDataset.OBJECT_COMPARATOR);
         Assert.assertEquals(0, tmmap.percentKeyDataType(DataType.NUMBER), 0);
+    }
+
+    @Test
+    public void testPercentKeyDataTypeTimestamp() {
+        TrackingMultimap<Object, Long> tmmap = TrackingLinkedHashMultimap
+                .create(ObjectResultDataset.OBJECT_COMPARATOR);
+        Timestamp t1 = Timestamp.now();
+        Timestamp t2 = Timestamp.now();
+        Timestamp t3 = Timestamp.now();
+        Object t4 = Random.getObject();
+        tmmap.insert(t1, 1L);
+        tmmap.insert(t2, 2L);
+        tmmap.insert(t3, 1L);
+        tmmap.insert(t4, 17L);
+        Assert.assertEquals(0.75, tmmap.percentKeyDataType(DataType.TIMESTAMP),
+                0);
     }
 
     /**

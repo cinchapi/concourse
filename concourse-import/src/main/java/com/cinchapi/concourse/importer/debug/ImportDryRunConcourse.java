@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,12 +285,15 @@ public class ImportDryRunConcourse extends Concourse {
     public String dump() {
         StringBuilder sb = new StringBuilder();
         synchronized (imported) {
+            sb.append("[");
             for (Multimap<String, Object> map : imported) {
-                sb.append(Convert.mapToJson(map))
-                        .append(System.lineSeparator());
+                sb.append(Convert.mapToJson(map)).append(",");
             }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("]");
             return sb.toString();
         }
+
     }
 
     @Override

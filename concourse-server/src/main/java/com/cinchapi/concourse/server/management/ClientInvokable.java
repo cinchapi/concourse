@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concourse.server.management;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Indicates that a function in {@link ConcourseServer} performs more than one
- * {@link Engine} operation as a single {@link AtomicOperation}.
- * 
+ * Indicates a method that is callable from the client (instead of management)
+ * interface via the {@code invokeManagement} method.
+ *
  * @author Jeff Nelson
  */
-public @interface Batch {}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ClientInvokable {}

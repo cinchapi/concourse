@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concourse.server.aop;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import com.cinchapi.concourse.thrift.ManagementException;
 
 /**
- * Indicates that a method in {@link ConcourseServer} reads data from a previous
- * state.
- * 
- * @author Jeff Nelson
+ * Indicates that a method propagates exceptions to the client as a
+ * {@link ManagementException}..
  */
-public @interface HistoricalRead {}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ThrowsManagementExceptions {}

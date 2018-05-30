@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,15 @@ import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.cinchapi.concourse.thrift.Operator;
@@ -39,7 +45,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -123,7 +128,8 @@ public final class Convert {
      * {@link #jsonToJava(JsonReader)}.
      */
     private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
-            .newHashSet(Link.class, Tag.class, ResolvableLink.class);
+            .newHashSet(Link.class, Tag.class, ResolvableLink.class,
+                    Timestamp.class);
 
     /**
      * A {@link Pattern} that can be used to determine whether a string matches
@@ -166,7 +172,7 @@ public final class Convert {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         return result;
     }
@@ -268,6 +274,17 @@ public final class Convert {
                         object.toString().getBytes(StandardCharsets.UTF_8));
                 type = Type.TAG;
             }
+            else if(object instanceof Timestamp) {
+                try {
+                    bytes = ByteBuffer.allocate(8);
+                    bytes.putLong(((Timestamp) object).getMicros());
+                    type = Type.TIMESTAMP;
+                }
+                catch (IllegalStateException e) {
+                    throw new UnsupportedOperationException(
+                            "Cannot convert string based Timestamp to a TObject");
+                }
+            }
             else {
                 bytes = ByteBuffer.wrap(
                         object.toString().getBytes(StandardCharsets.UTF_8));
@@ -303,7 +320,7 @@ public final class Convert {
             return jsonToJava(reader);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -503,6 +520,30 @@ public final class Convert {
         else if(first == '`' && last == '`') {
             return Tag.create(value.substring(1, value.length() - 1));
         }
+        else if(first == '|' && last == '|') {
+            value = value.substring(1, value.length() - 1);
+            String[] toks = value.split("\\|");
+            Timestamp timestamp;
+            if(toks.length == 1) {
+                // #value is a timestring that intends to rely on either one of
+                // the built-in DateTimeFormatters or the natural language
+                // translation in order to figure out the microseconds with
+                // which to create the Timestamp
+                timestamp = Timestamp
+                        .fromMicros(NaturalLanguage.parseMicros(value));
+            }
+            else {
+                // #value looks like timestring|format in which case the second
+                // part is the DateTimeFormatter to use for getting the
+                // microseconds with which to create the Timestamp
+                // Valid formatting options can be found at
+                // http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html
+                DateTimeFormatter formatter = DateTimeFormat
+                        .forPattern(toks[1]);
+                timestamp = Timestamp.parse(toks[0], formatter);
+            }
+            return timestamp;
+        }
         else {
             return MoreObjects.firstNonNull(Strings.tryParseNumber(value),
                     value);
@@ -639,6 +680,9 @@ public final class Convert {
                 break;
             case TAG:
                 java = ByteBuffers.getString(buffer);
+                break;
+            case TIMESTAMP:
+                java = Timestamp.fromMicros(buffer.getLong());
                 break;
             case NULL:
                 java = null;

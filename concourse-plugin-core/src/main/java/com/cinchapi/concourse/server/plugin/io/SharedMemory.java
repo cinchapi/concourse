@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -256,14 +255,14 @@ public final class SharedMemory implements InterProcessCommunication {
                         channel.close();
                     }
                     catch (IOException e) {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
 
             });
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         this.lastCompaction = System.currentTimeMillis();
     }
@@ -314,7 +313,7 @@ public final class SharedMemory implements InterProcessCommunication {
             memory.force();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             lastCompaction = System.currentTimeMillis();
@@ -347,7 +346,7 @@ public final class SharedMemory implements InterProcessCommunication {
                         Thread.sleep(SPIN_BACKOFF_IN_MILLIS);
                     }
                     catch (InterruptedException e) {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
             }
@@ -517,7 +516,7 @@ public final class SharedMemory implements InterProcessCommunication {
             memory.position(position);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

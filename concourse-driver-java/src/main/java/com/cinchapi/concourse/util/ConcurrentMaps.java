@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * Utility class for the {@link ConcurrentMap} interface.
@@ -80,7 +80,7 @@ public final class ConcurrentMaps {
                             hashCode.wait();
                         }
                         catch (InterruptedException e) {
-                            throw Throwables.propagate(e);
+                            throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
                     }
                     else {

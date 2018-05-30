@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class SecurityExceptionTest extends ConcourseIntegrationTest {
     @Test
     public void testTSecurityExceptionIsThrown() {
         try {
-            grantAccess("admin", "admin2");
+            setUserPassword("admin", "admin2");
             client.add("name", "brad", 1); // this should throw
                                            // SecurityException
             Assert.fail("Expecting SecurityException");

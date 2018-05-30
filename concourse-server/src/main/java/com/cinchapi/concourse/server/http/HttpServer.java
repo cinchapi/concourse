@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import spark.Route;
 import spark.Spark;
 import ch.qos.logback.classic.Level;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
@@ -37,7 +38,6 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
@@ -280,7 +280,7 @@ public class HttpServer {
                 clearRoutes.invoke(null);
             }
             catch (ReflectiveOperationException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
 
         }

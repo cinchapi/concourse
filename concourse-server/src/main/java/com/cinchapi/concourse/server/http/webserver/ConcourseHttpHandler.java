@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ import org.eclipse.jetty.server.session.SessionHandler;
 
 import spark.webserver.NotConsumedException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpAuthToken;
 import com.cinchapi.concourse.server.http.HttpRequests;
 import com.cinchapi.concourse.util.ObjectUtils;
 import com.cinchapi.concourse.util.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * Simple Jetty Handler
@@ -137,7 +137,7 @@ public class ConcourseHttpHandler extends SessionHandler {
                                         .getCause() != null & e
                                                 .getCause() instanceof GeneralSecurityException)) {}
                         else {
-                            throw Throwables.propagate(e);
+                            throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
                     }
                 }
@@ -171,7 +171,7 @@ public class ConcourseHttpHandler extends SessionHandler {
                                     .getCause() != null & e
                                             .getCause() instanceof GeneralSecurityException)) {}
                     else {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
             }

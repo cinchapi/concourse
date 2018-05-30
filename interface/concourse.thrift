@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017 Cinchapi Inc.
+# Copyright (c) 2013-2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ namespace rb concourse.thrift
 #
 # As much as possible, try to preserve backward compatibility so that
 # Concourse Server can always talk to older drivers.
-const string VERSION = "0.5.0"
+const string VERSION = "0.9.0"
 
 # This value is passed over the wire to represent a null value, usually
 # for get/select methods where a key/record has no data.
@@ -119,11 +119,14 @@ service ConcourseService {
     2: data.TObject value,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * Append {@code key} as {@code value} in {@code record}.
@@ -152,11 +155,14 @@ service ConcourseService {
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * Append {@code key} as {@code value} in each of the {@code records} where it
@@ -188,11 +194,14 @@ service ConcourseService {
     3: list<i64> records,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List all the changes ever made to {@code record}.
@@ -216,10 +225,13 @@ service ConcourseService {
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to {@code record} since {@code start}
@@ -247,10 +259,13 @@ service ConcourseService {
     2: i64 start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to {@code record} since {@code start}
@@ -280,11 +295,14 @@ service ConcourseService {
     2: string start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List all the changes made to {@code record} between {@code start}
@@ -315,10 +333,13 @@ service ConcourseService {
     3: i64 tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to {@code record} between {@code start}
@@ -351,11 +372,14 @@ service ConcourseService {
     3: string tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List all the changes ever made to the {@code key} field in {@code record}.
@@ -381,10 +405,13 @@ service ConcourseService {
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to the {@code key} field in {@code record} since
@@ -414,10 +441,13 @@ service ConcourseService {
     3: i64 start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to the {@code key} field in {@code record} since
@@ -449,11 +479,14 @@ service ConcourseService {
     3: string start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List all the changes made to the {@code key} field in {@code record}
@@ -486,10 +519,13 @@ service ConcourseService {
     4: i64 tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the changes made to the {@code key} field in {@code record}
@@ -524,11 +560,14 @@ service ConcourseService {
     4: string tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * View the values from all records that are currently stored for {@code key}.
@@ -552,10 +591,13 @@ service ConcourseService {
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View the values from all records that are currently stored for each of the
@@ -581,10 +623,13 @@ service ConcourseService {
     1: list<string> keys,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View the values from all records that were stored for {@code key} at
@@ -612,10 +657,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View the values from all records that were stored for {@code key} at
@@ -645,11 +693,14 @@ service ConcourseService {
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * View the values from all records that were stored for each of the
@@ -677,10 +728,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View the values from all records that were stored for each of the
@@ -710,11 +764,14 @@ service ConcourseService {
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * View a time series that associates the timestamp of each modification for
@@ -743,10 +800,13 @@ service ConcourseService {
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View a time series between {@code start} (inclusive) and the present that
@@ -779,10 +839,13 @@ service ConcourseService {
     3: i64 start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View a time series between {@code start} (inclusive) and the present that
@@ -817,11 +880,14 @@ service ConcourseService {
     3: string start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * View a time series between {@code start} (inclusive) and {@code end}
@@ -857,10 +923,13 @@ service ConcourseService {
     4: i64 tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * View a time series between {@code start} (inclusive) and {@code end}
@@ -898,11 +967,14 @@ service ConcourseService {
     4: string tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /*
    * Atomically remove all the values stored for every key in {@code record}.
@@ -924,10 +996,13 @@ service ConcourseService {
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /*
    * Atomically remove all the values stored for every key in each of the
@@ -950,10 +1025,13 @@ service ConcourseService {
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /*
    * Atomically remove all the values stored for {@code key} in {@code record}
@@ -977,10 +1055,13 @@ service ConcourseService {
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /*
    * Atomically remove all the values stored for each of the {@code keys} in
@@ -1005,10 +1086,13 @@ service ConcourseService {
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /*
    * Atomically remove all the values stored for {@code key} in each of the
@@ -1033,10 +1117,13 @@ service ConcourseService {
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /*
    * Atomically remove all the values stored for each of the {@code keys} in
@@ -1061,10 +1148,13 @@ service ConcourseService {
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * Attempt to permanently commit any changes that are staged in a transaction
@@ -1096,10 +1186,13 @@ service ConcourseService {
   bool commit(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-    3: string environment)
+    3: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in the database.
@@ -1120,10 +1213,13 @@ service ConcourseService {
   set<string> describe(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-    3: string environment)
+    3: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2)
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  )
 
   /**
    * List all the keys in the database at {@code timestamp}.
@@ -1147,10 +1243,13 @@ service ConcourseService {
     1: i64 timestamp,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in the database at {@code timestamp}.
@@ -1174,10 +1273,13 @@ service ConcourseService {
     1: string timestamp,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in {@code record} that have at least one value.
@@ -1200,10 +1302,13 @@ service ConcourseService {
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in {@code record} that had at least one value at
@@ -1230,10 +1335,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in {@code record} that have at least one value.
@@ -1261,11 +1369,14 @@ service ConcourseService {
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * For each of the {@code records}, list all of the keys that have at least
@@ -1290,10 +1401,13 @@ service ConcourseService {
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * For each of the {@code records}, list all the keys that had at least one
@@ -1320,10 +1434,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * For each of the {@code records}, list all the keys that had at least one
@@ -1352,11 +1469,14 @@ service ConcourseService {
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to {@code record} since {@code start}.
@@ -1393,10 +1513,13 @@ service ConcourseService {
     2: i64 start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to {@code record} since {@code start}.
@@ -1435,11 +1558,14 @@ service ConcourseService {
     2: string start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to {@code record} from {@code start} to
@@ -1479,10 +1605,13 @@ service ConcourseService {
     3: i64 tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to {@code record} from {@code start} to
@@ -1524,11 +1653,14 @@ service ConcourseService {
     3: string tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to {@code key} in {@code record} since
@@ -1566,10 +1698,13 @@ service ConcourseService {
     3: i64 start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to {@code key} in {@code record} since
@@ -1609,11 +1744,14 @@ service ConcourseService {
     3: string start,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to {@code key} in {@code record} from
@@ -1653,10 +1791,13 @@ service ConcourseService {
     4: i64 tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to {@code key} in {@code record} from
@@ -1698,11 +1839,14 @@ service ConcourseService {
     4: string tend,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to the {@code key} field across all records
@@ -1740,10 +1884,13 @@ service ConcourseService {
     2: i64 start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to the {@code key} field across all records
@@ -1783,11 +1930,14 @@ service ConcourseService {
     2: string start,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * List the net changes made to the {@code key} field across all records
@@ -1827,10 +1977,13 @@ service ConcourseService {
     3: i64 tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List the net changes made to the {@code key} field across all records
@@ -1872,11 +2025,14 @@ service ConcourseService {
     3: string tend,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * Invoke a Plugin method.
@@ -1911,11 +2067,14 @@ service ConcourseService {
     3: list<complex.ComplexTObject> params,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * Attempt to authenticate the user identified by the {@code username} and
@@ -1939,9 +2098,12 @@ service ConcourseService {
   shared.AccessToken login(
     1: binary username,
     2: binary password,
-    3: string environment)
+    3: string environment
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex,
+    2: exceptions.PermissionException ex2
+  );
 
   /**
    * Terminate the session within {@code environment} for the user represented
@@ -1956,9 +2118,12 @@ service ConcourseService {
    */
   void logout(
     1: shared.AccessToken token,
-    2: string environment)
+    2: string environment
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex,
+    2: exceptions.PermissionException ex2
+  );
 
   /**
    * Start a new transaction.
@@ -1982,9 +2147,12 @@ service ConcourseService {
    */
   shared.TransactionToken stage(
     1: shared.AccessToken token,
-    2: string environment)
+    2: string environment
+  )
   throws (
-    1: exceptions.SecurityException ex);
+    1: exceptions.SecurityException ex,
+    2: exceptions.PermissionException ex2
+  );
 
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1995,33 +2163,45 @@ service ConcourseService {
     1: string json
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4,
+    5: exceptions.PermissionException ex5
+  );
 
   bool insertJsonRecord(
     1: string json
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4,
+    5: exceptions.PermissionException ex5
+  );
 
   map<i64, bool> insertJsonRecords(
     1: string json
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.InvalidArgumentException ex4,
+    5: exceptions.PermissionException ex5
+  );
 
   bool removeKeyValueRecord(
     1: string key,
@@ -2029,11 +2209,14 @@ service ConcourseService {
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, bool> removeKeyValueRecords(
     1: string key
@@ -2041,11 +2224,14 @@ service ConcourseService {
     3: list<i64> records,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   void setKeyValueRecord(
     1: string key,
@@ -2053,22 +2239,28 @@ service ConcourseService {
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 setKeyValue(
     1: string key,
     2: data.TObject value,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   void setKeyValueRecords(
     1: string key
@@ -2076,11 +2268,14 @@ service ConcourseService {
     3: list<i64> records,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   /**
    * The {@code value} in {@code key} of {@code record} are added
@@ -2110,11 +2305,14 @@ service ConcourseService {
     3: set<data.TObject> values,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Read Methods ~~~~~~~~
@@ -2123,80 +2321,104 @@ service ConcourseService {
   set<i64> inventory(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-    3: string environment)
+    3: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, set<data.TObject>> selectRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectRecords(
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, set<data.TObject>> selectRecordTime(
     1: i64 record,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, set<data.TObject>> selectRecordTimestr(
     1: i64 record,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTime(
     1: list<i64> records,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectRecordsTimestr(
     1: list<i64> records,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<data.TObject> selectKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   set<data.TObject> selectKeyRecordTime(
     1: string key,
@@ -2204,10 +2426,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   set<data.TObject> selectKeyRecordTimestr(
     1: string key,
@@ -2215,21 +2440,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<string, set<data.TObject>> selectKeysRecord(
     1: list<string> keys,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, set<data.TObject>> selectKeysRecordTime(
     1: list<string> keys,
@@ -2237,10 +2468,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, set<data.TObject>> selectKeysRecordTimestr(
     1: list<string> keys,
@@ -2248,31 +2482,40 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecords(
     1: list<string> keys,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> selectKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> selectKeyRecordsTime(
     1: string key,
@@ -2280,10 +2523,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> selectKeyRecordsTimestr(
     1: string key,
@@ -2291,11 +2537,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecordsTime(
     1: list<string> keys,
@@ -2303,10 +2552,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysRecordsTimestr(
     1: list<string> keys,
@@ -2314,94 +2566,121 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectCriteria(
     1: data.TCriteria criteria,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
     map<i64, map<string, set<data.TObject>>> selectCriteriaTime(
     1: data.TCriteria criteria,
     2: i64 timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectCriteriaTimestr(
     1: data.TCriteria criteria,
     2: string timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectCclTime(
     1: string ccl,
     2: i64 timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
     map<i64, map<string, set<data.TObject>>> selectCclTimestr(
     1: string ccl,
     2: string timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> selectKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> selectKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> selectKeyCriteriaTime(
     1: string key,
@@ -2409,10 +2688,13 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> selectKeyCriteriaTimestr(
     1: string key,
@@ -2420,11 +2702,14 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> selectKeyCclTime(
     1: string key,
@@ -2432,44 +2717,56 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, set<data.TObject>> selectKeyCclTimestr(
+  map<i64, set<data.TObject>> selectKeyCclTimestr(
     1: string key,
     2: string ccl,
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteria(
     1: list<string> keys,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysCcl(
     1: list<string> keys,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTime(
     1: list<string> keys,
@@ -2477,10 +2774,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimestr(
     1: list<string> keys,
@@ -2488,11 +2788,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> selectKeysCclTime(
     1: list<string> keys,
@@ -2500,33 +2803,42 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, map<string, set<data.TObject>>> selectKeysCclTimestr(
+  map<i64, map<string, set<data.TObject>>> selectKeysCclTimestr(
     1: list<string> keys,
     2: string ccl,
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject getKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject getKeyRecordTime(
     1: string key,
@@ -2534,10 +2846,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject getKeyRecordTimestr(
     1: string key,
@@ -2545,21 +2860,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<string, data.TObject> getKeysRecord(
     1: list<string> keys,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, data.TObject> getKeysRecordTime(
     1: list<string> keys,
@@ -2567,10 +2888,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<string, data.TObject> getKeysRecordTimestr(
     1: list<string> keys,
@@ -2578,31 +2902,40 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getKeysRecords(
     1: list<string> keys,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, data.TObject> getKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, data.TObject> getKeyRecordsTime(
     1: string key,
@@ -2610,10 +2943,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, data.TObject> getKeyRecordsTimestr(
     1: string key,
@@ -2621,11 +2957,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getKeysRecordsTime(
     1: list<string> keys,
@@ -2633,10 +2972,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getKeysRecordsTimestr(
     1: list<string> keys,
@@ -2644,94 +2986,121 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, data.TObject> getKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getCriteria(
     1: data.TCriteria criteria,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, map<string, data.TObject>> getCriteriaTime(
+  map<i64, map<string, data.TObject>> getCriteriaTime(
     1: data.TCriteria criteria,
     2: i64 timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getCriteriaTimestr(
     1: data.TCriteria criteria,
     2: string timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getCclTime(
     1: string ccl,
     2: i64 timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, map<string, data.TObject>> getCclTimestr(
+  map<i64, map<string, data.TObject>> getCclTimestr(
     1: string ccl,
     2: string timestamp
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, data.TObject> getKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, data.TObject> getKeyCriteriaTime(
     1: string key,
@@ -2739,10 +3108,13 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, data.TObject> getKeyCriteriaTimestr(
     1: string key,
@@ -2750,11 +3122,14 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, data.TObject> getKeyCclTime(
     1: string key,
@@ -2762,44 +3137,56 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, data.TObject> getKeyCclTimestr(
+  map<i64, data.TObject> getKeyCclTimestr(
     1: string key,
     2: string ccl,
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getKeysCriteria(
     1: list<string> keys,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getKeysCcl(
     1: list<string> keys,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getKeysCriteriaTime(
     1: list<string> keys,
@@ -2807,10 +3194,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, data.TObject>> getKeysCriteriaTimestr(
     1: list<string> keys,
@@ -2818,11 +3208,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, data.TObject>> getKeysCclTime(
     1: list<string> keys,
@@ -2830,23 +3223,29 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
-    map<i64, map<string, data.TObject>> getKeysCclTimestr(
+  map<i64, map<string, data.TObject>> getKeysCclTimestr(
     1: list<string> keys,
     2: string ccl,
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   bool verifyKeyValueRecord(
     1: string key,
@@ -2854,10 +3253,13 @@ service ConcourseService {
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   bool verifyKeyValueRecordTime(
     1: string key,
@@ -2866,10 +3268,13 @@ service ConcourseService {
     4: i64 timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   bool verifyKeyValueRecordTimestr(
     1: string key,
@@ -2878,21 +3283,27 @@ service ConcourseService {
     4: string timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   string jsonifyRecords(
     1: list<i64> records,
     2: bool identifier,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   string jsonifyRecordsTime(
     1: list<i64> records,
@@ -2900,10 +3311,13 @@ service ConcourseService {
     3: bool identifier,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   string jsonifyRecordsTimestr(
     1: list<i64> records,
@@ -2911,11 +3325,14 @@ service ConcourseService {
     3: bool identifier,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Query Methods ~~~~~~~~
@@ -2925,20 +3342,26 @@ service ConcourseService {
     1: data.TCriteria criteria,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   set<i64> findCcl(
     1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<i64> findKeyOperatorValues(
     1: string key,
@@ -2946,10 +3369,13 @@ service ConcourseService {
     3: list<data.TObject> values
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   set<i64> findKeyOperatorValuesTime(
     1: string key,
@@ -2958,10 +3384,13 @@ service ConcourseService {
     4: i64 timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   set<i64> findKeyOperatorValuesTimestr(
     1: string key,
@@ -2970,11 +3399,14 @@ service ConcourseService {
     4: string timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<i64> findKeyOperatorstrValues(
     1: string key,
@@ -2982,11 +3414,14 @@ service ConcourseService {
     3: list<data.TObject> values
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<i64> findKeyOperatorstrValuesTime(
     1: string key,
@@ -2995,11 +3430,14 @@ service ConcourseService {
     4: i64 timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<i64> findKeyOperatorstrValuesTimestr(
     1: string key,
@@ -3008,21 +3446,27 @@ service ConcourseService {
     4: string timestamp,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   set<i64> search(
     1: string key,
     2: string query,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Version Control ~~~~~~~~
@@ -3034,10 +3478,13 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   void revertKeysRecordsTimestr(
     1: list<string> keys,
@@ -3045,11 +3492,14 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   void revertKeysRecordTime(
     1: list<string> keys,
@@ -3057,10 +3507,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   void revertKeysRecordTimestr(
     1: list<string> keys,
@@ -3068,11 +3521,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   void revertKeyRecordsTime(
     1: string key,
@@ -3080,10 +3536,13 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   void revertKeyRecordsTimestr(
     1: string key,
@@ -3091,11 +3550,14 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   void revertKeyRecordTime(
     1: string key,
@@ -3103,10 +3565,13 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   void revertKeyRecordTimestr(
     1: string key,
@@ -3114,11 +3579,14 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Status ~~~~~~~~
@@ -3128,19 +3596,25 @@ service ConcourseService {
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   bool pingRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Atomic Operations ~~~~~~~~
@@ -3153,10 +3627,13 @@ service ConcourseService {
     4: data.TObject replacement,
     5: shared.AccessToken creds,
     6: shared.TransactionToken transaction,
-    7: string environment)
+    7: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   void verifyOrSet(
     1: string key,
@@ -3164,56 +3641,71 @@ service ConcourseService {
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.InvalidArgumentException ex3);
+    3: exceptions.InvalidArgumentException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 findOrAddKeyValue(
     1: string key,
     2: data.TObject value,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.DuplicateEntryException ex3,
-    4: exceptions.InvalidArgumentException ex4);
+    4: exceptions.InvalidArgumentException ex4,
+    5: exceptions.PermissionException ex5
+  );
 
   i64 findOrInsertCriteriaJson(
     1: data.TCriteria criteria,
     2: string json,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.DuplicateEntryException ex3);
+    3: exceptions.DuplicateEntryException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 findOrInsertCclJson(
     1: string ccl,
     2: string json,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
-    4: exceptions.DuplicateEntryException ex4);
+    4: exceptions.DuplicateEntryException ex4,
+    5: exceptions.PermissionException ex5
+  );
 
   data.TObject sumKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyRecordTime(
     1: string key,
@@ -3221,10 +3713,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyRecordTimestr(
     1: string key,
@@ -3232,21 +3727,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyRecordsTime(
     1: string key,
@@ -3254,10 +3755,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyRecordsTimestr(
     1: string key,
@@ -3265,51 +3769,66 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKey(
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyTime(
     1: string key,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyTimestr(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyCriteriaTime(
     1: string key,
@@ -3317,10 +3836,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject sumKeyCriteriaTimestr(
     1: string key,
@@ -3328,22 +3850,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKeyCclTime(
     1: string key,
@@ -3351,11 +3879,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject sumKeyCclTimestr(
     1: string key,
@@ -3363,21 +3894,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyRecordTime(
     1: string key,
@@ -3385,10 +3922,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyRecordTimestr(
     1: string key,
@@ -3396,21 +3936,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyRecordsTime(
     1: string key,
@@ -3418,10 +3964,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyRecordsTimestr(
     1: string key,
@@ -3429,51 +3978,66 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKey(
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyTime(
     1: string key,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyTimestr(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyCriteriaTime(
     1: string key,
@@ -3481,10 +4045,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject averageKeyCriteriaTimestr(
     1: string key,
@@ -3492,22 +4059,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyCclTime(
     1: string key,
@@ -3515,11 +4088,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject averageKeyCclTimestr(
     1: string key,
@@ -3527,21 +4103,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyRecordTime(
     1: string key,
@@ -3549,10 +4131,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyRecordTimestr(
     1: string key,
@@ -3560,21 +4145,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyRecordsTime(
     1: string key,
@@ -3582,10 +4173,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
    i64 countKeyRecordsTimestr(
     1: string key,
@@ -3593,51 +4187,66 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKey(
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyTime(
     1: string key,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyTimestr(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 countKeyCriteriaTime(
     1: string key,
@@ -3645,11 +4254,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyCriteriaTimestr(
     1: string key,
@@ -3657,22 +4269,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyCclTime(
     1: string key,
@@ -3680,11 +4298,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   i64 countKeyCclTimestr(
     1: string key,
@@ -3692,21 +4313,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyRecordTime(
     1: string key,
@@ -3714,11 +4341,13 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyRecordTimestr(
     1: string key,
@@ -3726,21 +4355,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyRecordsTime(
     1: string key,
@@ -3748,10 +4383,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
    data.TObject maxKeyRecordsTimestr(
     1: string key,
@@ -3759,11 +4397,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyCriteria(
     1: string key,
@@ -3791,10 +4432,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyCriteriaTime(
     1: string key,
@@ -3802,10 +4446,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyCriteriaTimestr(
     1: string key,
@@ -3813,22 +4460,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyCcl(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyCclTime(
     1: string key,
@@ -3836,11 +4489,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKeyCclTimestr(
     1: string key,
@@ -3848,52 +4504,66 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject maxKey(
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyTime(
     1: string key,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject maxKeyTimestr(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject minKeyRecordTime(
     1: string key,
@@ -3901,10 +4571,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject minKeyRecordTimestr(
     1: string key,
@@ -3912,20 +4585,26 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKey(
     1: string key,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject minKeyRecordsTime(
     1: string key,
@@ -3933,10 +4612,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
    data.TObject minKeyRecordsTimestr(
     1: string key,
@@ -3944,11 +4626,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyCriteria(
     1: string key,
@@ -3976,10 +4661,13 @@ service ConcourseService {
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject minKeyCriteriaTime(
     1: string key,
@@ -3987,10 +4675,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   data.TObject minKeyCriteriaTimestr(
     1: string key,
@@ -3998,22 +4689,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyCcl(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyCclTime(
     1: string key,
@@ -4021,11 +4718,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyCclTimestr(
     1: string key,
@@ -4033,52 +4733,67 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3)
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  )
 
     data.TObject minKeyTime(
       1: string key,
       2: i64 timestamp,
       3: shared.AccessToken creds,
       4: shared.TransactionToken transaction,
-      5: string environment)
+      5: string environment
+    )
     throws (
       1: exceptions.SecurityException ex,
-      2: exceptions.TransactionException ex2);
+      2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+    );
 
   data.TObject minKeyTimestr(
     1: string key,
     2: string timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   data.TObject minKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecordTime(
     1: string key,
@@ -4086,10 +4801,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecordTimestr(
     1: string key,
@@ -4097,21 +4815,27 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysRecord(
     1: list<string> keys,
     2: i64 record,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
    map<i64, map<string, set<data.TObject>>> navigateKeysRecordTime(
     1: list<string> keys,
@@ -4119,10 +4843,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysRecordTimestr(
     1: list<string> keys,
@@ -4130,31 +4857,40 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysRecords(
     1: list<string> keys,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecordsTime(
     1: string key,
@@ -4162,10 +4898,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, set<data.TObject>> navigateKeyRecordsTimestr(
     1: string key,
@@ -4173,11 +4912,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTime(
     1: list<string> keys,
@@ -4185,10 +4927,13 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysRecordsTimestr(
     1: list<string> keys,
@@ -4196,22 +4941,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> navigateKeyCcl(
     1: string key,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
    map<i64, set<data.TObject>> navigateKeyCclTime(
     1: string key,
@@ -4219,11 +4970,14 @@ service ConcourseService {
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> navigateKeyCclTimestr(
     1: string key,
@@ -4231,22 +4985,28 @@ service ConcourseService {
     3: string timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCcl(
     1: list<string> keys,
     2: string ccl,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCclTime(
     1: list<string> keys,
@@ -4254,11 +5014,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCclTimestr(
     1: list<string> keys,
@@ -4266,22 +5029,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> navigateKeyCriteria(
     1: string key,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> navigateKeyCriteriaTime(
     1: string key,
@@ -4289,11 +5058,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, set<data.TObject>> navigateKeyCriteriaTimestr(
     1: string key,
@@ -4301,22 +5073,28 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCriteria(
     1: list<string> keys,
     2: data.TCriteria criteria,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
-    5: string environment)
+    5: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCriteriaTime(
     1: list<string> keys,
@@ -4324,11 +5102,14 @@ service ConcourseService {
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
   map<i64, map<string, set<data.TObject>>> navigateKeysCriteriaTimestr(
     1: list<string> keys,
@@ -4336,11 +5117,14 @@ service ConcourseService {
     3: string timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
-    6: string environment)
+    6: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
 
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4350,30 +5134,52 @@ service ConcourseService {
   string getServerEnvironment(
     1: shared.AccessToken creds,
     2: shared.TransactionToken token,
-    3: string environment)
+    3: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   string getServerVersion() throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 time(
     1: shared.AccessToken creds,
     2: shared.TransactionToken token,
-    3: string environment)
+    3: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2);
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   i64 timePhrase(
     1: string phrase
     2: shared.AccessToken creds,
     3: shared.TransactionToken token,
-    4: string environment)
+    4: string environment
+  )
   throws (
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
-    3: exceptions.ParseException ex3);
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
+
+  complex.ComplexTObject invokeManagement(
+    2: string method,
+    3: list<complex.ComplexTObject> params,
+    4: shared.AccessToken creds,
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+
+  );
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -207,7 +206,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -292,7 +291,7 @@ public class ManagedConcourseServer {
 
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -313,7 +312,7 @@ public class ManagedConcourseServer {
             return false;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -366,6 +365,12 @@ public class ManagedConcourseServer {
     private final ConcourseServerPreferences prefs;
 
     /**
+     * The file whose existence determines whether or not this server should be
+     * destroyed on exit.
+     */
+    private final Path destroyOnExitFlag;
+
+    /**
      * Construct a new instance.
      * 
      * @param installDirectory
@@ -375,11 +380,16 @@ public class ManagedConcourseServer {
         this.prefs = ConcourseServerPreferences.open(installDirectory
                 + File.separator + CONF + File.separator + "concourse.prefs");
         prefs.setLogLevel(Level.DEBUG);
+        this.destroyOnExitFlag = Paths.get(installDirectory)
+                .resolve(".destroyOnExit");
+        destroyOnExit(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
-                destroy();
+                if(destroyOnExit()) {
+                    destroy();
+                }
             }
 
         }));
@@ -405,6 +415,41 @@ public class ManagedConcourseServer {
      */
     public Concourse connect(String username, String password) {
         return new Client(username, password);
+    }
+
+    public Concourse connect(String username, String password,
+            String environment) {
+        return new Client(username, password, environment);
+    }
+
+    /**
+     * Set a flag that determines whether this instance will be destroyed on
+     * exit.
+     * 
+     * @param destroyOnExit
+     */
+    public synchronized void destroyOnExit(boolean destroyOnExit) {
+        try {
+            if(destroyOnExit) {
+                Files.write(destroyOnExitFlag, new byte[] { 1 });
+            }
+            else {
+                Files.deleteIfExists(destroyOnExitFlag);
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return {@code true} if this server should be destroyed when the JVM
+     * exits.
+     * 
+     * @return whether the server should be destroyed or not when the JVM exits
+     */
+    public synchronized boolean destroyOnExit() {
+        return Files.exists(destroyOnExitFlag);
     }
 
     /**
@@ -439,7 +484,7 @@ public class ManagedConcourseServer {
                         installDirectory);
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -479,8 +524,17 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Return the directory where the server stores buffer files.
+     * 
+     * @return the buffer directory
+     */
+    public Path getBufferDirectory() {
+        return Paths.get(prefs.getBufferDirectory());
     }
 
     /**
@@ -490,6 +544,15 @@ public class ManagedConcourseServer {
      */
     public int getClientPort() {
         return prefs.getClientPort();
+    }
+
+    /**
+     * Return the directory where the server stores database files.
+     * 
+     * @return the database directory
+     */
+    public Path getDatabaseDirectory() {
+        return Paths.get(prefs.getDatabaseDirectory());
     }
 
     /**
@@ -506,7 +569,7 @@ public class ManagedConcourseServer {
             return memory.getHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -535,7 +598,7 @@ public class ManagedConcourseServer {
                 mBeanServerConnection = connector.getMBeanServerConnection();
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
         return mBeanServerConnection;
@@ -555,7 +618,7 @@ public class ManagedConcourseServer {
             return memory.getNonHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -634,7 +697,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -649,7 +712,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -699,7 +762,7 @@ public class ManagedConcourseServer {
             ccp.setPassword("admin".toCharArray());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -722,7 +785,7 @@ public class ManagedConcourseServer {
             dir.delete();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -752,7 +815,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -807,7 +870,7 @@ public class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
-        private Object delegate;
+        private final Object delegate;
         private ClassLoader loader;
 
         /**
@@ -824,7 +887,18 @@ public class ManagedConcourseServer {
          * @throws Exception
          */
         public Client(String username, String password) {
-            this(username, password, 5);
+            this(username, password, "");
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
+         * @param environment
+         */
+        public Client(String username, String password, String environment) {
+            this(username, password, environment, 5);
         }
 
         /**
@@ -834,7 +908,9 @@ public class ManagedConcourseServer {
          * @param password
          * @param retries
          */
-        private Client(String username, String password, int retries) {
+        private Client(String username, String password, String environment,
+                int retries) {
+            Object delegate = null;
             while (retries > 0) {
                 --retries;
                 try {
@@ -850,10 +926,11 @@ public class ManagedConcourseServer {
                         packageBase = "org.cinchapi.concourse.";
                         clazz = loader.loadClass(packageBase + "Concourse");
                     }
-                    this.delegate = clazz.getMethod("connect", String.class,
-                            int.class, String.class, String.class).invoke(null,
-                                    "localhost", getClientPort(), username,
-                                    password);
+                    delegate = clazz
+                            .getMethod("connect", String.class, int.class,
+                                    String.class, String.class, String.class)
+                            .invoke(null, "localhost", getClientPort(),
+                                    username, password, environment);
                 }
                 catch (InvocationTargetException e) {
                     Throwable target = e.getTargetException();
@@ -866,7 +943,7 @@ public class ManagedConcourseServer {
                         // get around that by retrying the connection a handful
                         // of times before failing.
                         try {
-                            Thread.sleep(500);
+                            Thread.sleep(2000);
                             continue;
                         }
                         catch (InterruptedException t) {/* ignore */}
@@ -879,6 +956,11 @@ public class ManagedConcourseServer {
                     throw CheckedExceptions.throwAsRuntimeException(e);
                 }
             }
+            if(delegate == null) {
+                throw new RuntimeException(
+                        "Could not connect to server before timeout...");
+            }
+            this.delegate = delegate;
         }
 
         @Override
@@ -1974,7 +2056,7 @@ public class ManagedConcourseServer {
                         method, parameterTypes));
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -2076,7 +2158,7 @@ public class ManagedConcourseServer {
                             method.invoke(delegate, args));
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -704,6 +704,7 @@ public final class Database extends BaseStore implements PermanentStore {
             this.blocks = blocks;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void run() {
             File _file = null;
@@ -728,8 +729,8 @@ public final class Database extends BaseStore implements PermanentStore {
                     Constructor<T> constructor = clazz.getDeclaredConstructor(
                             String.class, String.class, Boolean.TYPE);
                     constructor.setAccessible(true);
-                    String checksum = Files.hash(file, Hashing.md5())
-                            .toString();
+                    String checksum = Files.asByteSource(file)
+                            .hash(Hashing.md5()).toString();
                     if(!checksums.contains(checksum)) {
                         blockSorter.put(file, constructor.newInstance(id,
                                 path.toString(), true));

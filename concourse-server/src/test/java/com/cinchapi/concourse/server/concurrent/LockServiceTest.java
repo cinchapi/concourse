@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TestData;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
 /**
@@ -147,7 +147,7 @@ public class LockServiceTest extends ConcourseBaseTest {
                     e.printStackTrace();
                 }
                 catch (InterruptedException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
                 finally {
                     done.set(true);

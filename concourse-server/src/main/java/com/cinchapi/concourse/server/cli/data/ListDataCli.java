@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,15 +44,16 @@ public class ListDataCli extends DataCli {
     @Override
     protected void doTask(Client client) {
         DataOptions opts = (DataOptions) options;
-        System.out.println("These are the storage units "
-                + "that are currently dumpable in the '" + opts.environment
-                + "' environment, sorted in reverse chronological "
-                + "order such that units holding newer data appear "
-                + "first. Call this CLI with the `dump` command "
-                + "followed by the id of the storage unit you want "
-                + "to dump.");
         try {
-            System.out.println(client.getDumpList(opts.environment, token));
+            String list = client.getDumpList(opts.environment, token);
+            System.out.println("These are the storage units "
+                    + "that are currently dumpable in the '" + opts.environment
+                    + "' environment, sorted in reverse chronological "
+                    + "order such that units holding newer data appear "
+                    + "first. Call this CLI with the `dump` command "
+                    + "followed by the id of the storage unit you want "
+                    + "to dump.");
+            System.out.println(list);
         }
         catch (Exception e) {
             die(e.getMessage());
