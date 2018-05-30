@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.9.0 (TBD)
+#### Version 0.9.0 (May 30, 2018)
 
 ##### Vulnerabilities
 * Fixed a vulnerability that made it possible for a malicious plugin archive that contained entry names with path traversal elements to execute arbitraty code on the filesystem, if installed. This vulnerability, which was first disclosed by the [Snyk Security Research Team](https://snyk.io/docs/security), existed because Concourse did not verify that an entry, potentially extracted from a zipfile, would exist within the target directory if actually extracted. We've fixed this vulnerability by switching to the [zt-zip](https://github.com/zeroturnaround/zt-zip) library for internal zip handling. In addition to having protections againist this vulnerability, `zt-zip` is battle-tested and well maintained by [ZeroTurnaround](https://zeroturnaround.com/). Thanks again to the Snyk Security Research Team for disclosing this vulnerability.
@@ -9,7 +9,7 @@
 * Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
 	* All previously existing users are assigned the `ADMIN` role on upgrade. You can change a user's role using the `users` CLI.
 	* The `users create` command now requires a role to be provided interactively when prompted or non-interactively using the `--set-role` parameter.
-* Added an `edit` option to the `users` CLI that allows for setting a user's role and/or changing the password. The password can also still be changed using the `password` option of the `users` CLI. 
+* Added an `edit` option to the `users` CLI that allows for setting a user's role and/or changing the password. The password can also still be changed using the `password` option of the `users` CLI.
 * Removed a constraint the prevented the default `admin` user account from being deleted.
 * Added additional logging around the upgrade process.
 * Fixed a bug that prevented upgrade tasks from being run when upgrading a Concourse Server instance that was never started prior to the upgrade.
@@ -51,10 +51,10 @@
 ##### Bug Fixes
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
 * Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
-* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string. 
+* Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string.
 * Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
 
-##### Miscellaneous 
+##### Miscellaneous
 * Added the ability for the storage engine to track stats and metadata about database structures.
 
 #### Version 0.8.2 (April 17, 2018)
