@@ -40,6 +40,7 @@ dependencies {
     compile (group:'com.cinchapi', name: 'bucket', version: bucketVersion, changing:true) {
       exclude group: 'com.cinchapi'
     }
+    compile 'org.zeroturnaround:zt-zip:1.13'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'

@@ -15,20 +15,12 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipInputStream;
+import java.nio.ByteBuffer;
+import org.zeroturnaround.zip.ZipUtil;
 
-import com.cinchapi.common.base.CheckedExceptions;
-import com.google.common.base.Preconditions;
-import com.google.common.io.CharStreams;
+import com.cinchapi.common.base.Verify;
+import com.cinchapi.common.io.ByteBuffers;
 
 /**
  * A utility class for handling zip files
@@ -37,43 +29,36 @@ import com.google.common.io.CharStreams;
  */
 public final class ZipFiles {
 
+    static {
+        Logging.disable(ZipUtil.class);
+    }
+
     /**
      * Get the content for the entry at {@code relativeEntryPath} from within
      * the zip file.
      * 
      * @param zipPath the path to the zip file
      * @param relativeEntryPath the path of the entry to extract
-     * @return the content of the entry
+     * @return the content of the entry as a {@link ByteBuffer}
      */
-    public static String getEntryContent(String zipPath,
+    public static ByteBuffer getEntryContent(String zipFile,
             String relativeEntryPath) {
-        ZipInputStream in = null;
-        try {
-            in = new ZipInputStream(new FileInputStream(zipPath));
-            ZipEntry entry = in.getNextEntry();
-            while (entry != null) {
-                if(entry.getName().equals(relativeEntryPath)) {
-                    return extract(in);
-                }
-                entry = in.getNextEntry();
-            }
-            throw new ZipException("Cannot find " + relativeEntryPath);
+        return ByteBuffer.wrap(
+                ZipUtil.unpackEntry(new File(zipFile), relativeEntryPath));
+    }
 
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            if(in != null) {
-                try {
-                    in.closeEntry();
-                    in.close();
-                }
-                catch (IOException e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
-            }
-        }
+    /**
+     * Get the content for the entry at {@code relativeEntryPath} from within
+     * the zip file as a UTF-8 string.
+     * 
+     * @param zipPath the path to the zip file
+     * @param relativeEntryPath the path of the entry to extract
+     * @return the content of the entry as a UTF-8 string
+     */
+    public static String getEntryContentUtf8(String zipFile,
+            String relativeEntryPath) {
+        return ByteBuffers
+                .getUtf8String(getEntryContent(zipFile, relativeEntryPath));
     }
 
     /**
@@ -88,73 +73,17 @@ public final class ZipFiles {
         if(!dest.exists()) {
             dest.mkdirs();
         }
-        else {
-            Preconditions.checkArgument(dest.isDirectory(),
-                    "Unzip destination must be a directory");
-        }
+        Verify.thatArgument(dest.isDirectory(),
+                "Unzip destination must be a directory");
         try {
-            ZipInputStream in = new ZipInputStream(
-                    new FileInputStream(zipPath));
-            ZipEntry entry = in.getNextEntry();
-            while (entry != null) {
-                String target = destination + File.separator + entry.getName();
-                if(entry.isDirectory()) {
-                    new File(target).mkdirs();
-                }
-                else {
-                    extract(in, target);
-                }
-                in.closeEntry();
-                entry = in.getNextEntry();
-            }
-            in.close();
-
+            ZipUtil.unpack(new File(zipPath), dest);
         }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
+        catch (org.zeroturnaround.zip.ZipException e) {
+            IllegalArgumentException ex = new IllegalArgumentException(
+                    e.getMessage());
+            ex.setStackTrace(e.getStackTrace());
+            throw ex;
         }
     }
 
-    /**
-     * Extract the {@link ZipInputStream#getNextEntry() current entry} from the
-     * {@code in}put stream and place it in the {@code target} path.
-     * 
-     * @param in the {@link ZipInputStream} that is correctly positioned at the
-     *            desired entry
-     * @param target the target path for the extracted file
-     */
-    private static void extract(ZipInputStream in, String target) {
-        try {
-            BufferedOutputStream baos = new BufferedOutputStream(
-                    new FileOutputStream(target));
-            byte[] bytesIn = new byte[4096];
-            int read = 0;
-            while ((read = in.read(bytesIn)) != -1) {
-                baos.write(bytesIn, 0, read);
-            }
-            baos.close();
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
-
-    /**
-     * Extract and return the content of the
-     * {@link ZipInputStream#getNextEntry() current entry} from the {@code in}
-     * put stream.
-     * 
-     * @param in the {@link ZipInputStream} that is correctly positioned at the
-     *            desired entry
-     * @return content of the current entry
-     */
-    private static String extract(ZipInputStream in) {
-        try {
-            return CharStreams.toString(
-                    new InputStreamReader(in, StandardCharsets.UTF_8));
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
 }
