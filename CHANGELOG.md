@@ -3,7 +3,7 @@
 #### Version 0.9.0 (May 30, 2018)
 
 ##### Vulnerabilities
-* Fixed a vulnerability that made it possible for a malicious plugin archive that contained entry names with path traversal elements to execute arbitraty code on the filesystem, if installed. This vulnerability, which was first disclosed by the [Snyk Security Research Team](https://snyk.io/docs/security), existed because Concourse did not verify that an entry, potentially extracted from a zipfile, would exist within the target directory if actually extracted. We've fixed this vulnerability by switching to the [zt-zip](https://github.com/zeroturnaround/zt-zip) library for internal zip handling. In addition to having protections againist this vulnerability, `zt-zip` is battle-tested and well maintained by [ZeroTurnaround](https://zeroturnaround.com/). Thanks again to the Snyk Security Research Team for disclosing this vulnerability.
+* Fixed a vulnerability that made it possible for a malicious plugin archive that contained entry names with path traversal elements to execute arbitrary code on the filesystem, if installed. This vulnerability, which was first disclosed by the [Snyk Security Research Team](https://snyk.io/docs/security), existed because Concourse did not verify that an entry, potentially extracted from a zipfile, would exist within the target directory if actually extracted. We've fixed this vulnerability by switching to the [zt-zip](https://github.com/zeroturnaround/zt-zip) library for internal zip handling. In addition to having protections against this vulnerability, `zt-zip` is battle-tested and well maintained by [ZeroTurnaround](https://zeroturnaround.com/). Thanks again to the Snyk Security Research Team for disclosing this vulnerability.
 
 ##### Security Model
 * Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
@@ -20,7 +20,7 @@
 	* Permissions are granted on a per environment basis.
 	* A user with `READ` permission can read data from an environment but cannot write data.
 	* A user with `WRITE` permission can read and write data in an environment.
-	* Users with the admin role implictly have `WRITE` permission to every environment.
+	* Users with the admin role implicitly have `WRITE` permission to every environment.
 	* If a user's role is downgraded from admin to user, she will have the permissions she has before being assigned the admin role.
 	* If a user attempts to invoke a function for which she doesn't have permission, a `PermissionException` will be thrown, but the user's session will not terminate.
 	* A user with the admin role cannot have any of her permissions revoked.
@@ -50,7 +50,7 @@
 
 ##### Bug Fixes
 * Fixed a bug that caused the server to fail to start if the `conf/stopwords.txt` configuration file did not exist.
-* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render impromperly if data was added using the `putAll` method.
+* Fixed a bug that caused `PrettyLinkedHashMap#toString` to render improperly if data was added using the `putAll` method.
 * Fixed a bug in the `ConcourseImportDryRun#dump` method that caused the method to return an invalid JSON string.
 * Fixed a bug where a users whose access had been `disabled` was automatically re-enabled if her password was changed.
 
