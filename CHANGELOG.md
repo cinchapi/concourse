@@ -2,6 +2,9 @@
 
 #### Version 0.9.0 (TBD)
 
+##### Vulnerabilities
+* Fixed a vulnerability that made it possible for a malicious plugin archive that contained entry names with path traversal elements to execute arbitraty code on the filesystem, if installed. This vulnerability, which was first disclosed by the [Snyk Security Research Team](https://snyk.io/docs/security), existed because Concourse did not verify that an entry, potentially extracted from a zipfile, would exist within the target directory if actually extracted. We've fixed this vulnerability by switching to the [zt-zip](https://github.com/zeroturnaround/zt-zip) library for internal zip handling. In addition to having protections againist this vulnerability, `zt-zip` is battle-tested and well maintained by [ZeroTurnaround](https://zeroturnaround.com/). Thanks again to the Snyk Security Research Team for disclosing this vulnerability.
+
 ##### Security Model
 * Added a notion of *user roles*. Each user account can either have the `ADMIN` or `USER` role. `ADMIN` users are permitted to invoke management functions whereas accounts with the `USER` role are not.
 	* All previously existing users are assigned the `ADMIN` role on upgrade. You can change a user's role using the `users` CLI.

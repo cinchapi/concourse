@@ -389,7 +389,7 @@ public class PluginManager {
                 .getNameWithoutExtension(bundle);
         String name = null;
         try {
-            String manifest = ZipFiles.getEntryContent(bundle,
+            String manifest = ZipFiles.getEntryContentUtf8(bundle,
                     basename + File.separator + MANIFEST_FILE);
             JsonObject json = (JsonObject) new JsonParser().parse(manifest);
             name = json.get("bundleName").getAsString();

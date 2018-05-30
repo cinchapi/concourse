@@ -22,6 +22,13 @@
      https://github.com/cinchapi/bucket
      Copyright 2017 Cinchapi Inc.
 
+     CCL
+     ---
+     The official specification and API library for the Concourse Criteria Language (CCL).
+
+     https://github.com/cinchapi/ccl
+     Copyright 2018 Cinchapi Inc.
+
   2. Includes software developed by the Apache Software Foundation
      (http://www.apache.org) or released under the Apache License,
      Version 2.0:
@@ -348,6 +355,13 @@
 
       https://github.com/xerial/sqlite-jdbc
       Copyright Taro L. Saito, David Crawshaw and associated authors
+
+      zt-zip
+      ------
+      The zt-zip project, started and coded by Rein Raudjärv and maintained by ZeroTurnaround, is a library for handling zip files programmatically.
+
+      https://zeroturnaround.com/
+      Copyright 2012 ZeroTurnaround LLC.
 
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
