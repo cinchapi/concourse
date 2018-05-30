@@ -28,12 +28,14 @@ import org.junit.Test;
  * @author Jeff Nelson
  */
 public class ZipFilesTest {
-    
+
     @Test
-    public void testCannotExtractZipContainingEntryWithPathTraversalCharacters() throws IOException { //CON-626
+    public void testCannotExtractZipContainingEntryWithPathTraversalCharacters()
+            throws IOException { // CON-626
         String zip = Resources.getAbsolutePath("/evil.zip");
         String parent = FileOps.tempDir("zip");
-        String dest = Paths.get(parent).resolve("target").toAbsolutePath().toString();
+        String dest = Paths.get(parent).resolve("target").toAbsolutePath()
+                .toString();
         ZipFiles.unzip(zip, dest);
         Assert.assertEquals(1, Files.list(Paths.get(dest)).count());
         Assert.assertEquals(1, Files.list(Paths.get(parent)).count());
