@@ -40,21 +40,21 @@ public class ZipFilesTest {
         Assert.assertEquals(1, Files.list(Paths.get(dest)).count());
         Assert.assertEquals(1, Files.list(Paths.get(parent)).count());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testCannotExtractZipFileToNonDestination() {
         String zip = Resources.getAbsolutePath("/good.zip");
         String dest = FileOps.tempFile();
         ZipFiles.unzip(zip, dest);
     }
-    
+
     @Test
     public void testGetEntryContentUtf8() {
         String zip = Resources.getAbsolutePath("/good.zip");
         String content = ZipFiles.getEntryContentUtf8(zip, "file.txt");
         Assert.assertEquals("Hello World", content);
     }
-    
+
     @Test
     public void testUnzip() throws IOException {
         String zip = Resources.getAbsolutePath("/good.zip");
