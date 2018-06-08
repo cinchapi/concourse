@@ -777,10 +777,11 @@ public class ConvertTest {
         tobject.type = null;
         Convert.thriftToJava(tobject);
     }
-    
+
     @Test
     public void testConvertStringDoubleInScientificNotation() {
-        List<String> values = ImmutableList.of("5.15501576938E-4","5.15501576938E+4", "1e10");
+        List<String> values = ImmutableList.of("5.15501576938E-4",
+                "5.15501576938E+4", "1e10");
         values.forEach(value -> {
             double expected = Double.parseDouble(value);
             Object actual = Convert.stringToJava(value);
@@ -788,7 +789,7 @@ public class ConvertTest {
                 actual = ((Float) actual).doubleValue();
             }
             Assert.assertEquals(expected, actual);
-        });        
+        });
     }
 
     /**

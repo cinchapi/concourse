@@ -315,19 +315,19 @@ public class StringsTest {
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("˝a˝"));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("″a‶"));
     }
-    
+
     @Test
     public void testTryParseDoubleScientificNotation() {
         String value = "5.15501576938E-4";
         Assert.assertNotNull(Strings.tryParseNumber(value));
     }
-    
+
     @Test
     public void testTryParseFakeDoubleScientificNotationA() {
         String value = "5.1550e1576938E-4";
         Assert.assertNull(Strings.tryParseNumber(value));
     }
-    
+
     @Test
     public void testTryParseFakeDoubleScientificNotationV() {
         String value = "5.15501576938E";
