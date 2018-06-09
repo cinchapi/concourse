@@ -3,7 +3,7 @@
 #### Version 1.0.0 (TBD)
 
 #### Version 0.9.1 (TBD)
-* Fixed a bug that caused Concourse to improperly interpret values written as numbers in scientific notation as a `STRING` data type instead of the appropriate one.
+* Fixed a bug that caused Concourse to improperly interpret values written in scientific notation as a `STRING` data type instead of the appropriate number data type.
 
 #### Version 0.9.0 (May 30, 2018)
 
