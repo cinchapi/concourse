@@ -43,7 +43,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
     private static final String DEFAULT_USERNAME = "admin";
     private static final String DEFAULT_PASSWORD = "admin";
     private static final String DEFAULT_ENVIRONMENT = "";
-    
+
     /**
      * An empty char array to return if there is no password defined in the
      * prefs file during a call to {@link #getPasswordExplicit()}.
@@ -51,6 +51,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
     protected static final char[] NO_PASSWORD_DEFINED = new char[0]; // visible
                                                                      // for
                                                                      // testing
+
     /**
      * Return a {@link ConcourseClientPreferences} handler that is sourced from
      * the {@link files}.
@@ -62,6 +63,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
         Verify.thatArgument(files.length > 0, "Must include at least one file");
         return new ConcourseClientPreferences(files);
     }
+
     /**
      * Return a {@link ConcourseClientPreferences} handler that is sourced from
      * a concourse_client.prefs file in the current working directory.
@@ -71,6 +73,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
     public static ConcourseClientPreferences fromCurrentWorkingDirectory() {
         return from(Paths.get("concourse_client.prefs"));
     }
+
     /**
      * Return a {@link ConcourseClientPreferences} handler that is sourced from
      * a concourse_client.prefs file in the user's home directory.
