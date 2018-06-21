@@ -17,6 +17,7 @@ package com.cinchapi.concourse.config;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.logging.Logging;
 

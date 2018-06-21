@@ -18,6 +18,7 @@ package com.cinchapi.concourse.config;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.common.base.Verify;
