@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.config;
 
-import org.apache.commons.configuration.ConfigurationException;
+import java.nio.file.Path;
 
 import com.cinchapi.lib.config.Configuration;
 import com.cinchapi.lib.config.read.Interpreters;
@@ -30,18 +30,12 @@ public class PreferencesHandler extends Configuration {
 
     /**
      * Construct a new instance.
-     * <p>
-     * The implementing class is encouraged to provide a static "open" method
-     * that catches {@link ConfigurationException} and propagates it as a
-     * {@link RuntimeException} so that users don't have to worry about it.
-     * </p>
      * 
-     * @param file the absolute path to the preferences file (relative paths
+     * @param file the absolute path to the preferences files (relative paths
      *            will resolve to the user's home directory)
-     * @throws ConfigurationException
      */
-    protected PreferencesHandler(String file) {
-        super(file);
+    protected PreferencesHandler(Path... files) {
+        super("CONCOURSE_", files);
     }
 
     /**

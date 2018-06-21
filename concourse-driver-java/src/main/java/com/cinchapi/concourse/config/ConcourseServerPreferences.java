@@ -16,13 +16,12 @@
 package com.cinchapi.concourse.config;
 
 import java.io.File;
-
-import org.apache.commons.configuration.ConfigurationException;
-import org.slf4j.LoggerFactory;
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import ch.qos.logback.classic.Level;
 
-import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Verify;
+import com.cinchapi.concourse.util.Logging;
 import com.cinchapi.lib.config.read.Interpreters;
 
 /**
@@ -43,21 +42,28 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param file the absolute path to the preferences file (relative paths
      *            will resolve to the user's home directory)
      * @return the preferences handler
+     * @deprecated use {@link ConcourseServerPreferences#from(Path...)} instead
      */
+    @Deprecated
     public static ConcourseServerPreferences open(String file) {
-        try {
-            return new ConcourseServerPreferences(file);
-        }
-        catch (ConfigurationException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        return from(Paths.get(file));
+
+    }
+
+    /**
+     * Return a {@link ConcourseServerPreferences} handler that is sourced from
+     * the {@link files}.
+     * 
+     * @param files
+     * @return the sources
+     */
+    public static ConcourseServerPreferences from(Path... files) {
+        Verify.thatArgument(files.length > 0, "Must include at least one file");
+        return new ConcourseServerPreferences(files);
     }
 
     static {
-        // Prevent logging from showing up in the console
-        ((ch.qos.logback.classic.Logger) LoggerFactory
-                .getLogger(ConcourseServerPreferences.class))
-                        .setLevel(Level.OFF);
+        Logging.disable(ConcourseServerPreferences.class);
     }
 
     // Defaults
@@ -81,9 +87,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      *            will resolve to the user's home directory)
      * @throws ConfigurationException
      */
-    private ConcourseServerPreferences(String file)
-            throws ConfigurationException {
-        super(file);
+    private ConcourseServerPreferences(Path... files) {
+        super(files);
     }
 
     /**

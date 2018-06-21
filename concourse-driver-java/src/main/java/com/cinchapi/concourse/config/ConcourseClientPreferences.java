@@ -15,10 +15,10 @@
  */
 package com.cinchapi.concourse.config;
 
-import org.apache.commons.configuration.ConfigurationException;
-
-import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.Logging;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import com.cinchapi.common.base.Verify;
+import com.cinchapi.common.logging.Logging;
 
 /**
  * A wrapper around the {@code concourse_client.prefs} file that is used to
@@ -38,18 +38,26 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param file the absolute path to the preferences file (relative paths
      *            will resolve to the user's home directory)
      * @return the preferences
+     * @deprecated use {@link ConcourseServerPreferences#from(Path...)} instead
      */
+    @Deprecated
     public static ConcourseClientPreferences open(String file) {
-        try {
-            return new ConcourseClientPreferences(file);
-        }
-        catch (ConfigurationException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        return from(Paths.get(file));
+    }
+
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * the {@link files}.
+     * 
+     * @param files
+     * @return the sources
+     */
+    public static ConcourseClientPreferences from(Path... files) {
+        Verify.thatArgument(files.length > 0, "Must include at least one file");
+        return new ConcourseClientPreferences(files);
     }
 
     static {
-        // Prevent logging from showing up in the console
         Logging.disable(ConcourseClientPreferences.class);
     }
 
@@ -73,11 +81,9 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * 
      * @param file the absolute path to the preferences file (relative paths
      *            will resolve to the user's home directory)
-     * @throws ConfigurationException
      */
-    private ConcourseClientPreferences(String file)
-            throws ConfigurationException {
-        super(file);
+    private ConcourseClientPreferences(Path... files) {
+        super(files);
     }
 
     /**
