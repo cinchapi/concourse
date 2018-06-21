@@ -41,6 +41,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
+import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -267,57 +268,55 @@ public final class GlobalState extends Constants {
         }
         if(config != null) {
             // =================== PREF READING BLOCK ====================
-            DATABASE_DIRECTORY = config.getString("database_directory",
+            DATABASE_DIRECTORY = config.getOrDefault("database_directory",
                     DATABASE_DIRECTORY);
 
-            BUFFER_DIRECTORY = config.getString("buffer_directory",
+            BUFFER_DIRECTORY = config.getOrDefault("buffer_directory",
                     BUFFER_DIRECTORY);
 
             BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                     BUFFER_PAGE_SIZE);
 
-            CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
+            CLIENT_PORT = config.getOrDefault("client_port", CLIENT_PORT);
 
-            SHUTDOWN_PORT = config.getInt("shutdown_port",
+            SHUTDOWN_PORT = config.getOrDefault("shutdown_port",
                     Networking.getCompanionPort(CLIENT_PORT, 2));
 
-            JMX_PORT = config.getInt("jmx_port", JMX_PORT);
+            JMX_PORT = config.getOrDefault("jmx_port", JMX_PORT);
 
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
-            HTTP_PORT = config.getInt("http_port", HTTP_PORT);
+            HTTP_PORT = config.getOrDefault("http_port", HTTP_PORT);
 
-            HTTP_ENABLE_CORS = config.getBoolean("http_enable_cors",
+            HTTP_ENABLE_CORS = config.getOrDefault("http_enable_cors",
                     HTTP_ENABLE_CORS);
 
-            HTTP_CORS_DEFAULT_ALLOW_ORIGIN = config.getString(
+            HTTP_CORS_DEFAULT_ALLOW_ORIGIN = config.getOrDefault(
                     "http_cors_default_allow_origin",
                     HTTP_CORS_DEFAULT_ALLOW_ORIGIN);
 
-            HTTP_CORS_DEFAULT_ALLOW_HEADERS = config.getString(
+            HTTP_CORS_DEFAULT_ALLOW_HEADERS = config.getOrDefault(
                     "http_cors_default_allow_headers",
                     HTTP_CORS_DEFAULT_ALLOW_HEADERS);
 
-            HTTP_CORS_DEFAULT_ALLOW_METHODS = config.getString(
+            HTTP_CORS_DEFAULT_ALLOW_METHODS = config.getOrDefault(
                     "http_cors_default_allow_methods",
                     HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
-            LOG_LEVEL = Level.valueOf(
-                    config.getString("log_level", LOG_LEVEL.toString()));
+            LOG_LEVEL = config.get("log_level", Interpreters.logLevel());
 
-            ENABLE_CONSOLE_LOGGING = config.getBoolean("enable_console_logging",
-                    ENABLE_CONSOLE_LOGGING);
+            ENABLE_CONSOLE_LOGGING = config.getOrDefault(
+                    "enable_console_logging", ENABLE_CONSOLE_LOGGING);
             if(!ENABLE_CONSOLE_LOGGING) {
                 ENABLE_CONSOLE_LOGGING = Boolean
                         .parseBoolean(System.getProperty(
                                 "com.cinchapi.concourse.server.logging.console",
                                 "false"));
             }
-
-            DEFAULT_ENVIRONMENT = config.getString("default_environment",
+            DEFAULT_ENVIRONMENT = config.getOrDefault("default_environment",
                     DEFAULT_ENVIRONMENT);
 
-            MANAGEMENT_PORT = config.getInt("management_port",
+            MANAGEMENT_PORT = config.getOrDefault("management_port",
                     Networking.getCompanionPort(CLIENT_PORT, 4));
 
             SYSTEM_ID = getSystemId();
