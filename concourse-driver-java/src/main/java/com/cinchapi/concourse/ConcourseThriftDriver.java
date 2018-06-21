@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -73,25 +74,14 @@ class ConcourseThriftDriver extends Concourse {
     static {
         // If there is a concourse_client.prefs file located in the working
         // directory, parse it and use its values as defaults.
-        ConcourseClientPreferences config;
-        try {
-            config = ConcourseClientPreferences.open("concourse_client.prefs");
-        }
-        catch (Exception e) {
-            config = null;
-        }
-        SERVER_HOST = "localhost";
-        SERVER_PORT = 1717;
-        USERNAME = "admin";
-        PASSWORD = "admin";
-        ENVIRONMENT = "";
-        if(config != null) {
-            SERVER_HOST = config.getOrDefault("host", SERVER_HOST);
-            SERVER_PORT = config.getOrDefault("port", SERVER_PORT);
-            USERNAME = config.getOrDefault("username", USERNAME);
-            PASSWORD = config.getOrDefault("password", PASSWORD);
-            ENVIRONMENT = config.getOrDefault("environment", ENVIRONMENT);
-        }
+        ConcourseClientPreferences config = ConcourseClientPreferences
+                .from(Paths.get("concourse_client.prefs"));
+        SERVER_HOST = config.getOrDefault("host", "localhost");
+        SERVER_PORT = config.getOrDefault("port", 1717);
+        USERNAME = config.getOrDefault("username", "admin");
+        PASSWORD = config.getOrDefault("password", "admin");
+        ENVIRONMENT = config.getOrDefault("environment", "");
+
     }
 
     /**

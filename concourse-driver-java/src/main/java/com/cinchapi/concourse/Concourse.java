@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +141,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public static Concourse connectWithPrefs(String file) {
         ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .open(file);
+                .from(Paths.get(file));
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
     }
