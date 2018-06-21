@@ -19,23 +19,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
-
-import org.apache.commons.configuration.ConfigurationException;
 
 import ch.qos.logback.classic.Level;
 
-import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.config.PreferencesHandler;
 import com.cinchapi.concourse.util.Logging;
+import com.cinchapi.lib.config.Configuration;
+import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 /**
@@ -49,7 +45,7 @@ import com.google.common.collect.Maps;
  *
  * @author Jeff Nelson
  */
-public abstract class PluginConfiguration {
+public abstract class PluginConfiguration extends Configuration {
 
     /**
      * The absolute {@link Path} to plugin pref file in the plugin's home dir
@@ -99,7 +95,8 @@ public abstract class PluginConfiguration {
         // Set location of the plugin preferences files depending on the
         // existence of the preferences files
         PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION)
-                ? PLUGIN_PREFS_DEV_LOCATION : PLUGIN_PREFS_LOCATION;
+                ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
     }
 
     /**
@@ -107,13 +104,6 @@ public abstract class PluginConfiguration {
      * defaults are used if they are not overridden in the prefs file.
      */
     private final Map<String, Object> defaults = Maps.newHashMap();
-
-    /**
-     * A handler to the underlying prefs file, if it exists within the plugin's
-     * home directory.
-     */
-    @Nullable
-    private final PreferencesHandler prefs;
 
     /**
      * Construct a new instance.
@@ -132,17 +122,7 @@ public abstract class PluginConfiguration {
      * @param location
      */
     protected PluginConfiguration(Path location) {
-        if(Files.exists(location)) {
-            try {
-                this.prefs = new PreferencesHandler(location.toString()) {};
-            }
-            catch (ConfigurationException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
-            }
-        }
-        else {
-            this.prefs = null;
-        }
+        super(location);
         addDefault(SystemPreference.REMOTE_DEBUGGER_PORT,
                 DEFAULT_REMOTE_DEBUGGER_PORT);
         addDefault(SystemPreference.HEAP_SIZE, DEFAULT_HEAP_SIZE_IN_BYTES);
@@ -156,16 +136,20 @@ public abstract class PluginConfiguration {
      * @return List<String>.
      */
     public List<String> getAliases() {
-        if(prefs != null) {
-            List<Object> aliases = prefs
-                    .getList(SystemPreference.ALIAS.getKey());
-            aliases.addAll(prefs.getList(SystemPreference.ALIASES.getKey()));
-            return aliases.stream().map(alias -> Objects.toString(alias))
-                    .collect(Collectors.toList());
+        List<String> aliases = get(SystemPreference.ALIAS.getKey(),
+                Interpreters.listFromDelimitedString(','));
+        if(aliases == null) {
+            aliases = get(SystemPreference.ALIASES.getKey(),
+                    Interpreters.listFromDelimitedString(','));
         }
         else {
-            return Collections.emptyList();
+            aliases.addAll(
+                    get(SystemPreference.ALIASES.getKey(),
+                            Interpreters.listFromDelimitedString(',')),
+                    ImmutableList.of());
         }
+        // TODO: add support default aliases...
+        return MoreObjects.firstNonNull(aliases, ImmutableList.of());
     }
 
     /**
@@ -176,13 +160,8 @@ public abstract class PluginConfiguration {
     public long getHeapSize() {
         long theDefault = (long) defaults
                 .get(SystemPreference.HEAP_SIZE.getKey());
-        if(prefs != null) {
-            return prefs.getSize(SystemPreference.HEAP_SIZE.getKey(),
-                    theDefault);
-        }
-        else {
-            return theDefault;
-        }
+        return getOrDefault(SystemPreference.HEAP_SIZE.getKey(),
+                Interpreters.numberOfBytes(), theDefault);
     }
 
     /**
@@ -193,13 +172,8 @@ public abstract class PluginConfiguration {
     public Level getLogLevel() {
         Level theDefault = Level.valueOf(
                 (String) defaults.get(SystemPreference.LOG_LEVEL.getKey()));
-        if(prefs != null) {
-            return Level.valueOf(prefs.getString(
-                    SystemPreference.LOG_LEVEL.getKey(), theDefault.levelStr));
-        }
-        else {
-            return theDefault;
-        }
+        return getOrDefault(SystemPreference.LOG_LEVEL.getKey(),
+                Interpreters.logLevel(), theDefault);
     }
 
     /**
@@ -220,13 +194,8 @@ public abstract class PluginConfiguration {
     public int getRemoteDebuggerPort() {
         int theDefault = (int) defaults
                 .get(SystemPreference.REMOTE_DEBUGGER_PORT.getKey());
-        if(prefs != null) {
-            return prefs.getInt(SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
-                    theDefault);
-        }
-        else {
-            return theDefault;
-        }
+        return getOrDefault(SystemPreference.REMOTE_DEBUGGER_PORT.getKey(),
+                theDefault);
     }
 
     /**

@@ -86,11 +86,11 @@ class ConcourseThriftDriver extends Concourse {
         PASSWORD = "admin";
         ENVIRONMENT = "";
         if(config != null) {
-            SERVER_HOST = config.getString("host", SERVER_HOST);
-            SERVER_PORT = config.getInt("port", SERVER_PORT);
-            USERNAME = config.getString("username", USERNAME);
-            PASSWORD = config.getString("password", PASSWORD);
-            ENVIRONMENT = config.getString("environment", ENVIRONMENT);
+            SERVER_HOST = config.getOrDefault("host", SERVER_HOST);
+            SERVER_PORT = config.getOrDefault("port", SERVER_PORT);
+            USERNAME = config.getOrDefault("username", USERNAME);
+            PASSWORD = config.getOrDefault("password", PASSWORD);
+            ENVIRONMENT = config.getOrDefault("environment", ENVIRONMENT);
         }
     }
 
