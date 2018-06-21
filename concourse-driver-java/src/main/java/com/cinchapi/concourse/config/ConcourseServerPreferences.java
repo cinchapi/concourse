@@ -203,7 +203,8 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @return the log level
      */
     public Level getLogLevel() {
-        return getOrDefault("log_level", Interpreters.logLevel(), DEFAULT_LOG_LEVEL);
+        return getOrDefault("log_level", Interpreters.logLevel(),
+                DEFAULT_LOG_LEVEL);
     }
 
     /**

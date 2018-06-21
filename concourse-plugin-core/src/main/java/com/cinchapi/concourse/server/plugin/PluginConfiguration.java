@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import ch.qos.logback.classic.Level;
@@ -95,8 +96,7 @@ public abstract class PluginConfiguration extends Configuration {
         // Set location of the plugin preferences files depending on the
         // existence of the preferences files
         PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION)
-                ? PLUGIN_PREFS_DEV_LOCATION
-                : PLUGIN_PREFS_LOCATION;
+                ? PLUGIN_PREFS_DEV_LOCATION : PLUGIN_PREFS_LOCATION;
     }
 
     /**

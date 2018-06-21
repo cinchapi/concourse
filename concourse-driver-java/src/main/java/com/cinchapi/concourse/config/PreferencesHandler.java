@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.config;
 
 import org.apache.commons.configuration.ConfigurationException;
+
 import com.cinchapi.lib.config.Configuration;
 import com.cinchapi.lib.config.read.Interpreters;
 
