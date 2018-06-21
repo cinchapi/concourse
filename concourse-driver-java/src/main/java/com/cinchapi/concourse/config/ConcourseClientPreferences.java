@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.config;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -32,6 +33,55 @@ import com.cinchapi.common.logging.Logging;
  */
 public class ConcourseClientPreferences extends PreferencesHandler {
 
+    static {
+        Logging.disable(ConcourseClientPreferences.class);
+    }
+
+    // Defaults
+    private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 1717;
+    private static final String DEFAULT_USERNAME = "admin";
+    private static final String DEFAULT_PASSWORD = "admin";
+    private static final String DEFAULT_ENVIRONMENT = "";
+    
+    /**
+     * An empty char array to return if there is no password defined in the
+     * prefs file during a call to {@link #getPasswordExplicit()}.
+     */
+    protected static final char[] NO_PASSWORD_DEFINED = new char[0]; // visible
+                                                                     // for
+                                                                     // testing
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * the {@link files}.
+     * 
+     * @param files
+     * @return the handler
+     */
+    public static ConcourseClientPreferences from(Path... files) {
+        Verify.thatArgument(files.length > 0, "Must include at least one file");
+        return new ConcourseClientPreferences(files);
+    }
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * a concourse_client.prefs file in the current working directory.
+     * 
+     * @return the handler
+     */
+    public static ConcourseClientPreferences fromCurrentWorkingDirectory() {
+        return from(Paths.get("concourse_client.prefs"));
+    }
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * a concourse_client.prefs file in the user's home directory.
+     * 
+     * @return the handler
+     */
+    public static ConcourseClientPreferences fromUserHomeDirectory() {
+        return from(Paths.get(System.getProperty("user.home") + File.separator
+                + "concourse_client.prefs"));
+    }
+
     /**
      * Return a {@link ConcourseClientPreferences} wrapper that is backed by the
      * configuration information in {@code file}.
@@ -45,37 +95,6 @@ public class ConcourseClientPreferences extends PreferencesHandler {
     public static ConcourseClientPreferences open(String file) {
         return from(Paths.get(file));
     }
-
-    /**
-     * Return a {@link ConcourseClientPreferences} handler that is sourced from
-     * the {@link files}.
-     * 
-     * @param files
-     * @return the sources
-     */
-    public static ConcourseClientPreferences from(Path... files) {
-        Verify.thatArgument(files.length > 0, "Must include at least one file");
-        return new ConcourseClientPreferences(files);
-    }
-
-    static {
-        Logging.disable(ConcourseClientPreferences.class);
-    }
-
-    // Defaults
-    private static final String DEFAULT_HOST = "localhost";
-    private static final int DEFAULT_PORT = 1717;
-    private static final String DEFAULT_USERNAME = "admin";
-    private static final String DEFAULT_PASSWORD = "admin";
-    private static final String DEFAULT_ENVIRONMENT = "";
-
-    /**
-     * An empty char array to return if there is no password defined in the
-     * prefs file during a call to {@link #getPasswordExplicit()}.
-     */
-    protected static final char[] NO_PASSWORD_DEFINED = new char[0]; // visible
-                                                                     // for
-                                                                     // testing
 
     /**
      * Construct a new instance.
