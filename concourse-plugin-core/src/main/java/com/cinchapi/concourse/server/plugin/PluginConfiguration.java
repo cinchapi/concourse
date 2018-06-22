@@ -96,7 +96,8 @@ public abstract class PluginConfiguration extends Configuration {
         // Set location of the plugin preferences files depending on the
         // existence of the preferences files
         PLUGIN_PREFS = Files.exists(PLUGIN_PREFS_DEV_LOCATION)
-                ? PLUGIN_PREFS_DEV_LOCATION : PLUGIN_PREFS_LOCATION;
+                ? PLUGIN_PREFS_DEV_LOCATION
+                : PLUGIN_PREFS_LOCATION;
     }
 
     /**
@@ -143,10 +144,9 @@ public abstract class PluginConfiguration extends Configuration {
                     Interpreters.listFromDelimitedString(','));
         }
         else {
-            aliases.addAll(
-                    get(SystemPreference.ALIASES.getKey(),
-                            Interpreters.listFromDelimitedString(',')),
-                    ImmutableList.of());
+            aliases.addAll(getOrDefault(SystemPreference.ALIASES.getKey(),
+                    Interpreters.listFromDelimitedString(','),
+                    ImmutableList.of()));
         }
         // TODO: add support default aliases...
         return MoreObjects.firstNonNull(aliases, ImmutableList.of());
