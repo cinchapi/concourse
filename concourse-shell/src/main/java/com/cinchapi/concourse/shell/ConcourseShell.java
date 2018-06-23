@@ -661,8 +661,8 @@ public final class ConcourseShell {
                                     + "session cannot continue");
                 }
                 else if(e instanceof MissingMethodException
-                        && ErrorCause.determine(e
-                                .getMessage()) == ErrorCause.MISSING_CASH_METHOD
+                        && ErrorCause.determine(
+                                e.getMessage()) == ErrorCause.MISSING_CASH_METHOD
                         && ((methodCorrected = tryGetCorrectApiMethod(
                                 (method = ((MissingMethodException) e)
                                         .getMethod()))) != null
@@ -683,8 +683,7 @@ public final class ConcourseShell {
                     }
                     else {
                         message = e.getCause() instanceof ParseException
-                                ? e.getCause().getMessage()
-                                : e.getMessage();
+                                ? e.getCause().getMessage() : e.getMessage();
                     }
                     throw new EvaluationException("ERROR: " + message);
                 }
@@ -813,7 +812,7 @@ public final class ConcourseShell {
         /**
          * A handler for the client preferences that <em>may</em> exist in the
          * user's home directory. If the file is available, its contents will be
-     * used for configuration defaults.
+         * used for configuration defaults.
          */
         private ConcourseClientPreferences defaults = ConcourseClientPreferences
                 .fromUserHomeDirectory();
