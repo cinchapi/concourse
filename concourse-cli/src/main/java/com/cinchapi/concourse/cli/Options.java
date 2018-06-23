@@ -39,9 +39,10 @@ public class Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the
-     * user's home directory.
+     * user's home directory. If the file is available, its contents will be
+     * used for configuration defaults.
      */
-    private ConcourseClientPreferences config = ConcourseClientPreferences
+    private ConcourseClientPreferences defaults = ConcourseClientPreferences
             .fromUserHomeDirectory();
 
     @Parameter(names = { "--help" }, help = true, hidden = true)
@@ -49,22 +50,22 @@ public class Options {
 
     @Parameter(names = { "-h",
             "--host" }, description = "The hostname where the Concourse Server is located")
-    public String host = config.getHost();
+    public String host = defaults.getHost();
 
     @Parameter(names = { "-p",
             "--port" }, description = "The port on which the Concourse Server is listening")
-    public int port = config.getPort();
+    public int port = defaults.getPort();
 
     @Parameter(names = { "-u",
             "--username" }, description = "The username with which to connect")
-    public String username = config.getUsername();
+    public String username = defaults.getUsername();
 
     @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-    public String password = new String(config.getPasswordExplicit());
+    public String password = new String(defaults.getPasswordExplicit());
 
     @Parameter(names = { "-e",
             "--environment" }, description = "The environment of the Concourse Server to use")
-    public String environment = config.getEnvironment();
+    public String environment = defaults.getEnvironment();
 
     @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
     public String prefs;

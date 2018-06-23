@@ -36,9 +36,10 @@ public abstract class Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the
-     * user's home directory.
+     * user's home directory. If the file is available, its contents will be
+     * used for configuration defaults.
      */
-    private ConcourseClientPreferences prefs = ConcourseClientPreferences
+    private ConcourseClientPreferences defaults = ConcourseClientPreferences
             .fromUserHomeDirectory();
 
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
@@ -46,10 +47,10 @@ public abstract class Options {
 
     @Parameter(names = { "-u",
             "--username" }, description = "The username with which to connect")
-    public String username = prefs.getUsername();
+    public String username = defaults.getUsername();
 
     @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password = new String(prefs.getPasswordExplicit());
+    public String password = new String(defaults.getPasswordExplicit());
 
     /**
      * Contains all the non parameterized arguments that are passed to the
