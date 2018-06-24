@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
@@ -83,7 +84,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newCachedConnectionPool(String prefs) {
-        ConcourseClientPreferences cp = ConcourseClientPreferences.open(prefs);
+        ConcourseClientPreferences cp = ConcourseClientPreferences
+                .from(Paths.get(prefs));
         return new CachedConnectionPool(cp.getHost(), cp.getPort(),
                 cp.getUsername(), new String(cp.getPassword()),
                 cp.getEnvironment(), DEFAULT_POOL_SIZE);
@@ -233,7 +235,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public static ConnectionPool newFixedConnectionPool(String prefs,
             int poolSize) {
-        ConcourseClientPreferences cp = ConcourseClientPreferences.open(prefs);
+        ConcourseClientPreferences cp = ConcourseClientPreferences
+                .from(Paths.get(prefs));
         return new FixedConnectionPool(cp.getHost(), cp.getPort(),
                 cp.getUsername(), new String(cp.getPassword()),
                 cp.getEnvironment(), poolSize);

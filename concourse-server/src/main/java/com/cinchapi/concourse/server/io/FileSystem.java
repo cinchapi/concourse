@@ -279,8 +279,18 @@ public final class FileSystem extends FileOps {
      * @return {@code true} if {@code file} exists
      */
     public static boolean hasFile(String file) {
-        Path path = Paths.get(file);
-        return Files.exists(path) && !Files.isDirectory(path);
+        return hasFile(Paths.get(file));
+    }
+
+    /**
+     * Return {@code true} in the filesystem contains {@code file} and it is not
+     * a directory.
+     * 
+     * @param file
+     * @return {@code true} if {@code file} exists
+     */
+    public static boolean hasFile(Path file) {
+        return Files.exists(file) && !Files.isDirectory(file);
     }
 
     /**

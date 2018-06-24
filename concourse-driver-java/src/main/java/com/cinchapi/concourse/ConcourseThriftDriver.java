@@ -73,25 +73,14 @@ class ConcourseThriftDriver extends Concourse {
     static {
         // If there is a concourse_client.prefs file located in the working
         // directory, parse it and use its values as defaults.
-        ConcourseClientPreferences config;
-        try {
-            config = ConcourseClientPreferences.open("concourse_client.prefs");
-        }
-        catch (Exception e) {
-            config = null;
-        }
-        SERVER_HOST = "localhost";
-        SERVER_PORT = 1717;
-        USERNAME = "admin";
-        PASSWORD = "admin";
-        ENVIRONMENT = "";
-        if(config != null) {
-            SERVER_HOST = config.getString("host", SERVER_HOST);
-            SERVER_PORT = config.getInt("port", SERVER_PORT);
-            USERNAME = config.getString("username", USERNAME);
-            PASSWORD = config.getString("password", PASSWORD);
-            ENVIRONMENT = config.getString("environment", ENVIRONMENT);
-        }
+        ConcourseClientPreferences config = ConcourseClientPreferences
+                .fromCurrentWorkingDirectory();
+        SERVER_HOST = config.getHost();
+        SERVER_PORT = config.getPort();
+        USERNAME = config.getUsername();
+        PASSWORD = new String(config.getPassword());
+        ENVIRONMENT = config.getEnvironment();
+
     }
 
     /**

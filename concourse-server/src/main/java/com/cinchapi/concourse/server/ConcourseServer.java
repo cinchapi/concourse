@@ -222,7 +222,7 @@ public class ConcourseServer extends BaseConcourseServer
         // Check if concourse is in inconsistent state.
         if(GlobalState.SYSTEM_ID == null) {
             throw new IllegalStateException(
-                    "Concourse is in inconsistent state because "
+                    "Concourse is in an inconsistent state because "
                             + "the System ID in the buffer and database directories are different");
         }
 
