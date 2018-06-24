@@ -10,6 +10,30 @@
 This is version 1.0.0 of Concourse.
 
 ## Quickstart
+### Docker
+Using Concourse via Docker is the quickest way to get started.
+
+#### Run `concourse`
+```bash
+docker run -p 1717:1717 --name concourse cinchapi/concourse
+```
+NOTE: This will run Concourse in the foreground. To run in the background, add a `-d` flag to the `docker run` command.
+
+#### Run `concourse` with a peristent/shared directory
+```bash
+docker run -p 1717:1717 -v </path/to/local/data>:/data --name concourse cinchapi/concourse
+```
+
+#### Run `concourse` with a custom HEAP_SIZE
+```bash
+docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinchapi/concourse
+```
+
+#### Run `concourse shell` and connect to the running `concourse` docker container
+```bash
+docker run -it --rm --link concourse:concourse cinchapi/concourse bash -c 'concourse shell --host concourse'
+```
+
 Let's assume we have the an array of JSON objects corresponding to NBA players.
 ```python
 from concourse import *
