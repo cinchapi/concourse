@@ -103,8 +103,8 @@ commit
 ...or using shorthand syntax
 ```groovy
 stage({
-    set(key="current_team", value="OKC Thunder", record=lebron)
-    set(key="current_team", value="Cleveland Cavs", record=durant)
+    set(key="current_team", value="OKC Thunder", record=lebron);
+    set(key="current_team", value="Cleveland Cavs", record=durant);
 })
 ```
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](https://docs.cinchapi.com/concourse).
