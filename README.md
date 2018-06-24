@@ -31,7 +31,7 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 
 #### Run `concourse shell` and connect to the running `concourse` docker container
 ```bash
-docker run -it --rm --link concourse:concourse cinchapi/concourse bash -c 'concourse shell --host concourse'
+docker run -it --rm --link concourse:concourse cinchapi/concourse bash -c 'concourse shell --host concourse --password admin'
 ```
 
 For more information, visit [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart).
@@ -39,10 +39,8 @@ For more information, visit [https://docs.cinchapi.com/concourse/quickstart](htt
 ### Usage
 Let's assume we have the an array of JSON objects corresponding to NBA players.
 *NOTE: These examples assume you're using Concourse Shell, but are easily adaptable to any of the Concourse client drivers or REST API.*
-```python
-from concourse import *
-
-data = [
+```groovy
+data = '[
     {
         "name": "Lebron James",
         "age": 30,
@@ -58,50 +56,53 @@ data = [
         "age": 36,
         "team": "LA Lakers"
     }
-]
+]'
 ```
 ###### You can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
-```python
-concourse = Concourse.connect()
-records = concourse.insert(data) # each object is added to a distinct record
-lebron = records[0]
-durant = records[1]
-kobe = records[2]
+```groovy
+ids = insert(data) // each object is added to a distinct record
+lebron = ids[0]
+durant = ids[1]
+kobe = ids[2]
 ```
 ###### You can read and modify individual attributes without loading the entire record.
-```python
-concourse.get(key="age", record=kobe)
-concourse.add(key="name", value="KD", record=durant)
-concourse.remove(key="jersey_number", value=23, record=lebron)
+```groovy
+get(key="age", record=kobe)
+add(key="name", value="KD", record=durant)
+remove(key="jersey_number", value=23, record=lebron)
 ```
 ###### You can easily find records that match a criteria and select the desired since everything is automatically indexed.
-```python
-concourse.select(criteria="team = Chicago Bulls")
-concourse.select(keys=["name", "team"], criteria="age bw 22 29")
+```groovy
+select(criteria="team = Chicago Bulls")
+select(keys=["name", "team"], criteria="age bw 22 29")
 ```
 ###### You can even query data from the past without doing any extra work.
-```python
-concourse.get(key="age", record=durant, time="04/2009")
-concourse.find("team = Chicago Bulls at 2011")
-concourse.select(criteria="age > 25 and team != Chicago Bulls", time="two years ago")
+```groovy
+get(key="age", record=durant, time=time("04/2009")) // Will return data from 04/2009 from records that match now
+find("team = Chicago Bulls at 2011") // Will return records that matched in 2011
+select(criteria="age > 25 and team != Chicago Bulls", time=time("two years ago")) // Will return data from two years ago from records that match now
 ```
 ###### It is very easy to analyze how data has changed over time and revert to previous states.
-```python
-# Analyze how data has changed over time and revert to previous states
-concourse.audit(key="team", record=lebron)
-concourse.revert(key="jersey_number", record=kobe, time="two years ago")
+```groovy
+// Analyze how data has changed over time and revert to previous states
+audit(key="team", record=lebron)
+revert(key="jersey_number", record=kobe, time=time("two years ago"))
 ```
 ###### And ACID transactions are available for important, cross record changes.
-```python
-concourse.stage()
-try:
-    concourse.set(key="current_team", value="OKC Thunder", record=lebron)
-    concourse.set(key="current_team", value="Cleveland Cavs", record=durant)
-    concourse.commit()
-except TransactionException:
-    concourse.abort()
+```groovy
+stage
+set(key="current_team", value="OKC Thunder", record=lebron)
+set(key="current_team", value="Cleveland Cavs", record=durant)
+commit
 ```
-You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
+...or using shorthand syntax
+```groovy
+concourse.stage({
+    set(key="current_team", value="OKC Thunder", record=lebron)
+    set(key="current_team", value="Cleveland Cavs", record=durant)
+})
+```
+You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](https://docs.cinchapi.com/concourse).
 
 ## Motivation
 Whether you use SQL or NoSQL, it's hard to get real-time insight into your mission critical data because most systems are only optimized for either transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
