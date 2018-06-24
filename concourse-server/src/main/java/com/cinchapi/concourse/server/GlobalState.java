@@ -46,7 +46,6 @@ import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -455,13 +454,13 @@ public final class GlobalState extends Constants {
         String relativeFileName = ".id";
         Path bufferId = Paths.get(BUFFER_DIRECTORY, relativeFileName);
         Path databaseId = Paths.get(DATABASE_DIRECTORY, relativeFileName);
-        List<String> files = Lists.newArrayList(bufferId.toString(),
+        List<String> files = ImmutableList.of(bufferId.toString(),
                 databaseId.toString());
-        boolean hasBufferId = false;
-        boolean hasDatabaseId = false;
-        if((hasBufferId = FileSystem.hasFile(bufferId.toString()))
-                && (hasDatabaseId = FileSystem
-                        .hasFile(databaseId.toString()))) {
+        boolean hasBufferId = FileSystem.hasFile(bufferId);
+        boolean hasDatabaseId = FileSystem.hasFile(databaseId);
+        if(hasBufferId && hasDatabaseId) { // Verify that the system id in the
+                                           // database and buffer are
+                                           // consistent.
             UUID uuid = null;
             for (String file : files) {
                 ByteBuffer bytes = FileSystem.readBytes(file);
@@ -480,7 +479,9 @@ public final class GlobalState extends Constants {
             }
             return uuid;
         }
-        else if(!hasBufferId && !hasDatabaseId) {
+        else if(!hasBufferId && !hasDatabaseId) { // Create a system id and
+                                                  // store it in the database
+                                                  // and buffer.
             UUID uuid = UUID.randomUUID();
             ByteBuffer bytes = ByteBuffer.allocate(16);
             bytes.putLong(uuid.getMostSignificantBits());
@@ -492,7 +493,10 @@ public final class GlobalState extends Constants {
             }
             return uuid;
         }
-        return null;
+        else { // The system id is not consistent across the buffer and
+               // database.
+            return null;
+        }
     }
 
 }

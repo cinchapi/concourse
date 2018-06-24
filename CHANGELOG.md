@@ -1,5 +1,9 @@
 ## Changelog
 
+#### Version 0.9.1 (TBD)
+* Fixed a bug in the logic that Concourse Server used to determine if the system's data directories were inconsistent. Because of the bug, it was possible to put Concourse in an inconsistent state from which it could not automatically recover by changing either the `buffer_directory` or `database_directory` and restarting Concourse Server. The logic has been fixed, so Concourse now accurately determines when the data directories are inconsistent and prevents the system from starting.
+
+
 #### Version 0.9.0 (May 30, 2018)
 
 ##### Vulnerabilities
