@@ -57,7 +57,8 @@ ENV CONCOURSE_BUFFER_DIRECTORY /data/buffer
 ENV CONCOURSE_DATABASE_DIRECTORY /data/db
 
 # Start the app
-CMD [ "concourse", "console" ]
+ENTRYPOINT [ "concourse"]
+CMD ["console"]
 
 # Expose the TCP and HTTP ports
 EXPOSE 1717
