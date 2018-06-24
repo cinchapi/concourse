@@ -24,6 +24,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.Criteria;
@@ -31,7 +32,6 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
 /**
@@ -61,7 +61,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
             sql = conn.createStatement();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
         super.beforeEachTest();
@@ -216,7 +216,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
 
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -151,7 +151,7 @@ abstract class StatefulConcourseService {
      */
     private static List<String> getMethodSignatures(Document document) {
         List<String> signatures = Lists.newArrayList();
-        Set<String> bannedMethods = Sets.newHashSet("login", "logout", "stage", "abort", "commit");
+        Set<String> bannedMethods = Sets.newHashSet("login", "logout", "stage", "abort", "commit", "invokeManagement");
         Set<String> bannedFields = Sets.newHashSet("creds", "transaction",
                 "environment", "token");
         for (Definition definition : document.getDefinitions()) {

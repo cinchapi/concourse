@@ -32,6 +32,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
@@ -53,7 +54,6 @@ import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -73,25 +73,14 @@ class ConcourseThriftDriver extends Concourse {
     static {
         // If there is a concourse_client.prefs file located in the working
         // directory, parse it and use its values as defaults.
-        ConcourseClientPreferences config;
-        try {
-            config = ConcourseClientPreferences.open("concourse_client.prefs");
-        }
-        catch (Exception e) {
-            config = null;
-        }
-        SERVER_HOST = "localhost";
-        SERVER_PORT = 1717;
-        USERNAME = "admin";
-        PASSWORD = "admin";
-        ENVIRONMENT = "";
-        if(config != null) {
-            SERVER_HOST = config.getString("host", SERVER_HOST);
-            SERVER_PORT = config.getInt("port", SERVER_PORT);
-            USERNAME = config.getString("username", USERNAME);
-            PASSWORD = config.getString("password", PASSWORD);
-            ENVIRONMENT = config.getString("environment", ENVIRONMENT);
-        }
+        ConcourseClientPreferences config = ConcourseClientPreferences
+                .fromCurrentWorkingDirectory();
+        SERVER_HOST = config.getHost();
+        SERVER_PORT = config.getPort();
+        USERNAME = config.getUsername();
+        PASSWORD = new String(config.getPassword());
+        ENVIRONMENT = config.getEnvironment();
+
     }
 
     /**
@@ -826,7 +815,7 @@ class ConcourseThriftDriver extends Concourse {
             // delete all previously issued tokens.
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -2662,8 +2651,14 @@ class ConcourseThriftDriver extends Concourse {
         catch (com.cinchapi.concourse.thrift.ParseException e) {
             throw new ParseException(e);
         }
+        catch (com.cinchapi.concourse.thrift.PermissionException e) {
+            throw new PermissionException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.ManagementException e) {
+            throw new ManagementException(e);
+        }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -2704,7 +2699,7 @@ class ConcourseThriftDriver extends Concourse {
                     ClientSecurity.decrypt(password), environment);
         }
         catch (TException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

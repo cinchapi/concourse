@@ -17,7 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * Utility class for the {@link ConcurrentMap} interface.
@@ -80,7 +80,7 @@ public final class ConcurrentMaps {
                             hashCode.wait();
                         }
                         catch (InterruptedException e) {
-                            throw Throwables.propagate(e);
+                            throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
                     }
                     else {

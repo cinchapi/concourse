@@ -51,14 +51,51 @@ public abstract class UserCli extends OptionalArgsCli {
     }
 
     /**
-     * Special options for the user cli.
+     * Special options for managing a users password.
      * 
      * @author Jeff Nelson
      */
-    protected static class UserOptions extends Options {
+    protected static class UserPasswordOptions extends Options {
 
         @Parameter(names = {
                 "--set-password" }, description = "Password of the user that is being managed (e.g. the non-invoking user)")
         public String userPassword;
+
+    }
+
+    /**
+     * Special options for editing a user.
+     * 
+     * @author Jeff Nelson
+     */
+    protected static class EditUserOptions extends UserPasswordOptions {
+
+        @Parameter(names = {
+                "--set-role" }, description = "The role to set for the user that is being managed (e.g. the non-invoking user)")
+        public String userRole;
+    }
+
+    /**
+     * Special options for managing permissions.
+     *
+     * @author Jeff Nelson
+     */
+    protected static class PermissionOptions extends Options {
+
+        @Parameter(names = { "-e",
+                "--environment" }, description = "The environment in which the permission is granted (if not specified, the default environment is used)")
+        public String environment = "";
+    }
+
+    /**
+     * Special options for managing permissions.
+     *
+     * @author Jeff Nelson
+     */
+    protected static class GrantPermissionOptions extends PermissionOptions {
+
+        @Parameter(names = {
+                "--permission", }, description = "The permission to grant", required = true)
+        public String permission;
     }
 }

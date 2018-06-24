@@ -1,7 +1,7 @@
 {
     "name": "cinchapi/concourse-driver-php",
     "description": "Official PHP driver for Concourse",
-    "version": "0.9.0",
+    "version": "1.0.0",
     "type": "library",
     "keywords": ["concourse", "nosql", "bigdata"],
     "homepage": "http://concoursedb.com",

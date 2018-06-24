@@ -42,9 +42,9 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
@@ -65,10 +65,11 @@ public class FileOps {
      */
     public static void append(String content, String file) {
         try {
-            Files.append(content, new File(file), StandardCharsets.UTF_8);
+            Files.asCharSink(new File(file), StandardCharsets.UTF_8,
+                    FileWriteMode.APPEND).write(content);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -281,7 +282,7 @@ public class FileOps {
             java.nio.file.Files.createDirectories(Paths.get(path));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -310,11 +311,11 @@ public class FileOps {
      */
     public static String read(String file) {
         try {
-            return com.google.common.io.Files.toString(new File(file),
-                    StandardCharsets.UTF_8);
+            return Files.asCharSource(new File(file), StandardCharsets.UTF_8)
+                    .read();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -369,7 +370,7 @@ public class FileOps {
                             line = reader.readLine();
                         }
                         catch (IOException e) {
-                            throw Throwables.propagate(e);
+                            throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
                     }
 
@@ -389,7 +390,7 @@ public class FileOps {
                             return result;
                         }
                         catch (IOException e) {
-                            throw Throwables.propagate(e);
+                            throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
                     }
 
@@ -421,7 +422,7 @@ public class FileOps {
             return java.nio.file.Files.createTempDirectory(prefix).toString();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -487,7 +488,7 @@ public class FileOps {
                             .toAbsolutePath().toString();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -505,7 +506,7 @@ public class FileOps {
             return file;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -520,7 +521,7 @@ public class FileOps {
             return new File(path).toURI().toURL();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -533,10 +534,11 @@ public class FileOps {
      */
     public static void write(String content, String file) {
         try {
-            Files.write(content, new File(file), StandardCharsets.UTF_8);
+            Files.asCharSink(new File(file), StandardCharsets.UTF_8)
+                    .write(content);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -570,7 +572,7 @@ public class FileOps {
                         key.reset();
                     }
                     catch (InterruptedException e) {
-                        throw Throwables.propagate(e);
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
             }
@@ -579,7 +581,7 @@ public class FileOps {
                     service.close();
                 }
                 catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
 

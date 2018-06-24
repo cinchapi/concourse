@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -74,7 +75,6 @@ import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -160,8 +160,8 @@ public class ManagedConcourseServer {
      */
     private static void configure(String installDirectory) {
         ConcourseServerPreferences prefs = ConcourseServerPreferences
-                .open(installDirectory + File.separator + CONF + File.separator
-                        + "concourse.prefs");
+                .from(Paths.get(installDirectory + File.separator + CONF
+                        + File.separator + "concourse.prefs"));
         String data = installDirectory + File.separator + "data";
         prefs.setBufferDirectory(data + File.separator + "buffer");
         prefs.setDatabaseDirectory(data + File.separator + "database");
@@ -206,7 +206,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -240,23 +240,39 @@ public class ManagedConcourseServer {
                     binary.toString(), "--", "skip-integration"));
             builder.directory(new File(directory));
             builder.redirectErrorStream();
-            Process process = builder.start();
-            // The concourse-server installer prompts for an admin password in
-            // order to make optional system wide In order to get around this
-            // prompt, we have to "kill" the process, otherwise the server
-            // install will hang.
+            AtomicBoolean terminated = new AtomicBoolean(false);
+            Process proc1 = builder.start();
             Stopwatch watch = Stopwatch.createStarted();
-            while (watch.elapsed(TimeUnit.SECONDS) < 1) {
-                continue;
-            }
-            watch.stop();
-            process.destroy();
+            new Thread(() -> {
+                // The concourse-server installer prompts for an admin password
+                // in order to complete optional system wide integration.
+                // Concourse versions >= 0.5.0 have a skip-integration flag that
+                // skips the prompt. Since older versions don't support the
+                // prompt, we have to "kill" the process, otherwise the server
+                // install will hang.
+                while (!terminated.get()) {
+                    if(watch.elapsed(TimeUnit.SECONDS) > 10) {
+                        proc1.destroy();
+                        watch.stop();
+                    }
+                    else {
+                        log.debug("Waiting for server install to finish...");
+                        try {
+                            Thread.sleep(1000);
+                        }
+                        catch (InterruptedException e) {}
+                        continue;
+                    }
+                }
+            }).start();
+            proc1.waitFor();
+            terminated.set(true);
             TerminalFactory.get().restore();
             String application = directory + File.separator
                     + "concourse-server"; // the install directory for the
                                           // concourse-server application
-            process = Runtime.getRuntime().exec("ls " + application);
-            List<String> output = Processes.getStdOut(process);
+            Process proc2 = Runtime.getRuntime().exec("ls " + application);
+            List<String> output = Processes.getStdOut(proc2);
             if(!output.isEmpty()) {
                 // delete the dev prefs because those would take precedence over
                 // what is configured in this class
@@ -275,7 +291,7 @@ public class ManagedConcourseServer {
 
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -296,7 +312,7 @@ public class ManagedConcourseServer {
             return false;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -361,8 +377,8 @@ public class ManagedConcourseServer {
      */
     private ManagedConcourseServer(String installDirectory) {
         this.installDirectory = installDirectory;
-        this.prefs = ConcourseServerPreferences.open(installDirectory
-                + File.separator + CONF + File.separator + "concourse.prefs");
+        this.prefs = ConcourseServerPreferences.from(Paths.get(installDirectory
+                + File.separator + CONF + File.separator + "concourse.prefs"));
         prefs.setLogLevel(Level.DEBUG);
         this.destroyOnExitFlag = Paths.get(installDirectory)
                 .resolve(".destroyOnExit");
@@ -468,7 +484,7 @@ public class ManagedConcourseServer {
                         installDirectory);
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -508,7 +524,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -553,7 +569,7 @@ public class ManagedConcourseServer {
             return memory.getHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -582,7 +598,7 @@ public class ManagedConcourseServer {
                 mBeanServerConnection = connector.getMBeanServerConnection();
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
         return mBeanServerConnection;
@@ -602,7 +618,7 @@ public class ManagedConcourseServer {
             return memory.getNonHeapMemoryUsage();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -681,7 +697,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -696,7 +712,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }
@@ -740,13 +756,13 @@ public class ManagedConcourseServer {
                             + "information to the client prefs file at {}",
                     prefs);
             ConcourseClientPreferences ccp = ConcourseClientPreferences
-                    .open(FileOps.touch(prefs.toString()));
+                    .from(Paths.get(FileOps.touch(prefs.toString())));
             ccp.setPort(getClientPort());
             ccp.setUsername("admin");
             ccp.setPassword("admin".toCharArray());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -769,7 +785,7 @@ public class ManagedConcourseServer {
             dir.delete();
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -799,7 +815,7 @@ public class ManagedConcourseServer {
             }
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -2040,7 +2056,7 @@ public class ManagedConcourseServer {
                         method, parameterTypes));
             }
             catch (Exception e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
 
@@ -2142,7 +2158,7 @@ public class ManagedConcourseServer {
                             method.invoke(delegate, args));
                 }
                 catch (Exception e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
 
