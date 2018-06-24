@@ -589,10 +589,12 @@ public final class Strings {
             return null;
         }
         boolean decimal = false;
+        boolean scientific = false;
         for (int i = 0; i < size; ++i) {
             char c = value.charAt(i);
             if(!Character.isDigit(c)) {
-                if(i == 0 && c == '-') {
+                if(i == 0 && c == '-'
+                        || (scientific && (c == '-' || c == '+'))) {
                     continue;
                 }
                 else if(c == '.') {
@@ -611,13 +613,26 @@ public final class Strings {
                     // Double objects by appending a single 'D' character.
                     return Double.valueOf(value.substring(0, i));
                 }
+                else if((c == 'E' || c == 'e') && i < size - 1) {
+                    // CO-627: Account for valid representations of scientific
+                    // notation
+                    if(!scientific) {
+                        scientific = true;
+                    }
+                    else {
+                        // Since we've already seen a scientific notation
+                        // indicator, another one suggests that this is not
+                        // really a number
+                        return null;
+                    }
+                }
                 else {
                     return null;
                 }
             }
         }
         try {
-            if(decimal) {
+            if(decimal || scientific) {
                 // Try to return a float (for space compactness) if it is
                 // possible to fit the entire decimal without any loss of
                 // precision. In order to do this, we have to compare the string

@@ -36,6 +36,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
@@ -775,6 +776,20 @@ public class ConvertTest {
         TObject tobject = Convert.javaToThrift(Timestamp.now());
         tobject.type = null;
         Convert.thriftToJava(tobject);
+    }
+
+    @Test
+    public void testConvertStringDoubleInScientificNotation() {
+        List<String> values = ImmutableList.of("5.15501576938E-4",
+                "5.15501576938E+4", "1e10");
+        values.forEach(value -> {
+            double expected = Double.parseDouble(value);
+            Object actual = Convert.stringToJava(value);
+            if(actual instanceof Float) {
+                actual = ((Float) actual).doubleValue();
+            }
+            Assert.assertEquals(expected, actual);
+        });
     }
 
     /**

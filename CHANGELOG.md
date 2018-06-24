@@ -1,6 +1,9 @@
 ## Changelog
 
+#### Version 1.0.0 (TBD)
+
 #### Version 0.9.1 (TBD)
+* Fixed a bug that caused Concourse to improperly interpret values written in scientific notation as a `STRING` data type instead of the appropriate number data type.
 
 ##### Enhancements
 * Upgraded client and server configuration management and added support for incremental configuration overrides. Now
