@@ -78,9 +78,14 @@ select(keys=["name", "team"], criteria="age bw 22 29")
 ```
 ###### You can even query data from the past without doing any extra work.
 ```groovy
-get(key="age", record=durant, time=time("04/2009")) // Will return data from 04/2009 from records that match now
-find("team = Chicago Bulls at 2011") // Will return records that matched in 2011
-select(criteria="age > 25 and team != Chicago Bulls", time=time("two years ago")) // Will return data from two years ago from records that match now
+// Return data from 04/2009 from records that match now
+get(key="age", record=durant, time=time("04/2009")) 
+
+// Return records that matched in 2011
+find("team = Chicago Bulls at 2011") 
+
+// Return data from two years ago from records that match now
+select(criteria="age > 25 and team != Chicago Bulls", time=time("two years ago")) 
 ```
 ###### It is very easy to analyze how data has changed over time and revert to previous states.
 ```groovy
