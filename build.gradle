@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
+// To upgrade:
+// 1. Take a backup of gradlew because there is custom logic there that must
+//    be preserved
+// 2. Change gradleVersion here
+// 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
+// 4. Run ./gradlew wrapper
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
+}
+
 // The project version is controlled externally by the "version.sh" script.
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
