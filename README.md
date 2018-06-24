@@ -102,7 +102,7 @@ commit
 ```
 ...or using shorthand syntax
 ```groovy
-concourse.stage({
+stage({
     set(key="current_team", value="OKC Thunder", record=lebron)
     set(key="current_team", value="Cleveland Cavs", record=durant)
 })
