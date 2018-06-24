@@ -160,8 +160,8 @@ public class ManagedConcourseServer {
      */
     private static void configure(String installDirectory) {
         ConcourseServerPreferences prefs = ConcourseServerPreferences
-                .open(installDirectory + File.separator + CONF + File.separator
-                        + "concourse.prefs");
+                .from(Paths.get(installDirectory + File.separator + CONF
+                        + File.separator + "concourse.prefs"));
         String data = installDirectory + File.separator + "data";
         prefs.setBufferDirectory(data + File.separator + "buffer");
         prefs.setDatabaseDirectory(data + File.separator + "database");
@@ -377,8 +377,8 @@ public class ManagedConcourseServer {
      */
     private ManagedConcourseServer(String installDirectory) {
         this.installDirectory = installDirectory;
-        this.prefs = ConcourseServerPreferences.open(installDirectory
-                + File.separator + CONF + File.separator + "concourse.prefs");
+        this.prefs = ConcourseServerPreferences.from(Paths.get(installDirectory
+                + File.separator + CONF + File.separator + "concourse.prefs"));
         prefs.setLogLevel(Level.DEBUG);
         this.destroyOnExitFlag = Paths.get(installDirectory)
                 .resolve(".destroyOnExit");
@@ -756,7 +756,7 @@ public class ManagedConcourseServer {
                             + "information to the client prefs file at {}",
                     prefs);
             ConcourseClientPreferences ccp = ConcourseClientPreferences
-                    .open(FileOps.touch(prefs.toString()));
+                    .from(Paths.get(FileOps.touch(prefs.toString())));
             ccp.setPort(getClientPort());
             ccp.setUsername("admin");
             ccp.setPassword("admin".toCharArray());
