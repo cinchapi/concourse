@@ -34,10 +34,11 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 docker run -it --rm --link concourse:concourse cinchapi/concourse bash -c 'concourse shell --host concourse'
 ```
 
-For more information, visit [https://docs.cinchapi.com/concourse/quickstart]()
+For more information, visit [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart).
 
 ### Usage
 Let's assume we have the an array of JSON objects corresponding to NBA players.
+*NOTE: These examples assume you're using Concourse Shell, but are easily adaptable to any of the Concourse client drivers or REST API.*
 ```python
 from concourse import *
 
