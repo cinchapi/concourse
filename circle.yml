@@ -25,6 +25,8 @@ machine:
     CONTAINER_BUILD: true
   java:
     version: oraclejdk8
+  services:
+    - docker
 
 # Skip download dependencies because they will be downloaded during the test
 # step of the build.
@@ -40,7 +42,7 @@ test:
     - cp sonatype-credentials/gradle.properties .
     - cp sonatype-credentials/secring.gpg /home/ubuntu
   override:
-    - "./gradlew clean build installer uploadArchives bintrayUpload"
+    - "./gradlew clean build installer uploadArchives bintrayUpload dockerize"
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
