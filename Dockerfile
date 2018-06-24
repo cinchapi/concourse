@@ -52,6 +52,10 @@ RUN ln -s /root/concourse /data
 # Create a persistent volume for data
 VOLUME [ "/data" ]
 
+# Configuration
+ENV CONCOURSE_BUFFER_DIRECTORY /data/buffer
+ENV CONCOURSE_DATABASE_DIRECTORY /data/db
+
 # Start the app
 CMD [ "concourse", "console" ]
 
