@@ -10,8 +10,6 @@
 This is version 1.0.0 of Concourse.
 
 ## Quickstart
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/cinchapi/concourse/tree/develop)
-
 Let's assume we have the an array of JSON objects corresponding to NBA players.
 ```python
 from concourse import *
