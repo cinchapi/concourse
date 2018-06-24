@@ -16,7 +16,9 @@
 
 # A script to build and publish docker images for the project.
 
-. "`dirname "$0"`/.include"
+cd "${0%/*}"
+HOME="`pwd -P`"
+HOME=`cd ${HOME}; pwd`
 cd ..
 
 tag=$1

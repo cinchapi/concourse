@@ -100,7 +100,7 @@ task installer(type: Exec, dependsOn: distZip) {
 }
 
 task dockerize(type: Exec, dependsOn: installer) {
-    commandLine 'bash', '../utils/docker-publish.sh', mavenVersion
+    commandLine 'bash', 'dockerize.sh', mavenVersion
 }
 
 idea {
