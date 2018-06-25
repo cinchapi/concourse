@@ -31,7 +31,7 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 
 #### Run `concourse shell` and connect to the running `concourse` docker container
 ```bash
-docker run -it --rm --link concourse:concourse cinchapi/concourse concourse shell --host concourse --password admin
+docker run -it --rm --link concourse:concourse cinchapi/concourse shell --host concourse --password admin
 ```
 
 For more information, visit [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart).

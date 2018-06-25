@@ -97,7 +97,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
                 .from(prefsPath);
         Assert.assertEquals("foofoo", new String(prefs.getPasswordExplicit()));
     }
-    
+
     @Test
     public void testGetPortWhenWrittenAsString() {
         appendLine("port = \"1717\"");
@@ -105,7 +105,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
                 .from(prefsPath);
         Assert.assertEquals(1717, prefs.getPort());
     }
-    
+
     @Test
     public void testGetPortWhenNotProvided() {
         ConcourseClientPreferences prefs = ConcourseClientPreferences
