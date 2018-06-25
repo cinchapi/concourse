@@ -8,6 +8,7 @@
 * Upgraded client and server configuration management and added support for incremental configuration overrides. Now
 	* Server preferences defined in `conf/concourse.prefs` can be individually overriden in a `conf/concourse.prefs.dev` file (previously override preferences in the .dev file had to be done all or nothing). 
 	* Both server and client preferences can be individually overriden using environment variables that are capitalized and prefixed with `CONCOURSE_`. For example, you can override the `heap_size` preference with an environment variable named `CONCOURSE_HEAP_SIZE`.
+* Added Docker image [https://hub.docker.com/r/cinchapi/concourse](https://hub.docker.com/r/cinchapi/concourse). See [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart) for more information.
 
 ##### Bug Fixes
 * Fixed a bug that caused Concourse to improperly interpret values written in scientific notation as a `STRING` data type instead of the appropriate number data type.
