@@ -99,6 +99,10 @@ task installer(type: Exec, dependsOn: distZip) {
     }
 }
 
+task dockerize(type: Exec, dependsOn: installer) {
+    commandLine 'bash', 'dockerize.sh', mavenVersion
+}
+
 idea {
     copy {
         from "launch" + File.separator + "idea"

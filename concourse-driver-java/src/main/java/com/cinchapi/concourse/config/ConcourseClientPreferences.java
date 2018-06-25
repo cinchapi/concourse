@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.logging.Logging;
+import com.cinchapi.lib.config.read.Interpreters;
 
 /**
  * A wrapper around the {@code concourse_client.prefs} file that is used to
@@ -172,7 +173,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the port
      */
     public int getPort() {
-        return getOrDefault("port", DEFAULT_PORT);
+        return getOrDefault("port", Interpreters.numberOrNull(), DEFAULT_PORT);
     }
 
     /**
