@@ -34,6 +34,15 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 docker run -it --rm --link concourse:concourse cinchapi/concourse shell --host concourse --password admin
 ```
 
+#### Run server-side management commands (e.g. `concourse debug`) within the running container
+```bash
+docker exec -it concourse concourse <command> <args>
+```
+For example, you can call the `concourse users sessions` command
+```bash
+docker exec -it concourse concourse users sessions --password admin
+```
+
 For more information, visit [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart).
 
 ### Usage
