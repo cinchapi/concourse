@@ -31,7 +31,7 @@ else
   major=$(echo ${version} | cut -d . -f 1)
   minor=$(echo ${version} | cut -d . -f 2)
   patch=$(echo ${version} | cut -d . -f 3 | cut -d '-' -f 1)
-  suffix=$(echo ${version} | cut -d '-' -f 2)
+  suffix=$(echo ${version} | cut -d '-' -f 2-)
   if [[ "$suffix" == "$version" ]]; then
     suffix=""
     tags="latest " # No suffix indicates we should push a latest tag
@@ -42,10 +42,15 @@ else
 
   tags="$tags$major$suffix $major.$minor$suffix $major.$minor.$patch$suffix"
 
-  # Build the docker images
+  # Build the main docker image
   image=$(date +%Y%m%d%H%M%S)
   docker build -t $image -f Dockerfile .
-  docker build -t $image-onbuild -f Dockerfile.onbuild .
+
+  # Build the -onbuild image using the image from the previous step as a base
+  temp=Dockerfile.onbuild.temp
+  sed "1s/.*/FROM $image/" Dockerfile.onbuild > $temp
+  docker build -t $image-onbuild -f $temp --pull=false .
+  rm $temp
 
   # Push the image to docker hub with each of the tags
   docker login -e team@cinchapi.com -u $DOCKER_USER -p $DOCKER_PASS
