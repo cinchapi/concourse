@@ -34,6 +34,11 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 docker run -it --rm --link concourse:concourse cinchapi/concourse shell --host concourse --password admin
 ```
 
+#### Use the Import CLI to import a file from the host machine into the `concourse` docker container
+```bash
+xargs -I % docker run -i --rm --link concourse:concourse --mount type=bind,source=%,target=/data/% cinchapi/concourse import --host concourse --password admin -d /data/% <<< </absolute/path/to/file>
+```
+
 #### Run server-side management commands (e.g. `concourse debug`) within the running container
 ```bash
 docker exec -it concourse concourse <command> <args>
