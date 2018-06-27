@@ -41,7 +41,7 @@ docker run -it --rm --link concourse:concourse cinchapi/concourse import --host 
 
 #### Use the `concourse import` to import a **file** from the host machine into the `concourse` docker container
 ```bash
-xargs -I % docker run -i --rm --link concourse:concourse --mount type=bind,source=%,target=/data/% cinchapi/concourse import --host concourse --password admin -d /data/% <<< </absolute/path/to/file>
+xargs -I % docker run -i --rm --link concourse:concourse --mount type=bind,source=%,target=/data/% cinchapi/concourse import --host concourse --password admin -d /data/% <<< /absolute/path/to/file
 ```
 
 #### Run server-side management commands (e.g. `concourse debug`) within the running container
