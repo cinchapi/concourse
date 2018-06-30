@@ -28,6 +28,7 @@ jobs:
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
+    working_directory: ~/{{ .Environment.CIRCLE_PROJECT_REPONAME }} 
     steps:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
@@ -41,6 +42,11 @@ jobs:
             git clone git@github.com:cinchapi/sonatype-credentials.git
             cp sonatype-credentials/gradle.properties .
             cp sonatype-credentials/secring.gpg ~
+      - run:
+          name: Generate gradle.lock
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            find . -type f -name build.gradle | xargs cat > gradle.lock
       - run: 
           name: Build and Publish
           command: |
