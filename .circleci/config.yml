@@ -28,10 +28,12 @@ jobs:
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
-    working_directory: {{ .Environment.CIRCLE_PROJECT_REPONAME }}
     steps:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
+      - run:
+        name: Switch to correct working directory
+        command: cd ~/$CIRCLE_PROJECT_REPONAME
       - run:
           name: Get Sonatype Credentials
           command: |
