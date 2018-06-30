@@ -554,6 +554,18 @@ public final class Operations {
         return result;
     }
 
+    /**
+     * Do the work to atomically to navigate all the values for the specified
+     * {@code keys} in the specified {@code records} and if its of type
+     * {@value Type.LINK}, iterate until the key is not {@value Type.LINK} and
+     * return the result.
+     * 
+     * @param List<String> keys
+     * @param record
+     * @param atomic
+     * @return Map<String, Set<TObject>> set of values.
+     * @throws ParseException
+     */
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsAtomic(
             List<String> keys, Set<Long> records, long timestamp,
             AtomicOperation atomic) {

@@ -24,8 +24,8 @@ import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.time.Time;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -94,7 +94,7 @@ public class BlockingExecutorService {
                 future.get();
             }
             catch (InterruptedException | ExecutionException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }

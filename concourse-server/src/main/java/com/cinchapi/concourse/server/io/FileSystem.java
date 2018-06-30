@@ -35,10 +35,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 
 /**
@@ -69,7 +69,7 @@ public final class FileSystem extends FileOps {
             channel.close();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -84,7 +84,7 @@ public final class FileSystem extends FileOps {
             Files.copy(Paths.get(from), Files.newOutputStream(Paths.get(to)));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -116,7 +116,7 @@ public final class FileSystem extends FileOps {
                 deleteDirectory(directory);
             }
             else {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
@@ -131,7 +131,7 @@ public final class FileSystem extends FileOps {
             java.nio.file.Files.delete(Paths.get(file));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -201,7 +201,7 @@ public final class FileSystem extends FileOps {
             return new RandomAccessFile(openFile(file), "rwd").getChannel();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -218,7 +218,7 @@ public final class FileSystem extends FileOps {
             return Files.size(Paths.get(file));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -279,8 +279,18 @@ public final class FileSystem extends FileOps {
      * @return {@code true} if {@code file} exists
      */
     public static boolean hasFile(String file) {
-        Path path = Paths.get(file);
-        return Files.exists(path) && !Files.isDirectory(path);
+        return hasFile(Paths.get(file));
+    }
+
+    /**
+     * Return {@code true} in the filesystem contains {@code file} and it is not
+     * a directory.
+     * 
+     * @param file
+     * @return {@code true} if {@code file} exists
+     */
+    public static boolean hasFile(Path file) {
+        return Files.exists(file) && !Files.isDirectory(file);
     }
 
     /**
@@ -305,7 +315,7 @@ public final class FileSystem extends FileOps {
                         + "JVM is already the owner", path);
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
@@ -347,7 +357,7 @@ public final class FileSystem extends FileOps {
             return channel.map(mode, position, size).load();
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             closeFileChannel(channel);
@@ -370,7 +380,7 @@ public final class FileSystem extends FileOps {
             return f;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -389,7 +399,7 @@ public final class FileSystem extends FileOps {
             return data;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             closeFileChannel(channel);
@@ -410,7 +420,7 @@ public final class FileSystem extends FileOps {
                     StandardCopyOption.REPLACE_EXISTING);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -464,7 +474,7 @@ public final class FileSystem extends FileOps {
             channel.force(true);
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             closeFileChannel(channel);

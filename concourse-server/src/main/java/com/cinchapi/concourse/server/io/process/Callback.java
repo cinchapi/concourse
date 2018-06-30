@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.server.io.process;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * A {@link Callback} is invoked with the result of some asynchronous method
@@ -73,7 +73,7 @@ public abstract class Callback<T> {
                     }
                 }
                 catch (InterruptedException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
         }

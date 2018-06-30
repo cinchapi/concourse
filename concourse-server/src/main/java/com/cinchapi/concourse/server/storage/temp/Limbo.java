@@ -15,8 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
-import static com.google.common.collect.Maps.newLinkedHashMap;
-
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
@@ -87,14 +85,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     /**
      * A Predicate that is used to filter out empty sets.
      */
-    protected static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
-
-        @Override
-        public boolean apply(@Nullable Set<? extends Object> input) {
-            return !input.isEmpty();
-        }
-
-    };
+    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
+            && !set.isEmpty();
 
     @Override
     public Map<Long, String> audit(long record) {
@@ -172,8 +164,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 }
             }
         }
-        return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
-                .filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(Maps.filterValues(
+                (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
     }
 
     @Override
@@ -291,8 +283,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 }
             }
         }
-        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
-                .keySet();
+        return Sets.newLinkedHashSet(
+                Maps.filterValues(context, emptySetFilter).keySet());
     }
 
     /**
@@ -436,8 +428,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         }
         // FIXME sort search results based on frequency (see
         // SearchRecord#search())
-        return newLinkedHashMap(Maps.filterValues(rtv, emptySetFilter))
-                .keySet();
+        return Sets.newLinkedHashSet(
+                Maps.filterValues(rtv, emptySetFilter).keySet());
     }
 
     @Override
@@ -496,8 +488,8 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 }
             }
         }
-        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
-                .filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(Maps.filterValues(
+                (SortedMap<String, Set<TObject>>) context, emptySetFilter));
     }
 
     @Override

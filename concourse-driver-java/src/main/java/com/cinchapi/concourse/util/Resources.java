@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.collect.Maps;
 
 /**
@@ -93,7 +93,7 @@ public class Resources {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -109,7 +109,7 @@ public class Resources {
             return new File(Resources.get(name).toURI()).getAbsolutePath();
         }
         catch (URISyntaxException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

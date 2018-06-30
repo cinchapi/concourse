@@ -28,6 +28,7 @@ import spark.Route;
 import spark.Spark;
 import ch.qos.logback.classic.Level;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
@@ -37,7 +38,6 @@ import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
@@ -280,7 +280,7 @@ public class HttpServer {
                 clearRoutes.invoke(null);
             }
             catch (ReflectiveOperationException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
 
         }

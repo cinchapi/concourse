@@ -19,7 +19,7 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
  * A {@link ConnectionPool} with a fixed number of connections. If all the
@@ -70,7 +70,7 @@ class FixedConnectionPool extends ConnectionPool {
             return ((BlockingQueue<Concourse>) available).take();
         }
         catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.cli;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
@@ -93,7 +94,7 @@ public abstract class CommandLineInterface {
                 options.prefs = FileOps.expandPath(options.prefs,
                         getLaunchDirectory());
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
-                        .open(options.prefs);
+                        .from(Paths.get(options.prefs));
                 options.username = prefs.getUsername();
                 options.password = new String(prefs.getPasswordExplicit());
                 options.host = prefs.getHost();

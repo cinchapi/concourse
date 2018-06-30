@@ -27,11 +27,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import ch.qos.logback.classic.Level;
 
+import com.cinchapi.common.base.Array;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.NonPreference;
@@ -40,9 +43,9 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Networking;
+import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 /**
@@ -249,80 +252,67 @@ public final class GlobalState extends Constants {
             : false;
 
     static {
-        ConcourseServerPreferences config;
-        try {
-            String devPrefs = "conf" + File.separator + "concourse.prefs.dev";
-            String defaultPrefs = "conf" + File.separator + "concourse.prefs";
-            if(FileSystem.hasFile(devPrefs)) {
-                config = ConcourseServerPreferences.open(devPrefs);
-                PREFS_FILE_PATH = FileSystem.expandPath(devPrefs);
-            }
-            else {
-                config = ConcourseServerPreferences.open(defaultPrefs);
-                PREFS_FILE_PATH = FileSystem.expandPath(defaultPrefs);
-            }
+        List<String> files = ImmutableList.of(
+                "conf" + File.separator + "concourse.prefs",
+                "conf" + File.separator + "concourse.prefs.dev");
+        ConcourseServerPreferences config = ConcourseServerPreferences
+                .from(files.stream()
+                        .map(file -> Paths.get(FileSystem.expandPath(file)))
+                        .collect(Collectors.toList())
+                        .toArray(Array.containing()));
+
+        // =================== PREF READING BLOCK ====================
+        DATABASE_DIRECTORY = config.getOrDefault("database_directory",
+                DATABASE_DIRECTORY);
+
+        BUFFER_DIRECTORY = config.getOrDefault("buffer_directory",
+                BUFFER_DIRECTORY);
+
+        BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
+                BUFFER_PAGE_SIZE);
+
+        CLIENT_PORT = config.getOrDefault("client_port", CLIENT_PORT);
+
+        SHUTDOWN_PORT = config.getOrDefault("shutdown_port",
+                Networking.getCompanionPort(CLIENT_PORT, 2));
+
+        JMX_PORT = config.getOrDefault("jmx_port", JMX_PORT);
+
+        HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
+
+        HTTP_PORT = config.getOrDefault("http_port", HTTP_PORT);
+
+        HTTP_ENABLE_CORS = config.getOrDefault("http_enable_cors",
+                HTTP_ENABLE_CORS);
+
+        HTTP_CORS_DEFAULT_ALLOW_ORIGIN = config.getOrDefault(
+                "http_cors_default_allow_origin",
+                HTTP_CORS_DEFAULT_ALLOW_ORIGIN);
+
+        HTTP_CORS_DEFAULT_ALLOW_HEADERS = config.getOrDefault(
+                "http_cors_default_allow_headers",
+                HTTP_CORS_DEFAULT_ALLOW_HEADERS);
+
+        HTTP_CORS_DEFAULT_ALLOW_METHODS = config.getOrDefault(
+                "http_cors_default_allow_methods",
+                HTTP_CORS_DEFAULT_ALLOW_METHODS);
+
+        LOG_LEVEL = config.get("log_level", Interpreters.logLevel());
+
+        ENABLE_CONSOLE_LOGGING = config.getOrDefault("enable_console_logging",
+                ENABLE_CONSOLE_LOGGING);
+        if(!ENABLE_CONSOLE_LOGGING) {
+            ENABLE_CONSOLE_LOGGING = Boolean.parseBoolean(System.getProperty(
+                    "com.cinchapi.concourse.server.logging.console", "false"));
         }
-        catch (Exception e) {
-            config = null;
-        }
-        if(config != null) {
-            // =================== PREF READING BLOCK ====================
-            DATABASE_DIRECTORY = config.getString("database_directory",
-                    DATABASE_DIRECTORY);
+        DEFAULT_ENVIRONMENT = config.getOrDefault("default_environment",
+                DEFAULT_ENVIRONMENT);
 
-            BUFFER_DIRECTORY = config.getString("buffer_directory",
-                    BUFFER_DIRECTORY);
+        MANAGEMENT_PORT = config.getOrDefault("management_port",
+                Networking.getCompanionPort(CLIENT_PORT, 4));
 
-            BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
-                    BUFFER_PAGE_SIZE);
-
-            CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
-
-            SHUTDOWN_PORT = config.getInt("shutdown_port",
-                    Networking.getCompanionPort(CLIENT_PORT, 2));
-
-            JMX_PORT = config.getInt("jmx_port", JMX_PORT);
-
-            HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
-
-            HTTP_PORT = config.getInt("http_port", HTTP_PORT);
-
-            HTTP_ENABLE_CORS = config.getBoolean("http_enable_cors",
-                    HTTP_ENABLE_CORS);
-
-            HTTP_CORS_DEFAULT_ALLOW_ORIGIN = config.getString(
-                    "http_cors_default_allow_origin",
-                    HTTP_CORS_DEFAULT_ALLOW_ORIGIN);
-
-            HTTP_CORS_DEFAULT_ALLOW_HEADERS = config.getString(
-                    "http_cors_default_allow_headers",
-                    HTTP_CORS_DEFAULT_ALLOW_HEADERS);
-
-            HTTP_CORS_DEFAULT_ALLOW_METHODS = config.getString(
-                    "http_cors_default_allow_methods",
-                    HTTP_CORS_DEFAULT_ALLOW_METHODS);
-
-            LOG_LEVEL = Level.valueOf(
-                    config.getString("log_level", LOG_LEVEL.toString()));
-
-            ENABLE_CONSOLE_LOGGING = config.getBoolean("enable_console_logging",
-                    ENABLE_CONSOLE_LOGGING);
-            if(!ENABLE_CONSOLE_LOGGING) {
-                ENABLE_CONSOLE_LOGGING = Boolean
-                        .parseBoolean(System.getProperty(
-                                "com.cinchapi.concourse.server.logging.console",
-                                "false"));
-            }
-
-            DEFAULT_ENVIRONMENT = config.getString("default_environment",
-                    DEFAULT_ENVIRONMENT);
-
-            MANAGEMENT_PORT = config.getInt("management_port",
-                    Networking.getCompanionPort(CLIENT_PORT, 4));
-
-            SYSTEM_ID = getSystemId();
-            // =================== PREF READING BLOCK ====================
-        }
+        SYSTEM_ID = getSystemId();
+        // =================== PREF READING BLOCK ====================
     }
 
     /**
@@ -343,13 +333,13 @@ public final class GlobalState extends Constants {
         }
         catch (FileNotFoundException e) {}
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
     /**
      * The file which contains the credentials used by the
-     * {@link com.cinchapi.concourse.security.AccessManager}.
+     * {@link com.cinchapi.concourse.security.UserService}.
      * This file is typically located in the root of the server installation.
      */
     @NonPreference
@@ -464,13 +454,13 @@ public final class GlobalState extends Constants {
         String relativeFileName = ".id";
         Path bufferId = Paths.get(BUFFER_DIRECTORY, relativeFileName);
         Path databaseId = Paths.get(DATABASE_DIRECTORY, relativeFileName);
-        List<String> files = Lists.newArrayList(bufferId.toString(),
+        List<String> files = ImmutableList.of(bufferId.toString(),
                 databaseId.toString());
-        boolean hasBufferId = false;
-        boolean hasDatabaseId = false;
-        if((hasBufferId = FileSystem.hasFile(bufferId.toString()))
-                && (hasDatabaseId = FileSystem
-                        .hasFile(databaseId.toString()))) {
+        boolean hasBufferId = FileSystem.hasFile(bufferId);
+        boolean hasDatabaseId = FileSystem.hasFile(databaseId);
+        if(hasBufferId && hasDatabaseId) { // Verify that the system id in the
+                                           // database and buffer are
+                                           // consistent.
             UUID uuid = null;
             for (String file : files) {
                 ByteBuffer bytes = FileSystem.readBytes(file);
@@ -489,7 +479,9 @@ public final class GlobalState extends Constants {
             }
             return uuid;
         }
-        else if(!hasBufferId && !hasDatabaseId) {
+        else if(!hasBufferId && !hasDatabaseId) { // Create a system id and
+                                                  // store it in the database
+                                                  // and buffer.
             UUID uuid = UUID.randomUUID();
             ByteBuffer bytes = ByteBuffer.allocate(16);
             bytes.putLong(uuid.getMostSignificantBits());
@@ -501,7 +493,10 @@ public final class GlobalState extends Constants {
             }
             return uuid;
         }
-        return null;
+        else { // The system id is not consistent across the buffer and
+               // database.
+            return null;
+        }
     }
 
 }

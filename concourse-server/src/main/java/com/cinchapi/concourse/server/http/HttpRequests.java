@@ -85,6 +85,7 @@ public class HttpRequests {
      * @param request
      * @return the client fingerprint
      */
+    @SuppressWarnings("deprecation")
     public static String getFingerprint(HttpRequest request) {
         StringBuilder sb = new StringBuilder();
         sb.append(getUserAgent(request));

@@ -15,16 +15,17 @@
  */
 package com.cinchapi.concourse.config;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.google.common.base.Throwables;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 /**
@@ -37,17 +38,17 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
     /**
      * Path to the prefs file that will be used within the test case.
      */
-    private String prefsPath = null;
+    private Path prefsPath = null;
 
     @Override
     protected void beforeEachTest() {
         try {
-            prefsPath = java.nio.file.Files
+            prefsPath = Paths.get(java.nio.file.Files
                     .createTempFile(this.getClass().getName(), ".tmp")
-                    .toString();
+                    .toString());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -58,22 +59,22 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
      */
     private void appendLine(String line) {
         try {
-            Files.append(line + System.lineSeparator(), new File(prefsPath),
-                    StandardCharsets.UTF_8);
+            Files.asCharSink(prefsPath.toFile(), StandardCharsets.UTF_8,
+                    FileWriteMode.APPEND).write(line + System.lineSeparator());
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
     @Override
     public void afterEachTest() {
         try {
-            java.nio.file.Files.delete(Paths.get(prefsPath));
+            java.nio.file.Files.delete(prefsPath);
             prefsPath = null;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -82,7 +83,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
         appendLine("username = foo");
         appendLine("host = localhost");
         ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .open(prefsPath);
+                .from(prefsPath);
         Assert.assertEquals(ConcourseClientPreferences.NO_PASSWORD_DEFINED,
                 prefs.getPasswordExplicit());
     }
@@ -93,8 +94,23 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
         appendLine("host = localhost");
         appendLine("password = foofoo");
         ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .open(prefsPath);
+                .from(prefsPath);
         Assert.assertEquals("foofoo", new String(prefs.getPasswordExplicit()));
+    }
+
+    @Test
+    public void testGetPortWhenWrittenAsString() {
+        appendLine("port = \"1717\"");
+        ConcourseClientPreferences prefs = ConcourseClientPreferences
+                .from(prefsPath);
+        Assert.assertEquals(1717, prefs.getPort());
+    }
+
+    @Test
+    public void testGetPortWhenNotProvided() {
+        ConcourseClientPreferences prefs = ConcourseClientPreferences
+                .from(prefsPath);
+        Assert.assertEquals(1717, prefs.getPort());
     }
 
 }

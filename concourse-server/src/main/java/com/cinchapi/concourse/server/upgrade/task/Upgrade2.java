@@ -21,13 +21,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.upgrade.UpgradeTask;
 import com.cinchapi.concourse.util.Environments;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * Migrate legacy (e.g. pre-environment) data to the default environment.
@@ -108,7 +108,7 @@ public class Upgrade2 extends UpgradeTask {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }

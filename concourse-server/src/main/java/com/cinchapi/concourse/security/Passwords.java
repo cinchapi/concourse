@@ -20,8 +20,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * A collection of tools for dealing with passwords in a secure manner.
@@ -63,7 +63,7 @@ public final class Passwords {
             return hashed;
         }
         catch (NoSuchAlgorithmException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

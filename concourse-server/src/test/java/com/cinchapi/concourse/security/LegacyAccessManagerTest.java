@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.security;
 
-import static com.cinchapi.concourse.security.AccessManagerTest.*;
+import static com.cinchapi.concourse.security.UserServiceTest.*;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -45,7 +45,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
     private String legacy = null;
     private String current = null;
     private LegacyAccessManager legacyManager = null;
-    private AccessManager manager = null;
+    private UserService manager = null;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -61,7 +61,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
             legacy = TestData.DATA_DIR + File.separator + Time.now();
             legacyManager = LegacyAccessManager.create(legacy);
             current = TestData.DATA_DIR + File.separator + Time.now();
-            manager = AccessManager.create(current);
+            manager = UserService.create(current);
         }
     };
 
@@ -71,8 +71,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         legacyManager.diskSync(legacy);
         LegacyAccessManager legacyManager1 = LegacyAccessManager.create(legacy);
         legacyManager1.transferCredentials(manager);
-        Assert.assertTrue(manager
-                .isExistingUsername(ByteBuffer.wrap("admin".getBytes())));
+        Assert.assertTrue(manager.exists(ByteBuffer.wrap("admin".getBytes())));
     }
 
     @Test
@@ -83,7 +82,7 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         legacyManager1.transferCredentials(manager);
         for (Entry<ByteBuffer, ByteBuffer> legacyCreds : legacyCredentials
                 .entrySet()) {
-            Assert.assertTrue(manager.isExistingUsername(legacyCreds.getKey()));
+            Assert.assertTrue(manager.exists(legacyCreds.getKey()));
         }
     }
 
@@ -95,8 +94,8 @@ public class LegacyAccessManagerTest extends ConcourseBaseTest {
         legacyManager1.transferCredentials(manager);
         for (Entry<ByteBuffer, ByteBuffer> legacyCreds : legacyCredentials
                 .entrySet()) {
-            Assert.assertTrue(manager.isExistingUsernamePasswordCombo(
-                    legacyCreds.getKey(), legacyCreds.getValue()));
+            Assert.assertTrue(manager.authenticate(legacyCreds.getKey(),
+                    legacyCreds.getValue()));
         }
     }
 

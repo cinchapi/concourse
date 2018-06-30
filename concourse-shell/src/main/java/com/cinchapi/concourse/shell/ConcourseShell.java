@@ -46,8 +46,10 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.PermissionException;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
@@ -62,7 +64,6 @@ import com.cinchapi.concourse.util.Version;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -108,7 +109,7 @@ public final class ConcourseShell {
                 opts.prefs = FileOps.expandPath(opts.prefs,
                         System.getProperty("user.dir.real"));
                 ConcourseClientPreferences prefs = ConcourseClientPreferences
-                        .open(opts.prefs);
+                        .from(Paths.get(opts.prefs));
                 opts.username = prefs.getUsername();
                 opts.password = new String(prefs.getPasswordExplicit());
                 opts.host = prefs.getHost();
@@ -152,7 +153,12 @@ public final class ConcourseShell {
                 }
             }
             else {
-                cash.enableInteractiveSettings();
+                try {
+                    cash.enableInteractiveSettings();
+                }
+                catch (PermissionException e) {
+                    die(e.getMessage());
+                }
                 boolean running = true;
                 String input = "";
                 while (running) {
@@ -323,7 +329,7 @@ public final class ConcourseShell {
                 return text;
             }
             catch (IOException e) {
-                throw Throwables.propagate(e);
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
     }
@@ -733,7 +739,7 @@ public final class ConcourseShell {
             }
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
@@ -770,8 +776,8 @@ public final class ConcourseShell {
             }
 
         }));
-        CommandLine.displayWelcomeBanner();
         env = concourse.getServerEnvironment();
+        CommandLine.displayWelcomeBanner();
         setDefaultPrompt();
         console.println(
                 "Client Version " + Version.getVersion(ConcourseShell.class));
@@ -805,41 +811,29 @@ public final class ConcourseShell {
 
         /**
          * A handler for the client preferences that <em>may</em> exist in the
-         * user's home directory.
+         * user's home directory. If the file is available, its contents will be
+         * used for configuration defaults.
          */
-        private ConcourseClientPreferences prefsHandler = null;
-
-        {
-            String file = System.getProperty("user.home") + File.separator
-                    + "concourse_client.prefs";
-            if(Files.exists(Paths.get(file))) { // check to make sure that the
-                                                // file exists first, so we
-                                                // don't create a blank one if
-                                                // it doesn't
-                prefsHandler = ConcourseClientPreferences.open(file);
-            }
-        }
+        private ConcourseClientPreferences defaults = ConcourseClientPreferences
+                .fromUserHomeDirectory();
 
         @Parameter(names = { "-e",
                 "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = prefsHandler != null
-                ? prefsHandler.getEnvironment() : "";
+        public String environment = defaults.getEnvironment();
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
 
         @Parameter(names = { "-h",
                 "--host" }, description = "The hostname where the Concourse Server is located")
-        public String host = prefsHandler != null ? prefsHandler.getHost()
-                : "localhost";
+        public String host = defaults.getHost();
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-        public String password = prefsHandler != null
-                ? new String(prefsHandler.getPasswordExplicit()) : null;
+        public String password = new String(defaults.getPasswordExplicit());
 
         @Parameter(names = { "-p",
                 "--port" }, description = "The port on which the Concourse Server is listening")
-        public int port = prefsHandler != null ? prefsHandler.getPort() : 1717;
+        public int port = defaults.getPort();
 
         @Parameter(names = { "-r",
                 "--run" }, description = "The command to run non-interactively")
@@ -847,8 +841,7 @@ public final class ConcourseShell {
 
         @Parameter(names = { "-u",
                 "--username" }, description = "The username with which to connect")
-        public String username = prefsHandler != null
-                ? prefsHandler.getUsername() : "admin";
+        public String username = defaults.getUsername();
 
         @Parameter(names = { "--run-commands",
                 "--rc" }, description = "Path to a script that contains commands to run when the shell starts")

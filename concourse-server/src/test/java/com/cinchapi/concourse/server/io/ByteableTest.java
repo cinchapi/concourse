@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.TestData;
-import com.google.common.base.Throwables;
 
 /**
  * Tests for {@link com.cinchapi.concourse.server.io.Byteable} objects.
@@ -52,7 +52,7 @@ public abstract class ByteableTest extends ConcourseBaseTest {
                             + getTestClass());
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
     }

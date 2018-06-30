@@ -55,7 +55,6 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Assert.assertEquals(range, Range.singleton(value));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testConvertNotEqualRangeToken() {
         Text key = TestData.getText();

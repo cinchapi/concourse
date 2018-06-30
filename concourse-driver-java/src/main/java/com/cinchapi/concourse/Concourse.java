@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +141,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public static Concourse connectWithPrefs(String file) {
         ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .open(file);
+                .from(Paths.get(file));
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
     }
@@ -160,6 +161,12 @@ public abstract class Concourse implements AutoCloseable {
      * The interface to use for all {@link #calculate() calculation} methods.
      */
     private Calculator calculator = null;
+
+    /**
+     * The interface to all of Concourse's client-side {@link #manage()
+     * management} methods.
+     */
+    private Manager manager = null;
 
     /**
      * Abort the current transaction and discard any changes that are currently
@@ -2225,6 +2232,19 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code true} if the link is added
      */
     public abstract boolean link(String key, long destination, long source);
+
+    /**
+     * Return a {@link Manager} to perform management operations to the
+     * connected Concourse Server deployment.
+     * 
+     * @return the {@link Manager management} interface
+     */
+    public Manager manage() {
+        if(manager == null) {
+            manager = new Manager(this);
+        }
+        return manager;
+    }
 
     /**
      * Traverse the document-graph along each of the navigation {@code keys},

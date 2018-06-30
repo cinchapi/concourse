@@ -730,6 +730,7 @@ public class ParserTest {
         Assert.assertEquals("Atlanta (HQ)", expr.raw().values().get(0));
     }
 
+    @Test
     public void testParseCclNoSpaces() {
         String ccl = "name=jeff";
         Parser parser = Parsers.create(ccl);
@@ -746,5 +747,13 @@ public class ParserTest {
                 Assert.assertTrue(true);
             }
         }
+    }
+
+    @Test
+    public void testReproCCL_11() {
+        String ccl = "user LINKS_TO 1234";
+        Parser parser = Parsers.create(ccl);
+        parser.parse();
+        Assert.assertTrue(true); // lack of Exception means we pass
     }
 }

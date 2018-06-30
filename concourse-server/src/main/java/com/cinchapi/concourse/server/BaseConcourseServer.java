@@ -20,15 +20,20 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
-import com.cinchapi.concourse.security.AccessManager;
+import com.cinchapi.concourse.security.Permission;
+import com.cinchapi.concourse.security.Role;
+import com.cinchapi.concourse.security.UserService;
+import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
+import com.cinchapi.concourse.server.aop.VerifyAccessToken;
+import com.cinchapi.concourse.server.aop.VerifyAdminRole;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.management.ClientInvokable;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.ManagementException;
-import com.cinchapi.concourse.thrift.SecurityException;
+import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
 
@@ -44,75 +49,117 @@ import com.cinchapi.concourse.util.TSets;
 public abstract class BaseConcourseServer
         implements ConcourseManagementService.Iface {
 
+    /*
+     * IMPORTANT NOTICE
+     * ----------------
+     * DO NOT declare as FINAL any methods that are intercepted by Guice because
+     * doing so will cause the interception to silently fail. See
+     * https://github.com/google/guice/wiki/AOP#limitations for more details.
+     */
+
     @Override
     @PluginRestricted
-    public final void disableUser(ByteBuffer username, AccessToken creds)
-            throws TException {
-        checkAccess(creds);
-        getAccessManager().disableUser(username);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    @ClientInvokable
+    public void createUser(ByteBuffer username, ByteBuffer password,
+            String role, AccessToken creds) throws TException {
+        users().create(username, password, Role.valueOfIgnoreCase(role));
 
     }
 
     @Override
     @PluginRestricted
-    public final String dump(String id, String environment, AccessToken creds)
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void deleteUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
+        users().delete(username);
+    }
+
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void disableUser(ByteBuffer username, AccessToken creds)
+            throws TException {
+        users().disable(username);
+
+    }
+
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public String dump(String id, String environment, AccessToken creds)
+            throws TException {
         return getEngine(environment).dump(id);
     }
 
     @Override
     @PluginRestricted
-    public final void enableUser(ByteBuffer username, AccessToken creds)
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void enableUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
-        getAccessManager().enableUser(username);
+        users().enable(username);
 
     }
 
     @Override
     @PluginRestricted
-    public final String getDumpList(String environment, AccessToken creds)
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public String getDumpList(String environment, AccessToken creds)
             throws TException {
-        checkAccess(creds);
         return getEngine(environment).getDumpList();
     }
 
     @Override
     @PluginRestricted
-    public final void grant(ByteBuffer username, ByteBuffer password,
-            AccessToken creds) throws TException {
-        checkAccess(creds);
-        getAccessManager().createUser(username, password);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    @ClientInvokable
+    public void grant(ByteBuffer username, String permission,
+            String environment, AccessToken creds) throws TException {
+        users().grant(username, Permission.valueOfIgnoreCase(permission),
+                Environments.sanitize(environment));
 
     }
 
     @Override
     @PluginRestricted
-    public final boolean hasUser(ByteBuffer username, AccessToken creds)
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public boolean hasUser(ByteBuffer username, AccessToken creds)
             throws TException {
-        checkAccess(creds);
-        return getAccessManager().isExistingUsername(username);
+        return users().exists(username);
     }
 
     @Override
     @PluginRestricted
-    public final void installPluginBundle(String file, AccessToken creds)
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void installPluginBundle(String file, AccessToken creds)
             throws TException {
-        checkAccess(creds);
-        try {
-            getPluginManager().installBundle(file);
-        }
-        catch (Exception e) {
-            throw new ManagementException(e.getMessage());
-        }
+        plugins().installBundle(file);
     }
 
     @Override
     @PluginRestricted
-    public final String listAllEnvironments(AccessToken creds)
-            throws TException {
-        checkAccess(creds);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public String listAllEnvironments(AccessToken creds) throws TException {
         return TCollections.toOrderedListString(
                 TSets.intersection(FileSystem.getSubDirs(getBufferStore()),
                         FileSystem.getSubDirs(getDbStore())));
@@ -120,60 +167,73 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    public final String listAllUserSessions(AccessToken creds)
-            throws TException {
-        checkAccess(creds);
-        return TCollections.toOrderedListString(
-                getAccessManager().describeAllAccessTokens());
-    }
-
-    @Override
-    @PluginRestricted
-    public final String listPluginBundles(AccessToken creds) throws TException {
-        checkAccess(creds);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public String listAllUserSessions(AccessToken creds) throws TException {
         return TCollections
-                .toOrderedListString(getPluginManager().listBundles());
+                .toOrderedListString(users().tokens.describeActiveSessions());
     }
 
     @Override
     @PluginRestricted
-    public final void revoke(ByteBuffer username, AccessToken creds)
-            throws TException {
-        checkAccess(creds);
-        getAccessManager().deleteUser(username);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public String listPluginBundles(AccessToken creds) throws TException {
+        return TCollections.toOrderedListString(plugins().listBundles());
     }
 
     @Override
     @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void revoke(ByteBuffer username, String environment,
+            AccessToken creds) throws TException {
+        users().revoke(username, Environments.sanitize(environment));
+    }
+
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
             throws TException {
-        return getPluginManager().runningPlugins();
+        return plugins().runningPlugins();
     }
 
     @Override
     @PluginRestricted
-    public final void uninstallPluginBundle(String name, AccessToken creds)
-            throws TException {
-        checkAccess(creds);
-        getPluginManager().uninstallBundle(name);
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void setUserPassword(ByteBuffer username, ByteBuffer password,
+            AccessToken creds) throws TException {
+        users().setPassword(username, password);
+
     }
 
-    /**
-     * Check to make sure that {@code creds} and {@code transaction} are valid
-     * and are associated with one another.
-     *
-     * @param creds
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     */
-    protected abstract void checkAccess(AccessToken creds) throws TException;
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void setUserRole(ByteBuffer username, String role, AccessToken creds)
+            throws TException {
+        users().setRole(username, Role.valueOfIgnoreCase(role));
+    }
 
-    /**
-     * Return the {@link AccessManager} used by the server.
-     * 
-     * @return the {@link AccessManager}
-     */
-    protected abstract AccessManager getAccessManager();
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void uninstallPluginBundle(String name, AccessToken creds)
+            throws TException {
+        plugins().uninstallBundle(name);
+    }
 
     /**
      * Return the location where the server store's contents in the buffer.
@@ -202,6 +262,13 @@ public abstract class BaseConcourseServer
      * 
      * @return the {@link PluginManager}
      */
-    protected abstract PluginManager getPluginManager();
+    protected abstract PluginManager plugins();
+
+    /**
+     * Return the {@link UserService} used by the server.
+     * 
+     * @return the {@link UserService}
+     */
+    protected abstract UserService users();
 
 }
