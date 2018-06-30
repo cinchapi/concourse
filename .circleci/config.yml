@@ -50,7 +50,7 @@ jobs:
           key: jars-{{ checksum "gradle.lock" }}
       - run : 
           name: Download Dependencies
-          command |
+          command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
             ./gradlew dependencies
       - save_cache:
