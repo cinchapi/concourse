@@ -45,7 +45,18 @@ jobs:
           name: Generate gradle.lock
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            find . -type f -name build.gradle | xargs cat > gradle.lock
+            find . -type f -name build.gradle | xargs cat > $CIRCLE_WORKING_DIRECTORY/gradle.lock
+      - restore_cache:
+          key: jars-{{ checksum "gradle.lock" }}
+      - run : 
+          name: Download Dependencies
+          command |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./gradlew dependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "gradle.lock" }}
       - run: 
           name: Build and Publish
           command: |
