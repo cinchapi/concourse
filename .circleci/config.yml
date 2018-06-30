@@ -32,20 +32,21 @@ jobs:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
       - run:
-          name: Switch to correct working directory
-          command: cd ~/$CIRCLE_PROJECT_REPONAME
-      - run:
           name: Get Sonatype Credentials
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             git clone git@github.com:cinchapi/sonatype-credentials.git
             cp sonatype-credentials/gradle.properties .
             cp sonatype-credentials/secring.gpg ~
       - run: 
           name: Build and Publish
-          command: ./gradlew clean build installer uploadArchives bintrayUpload
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./gradlew clean build installer uploadArchives bintrayUpload
       - run:
           name: Save test results
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             mkdir -p ~/junit/
             find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
           when: always
@@ -54,6 +55,7 @@ jobs:
       - run: 
           name: Save artifacts
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             mkdir -p ~/artifacts/
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
