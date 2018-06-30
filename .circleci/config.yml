@@ -42,7 +42,7 @@ jobs:
           name: Build and Publish
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./gradlew clean build installer uploadArchives bintrayUpload --no-daemon
+            ./gradlew clean build installer uploadArchives bintrayUpload dockerize --no-daemon
       - run:
           name: Save test results
           command: |
