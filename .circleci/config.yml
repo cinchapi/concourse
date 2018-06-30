@@ -29,8 +29,8 @@ jobs:
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
     steps:
-      - checkout:
-        path: $CIRCLE_PROJECT_REPONAME
+      - working_directory: /$CIRCLE_PROJECT_REPONAME
+      - checkout
       - run:
           name: Get Sonatype Credentials
           command: |
