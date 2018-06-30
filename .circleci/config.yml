@@ -31,6 +31,9 @@ jobs:
     steps:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
+      - setup_remote_docker:
+          version: 17.09.0-ce
+          docker_layer_caching: true
       - run:
           name: Get Sonatype Credentials
           command: |
