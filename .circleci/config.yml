@@ -28,7 +28,6 @@ jobs:
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
-    working_directory: ~/{{ .Environment.CIRCLE_PROJECT_REPONAME }} 
     steps:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
@@ -38,20 +37,24 @@ jobs:
       - run:
           name: Get Sonatype Credentials
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             git clone git@github.com:cinchapi/sonatype-credentials.git
             cp sonatype-credentials/gradle.properties .
             cp sonatype-credentials/secring.gpg ~
       - run:
           name: Generate gradle.lock
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             find . -type f -name build.gradle | xargs cat > gradle.lock
       - run: 
           name: Build and Publish
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             ./gradlew clean build installer uploadArchives bintrayUpload dockerize --no-daemon
       - run:
           name: Save test results
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             mkdir -p ~/junit/
             find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
           when: always
@@ -60,6 +63,7 @@ jobs:
       - run: 
           name: Save artifacts
           command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
             mkdir -p ~/artifacts/
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
