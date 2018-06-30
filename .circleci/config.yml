@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Generate gradle.lock
           command: |
-            find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | xargs cat > gradle.lock
+            find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -z | awk NF | xargs cat > gradle.lock
       - restore_cache:
           key: gradle-jars-{{ checksum "gradle.lock" }}
       - run: 
