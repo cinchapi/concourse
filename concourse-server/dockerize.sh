@@ -21,19 +21,46 @@ HOME="`pwd -P`"
 HOME=`cd ${HOME}; pwd`
 cd ..
 
-tag=$1
+version=$1
 
-if [ -z "$tag" ]; then
-  echo "Please provide a tag"
+if [ -z "$version" ] || ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+  echo "Please provide a valid version number"
   exit 1
 else
-  # Build the docker image
-  docker build -t cinchapi/concourse:$tag -f Dockerfile .
+  # Determine all the docker tags to publish
+  major=$(echo ${version} | cut -d . -f 1)
+  minor=$(echo ${version} | cut -d . -f 2)
+  patch=$(echo ${version} | cut -d . -f 3 | cut -d '-' -f 1)
+  suffix=$(echo ${version} | cut -d '-' -f 2-)
+  if [[ "$suffix" == "$version" ]]; then
+    suffix=""
+    tags="latest " # No suffix indicates we should push a latest tag
+  else
+    suffix="-"$suffix
+    tags=""
+  fi
 
-  # Push the docker image to docker hub
+  tags="$tags$major$suffix $major.$minor$suffix $major.$minor.$patch$suffix"
+
+  # Build the main docker image
+  image=$(date +%Y%m%d%H%M%S)
+  docker build -t $image -f Dockerfile .
+
+  # Build the -onbuild image using the image from the previous step as a base
+  temp=Dockerfile.onbuild.temp
+  sed "1s/.*/FROM $image/" Dockerfile.onbuild > $temp
+  docker build -t $image-onbuild -f $temp --pull=false .
+  rm $temp
+
+  # Push the image to docker hub with each of the tags
   docker login -u $DOCKER_USER -p $DOCKER_PASS
-  docker push cinchapi/concourse:$tag
-
-  # TODO: check if tag indicates a master build and push the latest tag
+  for tag in $tags; do
+    for type in " " "-onbuild"; do
+      name=cinchapi/concourse:$tag$type
+      docker tag $image$type $name
+      docker push $name
+      echo "Pushed $name"
+    done
+  done
   exit 0
 fi

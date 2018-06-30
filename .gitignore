@@ -71,3 +71,4 @@ Thumbs.db
 ###########################
 *scratch.*
 *Scratch.*
+Dockerfile.onbuild.temp

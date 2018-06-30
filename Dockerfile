@@ -15,12 +15,13 @@
 FROM openjdk:8
 MAINTAINER Cinchapi Inc. <opensource@cinchapi.com>
 
-# Install sudo because some of the Concourse scripts require it
+# Install depdenencies:
+# - sudo because some of the Concourse scripts require it
+# - ruby to generate CaSH docs
 RUN apt-get update && \
-    apt-get -y install sudo
-
-# Install Ruby to generate CaSH docs
-RUN apt-get -y install ruby-full
+    apt-get -y --no-install-recommends install sudo && \
+    apt-get -y --no-install-recommends install ruby-full && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy the application source to the container
 RUN mkdir -p /usr/src/app
@@ -35,8 +36,12 @@ RUN \
     mkdir -p /opt && \
     cp concourse-server/build/distributions/*.bin /opt
 
-# Install the app
 WORKDIR /opt
+
+# Remove source code
+RUN rm -r /usr/src/app
+
+# Install the app
 RUN sh *bin
 
 # Link log files
