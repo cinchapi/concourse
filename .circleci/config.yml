@@ -30,6 +30,7 @@ jobs:
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
     steps:
       - checkout
+        path: $CIRCLE_PROJECT_REPONAME
       - run:
           name: Get Sonatype Credentials
           command: |
