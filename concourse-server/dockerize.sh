@@ -31,7 +31,7 @@ else
   docker build -t cinchapi/concourse:$tag -f Dockerfile .
 
   # Push the docker image to docker hub
-  docker login -e team@cinchapi.com -u $DOCKER_USER -p $DOCKER_PASS
+  docker login -u $DOCKER_USER -p $DOCKER_PASS
   docker push cinchapi/concourse:$tag
 
   # TODO: check if tag indicates a master build and push the latest tag
