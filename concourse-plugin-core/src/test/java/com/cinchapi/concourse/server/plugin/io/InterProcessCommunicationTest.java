@@ -27,11 +27,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
-import com.google.common.base.Throwables;
 
 /**
  * Unit tests for the {@link InterProcessCommunication} class.
@@ -163,7 +163,7 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
             executor.awaitTermination(1, TimeUnit.MINUTES);
         }
         catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         Assert.assertTrue(passed.get());
         Assert.assertEquals(ran.get(), writers);

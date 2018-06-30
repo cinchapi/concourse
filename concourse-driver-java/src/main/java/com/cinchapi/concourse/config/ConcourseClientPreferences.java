@@ -15,10 +15,13 @@
  */
 package com.cinchapi.concourse.config;
 
-import org.apache.commons.configuration.ConfigurationException;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import com.cinchapi.concourse.util.Logging;
-import com.google.common.base.Throwables;
+import com.cinchapi.common.base.Verify;
+import com.cinchapi.common.logging.Logging;
+import com.cinchapi.lib.config.read.Interpreters;
 
 /**
  * A wrapper around the {@code concourse_client.prefs} file that is used to
@@ -31,25 +34,7 @@ import com.google.common.base.Throwables;
  */
 public class ConcourseClientPreferences extends PreferencesHandler {
 
-    /**
-     * Return a {@link ConcourseClientPreferences} wrapper that is backed by the
-     * configuration information in {@code file}.
-     * 
-     * @param file the absolute path to the preferences file (relative paths
-     *            will resolve to the user's home directory)
-     * @return the preferences
-     */
-    public static ConcourseClientPreferences open(String file) {
-        try {
-            return new ConcourseClientPreferences(file);
-        }
-        catch (ConfigurationException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
     static {
-        // Prevent logging from showing up in the console
         Logging.disable(ConcourseClientPreferences.class);
     }
 
@@ -69,15 +54,60 @@ public class ConcourseClientPreferences extends PreferencesHandler {
                                                                      // testing
 
     /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * the {@link files}.
+     * 
+     * @param files
+     * @return the handler
+     */
+    public static ConcourseClientPreferences from(Path... files) {
+        Verify.thatArgument(files.length > 0, "Must include at least one file");
+        return new ConcourseClientPreferences(files);
+    }
+
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * a concourse_client.prefs file in the current working directory.
+     * 
+     * @return the handler
+     */
+    public static ConcourseClientPreferences fromCurrentWorkingDirectory() {
+        return from(Paths.get("concourse_client.prefs"));
+    }
+
+    /**
+     * Return a {@link ConcourseClientPreferences} handler that is sourced from
+     * a concourse_client.prefs file in the user's home directory.
+     * 
+     * @return the handler
+     */
+    public static ConcourseClientPreferences fromUserHomeDirectory() {
+        return from(Paths.get(System.getProperty("user.home") + File.separator
+                + "concourse_client.prefs"));
+    }
+
+    /**
+     * Return a {@link ConcourseClientPreferences} wrapper that is backed by the
+     * configuration information in {@code file}.
+     * 
+     * @param file the absolute path to the preferences file (relative paths
+     *            will resolve to the user's home directory)
+     * @return the preferences
+     * @deprecated use {@link ConcourseServerPreferences#from(Path...)} instead
+     */
+    @Deprecated
+    public static ConcourseClientPreferences open(String file) {
+        return from(Paths.get(file));
+    }
+
+    /**
      * Construct a new instance.
      * 
      * @param file the absolute path to the preferences file (relative paths
      *            will resolve to the user's home directory)
-     * @throws ConfigurationException
      */
-    private ConcourseClientPreferences(String file)
-            throws ConfigurationException {
-        super(file);
+    private ConcourseClientPreferences(Path... files) {
+        super(files);
     }
 
     /**
@@ -86,7 +116,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the environment
      */
     public String getEnvironment() {
-        return getString("environment", DEFAULT_ENVIRONMENT);
+        return getOrDefault("environment", DEFAULT_ENVIRONMENT);
     }
 
     /**
@@ -95,7 +125,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the host
      */
     public String getHost() {
-        return getString("host", DEFAULT_HOST);
+        return getOrDefault("host", DEFAULT_HOST);
     }
 
     /**
@@ -110,7 +140,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the password
      */
     public char[] getPassword() {
-        return getString("password", DEFAULT_PASSWORD).toCharArray();
+        return getOrDefault("password", DEFAULT_PASSWORD).toCharArray();
     }
 
     /**
@@ -128,7 +158,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the password or an empty character array if it is not defined
      */
     public char[] getPasswordExplicit() {
-        String password = getString("password");
+        String password = get("password");
         if(password != null) {
             return password.toCharArray();
         }
@@ -143,7 +173,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the port
      */
     public int getPort() {
-        return getInt("port", DEFAULT_PORT);
+        return getOrDefault("port", Interpreters.numberOrNull(), DEFAULT_PORT);
     }
 
     /**
@@ -152,7 +182,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the username
      */
     public String getUsername() {
-        return getString("username", DEFAULT_USERNAME);
+        return getOrDefault("username", DEFAULT_USERNAME);
     }
 
     /**
@@ -161,7 +191,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param environment
      */
     public void setEnvironment(String environment) {
-        setProperty("environment", environment);
+        override("environment", environment);
     }
 
     /**
@@ -170,7 +200,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param host
      */
     public void setHost(String host) {
-        setProperty("host", host);
+        override("host", host);
     }
 
     /**
@@ -179,7 +209,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param password
      */
     public void setPassword(char[] password) {
-        setProperty("password", new String(password));
+        override("password", new String(password));
     }
 
     /**
@@ -188,7 +218,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param port
      */
     public void setPort(int port) {
-        setProperty("port", port);
+        override("port", port);
     }
 
     /**
@@ -197,6 +227,6 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param username
      */
     public void setUsername(String username) {
-        setProperty("username", username);
+        override("username", username);
     }
 }

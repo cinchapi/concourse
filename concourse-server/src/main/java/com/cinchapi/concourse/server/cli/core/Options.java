@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.cli.core;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
@@ -39,31 +36,21 @@ public abstract class Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the
-     * user's home directory.
+     * user's home directory. If the file is available, its contents will be
+     * used for configuration defaults.
      */
-    private ConcourseClientPreferences prefs = null;
-
-    {
-        String file = System.getProperty("user.home") + File.separator
-                + "concourse_client.prefs";
-        if(Files.exists(Paths.get(file))) { // check to make sure that the
-                                            // file exists first, so we
-                                            // don't create a blank one if
-                                            // it doesn't
-            prefs = ConcourseClientPreferences.open(file);
-        }
-    }
+    private ConcourseClientPreferences defaults = ConcourseClientPreferences
+            .fromUserHomeDirectory();
 
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
     public boolean help;
 
     @Parameter(names = { "-u",
             "--username" }, description = "The username with which to connect")
-    public String username = prefs != null ? prefs.getUsername() : "admin";
+    public String username = defaults.getUsername();
 
     @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password = prefs != null
-            ? new String(prefs.getPasswordExplicit()) : null;
+    public String password = new String(defaults.getPasswordExplicit());
 
     /**
      * Contains all the non parameterized arguments that are passed to the

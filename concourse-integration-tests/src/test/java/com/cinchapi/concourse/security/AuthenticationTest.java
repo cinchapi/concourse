@@ -18,8 +18,11 @@ package com.cinchapi.concourse.security;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.TestData;
 
 /**
@@ -32,8 +35,8 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
     @Test
     public void testDisabledUserCannotAuthenticate() {
         String username = TestData.getSimpleString();
-        grantAccess(username, username);
-        disableAccess(username);
+        createUser(username, username, "admin");
+        disableUser(username);
         try {
             Concourse.connect(SERVER_HOST, SERVER_PORT, username, username);
             Assert.fail();
@@ -46,11 +49,11 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
     @Test
     public void testDisabledUserSessionsEndedImmediately() {
         String username = TestData.getSimpleString();
-        grantAccess(username, username);
+        createUser(username, username, "admin");
         Concourse con = Concourse.connect(SERVER_HOST, SERVER_PORT, username,
                 username);
         con.getServerEnvironment();
-        disableAccess(username);
+        disableUser(username);
         try {
             con.getServerEnvironment();
             Assert.fail();
@@ -59,6 +62,30 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
             Assert.assertTrue(true);
         }
 
+    }
+
+    @Test
+    public void testCannotInvokeMethodWithInvalidAccessToken() {
+        AccessToken token = new AccessToken(ByteBuffers.fromString(
+                ByteBuffers.encodeAsHex(ByteBuffers.fromString("fake"))));
+        Reflection.set("creds", token, client);
+        Reflection.set("password", ByteBuffers.fromString(""), client); // must
+                                                                        // change
+                                                                        // the
+                                                                        // password
+                                                                        // so
+                                                                        // the
+                                                                        // automatic
+                                                                        // re-authentication
+                                                                        // doesn't
+                                                                        // work
+        try {
+            client.getServerEnvironment();
+            Assert.fail();
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
     }
 
 }

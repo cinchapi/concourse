@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.storage.temp;
 import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -430,8 +429,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 records.remove(write.getRecord().longValue());
             }
         }
-        return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
-                .filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(Maps.filterValues(
+                (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
     }
 
     @Override
@@ -491,7 +490,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 values.remove(write.getValue().getTObject());
             }
         }
-        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
+        return Maps.newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
                 .keySet();
     }
 
@@ -669,8 +668,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 values.remove(write.getValue().getTObject());
             }
         }
-        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
-                .filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(Maps.filterValues(
+                (SortedMap<String, Set<TObject>>) context, emptySetFilter));
     }
 
     @Override

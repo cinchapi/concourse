@@ -102,6 +102,11 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
         return super.put(key, value);
     }
 
+    @Override
+    public void putAll(Map<? extends K, ? extends V> map) {
+        map.forEach((key, value) -> put(key, value));
+    }
+
     /**
      * Set the keyName to {@code name}.
      * 

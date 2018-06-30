@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.Immutable;
@@ -109,6 +110,18 @@ public final class Timestamp {
      */
     public static Timestamp fromString(String description) {
         return new Timestamp(description);
+    }
+
+    /**
+     * Return a {@link Timestamp} that corresponds to the specified
+     * {@code instant}.
+     * 
+     * @param instant an {@linm Instant} instance
+     * @return the corresponding {@link Timestamp}
+     */
+    public static Timestamp fromInstant(Instant instant) {
+        return new Timestamp(
+                TimeUnit.MILLISECONDS.toMicros(instant.toEpochMilli()));
     }
 
     /**
@@ -276,6 +289,17 @@ public final class Timestamp {
                 "Only Concourse Server can parse microseconds "
                         + "from a Timestamp created from a string.");
         return microseconds;
+    }
+
+    /**
+     * Return an {@link Instant} that corresponds to the point on the time-line
+     * represented by this {@link Timestamp}.
+     * 
+     * @return the corresponding {@link Instant}
+     */
+    public Instant getInstant() {
+        return Instant
+                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(microseconds));
     }
 
     @Override

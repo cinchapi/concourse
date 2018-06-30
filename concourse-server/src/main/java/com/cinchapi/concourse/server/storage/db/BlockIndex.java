@@ -23,6 +23,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
@@ -30,7 +31,6 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
@@ -228,7 +228,7 @@ public class BlockIndex implements Byteable, Syncable {
             entries = null;
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             FileSystem.closeFileChannel(channel); // CON-162

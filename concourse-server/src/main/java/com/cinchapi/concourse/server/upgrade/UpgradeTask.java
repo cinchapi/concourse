@@ -23,6 +23,7 @@ import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Numbers;
 
 /**
  * An {@link UpgradeTask} performs an operation that "upgrades" previously
@@ -41,7 +42,8 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the current storage version
      */
     public static int getCurrentSystemVersion() {
-        return Math.min(getBufferSystemVersion(), getDbSystemVersion());
+        return Numbers.min(getHomeSystemVersion(), getBufferSystemVersion(),
+                getDbSystemVersion()).intValue();
     }
 
     /**
@@ -58,6 +60,9 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
         ((MappedByteBuffer) FileSystem
                 .map(DB_VERSION_FILE, MapMode.READ_WRITE, 0, 4).putInt(version))
                         .force();
+        ((MappedByteBuffer) FileSystem
+                .map(HOME_VERSION_FILE, MapMode.READ_WRITE, 0, 4)
+                .putInt(version)).force();
     }
 
     /**
@@ -78,11 +83,26 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     /**
      * Return the current database system version.
      * 
-     * @return the db system
+     * @return the db system version
      */
     private static int getDbSystemVersion() {
         if(FileSystem.hasFile(DB_VERSION_FILE)) {
             return FileSystem.map(DB_VERSION_FILE, MapMode.READ_ONLY, 0, 4)
+                    .getInt();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
+     * Return the current home system version.
+     * 
+     * @return the home system version
+     */
+    private static int getHomeSystemVersion() {
+        if(FileSystem.hasFile(HOME_VERSION_FILE)) {
+            return FileSystem.map(VERSION_FILE_NAME, MapMode.READ_ONLY, 0, 4)
                     .getInt();
         }
         else {
@@ -108,6 +128,13 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * the most recently run upgrade task in the Buffer.
      */
     private static final String BUFFER_VERSION_FILE = GlobalState.BUFFER_DIRECTORY
+            + File.separator + VERSION_FILE_NAME;
+
+    /**
+     * The name of the file that we used to hold the internal system version of
+     * the most recently run upgrade task in the home directory.
+     */
+    private static final String HOME_VERSION_FILE = GlobalState.CONCOURSE_HOME
             + File.separator + VERSION_FILE_NAME;
 
     @Override

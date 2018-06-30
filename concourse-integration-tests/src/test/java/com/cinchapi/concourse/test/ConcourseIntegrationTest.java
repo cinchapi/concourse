@@ -23,13 +23,13 @@ import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
-import com.google.common.base.Throwables;
 
 /**
  * This is the base class for all integration tests. This class contains logic
@@ -127,23 +127,96 @@ public abstract class ConcourseIntegrationTest {
     protected void beforeEachTest() {}
 
     /**
+     * Create a user account identified by {@code username} and {@code password}
+     * with the specified {@code role}.
+     * 
+     * @param username
+     * @param password
+     * @param role
+     */
+    protected final void createUser(String username, String password,
+            String role) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.createUser(ByteBuffers.fromUtf8String(username),
+                    ByteBuffers.fromUtf8String(password), role, token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Set the {@code password} associated with the {@code username}.
+     * 
+     * @param username
+     * @param password
+     */
+    protected final void setUserPassword(String username, String password) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.setUserPassword(ByteBuffers.fromUtf8String(username),
+                    ByteBuffers.fromUtf8String(password), token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Delete the user account identified by {@code username}.
+     * 
+     * @param username the username of the account to delete
+     */
+    protected final void deleteUser(String username) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.deleteUser(ByteBuffers.fromUtf8String(username), token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Grant permissions
+     * 
+     * @param username
+     * @param permission
+     * @param environment
+     */
+    protected final void grant(String username, String permission,
+            String environment) {
+        try {
+            AccessToken token = server.login(
+                    ByteBuffers.fromUtf8String("admin"),
+                    ByteBuffers.fromUtf8String("admin"));
+            server.grant(ByteBuffers.fromUtf8String(username), permission,
+                    environment, token);
+        }
+        catch (TException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
      * Grant access to the server for a user identified by {@code username} and
      * {@code password}.
      * 
      * @param username
      * @param password
+     * @deprecated since version 0.9.0; use
+     *             {@link #createUser(String, String, String)} instead
      */
+    @Deprecated
     protected final void grantAccess(String username, String password) {
-        try {
-            AccessToken token = server.login(
-                    ByteBuffers.fromUtf8String("admin"),
-                    ByteBuffers.fromUtf8String("admin"));
-            server.grant(ByteBuffers.fromUtf8String(username),
-                    ByteBuffers.fromUtf8String(password), token);
-        }
-        catch (TException e) {
-            throw Throwables.propagate(e);
-        }
+        createUser(username, password, "admin");
     }
 
     /**
@@ -151,7 +224,7 @@ public abstract class ConcourseIntegrationTest {
      * 
      * @param username the username for which access should be disabled
      */
-    protected final void disableAccess(String username) {
+    protected final void disableUser(String username) {
         try {
             AccessToken token = server.login(
                     ByteBuffers.fromUtf8String("admin"),
@@ -159,8 +232,19 @@ public abstract class ConcourseIntegrationTest {
             server.disableUser(ByteBuffers.fromUtf8String(username), token);
         }
         catch (TException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Disable access to the server for the user identified by {@code username}.
+     * 
+     * @param username the username for which access should be disabled
+     * @deprecated since version 0.9.0; use {@link #disableUser(String)} instead
+     */
+    @Deprecated
+    protected final void disableAccess(String username) {
+        disableUser(username);
     }
 
     /**
@@ -197,7 +281,7 @@ public abstract class ConcourseIntegrationTest {
                     SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
         }
         catch (TTransportException e1) {
-            throw Throwables.propagate(e1);
+            throw CheckedExceptions.wrapAsRuntimeException(e1);
         }
         Thread t = new Thread(new Runnable() {
 
@@ -207,7 +291,7 @@ public abstract class ConcourseIntegrationTest {
                     server.start();
                 }
                 catch (TTransportException e) {
-                    throw Throwables.propagate(e);
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
 
             }

@@ -22,9 +22,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -73,7 +73,7 @@ public final class ConcourseExecutors {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         }
         catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 

@@ -43,9 +43,11 @@ public class ListEnvironmentCli extends EnvironmentCli {
 
     @Override
     protected void doTask(Client client) {
-        System.out.println("These are the environments in Concourse Server:");
         try {
-            System.out.println(client.listAllEnvironments(token));
+            String environments = client.listAllEnvironments(token);
+            System.out
+                    .println("These are the environments in Concourse Server:");
+            System.out.println(environments);
         }
         catch (Exception e) {
             die(e.getMessage());

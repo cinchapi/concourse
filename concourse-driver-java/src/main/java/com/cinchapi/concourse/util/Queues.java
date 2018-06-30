@@ -21,8 +21,8 @@ import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * Static factory methods for returning objects that implement the {@link Queue}
@@ -96,7 +96,7 @@ public final class Queues {
             }
         }
         catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         return added;
     }
