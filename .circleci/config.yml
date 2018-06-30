@@ -1,0 +1,76 @@
+# Copyright (c) 2013-2018 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script will update the copyright notices on every file to include
+# the current year (e.g. 2013-2014 will become 2013-2015, etc). This only
+# needs to be run once a year. The script is smart enough to get the current
+# year without being told, so it is a noop if it is run multiple times in
+# the same year
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    environment:
+      GRADLE_OPTS: "-Djenkins=true -Xmx1024m"
+      TERM: dumb
+      CONTAINER_BUILD: "true"
+      ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
+    steps:
+      - checkout:
+          path: ~/$CIRCLE_PROJECT_REPONAME
+      - setup_remote_docker:
+          version: 17.09.0-ce
+          docker_layer_caching: true
+      - run:
+          name: Get Sonatype Credentials
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            git clone git@github.com:cinchapi/sonatype-credentials.git
+            cp sonatype-credentials/gradle.properties .
+            cp sonatype-credentials/secring.gpg ~
+      - run:
+          name: Generate gradle.lock
+          command: |
+            find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -d | awk NF | xargs cat > gradle.lock
+      - restore_cache:
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
+      - run: 
+          name: Build and Publish
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./gradlew clean build installer uploadArchives bintrayUpload dockerize --no-daemon
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
+      - run:
+          name: Save test results
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - run: 
+          name: Save artifacts
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            mkdir -p ~/artifacts/
+            find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
+            find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
+      - store_artifacts:
+          path: ~/artifacts 

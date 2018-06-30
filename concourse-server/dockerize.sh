@@ -53,7 +53,7 @@ else
   rm $temp
 
   # Push the image to docker hub with each of the tags
-  docker login -e team@cinchapi.com -u $DOCKER_USER -p $DOCKER_PASS
+  docker login -u $DOCKER_USER -p $DOCKER_PASS
   for tag in $tags; do
     for type in " " "-onbuild"; do
       name=cinchapi/concourse:$tag$type
