@@ -46,7 +46,7 @@ jobs:
           command: |
             find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -z | awk NF | xargs cat > gradle.lock
       - restore_cache:
-          key: gradle-jars-{{ checksum "gradle.lock" }}
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
       - run: 
           name: Build and Publish
           command: |
@@ -55,7 +55,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: gradle-jars-{{ checksum "gradle.lock" }}
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
       - run:
           name: Save test results
           command: |
