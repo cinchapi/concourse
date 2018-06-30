@@ -32,8 +32,8 @@ jobs:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
       - run:
-        name: Switch to correct working directory
-        command: cd ~/$CIRCLE_PROJECT_REPONAME
+          name: Switch to correct working directory
+          command: cd ~/$CIRCLE_PROJECT_REPONAME
       - run:
           name: Get Sonatype Credentials
           command: |
