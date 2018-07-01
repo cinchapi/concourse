@@ -84,7 +84,7 @@ jobs:
           name: Publish Documentation
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./docs/guide/mkdocs -m "Deploying updated documentation [ci skip]"
+            sudo ./docs/guide/mkdocs -m "Deploying updated documentation [ci skip]"
 workflows:
   version: 2
   build_and_publish_docs:
