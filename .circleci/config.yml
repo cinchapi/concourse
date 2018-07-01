@@ -84,6 +84,7 @@ jobs:
           name: Publish Documentation
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
+            sudo ./docs/init.sh
             sudo ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]"
 workflows:
   version: 2
