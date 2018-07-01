@@ -21,6 +21,8 @@
 version: 2
 jobs:
   build:
+    ignore:
+      - gh-pages
     docker:
       - image: circleci/openjdk:8-jdk-browsers
     environment:
