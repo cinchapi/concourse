@@ -76,4 +76,9 @@ jobs:
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
       - store_artifacts:
-          path: ~/artifacts 
+          path: ~/artifacts
+      - run:
+          name: Publish Documentation
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./docs/guide/mkdocs -m "Deploying updated documentation [ci skip]"
