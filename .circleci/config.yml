@@ -77,6 +77,12 @@ jobs:
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
       - store_artifacts:
           path: ~/artifacts
+  publish_docs:
+    docker:
+      - image: circleci/python:3.6-stretch-node-browsers
+    steps:
+      - checkout:
+          path: ~/$CIRCLE_PROJECT_REPONAME
       - run:
           name: Publish Documentation
           command: |
