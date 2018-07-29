@@ -1,6 +1,7 @@
 ## Changelog
 
 #### Version 1.0.0 (TBD)
+* Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 
 #### Version 0.9.1 (TBD)
 

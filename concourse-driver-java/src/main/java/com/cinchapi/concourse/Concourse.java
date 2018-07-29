@@ -32,6 +32,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.FileOps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
@@ -71,6 +72,17 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
+
+    /**
+     * Return a {@link ConnectionBuilder} to iteratively describe a Concourse
+     * connection. When finished, the connection can be established using the
+     * {@link ConnectionBuilder#connect()} method.
+     * 
+     * @return a {@link ConnectionBuilder}
+     */
+    public static ConnectionBuilder at() {
+        return new ConnectionBuilder();
+    }
 
     /**
      * Create a new connection to the Concourse deployment described in
@@ -131,6 +143,18 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
+     * Create a new connection using the information specified in the
+     * {@code prefs}.
+     * 
+     * @param prefs a {@link ConcourseClientPreferences prefs} handler
+     * @return the connection
+     */
+    public static Concourse connectWithPrefs(ConcourseClientPreferences prefs) {
+        return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
+                String.valueOf(prefs.getPassword()), prefs.getEnvironment());
+    }
+
+    /**
      * Create a new connection using the information specified in the prefs
      * {@code file}.
      * 
@@ -142,8 +166,7 @@ public abstract class Concourse implements AutoCloseable {
     public static Concourse connectWithPrefs(String file) {
         ConcourseClientPreferences prefs = ConcourseClientPreferences
                 .from(Paths.get(file));
-        return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
-                String.valueOf(prefs.getPassword()), prefs.getEnvironment());
+        return connectWithPrefs(prefs);
     }
 
     /**
@@ -3662,4 +3685,84 @@ public abstract class Concourse implements AutoCloseable {
      * @return a copy of this connection handle
      */
     protected abstract Concourse copyConnection();
+
+    /**
+     * An iterative builder for {@link Concourse} connections.
+     *
+     * @author Jeff Nelson
+     */
+    public static final class ConnectionBuilder {
+
+        /**
+         * Client connection preferences container.
+         */
+        private final ConcourseClientPreferences prefs = ConcourseClientPreferences
+                .from(Paths.get(FileOps.tempFile()));
+
+        /**
+         * Connect to the Concourse deployment described by this
+         * {@link ConnectionBuilder builder}.
+         * 
+         * @return the connection
+         */
+        public Concourse connect() {
+            return connectWithPrefs(prefs);
+        }
+
+        /**
+         * Set the connection environment.
+         * 
+         * @param environment
+         * @return this
+         */
+        public ConnectionBuilder environment(String environment) {
+            prefs.setEnvironment(environment);
+            return this;
+        }
+
+        /**
+         * Set the connection host.
+         * 
+         * @param host
+         * @return this
+         */
+        public ConnectionBuilder host(String host) {
+            prefs.setHost(host);
+            return this;
+        }
+
+        /**
+         * Set the connection password.
+         * 
+         * @param password
+         * @return this
+         */
+        public ConnectionBuilder password(String password) {
+            prefs.setPassword(password.toCharArray());
+            return this;
+        }
+
+        /**
+         * Set the connection port.
+         * 
+         * @param port
+         * @return this
+         */
+        public ConnectionBuilder port(int port) {
+            prefs.setPort(port);
+            return this;
+        }
+
+        /**
+         * Set the connection username.
+         * 
+         * @param username
+         * @return this
+         */
+        public ConnectionBuilder username(String username) {
+            prefs.setUsername(username);
+            return this;
+        }
+
+    }
 }

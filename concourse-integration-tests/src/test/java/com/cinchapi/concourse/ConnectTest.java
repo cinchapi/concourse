@@ -35,4 +35,11 @@ public class ConnectTest extends ConcourseIntegrationTest {
         Assert.assertEquals(1, copy.inventory().size());
     }
 
+    @Test
+    public void testConnectionBuilder() {
+        client.add("foo", "bar");
+        Concourse concourse = Concourse.at().port(SERVER_PORT).connect();
+        Assert.assertEquals(1, concourse.inventory().size());
+    }
+
 }
