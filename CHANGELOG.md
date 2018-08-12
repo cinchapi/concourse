@@ -3,8 +3,7 @@
 #### Version 1.0.0 (TBD)
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 
-#### Version 0.9.1 (TBD)
-* Fixed a bug that caused an exception to be thrown when trying to `jsonify` a dataset that contained a `Timestamp`.
+#### Version 0.9.1 (August 12, 2018)
 
 ##### Enhancements
 * Upgraded client and server configuration management and added support for incremental configuration overrides. Now
@@ -15,6 +14,7 @@
 ##### Bug Fixes
 * Fixed a bug that caused Concourse to improperly interpret values written in scientific notation as a `STRING` data type instead of the appropriate number data type.
 * Fixed a bug in the logic that Concourse Server used to determine if the system's data directories were inconsistent. Because of the bug, it was possible to put Concourse in an inconsistent state from which it could not automatically recover by changing either the `buffer_directory` or `database_directory` and restarting Concourse Server. The logic has been fixed, so Concourse now accurately determines when the data directories are inconsistent and prevents the system from starting.
+* Fixed a bug that caused an exception to be thrown when trying to `jsonify` a dataset that contained a `Timestamp`.
 
 #### Version 0.9.0 (May 30, 2018)
 
