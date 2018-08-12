@@ -155,4 +155,11 @@ public class JsonifyTest extends ConcourseIntegrationTest {
                 .newArrayList(client.select(created).values());
         Assert.assertEquals(expected, actual);
     }
+
+    @Test
+    public void testJsonifyTimestamp() {
+        client.add("time", Timestamp.now());
+        client.jsonify(client.inventory(), false);
+        Assert.assertTrue(true); // lack of exceptions means we pass
+    }
 }

@@ -3,6 +3,7 @@
 #### Version 1.0.0 (TBD)
 
 #### Version 0.9.1 (TBD)
+* Fixed a bug that caused an exception to be thrown when trying to `jsonify` a dataset that contained a `Timestamp`.
 
 ##### Enhancements
 * Upgraded client and server configuration management and added support for incremental configuration overrides. Now
