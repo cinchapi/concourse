@@ -125,7 +125,7 @@ public class TypeAdapters {
                 writer.value((String) value);
             }
             else if(value instanceof Timestamp) {
-                writer.jsonValue("|" + ((Timestamp) value).getMicros() + "|");
+                writer.value("|" + ((Timestamp) value).getMicros() + "|");
             }
             else {
                 generic.write(writer, value);
