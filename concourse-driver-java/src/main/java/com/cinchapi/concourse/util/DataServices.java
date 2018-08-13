@@ -15,10 +15,6 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.util.Collection;
-import java.util.Map;
-
-import com.cinchapi.concourse.thrift.TObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
@@ -52,14 +48,9 @@ public class DataServices {
      * THE Gson.
      */
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Object.class,
-                    TypeAdapters.forGenericObject().nullSafe())
-            .registerTypeAdapter(TObject.class,
-                    TypeAdapters.forTObject().nullSafe())
-            .registerTypeHierarchyAdapter(Collection.class,
-                    TypeAdapters.forCollection().nullSafe())
-            .registerTypeHierarchyAdapter(Map.class,
-                    TypeAdapters.forMap().nullSafe())
+            .registerTypeAdapterFactory(TypeAdapters.primitiveTypesFactory())
+            .registerTypeAdapterFactory(TypeAdapters.tObjectFactory())
+            .registerTypeAdapterFactory(TypeAdapters.collectionFactory())
             .disableHtmlEscaping().create();
 
     /**
