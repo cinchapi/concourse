@@ -3,6 +3,9 @@
 #### Version 1.0.0 (TBD)
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 
+#### Version 0.9.2 (TBD)
+* Deprecated the `forGenericObject`, `forCollection`, `forMap` and `forTObject` TypeAdapter generators in the `TypeAdapters` utility class in favor of `primitiveTypesFactor`, `collectionFactory` and `tObjectFactory` in the same class, each of which return a `TypeAdapterFactory` instead of a `TypeAdapter`. Going forward, please register these type adapter factories when building a `Gson` instance for correct Concourse-style JSON serialization semantics.
+
 #### Version 0.9.1 (August 12, 2018)
 
 ##### Enhancements
