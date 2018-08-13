@@ -171,15 +171,27 @@ public class TypeAdapters {
      * @return the type adapter factory
      */
     public static TypeAdapterFactory collectionFactory() {
+        return collectionFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link Collection Collections}.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory collectionFactory(boolean nullSafe) {
         return new TypeAdapterFactory() {
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
                 Class<? super T> clazz = type.getRawType();
                 TypeAdapterFactory skipPast = this;
                 if(Collection.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<Collection<?>>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Collection<?>>() {
 
                         @Override
                         public Collection<?> read(JsonReader in)
@@ -215,9 +227,10 @@ public class TypeAdapters {
 
                     };
                 }
-                else {
-                    return null;
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
                 }
+                return adapter;
             }
 
         };
@@ -304,15 +317,27 @@ public class TypeAdapters {
      * @return the type adapter factory
      */
     public static TypeAdapterFactory primitiveTypesFactory() {
+        return primitiveTypesFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for primitive Concourse types.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory primitiveTypesFactory(boolean nullSafe) {
         return new TypeAdapterFactory() {
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
                 Class<? super T> clazz = type.getRawType();
                 if(Double.class.isAssignableFrom(clazz)
                         || double.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<Double>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Double>() {
 
                         @Override
                         public Double read(JsonReader in) throws IOException {
@@ -331,7 +356,7 @@ public class TypeAdapters {
                     };
                 }
                 else if(Link.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<Link>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Link>() {
 
                         @Override
                         public Link read(JsonReader in) throws IOException {
@@ -347,7 +372,7 @@ public class TypeAdapters {
                     };
                 }
                 else if(Tag.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<Tag>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Tag>() {
 
                         @Override
                         public Tag read(JsonReader in) throws IOException {
@@ -363,7 +388,7 @@ public class TypeAdapters {
                     };
                 }
                 else if(Timestamp.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<Timestamp>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Timestamp>() {
 
                         @Override
                         public Timestamp read(JsonReader in)
@@ -380,9 +405,10 @@ public class TypeAdapters {
 
                     };
                 }
-                else {
-                    return null;
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
                 }
+                return adapter;
             }
 
         };
@@ -395,15 +421,27 @@ public class TypeAdapters {
      * @return the type adapter factory
      */
     public static TypeAdapterFactory tObjectFactory() {
+        return tObjectFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link TObject TObjects}.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory tObjectFactory(boolean nullSafe) {
         return new TypeAdapterFactory() {
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
                 Class<? super T> clazz = type.getRawType();
                 TypeAdapterFactory skipPast = this;
                 if(TObject.class.isAssignableFrom(clazz)) {
-                    return (TypeAdapter<T>) new TypeAdapter<TObject>() {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<TObject>() {
 
                         @Override
                         public TObject read(JsonReader in) throws IOException {
@@ -424,9 +462,10 @@ public class TypeAdapters {
 
                     };
                 }
-                else {
-                    return null;
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
                 }
+                return adapter;
             }
 
         };

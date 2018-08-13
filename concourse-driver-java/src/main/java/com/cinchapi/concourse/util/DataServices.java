@@ -48,9 +48,10 @@ public class DataServices {
      * THE Gson.
      */
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapterFactory(TypeAdapters.primitiveTypesFactory())
-            .registerTypeAdapterFactory(TypeAdapters.tObjectFactory())
-            .registerTypeAdapterFactory(TypeAdapters.collectionFactory())
+            .registerTypeAdapterFactory(
+                    TypeAdapters.primitiveTypesFactory(true))
+            .registerTypeAdapterFactory(TypeAdapters.tObjectFactory(true))
+            .registerTypeAdapterFactory(TypeAdapters.collectionFactory(true))
             .disableHtmlEscaping().create();
 
     /**
