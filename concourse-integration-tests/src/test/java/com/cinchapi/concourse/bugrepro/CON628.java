@@ -32,11 +32,18 @@ import com.google.common.collect.ImmutableSet;
 public class CON628 extends ConcourseIntegrationTest {
 
     @Test
-    public void repro() {
+    public void reproA() {
         long record = client.add("foo", Tag.create("17"));
         Assert.assertEquals(ImmutableSet.of(record),
                 client.find(Criteria.where().key("foo")
                         .operator(Operator.EQUALS).value(Tag.create("17"))));
+    }
+
+    @Test
+    public void reproB() {
+        long record = client.add("foo", "17");
+        Assert.assertEquals(ImmutableSet.of(record), client.find(Criteria
+                .where().key("foo").operator(Operator.EQUALS).value("17")));
     }
 
 }
