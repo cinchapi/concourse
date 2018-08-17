@@ -107,7 +107,8 @@ public final class Stores {
                     Strings.joinWithSpace(key, "is not a valid key"));
         }
         else if(value.isBlank()) {
-            throw new IllegalArgumentException("Cannot use a blank value");
+            throw new IllegalArgumentException(
+                    "Cannot use a blank value for " + key);
         }
     }
 
