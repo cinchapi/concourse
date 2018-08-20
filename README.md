@@ -34,6 +34,11 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 docker run -it --rm --link concourse:concourse cinchapi/concourse shell --host concourse --password admin
 ```
 
+#### Run `concourse shell` and connect to a running `concourse` container spun up using `docker-compose`
+```bash
+docker-compose run concourse shell --host concourse
+```
+
 #### Use the `concourse import` to perform an [interactive import](https://docs.cinchapi.com/concourse/imports/) that reads input from the command line
 ```bash
 docker run -it --rm --link concourse:concourse cinchapi/concourse import --host concourse --password admin
