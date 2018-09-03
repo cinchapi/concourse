@@ -330,7 +330,7 @@ public final class Timestamp implements Comparable<Timestamp> {
                 : joda.toString(isDateOnly() ? DEFAULT_DATE_ONLY_FORMATTER
                         : DEFAULT_FORMATTER);
     }
-    
+
     /**
      * The {@link com.cinchapi.concourse.thrift.ConcourseService thrift} API
      * allows specifying timestamps using either microseconds from the unix
