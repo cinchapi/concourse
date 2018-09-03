@@ -257,7 +257,7 @@ public final class Timestamp implements Comparable<Timestamp> {
 
     @Override
     public int compareTo(Timestamp other) {
-        return getInstant().compareTo(other.getInstant());
+        return Longs.compare(getMicros(), other.getMicros());
     }
 
     @Override
@@ -278,7 +278,7 @@ public final class Timestamp implements Comparable<Timestamp> {
      */
     public Instant getInstant() {
         return Instant
-                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(microseconds));
+                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(getMicros()));
     }
 
     /**
