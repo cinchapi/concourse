@@ -15,15 +15,17 @@
  */
 package com.cinchapi.concourse.util;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Timestamp;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.util.Timestamps}.
@@ -45,8 +47,8 @@ public class TimestampsTest {
                     Iterables.getLast(timestamps).getMicros() + increment));
         }
         Timestamp startTimestamp = Timestamp.epoch();
-        assertEquals(0, Timestamps.findNearestSuccessorForTimestamp(timestamps,
-                startTimestamp));
+        Assert.assertEquals(0, Timestamps
+                .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
 
     @Test
@@ -63,7 +65,7 @@ public class TimestampsTest {
         }
         Timestamp startTimestamp = Timestamp
                 .fromMicros(Iterables.getLast(timestamps).getMicros() + 1000L);
-        assertEquals(timestamps.size(), Timestamps
+        Assert.assertEquals(timestamps.size(), Timestamps
                 .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
 
@@ -81,15 +83,15 @@ public class TimestampsTest {
         }
         Timestamp startTimestamp = Timestamp
                 .fromMicros(Iterables.getFirst(timestamps, null).getMicros());
-        assertEquals(0, Timestamps.findNearestSuccessorForTimestamp(timestamps,
-                startTimestamp));
+        Assert.assertEquals(0, Timestamps
+                .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp.fromMicros(
                 Iterables.get(timestamps, timestamps.size() / 2).getMicros());
-        assertEquals(timestamps.size() / 2, Timestamps
+        Assert.assertEquals(timestamps.size() / 2, Timestamps
                 .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp
                 .fromMicros(Iterables.getLast(timestamps).getMicros());
-        assertEquals(timestamps.size() - 1, Timestamps
+        Assert.assertEquals(timestamps.size() - 1, Timestamps
                 .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
 
@@ -110,8 +112,28 @@ public class TimestampsTest {
                 timestamps.size() / 3 + 1);
         Timestamp startTimestamp = Timestamp.fromMicros(
                 (abitrary.getMicros() + abitrarySuccessor.getMicros()) / 2);
-        assertEquals(timestamps.size() / 3 + 1, Timestamps
+        Assert.assertEquals(timestamps.size() / 3 + 1, Timestamps
                 .findNearestSuccessorForTimestamp(timestamps, startTimestamp));
+    }
+
+    @Test
+    public void testTimestampComparableInChronologicalOrder() {
+        List<Timestamp> timestamps = Lists.newArrayList();
+        for (int i = 0; i < 10; ++i) {
+            timestamps.add(Timestamp.now());
+            Random.tinySleep();
+        }
+        java.util.Collections.shuffle(timestamps);
+        Set<Timestamp> sorted = Sets.newTreeSet(timestamps);
+        Timestamp previous = null;
+        for (Timestamp timestamp : sorted) {
+            if(previous != null) {
+                Assert.assertTrue(
+                        previous.getInstant().isBefore(timestamp.getInstant()));
+            }
+            previous = timestamp;
+        }
+
     }
 
 }

@@ -8,6 +8,7 @@
 * Upgraded to `ccl` version `2.4.1` to capture fix for an bug that caused both the v1 and v2 parsers to mishandle numeric String and Tag values. These values were treated as numbers instead of their actual type. This made it possible for queries containing those values to return inaccurate results.
 * Added the associated key to the error message of the Exception that is thrown when attempting to store a blank value.
 * Fixed a regression that caused programmatic configuration updates to no longer persist to the underlying file.
+* The `Timestamp` data type now implements the `Comparable` interface.
 
 #### Version 0.9.1 (August 12, 2018)
 
