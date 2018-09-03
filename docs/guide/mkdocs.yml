@@ -34,6 +34,8 @@ pages:
         - Developing Plugins: plugins/development.md
     - Distributed: distributed.md
     - Internals: internals.md
+    - Security:
+        - Authentication: security/authentication.md
     - Glossary: glossary.md
 theme:
     name: material
