@@ -113,4 +113,13 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
         Assert.assertEquals(1717, prefs.getPort());
     }
 
+    @Test
+    public void testSet() {
+        ConcourseClientPreferences prefs = ConcourseClientPreferences
+                .from(prefsPath);
+        prefs.setPort(9000);
+        prefs = ConcourseClientPreferences.from(prefsPath);
+        Assert.assertEquals(9000, prefs.getPort());
+    }
+
 }

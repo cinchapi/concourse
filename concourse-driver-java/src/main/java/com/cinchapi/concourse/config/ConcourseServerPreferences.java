@@ -230,14 +230,14 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param bufferDirectory
      */
     public void setBufferDirectory(String bufferDirectory) {
-        override("buffer_directory", bufferDirectory);
+        set("buffer_directory", bufferDirectory);
     }
 
     /**
      * Set the value associated with the {@code buffer_page_size} key.
      */
     public void setBufferPageSize(long sizeInBytes) {
-        override("buffer_page_size", sizeInBytes);
+        set("buffer_page_size", sizeInBytes);
     }
 
     /**
@@ -246,7 +246,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param clientPort
      */
     public void setClientPort(int clientPort) {
-        override("client_port", clientPort);
+        set("client_port", clientPort);
     }
 
     /**
@@ -255,7 +255,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param databaseDirectory
      */
     public void setDatabaseDirectory(String databaseDirectory) {
-        override("database_directory", databaseDirectory);
+        set("database_directory", databaseDirectory);
     }
 
     /**
@@ -264,7 +264,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param defaultEnvironment
      */
     public void setDefaultEnvironment(String defaultEnvironment) {
-        override("default_environment", defaultEnvironment);
+        set("default_environment", defaultEnvironment);
     }
 
     /**
@@ -273,7 +273,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param enableConsoleLogging
      */
     public void setEnableConsoleLogging(boolean enableConsoleLogging) {
-        override("enable_console_logging", enableConsoleLogging);
+        set("enable_console_logging", enableConsoleLogging);
     }
 
     /**
@@ -282,7 +282,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param port
      */
     public void setJmxPort(int port) {
-        override("jmx_port", port);
+        set("jmx_port", port);
     }
 
     /**
@@ -291,7 +291,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param level
      */
     public void setLogLevel(Level level) {
-        override("log_level", level.toString());
+        set("log_level", level.toString());
     }
 
     /**
@@ -300,7 +300,7 @@ public class ConcourseServerPreferences extends PreferencesHandler {
      * @param shutdownPort
      */
     public void setShutdownPort(int shutdownPort) {
-        override("shutdown_port", shutdownPort);
+        set("shutdown_port", shutdownPort);
     }
 
 }
