@@ -87,8 +87,12 @@ jobs:
           name: Publish Documentation
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            sudo ./docs/init.sh
-            sudo ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]" --remote-name https://$MKDOCS_DEPLOY_GH_USER:$MKDOCS_DEPLOY_GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+            git branch -D gh-pages
+            git checkout gh-pages
+            git pull --rebase
+            git checkout $CIRCLE_BRANCH
+            ./docs/init.sh
+            ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]" --remote-name https://$MKDOCS_DEPLOY_GH_USER:$MKDOCS_DEPLOY_GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
 workflows:
   version: 2
   build_and_publish_docs:
