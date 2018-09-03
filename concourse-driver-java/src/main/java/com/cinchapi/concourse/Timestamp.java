@@ -42,17 +42,11 @@ import com.google.common.primitives.Longs;
  */
 @Immutable
 @ThreadSafe
-public final class Timestamp {
+public final class Timestamp implements Comparable<Timestamp> {
 
     // Joda DateTime uses millisecond instead of microsecond precision, so this
     // class is a wrapper that will handle microseconds so we don't ever lose
     // data that happens within the same millisecond.
-
-    /**
-     * The default formatter that is used to display objects of this class.
-     */
-    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
-            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
 
     /**
      * The default formatter that is used to display {@link #isDateOnly() date
@@ -62,6 +56,12 @@ public final class Timestamp {
             .forPattern("E MMM dd, yyyy");
 
     /**
+     * The default formatter that is used to display objects of this class.
+     */
+    public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
+            .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
+
+    /**
      * Return a {@code Timestamp} that corresponds to the system
      * epoch timestamp with microsecond precision.
      * 
@@ -69,6 +69,18 @@ public final class Timestamp {
      */
     public static Timestamp epoch() {
         return Timestamp.fromMicros(-1);
+    }
+
+    /**
+     * Return a {@link Timestamp} that corresponds to the specified
+     * {@code instant}.
+     * 
+     * @param instant an {@linm Instant} instance
+     * @return the corresponding {@link Timestamp}
+     */
+    public static Timestamp fromInstant(Instant instant) {
+        return new Timestamp(
+                TimeUnit.MILLISECONDS.toMicros(instant.toEpochMilli()));
     }
 
     /**
@@ -110,18 +122,6 @@ public final class Timestamp {
      */
     public static Timestamp fromString(String description) {
         return new Timestamp(description);
-    }
-
-    /**
-     * Return a {@link Timestamp} that corresponds to the specified
-     * {@code instant}.
-     * 
-     * @param instant an {@linm Instant} instance
-     * @return the corresponding {@link Timestamp}
-     */
-    public static Timestamp fromInstant(Instant instant) {
-        return new Timestamp(
-                TimeUnit.MILLISECONDS.toMicros(instant.toEpochMilli()));
     }
 
     /**
@@ -256,6 +256,11 @@ public final class Timestamp {
     }
 
     @Override
+    public int compareTo(Timestamp other) {
+        return Longs.compare(getMicros(), other.getMicros());
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof Timestamp && !isString()) {
             return Longs.compare(microseconds,
@@ -263,6 +268,17 @@ public final class Timestamp {
         }
         // NOTE: By convention, two hollow timestamps are NEVER equal
         return false;
+    }
+
+    /**
+     * Return an {@link Instant} that corresponds to the point on the time-line
+     * represented by this {@link Timestamp}.
+     * 
+     * @return the corresponding {@link Instant}
+     */
+    public Instant getInstant() {
+        return Instant
+                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(getMicros()));
     }
 
     /**
@@ -289,17 +305,6 @@ public final class Timestamp {
                 "Only Concourse Server can parse microseconds "
                         + "from a Timestamp created from a string.");
         return microseconds;
-    }
-
-    /**
-     * Return an {@link Instant} that corresponds to the point on the time-line
-     * represented by this {@link Timestamp}.
-     * 
-     * @return the corresponding {@link Instant}
-     */
-    public Instant getInstant() {
-        return Instant
-                .ofEpochMilli(TimeUnit.MICROSECONDS.toMillis(microseconds));
     }
 
     @Override
