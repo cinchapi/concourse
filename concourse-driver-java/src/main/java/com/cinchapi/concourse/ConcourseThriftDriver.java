@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -54,6 +55,7 @@ import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -2715,8 +2717,8 @@ class ConcourseThriftDriver extends Concourse {
      */
     private Set<Long> executeFind(final String key, final Object operator,
             final Object... values) {
-        final List<TObject> tValues = Lists.transform(
-                Lists.newArrayList(values), Conversions.javaToThrift());
+        final List<TObject> tValues = ImmutableList.of(values).stream()
+                .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
                 return client.findKeyOperatorValues(key, (Operator) operator,
@@ -2749,8 +2751,8 @@ class ConcourseThriftDriver extends Concourse {
      */
     private Set<Long> executeFind(final Timestamp timestamp, final String key,
             final Object operator, final Object... values) {
-        final List<TObject> tValues = Lists.transform(
-                Lists.newArrayList(values), Conversions.javaToThrift());
+        final List<TObject> tValues = ImmutableList.of(values).stream()
+                .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
                 return client.findKeyOperatorValuesTime(key,

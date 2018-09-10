@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -176,42 +175,6 @@ public final class Convert {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         return result;
-    }
-
-    /**
-     * Return a List that represents the Thrift representation of each of the
-     * {@code objects} in the input list.
-     * 
-     * @param objects a List of java objects
-     * @return a List of TObjects
-     */
-    public static List<TObject> javaListToThrift(List<Object> objects) {
-        return objects.stream().map(Convert::javaToThrift)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Return a Map that represents the Thrift representation of each of the
-     * {@code objects} in the input Map.
-     * 
-     * @param objects a Map of java objects
-     * @return a Map of TObjects
-     */
-    public static <K> Map<K, TObject> javaMapToThrift(Map<K, Object> objects) {
-        return objects.entrySet().stream().collect(
-                Collectors.toMap(Entry::getKey, e -> Convert.javaToThrift(e)));
-    }
-
-    /**
-     * Return a Set that represents the Thrift representation of each of the
-     * {@code objects} in the input Set.
-     * 
-     * @param objects a Set of java objects
-     * @return a Set of TObjects
-     */
-    public static Set<TObject> javaSetToThrift(Set<Object> objects) {
-        return objects.stream().map(Convert::javaToThrift)
-                .collect(Collectors.toSet());
     }
 
     /**
@@ -431,18 +394,20 @@ public final class Convert {
             return (T) thriftToJava((TObject) tobject);
         }
         else if(tobject instanceof List) {
-            return (T) Lists.transform((List<?>) tobject,
-                    Conversions.possibleThriftToJava());
+            return (T) ((List<?>) tobject).stream()
+                    .map(Convert::possibleThriftToJava)
+                    .collect(Collectors.toList());
         }
         else if(tobject instanceof Set) {
-            return (T) Transformers.transformSetLazily((Set<Object>) tobject,
-                    Conversions.possibleThriftToJava());
+            return (T) ((Set<?>) tobject).stream()
+                    .map(Convert::possibleThriftToJava)
+                    .collect(Collectors.toSet());
         }
         else if(tobject instanceof Map) {
-            return (T) Transformers.transformMapEntries(
-                    (Map<Object, Object>) tobject,
-                    Conversions.possibleThriftToJava(),
-                    Conversions.possibleThriftToJava());
+            return (T) ((Map<?, ?>) tobject).entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> possibleThriftToJava(e.getKey()),
+                            e -> possibleThriftToJava(e.getValue())));
         }
         else {
             return (T) tobject;
@@ -622,18 +587,6 @@ public final class Convert {
             String rawValue) {
         return stringToResolvableLinkInstruction(
                 Strings.joinWithSpace(key, "=", rawValue));
-    }
-
-    /**
-     * Return a Set that represents the Java representation of each of the
-     * {@code TObjects} in the input Set.
-     * 
-     * @param objects a Set of TObjects
-     * @return a Set of Java objects
-     */
-    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
-        return tobjects.stream().map(Convert::thriftToJava)
-                .collect(Collectors.toSet());
     }
 
     /**
