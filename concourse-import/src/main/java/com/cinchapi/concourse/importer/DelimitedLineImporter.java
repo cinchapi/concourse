@@ -17,17 +17,27 @@ package com.cinchapi.concourse.importer;
 
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
+import com.cinchapi.common.base.SplitOption;
+import com.cinchapi.common.base.StringSplitter;
+import com.cinchapi.common.describe.Empty;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.importer.util.Importables;
+import com.cinchapi.concourse.process.Strainer;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.etl.Transformer;
+import com.cinchapi.etl.Transformers;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
  * An {@link Importer} that splits each line of input by a {@link #delimiter()}
@@ -49,7 +59,7 @@ public abstract class DelimitedLineImporter extends Importer
      * A collection of column/key names that map to each of the delimited tokens
      * in a line, respectively.
      */
-    private final List<String> header;
+    private List<String> header;
 
     /**
      * The {@link Transformer} that possible alters key/value pairs prior to
@@ -59,6 +69,8 @@ public abstract class DelimitedLineImporter extends Importer
     @Nullable
     private final Transformer transformer;
 
+    protected Empty empty;
+
     /**
      * Construct a new instance.
      * 
@@ -67,7 +79,13 @@ public abstract class DelimitedLineImporter extends Importer
     protected DelimitedLineImporter(Concourse concourse) {
         super(concourse);
         this.delimiter = delimiter();
-        this.transformer = transformer();
+        // Backwards compatibility: The strings that are read from the
+        // file/stream must be converted to their assumed java type.
+        this.empty = Empty.is(String.class, StringUtils::isBlank);
+        this.transformer = Transformers.composeForEach(
+                Transformers.valueStringToJava(),
+                Transformers.removeValuesThatAre(empty),
+                MoreObjects.firstNonNull(transformer(), Transformers.noOp()));
         this.header = header();
     }
 
@@ -92,26 +110,8 @@ public abstract class DelimitedLineImporter extends Importer
      */
     public final Set<Long> importFile(String file,
             @Nullable String resolveKey) {
-        List<String> lines = FileOps.readLines(file);
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        for (String line : lines) {
-            int length = sb.length();
-            Importables.delimitedStringToJsonObject(line, resolveKey, delimiter,
-                    header, transformer, sb);
-            if(sb.length() > length) {
-                sb.append(',');
-            }
-        }
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append(']');
-        Set<Long> records = concourse.insert(sb.toString());
-        if(Boolean.parseBoolean(params.getOrDefault(
-                Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
-            String filename = Paths.get(file).getFileName().toString();
-            concourse.add(DATA_SOURCE_ANNOTATION_KEY, filename, records);
-        }
-        return records;
+        return importLines(FileOps.readLines(file), resolveKey,
+                Paths.get(file).getFileName().toString());
     }
 
     @Override
@@ -134,9 +134,8 @@ public abstract class DelimitedLineImporter extends Importer
      */
     public final Set<Long> importString(String lines,
             @Nullable String resolveKey) {
-        String json = Importables.delimitedStringToJsonArray(lines, resolveKey,
-                delimiter, header, transformer);
-        return concourse.insert(json);
+        return importLines(Lists.newArrayList(lines.split("\\r?\\n")),
+                resolveKey, null);
     }
 
     @Override
@@ -144,7 +143,7 @@ public abstract class DelimitedLineImporter extends Importer
         Preconditions.checkState(header.isEmpty(),
                 "Header has been set already");
         QuoteAwareStringSplitter it = new QuoteAwareStringSplitter(line,
-                delimiter);
+                delimiter, SplitOption.TRIM_WHITESPACE);
         while (it.hasNext()) {
             header.add(it.next());
         }
@@ -165,6 +164,65 @@ public abstract class DelimitedLineImporter extends Importer
      */
     protected List<String> header() {
         return Lists.newArrayList();
+    }
+
+    /**
+     * Process the {@code lines} and import the parsed objects into Concourse.
+     * 
+     * @param lines
+     * @param resolveKey
+     * @param source
+     * @return the ids of the records into which the objects are imported
+     */
+    protected final Set<Long> importLines(List<String> lines,
+            @Nullable String resolveKey, @Nullable String source) {
+        // TODO: process resolve key
+        List<Multimap<String, Object>> objects = Lists.newArrayList();
+        lines.forEach(line -> {
+            if(header == null || header.isEmpty()) {
+                parseHeader(line);
+            }
+            else {
+                Multimap<String, Object> object = parseObject(line);
+                objects.add(object);
+            }
+        });
+        Set<Long> records = concourse.insert(objects);
+        if(Boolean.parseBoolean(params.getOrDefault(
+                Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
+            concourse.add(DATA_SOURCE_ANNOTATION_KEY, source, records);
+        }
+        return records;
+    }
+
+    /**
+     * Transform the delimited line into an object where each field is mapped as
+     * a value from the analogous key in the {@link #header}. Each key/value
+     * mapping is subject to processing by the {@link #transformer}.
+     * 
+     * @param line
+     * @return the parsed object
+     */
+    protected Multimap<String, Object> parseObject(String line) {
+        StringSplitter it = new QuoteAwareStringSplitter(line, delimiter,
+                SplitOption.TRIM_WHITESPACE);
+        Multimap<String, Object> object = LinkedHashMultimap.create();
+        Strainer strainer = new Strainer(
+                (key, value) -> object.put(key, value));
+        int col = 0;
+        while (it.hasNext()) {
+            String key = header.get(col++);
+            String value = it.next();
+            Map<String, Object> transformed = transformer.transform(key,
+                    (Object) value);
+            if(transformed != null) {
+                strainer.process(transformed);
+            }
+            else {
+                strainer.process(key, value);
+            }
+        }
+        return object;
     }
 
     /**
