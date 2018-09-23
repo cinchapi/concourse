@@ -80,8 +80,7 @@ public abstract class DelimitedLineImporterTest
 
     /**
      * Return a {@link com.cinchapi.concourse.importer.LineBasedImporter legacy}
-     * importer to use for
-     * validation of the new importer.
+     * importer to use for validation of the new importer.
      *
      * @return the legacy Importer
      */
