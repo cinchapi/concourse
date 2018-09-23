@@ -43,7 +43,6 @@ public class Strainer {
      * Construct a new instance.
      * 
      * @param action
-     * @param fail
      */
     public Strainer(BiConsumer<String, Object> action) {
         this.action = action;
