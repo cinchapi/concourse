@@ -3,7 +3,10 @@
 #### Version 1.0.0 (TBD)
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 
-#### Version 0.9.3 (TBD)
+#### Version 0.9.4 (TBD)
+
+#### Version 0.9.3 (October 7, 2018)
+* Fixed a bug that caused a `NullPointerException` to be thrown when trying to `set` configuration data in `.prefs` files.
 
 #### Version 0.9.2 (September 3, 2018)
 * Deprecated the `forGenericObject`, `forCollection`, `forMap` and `forTObject` TypeAdapter generators in the `TypeAdapters` utility class in favor of `primitiveTypesFactor`, `collectionFactory` and `tObjectFactory` in the same class, each of which return a `TypeAdapterFactory` instead of a `TypeAdapter`. Going forward, please register these type adapter factories when building a `Gson` instance for correct Concourse-style JSON serialization semantics.
