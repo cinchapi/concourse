@@ -4,6 +4,9 @@
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 * Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
 * Upgrade the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+* Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
+	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
+	* The `Transform` class contains functions for common data transformations. 
 
 #### Version 0.9.4 (TBD)
 
