@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.thrift.Operators;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.google.common.collect.Multimap;
 
@@ -59,7 +60,7 @@ public final class Parsers {
      */
     public static Parser create(String ccl) {
         return Parser.create(ccl, Convert::stringToJava,
-                Convert::stringToOperator);
+                Convert::stringToOperator, Operators::evaluate);
     }
 
     /**
@@ -72,7 +73,7 @@ public final class Parsers {
      */
     public static Parser create(String ccl, Multimap<String, Object> data) {
         return Parser.create(ccl, data, Convert::stringToJava,
-                Convert::stringToOperator);
+                Convert::stringToOperator, Operators::evaluate);
     }
 
     /**
