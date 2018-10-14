@@ -42,12 +42,6 @@ jobs:
             cp sonatype-credentials/gradle.properties .
             cp sonatype-credentials/secring.gpg ~
       - run:
-          name: Add additional gradle.properties configuration
-          command: |
-            cd ~/$CIRCLE_PROJECT_REPONAME
-            echo org.gradle.parallel=true" >> gradle.properties
-            echo org.gradle.jvmargs=-Xmx1024m >> gradle.properties
-      - run:
           name: Generate gradle.lock
           command: |
             find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -d | awk NF | xargs cat > gradle.lock
