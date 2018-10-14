@@ -15,10 +15,7 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.util.function.Function;
-
 import com.cinchapi.ccl.Parser;
-import com.cinchapi.ccl.type.Operator;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.thrift.TCriteria;
@@ -30,20 +27,6 @@ import com.google.common.collect.Multimap;
  * @author Jeff Nelson
  */
 public final class Parsers {
-
-    /**
-     * The canonical function to transform strings to java values in a
-     * {@link Parser}.
-     */
-    public static final Function<String, Object> PARSER_TRANSFORM_VALUE_FUNCTION = value -> Convert
-            .stringToJava(value);
-
-    /**
-     * The canonical function to transform strings to operators in a
-     * {@link Parser}.
-     */
-    public static final Function<String, Operator> PARSER_TRANSFORM_OPERATOR_FUNCTION = operator -> Convert
-            .stringToOperator(operator);
 
     /**
      * Return a {@link Parser} for the {@code criteria}.
