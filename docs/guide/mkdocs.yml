@@ -2,7 +2,6 @@ site_name: Concourse Guide
 site_description: Concourse is a self-tuning database for ACID transactions and ad-hoc analytics across time.
 site_author: Cinchapi Inc.
 site_url: https://concoursedb.com
-favicon: images/logo.png
 repo_name: 'GitHub'
 repo_url: https://github.com/cinchapi/concourse
 copyright: Copyright (c) 2013-2018 Cinchapi Inc.
@@ -48,7 +47,9 @@ extra_javascript:
     - javascript/highlight.pack.js
     - javascript/extra.js
 markdown_extensions:
-    - codehilite(css_class=code)
+    - codehilite:
+        css_class: code
+        linenums: true
     - admonition
     - sane_lists
     - smarty
