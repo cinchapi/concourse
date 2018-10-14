@@ -45,7 +45,6 @@ jobs:
           name: Add additional gradle.properties configuration
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            echo org.gradle.parallel=true >> gradle.properties
             echo org.gradle.jvmargs=-Xmx1024m >> gradle.properties
       - run:
           name: Generate gradle.lock
