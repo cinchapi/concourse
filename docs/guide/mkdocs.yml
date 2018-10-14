@@ -47,7 +47,9 @@ extra_javascript:
     - javascript/highlight.pack.js
     - javascript/extra.js
 markdown_extensions:
-    - codehilite(css_class=code)
+    - codehilite:
+        css_class: code
+        linenums: true
     - admonition
     - sane_lists
     - smarty
