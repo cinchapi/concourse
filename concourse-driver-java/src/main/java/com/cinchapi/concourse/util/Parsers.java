@@ -19,6 +19,7 @@ import java.util.function.Function;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.type.Operator;
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.google.common.collect.Multimap;
@@ -45,14 +46,37 @@ public final class Parsers {
             .stringToOperator(operator);
 
     /**
+     * Return a {@link Parser} for the {@code criteria}.
+     * 
+     * @param criteria
+     * @return a {@link Parser}
+     */
+    public static Parser create(Criteria criteria) {
+        return create(criteria.getCclString());
+    }
+
+    /**
+     * Return a {@link Parser} for the {@code criteria} that uses the provided
+     * {@code data} for local resolution.
+     * 
+     * @param criteria
+     * @param data a dataset
+     * @return a {@link Parser}
+     */
+    public static Parser create(Criteria criteria,
+            Multimap<String, Object> data) {
+        return create(criteria.getCclString(), data);
+    }
+
+    /**
      * Return a {@link Parser} for the {@code ccl} statement.
      * 
      * @param ccl a CCL statement
      * @return a {@link Parser}
      */
     public static Parser create(String ccl) {
-        return Parser.create(ccl, PARSER_TRANSFORM_VALUE_FUNCTION,
-                PARSER_TRANSFORM_OPERATOR_FUNCTION);
+        return Parser.create(ccl, Convert::stringToJava,
+                Convert::stringToOperator);
     }
 
     /**
@@ -64,12 +88,12 @@ public final class Parsers {
      * @return a {@link Parser}
      */
     public static Parser create(String ccl, Multimap<String, Object> data) {
-        return Parser.create(ccl, data, PARSER_TRANSFORM_VALUE_FUNCTION,
-                PARSER_TRANSFORM_OPERATOR_FUNCTION);
+        return Parser.create(ccl, data, Convert::stringToJava,
+                Convert::stringToOperator);
     }
 
     /**
-     * Return a {@link Parser} for the {@code ccl} statement.
+     * Return a {@link Parser} for the {@code criteria}.
      * 
      * @param criteria
      * @return a {@link Parser}
@@ -80,8 +104,8 @@ public final class Parsers {
     }
 
     /**
-     * Return a {@link Parser} for the {@code ccl} statement that uses the
-     * provided {@code data} for local resolution.
+     * Return a {@link Parser} for the {@code criteria} that uses the provided
+     * {@code data} for local resolution.
      * 
      * @param criteria
      * @param data a dataset
