@@ -29,7 +29,7 @@ import com.cinchapi.common.base.SplitOption;
 import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.common.describe.Empty;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.process.Strainer;
+import com.cinchapi.concourse.etl.Strainer;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.etl.Transformer;
 import com.cinchapi.etl.Transformers;
