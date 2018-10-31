@@ -8,7 +8,8 @@
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
 	* The `Transform` class contains functions for common data transformations. 
 
-#### Version 0.9.4 (TBD)
+#### Version 0.9.4 (October 31, 2018)
+* Context has been added exceptions thrown from the `v2` `ccl` parser which makes it easier to identify what statements are causing issues.
 
 #### Version 0.9.3 (October 7, 2018)
 * Fixed a bug that caused a `NullPointerException` to be thrown when trying to `set` configuration data in `.prefs` files.
