@@ -2,7 +2,8 @@
 
 #### Version 1.0.0 (TBD)
 
-#### Version 0.9.4 (TBD)
+#### Version 0.9.4 (October 31, 2018)
+* Context has been added exceptions thrown from the `v2` `ccl` parser which makes it easier to identify what statements are causing issues.
 
 #### Version 0.9.3 (October 7, 2018)
 * Fixed a bug that caused a `NullPointerException` to be thrown when trying to `set` configuration data in `.prefs` files.
