@@ -68,6 +68,7 @@ public class Importables {
      *             are header keys; it is fine for a line to have fewer columns
      *             that header keys
      */
+    @SuppressWarnings("deprecation")
     public static String delimitedStringToJsonArray(String lines,
             @Nullable String resolveKey, char delimiter, List<String> header,
             @Nullable Transformer transformer) {
@@ -190,6 +191,7 @@ public class Importables {
      *             0); it is fine for a line to have fewer columns that header
      *             keys
      */
+    @SuppressWarnings("deprecation")
     public static void delimitedStringToJsonObject(String line,
             @Nullable String resolveKey, char delimiter, List<String> header,
             @Nullable Transformer transformer, StringBuilder builder) {

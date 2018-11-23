@@ -23,9 +23,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.StringBuilderWriter;
 import com.cinchapi.concourse.util.Strings;
+import com.cinchapi.etl.Transformation;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.gson.stream.JsonWriter;
@@ -138,9 +138,11 @@ public class ImportablesTest {
         String json = Importables.delimitedStringToJsonArray(lines, resolveKey,
                 delimiter, header, (key, value) -> {
                     if(key.equals("a")) {
-                        return new KeyValue<String, Object>("A",
-                                Lists.newArrayList(value.toLowerCase(),
-                                        value.toUpperCase(), value.length()));
+                        return Transformation.to("A",
+                                Lists.newArrayList(
+                                        value.toString().toLowerCase(),
+                                        value.toString().toUpperCase(),
+                                        value.toString().length()));
                     }
                     else {
                         return null;
@@ -158,9 +160,11 @@ public class ImportablesTest {
         String json = Importables.delimitedStringToJsonObject(lines, resolveKey,
                 delimiter, header, (key, value) -> {
                     if(key.equals("a")) {
-                        return new KeyValue<String, Object>("A",
-                                Lists.newArrayList(value.toLowerCase(),
-                                        value.toUpperCase(), value.length()));
+                        return Transformation.to("A",
+                                Lists.newArrayList(
+                                        value.toString().toLowerCase(),
+                                        value.toString().toUpperCase(),
+                                        value.toString().length()));
                     }
                     else {
                         return null;
