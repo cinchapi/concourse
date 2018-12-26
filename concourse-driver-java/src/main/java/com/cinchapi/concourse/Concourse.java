@@ -1690,6 +1690,41 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> T get(String key, long record, Timestamp timestamp);
 
     /**
+     * Return the stored value that was most recently added for {@code key} in
+     * {@code record}. If the field is empty, return {@code null}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return the freshest value in the field
+     */
+    @Nullable
+    public final <T> T get(String key, Long record) {
+        return get(key, record.longValue());
+    }
+
+    /**
+     * Return the stored value that was most recently added for {@code key} in
+     * {@code record} at {@code timestamp}. If the field was empty at
+     * {@code timestamp}, return {@code null}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return the freshest value in the field at {@code timestamp}
+     */
+    @Nullable
+    public final <T> T get(String key, Long record, Timestamp timestamp) {
+        return get(key, record.longValue(), timestamp);
+    }
+
+    /**
      * For every record that matches the {@code criteria}, return the stored
      * value in the {@code key} field that was most recently added.
      * <p>
@@ -2610,6 +2645,44 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Return all the values stored for {@code key} in {@code record}.Iterates
+     * through the key splitted with dot(.) operator. Navigates only if the key
+     * has a link as value which points to another record.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Map} containing record and all the values stored in the
+     *         field
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Long record) {
+        return navigate(key, record.longValue());
+    }
+
+    /**
+     * Return all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}. Navigates through the key splitted with dot(.)
+     * operator. Iterates only if the key has a link as value which points to
+     * another record.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} containing all the values stored in the field at
+     *         {@code timestamp}
+     */
+    public final <T> Map<Long, Set<T>> navigate(String key, Long record,
+            Timestamp timestamp) {
+        return navigate(key, record.longValue(), timestamp);
+    }
+
+    /**
      * Return all the values stored for {@code key} in every record that
      * matches the {@link Criteria} filter. Navigates through the key splited
      * with dot(.) operator.
@@ -3175,6 +3248,39 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Return all the data from {@code record}.
+     * 
+     * @param record the record id
+     * @return a {@link Map} associating each key in {@code record} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public final Map<String, Set<Object>> select(Long record) {
+        return select(record.longValue());
+    }
+
+    /**
+     * Return all the data from {@code record} at {@code timestamp}.
+     * 
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating each key in {@code record} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
+     */
+    public final Map<String, Set<Object>> select(Long record,
+            Timestamp timestamp) {
+        return select(record.longValue(), timestamp);
+    }
+
+    /**
      * Return all the data from every record that matches {@code criteria}.
      * <p>
      * This method is syntactic sugar for {@link #select(Criteria)}. The only
@@ -3333,6 +3439,39 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Set<T> select(String key, long record,
             Timestamp timestamp);
+
+    /**
+     * Return all the values stored for {@code key} in {@code record}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Set} containing all the values stored in the field
+     */
+    public final <T> Set<T> select(String key, Long record) {
+        return select(key, record.longValue());
+    }
+
+    /**
+     * Return all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Set} containing all the values stored in the field at
+     *         {@code timestamp}
+     */
+    public final <T> Set<T> select(String key, Long record,
+            Timestamp timestamp) {
+        return select(key, record.longValue(), timestamp);
+    }
 
     /**
      * Return all the values stored for {@code key} in every record that
