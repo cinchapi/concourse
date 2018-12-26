@@ -1445,7 +1445,7 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, T> get(String key, Object criteria) {
-            return invoke("find", String.class, Object.class).with(key,
+            return invoke("get", String.class, Object.class).with(key,
                     criteria);
         }
 
@@ -1458,13 +1458,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, T> get(String key, String ccl) {
-            return invoke("find", String.class, String.class).with(key, ccl);
+            return invoke("get", String.class, String.class).with(key, ccl);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, String ccl,
                 Timestamp timestamp) {
-            return invoke("find", String.class, String.class, Timestamp.class)
+            return invoke("get", String.class, String.class, Timestamp.class)
                     .with(key, ccl, timestamp);
         }
 
