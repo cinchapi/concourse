@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.importer;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.hash.Hashing;
 
 /**
  * An {@link Importer} that splits each line of input by a {@link #delimiter()}
@@ -46,8 +48,8 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer
-        implements Headered {
+public abstract class DelimitedLineImporter extends Importer implements
+        Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.
@@ -134,7 +136,11 @@ public abstract class DelimitedLineImporter extends Importer
     public final Set<Long> importString(String lines,
             @Nullable String resolveKey) {
         List<String> _lines = Lists.newArrayList(lines.split("\\r?\\n"));
-        return importLines(_lines, resolveKey, null);
+        // Assume that the lines come from stdin and hash them to generate a
+        // generic source id
+        String source = Hashing.murmur3_128()
+                .hashString(lines, StandardCharsets.UTF_8).toString();
+        return importLines(_lines, resolveKey, source);
     }
 
     @Override
