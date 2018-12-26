@@ -46,8 +46,8 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer
-        implements Headered {
+public abstract class DelimitedLineImporter extends Importer implements
+        Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.
@@ -59,7 +59,7 @@ public abstract class DelimitedLineImporter extends Importer
      * A collection of column/key names that map to each of the delimited tokens
      * in a line, respectively.
      */
-    private List<String> header;
+    private final List<String> header;
 
     /**
      * The {@link Transformer} that possible alters key/value pairs prior to
@@ -68,8 +68,6 @@ public abstract class DelimitedLineImporter extends Importer
      */
     @Nullable
     private final Transformer transformer;
-
-    protected Empty empty;
 
     /**
      * Construct a new instance.
@@ -81,10 +79,10 @@ public abstract class DelimitedLineImporter extends Importer
         this.delimiter = delimiter();
         // Backwards compatibility: The strings that are read from the
         // file/stream must be converted to their assumed java type.
-        this.empty = Empty.is(String.class, StringUtils::isBlank);
         this.transformer = Transformers.composeForEach(
                 Transformers.valueStringToJava(),
-                Transformers.removeValuesThatAre(empty),
+                Transformers.valueRemoveIf(
+                        Empty.is(String.class, StringUtils::isBlank)),
                 MoreObjects.firstNonNull(transformer(), Transformers.noOp()));
         this.header = header();
     }
@@ -110,8 +108,9 @@ public abstract class DelimitedLineImporter extends Importer
      */
     public final Set<Long> importFile(String file,
             @Nullable String resolveKey) {
-        return importLines(FileOps.readLines(file), resolveKey,
-                Paths.get(file).getFileName().toString());
+        List<String> lines = FileOps.readLines(file);
+        String source = Paths.get(file).getFileName().toString();
+        return importLines(lines, resolveKey, source);
     }
 
     @Override
@@ -134,8 +133,8 @@ public abstract class DelimitedLineImporter extends Importer
      */
     public final Set<Long> importString(String lines,
             @Nullable String resolveKey) {
-        return importLines(Lists.newArrayList(lines.split("\\r?\\n")),
-                resolveKey, null);
+        List<String> _lines = Lists.newArrayList(lines.split("\\r?\\n"));
+        return importLines(_lines, resolveKey, null);
     }
 
     @Override
@@ -184,14 +183,14 @@ public abstract class DelimitedLineImporter extends Importer
             }
             else {
                 Multimap<String, Object> object = parseObject(line);
+                if(Boolean.parseBoolean(params.getOrDefault(
+                        Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
+                    object.put(DATA_SOURCE_ANNOTATION_KEY, source);
+                }
                 objects.add(object);
             }
         });
         Set<Long> records = concourse.insert(objects);
-        if(Boolean.parseBoolean(params.getOrDefault(
-                Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "false"))) {
-            concourse.add(DATA_SOURCE_ANNOTATION_KEY, source, records);
-        }
         return records;
     }
 
