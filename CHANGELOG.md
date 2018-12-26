@@ -12,6 +12,7 @@
 
 #### Version 0.9.5 (TBD)
 * Fixed a bug where some of the `ManagedConcourseServer#get` methods in the `concourse-ete-test-core` package called the wrong upstream method of the Concourse Server instance under management. This had the effect of causing a runtime `ClassCastException` when trying to use those methods.
+* Fixed a bug that caused ambiguity and erroneous dispatching for query methods (e.g. #get, #navigate and #select) that have different signatures containing a `long` (record) or generic `Object` (criteria) parameter in the same position. This caused issues when a `Long` was provided to the method that expected a `long` because the dispatcher would route the request that expected an `Object` (criteria) parameter.
 
 #### Version 0.9.4 (October 31, 2018)
 * Context has been added exceptions thrown from the `v2` `ccl` parser which makes it easier to identify what statements are causing issues.
