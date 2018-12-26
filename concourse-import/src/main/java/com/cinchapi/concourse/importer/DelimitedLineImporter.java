@@ -48,8 +48,8 @@ import com.google.common.hash.Hashing;
  * 
  * @author Jeff Nelson
  */
-public abstract class DelimitedLineImporter extends Importer implements
-        Headered {
+public abstract class DelimitedLineImporter extends Importer
+        implements Headered {
 
     /**
      * The character on which each line in the text is split to generate tokens.

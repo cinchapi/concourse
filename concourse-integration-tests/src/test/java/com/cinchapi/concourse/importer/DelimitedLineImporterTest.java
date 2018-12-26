@@ -64,16 +64,18 @@ public abstract class DelimitedLineImporterTest
                 Lists.newArrayList(client.select(legacyRecords).values()),
                 Lists.newArrayList(client.select(records).values()));
     }
-    
+
     @Test
     public void testTagSource() {
         Map<String, String> params = Maps.newLinkedHashMap(importer.params);
         params.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "true");
         importer.setParams(params);
-        Set<Long> records = importer.importString("a,b"+System.lineSeparator()+"1,2");
+        Set<Long> records = importer
+                .importString("a,b" + System.lineSeparator() + "1,2");
         records.forEach(record -> {
-            Assert.assertNotNull(client.get(Importer.DATA_SOURCE_ANNOTATION_KEY, record));
-        });       
+            Assert.assertNotNull(
+                    client.get(Importer.DATA_SOURCE_ANNOTATION_KEY, record));
+        });
     }
 
     @Test(expected = IllegalStateException.class)
