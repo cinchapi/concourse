@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.importer;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -24,6 +25,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Base unit test that validates the integrity of importing delimited line based
@@ -61,6 +63,17 @@ public abstract class DelimitedLineImporterTest
         Assert.assertEquals(
                 Lists.newArrayList(client.select(legacyRecords).values()),
                 Lists.newArrayList(client.select(records).values()));
+    }
+    
+    @Test
+    public void testTagSource() {
+        Map<String, String> params = Maps.newLinkedHashMap(importer.params);
+        params.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "true");
+        importer.setParams(params);
+        Set<Long> records = importer.importString("a,b"+System.lineSeparator()+"1,2");
+        records.forEach(record -> {
+            Assert.assertNotNull(client.get(Importer.DATA_SOURCE_ANNOTATION_KEY, record));
+        });       
     }
 
     @Test(expected = IllegalStateException.class)
