@@ -44,7 +44,6 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
-import com.cinchapi.concourse.server.storage.Functions;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -331,7 +330,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<TObject, Set<Long>> browse(String key) {
         return Transformers.transformTreeMapSet(
                 getSecondaryRecord(Text.wrapCached(key)).browse(),
-                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
     }
 
@@ -339,7 +338,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         return Transformers.transformTreeMapSet(
                 getSecondaryRecord(Text.wrapCached(key)).browse(timestamp),
-                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
     }
 
@@ -350,7 +349,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 getPrimaryRecord(PrimaryKey.wrap(record))
                         .chronologize(Text.wrapCached(key), start, end),
                 com.google.common.base.Functions.<Long> identity(),
-                Functions.VALUE_TO_TOBJECT);
+                Value::getTObject);
     }
 
     @Override
@@ -363,11 +362,9 @@ public final class Database extends BaseStore implements PermanentStore {
             Operator operator, TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class));
-        return Transformers.transformTreeMapSet(map,
-                Functions.PRIMARY_KEY_TO_LONG, Functions.VALUE_TO_TOBJECT,
-                Comparators.LONG_COMPARATOR);
+                Transformers.transformArray(values, Value::wrap, Value.class));
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
     }
 
     @Override
@@ -375,11 +372,9 @@ public final class Database extends BaseStore implements PermanentStore {
             TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class));
-        return Transformers.transformTreeMapSet(map,
-                Functions.PRIMARY_KEY_TO_LONG, Functions.VALUE_TO_TOBJECT,
-                Comparators.LONG_COMPARATOR);
+                Transformers.transformArray(values, Value::wrap, Value.class));
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
     }
 
     /**
@@ -435,14 +430,14 @@ public final class Database extends BaseStore implements PermanentStore {
                 .transformSet(
                         getSearchRecord(Text.wrapCached(key), Text.wrap(query))
                                 .search(Text.wrap(query)),
-                        Functions.PRIMARY_KEY_TO_LONG);
+                        PrimaryKey::longValue);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Text::toString, Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
@@ -450,7 +445,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<String, Set<TObject>> select(long record, long timestamp) {
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Text::toString, Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
@@ -459,7 +454,7 @@ public final class Database extends BaseStore implements PermanentStore {
         Text key0 = Text.wrapCached(key);
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
-                Functions.VALUE_TO_TOBJECT);
+                Value::getTObject);
     }
 
     @Override
@@ -467,7 +462,7 @@ public final class Database extends BaseStore implements PermanentStore {
         Text key0 = Text.wrapCached(key);
         return Transformers
                 .transformSet(getPrimaryRecord(PrimaryKey.wrap(record), key0)
-                        .fetch(key0, timestamp), Functions.VALUE_TO_TOBJECT);
+                        .fetch(key0, timestamp), Value::getTObject);
     }
 
     @SuppressWarnings("unlikely-arg-type")
