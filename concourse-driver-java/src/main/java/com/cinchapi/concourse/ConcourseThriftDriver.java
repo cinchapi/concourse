@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +56,6 @@ import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -2717,7 +2717,7 @@ class ConcourseThriftDriver extends Concourse {
      */
     private Set<Long> executeFind(final String key, final Object operator,
             final Object... values) {
-        final List<TObject> tValues = ImmutableList.of(values).stream()
+        final List<TObject> tValues = Arrays.stream(values)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -2751,7 +2751,7 @@ class ConcourseThriftDriver extends Concourse {
      */
     private Set<Long> executeFind(final Timestamp timestamp, final String key,
             final Object operator, final Object... values) {
-        final List<TObject> tValues = ImmutableList.of(values).stream()
+        final List<TObject> tValues = Arrays.stream(values)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
