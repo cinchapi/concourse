@@ -2,8 +2,24 @@
 
 #### Version 1.0.0 (TBD)
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
+* Refacted the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
+* Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
+* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation.  
+* Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
+* Upgrade the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+* Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
+	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
+	* The `Transform` class contains functions for common data transformations. 
 
-#### Version 0.9.3 (TBD)
+#### Version 0.9.5 (TBD)
+* Fixed a bug where some of the `ManagedConcourseServer#get` methods in the `concourse-ete-test-core` package called the wrong upstream method of the Concourse Server instance under management. This had the effect of causing a runtime `ClassCastException` when trying to use those methods.
+* Fixed a bug that caused ambiguity and erroneous dispatching for query methods (e.g. #get, #navigate and #select) that have different signatures containing a `long` (record) or generic `Object` (criteria) parameter in the same position. This caused issues when a `Long` was provided to the method that expected a `long` because the dispatcher would route the request that expected an `Object` (criteria) parameter.
+
+#### Version 0.9.4 (October 31, 2018)
+* Context has been added exceptions thrown from the `v2` `ccl` parser which makes it easier to identify what statements are causing issues.
+
+#### Version 0.9.3 (October 7, 2018)
+* Fixed a bug that caused a `NullPointerException` to be thrown when trying to `set` configuration data in `.prefs` files.
 
 #### Version 0.9.2 (September 3, 2018)
 * Deprecated the `forGenericObject`, `forCollection`, `forMap` and `forTObject` TypeAdapter generators in the `TypeAdapters` utility class in favor of `primitiveTypesFactor`, `collectionFactory` and `tObjectFactory` in the same class, each of which return a `TypeAdapterFactory` instead of a `TypeAdapter`. Going forward, please register these type adapter factories when building a `Gson` instance for correct Concourse-style JSON serialization semantics.
