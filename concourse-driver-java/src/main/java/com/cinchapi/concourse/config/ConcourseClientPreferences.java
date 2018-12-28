@@ -191,7 +191,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param environment
      */
     public void setEnvironment(String environment) {
-        override("environment", environment);
+        set("environment", environment);
     }
 
     /**
@@ -200,7 +200,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param host
      */
     public void setHost(String host) {
-        override("host", host);
+        set("host", host);
     }
 
     /**
@@ -209,7 +209,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param password
      */
     public void setPassword(char[] password) {
-        override("password", new String(password));
+        set("password", new String(password));
     }
 
     /**
@@ -218,7 +218,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param port
      */
     public void setPort(int port) {
-        override("port", port);
+        set("port", port);
     }
 
     /**
@@ -227,6 +227,6 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param username
      */
     public void setUsername(String username) {
-        override("username", username);
+        set("username", username);
     }
 }

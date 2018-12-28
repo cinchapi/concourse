@@ -26,6 +26,10 @@ A `Link` is a pointer to another record. Links are used model relationship graph
 ### Tag
 A `Tag` is a String that is *not* indexed for full-text search.
 
+Tags are only used to instruct Concourse that a String shouldn't be indexed for search. Therefore, once a Tag is processed, it is stored and treated as a String for all intents and purposes. This means that Tag values will be read as Strings when fetched.
+
+Additionally, when querying, Concourse treats any Tag values within the query as a String.
+
 ### Timestamp
 A `Timestamp` is a a 64-bit integer that represents the number of **microseconds** since the Unix epoch (January 1, 1970 00:00:00 UTC). Timestamps are signed, so negative values represents dates prior to the epoch. Timestamps have a representable date range of about 290,000 years into the past and future.
 

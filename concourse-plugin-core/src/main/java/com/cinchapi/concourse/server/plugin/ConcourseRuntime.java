@@ -23,8 +23,10 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -122,13 +124,19 @@ public class ConcourseRuntime extends StatefulConcourseService {
                 Object arg = args[i];
                 if(valueTransform.contains(i)) {
                     if(arg instanceof List) {
-                        arg = Convert.javaListToThrift((List<Object>) arg);
+                        arg = ((List<Object>) arg).stream()
+                                .map(Convert::javaToThrift)
+                                .collect(Collectors.toList());
                     }
                     else if(arg instanceof Set) {
-                        arg = Convert.javaSetToThrift((Set<Object>) arg);
+                        arg = ((Set<Object>) arg).stream()
+                                .map(Convert::javaToThrift)
+                                .collect(Collectors.toSet());
                     }
                     else if(arg instanceof Map) {
-                        arg = Convert.javaMapToThrift((Map<?, Object>) arg);
+                        arg = ((Map<?, Object>) arg).entrySet().stream()
+                                .collect(Collectors.toMap(Entry::getKey,
+                                        e -> Convert.javaToThrift(e)));
                     }
                     else {
                         arg = Convert.javaToThrift(arg);

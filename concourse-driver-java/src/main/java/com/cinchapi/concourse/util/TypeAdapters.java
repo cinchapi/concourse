@@ -17,8 +17,6 @@ package com.cinchapi.concourse.util;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -27,6 +25,8 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -39,193 +39,236 @@ import com.google.gson.stream.JsonWriter;
 public class TypeAdapters {
 
     /**
-     * Return the {@link TypeAdapter} that checks the size of a collection and
-     * only converts them to a JSON array if necessary (i.e. a single item
-     * collection will be converted to a single object in JSON).
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link Collection Collections}.
      * 
-     * @return the {@link TypeAdapter} to use for conversions
+     * @return the type adapter factory
      */
-    public static TypeAdapter<Collection<?>> forCollection() {
-        return COLLECTION_TYPE_ADAPTER;
+    public static TypeAdapterFactory collectionFactory() {
+        return collectionFactory(false);
     }
 
     /**
-     * Return the {@link TypeAdapter} that converts generic objects to the
-     * correct JSON representation so they can be converted back to java if
-     * necessary.
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link Collection Collections}.
      * 
-     * @return the {@link TypeAdapter} to use for conversions
+     * @param nullSafe
+     * @return the type adapter factory
      */
-    public static TypeAdapter<Object> forGenericObject() {
-        return JAVA_TYPE_ADAPTER;
-    }
+    public static TypeAdapterFactory collectionFactory(boolean nullSafe) {
+        return new TypeAdapterFactory() {
 
-    /**
-     * Return the {@link TypeAdapter} that converts {@link TObject TObjects} to
-     * the correct JSON representation so they can be converted back to java if
-     * necessary.
-     * 
-     * @return the {@link TypeAdapter} to use for conversions
-     */
-    public static TypeAdapter<TObject> forTObject() {
-        return TOBJECT_TYPE_ADAPTER;
-    }
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
+                Class<? super T> clazz = type.getRawType();
+                TypeAdapterFactory skipPast = this;
+                if(Collection.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Collection<?>>() {
 
-    /**
-     * Return the {@link TypeAdapter} that converts built-in {@link Map maps} to
-     * the correct JSON representation by deferring to the
-     * {@link #forGenericObject() java type adapter} when serializing values.
-     * This enables Concourse Server to correct convert the resultant JSON
-     * string back to a Java structure when necessary.
-     * 
-     * @return the {@link TypeAdapter} to use for conversions
-     */
-    public static TypeAdapter<Map<?, ?>> forMap() {
-        return MAP_TYPE_ADAPTER;
-    }
+                        @Override
+                        public Collection<?> read(JsonReader in)
+                                throws IOException {
+                            return null;
+                        }
 
-    /**
-     * A singleton instance of the type adapter for generic objects to use
-     * within this class.
-     */
-    private static TypeAdapter<Object> JAVA_TYPE_ADAPTER = new TypeAdapter<Object>() {
+                        @SuppressWarnings("rawtypes")
+                        @Override
+                        public void write(JsonWriter out, Collection<?> value)
+                                throws IOException {
+                            // Delegate to the normal Collection adapter unless
+                            // the collection only contains one item; in which
+                            // case, it should delegate to the normal adapter
+                            // for that item, so it can be written as a flat
+                            // value.
+                            Object item;
+                            TypeAdapter delegate;
+                            if(value.size() == 1) {
+                                item = Iterables.getOnlyElement(value);
+                                delegate = (TypeAdapter<?>) gson
+                                        .getDelegateAdapter(skipPast,
+                                                TypeToken.get(item.getClass()));
 
-        /**
-         * A generic type adapter from a standard GSON instance that is used for
-         * maintaining default deserialization semantics for non-primitive
-         * objects.
-         */
-        private final TypeAdapter<Object> generic = new Gson()
-                .getAdapter(Object.class);
+                            }
+                            else {
+                                delegate = gson.getDelegateAdapter(skipPast,
+                                        type);
+                                item = value;
+                            }
+                            delegate.write(out, item);
+                        }
 
-        @Override
-        public Object read(JsonReader reader) throws IOException {
-            return null;
-        }
-
-        @Override
-        public void write(JsonWriter writer, Object value) throws IOException {
-            if(value instanceof Double) {
-                value = (Double) value;
-                writer.value(value.toString() + "D");
-            }
-            else if(value instanceof Link) {
-                writer.value(value.toString());
-            }
-            else if(value instanceof Tag) {
-                writer.value("'" + value.toString() + "'");
-            }
-            else if(value instanceof Number) {
-                writer.value((Number) value);
-            }
-            else if(value instanceof Boolean) {
-                writer.value((Boolean) value);
-            }
-            else if(value instanceof String) {
-                writer.value((String) value);
-            }
-            else if(value instanceof Timestamp) {
-                writer.jsonValue("|" + ((Timestamp) value).getMicros() + "|");
-            }
-            else {
-                generic.write(writer, value);
-            }
-        }
-    };
-
-    /**
-     * A singleton instance of the type adapter for tobjects to use within this
-     * class.
-     */
-    private static TypeAdapter<TObject> TOBJECT_TYPE_ADAPTER = new TypeAdapter<TObject>() {
-
-        @Override
-        public TObject read(JsonReader in) throws IOException {
-            return null;
-        }
-
-        @Override
-        public void write(JsonWriter out, TObject value) throws IOException {
-            JAVA_TYPE_ADAPTER.write(out, Convert.thriftToJava(value));
-        }
-    };
-
-    /**
-     * A singleton instance to return from {@link #forMap()}.
-     */
-    private static TypeAdapter<Map<?, ?>> MAP_TYPE_ADAPTER = new TypeAdapter<Map<?, ?>>() {
-
-        @Override
-        public void write(JsonWriter out, Map<?, ?> value) throws IOException {
-            out.beginObject();
-            for (Entry<?, ?> entry : value.entrySet()) {
-                out.name(entry.getKey().toString());
-                sendJsonValue(out, entry.getValue());
-            }
-            out.endObject();
-
-        }
-
-        @Override
-        public Map<String, ?> read(JsonReader in) throws IOException {
-            return null;
-        }
-
-    };
-
-    /**
-     * A singleton instance of the type adapter for collections to use within
-     * this class.
-     */
-    private static TypeAdapter<Collection<?>> COLLECTION_TYPE_ADAPTER = new TypeAdapter<Collection<?>>() {
-
-        @Override
-        public Collection<?> read(JsonReader in) throws IOException {
-            return null;
-        }
-
-        @Override
-        public void write(JsonWriter out, Collection<?> value)
-                throws IOException {
-            // TODO: There is an open question about how to handle empty
-            // collections. Right now, an empty JSON array is outputed, but
-            // maybe we want to output null instead?
-            if(value.size() == 1) {
-                sendJsonValue(out, Iterables.get(value, 0));
-            }
-            else {
-                out.beginArray();
-                for (Object element : value) {
-                    sendJsonValue(out, element);
+                    };
                 }
-                out.endArray();
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
+                }
+                return adapter;
             }
 
-        }
-    };
+        };
+    }
 
     /**
-     * Check the type of {@code value} and send it the appropriate type
-     * adapter with {@code out}.
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for primitive Concourse types.
      * 
-     * @param out the writer
-     * @param value the value to write
-     * @throws IOException
+     * @return the type adapter factory
      */
-    private static void sendJsonValue(JsonWriter out, Object value)
-            throws IOException {
-        if(value instanceof TObject) {
-            TOBJECT_TYPE_ADAPTER.write(out, (TObject) value);
-        }
-        else if(value instanceof Collection) {
-            COLLECTION_TYPE_ADAPTER.write(out, (Collection<?>) value);
-        }
-        else if(value instanceof Map) {
-            MAP_TYPE_ADAPTER.write(out, (Map<?, ?>) value);
-        }
-        else {
-            JAVA_TYPE_ADAPTER.write(out, value);
-        }
+    public static TypeAdapterFactory primitiveTypesFactory() {
+        return primitiveTypesFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for primitive Concourse types.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory primitiveTypesFactory(boolean nullSafe) {
+        return new TypeAdapterFactory() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
+                Class<? super T> clazz = type.getRawType();
+                if(Double.class.isAssignableFrom(clazz)
+                        || double.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Double>() {
+
+                        @Override
+                        public Double read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Double value)
+                                throws IOException {
+                            // This adapter appends the value with a "D" to
+                            // force Concourse to reread them as a {@link
+                            // Double} type instead of a {@link Float}.
+                            out.value(value.toString() + "D");
+                        }
+
+                    };
+                }
+                else if(Link.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Link>() {
+
+                        @Override
+                        public Link read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Link value)
+                                throws IOException {
+                            out.value(value.toString());
+                        }
+
+                    };
+                }
+                else if(Tag.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Tag>() {
+
+                        @Override
+                        public Tag read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Tag value)
+                                throws IOException {
+                            out.value("'" + value.toString() + "'");
+                        }
+
+                    };
+                }
+                else if(Timestamp.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Timestamp>() {
+
+                        @Override
+                        public Timestamp read(JsonReader in)
+                                throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Timestamp value)
+                                throws IOException {
+                            out.value("|" + ((Timestamp) value).getMicros()
+                                    + "|");
+                        }
+
+                    };
+                }
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
+                }
+                return adapter;
+            }
+
+        };
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link TObject TObjects}.
+     * 
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory tObjectFactory() {
+        return tObjectFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link TObject TObjects}.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory tObjectFactory(boolean nullSafe) {
+        return new TypeAdapterFactory() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
+                Class<? super T> clazz = type.getRawType();
+                TypeAdapterFactory skipPast = this;
+                if(TObject.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<TObject>() {
+
+                        @Override
+                        public TObject read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @SuppressWarnings("rawtypes")
+                        @Override
+                        public void write(JsonWriter out, TObject value)
+                                throws IOException {
+                            // Convert to Java and use the converted type's
+                            // delegate for JSON serialization
+                            Object java = Convert.thriftToJava(value);
+                            TypeAdapter delegate = gson.getDelegateAdapter(
+                                    skipPast, TypeToken.get(java.getClass()));
+                            delegate.write(out, java);
+                        }
+
+                    };
+                }
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
+                }
+                return adapter;
+            }
+
+        };
     }
 
 }

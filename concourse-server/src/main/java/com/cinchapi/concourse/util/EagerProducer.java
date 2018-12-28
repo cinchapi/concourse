@@ -15,10 +15,10 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -26,12 +26,24 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
- * A {@link Producer} provides elements to a consumer.
+ * A {@link EagerProducer} creates and queues up expensive elements ahead of
+ * time in anticipation of providing them to a consumer.
  * 
  * @author Jeff Nelson
  */
 @ThreadSafe
-public class Producer<T> {
+public class EagerProducer<T> {
+
+    /**
+     * Return a new {@link EagerProducer} that uses the {@code supplier} to
+     * produce elements that can be {@link #consume() consumed}.
+     * 
+     * @param supplier
+     * @return the {@link EagerProducer}
+     */
+    public static <T> EagerProducer<T> of(Supplier<T> supplier) {
+        return new EagerProducer<T>(supplier);
+    }
 
     /**
      * The queue that holds that next element to be transferred to the consumer.
@@ -43,21 +55,20 @@ public class Producer<T> {
      * 
      * @param supplier
      */
-    public Producer(final Callable<T> supplier) {
+    public EagerProducer(final Supplier<T> supplier) {
         Runnable runnable = new Runnable() {
 
             @Override
             public void run() {
                 try {
                     for (;;) {
-                        T element = supplier.call();
+                        T element = supplier.get();
                         queue.put(element);
                     }
                 }
                 catch (Exception e) {
                     throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
-
             }
 
         };

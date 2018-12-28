@@ -304,8 +304,8 @@ public class ParserTest {
     @Test
     public void testToPostfixNotationAndOr() {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
-                .value("1").and().key("b").operator(Operator.EQUALS).value(2)
-                .or().key("c").operator(Operator.EQUALS).value(3).build();
+                .value(1).and().key("b").operator(Operator.EQUALS).value(2).or()
+                .key("c").operator(Operator.EQUALS).value(3).build();
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.getSymbols());
         Assert.assertEquals(pfn.size(), 5);
@@ -330,7 +330,7 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
                 .value("1").and().key("b").operator(Operator.EQUALS).value(2)
                 .or().key("c").operator(Operator.EQUALS).value(3).build();
-        String ccl = "a = 1 and b = 2 or c = 3";
+        String ccl = "a = '1' and b = 2 or c = 3";
         Parser parser = Parsers.create(ccl);
         Assert.assertEquals(Parsing.toPostfixNotation(criteria.getSymbols()),
                 parser.order());
@@ -680,7 +680,7 @@ public class ParserTest {
     @Test
     public void testParseCclBetweenWithBothReferences() {
         Criteria criteria = Criteria.where().key("age")
-                .operator(Operator.BETWEEN).value("30").value("35").build();
+                .operator(Operator.BETWEEN).value(30).value(35).build();
         String ccl = "where age bw $age $retireAge";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -695,7 +695,7 @@ public class ParserTest {
     @Test
     public void testParseCclBetweenWithFirstReference() {
         Criteria criteria = Criteria.where().key("age")
-                .operator(Operator.BETWEEN).value("30").value("100").build();
+                .operator(Operator.BETWEEN).value(30).value(100).build();
         String ccl = "where age bw $age 100";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
@@ -709,7 +709,7 @@ public class ParserTest {
     @Test
     public void testParseCclBetweenWithSecondReference() {
         Criteria criteria = Criteria.where().key("age")
-                .operator(Operator.BETWEEN).value("5").value("30").build();
+                .operator(Operator.BETWEEN).value(5).value(30).build();
         String ccl = "where age bw 5 $age";
         Multimap<String, Object> data = LinkedHashMultimap.create();
         data.put("name", "Lebron James");
