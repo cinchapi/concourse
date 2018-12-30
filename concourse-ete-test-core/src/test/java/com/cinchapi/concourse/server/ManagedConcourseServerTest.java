@@ -155,5 +155,14 @@ public class ManagedConcourseServerTest {
         concourse.add("age", 40);
         Assert.assertEquals(60, concourse.calculate().sum("age"));
     }
+    
+    @Test
+    public void testTranslateTimestampValueBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        long record = concourse.add("time", Timestamp.now());
+        Object time = concourse.get("time", record);
+        Assert.assertTrue(time instanceof Timestamp);
+    }
 
 }

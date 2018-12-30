@@ -11,9 +11,10 @@
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
 	* The `Transform` class contains functions for common data transformations. 
 
-#### Version 0.9.5 (TBD)
+#### Version 0.9.5 (December 30, 2018)
 * Fixed a bug where some of the `ManagedConcourseServer#get` methods in the `concourse-ete-test-core` package called the wrong upstream method of the Concourse Server instance under management. This had the effect of causing a runtime `ClassCastException` when trying to use those methods.
 * Fixed a bug that caused ambiguity and erroneous dispatching for query methods (e.g. #get, #navigate and #select) that have different signatures containing a `long` (record) or generic `Object` (criteria) parameter in the same position. This caused issues when a `Long` was provided to the method that expected a `long` because the dispatcher would route the request that expected an `Object` (criteria) parameter.
+* Fixed a bug in the `concourse-ete-test-core` framework where `Timestamp` objects returned from the managed server were not translated to `Timestamp` type from the test application's classpath.
 
 #### Version 0.9.4 (October 31, 2018)
 * Context has been added exceptions thrown from the `v2` `ccl` parser which makes it easier to identify what statements are causing issues.

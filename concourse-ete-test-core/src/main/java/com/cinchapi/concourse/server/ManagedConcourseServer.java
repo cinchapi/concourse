@@ -2192,6 +2192,14 @@ public class ManagedConcourseServer {
                             .getMethod("longValue").invoke(object);
                     object = Link.to(longValue);
                 }
+                else if(object.getClass().getSimpleName()
+                        .equals(Timestamp.class.getSimpleName())) {
+                    long micros = (long) loader
+                            .loadClass(packageBase
+                                    + Timestamp.class.getSimpleName())
+                            .getMethod("getMicros").invoke(object);
+                    object = Timestamp.fromMicros(micros);
+                }
                 return object;
             }
         }
