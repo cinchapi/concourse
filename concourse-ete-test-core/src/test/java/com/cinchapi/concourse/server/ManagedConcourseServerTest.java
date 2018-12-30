@@ -155,7 +155,7 @@ public class ManagedConcourseServerTest {
         concourse.add("age", 40);
         Assert.assertEquals(60, concourse.calculate().sum("age"));
     }
-    
+
     @Test
     public void testTranslateTimestampValueBetweenClientAndServer() {
         server.start();
