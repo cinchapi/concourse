@@ -67,7 +67,7 @@ transaction the state from the first timestamp to the second one.
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2018 Cinchapi Inc.
+Copyright (c) 2013-2019 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
