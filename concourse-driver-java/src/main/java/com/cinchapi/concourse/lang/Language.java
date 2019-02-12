@@ -56,6 +56,10 @@ public final class Language {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
             if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
                     && Strings.isWithinQuotes(tsymbol.getSymbol())) {
+                // CON-634: This is an obscure corner case where the surrounding
+                // quotes on the original tsymbol were necessary to escape a
+                // keyword, but got dropped because of the logic in
+                // Convert#stringToJava
                 symbol = Strings.ensureWithinQuotes(symbol.toString());
             }
             return new ValueSymbol(symbol);
