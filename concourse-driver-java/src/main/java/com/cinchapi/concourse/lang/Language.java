@@ -29,6 +29,7 @@ import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -52,7 +53,12 @@ public final class Language {
             return new KeySymbol(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.VALUE) {
-            return new ValueSymbol(Convert.stringToJava(tsymbol.getSymbol()));
+            Object symbol = Convert.stringToJava(tsymbol.getSymbol());
+            if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
+                    && Strings.isWithinQuotes(tsymbol.getSymbol())) {
+                symbol = Strings.ensureWithinQuotes(symbol.toString());
+            }
+            return new ValueSymbol(symbol);
         }
         else if(tsymbol.getType() == TSymbolType.PARENTHESIS) {
             return ParenthesisSymbol.parse(tsymbol.getSymbol());
