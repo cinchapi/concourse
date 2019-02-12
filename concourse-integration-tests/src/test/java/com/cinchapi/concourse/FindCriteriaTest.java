@@ -189,6 +189,14 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                 .build()));
     }
 
+    @Test
+    public void testReproCON_634() {
+        client.find("foo = \"a and b\"");
+        client.find(Criteria.where().key("foo").operator(Operator.EQUALS)
+                .value("\"a and b\"").build());
+        Assert.assertTrue(true); // lack of Exception means test passes
+    }
+
     /**
      * Validate that the {@code criteria} returns the same result in Concourse
      * as it does in a relational database.
