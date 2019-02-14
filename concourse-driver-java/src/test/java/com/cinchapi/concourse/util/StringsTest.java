@@ -281,6 +281,12 @@ public class StringsTest {
     }
 
     @Test
+    public void testIsWithinQuotedString() {
+        Assert.assertTrue(Strings.isWithinQuotes("“abc”"));
+        Assert.assertTrue(Strings.isWithinQuotes("‘abc’"));
+    }
+
+    @Test
     public void testIsWithinQuotesQuotedEmptyString() {
         Assert.assertFalse(Strings.isWithinQuotes("\"\""));
         Assert.assertFalse(Strings.isWithinQuotes("\'\'"));
@@ -308,12 +314,21 @@ public class StringsTest {
     }
 
     @Test
-    public void testReplaceUnicodeConfusables() {
+    public void testReplaceUnicodeDoubleQuoteConfusables() {
         String expected = "\"a\"";
         Assert.assertEquals(expected,
                 Strings.replaceUnicodeConfusables(expected));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("˝a˝"));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("″a‶"));
+    }
+
+    @Test
+    public void testReplaceUnicodeSingleQuoteConfusables() {
+        String expected = "'a'";
+        Assert.assertEquals(expected,
+                Strings.replaceUnicodeConfusables(expected));
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("`a`"));
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("’a’"));
     }
 
     @Test

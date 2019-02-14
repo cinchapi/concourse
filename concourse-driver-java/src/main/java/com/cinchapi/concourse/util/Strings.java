@@ -266,6 +266,39 @@ public final class Strings {
             case '＂':
                 c = '"';
                 break;
+            case '`':
+            case 'ꞌ':
+            case 'ʻ':
+            case 'ʼ':
+            case 'י':
+            case 'ʹ':
+            case 'ʽ':
+            case 'ʾ':
+            case 'ˊ':
+            case 'ˋ':
+            case 'ߴ':
+            case 'ߵ':
+            case 'ʹ':
+            case '׳':
+            case '’':
+            case '˴':
+            case '՚':
+            case '՝':
+            case '‘':
+            case '‛':
+            case '′':
+            case '‵':
+            case '´':
+            case '΄':
+            case '᾽':
+            case '᾿':
+            case '`':
+            case '´':
+            case '῾':
+            case '＇':
+            case '｀':
+                c = '\'';
+                break;
             }
             chars[i] = c;
         }
@@ -397,6 +430,7 @@ public final class Strings {
      * @return {@code true} if the string is between quotes
      */
     public static boolean isWithinQuotes(String string) {
+        string = replaceUnicodeConfusables(string);
         if(string.length() > 2) {
             char first = string.charAt(0);
             if(first == '"' || first == '\'') {
