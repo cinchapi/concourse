@@ -23,13 +23,13 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
-import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TLists;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
@@ -201,10 +201,10 @@ public abstract class LineBasedImporter extends JsonImporter {
     protected JsonElement transformValue(String key, String value) {
         JsonPrimitive element;
         Object parsed;
-        if((parsed = Strings.tryParseNumberStrict(value)) != null) {
+        if((parsed = AnyStrings.tryParseNumberStrict(value)) != null) {
             element = new JsonPrimitive((Number) parsed);
         }
-        else if((parsed = Strings.tryParseBoolean(value)) != null) {
+        else if((parsed = AnyStrings.tryParseBoolean(value)) != null) {
             element = new JsonPrimitive((Boolean) parsed);
         }
         else {
@@ -245,7 +245,7 @@ public abstract class LineBasedImporter extends JsonImporter {
             keys = TLists.toArrayCasted(keysList, String.class);
         }
         else {
-            keys = Strings.splitStringByDelimiterButRespectQuotes(line,
+            keys = AnyStrings.splitStringByDelimiterButRespectQuotes(line,
                     delimiter());
             for (int i = 0; i < keys.length; ++i) {
                 keys[i] = keys[i].trim();
@@ -278,7 +278,7 @@ public abstract class LineBasedImporter extends JsonImporter {
             toks = TLists.toArrayCasted(toksList, String.class);
         }
         else {
-            toks = Strings.splitStringByDelimiterButRespectQuotes(line,
+            toks = AnyStrings.splitStringByDelimiterButRespectQuotes(line,
                     delimiter());
         }
         for (int i = 0; i < Math.min(keys.length, toks.length); ++i) {

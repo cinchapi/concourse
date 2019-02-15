@@ -33,6 +33,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
@@ -455,7 +456,7 @@ public final class Convert {
         char first = value.charAt(0);
         char last = value.charAt(value.length() - 1);
         Long record;
-        if(Strings.isWithinQuotes(value)) {
+        if(AnyStrings.isWithinQuotes(value)) {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
@@ -503,7 +504,7 @@ public final class Convert {
             return timestamp;
         }
         else {
-            return MoreObjects.firstNonNull(Strings.tryParseNumber(value),
+            return MoreObjects.firstNonNull(AnyStrings.tryParseNumber(value),
                     value);
         }
     }
@@ -555,7 +556,7 @@ public final class Convert {
      * @return An instruction to create a {@link ResolvableLink}
      */
     public static String stringToResolvableLinkInstruction(String ccl) {
-        return Strings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ccl,
+        return AnyStrings.joinSimple(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ccl,
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
     }
 
@@ -586,7 +587,7 @@ public final class Convert {
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
         return stringToResolvableLinkInstruction(
-                Strings.joinWithSpace(key, "=", rawValue));
+                AnyStrings.joinWithSpace(key, "=", rawValue));
     }
 
     /**
@@ -881,8 +882,8 @@ public final class Convert {
 
         @Override
         public String toString() {
-            return Strings.format("{} for {}", this.getClass().getSimpleName(),
-                    ccl);
+            return AnyStrings.format("{} for {}",
+                    this.getClass().getSimpleName(), ccl);
         }
 
     }

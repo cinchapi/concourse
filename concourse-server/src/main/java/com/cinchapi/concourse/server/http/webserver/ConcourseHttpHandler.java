@@ -32,12 +32,12 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import spark.webserver.NotConsumedException;
 
 import com.cinchapi.common.base.AnyObjects;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpAuthToken;
 import com.cinchapi.concourse.server.http.HttpRequests;
-import com.cinchapi.concourse.util.Strings;
 
 /**
  * Simple Jetty Handler
@@ -134,8 +134,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
                                 || (e instanceof RuntimeException && e
-                                        .getCause() != null & e
-                                                .getCause() instanceof GeneralSecurityException)) {}
+                                        .getCause() != null
+                                        & e.getCause() instanceof GeneralSecurityException)) {}
                         else {
                             throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
@@ -168,8 +168,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
                             || (e instanceof RuntimeException && e
-                                    .getCause() != null & e
-                                            .getCause() instanceof GeneralSecurityException)) {}
+                                    .getCause() != null
+                                    & e.getCause() instanceof GeneralSecurityException)) {}
                     else {
                         throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
@@ -225,7 +225,7 @@ public class ConcourseHttpHandler extends SessionHandler {
                 }
                 else {
                     String requestOrigin = request.getHeader("Origin");
-                    if(Strings.isSubString(requestOrigin,
+                    if(AnyStrings.isSubString(requestOrigin,
                             GlobalState.HTTP_CORS_DEFAULT_ALLOW_ORIGIN)) {
                         response.addHeader(HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
                                 requestOrigin);

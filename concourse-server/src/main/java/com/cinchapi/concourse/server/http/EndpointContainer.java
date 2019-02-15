@@ -20,10 +20,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.cinchapi.common.base.AdHocIterator;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.util.Random;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 
@@ -59,8 +59,8 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class EndpointContainer
-        implements Comparable<EndpointContainer> {
+public abstract class EndpointContainer implements
+        Comparable<EndpointContainer> {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring
@@ -133,11 +133,11 @@ public abstract class EndpointContainer
                 namespace = id.cls;
             }
             else {
-                namespace = Strings.join('/', id.module, id.cls);
+                namespace = AnyStrings.join('/', id.module, id.cls);
             }
         }
         else {
-            namespace = Strings.join('/', id.group, id.module, id.cls);
+            namespace = AnyStrings.join('/', id.group, id.module, id.cls);
         }
         namespace = namespace.replace("Router", "");
         namespace = namespace.replace("Index", "");
@@ -146,8 +146,8 @@ public abstract class EndpointContainer
         namespace = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN,
                 namespace);
         namespace = namespace.replaceAll("/-", "/");
-        namespace = Strings.ensureStartsWith(namespace, "/");
-        namespace = Strings.ensureEndsWith(namespace, "/");
+        namespace = AnyStrings.ensureStartsWith(namespace, "/");
+        namespace = AnyStrings.ensureEndsWith(namespace, "/");
         return namespace;
     }
 
@@ -237,12 +237,12 @@ public abstract class EndpointContainer
                                                 || name.startsWith("upsert")
                                                 || name.startsWith(
                                                         "options"))) {
-                                    List<String> args = Strings
+                                    List<String> args = AnyStrings
                                             .splitCamelCase(field.getName());
                                     action = args.remove(0);
                                     path = buildSparkPath(args);
                                 }
-                                path = Strings.joinSimple(namespace, path);
+                                path = AnyStrings.joinSimple(namespace, path);
                                 Reflection.set("action", action, callable);
                                 Reflection.set("path", path, callable);
                                 return callable;

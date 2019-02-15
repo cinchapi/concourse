@@ -42,6 +42,7 @@ import jline.console.ConsoleReader;
 import org.reflections.Reflections;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.groovy.GroovyFiles;
 import com.cinchapi.common.io.Files;
@@ -56,7 +57,6 @@ import com.cinchapi.concourse.importer.JsonImporter;
 import com.cinchapi.concourse.importer.LegacyCsvImporter;
 import com.cinchapi.concourse.importer.debug.ImportDryRunConcourse;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
@@ -150,7 +150,7 @@ public class ImportCli extends CommandLineInterface {
                         if(options.verbose) {
                             System.out.println(records);
                         }
-                        System.out.println(Strings.format(
+                        System.out.println(AnyStrings.format(
                                 "Imported data into {} record{}",
                                 records.size(), records.size() > 1 ? "s" : ""));
                         if(dryRun) {
@@ -212,7 +212,8 @@ public class ImportCli extends CommandLineInterface {
         else {
             String path = FileOps.expandPath(opts.data, getLaunchDirectory());
             Collection<String> files = FileOps.isDirectory(path)
-                    ? scan(Paths.get(path)) : ImmutableList.of(path);
+                    ? scan(Paths.get(path))
+                    : ImmutableList.of(path);
             Stopwatch watch = Stopwatch.createUnstarted();
             if(files.size() > 1) {
                 records = Sets.newConcurrentHashSet();
@@ -287,7 +288,7 @@ public class ImportCli extends CommandLineInterface {
             if(options.verbose) {
                 System.out.println(records);
             }
-            System.out.println(Strings.format(
+            System.out.println(AnyStrings.format(
                     "Imported data into {} record{} in {} seconds",
                     records.size(), records.size() > 1 ? "s" : "", seconds));
             if(dryRun) {
@@ -343,7 +344,7 @@ public class ImportCli extends CommandLineInterface {
                 clz = getCustomImporterClass(type);
             }
             catch (ClassNotFoundException e) {
-                throw new RuntimeException(Strings
+                throw new RuntimeException(AnyStrings
                         .format("{} is not a valid importer type.", type));
             }
         }
@@ -440,7 +441,7 @@ public class ImportCli extends CommandLineInterface {
                     }
                 }
                 else {
-                    throw new UnsupportedOperationException(Strings.format(
+                    throw new UnsupportedOperationException(AnyStrings.format(
                             "{} is an unsupported file type for custom importers",
                             path));
                 }

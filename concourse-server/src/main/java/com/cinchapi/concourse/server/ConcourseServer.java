@@ -49,6 +49,7 @@ import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
@@ -121,8 +122,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -1789,10 +1790,8 @@ public class ConcourseServer extends BaseConcourseServer
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new DuplicateEntryException(
-                    com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", key, "=",
-                            value));
+            throw new DuplicateEntryException(AnyStrings.joinWithSpace("Found",
+                    records.size(), "records that match", key, "=", value));
         }
     }
 
@@ -1825,9 +1824,8 @@ public class ConcourseServer extends BaseConcourseServer
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new DuplicateEntryException(
-                    com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", ccl));
+            throw new DuplicateEntryException(AnyStrings.joinWithSpace("Found",
+                    records.size(), "records that match", ccl));
         }
     }
 
@@ -1852,9 +1850,8 @@ public class ConcourseServer extends BaseConcourseServer
             return Iterables.getOnlyElement(records);
         }
         else {
-            throw new DuplicateEntryException(
-                    com.cinchapi.concourse.util.Strings.joinWithSpace("Found",
-                            records.size(), "records that match", parser));
+            throw new DuplicateEntryException(AnyStrings.joinWithSpace("Found",
+                    records.size(), "records that match", parser));
         }
     }
 

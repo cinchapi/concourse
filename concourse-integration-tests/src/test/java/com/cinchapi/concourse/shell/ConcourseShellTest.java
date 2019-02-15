@@ -21,10 +21,10 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Resources;
-import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TestData;
 
 /**
@@ -90,7 +90,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     public void testImportedClasssesAreAccessible() throws Throwable {
         for (Class<?> clazz : ConcourseShell.IMPORTED_CLASSES) {
             String variable = clazz.getSimpleName();
-            String expected = Strings.format("Returned 'class {}'",
+            String expected = AnyStrings.format("Returned 'class {}'",
                     clazz.getName());
             String actual = cash.evaluate(variable);
             actual = actual.split(" in ")[0];

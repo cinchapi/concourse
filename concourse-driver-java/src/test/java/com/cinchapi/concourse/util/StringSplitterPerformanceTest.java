@@ -18,6 +18,9 @@ package com.cinchapi.concourse.util;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
+import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.test.ConcourseBenchmarkTest;
 
 /**
@@ -74,7 +77,7 @@ public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
         int rounds = 5000;
         startBenchmark(builtInBenchmark);
         for (int i = 0; i < rounds; ++i) {
-            String[] toks = Strings
+            String[] toks = AnyStrings
                     .splitStringByDelimiterButRespectQuotes(string, ",");
             for (String tok : toks) {
                 continue;
