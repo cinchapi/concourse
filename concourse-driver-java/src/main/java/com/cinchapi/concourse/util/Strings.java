@@ -20,6 +20,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.helpers.MessageFormatter;
 
 import com.cinchapi.common.base.Characters;
@@ -39,6 +40,15 @@ import com.google.gson.JsonParseException;
  * @author Jeff Nelson
  */
 public final class Strings {
+
+    private static final Set<Character> DOUBLE_QUOTE_UNICODE_CHARS =
+            ImmutableSet.of('ʺ', '˝', 'ˮ', '˶', 'ײ', '״', '“', '”', '‟', '″',
+                    '‶', '〃', '＂' );
+    private static final Set<Character> SINGLE_QUOTE_UNICODE_CHARS =
+            ImmutableSet.of('`', 'ꞌ', 'ʻ', 'ʼ', 'י', 'ʹ', 'ʽ', 'ʾ', 'ˊ', 'ˋ',
+                    'ߴ', 'ߵ', 'ʹ', '׳', '’', '˴', '՚', '՝', '‘', '‛', '′', '‵',
+                    '´', '΄', '᾽', '᾿', '`', '´', '῾', '＇', '｀');
+    private static final Set<Character> TAG_CHAR = ImmutableSet.of('`');
 
     /**
      * Ensure that {@code string} ends with {@code suffix} by appending it to
@@ -248,57 +258,42 @@ public final class Strings {
         char[] chars = string.toCharArray();
         for (int i = 0; i < chars.length; ++i) {
             char c = chars[i];
-            switch (c) {
-            default:
-                break;
-            case 'ʺ':
-            case '˝':
-            case 'ˮ':
-            case '˶':
-            case 'ײ':
-            case '״':
-            case '“':
-            case '”':
-            case '‟':
-            case '″':
-            case '‶':
-            case '〃':
-            case '＂':
+            if (DOUBLE_QUOTE_UNICODE_CHARS.contains(c)) {
                 c = '"';
-                break;
-            case '`':
-            case 'ꞌ':
-            case 'ʻ':
-            case 'ʼ':
-            case 'י':
-            case 'ʹ':
-            case 'ʽ':
-            case 'ʾ':
-            case 'ˊ':
-            case 'ˋ':
-            case 'ߴ':
-            case 'ߵ':
-            case 'ʹ':
-            case '׳':
-            case '’':
-            case '˴':
-            case '՚':
-            case '՝':
-            case '‘':
-            case '‛':
-            case '′':
-            case '‵':
-            case '´':
-            case '΄':
-            case '᾽':
-            case '᾿':
-            case '`':
-            case '´':
-            case '῾':
-            case '＇':
-            case '｀':
+            }
+            else if (SINGLE_QUOTE_UNICODE_CHARS.contains(c)) {
                 c = '\'';
-                break;
+            }
+            chars[i] = c;
+        }
+        return String.valueOf(chars);
+    }
+
+    /**
+     * Replace all instances of "confusable" unicode characters with a
+     * canoncial/normalized character.
+     * <p>
+     * See <a href=
+     * "http://www.unicode.org/Public/security/revision-03/confusablesSummary.txt"
+     * >http://www.unicode.org/Public/security/revision-03/confusablesSummary.
+     * txt</a> for a list of characters that are considered to be confusable.
+     * </p>
+     *
+     * @param string the {@link String} in which the replacements should occur
+     * @return a {@link String} free of confusable unicode characters
+     */
+    public static String replaceUnicodeConfusables(String string,
+            Set<Character> exclude) {
+        char[] chars = string.toCharArray();
+        for (int i = 0; i < chars.length; ++i) {
+            char c = chars[i];
+            if (DOUBLE_QUOTE_UNICODE_CHARS.contains(c) &&
+                    !exclude.contains(c)) {
+                c = '"';
+            }
+            else if (SINGLE_QUOTE_UNICODE_CHARS.contains(c) &&
+                    !exclude.contains(c)) {
+                c = '\'';
             }
             chars[i] = c;
         }
@@ -430,7 +425,7 @@ public final class Strings {
      * @return {@code true} if the string is between quotes
      */
     public static boolean isWithinQuotes(String string) {
-        string = replaceUnicodeConfusables(string);
+        string = replaceUnicodeConfusables(string, TAG_CHAR);
         if(string.length() > 2) {
             char first = string.charAt(0);
             if(first == '"' || first == '\'') {

@@ -17,6 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.util.Arrays;
 
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -329,6 +330,13 @@ public class StringsTest {
                 Strings.replaceUnicodeConfusables(expected));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("`a`"));
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("’a’"));
+    }
+
+    @Test
+    public void testReplaceUnicodeSingleQuoteExcludeConfusables() {
+        String expected = "`a`";
+        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("`a`",
+                Sets.newHashSet('`')));
     }
 
     @Test
