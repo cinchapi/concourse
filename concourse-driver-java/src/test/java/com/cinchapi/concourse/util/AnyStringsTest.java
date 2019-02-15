@@ -29,7 +29,11 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-public class StringsTest {
+public class AnyStringsTest {
+
+    // NOTE: This tests the AnyStrings utility class, which is defined in
+    // accent4j. The test is defined here (instead of that project) because it
+    // depends on some Concourse utilities
 
     @Test
     public void testSplitStringByDelimterAndRespectQuotes() {
