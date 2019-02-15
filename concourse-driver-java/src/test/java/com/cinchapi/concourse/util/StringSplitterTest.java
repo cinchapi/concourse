@@ -31,11 +31,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@link com.cinchapi.concourse.util.StringSplitter} class.
+ * Unit tests for the {@StringSplitter} class.
  *
  * @author Jeff Nelson
  */
 public class StringSplitterTest extends ConcourseBaseTest {
+
+    // NOTE: This is a unit test for StringSplliter, which is defined in
+    // accent4j. This test depends on ConcourseBaseTest, so it is defined in
+    // this project instead of the same one as the class being tested.
 
     @Test
     public void testStringSplitter() {

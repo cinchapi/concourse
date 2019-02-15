@@ -32,6 +32,10 @@ import com.cinchapi.concourse.test.ConcourseBenchmarkTest;
 @SuppressWarnings("unused")
 public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
 
+    // NOTE: This is a unit test for StringSplliter, which is defined in
+    // accent4j. This test depends on ConcourseBenchmarkTest, so it is defined
+    // in this project instead of the same one as the class being tested.
+
     @Test
     @Ignore
     public void testSimpleSplit() {
