@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.helpers.MessageFormatter;
 
 import com.cinchapi.common.base.Characters;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -52,9 +52,9 @@ public final class Strings {
      * txt</a> for the list of characters
      * </p>
      **/
-    private static final Set<Character> DOUBLE_QUOTE_UNICODE_CHARS =
-            ImmutableSet.of('ʺ', '˝', 'ˮ', '˶', 'ײ', '״', '“', '”', '‟', '″',
-                    '‶', '〃', '＂' );
+    private static final Set<Character> DOUBLE_QUOTE_UNICODE_CHARS = ImmutableSet
+            .of('ʺ', '˝', 'ˮ', '˶', 'ײ', '״', '“', '”', '‟', '″', '‶', '〃',
+                    '＂');
     /**
      * The set of all unicode single quotation mark characters
      *
@@ -64,10 +64,10 @@ public final class Strings {
      * txt</a> for the list of characters
      * </p>
      **/
-    private static final Set<Character> SINGLE_QUOTE_UNICODE_CHARS =
-            ImmutableSet.of('`', 'ꞌ', 'ʻ', 'ʼ', 'י', 'ʹ', 'ʽ', 'ʾ', 'ˊ', 'ˋ',
-                    'ߴ', 'ߵ', 'ʹ', '׳', '’', '˴', '՚', '՝', '‘', '‛', '′', '‵',
-                    '´', '΄', '᾽', '᾿', '`', '´', '῾', '＇', '｀');
+    private static final Set<Character> SINGLE_QUOTE_UNICODE_CHARS = ImmutableSet
+            .of('`', 'ꞌ', 'ʻ', 'ʼ', 'י', 'ʹ', 'ʽ', 'ʾ', 'ˊ', 'ˋ', 'ߴ', 'ߵ', 'ʹ',
+                    '׳', '’', '˴', '՚', '՝', '‘', '‛', '′', '‵', '´', '΄', '᾽',
+                    '᾿', '`', '´', '῾', '＇', '｀');
     /**
      * The quotation mark character used to designate an object of type Tag
      */
@@ -284,12 +284,12 @@ public final class Strings {
         char[] chars = string.toCharArray();
         for (int i = 0; i < chars.length; ++i) {
             char c = chars[i];
-            if (DOUBLE_QUOTE_UNICODE_CHARS.contains(c) &&
-                    !excludedChars.contains(c)) {
+            if(DOUBLE_QUOTE_UNICODE_CHARS.contains(c)
+                    && !excludedChars.contains(c)) {
                 c = '"';
             }
-            else if (SINGLE_QUOTE_UNICODE_CHARS.contains(c) &&
-                    !excludedChars.contains(c)) {
+            else if(SINGLE_QUOTE_UNICODE_CHARS.contains(c)
+                    && !excludedChars.contains(c)) {
                 c = '\'';
             }
             chars[i] = c;
