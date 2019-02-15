@@ -336,7 +336,7 @@ public class StringsTest {
     public void testReplaceUnicodeSingleQuoteExcludeConfusables() {
         String expected = "`a`";
         Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("`a`",
-                Sets.newHashSet('`')));
+                '`'));
     }
 
     @Test

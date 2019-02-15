@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -41,14 +43,35 @@ import com.google.gson.JsonParseException;
  */
 public final class Strings {
 
+    /**
+     * The set of all unicode double quotation mark characters
+     *
+     * See <a href=
+     * "http://www.unicode.org/Public/security/revision-03/confusablesSummary.txt"
+     * >http://www.unicode.org/Public/security/revision-03/confusablesSummary.
+     * txt</a> for the list of characters
+     * </p>
+     **/
     private static final Set<Character> DOUBLE_QUOTE_UNICODE_CHARS =
             ImmutableSet.of('ʺ', '˝', 'ˮ', '˶', 'ײ', '״', '“', '”', '‟', '″',
                     '‶', '〃', '＂' );
+    /**
+     * The set of all unicode single quotation mark characters
+     *
+     * See <a href=
+     * "http://www.unicode.org/Public/security/revision-03/confusablesSummary.txt"
+     * >http://www.unicode.org/Public/security/revision-03/confusablesSummary.
+     * txt</a> for the list of characters
+     * </p>
+     **/
     private static final Set<Character> SINGLE_QUOTE_UNICODE_CHARS =
             ImmutableSet.of('`', 'ꞌ', 'ʻ', 'ʼ', 'י', 'ʹ', 'ʽ', 'ʾ', 'ˊ', 'ˋ',
                     'ߴ', 'ߵ', 'ʹ', '׳', '’', '˴', '՚', '՝', '‘', '‛', '′', '‵',
                     '´', '΄', '᾽', '᾿', '`', '´', '῾', '＇', '｀');
-    private static final Set<Character> TAG_CHAR = ImmutableSet.of('`');
+    /**
+     * The quotation mark character used to designate an object of type Tag
+     */
+    private static final char TAG_CHAR = '`';
 
     /**
      * Ensure that {@code string} ends with {@code suffix} by appending it to
@@ -254,45 +277,19 @@ public final class Strings {
      * @param string the {@link String} in which the replacements should occur
      * @return a {@link String} free of confusable unicode characters
      */
-    public static String replaceUnicodeConfusables(String string) {
-        char[] chars = string.toCharArray();
-        for (int i = 0; i < chars.length; ++i) {
-            char c = chars[i];
-            if (DOUBLE_QUOTE_UNICODE_CHARS.contains(c)) {
-                c = '"';
-            }
-            else if (SINGLE_QUOTE_UNICODE_CHARS.contains(c)) {
-                c = '\'';
-            }
-            chars[i] = c;
-        }
-        return String.valueOf(chars);
-    }
-
-    /**
-     * Replace all instances of "confusable" unicode characters with a
-     * canoncial/normalized character.
-     * <p>
-     * See <a href=
-     * "http://www.unicode.org/Public/security/revision-03/confusablesSummary.txt"
-     * >http://www.unicode.org/Public/security/revision-03/confusablesSummary.
-     * txt</a> for a list of characters that are considered to be confusable.
-     * </p>
-     *
-     * @param string the {@link String} in which the replacements should occur
-     * @return a {@link String} free of confusable unicode characters
-     */
     public static String replaceUnicodeConfusables(String string,
-            Set<Character> exclude) {
+            Character... exclude) {
+        Set<Character> excludedChars = Arrays.stream(exclude)
+                .collect(Collectors.toSet());
         char[] chars = string.toCharArray();
         for (int i = 0; i < chars.length; ++i) {
             char c = chars[i];
             if (DOUBLE_QUOTE_UNICODE_CHARS.contains(c) &&
-                    !exclude.contains(c)) {
+                    !excludedChars.contains(c)) {
                 c = '"';
             }
             else if (SINGLE_QUOTE_UNICODE_CHARS.contains(c) &&
-                    !exclude.contains(c)) {
+                    !excludedChars.contains(c)) {
                 c = '\'';
             }
             chars[i] = c;
