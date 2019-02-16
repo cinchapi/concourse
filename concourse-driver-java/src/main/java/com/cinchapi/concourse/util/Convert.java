@@ -144,6 +144,11 @@ public final class Convert {
             .compile("^@(?=.*[ ]).+@$");
 
     /**
+     * The character that indicates a String should be treated as a {@link Tag}.
+     */
+    private static final char TAG_MARKER = '`';
+
+    /**
      * Takes a JSON string representation of an object or an array of JSON
      * objects and returns a list of {@link Multimap multimaps} with the
      * corresponding data. Unlike {@link #jsonToJava(String)}, this method will
@@ -456,7 +461,7 @@ public final class Convert {
         char first = value.charAt(0);
         char last = value.charAt(value.length() - 1);
         Long record;
-        if(AnyStrings.isWithinQuotes(value)) {
+        if(AnyStrings.isWithinQuotes(value, TAG_MARKER)) {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
@@ -476,7 +481,7 @@ public final class Convert {
         else if(value.equalsIgnoreCase("false")) {
             return false;
         }
-        else if(first == '`' && last == '`') {
+        else if(first == TAG_MARKER && last == TAG_MARKER) {
             return Tag.create(value.substring(1, value.length() - 1));
         }
         else if(first == '|' && last == '|') {
