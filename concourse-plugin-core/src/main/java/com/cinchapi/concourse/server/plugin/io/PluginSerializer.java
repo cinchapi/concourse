@@ -54,11 +54,11 @@ public class PluginSerializer {
      * @param bytes the bytes from which the object is deserialized
      * @return the deserialized object
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public <T> T deserialize(ByteBuffer bytes) {
         Scheme scheme = Scheme.values()[bytes.get()];
         if(scheme == Scheme.PLUGIN_SERIALIZABLE) {
-            Buffer buffer = HeapBuffer.wrap(ByteBuffers.getByteArray(bytes));
+            Buffer buffer = HeapBuffer.wrap(ByteBuffers.toByteArray(bytes));
             buffer.position(bytes.position());
             Class<T> clazz = Reflection.getClassCasted(buffer.readUTF8());
             T instance = Reflection.newInstance(clazz);
@@ -66,7 +66,7 @@ public class PluginSerializer {
             return instance;
         }
         else if(scheme == Scheme.REMOTE_MESSAGE) {
-            Buffer buffer = HeapBuffer.wrap(ByteBuffers.getByteArray(bytes));
+            Buffer buffer = HeapBuffer.wrap(ByteBuffers.toByteArray(bytes));
             buffer.position(bytes.position());
             T instance = (T) RemoteMessage.fromBuffer(buffer);
             return instance;
@@ -108,6 +108,7 @@ public class PluginSerializer {
      * @param object the object to serialize
      * @return the serialized form within a ByteBuffer
      */
+    @SuppressWarnings("deprecation")
     public ByteBuffer serialize(Object object) {
         ByteBuffer buffer = null;
         if(object instanceof PluginSerializable) {
@@ -154,8 +155,8 @@ public class PluginSerializer {
             return serialize(ComplexTObject.fromJavaObject(object));
         }
         else if(object instanceof Serializable) {
-            byte[] bytes = ByteBuffers.getByteArray(
-                    Serializables.getBytes((Serializable) object));
+            byte[] bytes = ByteBuffers
+                    .toByteArray(Serializables.getBytes((Serializable) object));
             byte[] classBytes = object.getClass().getName()
                     .getBytes(StandardCharsets.UTF_8);
             buffer = ByteBuffer
