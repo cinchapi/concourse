@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@StringSplitter} class.
+ * Unit tests for the {@link StringSplitter} class.
  *
  * @author Jeff Nelson
  */
