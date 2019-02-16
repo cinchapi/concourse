@@ -23,6 +23,7 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
+    resource_class: medium+
     environment:
       GRADLE_OPTS: "-Djenkins=true -Xmx1024m"
       TERM: dumb
