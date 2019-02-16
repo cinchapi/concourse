@@ -134,8 +134,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
                                 || (e instanceof RuntimeException && e
-                                        .getCause() != null
-                                        & e.getCause() instanceof GeneralSecurityException)) {}
+                                        .getCause() != null & e
+                                                .getCause() instanceof GeneralSecurityException)) {}
                         else {
                             throw CheckedExceptions.wrapAsRuntimeException(e);
                         }
@@ -168,8 +168,8 @@ public class ConcourseHttpHandler extends SessionHandler {
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
                             || (e instanceof RuntimeException && e
-                                    .getCause() != null
-                                    & e.getCause() instanceof GeneralSecurityException)) {}
+                                    .getCause() != null & e
+                                            .getCause() instanceof GeneralSecurityException)) {}
                     else {
                         throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
