@@ -35,6 +35,7 @@ import com.google.gson.stream.JsonWriter;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("deprecation")
 public class ImportablesTest {
 
     @Test

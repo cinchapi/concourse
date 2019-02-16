@@ -21,10 +21,10 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.importer.util.Importables;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
 import com.cinchapi.etl.Transformer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

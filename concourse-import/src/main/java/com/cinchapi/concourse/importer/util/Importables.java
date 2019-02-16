@@ -24,12 +24,12 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.QuoteAwareStringSplitter;
-import com.cinchapi.concourse.util.SplitOption;
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
+import com.cinchapi.common.base.SplitOption;
+import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.util.StringBuilderWriter;
-import com.cinchapi.concourse.util.StringSplitter;
-import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.etl.Transformer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -262,15 +262,15 @@ public class Importables {
     protected static void writeJsonValue(JsonWriter out, String value)
             throws IOException {
         Object parsed;
-        if((parsed = Strings.tryParseNumberStrict(value)) != null) {
+        if((parsed = AnyStrings.tryParseNumberStrict(value)) != null) {
             out.value((Number) parsed);
         }
-        else if((parsed = Strings.tryParseBoolean(value)) != null) {
+        else if((parsed = AnyStrings.tryParseBoolean(value)) != null) {
             out.value((boolean) parsed);
         }
         else {
-            value = Strings.ensureWithinQuotes(value);
-            value = Strings.escapeInner(value, value.charAt(0), '\n');
+            value = AnyStrings.ensureWithinQuotes(value);
+            value = AnyStrings.escapeInner(value, value.charAt(0), '\n');
             out.jsonValue(value);
         }
     }
