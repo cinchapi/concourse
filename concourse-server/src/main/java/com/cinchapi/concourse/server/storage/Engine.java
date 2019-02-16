@@ -37,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -58,7 +59,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -1039,7 +1039,7 @@ public final class Engine extends BufferedStore
          * Construct a new instance.
          */
         public BufferTransportThread() {
-            super(Strings.joinSimple("BufferTransport [", environment, "]"));
+            super(AnyStrings.joinSimple("BufferTransport [", environment, "]"));
             setDaemon(true);
             setPriority(MIN_PRIORITY);
             setUncaughtExceptionHandler(new UncaughtExceptionHandler() {

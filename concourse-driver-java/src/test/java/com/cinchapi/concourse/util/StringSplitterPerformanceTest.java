@@ -18,6 +18,9 @@ package com.cinchapi.concourse.util;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
+import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.test.ConcourseBenchmarkTest;
 
 /**
@@ -28,6 +31,10 @@ import com.cinchapi.concourse.test.ConcourseBenchmarkTest;
  */
 @SuppressWarnings("unused")
 public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
+
+    // NOTE: This is a unit test for StringSplliter, which is defined in
+    // accent4j. This test depends on ConcourseBenchmarkTest, so it is defined
+    // in this project instead of the same one as the class being tested.
 
     @Test
     @Ignore
@@ -74,7 +81,7 @@ public class StringSplitterPerformanceTest extends ConcourseBenchmarkTest {
         int rounds = 5000;
         startBenchmark(builtInBenchmark);
         for (int i = 0; i < rounds; ++i) {
-            String[] toks = Strings
+            String[] toks = AnyStrings
                     .splitStringByDelimiterButRespectQuotes(string, ",");
             for (String tok : toks) {
                 continue;

@@ -22,17 +22,24 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.SplitOption;
+import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@link com.cinchapi.concourse.util.StringSplitter} class.
+ * Unit tests for the {@link StringSplitter} class.
  *
  * @author Jeff Nelson
  */
 public class StringSplitterTest extends ConcourseBaseTest {
+
+    // NOTE: This is a unit test for StringSplliter, which is defined in
+    // accent4j. This test depends on ConcourseBaseTest, so it is defined in
+    // this project instead of the same one as the class being tested.
 
     @Test
     public void testStringSplitter() {
@@ -97,7 +104,7 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testSplitOnNewlineLF() {
         Set<String> expected = Sets.newHashSet("line1", "line2", "line3");
-        String string = Strings.join('\n', expected.toArray());
+        String string = AnyStrings.join('\n', expected.toArray());
         StringSplitter it = new StringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
         while (it.hasNext()) {
@@ -108,7 +115,7 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testSplitOnNewlineCR() {
         Set<String> expected = Sets.newHashSet("line1", "line2", "line3");
-        String string = Strings.join('\r', expected.toArray());
+        String string = AnyStrings.join('\r', expected.toArray());
         StringSplitter it = new StringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
         while (it.hasNext()) {
@@ -119,7 +126,7 @@ public class StringSplitterTest extends ConcourseBaseTest {
     @Test
     public void testSplitOnNewlineCRLF() {
         Set<String> expected = Sets.newHashSet("line1", "line2", "line3");
-        String string = Strings.join("\r\n", expected.toArray());
+        String string = AnyStrings.join("\r\n", expected.toArray());
         StringSplitter it = new StringSplitter(string,
                 SplitOption.SPLIT_ON_NEWLINE);
         while (it.hasNext()) {

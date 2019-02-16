@@ -1,6 +1,17 @@
 ## Changelog
 
 #### Version 1.0.0 (TBD)
+* Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
+* Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
+* Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
+* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation.  
+* Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
+* Upgrade the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+* Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
+	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
+	* The `Transform` class contains functions for common data transformations. 
+* Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
+* Removed the `StringSplitter` framework in favor of the same from `accent4j`.
 
 #### Version 0.9.6 (TBD)
 * Fixed a bug that caused a `ParseException` to be thrown when trying to use a `Criteria` object containing a string value wrapped in single or double quotes out of necessity (i.e. because the value contained a keyword). This bug happened because the wrapping quotes were dropped by Concourse Server when parsing the `Criteria`.

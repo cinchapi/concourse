@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
@@ -334,7 +335,7 @@ public class ConvertTest {
     public void testConvertResolvableLink() {
         String key = Random.getString().replace(" ", "");
         String value = Random.getObject().toString().replace(" ", "");
-        String ccl = Strings.joinWithSpace(key, "=", value);
+        String ccl = AnyStrings.joinWithSpace(key, "=", value);
         ResolvableLink link = (ResolvableLink) Convert
                 .stringToJava(Convert.stringToResolvableLinkInstruction(ccl));
         Assert.assertEquals(ccl, link.getCcl());
@@ -344,7 +345,7 @@ public class ConvertTest {
     public void testConvertResolvableLinkWithNumbers() {
         String key = Random.getNumber().toString();
         String value = Random.getNumber().toString();
-        String ccl = Strings.joinWithSpace(key, "=", value);
+        String ccl = AnyStrings.joinWithSpace(key, "=", value);
         ResolvableLink link = (ResolvableLink) Convert
                 .stringToJava(Convert.stringToResolvableLinkInstruction(ccl));
         Assert.assertEquals(ccl, link.getCcl());
@@ -388,8 +389,8 @@ public class ConvertTest {
     public void testTransformValueToResolvableLink() {
         String key = Random.getString();
         String value = Random.getObject().toString();
-        String expected = Strings.joinSimple("@",
-                Strings.joinWithSpace(key, "=", value), "@");
+        String expected = AnyStrings.joinSimple("@",
+                AnyStrings.joinWithSpace(key, "=", value), "@");
         Assert.assertEquals(expected,
                 Convert.stringToResolvableLinkSpecification(key, value));
     }

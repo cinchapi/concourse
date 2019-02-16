@@ -48,6 +48,7 @@ import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ConcourseServer;
@@ -68,7 +69,6 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
 import com.cinchapi.concourse.util.Queues;
 import com.cinchapi.concourse.util.Resources;
-import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.ZipFiles;
 import com.github.zafarkhaja.semver.Version;
 import com.google.common.base.Throwables;
@@ -461,7 +461,7 @@ public class PluginManager {
                             + "configured to use the alias '{}' so it is not permitted. "
                             + "Please invoke the plugin using its full qualified name"
                     : "No plugin with id or alias {} exists";
-            throw new PluginException(Strings.format(message, clazz));
+            throw new PluginException(AnyStrings.format(message, clazz));
         }
         RemoteMethodRequest request = new RemoteMethodRequest(method, creds,
                 transaction, environment, args);
@@ -476,7 +476,7 @@ public class PluginManager {
         }
         else {
             Logger.error("Plugin Exception:", response.error);
-            throw new PluginException(Strings.format(
+            throw new PluginException(AnyStrings.format(
                     "An error occurred when invoking '{}' in '{}': ", method,
                     clazz, response.error));
         }

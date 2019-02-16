@@ -23,6 +23,7 @@ import java.util.Set;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
@@ -44,7 +45,6 @@ import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
-import com.cinchapi.concourse.util.StringSplitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;

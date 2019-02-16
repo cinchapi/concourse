@@ -45,7 +45,9 @@ import com.google.common.collect.Lists;
  * </p>
  * 
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.common.base.StringSplitter} instead
  */
+@Deprecated
 public class StringSplitter {
 
     /**
