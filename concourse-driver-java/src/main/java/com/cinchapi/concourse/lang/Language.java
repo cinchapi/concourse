@@ -25,11 +25,11 @@ import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.grammar.ValueSymbol;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -55,12 +55,12 @@ public final class Language {
         else if(tsymbol.getType() == TSymbolType.VALUE) {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
             if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
-                    && Strings.isWithinQuotes(tsymbol.getSymbol())) {
+                    && AnyStrings.isWithinQuotes(tsymbol.getSymbol(), '`')) {
                 // CON-634: This is an obscure corner case where the surrounding
                 // quotes on the original tsymbol were necessary to escape a
                 // keyword, but got dropped because of the logic in
                 // Convert#stringToJava
-                symbol = Strings.ensureWithinQuotes(symbol.toString());
+                symbol = AnyStrings.ensureWithinQuotes(symbol.toString());
             }
             return new ValueSymbol(symbol);
         }
