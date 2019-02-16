@@ -18,8 +18,8 @@ package com.cinchapi.concourse.server.plugin.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.util.Random;
-import com.cinchapi.concourse.util.Strings;
 import com.github.zafarkhaja.semver.Version;
 
 /**
@@ -36,8 +36,8 @@ public class VersionsTest {
         int patch = Random.getScaleCount();
         int build = Random.getScaleCount();
         String snapshot = Random.getBoolean() ? "-SNAPSHOT" : "";
-        String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
-                patch, build, snapshot);
+        String cinchapiVersion = AnyStrings.format("{}.{}.{}.{}{}", major,
+                minor, patch, build, snapshot);
         Version version = Versions.parseSemanticVersion(cinchapiVersion);
         Assert.assertEquals(major, version.getMajorVersion());
         Assert.assertEquals(minor, version.getMinorVersion());
@@ -52,8 +52,8 @@ public class VersionsTest {
         int patch = 0;
         int build = 26;
         String snapshot = "-CON-512";
-        String cinchapiVersion = Strings.format("{}.{}.{}.{}{}", major, minor,
-                patch, build, snapshot);
+        String cinchapiVersion = AnyStrings.format("{}.{}.{}.{}{}", major,
+                minor, patch, build, snapshot);
         Version version = Versions.parseSemanticVersion(cinchapiVersion);
         Assert.assertEquals(major, version.getMajorVersion());
         Assert.assertEquals(minor, version.getMinorVersion());

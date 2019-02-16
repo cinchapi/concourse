@@ -32,11 +32,11 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -441,7 +441,7 @@ public final class SharedMemory implements InterProcessCommunication {
 
     @Override
     public String toString() {
-        return Strings.format(
+        return AnyStrings.format(
                 "SharedMemory[path={}, nextRead={}, nextWrite={}]", location,
                 nextRead.get(), nextWrite.get());
     }

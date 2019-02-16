@@ -17,11 +17,11 @@ package com.cinchapi.concourse.server.storage;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Strings;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.validate.Keys;
 
@@ -103,7 +103,7 @@ public final class Stores {
     public static void validateWriteData(String key, TObject value) { // CON-21
         if(!Keys.isWritable(key)) {
             throw new IllegalArgumentException(
-                    Strings.joinWithSpace(key, "is not a valid key"));
+                    AnyStrings.joinWithSpace(key, "is not a valid key"));
         }
         else if(value.isBlank()) {
             throw new IllegalArgumentException(

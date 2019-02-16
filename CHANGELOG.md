@@ -10,6 +10,8 @@
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
 	* The `Transform` class contains functions for common data transformations. 
+* Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
+* Removed the `StringSplitter` framework in favor of the same from `accent4j`.
 
 #### Version 0.9.6 (TBD)
 * Fixed a bug that caused a `ParseException` to be thrown when trying to use a `Criteria` object containing a string value wrapped in single or double quotes out of necessity (i.e. because the value contained a keyword). This bug happened because the wrapping quotes were dropped by Concourse Server when parsing the `Criteria`.

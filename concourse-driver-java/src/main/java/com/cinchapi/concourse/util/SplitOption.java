@@ -22,6 +22,7 @@ package com.cinchapi.concourse.util;
  * 
  * @author Jeff Nelson
  */
+@Deprecated
 public enum SplitOption {
     /**
      * Split on a newline character sequence (\n, \r\n, \r) in addition to

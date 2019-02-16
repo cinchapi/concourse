@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
@@ -73,7 +74,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -638,7 +638,7 @@ public class ManagedConcourseServer {
                 return true;
             }
         }
-        throw new RuntimeException(Strings
+        throw new RuntimeException(AnyStrings
                 .format("Unable to install plugin '{}': {}", bundle, out));
 
     }

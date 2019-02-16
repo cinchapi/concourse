@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.util.CommandLineInterfaces;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.concurrent.Threads;
@@ -30,7 +31,6 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Strings;
 
 /**
  * A cli for installing plugins.
@@ -56,7 +56,7 @@ class InstallPluginCli extends PluginCli {
         String path = FileSystem.expandPath(plugin, getLaunchDirectory());
         Path path0 = Paths.get(path);
         if(Files.isDirectory(path0)) {
-            System.out.println(Strings.format(
+            System.out.println(AnyStrings.format(
                     "Attempting to install plugin bundles from '{}'", path0));
             AtomicInteger installed = new AtomicInteger(0);
             FileOps.newDirectoryStream(path0).forEach((file) -> {
@@ -72,13 +72,13 @@ class InstallPluginCli extends PluginCli {
                     }
                 }
                 else {
-                    System.err.println(Strings.format(
+                    System.err.println(AnyStrings.format(
                             "[WARN] Skipping '{}' because it is a directory",
                             file));
                 }
             });
-            System.out
-                    .println(Strings.format("Installed a total of {} plugin{}",
+            System.out.println(
+                    AnyStrings.format("Installed a total of {} plugin{}",
                             installed.get(), installed.get() == 1 ? "" : "s"));
         }
         else if(Files.exists(path0)) {
@@ -90,12 +90,11 @@ class InstallPluginCli extends PluginCli {
             }
         }
         else {
-            throw new UnsupportedOperationException(
-                    com.cinchapi.concourse.util.Strings
-                            .format("Cannot download plugin bundle '{}'. Please "
-                                    + "manually download the plugin and "
-                                    + "provide its local path to the "
-                                    + "installer", plugin));
+            throw new UnsupportedOperationException(AnyStrings.format(
+                    "Cannot download plugin bundle '{}'. Please "
+                            + "manually download the plugin and "
+                            + "provide its local path to the " + "installer",
+                    plugin));
         }
     }
 
