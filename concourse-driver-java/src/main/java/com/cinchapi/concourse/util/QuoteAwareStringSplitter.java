@@ -20,7 +20,8 @@ package com.cinchapi.concourse.util;
  * between single or double quotes
  * 
  * @author Jeff Nelson
- * @deprecated use {@link com.cinchapi.common.base.QuoteAwareStringSplitter} instead
+ * @deprecated use {@link com.cinchapi.common.base.QuoteAwareStringSplitter}
+ *             instead
  */
 @Deprecated
 public class QuoteAwareStringSplitter extends StringSplitter {
