@@ -125,7 +125,7 @@ subprojects {
     version = globalVersion
 
     // Versions for some shared (but non-global) dependencies
-    ext.bucketVersion = '1.4.1'
+    ext.bucketVersion = '1.5.0'
 
     // Drop the build component from version number and use that for
     // publishing
