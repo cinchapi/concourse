@@ -15,6 +15,7 @@
 
 #### Version 0.9.6 (TBD)
 * Fixed a bug that caused a `ParseException` to be thrown when trying to use a `Criteria` object containing a string value wrapped in single or double quotes out of necessity (i.e. because the value contained a keyword). This bug happened because the wrapping quotes were dropped by Concourse Server when parsing the `Criteria`.
+* Fixed a bug where the CCL parser failed to handle some Unicode quote characters.
 
 #### Version 0.9.5 (December 30, 2018)
 * Fixed a bug where some of the `ManagedConcourseServer#get` methods in the `concourse-ete-test-core` package called the wrong upstream method of the Concourse Server instance under management. This had the effect of causing a runtime `ClassCastException` when trying to use those methods.
