@@ -26,6 +26,8 @@ import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
@@ -38,6 +40,12 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 public final class Language {
+
+    /**
+     * The character that indicates a String should be treated as a {@link Tag}.
+     */
+    private static final char TAG_MARKER = Reflection.getStatic("TAG_MARKER",
+            Convert.class); // (authorized)
 
     /**
      * Translate the {@link TSymbol} to its Java analog.
@@ -55,7 +63,8 @@ public final class Language {
         else if(tsymbol.getType() == TSymbolType.VALUE) {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
             if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
-                    && AnyStrings.isWithinQuotes(tsymbol.getSymbol(), '`')) {
+                    && AnyStrings.isWithinQuotes(tsymbol.getSymbol(),
+                            TAG_MARKER)) {
                 // CON-634: This is an obscure corner case where the surrounding
                 // quotes on the original tsymbol were necessary to escape a
                 // keyword, but got dropped because of the logic in

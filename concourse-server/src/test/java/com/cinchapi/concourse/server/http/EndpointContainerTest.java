@@ -21,7 +21,7 @@ import static com.cinchapi.concourse.server.http.EndpointContainer.getCanonicalN
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.util.Strings;
+import com.cinchapi.common.base.AnyStrings;
 
 /**
  * Unit tests for {@link HttpPlugin}.
@@ -67,7 +67,7 @@ public class EndpointContainerTest {
     @Test
     public void testBuildSparkPath() {
         Assert.assertEquals(":key/:record/audit",
-                buildSparkPath(Strings.splitCamelCase("$Key$RecordAudit")));
+                buildSparkPath(AnyStrings.splitCamelCase("$Key$RecordAudit")));
     }
 
 }

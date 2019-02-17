@@ -46,6 +46,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
@@ -353,8 +354,7 @@ public final class ConcourseShell {
     private static String tryGetCorrectApiMethod(String alias) {
         String camel = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
                 alias);
-        String expanded = com.cinchapi.concourse.util.Strings
-                .ensureStartsWith(camel, "concourse.");
+        String expanded = AnyStrings.ensureStartsWith(camel, "concourse.");
         return methods.contains(expanded) && !camel.equals(alias) ? camel
                 : null;
     }

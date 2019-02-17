@@ -20,6 +20,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.test.Variables;
 import com.google.common.collect.Lists;
 
@@ -28,12 +29,16 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-public class StringsTest {
+public class AnyStringsTest {
+
+    // NOTE: This tests the AnyStrings utility class, which is defined in
+    // accent4j. The test is defined here (instead of that project) because it
+    // depends on some Concourse utilities
 
     @Test
     public void testSplitStringByDelimterAndRespectQuotes() {
         String string = "Sachin,,M,\"Maths,Science,English\",Need to improve in these subjects.";
-        String[] splitted = Strings
+        String[] splitted = AnyStrings
                 .splitStringByDelimiterButRespectQuotes(string, ",");
         Assert.assertEquals(
                 "[Sachin, , M, \"Maths,Science,English\", Need to improve in these subjects.]",
@@ -43,7 +48,7 @@ public class StringsTest {
     @Test
     public void testSplitStringByDelimeterWithTrailiningSpaceAndRespectQuotes() {
         String string = "\"New Leaf, Same Page \"";
-        String[] splitted = Strings
+        String[] splitted = AnyStrings
                 .splitStringByDelimiterButRespectQuotes(string, ",");
         Assert.assertEquals("[\"New Leaf, Same Page \"]",
                 Arrays.toString(splitted));
@@ -53,7 +58,7 @@ public class StringsTest {
     @Test
     public void testSplitWithSingleQuotes() {
         String string = "John said 'hello world'";
-        String[] toks = Strings.splitButRespectQuotes(string);
+        String[] toks = AnyStrings.splitButRespectQuotes(string);
         Assert.assertEquals(
                 Lists.newArrayList("John", "said", "\"hello world\""),
                 Lists.newArrayList(toks));
@@ -66,39 +71,39 @@ public class StringsTest {
         if(valid instanceof Double) {
             string += "D";
         }
-        Assert.assertEquals(Strings.tryParseNumber(string), valid);
+        Assert.assertEquals(AnyStrings.tryParseNumber(string), valid);
     }
 
     @Test
     public void testTryParseInvalidNumber() {
         String invalid = Random.getStringNoDigits();
-        Assert.assertNull(Strings.tryParseNumber(invalid));
+        Assert.assertNull(AnyStrings.tryParseNumber(invalid));
     }
 
     @Test
     public void testTryParseCoercedDouble() {
         Double d = Variables.register("double", Random.getDouble());
-        Assert.assertEquals(d, Strings.tryParseNumber(d + "D"));
+        Assert.assertEquals(d, AnyStrings.tryParseNumber(d + "D"));
     }
 
     @Test
     public void testSplitCamelCase() {
         String str = "getArg1Arg2Arg3ABC";
         Assert.assertEquals(Lists.newArrayList("get", "Arg1", "Arg2", "Arg3",
-                "A", "B", "C"), Strings.splitCamelCase(str));
+                "A", "B", "C"), AnyStrings.splitCamelCase(str));
         str = "testSplitCamelCase";
         Assert.assertEquals(
                 Lists.newArrayList("test", "Split", "Camel", "Case"),
-                Strings.splitCamelCase(str));
+                AnyStrings.splitCamelCase(str));
         str = "SplitCamelCase";
         Assert.assertEquals(Lists.newArrayList("Split", "Camel", "Case"),
-                Strings.splitCamelCase(str));
+                AnyStrings.splitCamelCase(str));
         str = "Splitcamelcase";
         Assert.assertEquals(Lists.newArrayList("Splitcamelcase"),
-                Strings.splitCamelCase(str));
+                AnyStrings.splitCamelCase(str));
         str = "splitcamelcase";
         Assert.assertEquals(Lists.newArrayList("splitcamelcase"),
-                Strings.splitCamelCase(str));
+                AnyStrings.splitCamelCase(str));
     }
 
     @Test
@@ -109,13 +114,13 @@ public class StringsTest {
         Object c = Random.getObject();
         String expected = "This is a string " + a + " that needs to have " + b
                 + " some random " + c + " substitution";
-        String actual = Strings.format(pattern, a, b, c);
+        String actual = AnyStrings.format(pattern, a, b, c);
         Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testIsSubStringReproA() {
-        Assert.assertTrue(Strings.isSubString(
+        Assert.assertTrue(AnyStrings.isSubString(
                 "qrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4we",
                 "b6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qrqrqq40 078rh2n75kxu4prmgtlehv85iksxgehj5jk2prq66ls9bj2f6g5onx l18sgp7x414cik9tvpfycmhjgwhy9d3yhw4web6r4e7g8f8sgu1cjfo16rg711cmft76wh83dsf46wwz3fse5j9chut37nhamqm4iw2f37ebl8tqr4fjmx8n6t943s4khdsf1qr"));
     }
@@ -125,32 +130,13 @@ public class StringsTest {
         String needle = Variables.register("needle", Random.getString());
         String haystack = Variables.register("haystack", Random.getString());
         Assert.assertEquals(haystack.contains(needle),
-                Strings.isSubString(needle, haystack));
-    }
-
-    @Test
-    public void testIsValidJsonObject() {
-        Assert.assertTrue(Strings
-                .isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":true}"));
-    }
-
-    @Test
-    public void testIsValidJsonArray() {
-        Assert.assertTrue(Strings.isValidJson(
-                "[{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true},{\"foo\": 1, \"bar\": \"2\", \"baz\":true}]"));
-    }
-
-    @Test
-    public void testIsValidJsonFalse() {
-        Assert.assertFalse(Strings.isValidJson("foo"));
-        Assert.assertFalse(
-                Strings.isValidJson("{\"foo\": 1, \"bar\": \"2\", \"baz\":}"));
+                AnyStrings.isSubString(needle, haystack));
     }
 
     @Test
     public void testTryParseFloat() {
         float f = 0.3f;
-        Object obj = Strings.tryParseNumber("" + f + "");
+        Object obj = AnyStrings.tryParseNumber("" + f + "");
         Assert.assertTrue(obj instanceof Float);
         Assert.assertEquals(0.3f, obj);
     }
@@ -158,7 +144,7 @@ public class StringsTest {
     @Test
     public void testTryParseDoubleAsFloat() {
         double f = 0.3;
-        Object obj = Strings.tryParseNumber("" + f + "");
+        Object obj = AnyStrings.tryParseNumber("" + f + "");
         Assert.assertTrue(obj instanceof Float);
         Assert.assertEquals(0.3f, obj);
     }
@@ -167,60 +153,61 @@ public class StringsTest {
     public void testEscapeInnerDoubleQuote() {
         String string = "this has a \"double\" quote and 'single' quote";
         String expected = "this has a \\\"double\\\" quote and 'single' quote";
-        Assert.assertEquals(expected, Strings.escapeInner(string, '"'));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '"'));
     }
 
     @Test
     public void testEscapeInnerSingleQuote() {
         String string = "this has a 'single' quote and \"double\" quote";
         String expected = "this has a \\'single\\' quote and \"double\" quote";
-        Assert.assertEquals(expected, Strings.escapeInner(string, '\''));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '\''));
     }
 
     @Test
     public void testEscapeInnerNothing() {
         String string = "this should not be escaped";
         String expected = string;
-        Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '\"'));
     }
 
     @Test
     public void testEscapeInnerSingleAndDoubleQuotes() {
         String string = "this has a \"double\" and 'single' quote";
         String expected = "this has a \\\"double\\\" and \\'single\\' quote";
-        Assert.assertEquals(expected, Strings.escapeInner(string, '"', '\''));
+        Assert.assertEquals(expected,
+                AnyStrings.escapeInner(string, '"', '\''));
     }
 
     @Test
     public void testEscapeInnerNothingSkipHeadTail() {
         String string = "\"this should not be escaped\"";
         String expected = string;
-        Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '\"'));
     }
 
     @Test
     public void testEscapeInnerDoubleQuoteSkipHeadTail() {
         String string = "\"this has a \"double\" and 'single' quote\"";
         String expected = "\"this has a \\\"double\\\" and 'single' quote\"";
-        Assert.assertEquals(expected, Strings.escapeInner(string, '\"'));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '\"'));
     }
 
     @Test
     public void testEscapeInnerLineBreak() {
         String string = "\"a\n\nb\"";
         String expected = "\"a\\n\\nb\"";
-        Assert.assertEquals(expected, Strings.escapeInner(string, '\n'));
+        Assert.assertEquals(expected, AnyStrings.escapeInner(string, '\n'));
     }
 
     @Test
     public void testDoNotParseStringAsNumberWithLeadingZero() {
-        Assert.assertNull(Strings.tryParseNumber("01"));
+        Assert.assertNull(AnyStrings.tryParseNumber("01"));
     }
 
     @Test
     public void testParseStringAsNumberIfDecimalWithLeadingZero() {
         Assert.assertTrue(
-                Strings.tryParseNumberStrict("0.0123") instanceof Number);
+                AnyStrings.tryParseNumberStrict("0.0123") instanceof Number);
     }
 
     @Test
@@ -228,7 +215,7 @@ public class StringsTest {
         String prefix = Random.getString();
         String string = prefix + Random.getString();
         Assert.assertTrue(
-                Strings.ensureStartsWith(string, prefix).startsWith(prefix));
+                AnyStrings.ensureStartsWith(string, prefix).startsWith(prefix));
     }
 
     @Test
@@ -239,63 +226,63 @@ public class StringsTest {
             string = Random.getString();
         }
         Assert.assertTrue(
-                Strings.ensureStartsWith(string, prefix).startsWith(prefix));
+                AnyStrings.ensureStartsWith(string, prefix).startsWith(prefix));
     }
 
     @Test
     public void testEnsureWithinQuotesIfNeeded() {
         String string = "a b c";
         Assert.assertEquals(string,
-                Strings.ensureWithinQuotesIfNeeded(string, ','));
+                AnyStrings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b c";
-        Assert.assertEquals(Strings.format("\"{}\"", string),
-                Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(AnyStrings.format("\"{}\"", string),
+                AnyStrings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b \"c";
-        Assert.assertEquals(Strings.format("'{}'", string),
-                Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(AnyStrings.format("'{}'", string),
+                AnyStrings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, b 'c";
-        Assert.assertEquals(Strings.format("\"{}\"", string),
-                Strings.ensureWithinQuotesIfNeeded(string, ','));
+        Assert.assertEquals(AnyStrings.format("\"{}\"", string),
+                AnyStrings.ensureWithinQuotesIfNeeded(string, ','));
         string = "a, 'b' \"c\"";
         Assert.assertEquals("\"a, 'b' \\\"c\\\"\"",
-                Strings.ensureWithinQuotesIfNeeded(string, ','));
+                AnyStrings.ensureWithinQuotesIfNeeded(string, ','));
     }
 
     @Test
     public void testEscapeInnerWhenAlreadyEscaped() {
         String string = "this is a \\\"real\\\" \"real\" problem";
-        string = Strings.ensureWithinQuotes(string);
+        string = AnyStrings.ensureWithinQuotes(string);
         String expected = "\"this is a \\\"real\\\" \\\"real\\\" problem\"";
         Assert.assertEquals(expected,
-                Strings.escapeInner(string, string.charAt(0)));
+                AnyStrings.escapeInner(string, string.charAt(0)));
     }
 
     @Test
     public void testTryParseNumberIpAddress() {
-        Assert.assertNull(Strings.tryParseNumber("23.229.8.250"));
+        Assert.assertNull(AnyStrings.tryParseNumber("23.229.8.250"));
     }
 
     @Test
     public void testTryParseNumberPeriod() {
-        Assert.assertNull(Strings.tryParseNumber("."));
+        Assert.assertNull(AnyStrings.tryParseNumber("."));
     }
 
     @Test
     public void testIsWithinQuotesQuotedEmptyString() {
-        Assert.assertFalse(Strings.isWithinQuotes("\"\""));
-        Assert.assertFalse(Strings.isWithinQuotes("\'\'"));
+        Assert.assertFalse(AnyStrings.isWithinQuotes("\"\""));
+        Assert.assertFalse(AnyStrings.isWithinQuotes("\'\'"));
     }
 
     @Test
     public void testEnsureWithinQuotesQuotedEmptyString() {
         String string = "\"\"";
-        Assert.assertEquals("\"\"\"\"", Strings.ensureWithinQuotes(string));
+        Assert.assertEquals("\"\"\"\"", AnyStrings.ensureWithinQuotes(string));
     }
 
     @Test
     public void testTryParseNumberDash() {
         String string = "-";
-        Assert.assertNull(Strings.tryParseNumber(string));
+        Assert.assertNull(AnyStrings.tryParseNumber(string));
     }
 
     @Test
@@ -304,34 +291,36 @@ public class StringsTest {
         for (int i = 0; i < Random.getScaleCount(); ++i) {
             string += "-";
         }
-        Assert.assertNull(Strings.tryParseNumber(string));
+        Assert.assertNull(AnyStrings.tryParseNumber(string));
     }
 
     @Test
     public void testReplaceUnicodeConfusables() {
         String expected = "\"a\"";
         Assert.assertEquals(expected,
-                Strings.replaceUnicodeConfusables(expected));
-        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("˝a˝"));
-        Assert.assertEquals(expected, Strings.replaceUnicodeConfusables("″a‶"));
+                AnyStrings.replaceUnicodeConfusables(expected));
+        Assert.assertEquals(expected,
+                AnyStrings.replaceUnicodeConfusables("˝a˝"));
+        Assert.assertEquals(expected,
+                AnyStrings.replaceUnicodeConfusables("″a‶"));
     }
 
     @Test
     public void testTryParseDoubleScientificNotation() {
         String value = "5.15501576938E-4";
-        Assert.assertNotNull(Strings.tryParseNumber(value));
+        Assert.assertNotNull(AnyStrings.tryParseNumber(value));
     }
 
     @Test
     public void testTryParseFakeDoubleScientificNotationA() {
         String value = "5.1550e1576938E-4";
-        Assert.assertNull(Strings.tryParseNumber(value));
+        Assert.assertNull(AnyStrings.tryParseNumber(value));
     }
 
     @Test
     public void testTryParseFakeDoubleScientificNotationV() {
         String value = "5.15501576938E";
-        Assert.assertNull(Strings.tryParseNumber(value));
+        Assert.assertNull(AnyStrings.tryParseNumber(value));
     }
 
 }
