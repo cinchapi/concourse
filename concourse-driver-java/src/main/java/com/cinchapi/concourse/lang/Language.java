@@ -27,7 +27,6 @@ import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.grammar.ValueSymbol;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
@@ -42,7 +41,8 @@ import com.google.common.collect.Lists;
 public final class Language {
 
     /**
-     * The character that indicates a String should be treated as a {@link Tag}.
+     * The character that indicates a String should be treated as a
+     * {@link com.cinchapi.concourse.Tag}.
      */
     private static final char TAG_MARKER = Reflection.getStatic("TAG_MARKER",
             Convert.class); // (authorized)
