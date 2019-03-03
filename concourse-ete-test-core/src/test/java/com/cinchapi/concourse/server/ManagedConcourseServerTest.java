@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,15 @@ public class ManagedConcourseServerTest {
         concourse.add("age", 20);
         concourse.add("age", 40);
         Assert.assertEquals(60, concourse.calculate().sum("age"));
+    }
+
+    @Test
+    public void testTranslateTimestampValueBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        long record = concourse.add("time", Timestamp.now());
+        Object time = concourse.get("time", record);
+        Assert.assertTrue(time instanceof Timestamp);
     }
 
 }

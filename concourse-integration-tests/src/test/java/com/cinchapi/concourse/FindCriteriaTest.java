@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,6 +187,14 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                         .key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000).build())
                 .build()));
+    }
+
+    @Test
+    public void testReproCON_634() {
+        client.find("foo = \"a and b\"");
+        client.find(Criteria.where().key("foo").operator(Operator.EQUALS)
+                .value("\"a and b\"").build());
+        Assert.assertTrue(true); // lack of Exception means test passes
     }
 
     /**

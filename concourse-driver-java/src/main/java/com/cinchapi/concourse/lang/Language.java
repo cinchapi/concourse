@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -52,7 +53,16 @@ public final class Language {
             return new KeySymbol(tsymbol.getSymbol());
         }
         else if(tsymbol.getType() == TSymbolType.VALUE) {
-            return new ValueSymbol(Convert.stringToJava(tsymbol.getSymbol()));
+            Object symbol = Convert.stringToJava(tsymbol.getSymbol());
+            if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
+                    && Strings.isWithinQuotes(tsymbol.getSymbol())) {
+                // CON-634: This is an obscure corner case where the surrounding
+                // quotes on the original tsymbol were necessary to escape a
+                // keyword, but got dropped because of the logic in
+                // Convert#stringToJava
+                symbol = Strings.ensureWithinQuotes(symbol.toString());
+            }
+            return new ValueSymbol(symbol);
         }
         else if(tsymbol.getType() == TSymbolType.PARENTHESIS) {
             return ParenthesisSymbol.parse(tsymbol.getSymbol());

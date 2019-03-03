@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2191,6 +2191,14 @@ public class ManagedConcourseServer {
                             .loadClass(packageBase + Link.class.getSimpleName())
                             .getMethod("longValue").invoke(object);
                     object = Link.to(longValue);
+                }
+                else if(object.getClass().getSimpleName()
+                        .equals(Timestamp.class.getSimpleName())) {
+                    long micros = (long) loader
+                            .loadClass(packageBase
+                                    + Timestamp.class.getSimpleName())
+                            .getMethod("getMicros").invoke(object);
+                    object = Timestamp.fromMicros(micros);
                 }
                 return object;
             }
