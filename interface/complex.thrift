@@ -35,6 +35,9 @@ namespace php concourse.thrift.complex
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/complex.thrift
 namespace rb concourse.thrift
 
+# To generate Node source code run:
+# thrift -out concourse-driver-node/lib/thrift -gen js:node interface/complex.thrift
+
 /**
  * The possible types for a {@link ComplexTObject}.
  */

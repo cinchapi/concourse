@@ -33,6 +33,9 @@ namespace php concourse.thrift.shared
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/shared.thrift
 namespace rb concourse.thrift
 
+# To generate Node source code run:
+# thrift -out concourse-driver-node/lib/thrift -gen js:node interface/shared.thrift
+
 /**
  * Enumerates the list of operators that can be used in criteria specifications.
  */

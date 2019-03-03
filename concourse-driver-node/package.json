@@ -11,6 +11,9 @@
   "dependencies": {
     "@cinchapi/configurator": "^1.0.1",
     "lodash.isempty": "^4.4.0",
-    "lodash.isobject": "^3.0.2"
+    "lodash.isobject": "^3.0.2",
+    "lodash.isundefined": "^3.0.1",
+    "synchronize": "^2.0.0",
+    "thrift": "0.9.3"
   }
 }

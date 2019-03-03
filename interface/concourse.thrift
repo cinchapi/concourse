@@ -37,6 +37,9 @@ namespace php concourse.thrift
 # utils/compile—thrift-ruby.sh
 namespace rb concourse.thrift
 
+# To generate Node source code run:
+# utils/compile—thrift-node.sh
+
 # The API/Product version is maintained under the Semantic Versioning
 # guidelines such that versions are formatted <major>.<minor>.<patch>
 #
