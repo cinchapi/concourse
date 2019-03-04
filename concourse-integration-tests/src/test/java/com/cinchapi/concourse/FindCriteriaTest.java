@@ -196,17 +196,18 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                 .value("\"a and b\"").build());
         Assert.assertTrue(true); // lack of Exception means test passes
     }
-    
+
     @Test
     public void testReproA() {
         client.insert(
                 "{\"_\":\"com.cinchapi.runway.RunwayTest$SuperAdmin\",\"bar\":\"bar\",\"foo\":\"foo\",\"name\":\"Jeff Nelson\",\"$id$\":1549111485657000}");
         System.out.println(client.select(client.inventory()));
     }
-    
+
     @Test
     public void testFindStringWithReservedKeyword() {
-        Criteria criteria = Criteria.where().key("foo").operator(Operator.EQUALS).value("a and b").build();
+        Criteria criteria = Criteria.where().key("foo")
+                .operator(Operator.EQUALS).value("a and b").build();
         client.find(criteria);
     }
 
