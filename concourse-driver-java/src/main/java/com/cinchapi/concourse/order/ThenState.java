@@ -36,7 +36,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState ascending() {
-        order.add(new AscendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).ascending();
         return new SortOrderState(order);
     }
 
@@ -46,7 +46,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState increasing() {
-        order.add(new AscendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).ascending();
         return new SortOrderState(order);
     }
 
@@ -56,7 +56,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState smallestFirst() {
-        order.add(new AscendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).ascending();
         return new SortOrderState(order);
     }
 
@@ -66,7 +66,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState largestLast() {
-        order.add(new AscendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).ascending();
         return new SortOrderState(order);
     }
 
@@ -76,7 +76,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState descending() {
-        order.add(new AscendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).descending();
         return new SortOrderState(order);
     }
 
@@ -86,7 +86,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState decreasing() {
-        order.add(new DescendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).descending();
         return new SortOrderState(order);
     }
 
@@ -96,7 +96,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState reversed() {
-        order.add(new DescendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).descending();
         return new SortOrderState(order);
     }
 
@@ -106,7 +106,7 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState largestFirst() {
-        order.add(new DescendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).descending();
         return new SortOrderState(order);
     }
 
@@ -116,19 +116,18 @@ public class ThenState extends BuildableState {
      * @return the builder
      */
     public SortOrderState smallestLast() {
-        order.add(new DescendingSymbol());
+        order.getSortOrders().get(order.getSortOrders().size()-1).descending();
         return new SortOrderState(order);
     }
 
     /**
-     * Adds a new {@link KeySymbol} to sort by to the {@link Order} that is
+     * Adds a new {@link SortOrder} to sort by to the {@link Order} that is
      * building. Adds an implicit Ascending sort order to the prior key
      *
      * @return the builder
      */
     public ThenState then(String key) {
-        order.add(new AscendingSymbol());
-        order.add(new KeySymbol(key));
+        order.add(new SortOrder(key));
         return new ThenState(order);
     }
 

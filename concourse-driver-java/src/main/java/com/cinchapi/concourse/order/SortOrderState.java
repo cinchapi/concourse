@@ -36,7 +36,7 @@ public class SortOrderState extends BuildableState {
      * @return the builder
      */
     public ThenState then(String key) {
-        order.add(new KeySymbol(key));
+        order.add(new SortOrder(key));
         return new ThenState(order);
     }
 }

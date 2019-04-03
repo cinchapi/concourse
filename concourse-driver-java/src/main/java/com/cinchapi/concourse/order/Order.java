@@ -19,8 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import com.cinchapi.ccl.grammar.ParenthesisSymbol;
-import com.cinchapi.ccl.grammar.Symbol;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -39,7 +37,7 @@ import com.google.common.collect.Lists;
  * </p>
  *
  */
-public class Order implements OrderSymbol {
+public class Order {
 
     /**
      * Start building a new {@link Order}.
@@ -48,7 +46,7 @@ public class Order implements OrderSymbol {
      */
     public static StartState by(String key) {
         Order order = new Order();
-        order.add(new KeySymbol(key));
+        order.add(new SortOrder(key));
         return new StartState(order);
     }
 
@@ -58,21 +56,21 @@ public class Order implements OrderSymbol {
     private boolean built = false;
 
     /**
-     * The collection of {@link OrderSymbol}s that make up this {@link Order}.
+     * The collection of {@link SortOrder}s that make up this {@link Order}
      */
-    private List<OrderSymbol> orderSymbols;
+    private List<SortOrder> sortOrders;
 
     /**
      * Construct a new instance.
      */
     protected Order() {
-        this.orderSymbols = Lists.newArrayList();
+        this.sortOrders = Lists.newArrayList();
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Order) {
-            return Objects.equals(orderSymbols, ((Order) obj).orderSymbols);
+            return Objects.equals(sortOrders, ((Order) obj).sortOrders);
         }
         else {
             return false;
@@ -81,18 +79,18 @@ public class Order implements OrderSymbol {
 
     @Override
     public int hashCode() {
-        return Objects.hash(orderSymbols);
+        return Objects.hash(sortOrders);
     }
 
     /**
-     * Add a {@link OrderSymbol} to this {@link Order}.
+     * Add a {@link SortOrder} to this {@link Order}.
      *
-     * @param orderSymbol
+     * @param sortOrder
      */
-    protected void add(OrderSymbol orderSymbol) {
+    protected void add(SortOrder sortOrder) {
         Preconditions.checkState(!built,
-                "Cannot add a order symbol to a built Order");
-        orderSymbols.add(orderSymbol);
+                "Cannot add a sort order to a built Order");
+        sortOrders.add(sortOrder);
     }
 
     /**
@@ -100,18 +98,15 @@ public class Order implements OrderSymbol {
      */
     protected void close() {
         built = !built ? true : built;
-        if (orderSymbols.get(orderSymbols.size()-1) instanceof KeySymbol) {
-            orderSymbols.add(new AscendingSymbol());
-        }
     }
 
     /**
-     * Return the order list of {@link OrderSymbol} that make up this {@link Order}.
+     * Return the order list of {@link SortOrder} that make up this {@link Order}.
      *
-     * @return orderSymbols
+     * @return sortOrders
      */
-    protected List<OrderSymbol> getOrderSymbols() {
-        return Collections.unmodifiableList(orderSymbols);
+    protected List<SortOrder> getSortOrders() {
+        return Collections.unmodifiableList(sortOrders);
     }
 
 }

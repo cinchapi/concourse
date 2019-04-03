@@ -16,12 +16,9 @@
 package com.cinchapi.concourse.order;
 
 /**
- * A {@link OrderSymbol} that represents an descending order
+ * Represents a sort order type
  */
-public class DescendingSymbol extends BaseOrderSymbol {
-
-    @Override
-    public String toString() {
-        return "descending";
-    }
+public enum SortOrderType {
+    ASCENDING,
+    DESCENDING
 }

@@ -29,49 +29,51 @@ public class OrderTest {
 
     @Test
     public void testDefaultSortOrder() {
-        List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
-                new AscendingSymbol());
+        List<SortOrder> expected = Lists.newArrayList(
+                new SortOrder("foo", SortOrderType.ASCENDING));
         Order order = Order.by("foo").build();
-        Assert.assertEquals(expected, order.getOrderSymbols());
+        Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testAscendingSortOrder() {
-        List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
-                new AscendingSymbol());
+        List<SortOrder> expected = Lists.newArrayList(
+                new SortOrder("foo", SortOrderType.ASCENDING));
         Order order = Order.by("foo").ascending().build();
-        Assert.assertEquals(expected, order.getOrderSymbols());
+        Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testDescendingSortOrder() {
-        List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
-                new DescendingSymbol());
+        List<SortOrder> expected = Lists.newArrayList(
+                new SortOrder("foo", SortOrderType.DESCENDING));
         Order order = Order.by("foo").descending().build();
-        Assert.assertEquals(expected, order.getOrderSymbols());
+        Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testMultipleSortKeysSortOrder() {
-        List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
-                new AscendingSymbol(), new KeySymbol("bar"), new AscendingSymbol());
+        List<SortOrder> expected = Lists.newArrayList(
+                new SortOrder("foo", SortOrderType.ASCENDING),
+                new SortOrder("bar", SortOrderType.ASCENDING));
         Order order = Order.by("foo").then("bar").ascending().build();
-        Assert.assertEquals(expected, order.getOrderSymbols());
+        Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testMultipleSortKeysWithImplicitSortOrders() {
-        List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
-                new AscendingSymbol(), new KeySymbol("bar"), new AscendingSymbol(),
-                new KeySymbol("zoo"), new AscendingSymbol());
+        List<SortOrder> expected = Lists.newArrayList(
+                new SortOrder("foo", SortOrderType.ASCENDING),
+                new SortOrder("bar", SortOrderType.ASCENDING),
+                new SortOrder("zoo", SortOrderType.ASCENDING));
         Order order = Order.by("foo").then("bar").then("zoo").build();
-        Assert.assertEquals(expected, order.getOrderSymbols());
+        Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testCannotAddSymbolToBuiltOrder() {
         Order order = Order.by("foo").build();
-        order.add(new KeySymbol("baz"));
+        order.add(new SortOrder("Bar", SortOrderType.ASCENDING));
     }
 
 }
