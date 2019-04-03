@@ -26,7 +26,8 @@ import com.google.common.collect.Lists;
  * A {@link Order} is an object that is used to encapsulate the semantics of
  * a sort order. Any given time, objects of this class can exist in one
  * of two modes: {@code building} or {@code built}. When a Order is
- * {@code built}, it is guaranteed to represent a fully and well formed sort order
+ * {@code built}, it is guaranteed to represent a fully and well formed sort
+ * order
  * that can be processed. On the other hand, when a Order is {@code building}
  * it is in an incomplete state.
  * <p>
@@ -101,7 +102,8 @@ public class Order {
     }
 
     /**
-     * Return the order list of {@link SortOrder} that make up this {@link Order}.
+     * Return the order list of {@link SortOrder} that make up this
+     * {@link Order}.
      *
      * @return sortOrders
      */

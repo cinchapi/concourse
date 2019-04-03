@@ -19,6 +19,5 @@ package com.cinchapi.concourse.order;
  * Represents a sort order type
  */
 public enum SortOrderType {
-    ASCENDING,
-    DESCENDING
+    ASCENDING, DESCENDING
 }

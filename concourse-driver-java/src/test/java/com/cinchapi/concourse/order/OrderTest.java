@@ -15,11 +15,12 @@
  */
 package com.cinchapi.concourse.order;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for the {@link com.cinchapi.concourse.order.Order} building
@@ -29,24 +30,24 @@ public class OrderTest {
 
     @Test
     public void testDefaultSortOrder() {
-        List<SortOrder> expected = Lists.newArrayList(
-                new SortOrder("foo", SortOrderType.ASCENDING));
+        List<SortOrder> expected = Lists
+                .newArrayList(new SortOrder("foo", SortOrderType.ASCENDING));
         Order order = Order.by("foo").build();
         Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testAscendingSortOrder() {
-        List<SortOrder> expected = Lists.newArrayList(
-                new SortOrder("foo", SortOrderType.ASCENDING));
+        List<SortOrder> expected = Lists
+                .newArrayList(new SortOrder("foo", SortOrderType.ASCENDING));
         Order order = Order.by("foo").ascending().build();
         Assert.assertEquals(expected, order.getSortOrders());
     }
 
     @Test
     public void testDescendingSortOrder() {
-        List<SortOrder> expected = Lists.newArrayList(
-                new SortOrder("foo", SortOrderType.DESCENDING));
+        List<SortOrder> expected = Lists
+                .newArrayList(new SortOrder("foo", SortOrderType.DESCENDING));
         Order order = Order.by("foo").descending().build();
         Assert.assertEquals(expected, order.getSortOrders());
     }

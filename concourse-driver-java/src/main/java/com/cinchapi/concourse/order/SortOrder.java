@@ -43,6 +43,7 @@ public class SortOrder {
 
     /**
      * Constructs an instance with a default Ascending order
+     * 
      * @param key
      */
     public SortOrder(String key) {
@@ -67,8 +68,8 @@ public class SortOrder {
     @Override
     public boolean equals(Object obj) {
         if(obj.getClass() == getClass()) {
-            return ((SortOrder) obj).key == key &&
-                    ((SortOrder) obj).sortOrderType == sortOrderType;
+            return ((SortOrder) obj).key == key
+                    && ((SortOrder) obj).sortOrderType == sortOrderType;
         }
         else {
             return false;
