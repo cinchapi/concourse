@@ -16,28 +16,119 @@
 package com.cinchapi.concourse.order;
 
 /**
- * The {@link StartState} marks the logical beginning of a new {@link Order}.
+ * The {@link State} that expects the next token to be a sort order or a new key
+ * to sort by.
  */
-public class StartState extends State {
+public class StartState extends BuildableState {
 
     /**
      * Construct a new instance.
      *
      * @param Order
      */
-    public StartState(Order Order) {
+    protected StartState(Order Order) {
         super(Order);
     }
 
     /**
-     * Add a {@code key} to the Order that is building.
+     * Add an ascending sort order to the {@link Order} that is building
      *
-     * @param key
      * @return the builder
      */
-    public ByState by(String key) {
-        order.add(new KeySymbol(key));
-        return new ByState(order);
+    public SortOrderState ascending() {
+        order.add(new AscendingSymbol());
+        return new SortOrderState(order);
     }
 
+    /**
+     * Add an ascending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState increasing() {
+        order.add(new AscendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add an ascending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState smallestFirst() {
+        order.add(new AscendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add an ascending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState largestLast() {
+        order.add(new AscendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add a descending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState descending() {
+        order.add(new DescendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add a descending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState decreasing() {
+        order.add(new DescendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add a descending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState reversed() {
+        order.add(new DescendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add a descending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState largestFirst() {
+        order.add(new DescendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Add a descending sort order to the {@link Order} that is building
+     *
+     * @return the builder
+     */
+    public SortOrderState smallestLast() {
+        order.add(new DescendingSymbol());
+        return new SortOrderState(order);
+    }
+
+    /**
+     * Adds a new {@link KeySymbol} to sort by to the {@link Order} that is
+     * building. Adds an implicit Ascending sort order to the prior key
+     *
+     * @return the builder
+     */
+    public ThenState then(String key) {
+        order.add(new AscendingSymbol());
+        order.add(new KeySymbol(key));
+        return new ThenState(order);
+    }
 }

@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
  * <p>
  * This class is the public interface to Order construction. It is meant to
  * be used in a chained manner, where the caller initially calls
- * {@link Order#where()} and continues to construct the Order using the
+ * {@link Order#by and continues to construct the Order using the
  * options available from each subsequently returned state.
  * </p>
  *
@@ -46,8 +46,10 @@ public class Order implements OrderSymbol {
      *
      * @return the Order builder
      */
-    public static StartState where() {
-        return new StartState(new Order());
+    public static StartState by(String key) {
+        Order order = new Order();
+        order.add(new KeySymbol(key));
+        return new StartState(order);
     }
 
     /**

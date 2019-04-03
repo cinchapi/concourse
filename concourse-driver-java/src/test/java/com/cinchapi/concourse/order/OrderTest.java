@@ -31,7 +31,7 @@ public class OrderTest {
     public void testDefaultSortOrder() {
         List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
                 new AscendingSymbol());
-        Order order = Order.where().by("foo").build();
+        Order order = Order.by("foo").build();
         Assert.assertEquals(expected, order.getOrderSymbols());
     }
 
@@ -39,7 +39,7 @@ public class OrderTest {
     public void testAscendingSortOrder() {
         List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
                 new AscendingSymbol());
-        Order order = Order.where().by("foo").ascending().build();
+        Order order = Order.by("foo").ascending().build();
         Assert.assertEquals(expected, order.getOrderSymbols());
     }
 
@@ -47,7 +47,7 @@ public class OrderTest {
     public void testDescendingSortOrder() {
         List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
                 new DescendingSymbol());
-        Order order = Order.where().by("foo").descending().build();
+        Order order = Order.by("foo").descending().build();
         Assert.assertEquals(expected, order.getOrderSymbols());
     }
 
@@ -55,7 +55,7 @@ public class OrderTest {
     public void testMultipleSortKeysSortOrder() {
         List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
                 new AscendingSymbol(), new KeySymbol("bar"), new AscendingSymbol());
-        Order order = Order.where().by("foo").then("bar").ascending().build();
+        Order order = Order.by("foo").then("bar").ascending().build();
         Assert.assertEquals(expected, order.getOrderSymbols());
     }
 
@@ -64,13 +64,13 @@ public class OrderTest {
         List<OrderSymbol> expected = Lists.newArrayList(new KeySymbol("foo"),
                 new AscendingSymbol(), new KeySymbol("bar"), new AscendingSymbol(),
                 new KeySymbol("zoo"), new AscendingSymbol());
-        Order order = Order.where().by("foo").then("bar").then("zoo").build();
+        Order order = Order.by("foo").then("bar").then("zoo").build();
         Assert.assertEquals(expected, order.getOrderSymbols());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testCannotAddSymbolToBuiltOrder() {
-        Order order = Order.where().by("foo").build();
+        Order order = Order.by("foo").build();
         order.add(new KeySymbol("baz"));
     }
 
