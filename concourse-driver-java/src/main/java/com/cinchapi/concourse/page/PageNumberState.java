@@ -40,4 +40,3 @@ public class PageNumberState extends BuildableState {
         return new PageContainerState(page);
     }
 }
-

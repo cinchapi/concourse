@@ -101,8 +101,7 @@ public class Page {
      * @param number
      */
     public void setNumber(int number) {
-        Preconditions.checkState(!built,
-                "Cannot set number for a built page");
+        Preconditions.checkState(!built, "Cannot set number for a built page");
         this.skip = number;
     }
 
