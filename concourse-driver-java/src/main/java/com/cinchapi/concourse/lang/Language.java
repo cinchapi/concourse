@@ -64,7 +64,7 @@ public final class Language {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
             if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
                     && AnyStrings.isWithinQuotes(tsymbol.getSymbol(),
-                    TAG_MARKER)) {
+                            TAG_MARKER)) {
                 // CON-634: This is an obscure corner case where the surrounding
                 // quotes on the original tsymbol were necessary to escape a
                 // keyword, but got dropped because of the logic in
