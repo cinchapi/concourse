@@ -80,4 +80,12 @@ public class OrderTest {
         order.add(new SortOrder("Bar", SortOrderType.ASCENDING));
     }
 
+    @Test
+    public void testAlias() {
+        List<SortOrder> expected = Lists
+                .newArrayList(new SortOrder("foo", SortOrderType.ASCENDING));
+        Order order = Sort.by("foo").build();
+        Assert.assertEquals(expected, order.getSortOrders());
+    }
+
 }
