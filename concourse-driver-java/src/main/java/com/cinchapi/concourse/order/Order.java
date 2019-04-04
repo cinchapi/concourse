@@ -45,10 +45,10 @@ public class Order {
      *
      * @return the Order builder
      */
-    public static StartState by(String key) {
+    public static StartOrderState by(String key) {
         Order order = new Order();
         order.add(new SortOrder(key));
-        return new StartState(order);
+        return new StartOrderState(order);
     }
 
     /**

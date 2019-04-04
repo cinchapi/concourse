@@ -16,17 +16,17 @@
 package com.cinchapi.concourse.order;
 
 /**
- * The {@link State} that expects the next token to be a sort order or a new key
+ * The {@link OrderState} that expects the next token to be a sort order or a new key
  * to sort by.
  */
-public class StartState extends BuildableState {
+public class StartOrderState extends BuildableOrderState {
 
     /**
      * Construct a new instance.
      *
      * @param Order
      */
-    protected StartState(Order Order) {
+    protected StartOrderState(Order Order) {
         super(Order);
     }
 
@@ -131,8 +131,8 @@ public class StartState extends BuildableState {
      *
      * @return the builder
      */
-    public ThenState then(String key) {
+    public ThenOrderState then(String key) {
         order.add(new SortOrder(key));
-        return new ThenState(order);
+        return new ThenOrderState(order);
     }
 }

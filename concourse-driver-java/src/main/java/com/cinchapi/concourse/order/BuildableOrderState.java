@@ -16,30 +16,29 @@
 package com.cinchapi.concourse.order;
 
 /**
- * This is the base class and marker for any valid state in the {@link Order}
- * builder. Each {@link State} is passed the current {@link Order} and holds
- * a reference. For any method called from the state, a {@link SortOrder} is
- * added
- * to the {@code Order} or the {@code Order} is returned.
- * <p>
- * For the purposes of a builder, a {@link State} typically describes what was
- * most recently consumed.
- * </p>
+ * The base class for a Sort Order state that can be transformed into a complete
+ * and well-formed {@link Order}.
+ *
  */
-public abstract class State {
-
-    /**
-     * A reference to the {@link Order} that is being built.
-     */
-    protected final Order order;
+public abstract class BuildableOrderState extends OrderState {
 
     /**
      * Construct a new instance.
      *
-     * @param order
+     * @param Order
      */
-    protected State(Order order) {
-        this.order = order;
+    protected BuildableOrderState(Order Order) {
+        super(Order);
+    }
+
+    /**
+     * Build and return the {@link Order}.
+     *
+     * @return the built Order
+     */
+    public final Order build() {
+        order.close();
+        return order;
     }
 
 }
