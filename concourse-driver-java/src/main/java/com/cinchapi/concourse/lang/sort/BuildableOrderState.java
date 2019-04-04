@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.order;
+package com.cinchapi.concourse.lang.sort;
 
 /**
- * The {@link OrderState} that expects the current token to be a sort key.
+ * The base class for a Sort Order state that can be transformed into a complete
+ * and well-formed {@link Order}.
+ *
  */
-public class SortOrderState extends BuildableOrderState {
+public abstract class BuildableOrderState extends OrderState {
 
     /**
      * Construct a new instance.
      *
      * @param Order
      */
-    protected SortOrderState(Order Order) {
+    protected BuildableOrderState(Order Order) {
         super(Order);
     }
 
     /**
-     * Add a {@code key} to the Order that is building.
+     * Build and return the {@link Order}.
      *
-     * @param key
-     * @return the builder
+     * @return the built Order
      */
-    public ThenOrderState then(String key) {
-        order.add(new SortOrder(key));
-        return new ThenOrderState(order);
+    public final Order build() {
+        order.close();
+        return order;
     }
+
 }

@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.order;
+package com.cinchapi.concourse.lang.sort;
 
 /**
- * The {@link OrderState} that expects the current token to be a sort order or a
- * sort key.
+ * The {@link OrderState} that expects the next token to be a sort order or a new key
+ * to sort by.
  */
-public class ThenOrderState extends BuildableOrderState {
+public class StartOrderState extends BuildableOrderState {
 
     /**
      * Construct a new instance.
      *
      * @param Order
      */
-    protected ThenOrderState(Order Order) {
+    protected StartOrderState(Order Order) {
         super(Order);
     }
 
@@ -127,7 +127,7 @@ public class ThenOrderState extends BuildableOrderState {
 
     /**
      * Adds a new {@link SortOrder} to sort by to the {@link Order} that is
-     * building. Adds an implicit Ascending sort order to the prior key
+     * building.
      *
      * @return the builder
      */
@@ -135,5 +135,4 @@ public class ThenOrderState extends BuildableOrderState {
         order.add(new SortOrder(key));
         return new ThenOrderState(order);
     }
-
 }

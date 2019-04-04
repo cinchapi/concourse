@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.order;
+package com.cinchapi.concourse.lang.sort;
 
 /**
  * This is the base class and marker for any valid state in the {@link Order}

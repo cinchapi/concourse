@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.order;
+package com.cinchapi.concourse.lang.sort;
 
 import java.util.List;
 
+import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.SortOrder;
+import com.cinchapi.concourse.lang.sort.SortOrderType;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for the {@link com.cinchapi.concourse.order.Order} building
+ * Unit tests for the {@link Order} building
  * functionality.
  */
 public class OrderTest {
