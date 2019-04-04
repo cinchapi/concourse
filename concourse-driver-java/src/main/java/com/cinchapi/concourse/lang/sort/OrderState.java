@@ -17,12 +17,14 @@ package com.cinchapi.concourse.lang.sort;
 
 /**
  * This is the base class and marker for any valid state in the {@link Order}
- * builder. Each {@link OrderState} is passed the current {@link Order} and holds
+ * builder. Each {@link OrderState} is passed the current {@link Order} and
+ * holds
  * a reference. For any method called from the state, a {@link SortOrder} is
  * added
  * to the {@code Order} or the {@code Order} is returned.
  * <p>
- * For the purposes of a builder, a {@link OrderState} typically describes what was
+ * For the purposes of a builder, a {@link OrderState} typically describes what
+ * was
  * most recently consumed.
  * </p>
  */

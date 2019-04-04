@@ -16,7 +16,8 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * The {@link OrderState} that expects the next token to be a sort order or a new key
+ * The {@link OrderState} that expects the next token to be a sort order or a
+ * new key
  * to sort by.
  */
 public class StartOrderState extends BuildableOrderState {
