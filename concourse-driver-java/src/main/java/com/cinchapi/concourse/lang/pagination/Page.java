@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.page;
+package com.cinchapi.concourse.lang.pagination;
 
 import com.google.common.base.Preconditions;
 

@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.page;
+package com.cinchapi.concourse.lang.pagination;
 
 /**
- * The base class for a Page state that can be transformed into a complete
- * and well-formed {@link Page}.
+ * The {@link PageNumberState} expects a page limit next
  */
-public abstract class BuildableState extends State {
+public class PageNumberState extends BuildableState {
 
     /**
      * Construct a new instance.
      *
      * @param page
      */
-    protected BuildableState(Page page) {
+    public PageNumberState(Page page) {
         super(page);
     }
 
     /**
-     * Build and return the {@link Page}.
+     * Add a {@code limit} to the Page that is building.
      *
-     * @return the built Page
+     * @param limit
+     * @return the builder
      */
-    public final Page build() {
-        page.close();
-        return page;
+    public PageContainerState container(int limit) {
+        page.setContainer(limit);
+        return new PageContainerState(page);
     }
 }

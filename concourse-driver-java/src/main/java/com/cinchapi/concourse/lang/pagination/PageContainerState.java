@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.page;
+package com.cinchapi.concourse.lang.pagination;
 
 /**
- * This is the base class and marker for any valid state in the {@link Page}
- * builder. Each {@link State} is passed the current {@link Page} and holds
- * a reference.
- * <p>
- * For the purposes of a builder, a {@link State} typically describes what was
- * most recently consumed.
- * </p>
+ * The {@link PageNumberState} expects a page next
  */
-public abstract class State {
-
-    /**
-     * A reference to the {@link Page} that is being built.
-     */
-    protected final Page page;
-
+public class PageContainerState extends BuildableState {
     /**
      * Construct a new instance.
      *
      * @param page
      */
-    protected State(Page page) {
-        this.page = page;
+    public PageContainerState(Page page) {
+        super(page);
     }
 
+    /**
+     * Increment the page number
+     *
+     * @return the builder
+     */
+    public PageNextState next() {
+        page.setNumber(page.number() + 1);
+        return new PageNextState(page);
+    }
 }

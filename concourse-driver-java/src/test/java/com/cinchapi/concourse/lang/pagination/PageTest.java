@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.page;
+package com.cinchapi.concourse.lang.pagination;
 
+import com.cinchapi.concourse.lang.pagination.Page;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for the {@link com.cinchapi.concourse.page.Page} building
+ * Unit tests for the {@link Page} building
  * functionality.
  */
 public class PageTest {

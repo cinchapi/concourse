@@ -13,28 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.page;
+package com.cinchapi.concourse.lang.pagination;
 
 /**
- * The {@link PageNumberState} expects a page next
+ * The base class for a Page state that can be transformed into a complete
+ * and well-formed {@link Page}.
  */
-public class PageContainerState extends BuildableState {
+public abstract class BuildableState extends State {
+
     /**
      * Construct a new instance.
      *
      * @param page
      */
-    public PageContainerState(Page page) {
+    protected BuildableState(Page page) {
         super(page);
     }
 
     /**
-     * Increment the page number
+     * Build and return the {@link Page}.
      *
-     * @return the builder
+     * @return the built Page
      */
-    public PageNextState next() {
-        page.setNumber(page.number() + 1);
-        return new PageNextState(page);
+    public final Page build() {
+        page.close();
+        return page;
     }
 }
