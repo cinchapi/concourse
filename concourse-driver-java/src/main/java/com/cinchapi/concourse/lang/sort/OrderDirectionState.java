@@ -35,6 +35,7 @@ public class OrderDirectionState extends BuildableOrderState {
 
     /**
      * Specify a transition to adding a new key to the order.
+     * 
      * @return the builder
      */
     public OrderThenState then() {
