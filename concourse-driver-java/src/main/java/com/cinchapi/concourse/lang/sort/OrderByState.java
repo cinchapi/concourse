@@ -20,8 +20,8 @@ package com.cinchapi.concourse.lang.sort;
  * new key
  * to sort by.
  */
-public class OrderByState extends BuildableOrderState implements
-        ShortcutThenByState {
+public class OrderByState extends BuildableOrderState
+        implements ShortcutThenByState {
 
     /**
      * Construct a new instance.
