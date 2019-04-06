@@ -16,27 +16,22 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * The {@link OrderState} that expects the current token to be a sort key.
+ * The {@link OrderThenState} is simply a bridge that allows a transition back
+ * to a {@link OrderByState}.
  */
-public class SortOrderState extends BuildableOrderState {
+public class OrderThenState extends OrderState {
 
     /**
      * Construct a new instance.
      *
-     * @param Order
+     * @param order
      */
-    protected SortOrderState(Order Order) {
-        super(Order);
+    OrderThenState(Order order) {
+        super(order);
     }
 
-    /**
-     * Add a {@code key} to the Order that is building.
-     *
-     * @param key
-     * @return the builder
-     */
-    public ThenOrderState then(String key) {
-        order.add(new SortOrder(key));
-        return new ThenOrderState(order);
+    public OrderByState by(String key) {
+        return new OrderByState(order, key, Direction.$default());
     }
+
 }

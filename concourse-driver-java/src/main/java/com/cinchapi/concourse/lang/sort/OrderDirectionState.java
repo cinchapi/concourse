@@ -16,8 +16,23 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * Represents a sort order type
+ *
+ *
+ * @author Jeff Nelson
  */
-public enum SortOrderType {
-    ASCENDING, DESCENDING
+public class OrderDirectionState extends BuildableOrderState {
+
+    /**
+     * Construct a new instance.
+     * @param order
+     */
+    OrderDirectionState(Order order, String key, Direction direction) {
+        super(order);
+        order.add(key, direction);
+    }
+    
+    public OrderThenState then() {
+        return new OrderThenState(order);
+    }
+
 }

@@ -25,10 +25,10 @@ public abstract class BuildableOrderState extends OrderState {
     /**
      * Construct a new instance.
      *
-     * @param Order
+     * @param order
      */
-    protected BuildableOrderState(Order Order) {
-        super(Order);
+    protected BuildableOrderState(Order order) {
+        super(order);
     }
 
     /**

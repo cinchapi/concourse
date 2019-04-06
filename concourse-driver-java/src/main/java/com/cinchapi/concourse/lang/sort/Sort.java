@@ -19,12 +19,13 @@ package com.cinchapi.concourse.lang.sort;
  * Serves as an alias for {@link Order}
  */
 public class Sort {
+    
     /**
      * Start building a new {@link Order}.
      *
      * @return the Order builder
      */
-    public static StartOrderState by(String key) {
+    public static OrderByState by(String key) {
         return Order.by(key);
     }
 

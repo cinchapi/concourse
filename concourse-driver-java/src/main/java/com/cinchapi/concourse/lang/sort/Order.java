@@ -15,40 +15,53 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
- * A {@link Order} is an object that is used to encapsulate the semantics of
- * a sort order. Any given time, objects of this class can exist in one
- * of two modes: {@code building} or {@code built}. When a Order is
+ * {@link Order} encapsulates the semantics of a result set sorting. Any given
+ * time, objects of this class can exist in one of two modes: {@code building}
+ * or {@code built}. When an Order is
  * {@code built}, it is guaranteed to represent a fully and well formed sort
- * order
- * that can be processed. On the other hand, when a Order is {@code building}
- * it is in an incomplete state.
+ * order that can be processed. On the other hand, when a Order is
+ * {@code building} it is in an incomplete state.
  * <p>
  * This class is the public interface to Order construction. It is meant to
  * be used in a chained manner, where the caller initially calls
- * {@link Order#by and continues to construct the Order using the
+ * {@link Order#by} and continues to construct the Order using the
  * options available from each subsequently returned state.
  * </p>
  *
  */
-public class Order {
+public final class Order {
+
+    /**
+     * A mapping from each key to direction ordinal (e.g. 1 for ASC and -1 for
+     * DESC) in the constructed {@link Order}.
+     */
+    @VisibleForTesting
+    final LinkedHashMap<String, Integer> spec;
+
+    /**
+     * The last key that was {@link #add(String, Direction) added}.
+     */
+    @Nullable
+    protected String lastKey;
 
     /**
      * Start building a new {@link Order}.
      *
      * @return the Order builder
      */
-    public static StartOrderState by(String key) {
+    public static OrderByState by(String key) {
         Order order = new Order();
-        order.add(new SortOrder(key));
-        return new StartOrderState(order);
+        return new OrderByState(order, key, Direction.$default());
     }
 
     /**
@@ -57,21 +70,16 @@ public class Order {
     private boolean built = false;
 
     /**
-     * The collection of {@link SortOrder}s that make up this {@link Order}
-     */
-    private List<SortOrder> sortOrders;
-
-    /**
      * Construct a new instance.
      */
-    protected Order() {
-        this.sortOrders = Lists.newArrayList();
+    private Order() {
+        this.spec = Maps.newLinkedHashMap();
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Order) {
-            return Objects.equals(sortOrders, ((Order) obj).sortOrders);
+            return Objects.equals(spec, ((Order) obj).spec);
         }
         else {
             return false;
@@ -80,18 +88,19 @@ public class Order {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sortOrders);
+        return spec.hashCode();
     }
 
     /**
-     * Add a {@link SortOrder} to this {@link Order}.
-     *
-     * @param sortOrder
+     * Add to the order {@link #spec}.
+     * 
+     * @param key
+     * @param direction
      */
-    protected void add(SortOrder sortOrder) {
-        Preconditions.checkState(!built,
-                "Cannot add a sort order to a built Order");
-        sortOrders.add(sortOrder);
+    final void add(String key, Direction direction) {
+        Preconditions.checkState(!built, "Cannot modify a built Order");
+        spec.put(key, direction.coefficient());
+        this.lastKey = key;
     }
 
     /**
@@ -99,16 +108,6 @@ public class Order {
      */
     protected void close() {
         built = !built ? true : built;
-    }
-
-    /**
-     * Return the order list of {@link SortOrder} that make up this
-     * {@link Order}.
-     *
-     * @return sortOrders
-     */
-    protected List<SortOrder> getSortOrders() {
-        return Collections.unmodifiableList(sortOrders);
     }
 
 }
