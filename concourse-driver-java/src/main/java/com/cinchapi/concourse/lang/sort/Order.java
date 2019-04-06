@@ -42,6 +42,16 @@ import com.google.common.collect.Maps;
 public final class Order {
 
     /**
+     * Start building a new {@link Order}.
+     *
+     * @return the Order builder
+     */
+    public static OrderByState by(String key) {
+        Order order = new Order();
+        return new OrderByState(order, key, Direction.$default());
+    }
+
+    /**
      * A mapping from each key to direction ordinal (e.g. 1 for ASC and -1 for
      * DESC) in the constructed {@link Order}.
      */
@@ -53,16 +63,6 @@ public final class Order {
      */
     @Nullable
     protected String lastKey;
-
-    /**
-     * Start building a new {@link Order}.
-     *
-     * @return the Order builder
-     */
-    public static OrderByState by(String key) {
-        Order order = new Order();
-        return new OrderByState(order, key, Direction.$default());
-    }
 
     /**
      * A flag that indicates whether this {@link Order} has been built.
@@ -92,6 +92,13 @@ public final class Order {
     }
 
     /**
+     * Mark this {@link Order} as {@code built}.
+     */
+    void close() {
+        built = !built ? true : built;
+    }
+
+    /**
      * Add to the order {@link #spec}.
      * 
      * @param key
@@ -101,13 +108,6 @@ public final class Order {
         Preconditions.checkState(!built, "Cannot modify a built Order");
         spec.put(key, direction.coefficient());
         this.lastKey = key;
-    }
-
-    /**
-     * Mark this {@link Order} as {@code built}.
-     */
-    protected void close() {
-        built = !built ? true : built;
     }
 
 }

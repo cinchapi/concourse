@@ -18,7 +18,6 @@ package com.cinchapi.concourse.lang.sort;
 /**
  * The base class for a Sort Order state that can be transformed into a complete
  * and well-formed {@link Order}.
- *
  */
 public abstract class BuildableOrderState extends OrderState {
 

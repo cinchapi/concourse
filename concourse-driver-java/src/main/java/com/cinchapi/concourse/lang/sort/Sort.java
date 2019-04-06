@@ -18,8 +18,8 @@ package com.cinchapi.concourse.lang.sort;
 /**
  * Serves as an alias for {@link Order}
  */
-public class Sort {
-    
+public final class Sort {
+
     /**
      * Start building a new {@link Order}.
      *
@@ -28,5 +28,7 @@ public class Sort {
     public static OrderByState by(String key) {
         return Order.by(key);
     }
+
+    private Sort() {/* no-init */}
 
 }

@@ -16,7 +16,8 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- *
+ * A {@link State} that represents a building {@link Order} that just had
+ * direction information specified for the most recently added key.
  *
  * @author Jeff Nelson
  */
@@ -24,13 +25,18 @@ public class OrderDirectionState extends BuildableOrderState {
 
     /**
      * Construct a new instance.
+     * 
      * @param order
      */
     OrderDirectionState(Order order, String key, Direction direction) {
         super(order);
         order.add(key, direction);
     }
-    
+
+    /**
+     * Specify a transition to adding a new key to the order.
+     * @return the builder
+     */
     public OrderThenState then() {
         return new OrderThenState(order);
     }
