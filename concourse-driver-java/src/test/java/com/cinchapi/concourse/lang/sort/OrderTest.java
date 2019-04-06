@@ -87,4 +87,13 @@ public class OrderTest {
         Assert.assertEquals(expected, order.spec);
     }
 
+    @Test
+    public void testComplexOrderWithShortcut() {
+        Order order = Sort.by("a").then("b").ascending().then("c").then()
+                .by("d").descending().then("e").largestFirst().build();
+        Map<String, Integer> expected = ImmutableMap.of("a", 1, "b", 1, "c", 1,
+                "d", -1, "e", -1);
+        Assert.assertEquals(expected, order.spec);
+    }
+
 }

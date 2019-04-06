@@ -20,7 +20,8 @@ package com.cinchapi.concourse.lang.sort;
  * new key
  * to sort by.
  */
-public class OrderByState extends BuildableOrderState {
+public class OrderByState extends BuildableOrderState implements
+        ShortcutThenByState {
 
     /**
      * Construct a new instance.
@@ -117,12 +118,7 @@ public class OrderByState extends BuildableOrderState {
         return descending();
     }
 
-    /**
-     * Adds a new {@link SortOrder} to sort by to the {@link Order} that is
-     * building.
-     *
-     * @return the builder
-     */
+    @Override
     public OrderThenState then() {
         return new OrderThenState(order);
     }

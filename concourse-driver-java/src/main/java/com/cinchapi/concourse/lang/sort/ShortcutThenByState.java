@@ -16,27 +16,28 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * A {@link State} that represents a building {@link Order} that just had
- * direction information specified for the most recently added key.
+ * Interface for {@link OrderState states} that allow shortcuting then/by calls.
  *
  * @author Jeff Nelson
  */
-public class OrderDirectionState extends BuildableOrderState implements
-        ShortcutThenByState {
+interface ShortcutThenByState {
 
     /**
-     * Construct a new instance.
-     * 
-     * @param order
+     * Transition to a state where a new key can be added.
+     *
+     * @return the builder
      */
-    OrderDirectionState(Order order, String key, Direction direction) {
-        super(order);
-        order.add(key, direction);
-    }
+    public OrderThenState then();
 
-    @Override
-    public OrderThenState then() {
-        return new OrderThenState(order);
+    /**
+     * Shortcut for calling {@link #then()} immediately followed by
+     * {@link OrderThenState#by(String)} with the provided {@code key}.
+     * 
+     * @param key
+     * @return the builder
+     */
+    public default OrderByState then(String key) {
+        return then().by(key);
     }
 
 }
