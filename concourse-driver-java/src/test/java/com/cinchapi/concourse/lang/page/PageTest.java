@@ -18,10 +18,9 @@ package com.cinchapi.concourse.lang.page;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.lang.page.Page;
-
 /**
- * Unit tests for the {@link com.cinchapi.concourse.lang.page.Page} construction.
+ * Unit tests for the {@link com.cinchapi.concourse.lang.page.Page}
+ * construction.
  */
 public class PageTest {
 
@@ -37,13 +36,13 @@ public class PageTest {
         Page page = Page.at(3);
         Assert.assertEquals(2 * Page.DEFAULT_SIZE, page.skip());
     }
-    
+
     @Test
     public void testPageLimitAndSkip() {
         Page page = Page.with(50).to(10);
         Assert.assertEquals(450, page.skip());
     }
-    
+
     @Test
     public void testPageNext() {
         Page page = Page.at(45).next();
