@@ -15,13 +15,12 @@
  */
 package com.cinchapi.concourse.lang.pagination;
 
-import com.cinchapi.concourse.lang.pagination.Page;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for the {@link Page} building
- * functionality.
+ * Unit tests for the {@link com.cinchapi.concourse.lang.pagination.Page}
+ * building functionality.
  */
 public class PageTest {
 
