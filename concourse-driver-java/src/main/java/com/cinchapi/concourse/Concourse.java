@@ -29,6 +29,8 @@ import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.pagination.Page;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
@@ -3080,6 +3082,131 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, Criteria criteria, Timestamp timestamp);
 
     /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param order a sort order
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Order order);
+
+    /**
+     * Return all the values stored for each of the {@code keys} at
+     * {@code timestamp} in every record that matches the {@code criteria}
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param order a sort order
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Order order);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param order a sort order
+     * @param page a page selection
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Order order, Page page);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param order a sort order
+     * @param page a page selection
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Order order, Page page);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param page a page selection
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Page page);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a page selection
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Page page);
+
+    /**
      * Return all the values stored for each of the {@code keys} in
      * {@code record}.
      * 
@@ -3121,7 +3248,7 @@ public abstract class Concourse implements AutoCloseable {
      * The only difference is that this method takes a in-process
      * {@link Criteria} building sequence for convenience.
      * </p>
-     * 
+     *
      * @param keys a collection of field names
      * @param criteria an in-process {@link Criteria} building sequence that
      *            contains an {@link BuildableState#build() unfinalized},
