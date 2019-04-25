@@ -29,7 +29,6 @@ import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
-import com.cinchapi.concourse.lang.pagination.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
