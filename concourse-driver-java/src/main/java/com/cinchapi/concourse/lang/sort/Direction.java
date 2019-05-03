@@ -20,7 +20,7 @@ package com.cinchapi.concourse.lang.sort;
  *
  * @author Jeff Nelson
  */
-enum Direction {
+public enum Direction {
 
     ASCENDING(1), DESCENDING(-1);
 

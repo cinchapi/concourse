@@ -98,6 +98,10 @@ public final class Order {
         built = !built ? true : built;
     }
 
+    public LinkedHashMap<String, Integer> getSpec() {
+        return spec;
+    }
+
     /**
      * Add to the order {@link #spec}.
      * 
