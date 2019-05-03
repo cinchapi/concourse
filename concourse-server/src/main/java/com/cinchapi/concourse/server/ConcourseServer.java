@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
@@ -37,8 +39,9 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import com.cinchapi.concourse.lang.pagination.Page;
+
 import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.server.query.Sorter;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -4259,6 +4262,8 @@ public class ConcourseServer extends BaseConcourseServer
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
     }
+
+    /*
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -4280,11 +4285,12 @@ public class ConcourseServer extends BaseConcourseServer
                 for (String key : keys) {
                     entry.put(key, atomic.select(key, record));
                 }
+
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-
         });
-        return result;
+
+        return Sorter.sort(result, order);
     }
 
     @Override
@@ -4311,7 +4317,7 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
         });
-        return result;
+        return Sorter.sort(result, order);
     }
 
     @Override
@@ -4325,139 +4331,7 @@ public class ConcourseServer extends BaseConcourseServer
                 NaturalLanguage.parseMicros(timestamp), order, creds,
                 transaction, environment);
     }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
-            List<String> keys, TCriteria criteria, Order order, Page page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, Set<TObject>> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    entry.put(key, atomic.select(key, record));
-                }
-                TMaps.putResultDatasetOptimized(result, record, entry);
-            }
-        });
-        return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrderPage(
-            List<String> keys, TCriteria criteria, long timestamp, Order order,
-            Page page, AccessToken creds, TransactionToken transaction,
-            String environment)
-            throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, Set<TObject>> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    entry.put(key, atomic.select(key, record, timestamp));
-                }
-                TMaps.putResultDatasetOptimized(result, record, entry);
-            }
-        });
-        return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrderPage(
-            List<String> keys, TCriteria criteria, String timestamp,
-            Order order, Page page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return selectKeysCriteriaTimeOrderPage(keys, criteria,
-                NaturalLanguage.parseMicros(timestamp), order, page, creds,
-                transaction, environment);
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
-            List<String> keys, TCriteria criteria, Page page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, Set<TObject>> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    entry.put(key, atomic.select(key, record));
-                }
-                TMaps.putResultDatasetOptimized(result, record, entry);
-            }
-        });
-        return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
-            List<String> keys, TCriteria criteria, long timestamp, Page page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, Set<TObject>> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    entry.put(key, atomic.select(key, record, timestamp));
-                }
-                TMaps.putResultDatasetOptimized(result, record, entry);
-            }
-        });
-        return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrPage(
-            List<String> keys, TCriteria criteria, String timestamp,
-            Page page, AccessToken creds, TransactionToken transaction,
-            String environment)
-            throws TException {
-        return selectKeysCriteriaTimePage(keys, criteria,
-                NaturalLanguage.parseMicros(timestamp), page, creds,
-                transaction, environment);
-    }
+    */
 
     @Override
     @ThrowsClientExceptions
