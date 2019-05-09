@@ -4263,7 +4263,6 @@ public class ConcourseServer extends BaseConcourseServer
                 environment);
     }
 
-    /*
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -4331,7 +4330,6 @@ public class ConcourseServer extends BaseConcourseServer
                 NaturalLanguage.parseMicros(timestamp), order, creds,
                 transaction, environment);
     }
-    */
 
     @Override
     @ThrowsClientExceptions
