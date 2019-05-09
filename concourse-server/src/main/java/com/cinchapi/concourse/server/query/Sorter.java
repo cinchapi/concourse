@@ -15,6 +15,14 @@
  */
 package com.cinchapi.concourse.server.query;
 
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
@@ -24,14 +32,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.collect.Lists;
-
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class provides utility methods for sorting a dataset
@@ -45,10 +45,11 @@ public class Sorter {
      * @param order the sort order
      * @return the sorted data
      */
-    public final static Map<Long, Map<String, Set<TObject>>>  sort(
+    public final static Map<Long, Map<String, Set<TObject>>> sort(
             Map<Long, Map<String, Set<TObject>>> data, Order order) {
 
-        List<Comparator<Map<String, Set<TObject>>>> comparators = Lists.newArrayList();
+        List<Comparator<Map<String, Set<TObject>>>> comparators = Lists
+                .newArrayList();
         for (Map.Entry<String, Integer> keyOrder : order.getSpec().entrySet()) {
             Comparator<Map<String, Set<TObject>>> comparator = new Comparator<Map<String, Set<TObject>>>() {
                 @Override
@@ -61,7 +62,8 @@ public class Sorter {
                         return -1;
                     }
 
-                    Iterator<TObject> iterator = o1.get(keyOrder.getKey()).iterator();
+                    Iterator<TObject> iterator = o1.get(keyOrder.getKey())
+                            .iterator();
                     TObject object = iterator.next();
                     switch (object.getType()) {
                     case BOOLEAN:
@@ -97,7 +99,8 @@ public class Sorter {
                 }
 
                 /**
-                 * Performs a comparison of two record entries using java objects
+                 * Performs a comparison of two record entries using java
+                 * objects
                  * based on a key. The records are first compared on the size
                  * of their respective value sets with value sets with greater
                  * quantity taking priority over less quantities. Then the
@@ -114,14 +117,14 @@ public class Sorter {
                         Map<String, Set<TObject>> o1,
                         Map<String, Set<TObject>> o2, Integer direction,
                         Class<T> type) {
-                    Set<T> values1 = Transformers
-                            .transformSetLazily(o1.get(keyOrder.getKey()),
-                                    Conversions.thriftToJavaCasted());
-                    Set<T> values2 = Transformers
-                            .transformSetLazily(o2.get(keyOrder.getKey()),
-                                    Conversions.thriftToJavaCasted());
+                    Set<T> values1 = Transformers.transformSetLazily(
+                            o1.get(keyOrder.getKey()),
+                            Conversions.thriftToJavaCasted());
+                    Set<T> values2 = Transformers.transformSetLazily(
+                            o2.get(keyOrder.getKey()),
+                            Conversions.thriftToJavaCasted());
 
-                    if (Direction.ASCENDING.coefficient() == direction) {
+                    if(Direction.ASCENDING.coefficient() == direction) {
                         Iterator<T> it1 = values1.iterator();
                         Iterator<T> it2 = values2.iterator();
                         while (it1.hasNext() && it2.hasNext()) {
@@ -133,17 +136,17 @@ public class Sorter {
                             }
                         }
 
-                        if (it1.hasNext()) {
+                        if(it1.hasNext()) {
                             return -1;
                         }
-                        else if (it2.hasNext()) {
+                        else if(it2.hasNext()) {
                             return 1;
                         }
                         else {
                             return 0;
                         }
                     }
-                    else if (Direction.DESCENDING.coefficient() == direction) {
+                    else if(Direction.DESCENDING.coefficient() == direction) {
                         Iterator<T> it1 = values1.iterator();
                         Iterator<T> it2 = values2.iterator();
                         while (it1.hasNext() && it2.hasNext()) {
@@ -155,10 +158,10 @@ public class Sorter {
                             }
                         }
 
-                        if (it1.hasNext()) {
+                        if(it1.hasNext()) {
                             return 1;
                         }
-                        else if (it2.hasNext()) {
+                        else if(it2.hasNext()) {
                             return -1;
                         }
                         else {
@@ -174,12 +177,12 @@ public class Sorter {
             comparators.add(comparator);
         }
 
-
-
-        data = data.entrySet().stream().sorted(Map.Entry
-                .comparingByValue(new MultiComparator<>(comparators))).collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (e1, e2) -> e2, LinkedHashMap::new));
+        data = data.entrySet().stream()
+                .sorted(Map.Entry
+                        .comparingByValue(new MultiComparator<>(comparators)))
+                .collect(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                                (e1, e2) -> e2, LinkedHashMap::new));
 
         return data;
     }
@@ -199,7 +202,8 @@ public class Sorter {
         public int compare(T o1, T o2) {
             for (Comparator<T> comparator : comparators) {
                 int comparison = comparator.compare(o1, o2);
-                if (comparison != 0) return comparison;
+                if(comparison != 0)
+                    return comparison;
             }
             return 0;
         }

@@ -22,7 +22,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,7 +30,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.management.InstanceAlreadyExistsException;
@@ -39,9 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-
-import com.cinchapi.concourse.lang.sort.Order;
-import com.cinchapi.concourse.server.query.Sorter;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -59,6 +54,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
@@ -78,6 +74,7 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.query.Finder;
+import com.cinchapi.concourse.server.query.Sorter;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
@@ -4324,8 +4321,7 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrder(
             List<String> keys, TCriteria criteria, String timestamp,
             Order order, AccessToken creds, TransactionToken transaction,
-            String environment)
-            throws TException {
+            String environment) throws TException {
         return selectKeysCriteriaTimeOrder(keys, criteria,
                 NaturalLanguage.parseMicros(timestamp), order, creds,
                 transaction, environment);
