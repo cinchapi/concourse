@@ -122,46 +122,46 @@ public class Sorter {
                                     Conversions.thriftToJavaCasted());
 
                     if (Direction.ASCENDING.coefficient() == direction) {
-                        if(values1.size() > values2.size()) {
+                        Iterator<T> it1 = values1.iterator();
+                        Iterator<T> it2 = values2.iterator();
+                        while (it1.hasNext() && it2.hasNext()) {
+                            T v1 = it1.next();
+                            T v2 = it2.next();
+
+                            if(v1.compareTo(v2) != 0) {
+                                return v1.compareTo(v2);
+                            }
+                        }
+
+                        if (it1.hasNext()) {
                             return -1;
                         }
-                        else if(values1.size() < values2.size()) {
+                        else if (it2.hasNext()) {
                             return 1;
                         }
                         else {
-                            Iterator<T> it1 = values1.iterator();
-                            Iterator<T> it2 = values2.iterator();
-                            while (it1.hasNext()) {
-                                T v1 = it1.next();
-                                T v2 = it2.next();
-
-                                if(v1.compareTo(v2) != 0) {
-                                    return v1.compareTo(v2);
-                                }
-                            }
-
                             return 0;
                         }
                     }
                     else if (Direction.DESCENDING.coefficient() == direction) {
-                        if(values1.size() > values2.size()) {
+                        Iterator<T> it1 = values1.iterator();
+                        Iterator<T> it2 = values2.iterator();
+                        while (it1.hasNext() && it2.hasNext()) {
+                            T v1 = it1.next();
+                            T v2 = it2.next();
+
+                            if(v2.compareTo(v1) != 0) {
+                                return v2.compareTo(v1);
+                            }
+                        }
+
+                        if (it1.hasNext()) {
                             return 1;
                         }
-                        else if(values1.size() < values2.size()) {
+                        else if (it2.hasNext()) {
                             return -1;
                         }
                         else {
-                            Iterator<T> it1 = values1.iterator();
-                            Iterator<T> it2 = values2.iterator();
-                            while (it1.hasNext()) {
-                                T v1 = it1.next();
-                                T v2 = it2.next();
-
-                                if(v2.compareTo(v1) != 0) {
-                                    return v2.compareTo(v1);
-                                }
-                            }
-
                             return 0;
                         }
                     }
