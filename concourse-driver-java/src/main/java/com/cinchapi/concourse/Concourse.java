@@ -3120,6 +3120,7 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Criteria criteria, Timestamp timestamp,
             Order order);
+
     /**
      * Return all the values stored for each of the {@code keys} in
      * {@code record}.

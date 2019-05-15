@@ -2077,8 +2077,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> raw = client
                     .selectKeysCriteriaOrder(Collections.toList(keys),
                             Language.translateToThriftCriteria(criteria),
-                            OrderLanguage.translateToThriftOrder(order),
-                            creds, transaction, environment);
+                            OrderLanguage.translateToThriftOrder(order), creds,
+                            transaction, environment);
             Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                     .newPrettyLinkedTableMap("Record");
             for (Entry<Long, Map<String, Set<TObject>>> entry : raw

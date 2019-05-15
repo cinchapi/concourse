@@ -816,15 +816,14 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(
-            Collection<String> keys, Criteria criteria, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(
-            Collection<String> keys, Criteria criteria, Timestamp timestamp,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 

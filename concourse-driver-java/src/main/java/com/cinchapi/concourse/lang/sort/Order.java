@@ -130,7 +130,7 @@ public final class Order {
             }
             sb.append(entry.getKey());
             sb.append(" ");
-            if (entry.getValue() == 1) {
+            if(entry.getValue() == 1) {
                 sb.append("ASC");
             }
             else if(entry.getValue() == -1) {

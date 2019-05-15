@@ -15,11 +15,11 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
-import com.cinchapi.concourse.thrift.TOrder;
-import com.google.common.collect.Lists;
-
 import java.util.List;
 import java.util.Map;
+
+import com.cinchapi.concourse.thrift.TOrder;
+import com.google.common.collect.Lists;
 
 /**
  * Tools for translating aspects of the language.
@@ -38,7 +38,7 @@ public class OrderLanguage {
         Map<String, Integer> spec = order.getSpec();
         List<String> keys = Lists.newArrayList();
         List<Integer> directions = Lists.newArrayList();
-        for(Map.Entry<String, Integer> entry : spec.entrySet()) {
+        for (Map.Entry<String, Integer> entry : spec.entrySet()) {
             keys.add(entry.getKey());
             directions.add(entry.getValue());
         }
@@ -55,9 +55,9 @@ public class OrderLanguage {
         List<String> keys = torder.getKeys();
         List<Integer> directions = torder.getDirections();
         Order order = new Order();
-        for(int i = 0; i < keys.size(); i++) {
-            order.add(keys.get(i), directions.get(i) == -1 ?
-                    Direction.DESCENDING : Direction.ASCENDING);
+        for (int i = 0; i < keys.size(); i++) {
+            order.add(keys.get(i), directions.get(i) == -1
+                    ? Direction.DESCENDING : Direction.ASCENDING);
         }
 
         return order;

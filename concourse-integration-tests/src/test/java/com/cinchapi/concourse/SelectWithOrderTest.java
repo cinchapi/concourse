@@ -15,6 +15,15 @@
  */
 package com.cinchapi.concourse;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Set;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
@@ -25,14 +34,6 @@ import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Set;
 
 /**
  *
@@ -67,18 +68,19 @@ public class SelectWithOrderTest extends ConcourseIntegrationTest {
     @Test
     public void testWithOneOrderKey() {
         Assert.assertTrue(hasSameResults(Criteria.where().key("graduation_rate")
-                        .operator(Operator.GREATER_THAN).value(90).and()
-                        .key("yield_men").operator(Operator.EQUALS).value(20)
-                        .build(), Order.by("graduation_rate").ascending()
-                .then("undergraduate_population").descending().build()));
+                .operator(Operator.GREATER_THAN).value(90).and()
+                .key("yield_men").operator(Operator.EQUALS).value(20).build(),
+                Order.by("graduation_rate").ascending()
+                        .then("undergraduate_population").descending()
+                        .build()));
     }
 
     @Test
     public void testWithTwoOrderKeys() {
         Assert.assertTrue(hasSameResults(Criteria.where().key("graduation_rate")
                 .operator(Operator.GREATER_THAN).value(90).and()
-                .key("yield_men").operator(Operator.EQUALS).value(20)
-                .build(), Order.by("graduation_rate").build()));
+                .key("yield_men").operator(Operator.EQUALS).value(20).build(),
+                Order.by("graduation_rate").build()));
     }
 
     /**

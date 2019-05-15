@@ -37,8 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import com.cinchapi.concourse.lang.sort.OrderLanguage;
-import com.cinchapi.concourse.thrift.TOrder;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -56,7 +54,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.OrderLanguage;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
@@ -98,6 +96,7 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TOrder;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
@@ -4288,7 +4287,8 @@ public class ConcourseServer extends BaseConcourseServer
             }
         });
 
-        return Sorter.sort(result, OrderLanguage.translateFromThriftOrder(order));
+        return Sorter.sort(result,
+                OrderLanguage.translateFromThriftOrder(order));
     }
 
     @Override
@@ -4315,7 +4315,8 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
         });
-        return Sorter.sort(result, OrderLanguage.translateFromThriftOrder(order));
+        return Sorter.sort(result,
+                OrderLanguage.translateFromThriftOrder(order));
     }
 
     @Override
