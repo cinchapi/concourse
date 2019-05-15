@@ -110,7 +110,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     // NOTE: The Buffer does not ever lock itself because its delegates
-    // concurrency control to each individual pagination. Furthermore, since each
+    // concurrency control to each individual pagination. Furthermore, since
+    // each
     // Page is append-only, there is no need to ever lock any Page that is not
     // equal to #currentPage. The Buffer does grab the transport readLock for
     // most methods so that we don't end up in situations where a transport
@@ -213,7 +214,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                                                 // by a CME that
                                                                 // occurs when
                                                                 // one thread
-                                                                // adds a pagination
+                                                                // adds a
+                                                                // pagination
                                                                 // to the
                                                                 // underlying
                                                                 // collection
@@ -256,17 +258,20 @@ public final class Buffer extends Limbo implements InventoryTracker {
                         return it.next();
                     }
                     catch (ConcurrentModificationException e) {
-                        // CON-75: The exception is thrown because a new pagination
+                        // CON-75: The exception is thrown because a new
+                        // pagination
                         // was adding by another thread while the current thread
                         // (which owns the iterator) was in the middle of the
                         // read. We can ignore this exception, because adding a
-                        // new pagination will not lead to inconsistent results since
+                        // new pagination will not lead to inconsistent results
+                        // since
                         // all the data we've read so far is still valid. This
                         // just means we have more work to do before finishing
                         // than we originally anticipated.
                         //
                         // It is worth noting that each read method grabs the
-                        // transportLock which prevents the case of a pagination being
+                        // transportLock which prevents the case of a pagination
+                        // being
                         // removed in the middle of a read.
                         it = delegate.listIterator(index);
                         return next();
@@ -294,7 +299,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
     };
 
     /**
-     * A runnable instance that flushes the content the current buffer pagination to
+     * A runnable instance that flushes the content the current buffer
+     * pagination to
      * disk.
      */
     private Runnable pageSync = new Runnable() {
@@ -335,7 +341,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * A monitor that is used to make a thread block while waiting for the
      * Buffer to become transportable. The {@link #waitUntilTransportable()}
      * waits for this monitor and the {@link #insert(Write)} method notifies the
-     * threads waiting on this monitor whenever there is more than single pagination
+     * threads waiting on this monitor whenever there is more than single
+     * pagination
      * worth of data in the Buffer.
      */
     private final Object transportable = new Object();
@@ -849,10 +856,13 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     /**
-     * Return {@code true} if the Buffer has more than 1 pagination and the first pagination
+     * Return {@code true} if the Buffer has more than 1 pagination and the
+     * first pagination
      * has at least one element that can be transported. If this method returns
-     * {@code false} it means that the first pagination is the only pagination or that the
-     * Buffer would need to trigger a Database sync and remove the first pagination in
+     * {@code false} it means that the first pagination is the only pagination
+     * or that the
+     * Buffer would need to trigger a Database sync and remove the first
+     * pagination in
      * order to transport.
      * 
      * @return {@code true} if the Buffer can transport a Write.
@@ -901,7 +911,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * Add a new Page to the Buffer and optionally perform a {@code sync}.
      * 
      * @param sync - a flag that determines whether the {@link #sync()} method
-     *            should be called to durably persist the current pagination to disk.
+     *            should be called to durably persist the current pagination to
+     *            disk.
      *            This should only be false when called from the
      *            {@link #start()} method.
      */
@@ -1151,9 +1162,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private static final String ext = ".buf";
 
         /**
-         * The local lock for read/write access on the pagination. This is only used
-         * when this pagination is equal to the {@link #currentPage}. In that case,
-         * this lock is grabbed before any access is allowed on the pagination, so
+         * The local lock for read/write access on the pagination. This is only
+         * used
+         * when this pagination is equal to the {@link #currentPage}. In that
+         * case,
+         * this lock is grabbed before any access is allowed on the pagination,
+         * so
          * subsequent structures that are used need not be thread safe.
          */
         private transient StampedLock accessLock = new StampedLock();
@@ -1202,7 +1216,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private transient int size = 0;
 
         /**
-         * The upper bound on the number of writes that this pagination can hold.
+         * The upper bound on the number of writes that this pagination can
+         * hold.
          */
         private final transient int sizeUpperBound;
 
@@ -1242,7 +1257,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * position specified in {@link #pos}.
          * <p>
          * Please note that this constructor is designed to deserialize a
-         * retired pagination, so the returned Object will be at capacity and unable
+         * retired pagination, so the returned Object will be at capacity and
+         * unable
          * to append additional {@link Write} objects.
          * </p>
          * 
@@ -1287,7 +1303,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * read.
          * 
          * @param write the {@link Write} to append
-         * @param sync a flag that determines if the pagination should be fsynced
+         * @param sync a flag that determines if the pagination should be
+         *            fsynced
          *            (or the equivalent) after appending {@code write} so that
          *            the changes are guaranteed to be durably persisted, this
          *            flag should almost always be {@code true} if calling this
@@ -1324,7 +1341,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Delete the pagination from disk. The Page object will reside in memory
+         * Delete the pagination from disk. The Page object will reside in
+         * memory
          * until garbage collection.
          */
         public void delete() {
@@ -1334,7 +1352,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Return the timestamp of the oldest (e.g. first) write on this pagination,
+         * Return the timestamp of the oldest (e.g. first) write on this
+         * pagination,
          * if it exists.
          * 
          * @return the oldest write timestamp
@@ -1591,7 +1610,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * (hence this method being UNSAFE) for unauthorized usage.
          * 
          * @param write the {@link Write} to append
-         * @param sync a flag that determines if the pagination should be fsynced
+         * @param sync a flag that determines if the pagination should be
+         *            fsynced
          *            (or the equivalent) after appending {@code write} so that
          *            the changes are guaranteed to be durably persisted, this
          *            flag should almost always be {@code true} if calling this
@@ -1769,7 +1789,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private final boolean useable;
 
         /**
-         * The iterator over the writes on the pagination at which the iterator is
+         * The iterator over the writes on the pagination at which the iterator
+         * is
          * currently traversing.
          */
         private Iterator<Write> writeIterator = null;
@@ -1831,11 +1852,13 @@ public final class Buffer extends Limbo implements InventoryTracker {
         protected abstract boolean isRelevantWrite(Write write);
 
         /**
-         * Call the appropriate function to determine if the {@code pagination} might
+         * Call the appropriate function to determine if the {@code pagination}
+         * might
          * contain the kinds of writes that this iterator is seeking.
          * 
          * @param page
-         * @return {@code true} if the pagination can possibly contain relevant data
+         * @return {@code true} if the pagination can possibly contain relevant
+         *         data
          */
         protected abstract boolean pageMightContainRelevantWrites(Page page);
 
@@ -1874,7 +1897,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Flip to the next pagination in the Buffer with the option to temporarily
+         * Flip to the next pagination in the Buffer with the option to
+         * temporarily
          * skip the timestamp check.
          * 
          * @param skipTsCheck
@@ -1905,7 +1929,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Grab the necessary locks to protected {@code #pagination} while it is used
+         * Grab the necessary locks to protected {@code #pagination} while it is
+         * used
          * in the iterator.
          * 
          * @param page

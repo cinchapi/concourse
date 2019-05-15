@@ -127,7 +127,8 @@ public class EngineTest extends BufferedStoreTest {
                     Integer.valueOf(count).longValue());
             count++;
         }
-        for (int i = 0; i < count - 2; i++) { // leave one write on the pagination so
+        for (int i = 0; i < count - 2; i++) { // leave one write on the
+                                              // pagination so
                                               // buffer doesn't automatically
                                               // call db.triggerSync()
             buffer.transport(db);
@@ -137,7 +138,8 @@ public class EngineTest extends BufferedStoreTest {
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
         while ((boolean) method.invoke(engine.buffer)) { // wait until the first
-                                                         // pagination in the buffer
+                                                         // pagination in the
+                                                         // buffer
                                                          // (which contains the
                                                          // same data that was
                                                          // previously

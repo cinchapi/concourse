@@ -196,7 +196,8 @@ public final class Database extends BaseStore implements PermanentStore {
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
      * acceptable. We use this flag to handle the case where the server
-     * unexpectedly crashes before removing a Buffer pagination and tries to transport
+     * unexpectedly crashes before removing a Buffer pagination and tries to
+     * transport
      * Writes that have already been accepted. The SLA for this flag is that the
      * Database will assume no Writes are acceptable (and will therefore
      * manually verify) until it sees one, at which point it will assume all
@@ -483,7 +484,8 @@ public final class Database extends BaseStore implements PermanentStore {
 
             // CON-83: Get rid of any blocks that aren't "balanced" (e.g. has
             // primary and secondary) under the assumption that the server
-            // crashed and the corresponding Buffer pagination still exists. Please
+            // crashed and the corresponding Buffer pagination still exists.
+            // Please
             // note that since we do not sync empty blocks, it is possible
             // that there are some primary and secondary blocks without a
             // corresponding search one. But, it is also possible that a
