@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.lang.page;
+package com.cinchapi.concourse.lang.pagination;
 
 import java.util.Objects;
 
@@ -23,13 +23,13 @@ import com.cinchapi.common.base.Verify;
 
 /**
  * A {@link Page} encapsulates the limit and skip/offset parameters that can be
- * used to page through a result set.
+ * used to pagination through a result set.
  */
 @Immutable
 public final class Page {
 
     /**
-     * The default page size.
+     * The default pagination size.
      */
     public final static int DEFAULT_SIZE = 20;
 
@@ -87,10 +87,10 @@ public final class Page {
     }
 
     /**
-     * Return the "previous" page.
+     * Return the "previous" pagination.
      * <p>
      * This method returns a new {@link Page} whose skip/offset parameter is
-     * reduced by this page's limit.
+     * reduced by this pagination's limit.
      * </p>
      * 
      * @return the next Page
@@ -116,10 +116,10 @@ public final class Page {
     }
 
     /**
-     * Return the "next" page.
+     * Return the "next" pagination.
      * <p>
      * This method returns a new {@link Page} whose skip/offset parameter is
-     * advanced by this page's limit.
+     * advanced by this pagination's limit.
      * </p>
      * 
      * @return the next Page
@@ -139,7 +139,7 @@ public final class Page {
     }
 
     /**
-     * Go {@code to} the specified page.
+     * Go {@code to} the specified pagination.
      * 
      * @return the requested Page
      */

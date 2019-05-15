@@ -173,7 +173,7 @@ public class LoggingBloomFilter {
 
     /**
      * Force a sync of the recent changes to this bloom filter to disk. This
-     * method should be called in conjunction with the page turning
+     * method should be called in conjunction with the pagination turning
      * functionality in the {@link Buffer}.
      */
     public void diskSync() {
@@ -251,7 +251,7 @@ public class LoggingBloomFilter {
         // We allocate a ByteBuffer that is equal to the BUFFER_PAGE_SIZE so
         // that we can be sure that we'll have enough space to store all the
         // possible changes before the Buffer calls #diskSync() in conjunction
-        // with adding a new page.
+        // with adding a new pagination.
         buffer = ByteBuffer.allocate(GlobalState.BUFFER_PAGE_SIZE);
         lengthOfRecentChanges = 0;
         position = (int) FileSystem.getFileSize(file);
