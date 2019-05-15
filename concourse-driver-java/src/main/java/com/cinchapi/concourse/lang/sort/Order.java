@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.lang.sort;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -98,16 +99,12 @@ public final class Order {
         built = !built ? true : built;
     }
 
-    public LinkedHashMap<String, Integer> getSpec() {
-        return spec;
-    }
-
     /**
      * Returns the internal order as a key/direction map
      *
      * @return the order mapping
      */
-    protected LinkedHashMap<String, Integer> getSpec() {
+    public LinkedHashMap<String, Integer> getSpec() {
         return spec;
     }
 
@@ -121,6 +118,27 @@ public final class Order {
         Preconditions.checkState(!built, "Cannot modify a built Order");
         spec.put(key, direction.coefficient());
         this.lastKey = key;
+    }
+
+    @VisibleForTesting
+    public String getSQLString() {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, Integer> entry : spec.entrySet()) {
+            if(!first) {
+                sb.append(", ");
+            }
+            sb.append(entry.getKey());
+            sb.append(" ");
+            if (entry.getValue() == 1) {
+                sb.append("ASC");
+            }
+            else if(entry.getValue() == -1) {
+                sb.append("DESC");
+            }
+            first = false;
+        }
+        return sb.toString();
     }
 
 }

@@ -37,6 +37,8 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import com.cinchapi.concourse.lang.sort.OrderLanguage;
+import com.cinchapi.concourse.thrift.TOrder;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -4265,7 +4267,7 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrder(
-            List<String> keys, TCriteria criteria, Order order,
+            List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
@@ -4286,7 +4288,7 @@ public class ConcourseServer extends BaseConcourseServer
             }
         });
 
-        return Sorter.sort(result, order);
+        return Sorter.sort(result, OrderLanguage.translateFromThriftOrder(order));
     }
 
     @Override
@@ -4294,7 +4296,7 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrder(
-            List<String> keys, TCriteria criteria, long timestamp, Order order,
+            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
@@ -4313,14 +4315,14 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
         });
-        return Sorter.sort(result, order);
+        return Sorter.sort(result, OrderLanguage.translateFromThriftOrder(order));
     }
 
     @Override
     @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrder(
             List<String> keys, TCriteria criteria, String timestamp,
-            Order order, AccessToken creds, TransactionToken transaction,
+            TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return selectKeysCriteriaTimeOrder(keys, criteria,
                 NaturalLanguage.parseMicros(timestamp), order, creds,
