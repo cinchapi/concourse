@@ -47,7 +47,6 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import com.cinchapi.concourse.lang.sort.Order;
 import jline.TerminalFactory;
 
 import org.slf4j.Logger;
@@ -70,6 +69,7 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
@@ -1816,7 +1816,7 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("select", Collection.class, Criteria.class,
                     Timestamp.class, Order.class).with(keys, criteria,
-                    timestamp, order);
+                            timestamp, order);
         }
 
         @Override
