@@ -107,7 +107,7 @@ public final class GlobalState extends Constants {
     public static UUID SYSTEM_ID = null;
 
     /**
-     * The size for each page in the Buffer. During reads, Buffer pages
+     * The size for each pagination in the Buffer. During reads, Buffer pages
      * are individually locked, so it is desirable to have several smaller
      * pages as opposed to few larger ones. Nevertheless, be sure to balance
      * the desire to maximize lock granularity with the risks of having too

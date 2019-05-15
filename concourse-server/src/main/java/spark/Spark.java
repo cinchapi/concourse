@@ -342,7 +342,7 @@ public final class Spark {
      * Done
      * TODO: Routes are matched in the order they are defined. The rirst route
      * that matches the request is invoked. ???
-     * TODO: Before method for filters...check sinatra page
+     * TODO: Before method for filters...check sinatra pagination
      * TODO: Setting Headers
      * TODO: Do we want get-prefixes for all *getters* or do we want a more ruby
      * like approach???

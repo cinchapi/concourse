@@ -105,13 +105,13 @@ public class ConcourseServerPreferences extends PreferencesHandler {
     }
 
     /**
-     * The size for each page in the Buffer. During reads, Buffer pages
+     * The size for each pagination in the Buffer. During reads, Buffer pages
      * are individually locked, so it is desirable to have several smaller
      * pages as opposed to few larger ones. Nevertheless, be sure to balance
      * the desire to maximize lock granularity with the risks of having too
      * many open buffer files simultaneously.
      * 
-     * @return the buffer page size in bytes
+     * @return the buffer pagination size in bytes
      */
     public long getBufferPageSize() {
         return getSize("buffer_page_size", DEFAULT_BUFFER_PAGE_SIZE);

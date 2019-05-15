@@ -461,7 +461,7 @@ public final class Convert {
         char first = value.charAt(0);
         char last = value.charAt(value.length() - 1);
         Long record;
-        if(AnyStrings.isWithinQuotes(value, TAG_MARKER)) {
+        if(AnyStrings.isWithinQuotes(value)) {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }

@@ -55,7 +55,8 @@ public class BufferTest extends LimboTest {
         // cannot mock that class with Mockito since it is final. Mocking the
         // PermanentStore interface does not pose a problem as long as tests
         // don't do something that would cause the Database#triggerSync() method
-        // to be called (i.e. transporting more than a page worth of Writes).
+        // to be called (i.e. transporting more than a pagination worth of
+        // Writes).
         //
         // So, please use the Buffer#canTransport() method to check to see if is
         // okay to do a transport without causing a triggerSync(). And do not
@@ -86,8 +87,9 @@ public class BufferTest extends LimboTest {
             add("foo", Convert.javaToThrift(count), 1);
             count++;
         }
-        // Now add a second page worth of writes, but but don't spill over into
-        // a third page yet
+        // Now add a second pagination worth of writes, but but don't spill over
+        // into
+        // a third pagination yet
         int max = 0;
         for (int i = count; i < (count * 2) - 2; i++) {
             add("foo", Convert.javaToThrift(i), 1);
