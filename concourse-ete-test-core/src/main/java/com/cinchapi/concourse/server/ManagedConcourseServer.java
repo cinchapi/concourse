@@ -47,6 +47,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
+import com.cinchapi.concourse.lang.sort.Order;
 import jline.TerminalFactory;
 
 import org.slf4j.Logger;
@@ -1800,6 +1801,22 @@ public class ManagedConcourseServer {
                 Timestamp timestamp) {
             return invoke("select", Collection.class, Criteria.class,
                     Timestamp.class).with(keys, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Criteria criteria, Order order) {
+            return invoke("select", Collection.class, Criteria.class,
+                    Order.class).with(keys, criteria, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Criteria criteria, Timestamp timestamp,
+                Order order) {
+            return invoke("select", Collection.class, Criteria.class,
+                    Timestamp.class, Order.class).with(keys, criteria,
+                    timestamp, order);
         }
 
         @Override
