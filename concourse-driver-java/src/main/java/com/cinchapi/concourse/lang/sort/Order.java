@@ -72,7 +72,7 @@ public final class Order {
     /**
      * Construct a new instance.
      */
-    private Order() {
+    protected Order() {
         this.spec = Maps.newLinkedHashMap();
     }
 
@@ -103,12 +103,21 @@ public final class Order {
     }
 
     /**
+     * Returns the internal order as a key/direction map
+     *
+     * @return the order mapping
+     */
+    protected LinkedHashMap<String, Integer> getSpec() {
+        return spec;
+    }
+
+    /**
      * Add to the order {@link #spec}.
      * 
      * @param key
      * @param direction
      */
-    final void add(String key, Direction direction) {
+    protected final void add(String key, Direction direction) {
         Preconditions.checkState(!built, "Cannot modify a built Order");
         spec.put(key, direction.coefficient());
         this.lastKey = key;

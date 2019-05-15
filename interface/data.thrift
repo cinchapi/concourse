@@ -78,3 +78,16 @@ struct TSymbol {
 struct TCriteria {
   1:required list<TSymbol> symbols
 }
+
+/**
+ * A representation for an Order that can be passed over the wire via
+ * Thrift. Once passed over the write, the server goes through the list
+ * and converts it back into a java Order representation so that the 
+ * data results can be filtered.
+ */
+struct TOrder {
+  1:required list<string> keys
+  2:required list<i32> directions
+}
+
+

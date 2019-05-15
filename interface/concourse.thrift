@@ -48,7 +48,7 @@ namespace rb concourse.thrift
 #
 # As much as possible, try to preserve backward compatibility so that
 # Concourse Server can always talk to older drivers.
-const string VERSION = "1.0.0"
+const string VERSION = "1.1.0"
 
 # This value is passed over the wire to represent a null value, usually
 # for get/select methods where a key/record has no data.
@@ -2754,6 +2754,20 @@ service ConcourseService {
     3: exceptions.PermissionException ex3
   );
 
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaOrder(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: data.TOrder order,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
+
   map<i64, map<string, set<data.TObject>>> selectKeysCcl(
     1: list<string> keys,
     2: string ccl,
@@ -2782,6 +2796,21 @@ service ConcourseService {
     3: exceptions.PermissionException ex3
   );
 
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimeOrder(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: data.TOrder order,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
+
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimestr(
     1: list<string> keys,
     2: data.TCriteria criteria,
@@ -2789,6 +2818,22 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimestrOrder(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: data.TOrder order,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment
   )
   throws (
     1: exceptions.SecurityException ex,

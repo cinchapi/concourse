@@ -26,6 +26,7 @@ import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
@@ -811,6 +812,19 @@ public class ImportDryRunConcourse extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Order order) {
         throw new UnsupportedOperationException();
     }
 
