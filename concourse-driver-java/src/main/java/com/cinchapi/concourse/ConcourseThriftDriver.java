@@ -39,6 +39,8 @@ import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.lang.pagination.Page;
+import com.cinchapi.concourse.lang.pagination.PageLanguage;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
@@ -2054,6 +2056,62 @@ class ConcourseThriftDriver extends Concourse {
                 raw = client.selectKeysCriteriaTime(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
+            }
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
+            }
+            return pretty;
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw = client
+                    .selectKeysCriteriaPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            PageLanguage.translateToThriftPage(page), creds,
+                            transaction, environment);
+            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
+            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                    .entrySet()) {
+                pretty.put(entry.getKey(),
+                        Transformers.transformMapSet(entry.getValue(),
+                                Conversions.<String> none(),
+                                Conversions.<T> thriftToJavaCasted()));
+            }
+            return pretty;
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> raw;
+            if(timestamp.isString()) {
+                raw = client.selectKeysCriteriaTimestrPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        PageLanguage.translateToThriftPage(page), creds,
+                        transaction, environment);
+            }
+            else {
+                raw = client.selectKeysCriteriaTimePage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        PageLanguage.translateToThriftPage(page), creds,
+                        transaction, environment);
             }
             Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                     .newPrettyLinkedTableMap("Record");

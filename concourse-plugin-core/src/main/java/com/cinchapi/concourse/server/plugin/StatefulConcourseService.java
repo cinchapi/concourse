@@ -204,6 +204,10 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("selectKeysCcl");
 
+        RETURN_TRANSFORM.add("selectKeysCriteriaPage");
+
+        CRITERIA_TRANSFORM.put("selectKeysCriteriaPage", 1);
+
         RETURN_TRANSFORM.add("selectKeysCriteriaTime");
 
         CRITERIA_TRANSFORM.put("selectKeysCriteriaTime", 1);
@@ -215,6 +219,14 @@ abstract class StatefulConcourseService {
         RETURN_TRANSFORM.add("selectKeysCclTime");
 
         RETURN_TRANSFORM.add("selectKeysCclTimestr");
+
+        RETURN_TRANSFORM.add("selectKeysCriteriaTimePage");
+
+        CRITERIA_TRANSFORM.put("selectKeysCriteriaTimePage", 1);
+
+        RETURN_TRANSFORM.add("selectKeysCriteriaTimestrPage");
+
+        CRITERIA_TRANSFORM.put("selectKeysCriteriaTimestrPage", 1);
 
         RETURN_TRANSFORM.add("getKeyRecord");
 
@@ -974,6 +986,11 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaPage(
+            List<String> keys, Criteria criteria, TPage page) {
+        throw new UnsupportedOperationException();
+    }
+
     public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaTime(
             List<String> keys, Criteria criteria, long timestamp) {
         throw new UnsupportedOperationException();
@@ -991,6 +1008,17 @@ abstract class StatefulConcourseService {
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaTimePage(
+            List<String> keys, Criteria criteria, long timestamp, TPage page) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaTimestrPage(
+            List<String> keys, Criteria criteria, String timestamp,
+            TPage page) {
         throw new UnsupportedOperationException();
     }
 
