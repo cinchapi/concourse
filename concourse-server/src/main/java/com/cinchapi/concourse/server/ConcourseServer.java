@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +38,8 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import com.cinchapi.concourse.lang.pagination.Page;
+import com.cinchapi.concourse.lang.pagination.PageLanguage;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -94,6 +97,7 @@ import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
@@ -4256,6 +4260,93 @@ public class ConcourseServer extends BaseConcourseServer
         return selectKeysCriteriaTime(keys, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page selectedPage = PageLanguage.translateFromThriftPage(page);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            int offset = 0;
+            int limit = 0;
+            for (long record : records) {
+                if (offset > selectedPage.skip() && limit < selectedPage.limit()) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                    limit++;
+                }
+                offset++;
+
+                if (limit >= selectedPage.limit()) {
+                    break;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
+            List<String> keys, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page selectedPage = PageLanguage.translateFromThriftPage(page);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            int offset = 0;
+            int limit = 0;
+            for (long record : records) {
+                if (offset > selectedPage.skip() && limit < selectedPage.limit()) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record, timestamp));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                    limit++;
+                }
+                offset++;
+
+                if (limit >= selectedPage.limit()) {
+                    break;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrPage(
+            List<String> keys, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCriteriaTimePage(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
