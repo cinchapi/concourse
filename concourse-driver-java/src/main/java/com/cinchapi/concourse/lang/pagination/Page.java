@@ -147,11 +147,11 @@ public final class Page {
         return new Page(number, size);
     }
 
-    int limit() {
+    public int limit() {
         return size;
     }
 
-    int skip() {
+    public int skip() {
         return (number - 1) * size;
     }
 }
