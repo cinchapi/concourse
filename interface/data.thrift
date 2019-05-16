@@ -78,3 +78,12 @@ struct TSymbol {
 struct TCriteria {
   1:required list<TSymbol> symbols
 }
+
+/**
+ * A representation for a Page that can be passed over the wire via
+ * Thrift. 
+ */
+struct TPage {
+  1:required i32 number
+  2:required i32 size
+}

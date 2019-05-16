@@ -2768,6 +2768,20 @@ service ConcourseService {
     4: exceptions.PermissionException ex4
   );
 
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaPage(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: data.TPage page
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
+
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTime(
     1: list<string> keys,
     2: data.TCriteria criteria,
@@ -2819,6 +2833,37 @@ service ConcourseService {
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
     6: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.ParseException ex3,
+    4: exceptions.PermissionException ex4
+  );
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimePage(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: data.TPage page,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTimestrPage(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: string timestamp,
+    4: data.TPage page,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment
   )
   throws (
     1: exceptions.SecurityException ex,
