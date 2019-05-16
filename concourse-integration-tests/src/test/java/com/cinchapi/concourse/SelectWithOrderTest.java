@@ -36,7 +36,8 @@ import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Sets;
 
 /**
- *
+ * Unit tests to make sure that the select operation with
+ * {@link Order} as a parameter work properly.
  */
 public class SelectWithOrderTest extends ConcourseIntegrationTest {
 
