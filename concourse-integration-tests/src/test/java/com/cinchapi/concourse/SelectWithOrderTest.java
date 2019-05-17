@@ -17,10 +17,14 @@ package com.cinchapi.concourse;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Set;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,10 +34,8 @@ import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
-import com.google.common.collect.Sets;
 
 /**
  * Unit tests to make sure that the select operation with
@@ -68,50 +70,63 @@ public class SelectWithOrderTest extends ConcourseIntegrationTest {
 
     @Test
     public void testWithOneOrderKey() {
-        Assert.assertTrue(hasSameResults(Criteria.where().key("graduation_rate")
-                .operator(Operator.GREATER_THAN).value(90).and()
-                .key("yield_men").operator(Operator.EQUALS).value(20).build(),
-                Order.by("graduation_rate").ascending()
-                        .then("undergraduate_population").descending()
-                        .build()));
+        Criteria criteria = Criteria.where().key("graduation_rate")
+                        .operator(Operator.GREATER_THAN).value(90).build();
+        Order order = Order.by("graduation_rate").build();
+
+        List<Map<String, Object>> result =
+                client.select(Lists.newArrayList("ipeds_id", "graduation_rate"), criteria,
+                        order).values().stream().map(child ->
+                        child.entrySet().stream().
+                                collect(Collectors.toMap(Map.Entry::getKey,
+                                        e -> Iterables.getOnlyElement(e.getValue())))
+                ).collect(Collectors.toList());
+
+        List<Map<String, Object>> expected =
+                client.select(Lists.newArrayList("ipeds_id", "graduation_rate"), criteria)
+                        .values().stream().map(child ->
+                        child.entrySet().stream().
+                                collect(Collectors.toMap(Map.Entry::getKey,
+                                        e -> Iterables.getOnlyElement(e.getValue())))
+                ).collect(Collectors.toList());
+
+        expected.sort(Comparator.comparingInt(o -> (int) o.get("graduation_rate")));
+
+        Assert.assertEquals(result, expected);
     }
 
     @Test
     public void testWithTwoOrderKeys() {
-        Assert.assertTrue(hasSameResults(Criteria.where().key("graduation_rate")
-                .operator(Operator.GREATER_THAN).value(90).and()
-                .key("yield_men").operator(Operator.EQUALS).value(20).build(),
-                Order.by("graduation_rate").build()));
-    }
+        Criteria criteria = Criteria.where().key("graduation_rate")
+                .operator(Operator.GREATER_THAN).value(90).build();
+        Order order = Order.by("graduation_rate").ascending()
+                .then("city").ascending()
+                .build();
 
-    /**
-     * Validate that the {@code criteria} and {@code order} returns the same
-     * result in Concourse as it does in a relational database.
-     *
-     * @param order
-     * @return {@code true} if the Concourse and SQL result sets are the same
-     */
-    private boolean hasSameResults(Criteria criteria, Order order) {
-        try {
-            Set<Object> a = Sets.newHashSet(
-                    client.get("ipeds_id", client.find(criteria)).values());
-            String query = "SELECT ipeds_id FROM data WHERE "
-                    + criteria.toString() + " ORDER BY " + order.getSQLString();
-            ResultSet rs = sql.executeQuery(query);
-            rs.next(); // skip column header
-            Set<Object> b = Sets.newHashSet();
-            while (rs.next()) {
-                b.add(rs.getInt(1));
-            }
-            Variables.register("query", query);
-            Variables.register("con", a);
-            Variables.register("sql", b);
-            Variables.register("diff", Sets.symmetricDifference(a, b));
-            return a.equals(b);
+        List<Map<String, Object>> result =
+                client.select(Lists.newArrayList("ipeds_id", "graduation_rate", "city"), criteria,
+                        order).values().stream().map(child ->
+                            child.entrySet().stream().
+                                    collect(Collectors.toMap(Map.Entry::getKey,
+                                            e -> Iterables.getOnlyElement(e.getValue())))
+                ).collect(Collectors.toList());
 
-        }
-        catch (Exception e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        List<Map<String, Object>> expected =
+                client.select(Lists.newArrayList("ipeds_id", "graduation_rate", "city"), criteria)
+                        .values().stream().map(child ->
+                        child.entrySet().stream().
+                                collect(Collectors.toMap(Map.Entry::getKey,
+                                        e -> Iterables.getOnlyElement(e.getValue())))
+                ).collect(Collectors.toList());
+
+        expected.sort((o1, o2) -> {
+                int c;
+                c = ((Integer) o1.get("graduation_rate")).compareTo((Integer) o2.get("graduation_rate"));
+                if (c == 0)
+                    c = ((String) o1.get("city")).compareTo((String) o2.get("city"));
+                return c;
+            });
+
+        Assert.assertEquals(result, expected);
     }
 }
