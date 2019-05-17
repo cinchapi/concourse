@@ -23,10 +23,13 @@ import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.importer.CsvImporter;
+import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -35,6 +38,16 @@ import com.google.common.collect.Lists;
  * {@link Order} as a parameter work properly.
  */
 public class SelectWithOrderTest extends ConcourseIntegrationTest {
+
+    @Override
+    protected void beforeEachTest() {
+        // Import data into Concourse
+        System.out.println("Importing college data into Concourse");
+        Importer importer = new CsvImporter(client);
+        importer.importFile(Resources.get("/college.csv").getFile());
+
+        super.beforeEachTest();
+    }
 
     @Test
     public void testWithOneOrderKey() {
