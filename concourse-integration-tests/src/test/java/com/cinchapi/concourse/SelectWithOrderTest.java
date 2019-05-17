@@ -42,32 +42,7 @@ import com.cinchapi.concourse.util.Resources;
  * {@link Order} as a parameter work properly.
  */
 public class SelectWithOrderTest extends ConcourseIntegrationTest {
-
-    private Statement sql;
-
-    @Override
-    protected void beforeEachTest() {
-        // Import data into Concourse
-        System.out.println("Importing college data into Concourse");
-        Importer importer = new CsvImporter(client);
-        importer.importFile(Resources.get("/college.csv").getFile());
-
-        // Load up the SQL db which also contains a copy of the data
-        System.out.println("Loading SQL database with college data");
-        try {
-            // NOTE: The JDBC API is atrocious :o=
-            Class.forName("org.sqlite.JDBC");
-            Connection conn = DriverManager.getConnection(
-                    "jdbc:sqlite:" + Resources.get("/college.db").getFile());
-            sql = conn.createStatement();
-        }
-        catch (Exception e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-
-        super.beforeEachTest();
-    }
-
+    
     @Test
     public void testWithOneOrderKey() {
         Criteria criteria = Criteria.where().key("graduation_rate")
