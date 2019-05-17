@@ -4280,7 +4280,7 @@ public class ConcourseServer extends BaseConcourseServer
             int offset = 0;
             int limit = 0;
             for (long record : records) {
-                if (offset > selectedPage.skip() && limit < selectedPage.limit()) {
+                if (offset >= selectedPage.skip() && limit < selectedPage.limit()) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
