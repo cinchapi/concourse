@@ -16,13 +16,6 @@
 package com.cinchapi.concourse.lang.sort;
 
 import java.util.LinkedHashMap;
-import java.util.Objects;
-
-import javax.annotation.Nullable;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
@@ -37,77 +30,24 @@ import com.google.common.collect.Maps;
  * {@link Order#by} and continues to construct the Order using the
  * options available from each subsequently returned state.
  * </p>
- *
  */
-public final class Order {
+public interface Order {
 
     /**
-     * Start building a new {@link Order}.
+     * Start building a new {@link BuiltOrder}.
      *
      * @return the Order builder
      */
     public static OrderByState by(String key) {
-        Order order = new Order();
+        BuiltOrder order = new BuiltOrder();
         return new OrderByState(order, key, Direction.$default());
     }
 
     /**
-     * A mapping from each key to direction ordinal (e.g. 1 for ASC and -1 for
-     * DESC) in the constructed {@link Order}.
+     * Return the order specification, expressed as a mapping from each key to
+     * the corresponding direction ordinal (e.g. 1 for ASC and -1 for DESC) in
+     * the constructed {@link Order}.
      */
-    @VisibleForTesting
-    final LinkedHashMap<String, Integer> spec;
-
-    /**
-     * The last key that was {@link #add(String, Direction) added}.
-     */
-    @Nullable
-    protected String lastKey;
-
-    /**
-     * A flag that indicates whether this {@link Order} has been built.
-     */
-    private boolean built = false;
-
-    /**
-     * Construct a new instance.
-     */
-    private Order() {
-        this.spec = Maps.newLinkedHashMap();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Order) {
-            return Objects.equals(spec, ((Order) obj).spec);
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return spec.hashCode();
-    }
-
-    /**
-     * Mark this {@link Order} as {@code built}.
-     */
-    void close() {
-        built = !built ? true : built;
-    }
-
-    /**
-     * Add to the order {@link #spec}.
-     * 
-     * @param key
-     * @param direction
-     */
-    final void add(String key, Direction direction) {
-        Preconditions.checkState(!built, "Cannot modify a built Order");
-        spec.put(key, direction.coefficient());
-        this.lastKey = key;
-    }
+    public LinkedHashMap<String, Integer> spec();
 
 }

@@ -829,6 +829,17 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> find(Criteria criteria);
 
     /**
+     * Return the set of records that satisfy the {@link Criteria criteria}.
+     * 
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param order an {@link Order} specification that describes how the result
+     *            set should be sorted
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Criteria criteria, Order order);
+
+    /**
      * Return the set of records that satisfy the {@code criteria}.
      * <p>
      * This method is syntactic sugar for {@link #find(Criteria)}. The only
@@ -841,11 +852,24 @@ public abstract class Concourse implements AutoCloseable {
      *            but well-formed filter for the desired records
      * @return the records that match the {@code criteria}
      */
-    public abstract Set<Long> find(Object criteria); // this method exists in
-                                                     // case the caller
-                                                     // forgets
-                                                     // to called #build() on
-                                                     // the CriteriaBuilder
+    public abstract Set<Long> find(Object criteria);
+
+    /**
+     * Return the set of records that satisfy the {@code criteria}.
+     * <p>
+     * This method is syntactic sugar for {@link #find(Criteria)}. The only
+     * difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
+     * 
+     * @param criteria an in-process {@link Criteria} building sequence that
+     *            contains an {@link BuildableState#build() unfinalized},
+     *            but well-formed filter for the desired records
+     * @param order an {@link Order} specification that describes how the result
+     *            set should be sorted
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Object criteria, Order order);
 
     /**
      * Return the set of records that satisfy the {@code ccl} filter.
@@ -855,6 +879,17 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String ccl);
+
+    /**
+     * Return the set of records that satisfy the {@code ccl} filter.
+     * 
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param order an {@link Order} specification that describes how the result
+     *            set should be sorted
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String ccl, Order order);
 
     /**
      * Return the set of records where {@code key} {@link Operator#EQUALS
@@ -870,6 +905,23 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records where {@code key} = {@code value}
      */
     public abstract Set<Long> find(String key, Object value);
+
+    /**
+     * Return the set of records where {@code key} {@link Operator#EQUALS
+     * equals} {@code value}.
+     * <p>
+     * This method is a shortcut for calling
+     * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
+     * </p>
+     * 
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field for the
+     *            record to match
+     * @param order an {@link Order} specification that describes how the result
+     *            set should be sorted
+     * @return the records where {@code key} = {@code value}
+     */
+    public abstract Set<Long> find(String key, Object value, Order order);
 
     /**
      * Return the set of records where {@code key} was {@link Operator#EQUALS

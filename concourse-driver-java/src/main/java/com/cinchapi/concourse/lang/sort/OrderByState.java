@@ -28,14 +28,14 @@ public class OrderByState extends BuildableOrderState
      *
      * @param order
      */
-    OrderByState(Order order, String key, Direction direction) {
+    OrderByState(BuiltOrder order, String key, Direction direction) {
         super(order);
         order.add(key, direction);
     }
 
     /**
      * Add the {@link Direction#ASCENDING} direction to the last key that
-     * was specified in {@link Order} that is building
+     * was specified in {@link BuiltOrder} that is building
      *
      * @return the builder
      */
@@ -55,7 +55,7 @@ public class OrderByState extends BuildableOrderState
 
     /**
      * Add the {@link Direction#DESCENDING} direction to the last key that
-     * was specified in {@link Order} that is building
+     * was specified in {@link BuiltOrder} that is building
      *
      * @return the builder
      */

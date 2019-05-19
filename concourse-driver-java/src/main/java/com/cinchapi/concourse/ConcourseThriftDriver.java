@@ -39,7 +39,7 @@ import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
-import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.BuiltOrder;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
@@ -2071,7 +2071,7 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Criteria criteria, Order order) {
+            Criteria criteria, BuiltOrder order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> raw = client
                     .selectKeysCriteriaOrder(Collections.toList(keys),
@@ -2092,7 +2092,7 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Criteria criteria, Timestamp timestamp, Order order) {
+            Criteria criteria, Timestamp timestamp, BuiltOrder order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> raw;
             if(timestamp.isString()) {
