@@ -2830,7 +2830,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<String, Set<T>> select(Collection<String> keys,
             long record, Timestamp timestamp);
-    
+
     /**
      * Return all the values stored for each of the {@code keys} in every record
      * that matches the {@code ccl} filter.

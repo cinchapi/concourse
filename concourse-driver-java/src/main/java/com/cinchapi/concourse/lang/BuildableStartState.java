@@ -33,5 +33,5 @@ public class BuildableStartState extends BuildableState {
     protected BuildableStartState(BuiltCriteria criteria) {
         super(criteria);
     }
-    
+
 }

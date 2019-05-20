@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.lang;
 
 import java.util.List;
+
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.Symbol;
@@ -81,7 +82,6 @@ public interface Criteria extends Symbol {
         return new StartState(new BuiltCriteria());
     }
 
-
     /**
      * Return this {@link Criteria} with each expression (e.g. {key} {operator}
      * {values}) pinned to the specified {@code timestamp}.
@@ -102,13 +102,12 @@ public interface Criteria extends Symbol {
      * @return an equivalent CCL string
      */
     public String getCclString();
-    
+
     /**
      * Return the order list of symbols that make up this {@link Criteria}.
      * 
      * @return symbols
      */
     public List<Symbol> symbols();
-
 
 }
