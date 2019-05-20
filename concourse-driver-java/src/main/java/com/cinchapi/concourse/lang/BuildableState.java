@@ -69,7 +69,7 @@ public abstract class BuildableState extends State implements Criteria {
     }
 
     @Override
-    public Criteria at(Timestamp timestamp) {
+    public final Criteria at(Timestamp timestamp) {
         return build().at(timestamp);
     }
 
