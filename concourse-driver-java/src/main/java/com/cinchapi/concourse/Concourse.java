@@ -972,7 +972,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Object value2, Order order);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@code timestamp} that satisfies the
@@ -1039,7 +1039,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Order order);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@timestamp} that satisfies the {@code operator} in
@@ -1062,7 +1062,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@timestamp} that satisfies the {@code operator} in
@@ -1113,7 +1113,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, String operator, Object value);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to
@@ -1149,7 +1149,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, String operator, Object value,
             Object value2, Order order);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@code timestamp} that satisfies the
@@ -1174,7 +1174,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@code timestamp} that satisfies the
@@ -1217,7 +1217,8 @@ public abstract class Concourse implements AutoCloseable {
      *            set should be sorted
      * @return the records that match the criteria
      */
-    public abstract Set<Long> find(String key, String operator, Object value, Order order);
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Order order);
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
@@ -1242,7 +1243,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp);
-    
+
     /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@code timestamp} that satisfies the
@@ -1566,7 +1567,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records);
-    
+
     /**
      * For each of the {@code keys} in each of the {@code records}, return the
      * stored value that was most recently added.
@@ -1581,7 +1582,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Order order);
-    
+
     /**
      * For each of the {@code keys} in each of the {@code records}, return the
      * stored value that was most recently added at {@code timestamp}.
@@ -1625,7 +1626,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order);
-    
+
     /**
      * For each of the {@code keys} in every record that matches the
      * {@code criteria}, return the stored value that was most recently
@@ -1657,7 +1658,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Order order);
-    
+
     /**
      * For each of the {@code keys} in every record that matches the
      * {@code criteria}, return the stored value that was most recently
@@ -1752,7 +1753,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl);
-    
+
     /**
      * For each of the {@code keys} in every record that matches the {@code ccl}
      * filter, return the stored value that was most recently added.
@@ -1761,14 +1762,14 @@ public abstract class Concourse implements AutoCloseable {
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
      *            Language
      * @param order an {@link Order} specification that describes how the result
-     *            set should be sorted         
+     *            set should be sorted
      * @return a {@link Map} associating each of the matching records to another
      *         {@link Map} associating each of the {@code keys} to the freshest
      *         value in the field
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Order order);
-    
+
     /**
      * For each of the {@code keys} in every record that matches the {@code ccl}
      * filter, return the stored value that was most recently added at
@@ -1828,7 +1829,7 @@ public abstract class Concourse implements AutoCloseable {
      *         value in the field
      */
     public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria);
-    
+
     /**
      * For every key in every record that matches the {@code criteria}, return
      * the stored value that was most recently added.
@@ -1841,7 +1842,8 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating each of the record's keys to the freshest
      *         value in the field
      */
-    public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order);
+    public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Order order);
 
     /**
      * For every key in every record that matches the {@code criteria}, return
@@ -1863,7 +1865,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp);
-    
+
     /**
      * For every key in every record that matches the {@code criteria}, return
      * the stored value that was most recently added at {@code timestamp} .
@@ -1898,7 +1900,7 @@ public abstract class Concourse implements AutoCloseable {
      *         value in the field
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl);
-    
+
     /**
      * For each of the {@code records}, return the stored value in the
      * {@code key} field that was most recently added.
@@ -1921,8 +1923,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the {@code records} to the
      *         freshest value in the {@code key} field
      */
-    public abstract <T> Map<Long, T> get(String key, Collection<Long> records, Order order);
-    
+    public abstract <T> Map<Long, T> get(String key, Collection<Long> records,
+            Order order);
+
     /**
      * For each of the {@code records}, return the stored value in the
      * {@code key} field that was most recently added at {@code timestamp}
@@ -1964,7 +1967,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Order order);
-    
+
     /**
      * For every record that matches the {@code criteria}, return the stored
      * value in the {@code key} field that was most recently added.
@@ -1989,8 +1992,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the matching records to the
      *         freshest value in the {@code key} field
      */
-    public abstract <T> Map<Long, T> get(String key, Criteria criteria, Order order);
-    
+    public abstract <T> Map<Long, T> get(String key, Criteria criteria,
+            Order order);
+
     /**
      * For every record that matches the {@code criteria}, return the
      * stored value in the {@code key} field that was most recently added at
@@ -2036,7 +2040,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Order order);
-    
+
     /**
      * Return the stored value that was most recently added for {@code key} in
      * {@code record}. If the field is empty, return {@code null}.
@@ -2116,7 +2120,7 @@ public abstract class Concourse implements AutoCloseable {
      *         value in the field
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl, Order order);
-    
+
     /**
      * For every record that matches the {@code ccl} filter, return the
      * stored value in the {@code key} field that was most recently added.
@@ -2152,7 +2156,7 @@ public abstract class Concourse implements AutoCloseable {
      *         freshest value in the {@code key} field
      */
     public abstract <T> Map<Long, T> get(String key, String ccl, Order order);
-    
+
     /**
      * For every record that matches the {@code ccl} filter, return the
      * stored value in the {@code key} field that was most recently added at
@@ -2231,7 +2235,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl,
             Timestamp timestamp);
-    
+
     /**
      * For every key in every record that matches the {@code ccl} filter,
      * return the stored value that was most recently added.
@@ -3252,7 +3256,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records);
-    
+
     /**
      * Return all the data that is currently stored in each of the
      * {@code records}.
@@ -3287,7 +3291,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records, Timestamp timestamp);
-    
+
     /**
      * Return all the data that was stored in each of the {@code records} at
      * {@code timestamp}.
@@ -3323,7 +3327,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Collection<Long> records);
-    
+
     /**
      * Return all the values stored for each of the {@code keys} in each of the
      * {@code records}.
@@ -3361,7 +3365,7 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Collection<Long> records,
             Timestamp timestamp);
-    
+
     /**
      * Return all the values stored for each of the {@code keys} in each of the
      * {@code records} at {@code timestamp}.
@@ -3516,7 +3520,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, String ccl);
-    
+
     /**
      * Return all the values stored for each of the {@code keys} in every record
      * that matches the {@code ccl} filter.
@@ -3556,7 +3560,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, String ccl, Timestamp timestamp);
-    
+
     /**
      * Return all the values stored for each of the {@code keys} at
      * {@code timestamp} in every record that matches the {@code ccl} filter.
@@ -3580,7 +3584,8 @@ public abstract class Concourse implements AutoCloseable {
      *         respective field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
-            Collection<String> keys, String ccl, Timestamp timestamp, Order order);
+            Collection<String> keys, String ccl, Timestamp timestamp,
+            Order order);
 
     /**
      * Return all the data from every record that matches {@code criteria}.
@@ -3595,7 +3600,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Criteria criteria);
-    
+
     /**
      * Return all the data from every record that matches {@code criteria}.
      * 
@@ -3609,8 +3614,8 @@ public abstract class Concourse implements AutoCloseable {
      *         to a {@link Set} containing all the values stored in the
      *         respective field
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(
-            Criteria criteria, Order order);
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Order order);
 
     /**
      * Return all the data at {@code timestamp} from every record that
@@ -3634,7 +3639,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp);
-    
+
     /**
      * Return all the data at {@code timestamp} from every record that
      * matches the {@code criteria}.
@@ -3734,7 +3739,7 @@ public abstract class Concourse implements AutoCloseable {
      *         respective field
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl);
-    
+
     /**
      * Return all values stored for {@code key} in each of the {@code records}.
      * 
@@ -3760,7 +3765,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key,
             Collection<Long> records, Order order);
-    
+
     /**
      * Return all values stored for {@code key} in each of the {@code records}
      * at {@code timestamp}.
@@ -3804,7 +3809,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key,
             Collection<Long> records, Timestamp timestamp, Order order);
-    
+
     /**
      * Return all the values stored for {@code key} in every record that
      * matches the {@code criteria}.
@@ -3831,8 +3836,9 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria, Order order);
-    
+    public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Order order);
+
     /**
      * Return all the values stored for {@code key} at {@code timestamp} in
      * every record that matches the {@code criteria}.
@@ -3878,7 +3884,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Order order);
-    
+
     /**
      * Return all the values stored for {@code key} in {@code record}.
      * 
@@ -3954,7 +3960,8 @@ public abstract class Concourse implements AutoCloseable {
      *         to a {@link Set} containing all the values stored in the
      *         respective field
      */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order);
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Order order);
 
     /**
      * Return all the values stored for {@code key} in every record that
@@ -3968,7 +3975,7 @@ public abstract class Concourse implements AutoCloseable {
      *         field
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl);
-    
+
     /**
      * Return all the values stored for {@code key} in every record that
      * matches the {@code ccl} filter.
@@ -3982,7 +3989,8 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract <T> Map<Long, Set<T>> select(String key, String ccl, Order order);
+    public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
+            Order order);
 
     /**
      * Return all the values stored for {@code key} at {@code timestamp} in
@@ -4005,7 +4013,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp);
-    
+
     /**
      * Return all the values stored for {@code key} at {@code timestamp} in
      * every record that matches the {@code ccl} filter.
@@ -4052,7 +4060,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp);
-    
+
     /**
      * Return all the data at {@code timestamp} from every record that
      * matches the {@code ccl} filter.
