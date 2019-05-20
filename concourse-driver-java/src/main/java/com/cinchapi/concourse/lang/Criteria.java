@@ -101,7 +101,18 @@ public interface Criteria extends Symbol {
      * 
      * @return an equivalent CCL string
      */
-    public String getCclString();
+    public String ccl();
+
+    /**
+     * Return a CCL string that is equivalent to this object.
+     * 
+     * @return an equivalent CCL string
+     * @deprecated in favor of {@link #ccl()}
+     */
+    @Deprecated
+    public default String getCclString() {
+        return ccl();
+    }
 
     /**
      * Return the order list of symbols that make up this {@link Criteria}.

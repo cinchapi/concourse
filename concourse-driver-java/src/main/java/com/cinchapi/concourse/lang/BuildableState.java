@@ -74,8 +74,8 @@ public abstract class BuildableState extends State implements Criteria {
     }
 
     @Override
-    public final String getCclString() {
-        return build().getCclString();
+    public final String ccl() {
+        return build().ccl();
     }
 
     @Override

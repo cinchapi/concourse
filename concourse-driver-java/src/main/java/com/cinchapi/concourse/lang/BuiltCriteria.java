@@ -68,7 +68,7 @@ public class BuiltCriteria implements Criteria {
      * @return this {@link Criteria} pinned to {@code timestamp}
      */
     public Criteria at(Timestamp timestamp) {
-        Parser parser = Parsers.create(getCclString());
+        Parser parser = Parsers.create(ccl());
         List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
         TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
         symbols.forEach((symbol) -> {
@@ -84,21 +84,7 @@ public class BuiltCriteria implements Criteria {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Criteria) {
-            return Objects.equals(symbols, ((Criteria) obj).symbols());
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Return a CCL string that is equivalent to this object.
-     * 
-     * @return an equivalent CCL string
-     */
-    public String getCclString() {
+    public String ccl() {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (Symbol symbol : symbols) {
@@ -109,6 +95,16 @@ public class BuiltCriteria implements Criteria {
             first = false;
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Criteria) {
+            return Objects.equals(symbols, ((Criteria) obj).symbols());
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
@@ -123,7 +119,7 @@ public class BuiltCriteria implements Criteria {
 
     @Override
     public String toString() {
-        return getCclString();
+        return ccl();
     }
 
     /**

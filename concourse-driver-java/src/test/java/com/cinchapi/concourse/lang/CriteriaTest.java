@@ -101,7 +101,7 @@ public class CriteriaTest {
         String ccl = "name = jeff AND (company = Cinchapi at 12345 or company = Blavity)";
         Criteria criteria = Criteria.parse(ccl);
         Parser parser1 = Parsers.create(ccl);
-        Parser parser2 = Parsers.create(criteria.getCclString());
+        Parser parser2 = Parsers.create(criteria.ccl());
         Assert.assertEquals(Parsing.groupExpressions(parser1.tokenize()),
                 Parsing.groupExpressions(parser2.tokenize()));
     }
