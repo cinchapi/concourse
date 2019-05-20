@@ -30,7 +30,7 @@ public class BuildableStartState extends BuildableState {
      * 
      * @param criteria
      */
-    protected BuildableStartState(Criteria criteria) {
+    protected BuildableStartState(BuiltCriteria criteria) {
         super(criteria);
     }
 

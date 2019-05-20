@@ -118,7 +118,7 @@ public final class Link extends Number implements Comparable<Link> {
      *         resolvable link instruction}
      */
     public static String toWhere(Criteria criteria) {
-        return toWhere(criteria.getCclString());
+        return toWhere(criteria.ccl());
     }
 
     /**

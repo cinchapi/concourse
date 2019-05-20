@@ -29,7 +29,7 @@ public class OperatorState extends State {
      * 
      * @param criteria
      */
-    protected OperatorState(Criteria criteria) {
+    protected OperatorState(BuiltCriteria criteria) {
         super(criteria);
     }
 

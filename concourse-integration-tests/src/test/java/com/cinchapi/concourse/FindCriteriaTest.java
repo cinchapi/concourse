@@ -90,11 +90,6 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                         .operator(Operator.GREATER_THAN).value(90).build()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNonBuildableStateParamDoesNotSucceed() {
-        client.find(new Object());
-    }
-
     @Test
     public void testSimple() {
         Assert.assertTrue(hasSameResults(Criteria.where().key("graduation_rate")
@@ -195,6 +190,20 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
         client.find(Criteria.where().key("foo").operator(Operator.EQUALS)
                 .value("\"a and b\"").build());
         Assert.assertTrue(true); // lack of Exception means test passes
+    }
+
+    @Test
+    public void testFindCriteriaImplicitBuild() {
+        Assert.assertTrue(hasSameResults(Criteria.where()
+                .group(Criteria.where().key("graduation_rate")
+                        .operator(Operator.GREATER_THAN).value(90).or()
+                        .key("yield_men").operator(Operator.EQUALS).value(20))
+                .and()
+                .group(Criteria.where().key("percent_undergrad_black")
+                        .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).or()
+                        .key("total_cost_out_state")
+                        .operator(Operator.GREATER_THAN).value(50000)
+                        .build())));
     }
 
     /**
