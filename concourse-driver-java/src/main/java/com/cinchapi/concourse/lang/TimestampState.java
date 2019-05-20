@@ -28,7 +28,7 @@ public class TimestampState extends BuildableState {
      * 
      * @param criteria
      */
-    protected TimestampState(Criteria criteria) {
+    protected TimestampState(BuiltCriteria criteria) {
         super(criteria);
     }
 
