@@ -67,20 +67,25 @@ public abstract class BuildableState extends State implements Criteria {
         criteria.add(ConjunctionSymbol.OR);
         return new StartState(criteria);
     }
-    
+
     @Override
     public Criteria at(Timestamp timestamp) {
         return build().at(timestamp);
     }
 
     @Override
-    public String getCclString() {
+    public final String getCclString() {
         return build().getCclString();
     }
 
     @Override
-    public List<Symbol> symbols() {
+    public final List<Symbol> symbols() {
         return build().symbols();
+    }
+
+    @Override
+    public final String toString() {
+        return build().toString();
     }
 
 }
