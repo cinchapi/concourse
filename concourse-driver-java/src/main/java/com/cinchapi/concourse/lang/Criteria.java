@@ -15,23 +15,14 @@
  */
 package com.cinchapi.concourse.lang;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-
 import com.cinchapi.ccl.Parser;
-import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.SyntaxException;
-import com.cinchapi.ccl.grammar.Expression;
-import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
-import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.util.Parsers;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 /**
@@ -50,7 +41,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public class Criteria implements Symbol {
+public interface Criteria extends Symbol {
 
     /**
      * Return a {@link Criteria} object that expresses the same as the
@@ -61,7 +52,7 @@ public class Criteria implements Symbol {
      */
     public static Criteria parse(String ccl) {
         Parser parser = Parsers.create(ccl);
-        Criteria criteria = new Criteria();
+        BuiltCriteria criteria = new BuiltCriteria();
         try {
             criteria.symbols = Lists.newArrayList(parser.tokenize());
             return criteria;
@@ -87,25 +78,9 @@ public class Criteria implements Symbol {
      * @return the Criteria builder
      */
     public static StartState where() {
-        return new StartState(new Criteria());
+        return new StartState(new BuiltCriteria());
     }
 
-    /**
-     * A flag that indicates whether this {@link Criteria} has been built.
-     */
-    private boolean built = false;
-
-    /**
-     * The collection of {@link Symbol}s that make up this {@link Criteria}.
-     */
-    private List<Symbol> symbols;
-
-    /**
-     * Construct a new instance.
-     */
-    protected Criteria() {
-        this.symbols = Lists.newArrayList();
-    }
 
     /**
      * Return this {@link Criteria} with each expression (e.g. {key} {operator}
@@ -119,107 +94,21 @@ public class Criteria implements Symbol {
      * 
      * @return this {@link Criteria} pinned to {@code timestamp}
      */
-    public Criteria at(Timestamp timestamp) {
-        Parser parser = Parsers.create(getCclString());
-        List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
-        TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
-        symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
-                Reflection.set("timestamp", ts, expression); // (authorized)
-            }
-        });
-        Criteria criteria = new Criteria();
-        symbols = Parsing.ungroupExpressions(symbols);
-        criteria.symbols = symbols;
-        return criteria;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Criteria) {
-            return Objects.equals(symbols, ((Criteria) obj).symbols);
-        }
-        else {
-            return false;
-        }
-    }
+    public Criteria at(Timestamp timestamp);
 
     /**
      * Return a CCL string that is equivalent to this object.
      * 
      * @return an equivalent CCL string
      */
-    public String getCclString() {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (Symbol symbol : symbols) {
-            if(!first) {
-                sb.append(" ");
-            }
-            sb.append(symbol);
-            first = false;
-        }
-        return sb.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(symbols);
-    }
-
-    @Override
-    public String toString() {
-        return getCclString();
-    }
-
-    /**
-     * Add a {@link Symbol} to this {@link Criteria}.
-     * 
-     * @param symbol
-     */
-    protected void add(Symbol symbol) {
-        Preconditions.checkState(!built,
-                "Cannot add a symbol to a built Criteria");
-        symbols.add(symbol);
-    }
-
-    /**
-     * Mark this {@link Criteria} as {@code built}.
-     */
-    protected void close() {
-        built = !built ? true : built;
-        List<Symbol> expanded = Lists.newArrayList();
-        expand(symbols, expanded);
-        this.symbols = expanded;
-    }
-
+    public String getCclString();
+    
     /**
      * Return the order list of symbols that make up this {@link Criteria}.
      * 
      * @return symbols
      */
-    protected List<Symbol> getSymbols() {
-        return Collections.unmodifiableList(symbols);
-    }
+    public List<Symbol> symbols();
 
-    /**
-     * Expand any sub/grouped Criteria.
-     * 
-     * @param symbols
-     * @param expanded
-     */
-    private void expand(List<Symbol> symbols, List<Symbol> expanded) {
-        for (Symbol symbol : symbols) {
-            if(symbol instanceof Criteria) {
-                expanded.add(ParenthesisSymbol.LEFT);
-                expand(((Criteria) symbol).symbols, expanded);
-                expanded.add(ParenthesisSymbol.RIGHT);
-            }
-            else {
-                expanded.add(symbol);
-            }
-        }
-    }
 
 }

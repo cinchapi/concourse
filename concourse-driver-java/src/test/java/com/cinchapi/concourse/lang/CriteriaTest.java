@@ -42,7 +42,7 @@ public class CriteriaTest {
     public void testCannotAddSymbolToBuiltCriteria() {
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.EQUALS).value("bar").build();
-        criteria.add(new KeySymbol("baz"));
+        ((BuiltCriteria) criteria).add(new KeySymbol("baz"));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class CriteriaTest {
                 .build();
         Timestamp timestamp = Timestamp.now();
         criteria = criteria.at(timestamp);
-        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
             if(symbol instanceof Expression) {
                 Expression expression = (Expression) symbol;
@@ -86,7 +86,7 @@ public class CriteriaTest {
                 .build();
         Timestamp timestamp = Timestamp.now();
         criteria = criteria.at(timestamp);
-        List<Symbol> symbols = Parsing.groupExpressions(criteria.getSymbols());
+        List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
             if(symbol instanceof Expression) {
                 Expression expression = (Expression) symbol;
