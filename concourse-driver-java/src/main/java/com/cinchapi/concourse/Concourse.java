@@ -1087,6 +1087,15 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Order order);
+    
+    /**
+     * Return the set of records that satisfy the {@code ccl} filter.
+     * 
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String ccl);
 
     /**
      * Return the set of records that satisfy the {@code ccl} filter.
