@@ -15,6 +15,13 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.Criteria;
@@ -24,12 +31,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Unit tests to make sure that the select operation with {@link Page}
@@ -63,7 +64,8 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
                 .collect(Collectors.toList());
 
         List<Map<String, Object>> expected = client
-                .select(Lists.newArrayList("ipeds_id", "graduation_rate"), criteria)
+                .select(Lists.newArrayList("ipeds_id", "graduation_rate"),
+                        criteria)
                 .values().stream()
                 .map(child -> child.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
