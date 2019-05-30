@@ -37,8 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import com.cinchapi.concourse.lang.pagination.Page;
-import com.cinchapi.concourse.lang.pagination.PageLanguage;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -56,6 +54,8 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.pagination.Page;
+import com.cinchapi.concourse.lang.pagination.PageLanguage;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
@@ -1690,8 +1690,47 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                results.set(ast.accept(Finder.instance(), atomic));
+            });
+            return results.get();
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            results.set(ast.accept(Finder.instance(), atomic));
+        });
+        return results.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Set<Long> findCriteriaPage(TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
@@ -1715,6 +1754,17 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Set<Long> findKeyOperatorstrValuesPage(String key, String operator,
+            List<TObject> values, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorValuesPage(key,
+                Convert.stringToOperator(operator), values, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Set<Long> findKeyOperatorstrValuesTime(String key, String operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1726,6 +1776,17 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Set<Long> findKeyOperatorstrValuesTimePage(String key,
+            String operator, List<TObject> values, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorValuesTimePage(key,
+                Convert.stringToOperator(operator), values, timestamp, page,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimestr(String key,
             String operator, List<TObject> values, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1733,6 +1794,17 @@ public class ConcourseServer extends BaseConcourseServer
         return findKeyOperatorstrValuesTime(key, operator, values,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Set<Long> findKeyOperatorstrValuesTimestrPage(String key,
+            String operator, List<TObject> values, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorstrValuesTimePage(key, operator, values,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1751,11 +1823,38 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
+            List<TObject> values, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        TObject[] tValues = values.toArray(new TObject[values.size()]);
+        // TODO: Implement pagination
+        return getStore(transaction, environment).find(key, operator, tValues);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         TObject[] tValues = values.toArray(new TObject[values.size()]);
+        return getStore(transaction, environment).find(timestamp, key, operator,
+                tValues);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Set<Long> findKeyOperatorValuesTimePage(String key,
+            Operator operator, List<TObject> values, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        TObject[] tValues = values.toArray(new TObject[values.size()]);
+        // TODO: Implement pagination
         return getStore(transaction, environment).find(timestamp, key, operator,
                 tValues);
     }
@@ -1769,6 +1868,17 @@ public class ConcourseServer extends BaseConcourseServer
         return findKeyOperatorValuesTime(key, operator, values,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Set<Long> findKeyOperatorValuesTimestrPage(String key,
+            Operator operator, List<TObject> values, String timestamp,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return findKeyOperatorValuesTimePage(key, operator, values,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1902,6 +2012,47 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record);
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1940,11 +2091,63 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getCclTimePage(String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record, timestamp);
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return getCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> getCclTimestrPage(String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getCclTimePage(ccl, NaturalLanguage.parseMicros(timestamp), page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -1986,6 +2189,42 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record);
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2019,12 +2258,60 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getCriteriaTimePage(
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record, timestamp);
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return getCriteriaTime(criteria, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> getCriteriaTimestrPage(
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getCriteriaTimePage(criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2063,6 +2350,39 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    try {
+                        result.put(record,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+        // TODO: Implement pagination
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2093,9 +2413,53 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    try {
+                        result.put(record, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+        // TODO: Implement pagination
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, TObject> getKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
+        return getKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> getKeyCclTimestrPage(String key, String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return getKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
     }
@@ -2131,6 +2495,34 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                try {
+                    result.put(record,
+                            Iterables.getLast(atomic.select(key, record)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2156,6 +2548,35 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyCriteriaTimePage(String key,
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                try {
+                    result.put(record, Iterables
+                            .getLast(atomic.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2163,6 +2584,17 @@ public class ConcourseServer extends BaseConcourseServer
         return getKeyCriteriaTime(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> getKeyCriteriaTimestrPage(String key,
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeyCriteriaTimePage(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2205,6 +2637,31 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                try {
+                    result.put(record,
+                            Iterables.getLast(atomic.select(key, record)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2225,6 +2682,30 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyRecordsTimePage(String key,
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            try {
+                result.put(record, Iterables
+                        .getLast(store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2232,6 +2713,17 @@ public class ConcourseServer extends BaseConcourseServer
         return getKeyRecordsTime(key, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> getKeyRecordsTimestrPage(String key,
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeyRecordsTimePage(key, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2298,6 +2790,47 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
+            String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclTime(List<String> keys,
             String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2336,12 +2869,64 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysCclTimePage(List<String> keys,
+            String ccl, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            // TODO: Implement pagination
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return getKeysCclTime(keys, ccl, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysCclTimestrPage(
+            List<String> keys, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCclTimePage(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2373,6 +2958,42 @@ public class ConcourseServer extends BaseConcourseServer
                 if(!entry.isEmpty()) {
                     result.put(record, entry);
                 }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+                // TODO: Implement pagination
             }
         });
         return result;
@@ -2415,6 +3036,42 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimePage(
+            List<String> keys, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+            // TODO: Implement pagination
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2422,6 +3079,17 @@ public class ConcourseServer extends BaseConcourseServer
         return getKeysCriteriaTime(keys, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrPage(
+            List<String> keys, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCriteriaTimePage(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2481,6 +3149,38 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+                // TODO: Implement pagination
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsTime(List<String> keys,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2509,6 +3209,37 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimePage(
+            List<String> keys, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            Map<String, TObject> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key, Iterables
+                            .getLast(store.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                result.put(record, entry);
+            }
+            // TODO: Implement pagination
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2516,6 +3247,17 @@ public class ConcourseServer extends BaseConcourseServer
         return getKeysRecordsTime(keys, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimestrPage(
+            List<String> keys, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysRecordsTimePage(keys, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3267,6 +4009,15 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyCclPage(String key, String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return navigateKeyCclTimePage(key, ccl, Time.NONE, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
@@ -3292,6 +4043,33 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> navigateKeyCclTimePage(String key,
+            String ccl, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
+                    null);
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                result.set(Operations.navigateKeyRecordsAtomic(key, records,
+                        timestamp, atomic));
+            });
+            // TODO: Implement pagination
+            return result.get();
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3302,11 +4080,32 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyCclTimestrPage(String key,
+            String ccl, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyCclTimePage(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyCriteria(String key,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return navigateKeyCriteriaTime(key, criteria, Time.NONE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyCriteriaPage(String key,
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyCriteriaTimePage(key, criteria, Time.NONE, page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -3332,6 +4131,28 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTimePage(String key,
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
+                null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            result.set(Operations.navigateKeyRecordsAtomic(key, records,
+                    timestamp, atomic));
+        });
+        // TODO: Implement pagination
+        return result.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3339,6 +4160,17 @@ public class ConcourseServer extends BaseConcourseServer
         return navigateKeyCriteriaTime(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyCriteriaTimestrPage(String key,
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyCriteriaTimePage(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3352,10 +4184,30 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyRecordPage(String key,
+            long record, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordTimePage(key, record, Time.NONE, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return navigateKeyRecordsTime(key, records, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyRecordsPage(String key,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordsTimePage(key, records, Time.NONE, page, creds,
                 transaction, environment);
     }
 
@@ -3379,6 +4231,25 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> navigateKeyRecordsTimePage(String key,
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
+                null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.set(Operations.navigateKeyRecordsAtomic(key,
+                    Sets.newLinkedHashSet(records), timestamp, atomic));
+        });
+        // TODO: Implement pagination
+        return result.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3386,6 +4257,17 @@ public class ConcourseServer extends BaseConcourseServer
         return navigateKeyRecordsTime(key, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyRecordsTimestrPage(String key,
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordsTimePage(key, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3408,6 +4290,25 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> navigateKeyRecordTimePage(String key,
+            long record, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
+                null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.set(Operations.navigateKeyRecordAtomic(key, record,
+                    timestamp, atomic));
+        });
+        // TODO: Implement pagination
+        return result.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3419,12 +4320,33 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> navigateKeyRecordTimestrPage(String key,
+            long record, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeyRecordTimePage(key, record,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
             List<String> keys, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return navigateKeysCclTime(keys, ccl, Time.NONE, creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclPage(
+            List<String> keys, String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCclTimePage(keys, ccl, Time.NONE, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3455,6 +4377,33 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimePage(
+            List<String> keys, String ccl, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
+                    null);
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                result.set(Operations.navigateKeysRecordsAtomic(keys, records,
+                        timestamp, atomic));
+            });
+            return result.get();
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3466,12 +4415,33 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestrPage(
+            List<String> keys, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCclTimePage(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return navigateKeysCriteriaTime(keys, criteria, Time.NONE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTimePage(keys, criteria, Time.NONE, page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -3502,6 +4472,33 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimePage(
+            List<String> keys, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(criteria);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
+                    null);
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                result.set(Operations.navigateKeysRecordsAtomic(keys, records,
+                        timestamp, atomic));
+            });
+            return result.get();
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3509,6 +4506,17 @@ public class ConcourseServer extends BaseConcourseServer
         return navigateKeysCriteriaTime(keys, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestrPage(
+            List<String> keys, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysCriteriaTimePage(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3523,12 +4531,32 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordPage(
+            List<String> keys, long record, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordTimePage(keys, record, Time.NONE, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return navigateKeysRecordsTime(keys, records, Time.NONE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsPage(
+            List<String> keys, List<Long> records, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordsTimePage(keys, records, Time.NONE, page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -3551,6 +4579,25 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimePage(
+            List<String> keys, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
+                null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.set(Operations.navigateKeysRecordsAtomic(keys,
+                    Sets.newLinkedHashSet(records), timestamp, atomic));
+        });
+        // TODO: Implement pagination
+        return result.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3558,6 +4605,17 @@ public class ConcourseServer extends BaseConcourseServer
         return navigateKeysRecordsTime(keys, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestrPage(
+            List<String> keys, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, TException {
+        return navigateKeysRecordsTimePage(keys, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3580,6 +4638,26 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimePage(
+            List<String> keys, long record, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
+                null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.set(Operations.navigateKeysRecordAtomic(keys, record,
+                    timestamp, atomic));
+        });
+
+        // TODO: Implement pagination
+        return result.get();
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestr(
             List<String> keys, long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3587,6 +4665,17 @@ public class ConcourseServer extends BaseConcourseServer
         return navigateKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestrPage(
+            List<String> keys, long record, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return navigateKeysRecordTimePage(keys, record,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     /**
@@ -3795,6 +4884,17 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Set<Long> searchPage(String key, String query, TPage page,
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
+        return getStore(transaction, env).search(key, query);
+        // TODO: Implement pagination
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3816,6 +4916,39 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
+            TPage Page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record);
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            // TODO: Implement pagination
             return result;
         }
         catch (Exception e) {
@@ -3857,11 +4990,55 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimePage(String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record, timestamp);
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record, timestamp));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            // TODO: Implement pagination
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return selectCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimestrPage(String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectCclTimePage(ccl, NaturalLanguage.parseMicros(timestamp),
+                page, creds, transaction, environment);
     }
 
     @Override
@@ -3887,6 +5064,35 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record);
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+            // TODO: Implement pagination
         });
         return result;
     }
@@ -3921,6 +5127,35 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimePage(
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record, timestamp);
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record, timestamp));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+            // TODO: Implement pagination
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3928,6 +5163,17 @@ public class ConcourseServer extends BaseConcourseServer
         return selectCriteriaTime(criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrPage(
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectCriteriaTimePage(criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3950,6 +5196,33 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             });
             return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    result.put(record, atomic.select(key, record));
+                }
+            });
+            return result;
+            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -3984,12 +5257,51 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyCclTimePage(String key, String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    result.put(record, atomic.select(key, record, timestamp));
+                }
+            });
+            return result;
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return selectKeyCclTime(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCclTimestrPage(String key,
+            String ccl, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyCclTimePage(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4009,6 +5321,29 @@ public class ConcourseServer extends BaseConcourseServer
             for (long record : records) {
                 result.put(record, atomic.select(key, record));
             }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyCriteriaPage(String key,
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                result.put(record, atomic.select(key, record));
+            }
+            // TODO: Implement pagination
         });
         return result;
     }
@@ -4037,6 +5372,29 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimePage(String key,
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                result.put(record, atomic.select(key, record, timestamp));
+            }
+            // TODO: Implement pagination
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4044,6 +5402,17 @@ public class ConcourseServer extends BaseConcourseServer
         return selectKeyCriteriaTime(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimestrPage(String key,
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyCriteriaTimePage(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4077,6 +5446,25 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyRecordsPage(String key,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                result.put(record, atomic.select(key, record));
+            }
+        });
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4092,6 +5480,24 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyRecordsTimePage(String key,
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            result.put(record, store.select(key, record, timestamp));
+        }
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4099,6 +5505,17 @@ public class ConcourseServer extends BaseConcourseServer
         return selectKeyRecordsTime(key, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> selectKeyRecordsTimestrPage(String key,
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyRecordsTimePage(key, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4157,6 +5574,39 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
+            List<String> keys, String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            // TODO: Implement pagination
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTime(
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4187,9 +5637,53 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimePage(
+            List<String> keys, String ccl, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record, timestamp));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            return result;
+            // TODO: Implement pagination
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrPage(
+            List<String> keys, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return selectKeysCclTime(keys, ccl,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
@@ -4227,6 +5721,45 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page selectedPage = PageLanguage.translateFromThriftPage(page);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            int offset = 0;
+            int limit = 0;
+            for (long record : records) {
+                if(offset >= selectedPage.skip()
+                        && limit < selectedPage.limit()) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                    limit++;
+                }
+                offset++;
+
+                if(limit >= selectedPage.limit()) {
+                    break;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4252,55 +5785,6 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
-            List<String> keys, TCriteria criteria, String timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return selectKeysCriteriaTime(keys, criteria,
-                NaturalLanguage.parseMicros(timestamp), creds, transaction,
-                environment);
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
-            List<String> keys, TCriteria criteria, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        Page selectedPage = PageLanguage.translateFromThriftPage(page);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            int offset = 0;
-            int limit = 0;
-            for (long record : records) {
-                if (offset >= selectedPage.skip() && limit < selectedPage.limit()) {
-                    Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        entry.put(key, atomic.select(key, record));
-                    }
-                    TMaps.putResultDatasetOptimized(result, record, entry);
-                    limit++;
-                }
-                offset++;
-
-                if (limit >= selectedPage.limit()) {
-                    break;
-                }
-            }
-        });
-        return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
@@ -4318,7 +5802,8 @@ public class ConcourseServer extends BaseConcourseServer
             int offset = 0;
             int limit = 0;
             for (long record : records) {
-                if (offset > selectedPage.skip() && limit < selectedPage.limit()) {
+                if(offset > selectedPage.skip()
+                        && limit < selectedPage.limit()) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
@@ -4329,12 +5814,23 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 offset++;
 
-                if (limit >= selectedPage.limit()) {
+                if(limit >= selectedPage.limit()) {
                     break;
                 }
             }
         });
         return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4394,6 +5890,32 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsPage(
+            List<String> keys, List<Long> records, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
+                }
+                if(!entry.isEmpty()) {
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            }
+            // TODO: Implement pagination
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4416,6 +5938,31 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimePage(
+            List<String> keys, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
+        for (long record : records) {
+            Map<String, Set<TObject>> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                entry.put(key, store.select(key, record, timestamp));
+            }
+            if(!entry.isEmpty()) {
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        }
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4423,6 +5970,17 @@ public class ConcourseServer extends BaseConcourseServer
         return selectKeysRecordsTime(keys, records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrPage(
+            List<String> keys, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysRecordsTimePage(keys, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4485,6 +6043,26 @@ public class ConcourseServer extends BaseConcourseServer
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsPage(
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                TMaps.putResultDatasetOptimized(result, record,
+                        atomic.select(record));
+            }
+            // TODO: Implement pagination
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTime(
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4501,6 +6079,25 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimePage(
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
+        for (long record : records) {
+            TMaps.putResultDatasetOptimized(result, record,
+                    store.select(record, timestamp));
+        }
+        // TODO: Implement pagination
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4508,6 +6105,17 @@ public class ConcourseServer extends BaseConcourseServer
         return selectRecordsTime(records,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrPage(
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectRecordsTimePage(records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
