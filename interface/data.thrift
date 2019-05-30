@@ -78,3 +78,21 @@ struct TSymbol {
 struct TCriteria {
   1:required list<TSymbol> symbols
 }
+
+/**
+ * Encapsulation for a single order component (key, direction and optional 
+ * selection timestamp for the key).
+ */
+struct TOrderComponent {
+  1:required string key,
+  2:optional TObject timestamp,
+  3:required i32 direction
+}
+
+/**
+ * Encapsulation for a group of {@link TOrderComponent order components} 
+ * that describe how a result set should be sorted.
+ */ 
+struct TOrder {
+  1:required list<TOrderComponent> spec
+}

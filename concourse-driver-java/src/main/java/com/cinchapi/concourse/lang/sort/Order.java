@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
@@ -44,10 +44,11 @@ public interface Order {
     }
 
     /**
-     * Return the order specification, expressed as a mapping from each key to
-     * the corresponding direction ordinal (e.g. 1 for ASC and -1 for DESC) in
-     * the constructed {@link Order}.
+     * Return the order specification, expressed as an ordered list of
+     * {@link OrderComponent components} containing each key, an optional
+     * {@link Timestamp} and the the corresponding direction ordinal (e.g. 1 for
+     * ASC and -1 for DESC) in the constructed {@link Order}.
      */
-    public LinkedHashMap<String, Integer> spec();
+    public List<OrderComponent> spec();
 
 }

@@ -31,7 +31,7 @@ public class OrderDirectionState extends BuildableOrderState
      */
     OrderDirectionState(BuiltOrder order, String key, Direction direction) {
         super(order);
-        order.add(key, direction);
+        order.set(key, direction);
     }
 
     @Override

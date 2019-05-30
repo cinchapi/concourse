@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * The base class for a Sort Order state that can be transformed into a complete
@@ -43,7 +43,7 @@ public abstract class BuildableOrderState extends OrderState implements Order {
     }
 
     @Override
-    public final LinkedHashMap<String, Integer> spec() {
+    public final List<OrderComponent> spec() {
         return build().spec();
     }
 

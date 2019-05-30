@@ -18,21 +18,24 @@ package com.cinchapi.concourse.lang.sort;
 import com.cinchapi.concourse.Timestamp;
 
 /**
- * The {@link OrderState} that expects the next token to be a sort order,
- * timestamp or a new key to sort by.
+ * The {@link OrderState} that represents a transition induced by the
+ * introduction of a timestamp token. The expected next token is either a
+ * direction token or a new key to sort on.
+ *
+ * @author Jeff Nelson
  */
-public class OrderByState extends BuildableOrderState implements
+public class OrderAtState extends BuildableOrderState implements
         ShortcutThenByState,
         TransitionToOrderDirectionState {
 
     /**
      * Construct a new instance.
-     *
+     * 
      * @param order
      */
-    OrderByState(BuiltOrder order, String key, Direction direction) {
+    protected OrderAtState(BuiltOrder order, String key, Timestamp timestamp) {
         super(order);
-        order.set(key, direction);
+        order.set(key, timestamp);
     }
 
     @Override
@@ -40,12 +43,9 @@ public class OrderByState extends BuildableOrderState implements
         return new OrderThenState(order);
     }
 
-    public OrderAtState at(Timestamp timestamp) {
-        return new OrderAtState(order, order.lastKey, timestamp);
-    }
-
     @Override
     public BuiltOrder $order() {
         return order;
     }
+
 }

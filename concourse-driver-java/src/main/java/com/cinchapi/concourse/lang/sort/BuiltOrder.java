@@ -16,10 +16,13 @@
 package com.cinchapi.concourse.lang.sort;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.Timestamp;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
@@ -35,10 +38,10 @@ final class BuiltOrder implements Order {
      * A mapping from each key to direction ordinal (e.g. 1 for ASC and -1 for
      * DESC) in the constructed {@link BuiltOrder}.
      */
-    private final LinkedHashMap<String, Integer> spec;
+    private final LinkedHashMap<String, OrderComponent> spec;
 
     /**
-     * The last key that was {@link #add(String, Direction) added}.
+     * The last key that was {@link #set(String, Direction) added}.
      */
     @Nullable
     protected String lastKey;
@@ -70,6 +73,23 @@ final class BuiltOrder implements Order {
         return spec.hashCode();
     }
 
+    @Override
+    public List<OrderComponent> spec() {
+        return spec.values().stream().collect(Collectors.toList());
+    }
+
+    /**
+     * Modify to the order {@link #spec()}.
+     * 
+     * @param key
+     * @param direction
+     */
+    final void set(String key, Direction direction) {
+        OrderComponent component = spec.get(key);
+        set(key, component == null ? null : component.timestamp(), direction);
+
+    }
+
     /**
      * Mark this {@link BuiltOrder} as {@code built}.
      */
@@ -78,20 +98,30 @@ final class BuiltOrder implements Order {
     }
 
     /**
-     * Add to the order {@link #spec}.
+     * Modify to the order {@link #spec()}.
      * 
      * @param key
+     * @param timestamp
      * @param direction
      */
-    final void add(String key, Direction direction) {
-        Preconditions.checkState(!built, "Cannot modify a built Order");
-        spec.put(key, direction.coefficient());
-        this.lastKey = key;
+    final void set(String key, Timestamp timestamp) {
+        OrderComponent component = spec.get(key);
+        set(key, timestamp, component == null ? Direction.$default()
+                : component.direction());
     }
 
-    @Override
-    public LinkedHashMap<String, Integer> spec() {
-        return spec;
+    /**
+     * Modify to the order {@link #spec()}.
+     * 
+     * @param key
+     * @param timestamp
+     * @param direction
+     */
+    final void set(String key, Timestamp timestamp, Direction direction) {
+        Preconditions.checkState(!built, "Cannot modify a built Order");
+        spec.put(key, new OrderComponent(key, timestamp, direction));
+        this.lastKey = key;
+
     }
 
 }
