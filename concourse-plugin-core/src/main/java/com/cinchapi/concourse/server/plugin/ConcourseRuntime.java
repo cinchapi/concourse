@@ -34,10 +34,12 @@ import org.aopalliance.intercept.MethodInvocation;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Lists;
@@ -118,9 +120,11 @@ public class ConcourseRuntime extends StatefulConcourseService {
             Collection<Integer> valueTransform = VALUE_TRANSFORM.get(method);
             Collection<Integer> criteriaTransform = CRITERIA_TRANSFORM
                     .get(method);
+            Collection<Integer> orderTransform = ORDER_TRANSFORM.get(method);
             for (int i = 0; i < args.length; ++i) {
                 // Must go through each parameters and transform generic value
-                // objects into TObjects and all Criteria into TCriteria.
+                // objects into TObjects; all Criteria into TCriteria and all
+                // Order into TOrder
                 Object arg = args[i];
                 if(valueTransform.contains(i)) {
                     if(arg instanceof List) {
@@ -144,6 +148,9 @@ public class ConcourseRuntime extends StatefulConcourseService {
                 }
                 else if(criteriaTransform.contains(i)) {
                     arg = Language.translateToThriftCriteria((Criteria) arg);
+                }
+                else if(orderTransform.contains(i)) {
+                    arg = JavaThriftBridge.convert((Order) arg);
                 }
                 targs.add(ComplexTObject.fromJavaObject(arg));
             }
