@@ -24,9 +24,8 @@ import com.cinchapi.concourse.Timestamp;
  *
  * @author Jeff Nelson
  */
-public class OrderAtState extends BuildableOrderState implements
-        ShortcutThenByState,
-        TransitionToOrderDirectionState {
+public class OrderAtState extends BuildableOrderState
+        implements ShortcutThenByState, TransitionToOrderDirectionState {
 
     /**
      * Construct a new instance.

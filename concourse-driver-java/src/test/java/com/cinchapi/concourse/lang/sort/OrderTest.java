@@ -117,9 +117,8 @@ public class OrderTest {
     public void testOrderWithTimestamp() {
         Timestamp t1 = Timestamp.now();
         Timestamp t2 = Timestamp.now();
-        Order order = Order.by("name").at(t1).descending()
-                .then("age").then().by("email")
-                .at(t2);
+        Order order = Order.by("name").at(t1).descending().then("age").then()
+                .by("email").at(t2);
         List<OrderComponent> expected = ImmutableList.of(
                 new OrderComponent("name", t1, Direction.DESCENDING),
                 new OrderComponent("age", Direction.ASCENDING),

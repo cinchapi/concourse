@@ -21,9 +21,8 @@ import com.cinchapi.concourse.Timestamp;
  * The {@link OrderState} that expects the next token to be a sort order,
  * timestamp or a new key to sort by.
  */
-public class OrderByState extends BuildableOrderState implements
-        ShortcutThenByState,
-        TransitionToOrderDirectionState {
+public class OrderByState extends BuildableOrderState
+        implements ShortcutThenByState, TransitionToOrderDirectionState {
 
     /**
      * Construct a new instance.
