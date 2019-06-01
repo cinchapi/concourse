@@ -114,7 +114,7 @@ abstract class Sorter<V> {
                     v2 = lookup(key, r2, timestamp.getMicros());
                 }
                 if(!Empty.ness().describes(v1) && !Empty.ness().describes(v2)) {
-                    // The coefficient is only applied with both values are
+                    // The coefficient is only applied when both values are
                     // non-empty. Otherwise, the empty value should float to the
                     // end of the sort, regardless of the specified direction
                     return direction.coefficient() * compare(v1, v2);
