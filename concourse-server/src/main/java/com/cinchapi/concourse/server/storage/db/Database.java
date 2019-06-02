@@ -18,20 +18,22 @@ package com.cinchapi.concourse.server.storage.db;
 import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.ConcourseExecutors;
@@ -296,10 +298,9 @@ public final class Database extends BaseStore implements PermanentStore {
                     new BlockWriter(ctb0, write));
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -679,8 +680,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>>
-            implements Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>> implements
+            Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
@@ -699,39 +700,35 @@ public final class Database extends BaseStore implements PermanentStore {
             this.blocks = blocks;
         }
 
-        @SuppressWarnings("deprecation")
         @Override
         public void run() {
-            File _file = null;
-            try {
-                final String path = backingStore + File.separator + directory;
-                FileSystem.mkdirs(path);
-                SortedMap<File, T> blockSorter = Maps
-                        .newTreeMap(NaturalSorter.INSTANCE);
-                Set<String> checksums = Sets.newHashSet();
-                for (File file : new File(path).listFiles(new FilenameFilter() {
-
-                    @Override
-                    public boolean accept(File dir, String name) {
-                        return dir.getAbsolutePath()
-                                .equals(new File(path).getAbsolutePath())
-                                && name.endsWith(Block.BLOCK_NAME_EXTENSION);
-                    }
-
-                })) {
-                    _file = file;
+            Path path = Paths.get(backingStore, directory);
+            path.toFile().mkdirs();
+            SortedMap<File, T> sorted = Maps.newTreeMap(NaturalSorter.INSTANCE);
+            Set<String> checksums = Sets.newHashSet();
+            Stream<File> files = FileSystem.ls(path)
+                    .filter(file -> file.toString()
+                            .endsWith(Block.BLOCK_NAME_EXTENSION))
+                    .map(Path::toFile);
+            files.forEach(file -> {
+                try {
                     String id = Block.getId(file.getName());
-                    Constructor<T> constructor = clazz.getDeclaredConstructor(
-                            String.class, String.class, Boolean.TYPE);
-                    constructor.setAccessible(true);
                     String checksum = Files.asByteSource(file)
-                            .hash(Hashing.md5()).toString();
+                            .hash(Hashing.murmur3_128()).toString();
                     if(!checksums.contains(checksum)) {
-                        blockSorter.put(file, constructor.newInstance(id,
-                                path.toString(), true));
-                        Logger.info("Loaded {} metadata for {}",
-                                clazz.getSimpleName(), file.getName());
-                        checksums.add(checksum);
+                        try {
+                            T block = Reflection.newInstance(clazz, id,
+                                    path.toString(), true);
+                            sorted.put(file, block);
+                            checksums.add(checksum);
+                            Logger.info("Loaded {} metadata for {}",
+                                    clazz.getSimpleName(), file.getName());
+                        }
+                        catch (MalformedBlockException e) {
+                            Logger.warn(
+                                    "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
+                                    e.getMessage(), id);
+                        }
                     }
                     else {
                         Logger.warn(
@@ -740,19 +737,16 @@ public final class Database extends BaseStore implements PermanentStore {
                                         + "delete this file.",
                                 clazz.getSimpleName(), id);
                     }
-
                 }
-                blocks.addAll(blockSorter.values());
-            }
-            catch (ReflectiveOperationException | IOException e) {
-                Logger.error(
-                        "An error occured while loading {} metadata for {}",
-                        clazz.getSimpleName(), _file.getName());
-                Logger.error("", e);
-            }
-
+                catch (IOException e) {
+                    Logger.error(
+                            "An error occured while loading {} metadata for {}",
+                            clazz.getSimpleName(), file.getName());
+                    Logger.error("", e);
+                }
+            });
+            blocks.addAll(sorted.values());
         }
-
     }
 
     /**
