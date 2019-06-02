@@ -81,7 +81,7 @@ public class BloomFilter implements Syncable {
     public static BloomFilter create(Path file, int expectedInsertions) {
         return create(file.toString(), expectedInsertions);
     }
-    
+
     /**
      * Create a new BloomFilter with enough capacity for
      * {@code expectedInsertions}.
@@ -99,7 +99,7 @@ public class BloomFilter implements Syncable {
     public static BloomFilter create(String file, int expectedInsertions) {
         return new BloomFilter(file, expectedInsertions);
     }
-    
+
     /**
      * Return the BloomFilter that is stored on disk in {@code file}.
      * 

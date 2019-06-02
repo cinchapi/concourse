@@ -298,9 +298,10 @@ public final class Database extends BaseStore implements PermanentStore {
                     new BlockWriter(ctb0, write));
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
+            Logger.warn(
+                    "The Engine refused to accept {} because "
+                            + "it appears that the data was already transported. "
+                            + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -680,8 +681,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>> implements
-            Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>>
+            implements Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
