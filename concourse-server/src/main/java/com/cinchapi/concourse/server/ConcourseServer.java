@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -1827,9 +1828,13 @@ public class ConcourseServer extends BaseConcourseServer
             List<TObject> values, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
-        // TODO: Implement pagination
-        return getStore(transaction, environment).find(key, operator, tValues);
+        return getStore(transaction, environment).find(key, operator, tValues)
+                .stream()
+                .skip(translatedPage.skip())
+                .limit(translatedPage.limit())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -1853,10 +1858,14 @@ public class ConcourseServer extends BaseConcourseServer
             Operator operator, List<TObject> values, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
-        // TODO: Implement pagination
         return getStore(transaction, environment).find(timestamp, key, operator,
-                tValues);
+                tValues)
+                .stream()
+                .skip(translatedPage.skip())
+                .limit(translatedPage.limit())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -2020,10 +2029,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record);
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -2042,7 +2055,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -2102,10 +2114,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record, timestamp);
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -2124,7 +2140,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -2196,10 +2211,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record);
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -2217,7 +2236,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2268,10 +2286,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record, timestamp);
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -2289,7 +2311,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2358,10 +2379,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     try {
                         result.put(record,
                                 Iterables.getLast(atomic.select(key, record)));
@@ -2376,7 +2401,6 @@ public class ConcourseServer extends BaseConcourseServer
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-        // TODO: Implement pagination
     }
 
     @Override
@@ -2424,10 +2448,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     try {
                         result.put(record, Iterables.getLast(
                                 atomic.select(key, record, timestamp)));
@@ -2442,7 +2470,6 @@ public class ConcourseServer extends BaseConcourseServer
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-        // TODO: Implement pagination
     }
 
     @Override
@@ -2502,10 +2529,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 try {
                     result.put(record,
                             Iterables.getLast(atomic.select(key, record)));
@@ -2515,7 +2546,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2558,10 +2588,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 try {
                     result.put(record, Iterables
                             .getLast(atomic.select(key, record, timestamp)));
@@ -2571,7 +2605,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2643,8 +2676,12 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 try {
                     result.put(record,
                             Iterables.getLast(atomic.select(key, record)));
@@ -2654,7 +2691,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2691,7 +2727,11 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, TObject> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
-        for (long record : records) {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        for (long record : records.stream()
+                .skip(translatedPage.skip())
+                .limit(translatedPage.limit())
+                .collect(Collectors.toList())) {
             try {
                 result.put(record, Iterables
                         .getLast(store.select(key, record, timestamp)));
@@ -2700,7 +2740,6 @@ public class ConcourseServer extends BaseConcourseServer
                 continue;
             }
         }
-        // TODO: Implement pagination
         return result;
     }
 
@@ -2799,10 +2838,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
@@ -2820,7 +2863,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -2880,10 +2922,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Map<String, TObject> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
@@ -2900,7 +2946,6 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                 }
             });
-            // TODO: Implement pagination
             return result;
         }
         catch (Exception e) {
@@ -2975,10 +3020,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
@@ -2993,7 +3042,6 @@ public class ConcourseServer extends BaseConcourseServer
                 if(!entry.isEmpty()) {
                     result.put(record, entry);
                 }
-                // TODO: Implement pagination
             }
         });
         return result;
@@ -3046,10 +3094,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
@@ -3065,7 +3117,6 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -3155,8 +3206,12 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
@@ -3171,7 +3226,6 @@ public class ConcourseServer extends BaseConcourseServer
                 if(!entry.isEmpty()) {
                     result.put(record, entry);
                 }
-                // TODO: Implement pagination
             }
         });
         return result;
@@ -3218,7 +3272,11 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
-        for (long record : records) {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        for (long record : records.stream()
+                .skip(translatedPage.skip())
+                .limit(translatedPage.limit())
+                .collect(Collectors.toList())) {
             Map<String, TObject> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
@@ -3233,7 +3291,6 @@ public class ConcourseServer extends BaseConcourseServer
             if(!entry.isEmpty()) {
                 result.put(record, entry);
             }
-            // TODO: Implement pagination
         }
         return result;
     }
@@ -4055,12 +4112,16 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                     null);
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
+                records = records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toSet());
                 result.set(Operations.navigateKeyRecordsAtomic(key, records,
                         timestamp, atomic));
             });
-            // TODO: Implement pagination
             return result.get();
         }
         catch (Exception e) {
@@ -4142,12 +4203,16 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                 null);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
+            records = records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toSet());
             result.set(Operations.navigateKeyRecordsAtomic(key, records,
                     timestamp, atomic));
         });
-        // TODO: Implement pagination
         return result.get();
     }
 
@@ -4240,11 +4305,15 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                 null);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
+            Set<Long> pagedRecords = records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toSet());
             result.set(Operations.navigateKeyRecordsAtomic(key,
-                    Sets.newLinkedHashSet(records), timestamp, atomic));
+                    pagedRecords, timestamp, atomic));
         });
-        // TODO: Implement pagination
         return result.get();
     }
 
@@ -4299,11 +4368,16 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
                 null);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeyRecordAtomic(key, record,
-                    timestamp, atomic));
+            Map<Long, Set<TObject>> records = Operations
+                    .navigateKeyRecordAtomic(key, record, timestamp, atomic);
+            result.set(records.entrySet().stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            Map.Entry::getValue)));
         });
-        // TODO: Implement pagination
         return result.get();
     }
 
@@ -4389,13 +4463,17 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                     null);
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
+                records = records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toSet());
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
                         timestamp, atomic));
             });
             return result.get();
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4484,13 +4562,17 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                     null);
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
+                records = records.stream()
+                        .skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toSet());
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
                         timestamp, atomic));
             });
             return result.get();
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4588,11 +4670,15 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                 null);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
+            Set<Long> pagedRecords = records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toSet());
             result.set(Operations.navigateKeysRecordsAtomic(keys,
-                    Sets.newLinkedHashSet(records), timestamp, atomic));
+                    pagedRecords, timestamp, atomic));
         });
-        // TODO: Implement pagination
         return result.get();
     }
 
@@ -4647,12 +4733,16 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
                 null);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeysRecordAtomic(keys, record,
-                    timestamp, atomic));
+            Map<Long, Map<String, Set<TObject>>> records = Operations.
+                    navigateKeysRecordAtomic(keys, record, timestamp, atomic);
+            result.set(records.entrySet().stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            Map.Entry::getValue)));
         });
-
-        // TODO: Implement pagination
         return result.get();
     }
 
@@ -4887,8 +4977,12 @@ public class ConcourseServer extends BaseConcourseServer
     public Set<Long> searchPage(String key, String query, TPage page,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
-        return getStore(transaction, env).search(key, query);
-        // TODO: Implement pagination
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        return getStore(transaction, env).search(key, query)
+                .stream()
+                .skip(translatedPage.skip())
+                .limit(translatedPage.limit())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -4928,17 +5022,21 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
-            TPage Page, AccessToken creds, TransactionToken transaction,
+            TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                    for (long record : records.stream()
+                            .skip(translatedPage.skip())
+                            .limit(translatedPage.limit())
+                            .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record);
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -4948,7 +5046,6 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             });
-            // TODO: Implement pagination
             return result;
         }
         catch (Exception e) {
@@ -5001,10 +5098,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .skip(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record, timestamp);
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -5014,7 +5115,6 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             });
-            // TODO: Implement pagination
             return result;
         }
         catch (Exception e) {
@@ -5080,10 +5180,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record);
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -5092,7 +5196,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -5137,10 +5240,14 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record, timestamp);
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
@@ -5149,7 +5256,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -5214,15 +5320,18 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .skip(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     result.put(record, atomic.select(key, record));
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -5268,15 +5377,18 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .skip(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     result.put(record, atomic.select(key, record, timestamp));
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -5337,13 +5449,16 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record));
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -5382,13 +5497,16 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record, timestamp));
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -5452,12 +5570,15 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record));
             }
         });
-        // TODO: Implement pagination
         return result;
     }
 
@@ -5489,10 +5610,13 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
-        for (long record : records) {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        for (long record : records.stream()
+                .skip(translatedPage.skip())
+                .skip(translatedPage.limit())
+                .collect(Collectors.toList())) {
             result.put(record, store.select(key, record, timestamp));
         }
-        // TODO: Implement pagination
         return result;
     }
 
@@ -5583,10 +5707,14 @@ public class ConcourseServer extends BaseConcourseServer
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .skip(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
@@ -5595,7 +5723,6 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             });
-            // TODO: Implement pagination
             return result;
         }
         catch (Exception e) {
@@ -5651,7 +5778,11 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
+                Page translatedPage = PageLanguage.translateFromThriftPage(page);
+                for (long record : records.stream()
+                        .skip(translatedPage.skip())
+                        .skip(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
@@ -5661,7 +5792,6 @@ public class ConcourseServer extends BaseConcourseServer
                 }
             });
             return result;
-            // TODO: Implement pagination
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -5729,28 +5859,20 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        Page selectedPage = PageLanguage.translateFromThriftPage(page);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            int offset = 0;
-            int limit = 0;
-            for (long record : records) {
-                if(offset >= selectedPage.skip()
-                        && limit < selectedPage.limit()) {
-                    Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        entry.put(key, atomic.select(key, record));
-                    }
-                    TMaps.putResultDatasetOptimized(result, record, entry);
-                    limit++;
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
                 }
-                offset++;
-
-                if(limit >= selectedPage.limit()) {
-                    break;
-                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
             }
         });
         return result;
@@ -5795,28 +5917,20 @@ public class ConcourseServer extends BaseConcourseServer
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-        Page selectedPage = PageLanguage.translateFromThriftPage(page);
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            int offset = 0;
-            int limit = 0;
-            for (long record : records) {
-                if(offset > selectedPage.skip()
-                        && limit < selectedPage.limit()) {
-                    Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        entry.put(key, atomic.select(key, record, timestamp));
-                    }
-                    TMaps.putResultDatasetOptimized(result, record, entry);
-                    limit++;
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .limit(translatedPage.limit())
+                    .collect(Collectors.toList())) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record, timestamp));
                 }
-                offset++;
-
-                if(limit >= selectedPage.limit()) {
-                    break;
-                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
             }
         });
         return result;
@@ -5896,8 +6010,12 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
@@ -5907,7 +6025,6 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -5947,7 +6064,11 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
-        for (long record : records) {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        for (long record : records.stream()
+                .skip(translatedPage.skip())
+                .skip(translatedPage.limit())
+                .collect(Collectors.toList())) {
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
@@ -5957,7 +6078,6 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
         }
-        // TODO: Implement pagination
         return result;
     }
 
@@ -6049,12 +6169,15 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
+            for (long record : records.stream()
+                    .skip(translatedPage.skip())
+                    .skip(translatedPage.limit())
+                    .collect(Collectors.toList())) {
                 TMaps.putResultDatasetOptimized(result, record,
                         atomic.select(record));
             }
-            // TODO: Implement pagination
         });
         return result;
     }
@@ -6088,11 +6211,14 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
-        for (long record : records) {
+        Page translatedPage = PageLanguage.translateFromThriftPage(page);
+        for (long record : records.stream()
+                .skip(translatedPage.skip())
+                .skip(translatedPage.limit())
+                .collect(Collectors.toList())) {
             TMaps.putResultDatasetOptimized(result, record,
                     store.select(record, timestamp));
         }
-        // TODO: Implement pagination
         return result;
     }
 
