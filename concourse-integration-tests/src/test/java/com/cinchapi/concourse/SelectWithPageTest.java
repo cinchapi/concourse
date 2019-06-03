@@ -17,6 +17,7 @@ package com.cinchapi.concourse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -43,16 +44,36 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
         // Import data into Concourse
         System.out.println("Importing college data into Concourse");
         Importer importer = new CsvImporter(client);
-        importer.importFile(Resources.get("/college.csv").getFile());
+        importer.importFile(Resources.get("/generated.csv").getFile());
 
         super.beforeEachTest();
     }
 
     @Test
-    public void testWithPage() {
+    public void testFindKeyOperatorValuesPage() {
+        String key = "graduation_rate" ;
+        Operator operator = Operator.GREATER_THAN;
+        Integer value = 90;
+        Page page = Page.with(10).to(2);
+
+        Set<Long> result = client.find(key, operator, value, page);
+
+        Assert.assertEquals(10, result.size());
+    }
+
+    @Test
+    public void testSelectKeysCriteriaPage() {
         Criteria criteria = Criteria.where().key("graduation_rate")
                 .operator(Operator.GREATER_THAN).value(90).build();
-        Page page = Page.with(10).to(1);
+        Page page = Page.with(10).to(2);
+
+        long startTime = System.nanoTime();
+        client.select(Lists.newArrayList("ipeds_id", "graduation_rate"),
+                criteria, page);
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime) / 1000000;
+        System.out.println(duration);
 
         List<Map<String, Object>> result = client
                 .select(Lists.newArrayList("ipeds_id", "graduation_rate"),
@@ -72,6 +93,31 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
                                 e -> Iterables.getOnlyElement(e.getValue()))))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(expected.subList(0, 10), result);
+        Assert.assertEquals(expected.subList(10, 20), result);
+    }
+
+    @Test
+    public void testPerformance() {
+        Criteria criteria = Criteria.where().key("age")
+                .operator(Operator.GREATER_THAN).value(0).build();
+        Page page = Page.with(10000).to(1);
+
+        int numTestRuns = 100;
+        int total = 0;
+        for(int i = 0; i < numTestRuns; i++) {
+            long startTime = System.nanoTime();
+            client.select(Lists.newArrayList("seq", "name"),
+                    criteria);
+            long endTime = System.nanoTime();
+
+            System.out.println((endTime - startTime) / 1000000);
+            if(i > 0) {
+                total += (endTime - startTime) / 1000000;
+            }
+        }
+
+        long duration = total / (numTestRuns - 1);
+        System.out.println("average time: " + duration);
+
     }
 }
