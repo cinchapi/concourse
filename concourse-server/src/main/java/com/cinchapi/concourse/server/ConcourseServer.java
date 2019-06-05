@@ -1833,8 +1833,7 @@ public class ConcourseServer extends BaseConcourseServer
         return getStore(transaction, environment).find(key, operator, tValues)
                 .stream()
                 .skip(translatedPage.skip())
-                .limit(translatedPage.limit())
-                .collect(Collectors.toSet());
+                .limit(translatedPage.limit()).collect(Collectors.toSet());
     }
 
     @Override
@@ -1860,11 +1859,9 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
-        return getStore(transaction, environment).find(timestamp, key, operator,
-                tValues)
-                .stream()
-                .skip(translatedPage.skip())
-                .limit(translatedPage.limit())
+        return getStore(transaction, environment)
+                .find(timestamp, key, operator, tValues).stream()
+                .skip(translatedPage.skip()).limit(translatedPage.limit())
                 .collect(Collectors.toSet());
     }
 
@@ -2033,8 +2030,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record);
@@ -2118,8 +2114,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record, timestamp);
@@ -2215,8 +2210,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record);
@@ -2290,8 +2284,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record, timestamp);
@@ -2383,8 +2376,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     try {
@@ -2452,8 +2444,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     try {
@@ -2533,8 +2524,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 try {
@@ -2592,8 +2582,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 try {
@@ -2678,8 +2667,7 @@ public class ConcourseServer extends BaseConcourseServer
                 .newLinkedHashMapWithCapacity(records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 try {
@@ -2728,10 +2716,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, TObject> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        for (long record : records.stream()
-                .skip(translatedPage.skip())
-                .limit(translatedPage.limit())
-                .collect(Collectors.toList())) {
+        for (long record : records.stream().skip(translatedPage.skip())
+                .limit(translatedPage.limit()).collect(Collectors.toList())) {
             try {
                 result.put(record, Iterables
                         .getLast(store.select(key, record, timestamp)));
@@ -2842,8 +2828,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Map<String, TObject> entry = TMaps
@@ -2926,8 +2911,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Map<String, TObject> entry = TMaps
@@ -3024,8 +3008,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
@@ -3098,8 +3081,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
@@ -3208,8 +3190,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, TObject> entry = TMaps
@@ -3273,10 +3254,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        for (long record : records.stream()
-                .skip(translatedPage.skip())
-                .limit(translatedPage.limit())
-                .collect(Collectors.toList())) {
+        for (long record : records.stream().skip(translatedPage.skip())
+                .limit(translatedPage.limit()).collect(Collectors.toList())) {
             Map<String, TObject> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
@@ -4115,8 +4094,7 @@ public class ConcourseServer extends BaseConcourseServer
             Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                records = records.stream()
-                        .skip(translatedPage.skip())
+                records = records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toSet());
                 result.set(Operations.navigateKeyRecordsAtomic(key, records,
@@ -4206,10 +4184,8 @@ public class ConcourseServer extends BaseConcourseServer
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            records = records.stream()
-                    .skip(translatedPage.skip())
-                    .limit(translatedPage.limit())
-                    .collect(Collectors.toSet());
+            records = records.stream().skip(translatedPage.skip())
+                    .limit(translatedPage.limit()).collect(Collectors.toSet());
             result.set(Operations.navigateKeyRecordsAtomic(key, records,
                     timestamp, atomic));
         });
@@ -4308,11 +4284,10 @@ public class ConcourseServer extends BaseConcourseServer
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<Long> pagedRecords = records.stream()
-                    .skip(translatedPage.skip())
-                    .limit(translatedPage.limit())
+                    .skip(translatedPage.skip()).limit(translatedPage.limit())
                     .collect(Collectors.toSet());
-            result.set(Operations.navigateKeyRecordsAtomic(key,
-                    pagedRecords, timestamp, atomic));
+            result.set(Operations.navigateKeyRecordsAtomic(key, pagedRecords,
+                    timestamp, atomic));
         });
         return result.get();
     }
@@ -4372,11 +4347,9 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Map<Long, Set<TObject>> records = Operations
                     .navigateKeyRecordAtomic(key, record, timestamp, atomic);
-            result.set(records.entrySet().stream()
-                    .skip(translatedPage.skip())
-                    .limit(translatedPage.limit())
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue)));
+            result.set(records.entrySet().stream().skip(translatedPage.skip())
+                    .limit(translatedPage.limit()).collect(Collectors
+                            .toMap(Map.Entry::getKey, Map.Entry::getValue)));
         });
         return result.get();
     }
@@ -4466,8 +4439,7 @@ public class ConcourseServer extends BaseConcourseServer
             Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                records = records.stream()
-                        .skip(translatedPage.skip())
+                records = records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toSet());
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
@@ -4565,8 +4537,7 @@ public class ConcourseServer extends BaseConcourseServer
             Page translatedPage = PageLanguage.translateFromThriftPage(page);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                records = records.stream()
-                        .skip(translatedPage.skip())
+                records = records.stream().skip(translatedPage.skip())
                         .limit(translatedPage.limit())
                         .collect(Collectors.toSet());
                 result.set(Operations.navigateKeysRecordsAtomic(keys, records,
@@ -4673,11 +4644,10 @@ public class ConcourseServer extends BaseConcourseServer
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<Long> pagedRecords = records.stream()
-                    .skip(translatedPage.skip())
-                    .limit(translatedPage.limit())
+                    .skip(translatedPage.skip()).limit(translatedPage.limit())
                     .collect(Collectors.toSet());
-            result.set(Operations.navigateKeysRecordsAtomic(keys,
-                    pagedRecords, timestamp, atomic));
+            result.set(Operations.navigateKeysRecordsAtomic(keys, pagedRecords,
+                    timestamp, atomic));
         });
         return result.get();
     }
@@ -4735,13 +4705,11 @@ public class ConcourseServer extends BaseConcourseServer
                 null);
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Map<Long, Map<String, Set<TObject>>> records = Operations.
-                    navigateKeysRecordAtomic(keys, record, timestamp, atomic);
-            result.set(records.entrySet().stream()
-                    .skip(translatedPage.skip())
-                    .limit(translatedPage.limit())
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue)));
+            Map<Long, Map<String, Set<TObject>>> records = Operations
+                    .navigateKeysRecordAtomic(keys, record, timestamp, atomic);
+            result.set(records.entrySet().stream().skip(translatedPage.skip())
+                    .limit(translatedPage.limit()).collect(Collectors
+                            .toMap(Map.Entry::getKey, Map.Entry::getValue)));
         });
         return result.get();
     }
@@ -4978,10 +4946,8 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        return getStore(transaction, env).search(key, query)
-                .stream()
-                .skip(translatedPage.skip())
-                .limit(translatedPage.limit())
+        return getStore(transaction, env).search(key, query).stream()
+                .skip(translatedPage.skip()).limit(translatedPage.limit())
                 .collect(Collectors.toSet());
     }
 
@@ -5033,10 +4999,9 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                    for (long record : records.stream()
-                            .skip(translatedPage.skip())
-                            .limit(translatedPage.limit())
-                            .collect(Collectors.toList())) {
+                for (long record : records.stream().skip(translatedPage.skip())
+                        .limit(translatedPage.limit())
+                        .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record);
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
@@ -5102,8 +5067,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .skip(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Set<String> keys = atomic.describe(record, timestamp);
@@ -5184,8 +5148,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record);
@@ -5244,8 +5207,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Set<String> keys = atomic.describe(record, timestamp);
@@ -5324,8 +5286,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .skip(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     result.put(record, atomic.select(key, record));
@@ -5381,8 +5342,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .skip(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     result.put(record, atomic.select(key, record, timestamp));
@@ -5453,8 +5413,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record));
@@ -5501,8 +5460,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record, timestamp));
@@ -5572,8 +5530,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 result.put(record, atomic.select(key, record));
@@ -5611,10 +5568,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Set<TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        for (long record : records.stream()
-                .skip(translatedPage.skip())
-                .skip(translatedPage.limit())
-                .collect(Collectors.toList())) {
+        for (long record : records.stream().skip(translatedPage.skip())
+                .skip(translatedPage.limit()).collect(Collectors.toList())) {
             result.put(record, store.select(key, record, timestamp));
         }
         return result;
@@ -5711,8 +5666,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                for (long record : records.stream().skip(translatedPage.skip())
                         .skip(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -5778,9 +5732,9 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Page translatedPage = PageLanguage.translateFromThriftPage(page);
-                for (long record : records.stream()
-                        .skip(translatedPage.skip())
+                Page translatedPage = PageLanguage
+                        .translateFromThriftPage(page);
+                for (long record : records.stream().skip(translatedPage.skip())
                         .skip(translatedPage.limit())
                         .collect(Collectors.toList())) {
                     Map<String, Set<TObject>> entry = TMaps
@@ -5921,8 +5875,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, Set<TObject>> entry = TMaps
@@ -6012,8 +5965,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, Set<TObject>> entry = TMaps
@@ -6065,10 +6017,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        for (long record : records.stream()
-                .skip(translatedPage.skip())
-                .skip(translatedPage.limit())
-                .collect(Collectors.toList())) {
+        for (long record : records.stream().skip(translatedPage.skip())
+                .skip(translatedPage.limit()).collect(Collectors.toList())) {
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
@@ -6171,8 +6121,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .skip(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 TMaps.putResultDatasetOptimized(result, record,
@@ -6212,10 +6161,8 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
                 records.size());
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
-        for (long record : records.stream()
-                .skip(translatedPage.skip())
-                .skip(translatedPage.limit())
-                .collect(Collectors.toList())) {
+        for (long record : records.stream().skip(translatedPage.skip())
+                .skip(translatedPage.limit()).collect(Collectors.toList())) {
             TMaps.putResultDatasetOptimized(result, record,
                     store.select(record, timestamp));
         }

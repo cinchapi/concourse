@@ -18,8 +18,13 @@ package com.cinchapi.concourse;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.profile.Benchmark;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,9 +56,9 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
 
     @Test
     public void testFindKeyOperatorValuesPage() {
-        String key = "graduation_rate" ;
+        String key = "dollar";
         Operator operator = Operator.GREATER_THAN;
-        Integer value = 90;
+        Integer value = 1000;
         Page page = Page.with(10).to(2);
 
         Set<Long> result = client.find(key, operator, value, page);
@@ -63,20 +68,15 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
 
     @Test
     public void testSelectKeysCriteriaPage() {
-        Criteria criteria = Criteria.where().key("graduation_rate")
-                .operator(Operator.GREATER_THAN).value(90).build();
+        Criteria criteria = Criteria.where().key("dollar")
+                .operator(Operator.GREATER_THAN).value(1000).build();
         Page page = Page.with(10).to(2);
 
-        long startTime = System.nanoTime();
-        client.select(Lists.newArrayList("ipeds_id", "graduation_rate"),
+        client.select(Lists.newArrayList("seq", "dollar"),
                 criteria, page);
-        long endTime = System.nanoTime();
-
-        long duration = (endTime - startTime) / 1000000;
-        System.out.println(duration);
 
         List<Map<String, Object>> result = client
-                .select(Lists.newArrayList("ipeds_id", "graduation_rate"),
+                .select(Lists.newArrayList("seq", "dollar"),
                         criteria, page)
                 .values().stream()
                 .map(child -> child.entrySet().stream()
@@ -85,7 +85,7 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
                 .collect(Collectors.toList());
 
         List<Map<String, Object>> expected = client
-                .select(Lists.newArrayList("ipeds_id", "graduation_rate"),
+                .select(Lists.newArrayList("seq", "dollar"),
                         criteria)
                 .values().stream()
                 .map(child -> child.entrySet().stream()
@@ -97,27 +97,33 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testPerformance() {
+    public void testPerformance() throws InterruptedException {
         Criteria criteria = Criteria.where().key("age")
                 .operator(Operator.GREATER_THAN).value(0).build();
         Page page = Page.with(10000).to(1);
+        TimeUnit unit = TimeUnit.MILLISECONDS;
 
-        int numTestRuns = 100;
-        int total = 0;
-        for(int i = 0; i < numTestRuns; i++) {
-            long startTime = System.nanoTime();
-            client.select(Lists.newArrayList("seq", "name"),
-                    criteria);
-            long endTime = System.nanoTime();
-
-            System.out.println((endTime - startTime) / 1000000);
-            if(i > 0) {
-                total += (endTime - startTime) / 1000000;
+        Benchmark bench = new Benchmark(unit) {
+            @Override
+            public void action() {
+                    client.select(Lists.newArrayList("seq", "name"), criteria,
+                            page);
             }
-        }
+        };
 
-        long duration = total / (numTestRuns - 1);
-        System.out.println("average time: " + duration);
+        int rounds = 100;
+        // Warm up the call
+        client.select(Lists.newArrayList("seq", "name"), criteria,
+                page);
+        long time = 0;
+        for(int i = 0; i < rounds; i++) {
+            long runTime = bench.run();
+            time += runTime;
+        }
+        time = time / rounds;
+
+        System.out.println("Average runtime: " + time);
+        Assert.assertTrue(time <= 7000);
 
     }
 }
