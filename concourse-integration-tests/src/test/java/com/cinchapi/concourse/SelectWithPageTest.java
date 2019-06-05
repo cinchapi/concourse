@@ -18,16 +18,13 @@ package com.cinchapi.concourse;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.common.profile.Benchmark;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.Criteria;
@@ -72,12 +69,10 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
                 .operator(Operator.GREATER_THAN).value(1000).build();
         Page page = Page.with(10).to(2);
 
-        client.select(Lists.newArrayList("seq", "dollar"),
-                criteria, page);
+        client.select(Lists.newArrayList("seq", "dollar"), criteria, page);
 
         List<Map<String, Object>> result = client
-                .select(Lists.newArrayList("seq", "dollar"),
-                        criteria, page)
+                .select(Lists.newArrayList("seq", "dollar"), criteria, page)
                 .values().stream()
                 .map(child -> child.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
@@ -85,9 +80,8 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
                 .collect(Collectors.toList());
 
         List<Map<String, Object>> expected = client
-                .select(Lists.newArrayList("seq", "dollar"),
-                        criteria)
-                .values().stream()
+                .select(Lists.newArrayList("seq", "dollar"), criteria).values()
+                .stream()
                 .map(child -> child.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
                                 e -> Iterables.getOnlyElement(e.getValue()))))
@@ -106,17 +100,16 @@ public class SelectWithPageTest extends ConcourseIntegrationTest {
         Benchmark bench = new Benchmark(unit) {
             @Override
             public void action() {
-                    client.select(Lists.newArrayList("seq", "name"), criteria,
-                            page);
+                client.select(Lists.newArrayList("seq", "name"), criteria,
+                        page);
             }
         };
 
         int rounds = 100;
         // Warm up the call
-        client.select(Lists.newArrayList("seq", "name"), criteria,
-                page);
+        client.select(Lists.newArrayList("seq", "name"), criteria, page);
         long time = 0;
-        for(int i = 0; i < rounds; i++) {
+        for (int i = 0; i < rounds; i++) {
             long runTime = bench.run();
             time += runTime;
         }

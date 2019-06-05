@@ -1831,8 +1831,7 @@ public class ConcourseServer extends BaseConcourseServer
         Page translatedPage = PageLanguage.translateFromThriftPage(page);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
         return getStore(transaction, environment).find(key, operator, tValues)
-                .stream()
-                .skip(translatedPage.skip())
+                .stream().skip(translatedPage.skip())
                 .limit(translatedPage.limit()).collect(Collectors.toSet());
     }
 
@@ -5817,8 +5816,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records.stream()
-                    .skip(translatedPage.skip())
+            for (long record : records.stream().skip(translatedPage.skip())
                     .limit(translatedPage.limit())
                     .collect(Collectors.toList())) {
                 Map<String, Set<TObject>> entry = TMaps
