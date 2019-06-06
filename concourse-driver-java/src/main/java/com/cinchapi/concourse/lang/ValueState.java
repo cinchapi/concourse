@@ -32,7 +32,7 @@ public class ValueState extends BuildableState {
      * 
      * @param criteria
      */
-    protected ValueState(Criteria criteria) {
+    protected ValueState(BuiltCriteria criteria) {
         super(criteria);
     }
 

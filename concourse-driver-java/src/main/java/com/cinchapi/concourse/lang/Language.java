@@ -103,7 +103,7 @@ public final class Language {
      */
     public static TCriteria translateToThriftCriteria(Criteria criteria) {
         List<TSymbol> symbols = Lists.newArrayList();
-        for (Symbol symbol : criteria.getSymbols()) {
+        for (Symbol symbol : criteria.symbols()) {
             symbols.add(translateToThriftSymbol(symbol));
         }
         return new TCriteria(symbols);
@@ -116,7 +116,7 @@ public final class Language {
      * @return the analogous Java {@link Criteria}
      */
     public static Criteria translateFromThriftCriteria(TCriteria tcriteria) {
-        Criteria criteria = new Criteria();
+        BuiltCriteria criteria = new BuiltCriteria();
         for (TSymbol tsymbol : tcriteria.getSymbols()) {
             criteria.add(translateFromThriftSymbol(tsymbol));
         }

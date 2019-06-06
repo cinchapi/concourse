@@ -29,7 +29,7 @@ public class StartState extends State {
      * 
      * @param criteria
      */
-    public StartState(Criteria criteria) {
+    public StartState(BuiltCriteria criteria) {
         super(criteria);
     }
 

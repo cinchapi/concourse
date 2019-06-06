@@ -36,7 +36,6 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
-import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.lang.pagination.Page;
@@ -833,38 +832,6 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Set<Long> find(Criteria criteria, Page page) {
-        return execute(() -> {
-            return client.findCriteriaPage(
-                    Language.translateToThriftCriteria(criteria),
-                    PageLanguage.translateToThriftPage(page), creds,
-                    transaction, environment);
-        });
-    }
-
-    @Override
-    public Set<Long> find(Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return find(((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the find method");
-        }
-    }
-
-    @Override
-    public Set<Long> find(Object criteria, Page page) {
-        if(criteria instanceof BuildableState) {
-            return find(((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the find method");
-        }
-    }
-
-    @Override
     public Set<Long> find(String ccl) {
         return execute(() -> {
             return client.findCcl(ccl, creds, transaction, environment);
@@ -1254,55 +1221,6 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return get(keys, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(keys, ((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria, Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return get(keys, ((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria, Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(keys, ((BuildableState) criteria).build(), timestamp,
-                    page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl) {
         return execute(() -> {
             Map<Long, Map<String, TObject>> raw = client.getKeysCcl(
@@ -1449,82 +1367,6 @@ class ConcourseThriftDriver extends Concourse {
             }
             return pretty;
         });
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
-            Timestamp timestamp, Page page) {
-        return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
-            if(timestamp.isString()) {
-                raw = client.getCriteriaTimestrPage(
-                        Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        PageLanguage.translateToThriftPage(page), creds,
-                        transaction, environment);
-            }
-            else {
-                raw = client.getCriteriaTimePage(
-                        Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        PageLanguage.translateToThriftPage(page), creds,
-                        transaction, environment);
-            }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
-        });
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return get(((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria,
-            Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return get(((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria,
-            Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(((BuildableState) criteria).build(), timestamp, page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
     }
 
     @Override
@@ -1762,53 +1604,6 @@ class ConcourseThriftDriver extends Concourse {
             }
             return raw == TObject.NULL ? null : (T) Convert.thriftToJava(raw);
         });
-    }
-
-    @Override
-    public <T> Map<Long, T> get(String key, Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return get(key, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, T> get(String key, Object criteria, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(key, ((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, T> get(String key, Object criteria,
-            Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return get(key, ((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, T> get(String key, Object criteria,
-            Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return get(key, ((BuildableState) criteria).build(), timestamp,
-                    page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -2742,15 +2537,6 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Set<Long> search(String key, String query, Page page) {
-        return execute(() -> {
-            return client.searchPage(key, query,
-                    PageLanguage.translateToThriftPage(page), creds,
-                    transaction, environment);
-        });
-    }
-
-    @Override
     public Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records) {
         return execute(() -> {
@@ -3100,55 +2886,6 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return select(keys, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria, Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(keys, ((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria, Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return select(keys, ((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria, Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(keys, ((BuildableState) criteria).build(), timestamp,
-                    page);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> raw = client.selectKeysCcl(
@@ -3380,53 +3117,6 @@ class ConcourseThriftDriver extends Concourse {
             }
             return pretty;
         });
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return select(((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
-            Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
-            Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return select(((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
-            Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(((BuildableState) criteria).build(), timestamp, page);
-        }
-        else {
-            throw new IllegalArgumentException(
-                    criteria + " is not a valid argument for the get method");
-        }
     }
 
     @Override
@@ -3673,54 +3363,6 @@ class ConcourseThriftDriver extends Concourse {
             return Transformers.transformSetLazily(values,
                     Conversions.<T> thriftToJavaCasted());
         });
-    }
-
-    @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return select(key, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(key, ((BuildableState) criteria).build(), page);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return select(key, ((BuildableState) criteria).build(), timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
-    }
-
-    @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Timestamp timestamp, Page page) {
-        if(criteria instanceof BuildableState) {
-            return select(key, ((BuildableState) criteria).build(), timestamp,
-                    page);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the select method");
-        }
     }
 
     @Override
