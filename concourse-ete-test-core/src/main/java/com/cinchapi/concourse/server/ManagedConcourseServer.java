@@ -1213,6 +1213,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Set<Long> find(Criteria criteria, Page page) {
+            return invoke("find", Criteria.class, Page.class).with(criteria,
+                    page);
+        }
+
+        @Override
         public Set<Long> find(String ccl) {
             return invoke("find", String.class).with(ccl);
         }

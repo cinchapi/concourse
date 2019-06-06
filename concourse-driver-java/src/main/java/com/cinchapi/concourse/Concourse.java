@@ -2908,6 +2908,34 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, long record, Timestamp timestamp);
 
     /**
+     * Traverse the document-graph at {@code timestamp} along each of the
+     * navigation {@code keys}, starting at {@code record} and return the data
+     * contained at each of the destinations at {@code timestamp}.
+     *
+     * @param keys a collection of navigation keys
+     * @param record the record id from which the navigation starts
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page A {@link Page} specification that describes the page of the
+     *            result set to return
+     * @return a {@link Map} associating each of the destination {@code records}
+     *         to another {@link Map} associating each of the destination
+     *         {@code keys} to a {@link Set} containing all the values stored in
+     *         the respective fields at {@code timestamp}
+     * @see <a href=
+     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
+            Collection<String> keys, long record, Timestamp timestamp,
+            Page page);
+
+    /**
      * Traverse the document-graph along each of the navigation {@code keys},
      * starting at each of the records that match the {@code criteria} and
      * return the data contained at each of the destinations.

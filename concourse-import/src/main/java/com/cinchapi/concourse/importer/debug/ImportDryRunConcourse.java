@@ -306,6 +306,11 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public Set<Long> find(Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<Long> find(String ccl) {
         throw new UnsupportedOperationException();
     }
@@ -1188,12 +1193,6 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Set<T> select(String key, long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 

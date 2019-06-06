@@ -832,6 +832,16 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
+    public Set<Long> find(Criteria criteria, Page page) {
+        return execute(() -> {
+            return client.findCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    PageLanguage.translateToThriftPage(page), creds,
+                    transaction, environment);
+        });
+    }
+
+    @Override
     public Set<Long> find(String ccl) {
         return execute(() -> {
             return client.findCcl(ccl, creds, transaction, environment);
