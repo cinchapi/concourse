@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.pagination.Page;
 import com.cinchapi.concourse.thrift.*;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -51,6 +52,16 @@ abstract class StatefulConcourseService {
      * a TCriteria for proper routing in ConcourseServer.
      */
     protected static Multimap<String, Integer> CRITERIA_TRANSFORM = HashMultimap
+            .create();
+
+    /**
+     * A mapping from Thrift method names to a collection of parameter
+     * posions that take TPage objects. For convenience, a
+     * StatefulConcourseService accepts generic objects for those parameters
+     * and we must keep track here so it is known what must be translated into
+     * a TPage for proper routing in ConcourseServer.
+     */
+    protected static Multimap<String, Integer> PAGE_TRANSFORM = HashMultimap
             .create();
 
     /**
@@ -132,6 +143,8 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("selectRecordsPage");
 
+        PAGE_TRANSFORM.put("selectRecordsPage", 1);
+
         RETURN_TRANSFORM.add("selectRecordTime");
 
         RETURN_TRANSFORM.add("selectRecordTimestr");
@@ -140,9 +153,13 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("selectRecordsTimePage");
 
+        PAGE_TRANSFORM.put("selectRecordsTimePage", 2);
+
         RETURN_TRANSFORM.add("selectRecordsTimestr");
 
         RETURN_TRANSFORM.add("selectRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("selectRecordsTimestrPage", 2);
 
         RETURN_TRANSFORM.add("selectKeyRecord");
 
@@ -160,25 +177,37 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("selectKeysRecordsPage");
 
+        PAGE_TRANSFORM.put("selectKeysRecordsPage", 2);
+
         RETURN_TRANSFORM.add("selectKeyRecords");
 
         RETURN_TRANSFORM.add("selectKeyRecordsPage");
+
+        PAGE_TRANSFORM.put("selectKeyRecordsPage", 2);
 
         RETURN_TRANSFORM.add("selectKeyRecordsTime");
 
         RETURN_TRANSFORM.add("selectKeyRecordsTimePage");
 
+        PAGE_TRANSFORM.put("selectKeyRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeyRecordsTimestr");
 
         RETURN_TRANSFORM.add("selectKeyRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("selectKeyRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("selectKeysRecordsTime");
 
         RETURN_TRANSFORM.add("selectKeysRecordsTimePage");
 
+        PAGE_TRANSFORM.put("selectKeysRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeysRecordsTimestr");
 
         RETURN_TRANSFORM.add("selectKeysRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("selectKeysRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("selectCriteria");
 
@@ -188,9 +217,13 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectCriteriaPage", 0);
 
+        PAGE_TRANSFORM.put("selectCriteriaPage", 1);
+
         RETURN_TRANSFORM.add("selectCcl");
 
         RETURN_TRANSFORM.add("selectCclPage");
+
+        PAGE_TRANSFORM.put("selectCclPage", 1);
 
         RETURN_TRANSFORM.add("selectCriteriaTime");
 
@@ -200,6 +233,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectCriteriaTimePage", 0);
 
+        PAGE_TRANSFORM.put("selectCriteriaTimePage", 2);
+
         RETURN_TRANSFORM.add("selectCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("selectCriteriaTimestr", 0);
@@ -208,13 +243,19 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectCriteriaTimestrPage", 0);
 
+        PAGE_TRANSFORM.put("selectCriteriaTimestrPage", 2);
+
         RETURN_TRANSFORM.add("selectCclTime");
 
         RETURN_TRANSFORM.add("selectCclTimePage");
 
+        PAGE_TRANSFORM.put("selectCclTimePage", 2);
+
         RETURN_TRANSFORM.add("selectCclTimestr");
 
         RETURN_TRANSFORM.add("selectCclTimestrPage");
+
+        PAGE_TRANSFORM.put("selectCclTimestrPage", 2);
 
         RETURN_TRANSFORM.add("selectKeyCriteria");
 
@@ -224,9 +265,13 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeyCriteriaPage", 1);
 
+        PAGE_TRANSFORM.put("selectKeyCriteriaPage", 2);
+
         RETURN_TRANSFORM.add("selectKeyCcl");
 
         RETURN_TRANSFORM.add("selectKeyCclPage");
+
+        PAGE_TRANSFORM.put("selectKeyCclPage", 2);
 
         RETURN_TRANSFORM.add("selectKeyCriteriaTime");
 
@@ -236,6 +281,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeyCriteriaTimePage", 1);
 
+        PAGE_TRANSFORM.put("selectKeyCriteriaTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeyCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("selectKeyCriteriaTimestr", 1);
@@ -244,13 +291,19 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeyCriteriaTimestrPage", 1);
 
+        PAGE_TRANSFORM.put("selectKeyCriteriaTimestrPage", 3);
+
         RETURN_TRANSFORM.add("selectKeyCclTime");
 
         RETURN_TRANSFORM.add("selectKeyCclTimePage");
 
+        PAGE_TRANSFORM.put("selectKeyCclTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeyCclTimestr");
 
         RETURN_TRANSFORM.add("selectKeyCclTimestrPage");
+
+        PAGE_TRANSFORM.put("selectKeyCclTimestrPage", 3);
 
         RETURN_TRANSFORM.add("selectKeysCriteria");
 
@@ -260,9 +313,13 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeysCriteriaPage", 1);
 
+        PAGE_TRANSFORM.put("selectKeysCriteriaPage", 2);
+
         RETURN_TRANSFORM.add("selectKeysCcl");
 
         RETURN_TRANSFORM.add("selectKeysCclPage");
+
+        PAGE_TRANSFORM.put("selectKeysCclPage", 2);
 
         RETURN_TRANSFORM.add("selectKeysCriteriaTime");
 
@@ -272,6 +329,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeysCriteriaTimePage", 1);
 
+        PAGE_TRANSFORM.put("selectKeysCriteriaTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeysCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("selectKeysCriteriaTimestr", 1);
@@ -280,13 +339,19 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("selectKeysCriteriaTimestrPage", 1);
 
+        PAGE_TRANSFORM.put("selectKeysCriteriaTimestrPage", 3);
+
         RETURN_TRANSFORM.add("selectKeysCclTime");
 
         RETURN_TRANSFORM.add("selectKeysCclTimePage");
 
+        PAGE_TRANSFORM.put("selectKeysCclTimePage", 3);
+
         RETURN_TRANSFORM.add("selectKeysCclTimestr");
 
         RETURN_TRANSFORM.add("selectKeysCclTimestrPage");
+
+        PAGE_TRANSFORM.put("selectKeysCclTimestrPage", 3);
 
         RETURN_TRANSFORM.add("getKeyRecord");
 
@@ -304,25 +369,37 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("getKeysRecordsPage");
 
+        PAGE_TRANSFORM.put("getKeysRecordsPage", 2);
+
         RETURN_TRANSFORM.add("getKeyRecords");
 
         RETURN_TRANSFORM.add("getKeyRecordsPage");
+
+        PAGE_TRANSFORM.put("getKeyRecordsPage", 2);
 
         RETURN_TRANSFORM.add("getKeyRecordsTime");
 
         RETURN_TRANSFORM.add("getKeyRecordsTimePage");
 
+        PAGE_TRANSFORM.put("getKeyRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeyRecordsTimestr");
 
         RETURN_TRANSFORM.add("getKeyRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("getKeyRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("getKeysRecordsTime");
 
         RETURN_TRANSFORM.add("getKeysRecordsTimePage");
 
+        PAGE_TRANSFORM.put("getKeysRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeysRecordsTimestr");
 
         RETURN_TRANSFORM.add("getKeysRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("getKeysRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("getKeyCriteria");
 
@@ -332,6 +409,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeyCriteriaPage", 1);
 
+        PAGE_TRANSFORM.put("getKeyCriteriaPage", 2);
+
         RETURN_TRANSFORM.add("getCriteria");
 
         CRITERIA_TRANSFORM.put("getCriteria", 0);
@@ -340,9 +419,13 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getCriteriaPage", 0);
 
+        PAGE_TRANSFORM.put("getCriteriaPage", 1);
+
         RETURN_TRANSFORM.add("getCcl");
 
         RETURN_TRANSFORM.add("getCclPage");
+
+        PAGE_TRANSFORM.put("getCclPage", 1);
 
         RETURN_TRANSFORM.add("getCriteriaTime");
 
@@ -352,6 +435,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getCriteriaTimePage", 0);
 
+        PAGE_TRANSFORM.put("getCriteriaTimePage", 2);
+
         RETURN_TRANSFORM.add("getCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("getCriteriaTimestr", 0);
@@ -360,17 +445,25 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getCriteriaTimestrPage", 0);
 
+        PAGE_TRANSFORM.put("getCriteriaTimestrPage", 2);
+
         RETURN_TRANSFORM.add("getCclTime");
 
         RETURN_TRANSFORM.add("getCclTimePage");
+
+        PAGE_TRANSFORM.put("getCclTimePage", 2);
 
         RETURN_TRANSFORM.add("getCclTimestr");
 
         RETURN_TRANSFORM.add("getCclTimestrPage");
 
+        PAGE_TRANSFORM.put("getCclTimestrPage", 2);
+
         RETURN_TRANSFORM.add("getKeyCcl");
 
         RETURN_TRANSFORM.add("getKeyCclPage");
+
+        PAGE_TRANSFORM.put("getKeyCclPage", 2);
 
         RETURN_TRANSFORM.add("getKeyCriteriaTime");
 
@@ -380,6 +473,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeyCriteriaTimePage", 1);
 
+        PAGE_TRANSFORM.put("getKeyCriteriaTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeyCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("getKeyCriteriaTimestr", 1);
@@ -388,13 +483,19 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeyCriteriaTimestrPage", 1);
 
+        PAGE_TRANSFORM.put("getKeyCriteriaTimestrPage", 3);
+
         RETURN_TRANSFORM.add("getKeyCclTime");
 
         RETURN_TRANSFORM.add("getKeyCclTimePage");
 
+        PAGE_TRANSFORM.put("getKeyCclTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeyCclTimestr");
 
         RETURN_TRANSFORM.add("getKeyCclTimestrPage");
+
+        PAGE_TRANSFORM.put("getKeyCclTimestrPage", 3);
 
         RETURN_TRANSFORM.add("getKeysCriteria");
 
@@ -404,9 +505,13 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeysCriteriaPage", 1);
 
+        PAGE_TRANSFORM.put("getKeysCriteriaPage", 2);
+
         RETURN_TRANSFORM.add("getKeysCcl");
 
         RETURN_TRANSFORM.add("getKeysCclPage");
+
+        PAGE_TRANSFORM.put("getKeysCclPage", 2);
 
         RETURN_TRANSFORM.add("getKeysCriteriaTime");
 
@@ -416,6 +521,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeysCriteriaTimePage", 1);
 
+        PAGE_TRANSFORM.put("getKeysCriteriaTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeysCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("getKeysCriteriaTimestr", 1);
@@ -424,13 +531,19 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("getKeysCriteriaTimestrPage", 1);
 
+        PAGE_TRANSFORM.put("getKeysCriteriaTimestrPage", 3);
+
         RETURN_TRANSFORM.add("getKeysCclTime");
 
         RETURN_TRANSFORM.add("getKeysCclTimePage");
 
+        PAGE_TRANSFORM.put("getKeysCclTimePage", 3);
+
         RETURN_TRANSFORM.add("getKeysCclTimestr");
 
         RETURN_TRANSFORM.add("getKeysCclTimestrPage");
+
+        PAGE_TRANSFORM.put("getKeysCclTimestrPage", 3);
 
         VALUE_TRANSFORM.put("verifyKeyValueRecord", 1);
 
@@ -442,29 +555,47 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("findCriteriaPage", 0);
 
+        PAGE_TRANSFORM.put("findCriteriaPage", 1);
+
+        PAGE_TRANSFORM.put("findCclPage", 1);
+
         VALUE_TRANSFORM.put("findKeyOperatorValues", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorValuesPage", 2);
+
+        PAGE_TRANSFORM.put("findKeyOperatorValuesPage", 3);
 
         VALUE_TRANSFORM.put("findKeyOperatorValuesTime", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorValuesTimePage", 2);
 
+        PAGE_TRANSFORM.put("findKeyOperatorValuesTimePage", 4);
+
         VALUE_TRANSFORM.put("findKeyOperatorValuesTimestr", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorValuesTimestrPage", 2);
+
+        PAGE_TRANSFORM.put("findKeyOperatorValuesTimestrPage", 4);
 
         VALUE_TRANSFORM.put("findKeyOperatorstrValues", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorstrValuesPage", 2);
 
+        PAGE_TRANSFORM.put("findKeyOperatorstrValuesPage", 3);
+
         VALUE_TRANSFORM.put("findKeyOperatorstrValuesTime", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorstrValuesTimePage", 2);
 
+        PAGE_TRANSFORM.put("findKeyOperatorstrValuesTimePage", 4);
+
         VALUE_TRANSFORM.put("findKeyOperatorstrValuesTimestr", 2);
 
         VALUE_TRANSFORM.put("findKeyOperatorstrValuesTimestrPage", 2);
+
+        PAGE_TRANSFORM.put("findKeyOperatorstrValuesTimestrPage", 4);
+
+        PAGE_TRANSFORM.put("searchPage", 2);
 
         VALUE_TRANSFORM.put("verifyAndSwap", 1);
 
@@ -630,73 +761,109 @@ abstract class StatefulConcourseService {
 
         RETURN_TRANSFORM.add("navigateKeyRecordPage");
 
+        PAGE_TRANSFORM.put("navigateKeyRecordPage", 2);
+
         RETURN_TRANSFORM.add("navigateKeyRecordTime");
 
         RETURN_TRANSFORM.add("navigateKeyRecordTimePage");
+
+        PAGE_TRANSFORM.put("navigateKeyRecordTimePage", 3);
 
         RETURN_TRANSFORM.add("navigateKeyRecordTimestr");
 
         RETURN_TRANSFORM.add("navigateKeyRecordTimestrPage");
 
+        PAGE_TRANSFORM.put("navigateKeyRecordTimestrPage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysRecord");
 
         RETURN_TRANSFORM.add("navigateKeysRecordPage");
+
+        PAGE_TRANSFORM.put("navigateKeysRecordPage", 2);
 
         RETURN_TRANSFORM.add("navigateKeysRecordTime");
 
         RETURN_TRANSFORM.add("navigateKeysRecordTimePage");
 
+        PAGE_TRANSFORM.put("navigateKeysRecordTimePage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysRecordTimestr");
 
         RETURN_TRANSFORM.add("navigateKeysRecordTimestrPage");
+
+        PAGE_TRANSFORM.put("navigateKeysRecordTimestrPage", 3);
 
         RETURN_TRANSFORM.add("navigateKeysRecords");
 
         RETURN_TRANSFORM.add("navigateKeysRecordsPage");
 
+        PAGE_TRANSFORM.put("navigateKeysRecordsPage", 2);
+
         RETURN_TRANSFORM.add("navigateKeyRecords");
 
         RETURN_TRANSFORM.add("navigateKeyRecordsPage");
+
+        PAGE_TRANSFORM.put("navigateKeyRecordsPage", 2);
 
         RETURN_TRANSFORM.add("navigateKeyRecordsTime");
 
         RETURN_TRANSFORM.add("navigateKeyRecordsTimePage");
 
+        PAGE_TRANSFORM.put("navigateKeyRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("navigateKeyRecordsTimestr");
 
         RETURN_TRANSFORM.add("navigateKeyRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("navigateKeyRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("navigateKeysRecordsTime");
 
         RETURN_TRANSFORM.add("navigateKeysRecordsTimePage");
 
+        PAGE_TRANSFORM.put("navigateKeysRecordsTimePage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysRecordsTimestr");
 
         RETURN_TRANSFORM.add("navigateKeysRecordsTimestrPage");
+
+        PAGE_TRANSFORM.put("navigateKeysRecordsTimestrPage", 3);
 
         RETURN_TRANSFORM.add("navigateKeyCcl");
 
         RETURN_TRANSFORM.add("navigateKeyCclPage");
 
+        PAGE_TRANSFORM.put("navigateKeyCclPage", 2);
+
         RETURN_TRANSFORM.add("navigateKeyCclTime");
 
         RETURN_TRANSFORM.add("navigateKeyCclTimePage");
+
+        PAGE_TRANSFORM.put("navigateKeyCclTimePage", 3);
 
         RETURN_TRANSFORM.add("navigateKeyCclTimestr");
 
         RETURN_TRANSFORM.add("navigateKeyCclTimestrPage");
 
+        PAGE_TRANSFORM.put("navigateKeyCclTimestrPage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysCcl");
 
         RETURN_TRANSFORM.add("navigateKeysCclPage");
+
+        PAGE_TRANSFORM.put("navigateKeysCclPage", 2);
 
         RETURN_TRANSFORM.add("navigateKeysCclTime");
 
         RETURN_TRANSFORM.add("navigateKeysCclTimePage");
 
+        PAGE_TRANSFORM.put("navigateKeysCclTimePage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysCclTimestr");
 
         RETURN_TRANSFORM.add("navigateKeysCclTimestrPage");
+
+        PAGE_TRANSFORM.put("navigateKeysCclTimestrPage", 3);
 
         RETURN_TRANSFORM.add("navigateKeyCriteria");
 
@@ -706,6 +873,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("navigateKeyCriteriaPage", 1);
 
+        PAGE_TRANSFORM.put("navigateKeyCriteriaPage", 2);
+
         RETURN_TRANSFORM.add("navigateKeyCriteriaTime");
 
         CRITERIA_TRANSFORM.put("navigateKeyCriteriaTime", 1);
@@ -713,6 +882,8 @@ abstract class StatefulConcourseService {
         RETURN_TRANSFORM.add("navigateKeyCriteriaTimePage");
 
         CRITERIA_TRANSFORM.put("navigateKeyCriteriaTimePage", 1);
+
+        PAGE_TRANSFORM.put("navigateKeyCriteriaTimePage", 3);
 
         RETURN_TRANSFORM.add("navigateKeyCriteriaTimestr");
 
@@ -722,6 +893,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("navigateKeyCriteriaTimestrPage", 1);
 
+        PAGE_TRANSFORM.put("navigateKeyCriteriaTimestrPage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysCriteria");
 
         CRITERIA_TRANSFORM.put("navigateKeysCriteria", 1);
@@ -729,6 +902,8 @@ abstract class StatefulConcourseService {
         RETURN_TRANSFORM.add("navigateKeysCriteriaPage");
 
         CRITERIA_TRANSFORM.put("navigateKeysCriteriaPage", 1);
+
+        PAGE_TRANSFORM.put("navigateKeysCriteriaPage", 2);
 
         RETURN_TRANSFORM.add("navigateKeysCriteriaTime");
 
@@ -738,6 +913,8 @@ abstract class StatefulConcourseService {
 
         CRITERIA_TRANSFORM.put("navigateKeysCriteriaTimePage", 1);
 
+        PAGE_TRANSFORM.put("navigateKeysCriteriaTimePage", 3);
+
         RETURN_TRANSFORM.add("navigateKeysCriteriaTimestr");
 
         CRITERIA_TRANSFORM.put("navigateKeysCriteriaTimestr", 1);
@@ -745,6 +922,8 @@ abstract class StatefulConcourseService {
         RETURN_TRANSFORM.add("navigateKeysCriteriaTimestrPage");
 
         CRITERIA_TRANSFORM.put("navigateKeysCriteriaTimestrPage", 1);
+
+        PAGE_TRANSFORM.put("navigateKeysCriteriaTimestrPage", 3);
 
     }
 
@@ -1040,7 +1219,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectRecordsPage(
-            List<Long> records, TPage page) {
+            List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1060,7 +1239,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectRecordsTimePage(
-            List<Long> records, long timestamp, TPage page) {
+            List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1070,7 +1249,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectRecordsTimestrPage(
-            List<Long> records, String timestamp, TPage page) {
+            List<Long> records, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1109,7 +1288,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysRecordsPage(
-            List<String> keys, List<Long> records, TPage page) {
+            List<String> keys, List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1119,7 +1298,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyRecordsPage(String key,
-            List<Long> records, TPage page) {
+            List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1129,7 +1308,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyRecordsTimePage(String key,
-            List<Long> records, long timestamp, TPage page) {
+            List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1139,7 +1318,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyRecordsTimestrPage(String key,
-            List<Long> records, String timestamp, TPage page) {
+            List<Long> records, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1149,7 +1328,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysRecordsTimePage(
-            List<String> keys, List<Long> records, long timestamp, TPage page) {
+            List<String> keys, List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1160,7 +1339,7 @@ abstract class StatefulConcourseService {
 
     public Map<Long, Map<String, Set<Object>>> selectKeysRecordsTimestrPage(
             List<String> keys, List<Long> records, String timestamp,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1170,7 +1349,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCriteriaPage(
-            Criteria criteria, TPage page) {
+            Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1179,7 +1358,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCclPage(String ccl,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1189,7 +1368,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCriteriaTimePage(
-            Criteria criteria, long timestamp, TPage page) {
+            Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1199,7 +1378,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCriteriaTimestrPage(
-            Criteria criteria, String timestamp, TPage page) {
+            Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1209,7 +1388,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCclTimePage(String ccl,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1219,7 +1398,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectCclTimestrPage(String ccl,
-            String timestamp, TPage page) {
+            String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1229,7 +1408,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCriteriaPage(String key,
-            Criteria criteria, TPage page) {
+            Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1238,7 +1417,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCclPage(String key, String ccl,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1248,7 +1427,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCriteriaTimePage(String key,
-            Criteria criteria, long timestamp, TPage page) {
+            Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1258,7 +1437,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCriteriaTimestrPage(String key,
-            Criteria criteria, String timestamp, TPage page) {
+            Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1268,7 +1447,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCclTimePage(String key, String ccl,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1278,7 +1457,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> selectKeyCclTimestrPage(String key,
-            String ccl, String timestamp, TPage page) {
+            String ccl, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1288,7 +1467,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaPage(
-            List<String> keys, Criteria criteria, TPage page) {
+            List<String> keys, Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1298,7 +1477,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCclPage(
-            List<String> keys, String ccl, TPage page) {
+            List<String> keys, String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1308,7 +1487,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaTimePage(
-            List<String> keys, Criteria criteria, long timestamp, TPage page) {
+            List<String> keys, Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1318,8 +1497,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCriteriaTimestrPage(
-            List<String> keys, Criteria criteria, String timestamp,
-            TPage page) {
+            List<String> keys, Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1329,7 +1507,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCclTimePage(
-            List<String> keys, String ccl, long timestamp, TPage page) {
+            List<String> keys, String ccl, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1339,7 +1517,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> selectKeysCclTimestrPage(
-            List<String> keys, String ccl, String timestamp, TPage page) {
+            List<String> keys, String ccl, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1376,7 +1554,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysRecordsPage(List<String> keys,
-            List<Long> records, TPage page) {
+            List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1385,7 +1563,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyRecordsPage(String key, List<Long> records,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1395,7 +1573,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyRecordsTimePage(String key,
-            List<Long> records, long timestamp, TPage page) {
+            List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1405,7 +1583,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyRecordsTimestrPage(String key,
-            List<Long> records, String timestamp, TPage page) {
+            List<Long> records, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1415,7 +1593,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysRecordsTimePage(
-            List<String> keys, List<Long> records, long timestamp, TPage page) {
+            List<String> keys, List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1426,7 +1604,7 @@ abstract class StatefulConcourseService {
 
     public Map<Long, Map<String, Object>> getKeysRecordsTimestrPage(
             List<String> keys, List<Long> records, String timestamp,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1435,7 +1613,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyCriteriaPage(String key, Criteria criteria,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1444,7 +1622,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getCriteriaPage(Criteria criteria,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1452,7 +1630,7 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, Map<String, Object>> getCclPage(String ccl, TPage page) {
+    public Map<Long, Map<String, Object>> getCclPage(String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1462,7 +1640,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getCriteriaTimePage(Criteria criteria,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1472,7 +1650,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getCriteriaTimestrPage(
-            Criteria criteria, String timestamp, TPage page) {
+            Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1482,7 +1660,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getCclTimePage(String ccl,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1492,7 +1670,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getCclTimestrPage(String ccl,
-            String timestamp, TPage page) {
+            String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1500,7 +1678,7 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, Object> getKeyCclPage(String key, String ccl, TPage page) {
+    public Map<Long, Object> getKeyCclPage(String key, String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1510,7 +1688,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyCriteriaTimePage(String key,
-            Criteria criteria, long timestamp, TPage page) {
+            Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1520,7 +1698,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyCriteriaTimestrPage(String key,
-            Criteria criteria, String timestamp, TPage page) {
+            Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1530,7 +1708,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyCclTimePage(String key, String ccl,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1540,7 +1718,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Object> getKeyCclTimestrPage(String key, String ccl,
-            String timestamp, TPage page) {
+            String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1550,7 +1728,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCriteriaPage(List<String> keys,
-            Criteria criteria, TPage page) {
+            Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1560,7 +1738,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCclPage(List<String> keys,
-            String ccl, TPage page) {
+            String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1570,7 +1748,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCriteriaTimePage(
-            List<String> keys, Criteria criteria, long timestamp, TPage page) {
+            List<String> keys, Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1580,8 +1758,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCriteriaTimestrPage(
-            List<String> keys, Criteria criteria, String timestamp,
-            TPage page) {
+            List<String> keys, Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1591,7 +1768,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCclTimePage(List<String> keys,
-            String ccl, long timestamp, TPage page) {
+            String ccl, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1601,7 +1778,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Object>> getKeysCclTimestrPage(
-            List<String> keys, String ccl, String timestamp, TPage page) {
+            List<String> keys, String ccl, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1637,7 +1814,7 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Set<Long> findCriteriaPage(Criteria criteria, TPage page) {
+    public Set<Long> findCriteriaPage(Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1645,7 +1822,7 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Set<Long> findCclPage(String ccl, TPage page) {
+    public Set<Long> findCclPage(String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1655,7 +1832,7 @@ abstract class StatefulConcourseService {
     }
 
     public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
-            List<Object> values, TPage page) {
+            List<Object> values, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1665,8 +1842,7 @@ abstract class StatefulConcourseService {
     }
 
     public Set<Long> findKeyOperatorValuesTimePage(String key,
-            Operator operator, List<Object> values, long timestamp,
-            TPage page) {
+            Operator operator, List<Object> values, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1677,7 +1853,7 @@ abstract class StatefulConcourseService {
 
     public Set<Long> findKeyOperatorValuesTimestrPage(String key,
             Operator operator, List<Object> values, String timestamp,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1687,7 +1863,7 @@ abstract class StatefulConcourseService {
     }
 
     public Set<Long> findKeyOperatorstrValuesPage(String key, String operator,
-            List<Object> values, TPage page) {
+            List<Object> values, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1697,7 +1873,7 @@ abstract class StatefulConcourseService {
     }
 
     public Set<Long> findKeyOperatorstrValuesTimePage(String key,
-            String operator, List<Object> values, long timestamp, TPage page) {
+            String operator, List<Object> values, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1707,8 +1883,7 @@ abstract class StatefulConcourseService {
     }
 
     public Set<Long> findKeyOperatorstrValuesTimestrPage(String key,
-            String operator, List<Object> values, String timestamp,
-            TPage page) {
+            String operator, List<Object> values, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1716,7 +1891,7 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Set<Long> searchPage(String key, String query, TPage page) {
+    public Set<Long> searchPage(String key, String query, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2120,7 +2295,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordPage(String key, long record,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2130,7 +2305,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordTimePage(String key,
-            long record, long timestamp, TPage page) {
+            long record, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2140,7 +2315,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordTimestrPage(String key,
-            long record, String timestamp, TPage page) {
+            long record, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2150,7 +2325,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordPage(
-            List<String> keys, long record, TPage page) {
+            List<String> keys, long record, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2160,7 +2335,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordTimePage(
-            List<String> keys, long record, long timestamp, TPage page) {
+            List<String> keys, long record, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2170,7 +2345,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordTimestrPage(
-            List<String> keys, long record, String timestamp, TPage page) {
+            List<String> keys, long record, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2180,7 +2355,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordsPage(
-            List<String> keys, List<Long> records, TPage page) {
+            List<String> keys, List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2190,7 +2365,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordsPage(String key,
-            List<Long> records, TPage page) {
+            List<Long> records, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2200,7 +2375,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordsTimePage(String key,
-            List<Long> records, long timestamp, TPage page) {
+            List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2210,7 +2385,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyRecordsTimestrPage(String key,
-            List<Long> records, String timestamp, TPage page) {
+            List<Long> records, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2220,7 +2395,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordsTimePage(
-            List<String> keys, List<Long> records, long timestamp, TPage page) {
+            List<String> keys, List<Long> records, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2231,7 +2406,7 @@ abstract class StatefulConcourseService {
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysRecordsTimestrPage(
             List<String> keys, List<Long> records, String timestamp,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2240,7 +2415,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCclPage(String key, String ccl,
-            TPage page) {
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2250,7 +2425,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCclTimePage(String key, String ccl,
-            long timestamp, TPage page) {
+            long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2260,7 +2435,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCclTimestrPage(String key,
-            String ccl, String timestamp, TPage page) {
+            String ccl, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2270,7 +2445,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCclPage(
-            List<String> keys, String ccl, TPage page) {
+            List<String> keys, String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2280,7 +2455,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCclTimePage(
-            List<String> keys, String ccl, long timestamp, TPage page) {
+            List<String> keys, String ccl, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2290,7 +2465,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCclTimestrPage(
-            List<String> keys, String ccl, String timestamp, TPage page) {
+            List<String> keys, String ccl, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2300,7 +2475,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCriteriaPage(String key,
-            Criteria criteria, TPage page) {
+            Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2310,7 +2485,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCriteriaTimePage(String key,
-            Criteria criteria, long timestamp, TPage page) {
+            Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2320,7 +2495,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Set<Object>> navigateKeyCriteriaTimestrPage(String key,
-            Criteria criteria, String timestamp, TPage page) {
+            Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2330,7 +2505,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCriteriaPage(
-            List<String> keys, Criteria criteria, TPage page) {
+            List<String> keys, Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2340,7 +2515,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCriteriaTimePage(
-            List<String> keys, Criteria criteria, long timestamp, TPage page) {
+            List<String> keys, Criteria criteria, long timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -2350,8 +2525,7 @@ abstract class StatefulConcourseService {
     }
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCriteriaTimestrPage(
-            List<String> keys, Criteria criteria, String timestamp,
-            TPage page) {
+            List<String> keys, Criteria criteria, String timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
