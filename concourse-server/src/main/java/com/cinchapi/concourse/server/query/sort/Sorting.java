@@ -30,7 +30,8 @@ import com.google.common.collect.Iterables;
 public final class Sorting {
 
     /**
-     * Return a {@link StoreSorter} that sorts a result set containing scalar values.
+     * Return a {@link StoreSorter} that sorts a result set containing scalar
+     * values.
      * 
      * @param order
      * @param store

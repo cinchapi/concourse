@@ -36,11 +36,12 @@ import com.cinchapi.concourse.server.storage.Store;
 /**
  * A {@link StoreSorter} imposes an {@link Order} by value on a result set. The
  * values on which the sorting is based don't have to be part of the result set.
- * In this case, the {@link StoreSorter} uses a {@link Store} to lookup the values.
+ * In this case, the {@link StoreSorter} uses a {@link Store} to lookup the
+ * values.
  *
  * @author Jeff Nelson
  */
-abstract class StoreSorter<V> implements Sorter<V>{
+abstract class StoreSorter<V> implements Sorter<V> {
 
     /**
      * The {@link Order} to impose.

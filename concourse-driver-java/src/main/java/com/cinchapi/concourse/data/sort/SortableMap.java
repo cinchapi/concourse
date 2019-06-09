@@ -15,20 +15,19 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.Map;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.cinchapi.concourse.data.sort.Sortable;
-import com.cinchapi.concourse.data.sort.Sorter;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableMap;
 
 /**
  * <p>
- * A {@link SortableMap} is one that can be {@link #sort(StoreSorter) sorted} using a
+ * A {@link SortableMap} is one that can be {@link #sort(StoreSorter) sorted}
+ * using a
  * {@link StoreSorter}.
  * </p>
  * <p>
@@ -44,11 +43,12 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public class SortableMap<V> extends ForwardingMap<Long, V> implements
-        Sortable<V> {
+public class SortableMap<V> extends ForwardingMap<Long, V>
+        implements Sortable<V> {
 
     /**
-     * The delegate to which calls are forwarded. If {@link #sort(StoreSorter)} has
+     * The delegate to which calls are forwarded. If {@link #sort(StoreSorter)}
+     * has
      * been called, this delegate is sorted.
      */
     private Map<Long, V> delegate;

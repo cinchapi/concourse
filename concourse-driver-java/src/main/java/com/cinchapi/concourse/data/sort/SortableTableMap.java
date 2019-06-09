@@ -37,9 +37,8 @@ import com.google.common.collect.ForwardingMap;
  *
  * @author Jeff Nelson
  */
-public interface SortableTableMap<V> extends
-        Sortable<V>,
-        Map<Long, Map<String, V>> {
+public interface SortableTableMap<V>
+        extends Sortable<V>, Map<Long, Map<String, V>> {
 
     /**
      * Ensure that the {@code data} is a {@link SortableTableMap}.
@@ -63,9 +62,8 @@ public interface SortableTableMap<V> extends
      *
      * @author Jeff Nelson
      */
-    class SortableForwardingTableMap<V>
-            extends ForwardingMap<Long, Map<String, V>> implements
-            SortableTableMap<V> {
+    class SortableForwardingTableMap<V> extends
+            ForwardingMap<Long, Map<String, V>> implements SortableTableMap<V> {
 
         /**
          * The delegate to which calls are forwarded. If

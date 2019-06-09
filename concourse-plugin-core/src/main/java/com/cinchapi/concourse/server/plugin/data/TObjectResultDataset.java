@@ -33,8 +33,8 @@ import io.atomix.catalyst.buffer.Buffer;
  * 
  * @author Jeff Nelson
  */
-public class TObjectResultDataset extends ResultDataset<TObject> implements
-        SortableTableMap<Set<TObject>> {
+public class TObjectResultDataset extends ResultDataset<TObject>
+        implements SortableTableMap<Set<TObject>> {
 
     /**
      * Return a {@link TObjectResultDataset} that wraps the original
