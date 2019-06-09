@@ -26,9 +26,9 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * <p>
- * A {@link SortableMap} is one that can be {@link #sort(StoreSorter) sorted}
+ * A {@link SortableMap} is one that can be {@link #sort(Sorter) sorted}
  * using a
- * {@link StoreSorter}.
+ * {@link Sorter}.
  * </p>
  * <p>
  * A {@link SortableMap} is implicitly a {@link SortableTableMap} with a single
@@ -36,7 +36,7 @@ import com.google.common.collect.ImmutableMap;
  * </p>
  * <p>
  * In practice, a {@link SortableMap} simply forwards to another map. When
- * {@link #sort(StoreSorter)} is called, the delegate is replaced by a sorted
+ * {@link #sort(Sorter)} is called, the delegate is replaced by a sorted
  * version.
  * </p>
  *
@@ -47,7 +47,7 @@ public class SortableMap<V> extends ForwardingMap<Long, V>
         implements Sortable<V> {
 
     /**
-     * The delegate to which calls are forwarded. If {@link #sort(StoreSorter)}
+     * The delegate to which calls are forwarded. If {@link #sort(Sorter)}
      * has
      * been called, this delegate is sorted.
      */

@@ -26,12 +26,12 @@ import com.google.common.collect.ForwardingMap;
  * V&gt;&gt;), similar to a {@link com.google.common.collect.Table}.
  * </p>
  * <p>
- * A {@link SortableTableMap} is one that can be {@link #sort(StoreSorter)
- * sorted} using a {@link StoreSorter}.
+ * A {@link SortableTableMap} is one that can be {@link #sort(Sorter)
+ * sorted} using a {@link Sorter}.
  * </p>
  * <p>
  * In practice, a {@link SortableTableMap} simply forwards to another map.
- * When {@link #sort(StoreSorter)} is called, the delegate is replaced by a
+ * When {@link #sort(Sorter)} is called, the delegate is replaced by a
  * sorted version.
  * </p>
  *
@@ -67,7 +67,7 @@ public interface SortableTableMap<V>
 
         /**
          * The delegate to which calls are forwarded. If
-         * {@link #sort(StoreSorter)}
+         * {@link #sort(Sorter)}
          * has
          * been called, this delegate is sorted.
          */
