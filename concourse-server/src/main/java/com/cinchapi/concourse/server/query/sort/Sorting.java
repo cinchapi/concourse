@@ -30,36 +30,36 @@ import com.google.common.collect.Iterables;
 public final class Sorting {
 
     /**
-     * Return a {@link Sorter} that sorts a result set containing scalar values.
+     * Return a {@link StoreSorter} that sorts a result set containing scalar values.
      * 
      * @param order
      * @param store
-     * @return the {@link Sorter}
+     * @return the {@link StoreSorter}
      */
-    public static Sorter<TObject> byValue(Order order, Store store) {
+    public static StoreSorter<TObject> byValue(Order order, Store store) {
         return new ByValueSorter(order, store);
     }
 
     /**
-     * Return a {@link Sorter} that sorts a result set containing a set of
+     * Return a {@link StoreSorter} that sorts a result set containing a set of
      * values.
      * 
      * @param order
      * @param store
-     * @return the {@link Sorter}
+     * @return the {@link StoreSorter}
      */
-    public static Sorter<Set<TObject>> byValues(Order order, Store store) {
+    public static StoreSorter<Set<TObject>> byValues(Order order, Store store) {
         return new ByValuesSorter(order, store);
     }
 
     private Sorting() {/* no-init */}
 
     /**
-     * A {@link Sorter} for scalar values.
+     * A {@link StoreSorter} for scalar values.
      *
      * @author Jeff Nelson
      */
-    private static class ByValueSorter extends Sorter<TObject> {
+    private static class ByValueSorter extends StoreSorter<TObject> {
 
         /**
          * Construct a new instance.
@@ -89,11 +89,11 @@ public final class Sorting {
     }
 
     /**
-     * A {@link Sorter} for sets of values.
+     * A {@link StoreSorter} for sets of values.
      *
      * @author Jeff Nelson
      */
-    private static class ByValuesSorter extends Sorter<Set<TObject>> {
+    private static class ByValuesSorter extends StoreSorter<Set<TObject>> {
 
         /**
          * Construct a new instance.

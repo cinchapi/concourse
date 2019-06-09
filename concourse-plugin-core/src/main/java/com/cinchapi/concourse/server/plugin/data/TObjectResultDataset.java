@@ -18,7 +18,12 @@ package com.cinchapi.concourse.server.plugin.data;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
+import com.cinchapi.concourse.data.sort.SortableTableMap;
+import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import io.atomix.catalyst.buffer.Buffer;
@@ -28,7 +33,8 @@ import io.atomix.catalyst.buffer.Buffer;
  * 
  * @author Jeff Nelson
  */
-public class TObjectResultDataset extends ResultDataset<TObject> {
+public class TObjectResultDataset extends ResultDataset<TObject> implements
+        SortableTableMap<Set<TObject>> {
 
     /**
      * Return a {@link TObjectResultDataset} that wraps the original
@@ -39,6 +45,39 @@ public class TObjectResultDataset extends ResultDataset<TObject> {
      */
     public static TObjectResultDataset wrap(ObjectResultDataset dataset) {
         return (TObjectResultDataset) dataset.thrift;
+    }
+
+    /**
+     * The {@link Sorter} that has been provided by the {@link #sort(Sorter)}
+     * method. The {@code sorter} is applied on the fly when a call is made to
+     * {@link #entrySet()}.
+     */
+    @Nullable
+    private Sorter<Set<TObject>> sorter;
+
+    @Override
+    public Set<Entry<Long, Map<String, Set<TObject>>>> entrySet() {
+        Set<Entry<Long, Map<String, Set<TObject>>>> entrySet = super.entrySet();
+        if(sorter != null) {
+            // Sort the #entrySet on the fly so that iteration (and all
+            // derivative functionality) adheres to the order specified by the
+            // {@link #sort()}.
+            Map<Long, Map<String, Set<TObject>>> map = entrySet.stream()
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            map = sorter.sort(map);
+            entrySet = map.entrySet();
+        }
+        return entrySet;
+    }
+
+    @Override
+    public void sort(Sorter<Set<TObject>> sorter) {
+        this.sorter = sorter;
+    }
+
+    @Override
+    protected Map<TObject, Set<Long>> createInvertedMultimap() {
+        return TrackingLinkedHashMultimap.create(TObject.comparator());
     }
 
     @Override
@@ -56,11 +95,6 @@ public class TObjectResultDataset extends ResultDataset<TObject> {
         byte[] data = value.getData();
         buffer.writeInt(data.length);
         buffer.write(data);
-    }
-
-    @Override
-    protected Map<TObject, Set<Long>> createInvertedMultimap() {
-        return TrackingLinkedHashMultimap.create(TObject.comparator());
     }
 
 }

@@ -34,7 +34,7 @@ import java.util.List;
 public interface Order {
 
     /**
-     * Start building a new {@link BuiltOrder}.
+     * Start building a new {@link Order}.
      *
      * @return the Order builder
      */

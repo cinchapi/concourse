@@ -27,19 +27,20 @@ import javax.annotation.Nullable;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.describe.Empty;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.lang.sort.Direction;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.lang.sort.OrderComponent;
 import com.cinchapi.concourse.server.storage.Store;
 
 /**
- * A {@link Sorter} imposes an {@link Order} by value on a result set. The
+ * A {@link StoreSorter} imposes an {@link Order} by value on a result set. The
  * values on which the sorting is based don't have to be part of the result set.
- * In this case, the {@link Sorter} uses a {@link Store} to lookup the values.
+ * In this case, the {@link StoreSorter} uses a {@link Store} to lookup the values.
  *
  * @author Jeff Nelson
  */
-abstract class Sorter<V> {
+abstract class StoreSorter<V> implements Sorter<V>{
 
     /**
      * The {@link Order} to impose.
@@ -58,31 +59,18 @@ abstract class Sorter<V> {
      * @param order
      * @param store
      */
-    protected Sorter(Order order, Store store) {
+    protected StoreSorter(Order order, Store store) {
         this.order = order;
         this.store = store;
     }
 
-    /**
-     * Sort the data.
-     * 
-     * @param data
-     * @return the sorted data
-     */
+    @Override
     public final Map<Long, Map<String, V>> sort(
             Map<Long, Map<String, V>> data) {
         return sort(data, null);
     }
 
-    /**
-     * Sort the data using the {@code at} timestamp as temporal binding for
-     * missing value lookups when an order component does not explicitly specify
-     * a timestamp.
-     * 
-     * @param data
-     * @param at
-     * @return the sorted data
-     */
+    @Override
     public final Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data,
             @Nullable Long at) {
         ArrayBuilder<Comparator<Entry<Long, Map<String, V>>>> comparators = ArrayBuilder

@@ -33,11 +33,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for the {@link Sorter} framework.
+ * Unit tests for the {@link StoreSorter} framework.
  *
  * @author Jeff Nelson
  */
-public class SorterTest {
+public class SortingTest {
 
     @Test
     public void testIntAscendingSort() {
