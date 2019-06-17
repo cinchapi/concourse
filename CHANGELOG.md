@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 1.0.0 (TBD)
+#### Version 0.10.0 (TBD)
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 * Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
 * Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
