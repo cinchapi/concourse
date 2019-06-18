@@ -311,7 +311,7 @@ public final class Database extends BaseStore implements PermanentStore {
             // NOTE: Write locking happens in each individual Block, and
             // furthermore this method is only called from the Buffer, which
             // transports data serially.
-            List<Callable<?>> tasks = ImmutableList.of(
+            List<Callable<Object>> tasks = ImmutableList.of(
                     Executors.callable(new BlockWriter(cpb0, write)),
                     Executors.callable(new BlockWriter(csb0, write)),
                     Executors.callable(new BlockWriter(ctb0, write)));
@@ -505,7 +505,7 @@ public final class Database extends BaseStore implements PermanentStore {
             running = true;
             Logger.info("Database configured to store data in {}",
                     backingStore);
-            List<Callable<?>> tasks = ImmutableList.of(
+            List<Callable<Object>> tasks = ImmutableList.of(
                     Executors.callable(new BlockLoader<PrimaryBlock>(
                             PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb)),
                     Executors.callable(new BlockLoader<SecondaryBlock>(
@@ -699,7 +699,7 @@ public final class Database extends BaseStore implements PermanentStore {
             if(doSync) {
                 // TODO we need a transactional file system to ensure that these
                 // blocks are written atomically (all or nothing)
-                List<Callable<?>> tasks = ImmutableList.of(
+                List<Callable<Object>> tasks = ImmutableList.of(
                         Executors.callable(new BlockSyncer(cpb0)),
                         Executors.callable(new BlockSyncer(csb0)),
                         Executors.callable(new BlockSyncer(ctb0)));
