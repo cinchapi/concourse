@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
@@ -33,10 +36,10 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -62,6 +65,7 @@ import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -190,10 +194,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * another is by the directory in which they are stored.
      */
     private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-
     private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
     private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-    private static final String threadNamePrefix = "database-write-thread";
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -256,6 +258,18 @@ public final class Database extends BaseStore implements PermanentStore {
     private transient boolean running = false;
 
     /**
+     * An {@link ExecutorService} that handles asynchronous writing tasks in the
+     * background.
+     */
+    private transient ExecutorService writer;
+
+    /**
+     * An {@link ExecutorService} that handles asynchronous reading tasks in the
+     * background.
+     */
+    private transient ExecutorService reader;
+
+    /**
      * Construct a Database that is backed by the default location which is in
      * {@link GlobalState#DATABASE_DIRECTORY}.
      * 
@@ -273,6 +287,10 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     public Database(String backingStore) {
         this.backingStore = backingStore;
+        this.writer = Executors.newCachedThreadPool(
+                ThreadFactories.namingThreadFactory("database-write-thread"));
+        this.reader = Executors.newCachedThreadPool(
+                ThreadFactories.namingThreadFactory("Storage Block Loader"));
     }
 
     @Override
@@ -293,9 +311,22 @@ public final class Database extends BaseStore implements PermanentStore {
             // NOTE: Write locking happens in each individual Block, and
             // furthermore this method is only called from the Buffer, which
             // transports data serially.
-            ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-                    new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
-                    new BlockWriter(ctb0, write));
+            List<Callable<?>> tasks = ImmutableList.of(
+                    Executors.callable(new BlockWriter(cpb0, write)),
+                    Executors.callable(new BlockWriter(csb0, write)),
+                    Executors.callable(new BlockWriter(ctb0, write)));
+            try {
+                writer.invokeAll(tasks);
+            }
+            catch (InterruptedException e) {
+                Logger.warn(
+                        "The database was interrupted while trying to accept {}. "
+                                + "If the write could not be fully accepted, it will "
+                                + "remain in the buffer and re-tried when the Database is able to accept writes.",
+                        write);
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
         else {
             Logger.warn(
@@ -474,14 +505,23 @@ public final class Database extends BaseStore implements PermanentStore {
             running = true;
             Logger.info("Database configured to store data in {}",
                     backingStore);
-            ConcourseExecutors.executeAndAwaitTerminationAndShutdown(
-                    "Storage Block Loader",
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
-                    new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
-                            SECONDARY_BLOCK_DIRECTORY, csb),
-                    new BlockLoader<SearchBlock>(SearchBlock.class,
-                            SEARCH_BLOCK_DIRECTORY, ctb));
+            List<Callable<?>> tasks = ImmutableList.of(
+                    Executors.callable(new BlockLoader<PrimaryBlock>(
+                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb)),
+                    Executors.callable(new BlockLoader<SecondaryBlock>(
+                            SecondaryBlock.class, SECONDARY_BLOCK_DIRECTORY,
+                            csb)),
+                    Executors.callable(new BlockLoader<SearchBlock>(
+                            SearchBlock.class, SEARCH_BLOCK_DIRECTORY, ctb)));
+            try {
+                reader.invokeAll(tasks);
+            }
+            catch (InterruptedException e) {
+                Logger.error("The Database was interrupted while starting...",
+                        e);
+                Thread.currentThread().interrupt();
+                return;
+            }
 
             // CON-83: Get rid of any blocks that aren't "balanced" (e.g. has
             // primary and secondary) under the assumption that the server
@@ -504,6 +544,8 @@ public final class Database extends BaseStore implements PermanentStore {
     public void stop() {
         if(running) {
             running = false;
+            reader.shutdown();
+            writer.shutdown();
         }
     }
 
@@ -657,9 +699,24 @@ public final class Database extends BaseStore implements PermanentStore {
             if(doSync) {
                 // TODO we need a transactional file system to ensure that these
                 // blocks are written atomically (all or nothing)
-                ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-                        new BlockSyncer(cpb0), new BlockSyncer(csb0),
-                        new BlockSyncer(ctb0));
+                List<Callable<?>> tasks = ImmutableList.of(
+                        Executors.callable(new BlockSyncer(cpb0)),
+                        Executors.callable(new BlockSyncer(csb0)),
+                        Executors.callable(new BlockSyncer(ctb0)));
+                try {
+                    writer.invokeAll(tasks);
+                }
+                catch (InterruptedException e) {
+                    Logger.warn(
+                            "The database was interrupted while trying to "
+                                    + "sync storage blocks for {}. Since the blocks "
+                                    + "were not fully synced, the contained writes are "
+                                    + "still in the Buffer. Any partially synced blocks "
+                                    + "will be safely removed when the Database restarts.",
+                            cpb0.getId());
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
             String id = Long.toString(Time.now());
             cpb.add((cpb0 = Block.createPrimaryBlock(id,
