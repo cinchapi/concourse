@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -287,10 +288,6 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     public Database(String backingStore) {
         this.backingStore = backingStore;
-        this.writer = Executors.newCachedThreadPool(
-                ThreadFactories.namingThreadFactory("database-write-thread"));
-        this.reader = Executors.newCachedThreadPool(
-                ThreadFactories.namingThreadFactory("Storage Block Loader"));
     }
 
     @Override
@@ -311,21 +308,32 @@ public final class Database extends BaseStore implements PermanentStore {
             // NOTE: Write locking happens in each individual Block, and
             // furthermore this method is only called from the Buffer, which
             // transports data serially.
-            List<Callable<Object>> tasks = ImmutableList.of(
-                    Executors.callable(new BlockWriter(cpb0, write)),
-                    Executors.callable(new BlockWriter(csb0, write)),
-                    Executors.callable(new BlockWriter(ctb0, write)));
-            try {
-                writer.invokeAll(tasks);
+            List<Runnable> tasks = ImmutableList.of(
+                    new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
+                    new BlockWriter(ctb0, write));
+            if(running) {
+                try {
+                    List<Callable<Object>> writes = tasks.stream()
+                            .map(Executors::callable)
+                            .collect(Collectors.toList());
+                    writer.invokeAll(writes);
+                }
+                catch (InterruptedException e) {
+                    Logger.warn(
+                            "The database was interrupted while trying to accept {}. "
+                                    + "If the write could not be fully accepted, it will "
+                                    + "remain in the buffer and re-tried when the Database is able to accept writes.",
+                            write);
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
-            catch (InterruptedException e) {
+            else {
+                // The #accept method may be called when the database is stopped
+                // during test cases
                 Logger.warn(
-                        "The database was interrupted while trying to accept {}. "
-                                + "If the write could not be fully accepted, it will "
-                                + "remain in the buffer and re-tried when the Database is able to accept writes.",
-                        write);
-                Thread.currentThread().interrupt();
-                return;
+                        "The database is being asked to accept a Write, even though it is not running.");
+                tasks.forEach(task -> task.run());
             }
         }
         else {
@@ -505,6 +513,10 @@ public final class Database extends BaseStore implements PermanentStore {
             running = true;
             Logger.info("Database configured to store data in {}",
                     backingStore);
+            this.writer = Executors.newCachedThreadPool(ThreadFactories
+                    .namingThreadFactory("database-write-thread"));
+            this.reader = Executors.newCachedThreadPool(ThreadFactories
+                    .namingThreadFactory("Storage Block Loader"));
             List<Callable<Object>> tasks = ImmutableList.of(
                     Executors.callable(new BlockLoader<PrimaryBlock>(
                             PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb)),
@@ -699,23 +711,33 @@ public final class Database extends BaseStore implements PermanentStore {
             if(doSync) {
                 // TODO we need a transactional file system to ensure that these
                 // blocks are written atomically (all or nothing)
-                List<Callable<Object>> tasks = ImmutableList.of(
-                        Executors.callable(new BlockSyncer(cpb0)),
-                        Executors.callable(new BlockSyncer(csb0)),
-                        Executors.callable(new BlockSyncer(ctb0)));
-                try {
-                    writer.invokeAll(tasks);
+                List<Runnable> tasks = ImmutableList.of(new BlockSyncer(cpb0),
+                        new BlockSyncer(csb0), new BlockSyncer(ctb0));
+                if(running) {
+                    try {
+                        List<Callable<Object>> syncs = tasks.stream()
+                                .map(Executors::callable)
+                                .collect(Collectors.toList());
+                        writer.invokeAll(syncs);
+                    }
+                    catch (InterruptedException e) {
+                        Logger.warn(
+                                "The database was interrupted while trying to "
+                                        + "sync storage blocks for {}. Since the blocks "
+                                        + "were not fully synced, the contained writes are "
+                                        + "still in the Buffer. Any partially synced blocks "
+                                        + "will be safely removed when the Database restarts.",
+                                cpb0.getId());
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
-                catch (InterruptedException e) {
+                else {
+                    // The #triggerSync method may be called when the database
+                    // is stopped during test cases
                     Logger.warn(
-                            "The database was interrupted while trying to "
-                                    + "sync storage blocks for {}. Since the blocks "
-                                    + "were not fully synced, the contained writes are "
-                                    + "still in the Buffer. Any partially synced blocks "
-                                    + "will be safely removed when the Database restarts.",
-                            cpb0.getId());
-                    Thread.currentThread().interrupt();
-                    return;
+                            "The database is being asked to sync blocks, even though it is not running.");
+                    tasks.forEach(task -> task.run());
                 }
             }
             String id = Long.toString(Time.now());
