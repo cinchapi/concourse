@@ -57,7 +57,7 @@ JVMOPTS="
 -Dcom.sun.management.jmxremote.authenticate=false
 -Dcom.sun.management.jmxremote.ssl=false
 -XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
+-XX:ThreadPriorityPolicy=1
 -XX:CompileThreshold=500
 "
 #-------------------------------------------------------------------------------
