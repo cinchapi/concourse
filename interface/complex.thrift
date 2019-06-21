@@ -23,6 +23,10 @@ include "data.thrift"
 # thrift -out concourse-driver-java/src/main/java -gen java interface/complex.thrift
 namespace java com.cinchapi.concourse.thrift
 
+# To generate Node.js source code run:
+# thrift --gen js:es6,node -out concourse-driver-node-js/src -recurse interface/complex.thrift
+namespace js concourse.thrift.complex
+
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py interface/complex.thrift
 namespace py concourse.thriftapi.complex

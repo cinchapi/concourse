@@ -25,6 +25,10 @@ include "complex.thrift"
 # utils/compile-thrift-java.sh
 namespace java com.cinchapi.concourse.thrift
 
+# To generate Node.js source code run:
+# utils/compile—thrift-node-js.sh
+namespace js concourse.thrift
+
 # To generate python source code run:
 # utils/compile—thrift-python.sh
 namespace py concourse.thriftapi
