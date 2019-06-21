@@ -148,3 +148,7 @@
 #
 # DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434
+
+# The remote debugger port.
+# DEFAULT: 54555
+#remote_debugger_port = 54555
