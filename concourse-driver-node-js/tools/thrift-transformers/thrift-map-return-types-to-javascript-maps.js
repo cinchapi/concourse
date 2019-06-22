@@ -55,7 +55,6 @@ const processFile = (thriftFilePath, javascriptFilePath, thriftSource, javascrip
               return
             }
             if (methodResultClassesToCheck.has(pathIdPath.node.name)) {
-              console.log(`In method result class "${pathIdPath.node.name}"`)
               path
                 .get('init', 'body', 'body')
                 .each((path) => {
@@ -67,9 +66,7 @@ const processFile = (thriftFilePath, javascriptFilePath, thriftSource, javascrip
                     return
                   }
                   if (pathKeyPath.node.name === 'read') {
-                    console.log(`    > In method "read" of method result class "${pathIdPath.node.name}"`)
                     const emptyObjectAssignmentsFound = {}
-                    const mapVariableNames = new Set()
                     const readMethodBlockPath = path.get('value', 'body', 'body')
                     astTypes.visit(readMethodBlockPath.node, {
                       visitAssignmentExpression(path) {
@@ -93,6 +90,7 @@ const processFile = (thriftFilePath, javascriptFilePath, thriftSource, javascrip
                         this.traverse(path)
                       }
                     })
+                    const mapVariableNames = new Set()
                     astTypes.visit(readMethodBlockPath.node, {
                       visitCallExpression(path) {
                         try {
@@ -129,14 +127,26 @@ const processFile = (thriftFilePath, javascriptFilePath, thriftSource, javascrip
                     astTypes.visit(readMethodBlockPath.node, {
                       visitMemberExpression(path) {
                         try {
-                          debugger
-                          // const { code: memberExpressionValue } = recast.print(path.node)
                           const pathObjectPath = path.get('object')
                           const { code: memberExpressionValue } = recast.print(pathObjectPath.node)
-                          // if () {
-                          //   this.abort()
-                          // }
-                          console.log(`memberExpressionValue === ${memberExpressionValue}`)
+                          if (! mapVariableNames.has(memberExpressionValue)) {
+                            this.abort()
+                          }
+                          const { parentPath: pathParentPath } = path
+                          if (! astTypes.namedTypes.AssignmentExpression.check(pathParentPath.node)) {
+                            this.abort()
+                          }
+                          const pathParentPathLeftPath = pathParentPath.get('left')
+                          const pathParentPathRightPath = pathParentPath.get('right')
+                          pathParentPath.replace(
+                            astTypes.builders.callExpression(
+                              astTypes.builders.memberExpression(pathObjectPath.node,
+                                astTypes.builders.identifier('set'),
+                                false),
+                              [
+                                pathParentPathLeftPath.node.property,
+                                pathParentPathRightPath.node
+                              ]))
                         } catch (error) {
                           if (error instanceof this.AbortRequest) {
                             return false
@@ -147,10 +157,8 @@ const processFile = (thriftFilePath, javascriptFilePath, thriftSource, javascrip
                         this.traverse(path)
                       }
                     })
-                    //
                   }
                 })
-              console.log('\n')
             }
           })
       }

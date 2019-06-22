@@ -5,6 +5,8 @@
 //
 "use strict";
 
+const buffer = require('buffer');
+const Buffer = buffer.Buffer;
 const thrift = require('thrift');
 const Thrift = thrift.Thrift;
 

@@ -554,7 +554,7 @@ const ConcourseService_addKeyValueRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp36 = input.readMapBegin();
           const _size5 = _rtmp36.size || 0;
           for (let _i7 = 0; _i7 < _size5; ++_i7) {
@@ -562,7 +562,7 @@ const ConcourseService_addKeyValueRecords_result = class {
             let val9 = null;
             key8 = input.readI64();
             val9 = input.readBool();
-            this.success[key8] = val9;
+            this.success.set(key8, val9);
           }
           input.readMapEnd();
         } else {
@@ -705,7 +705,7 @@ const ConcourseService_auditRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp313 = input.readMapBegin();
           const _size12 = _rtmp313.size || 0;
           for (let _i14 = 0; _i14 < _size12; ++_i14) {
@@ -713,7 +713,7 @@ const ConcourseService_auditRecord_result = class {
             let val16 = null;
             key15 = input.readI64();
             val16 = input.readString();
-            this.success[key15] = val16;
+            this.success.set(key15, val16);
           }
           input.readMapEnd();
         } else {
@@ -857,7 +857,7 @@ const ConcourseService_auditRecordStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp320 = input.readMapBegin();
           const _size19 = _rtmp320.size || 0;
           for (let _i21 = 0; _i21 < _size19; ++_i21) {
@@ -865,7 +865,7 @@ const ConcourseService_auditRecordStart_result = class {
             let val23 = null;
             key22 = input.readI64();
             val23 = input.readString();
-            this.success[key22] = val23;
+            this.success.set(key22, val23);
           }
           input.readMapEnd();
         } else {
@@ -1017,7 +1017,7 @@ const ConcourseService_auditRecordStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp327 = input.readMapBegin();
           const _size26 = _rtmp327.size || 0;
           for (let _i28 = 0; _i28 < _size26; ++_i28) {
@@ -1025,7 +1025,7 @@ const ConcourseService_auditRecordStartstr_result = class {
             let val30 = null;
             key29 = input.readI64();
             val30 = input.readString();
-            this.success[key29] = val30;
+            this.success.set(key29, val30);
           }
           input.readMapEnd();
         } else {
@@ -1186,7 +1186,7 @@ const ConcourseService_auditRecordStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp334 = input.readMapBegin();
           const _size33 = _rtmp334.size || 0;
           for (let _i35 = 0; _i35 < _size33; ++_i35) {
@@ -1194,7 +1194,7 @@ const ConcourseService_auditRecordStartEnd_result = class {
             let val37 = null;
             key36 = input.readI64();
             val37 = input.readString();
-            this.success[key36] = val37;
+            this.success.set(key36, val37);
           }
           input.readMapEnd();
         } else {
@@ -1355,7 +1355,7 @@ const ConcourseService_auditRecordStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp341 = input.readMapBegin();
           const _size40 = _rtmp341.size || 0;
           for (let _i42 = 0; _i42 < _size40; ++_i42) {
@@ -1363,7 +1363,7 @@ const ConcourseService_auditRecordStartstrEndstr_result = class {
             let val44 = null;
             key43 = input.readI64();
             val44 = input.readString();
-            this.success[key43] = val44;
+            this.success.set(key43, val44);
           }
           input.readMapEnd();
         } else {
@@ -1515,7 +1515,7 @@ const ConcourseService_auditKeyRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp348 = input.readMapBegin();
           const _size47 = _rtmp348.size || 0;
           for (let _i49 = 0; _i49 < _size47; ++_i49) {
@@ -1523,7 +1523,7 @@ const ConcourseService_auditKeyRecord_result = class {
             let val51 = null;
             key50 = input.readI64();
             val51 = input.readString();
-            this.success[key50] = val51;
+            this.success.set(key50, val51);
           }
           input.readMapEnd();
         } else {
@@ -1676,7 +1676,7 @@ const ConcourseService_auditKeyRecordStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp355 = input.readMapBegin();
           const _size54 = _rtmp355.size || 0;
           for (let _i56 = 0; _i56 < _size54; ++_i56) {
@@ -1684,7 +1684,7 @@ const ConcourseService_auditKeyRecordStart_result = class {
             let val58 = null;
             key57 = input.readI64();
             val58 = input.readString();
-            this.success[key57] = val58;
+            this.success.set(key57, val58);
           }
           input.readMapEnd();
         } else {
@@ -1845,7 +1845,7 @@ const ConcourseService_auditKeyRecordStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp362 = input.readMapBegin();
           const _size61 = _rtmp362.size || 0;
           for (let _i63 = 0; _i63 < _size61; ++_i63) {
@@ -1853,7 +1853,7 @@ const ConcourseService_auditKeyRecordStartstr_result = class {
             let val65 = null;
             key64 = input.readI64();
             val65 = input.readString();
-            this.success[key64] = val65;
+            this.success.set(key64, val65);
           }
           input.readMapEnd();
         } else {
@@ -2023,7 +2023,7 @@ const ConcourseService_auditKeyRecordStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp369 = input.readMapBegin();
           const _size68 = _rtmp369.size || 0;
           for (let _i70 = 0; _i70 < _size68; ++_i70) {
@@ -2031,7 +2031,7 @@ const ConcourseService_auditKeyRecordStartEnd_result = class {
             let val72 = null;
             key71 = input.readI64();
             val72 = input.readString();
-            this.success[key71] = val72;
+            this.success.set(key71, val72);
           }
           input.readMapEnd();
         } else {
@@ -2201,7 +2201,7 @@ const ConcourseService_auditKeyRecordStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp376 = input.readMapBegin();
           const _size75 = _rtmp376.size || 0;
           for (let _i77 = 0; _i77 < _size75; ++_i77) {
@@ -2209,7 +2209,7 @@ const ConcourseService_auditKeyRecordStartstrEndstr_result = class {
             let val79 = null;
             key78 = input.readI64();
             val79 = input.readString();
-            this.success[key78] = val79;
+            this.success.set(key78, val79);
           }
           input.readMapEnd();
         } else {
@@ -2352,7 +2352,7 @@ const ConcourseService_browseKey_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp383 = input.readMapBegin();
           const _size82 = _rtmp383.size || 0;
           for (let _i84 = 0; _i84 < _size82; ++_i84) {
@@ -2369,7 +2369,7 @@ const ConcourseService_browseKey_result = class {
               val86.push(elem90);
             }
             input.readSetEnd();
-            this.success[key85] = val86;
+            this.success.set(key85, val86);
           }
           input.readMapEnd();
         } else {
@@ -2511,14 +2511,14 @@ const ConcourseService_browseKeys_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3100 = input.readMapBegin();
           const _size99 = _rtmp3100.size || 0;
           for (let _i101 = 0; _i101 < _size99; ++_i101) {
             let key102 = null;
             let val103 = null;
             key102 = input.readString();
-            val103 = {};
+            val103 = new Map();
             const _rtmp3105 = input.readMapBegin();
             const _size104 = _rtmp3105.size || 0;
             for (let _i106 = 0; _i106 < _size104; ++_i106) {
@@ -2535,10 +2535,10 @@ const ConcourseService_browseKeys_result = class {
                 val108.push(elem112);
               }
               input.readSetEnd();
-              val103[key107] = val108;
+              val103.set(key107, val108);
             }
             input.readMapEnd();
-            this.success[key102] = val103;
+            this.success.set(key102, val103);
           }
           input.readMapEnd();
         } else {
@@ -2682,7 +2682,7 @@ const ConcourseService_browseKeyTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3119 = input.readMapBegin();
           const _size118 = _rtmp3119.size || 0;
           for (let _i120 = 0; _i120 < _size118; ++_i120) {
@@ -2699,7 +2699,7 @@ const ConcourseService_browseKeyTime_result = class {
               val122.push(elem126);
             }
             input.readSetEnd();
-            this.success[key121] = val122;
+            this.success.set(key121, val122);
           }
           input.readMapEnd();
         } else {
@@ -2851,7 +2851,7 @@ const ConcourseService_browseKeyTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3131 = input.readMapBegin();
           const _size130 = _rtmp3131.size || 0;
           for (let _i132 = 0; _i132 < _size130; ++_i132) {
@@ -2868,7 +2868,7 @@ const ConcourseService_browseKeyTimestr_result = class {
               val134.push(elem138);
             }
             input.readSetEnd();
-            this.success[key133] = val134;
+            this.success.set(key133, val134);
           }
           input.readMapEnd();
         } else {
@@ -3027,14 +3027,14 @@ const ConcourseService_browseKeysTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3148 = input.readMapBegin();
           const _size147 = _rtmp3148.size || 0;
           for (let _i149 = 0; _i149 < _size147; ++_i149) {
             let key150 = null;
             let val151 = null;
             key150 = input.readString();
-            val151 = {};
+            val151 = new Map();
             const _rtmp3153 = input.readMapBegin();
             const _size152 = _rtmp3153.size || 0;
             for (let _i154 = 0; _i154 < _size152; ++_i154) {
@@ -3051,10 +3051,10 @@ const ConcourseService_browseKeysTime_result = class {
                 val156.push(elem160);
               }
               input.readSetEnd();
-              val151[key155] = val156;
+              val151.set(key155, val156);
             }
             input.readMapEnd();
-            this.success[key150] = val151;
+            this.success.set(key150, val151);
           }
           input.readMapEnd();
         } else {
@@ -3213,14 +3213,14 @@ const ConcourseService_browseKeysTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3172 = input.readMapBegin();
           const _size171 = _rtmp3172.size || 0;
           for (let _i173 = 0; _i173 < _size171; ++_i173) {
             let key174 = null;
             let val175 = null;
             key174 = input.readString();
-            val175 = {};
+            val175 = new Map();
             const _rtmp3177 = input.readMapBegin();
             const _size176 = _rtmp3177.size || 0;
             for (let _i178 = 0; _i178 < _size176; ++_i178) {
@@ -3237,10 +3237,10 @@ const ConcourseService_browseKeysTimestr_result = class {
                 val180.push(elem184);
               }
               input.readSetEnd();
-              val175[key179] = val180;
+              val175.set(key179, val180);
             }
             input.readMapEnd();
-            this.success[key174] = val175;
+            this.success.set(key174, val175);
           }
           input.readMapEnd();
         } else {
@@ -3392,7 +3392,7 @@ const ConcourseService_chronologizeKeyRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3191 = input.readMapBegin();
           const _size190 = _rtmp3191.size || 0;
           for (let _i192 = 0; _i192 < _size190; ++_i192) {
@@ -3409,7 +3409,7 @@ const ConcourseService_chronologizeKeyRecord_result = class {
               val194.push(elem198);
             }
             input.readSetEnd();
-            this.success[key193] = val194;
+            this.success.set(key193, val194);
           }
           input.readMapEnd();
         } else {
@@ -3562,7 +3562,7 @@ const ConcourseService_chronologizeKeyRecordStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3203 = input.readMapBegin();
           const _size202 = _rtmp3203.size || 0;
           for (let _i204 = 0; _i204 < _size202; ++_i204) {
@@ -3579,7 +3579,7 @@ const ConcourseService_chronologizeKeyRecordStart_result = class {
               val206.push(elem210);
             }
             input.readSetEnd();
-            this.success[key205] = val206;
+            this.success.set(key205, val206);
           }
           input.readMapEnd();
         } else {
@@ -3740,7 +3740,7 @@ const ConcourseService_chronologizeKeyRecordStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3215 = input.readMapBegin();
           const _size214 = _rtmp3215.size || 0;
           for (let _i216 = 0; _i216 < _size214; ++_i216) {
@@ -3757,7 +3757,7 @@ const ConcourseService_chronologizeKeyRecordStartstr_result = class {
               val218.push(elem222);
             }
             input.readSetEnd();
-            this.success[key217] = val218;
+            this.success.set(key217, val218);
           }
           input.readMapEnd();
         } else {
@@ -3927,7 +3927,7 @@ const ConcourseService_chronologizeKeyRecordStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3227 = input.readMapBegin();
           const _size226 = _rtmp3227.size || 0;
           for (let _i228 = 0; _i228 < _size226; ++_i228) {
@@ -3944,7 +3944,7 @@ const ConcourseService_chronologizeKeyRecordStartEnd_result = class {
               val230.push(elem234);
             }
             input.readSetEnd();
-            this.success[key229] = val230;
+            this.success.set(key229, val230);
           }
           input.readMapEnd();
         } else {
@@ -4114,7 +4114,7 @@ const ConcourseService_chronologizeKeyRecordStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3239 = input.readMapBegin();
           const _size238 = _rtmp3239.size || 0;
           for (let _i240 = 0; _i240 < _size238; ++_i240) {
@@ -4131,7 +4131,7 @@ const ConcourseService_chronologizeKeyRecordStartstrEndstr_result = class {
               val242.push(elem246);
             }
             input.readSetEnd();
-            this.success[key241] = val242;
+            this.success.set(key241, val242);
           }
           input.readMapEnd();
         } else {
@@ -6079,7 +6079,7 @@ const ConcourseService_describeRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3311 = input.readMapBegin();
           const _size310 = _rtmp3311.size || 0;
           for (let _i312 = 0; _i312 < _size310; ++_i312) {
@@ -6095,7 +6095,7 @@ const ConcourseService_describeRecords_result = class {
               val314.push(elem318);
             }
             input.readSetEnd();
-            this.success[key313] = val314;
+            this.success.set(key313, val314);
           }
           input.readMapEnd();
         } else {
@@ -6246,7 +6246,7 @@ const ConcourseService_describeRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3328 = input.readMapBegin();
           const _size327 = _rtmp3328.size || 0;
           for (let _i329 = 0; _i329 < _size327; ++_i329) {
@@ -6262,7 +6262,7 @@ const ConcourseService_describeRecordsTime_result = class {
               val331.push(elem335);
             }
             input.readSetEnd();
-            this.success[key330] = val331;
+            this.success.set(key330, val331);
           }
           input.readMapEnd();
         } else {
@@ -6421,7 +6421,7 @@ const ConcourseService_describeRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3345 = input.readMapBegin();
           const _size344 = _rtmp3345.size || 0;
           for (let _i346 = 0; _i346 < _size344; ++_i346) {
@@ -6437,7 +6437,7 @@ const ConcourseService_describeRecordsTimestr_result = class {
               val348.push(elem352);
             }
             input.readSetEnd();
-            this.success[key347] = val348;
+            this.success.set(key347, val348);
           }
           input.readMapEnd();
         } else {
@@ -6589,14 +6589,14 @@ const ConcourseService_diffRecordStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3357 = input.readMapBegin();
           const _size356 = _rtmp3357.size || 0;
           for (let _i358 = 0; _i358 < _size356; ++_i358) {
             let key359 = null;
             let val360 = null;
             key359 = input.readString();
-            val360 = {};
+            val360 = new Map();
             const _rtmp3362 = input.readMapBegin();
             const _size361 = _rtmp3362.size || 0;
             for (let _i363 = 0; _i363 < _size361; ++_i363) {
@@ -6613,10 +6613,10 @@ const ConcourseService_diffRecordStart_result = class {
                 val365.push(elem369);
               }
               input.readSetEnd();
-              val360[key364] = val365;
+              val360.set(key364, val365);
             }
             input.readMapEnd();
-            this.success[key359] = val360;
+            this.success.set(key359, val360);
           }
           input.readMapEnd();
         } else {
@@ -6768,14 +6768,14 @@ const ConcourseService_diffRecordStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3376 = input.readMapBegin();
           const _size375 = _rtmp3376.size || 0;
           for (let _i377 = 0; _i377 < _size375; ++_i377) {
             let key378 = null;
             let val379 = null;
             key378 = input.readString();
-            val379 = {};
+            val379 = new Map();
             const _rtmp3381 = input.readMapBegin();
             const _size380 = _rtmp3381.size || 0;
             for (let _i382 = 0; _i382 < _size380; ++_i382) {
@@ -6792,10 +6792,10 @@ const ConcourseService_diffRecordStartstr_result = class {
                 val384.push(elem388);
               }
               input.readSetEnd();
-              val379[key383] = val384;
+              val379.set(key383, val384);
             }
             input.readMapEnd();
-            this.success[key378] = val379;
+            this.success.set(key378, val379);
           }
           input.readMapEnd();
         } else {
@@ -6956,14 +6956,14 @@ const ConcourseService_diffRecordStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3395 = input.readMapBegin();
           const _size394 = _rtmp3395.size || 0;
           for (let _i396 = 0; _i396 < _size394; ++_i396) {
             let key397 = null;
             let val398 = null;
             key397 = input.readString();
-            val398 = {};
+            val398 = new Map();
             const _rtmp3400 = input.readMapBegin();
             const _size399 = _rtmp3400.size || 0;
             for (let _i401 = 0; _i401 < _size399; ++_i401) {
@@ -6980,10 +6980,10 @@ const ConcourseService_diffRecordStartEnd_result = class {
                 val403.push(elem407);
               }
               input.readSetEnd();
-              val398[key402] = val403;
+              val398.set(key402, val403);
             }
             input.readMapEnd();
-            this.success[key397] = val398;
+            this.success.set(key397, val398);
           }
           input.readMapEnd();
         } else {
@@ -7144,14 +7144,14 @@ const ConcourseService_diffRecordStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3414 = input.readMapBegin();
           const _size413 = _rtmp3414.size || 0;
           for (let _i415 = 0; _i415 < _size413; ++_i415) {
             let key416 = null;
             let val417 = null;
             key416 = input.readString();
-            val417 = {};
+            val417 = new Map();
             const _rtmp3419 = input.readMapBegin();
             const _size418 = _rtmp3419.size || 0;
             for (let _i420 = 0; _i420 < _size418; ++_i420) {
@@ -7168,10 +7168,10 @@ const ConcourseService_diffRecordStartstrEndstr_result = class {
                 val422.push(elem426);
               }
               input.readSetEnd();
-              val417[key421] = val422;
+              val417.set(key421, val422);
             }
             input.readMapEnd();
-            this.success[key416] = val417;
+            this.success.set(key416, val417);
           }
           input.readMapEnd();
         } else {
@@ -7332,7 +7332,7 @@ const ConcourseService_diffKeyRecordStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3433 = input.readMapBegin();
           const _size432 = _rtmp3433.size || 0;
           for (let _i434 = 0; _i434 < _size432; ++_i434) {
@@ -7349,7 +7349,7 @@ const ConcourseService_diffKeyRecordStart_result = class {
               val436.push(elem440);
             }
             input.readSetEnd();
-            this.success[key435] = val436;
+            this.success.set(key435, val436);
           }
           input.readMapEnd();
         } else {
@@ -7510,7 +7510,7 @@ const ConcourseService_diffKeyRecordStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3445 = input.readMapBegin();
           const _size444 = _rtmp3445.size || 0;
           for (let _i446 = 0; _i446 < _size444; ++_i446) {
@@ -7527,7 +7527,7 @@ const ConcourseService_diffKeyRecordStartstr_result = class {
               val448.push(elem452);
             }
             input.readSetEnd();
-            this.success[key447] = val448;
+            this.success.set(key447, val448);
           }
           input.readMapEnd();
         } else {
@@ -7697,7 +7697,7 @@ const ConcourseService_diffKeyRecordStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3457 = input.readMapBegin();
           const _size456 = _rtmp3457.size || 0;
           for (let _i458 = 0; _i458 < _size456; ++_i458) {
@@ -7714,7 +7714,7 @@ const ConcourseService_diffKeyRecordStartEnd_result = class {
               val460.push(elem464);
             }
             input.readSetEnd();
-            this.success[key459] = val460;
+            this.success.set(key459, val460);
           }
           input.readMapEnd();
         } else {
@@ -7884,7 +7884,7 @@ const ConcourseService_diffKeyRecordStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3469 = input.readMapBegin();
           const _size468 = _rtmp3469.size || 0;
           for (let _i470 = 0; _i470 < _size468; ++_i470) {
@@ -7901,7 +7901,7 @@ const ConcourseService_diffKeyRecordStartstrEndstr_result = class {
               val472.push(elem476);
             }
             input.readSetEnd();
-            this.success[key471] = val472;
+            this.success.set(key471, val472);
           }
           input.readMapEnd();
         } else {
@@ -8053,7 +8053,7 @@ const ConcourseService_diffKeyStart_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3481 = input.readMapBegin();
           const _size480 = _rtmp3481.size || 0;
           for (let _i482 = 0; _i482 < _size480; ++_i482) {
@@ -8061,7 +8061,7 @@ const ConcourseService_diffKeyStart_result = class {
             let val484 = null;
             key483 = new data_ttypes.TObject();
             key483.read(input);
-            val484 = {};
+            val484 = new Map();
             const _rtmp3486 = input.readMapBegin();
             const _size485 = _rtmp3486.size || 0;
             for (let _i487 = 0; _i487 < _size485; ++_i487) {
@@ -8077,10 +8077,10 @@ const ConcourseService_diffKeyStart_result = class {
                 val489.push(elem493);
               }
               input.readSetEnd();
-              val484[key488] = val489;
+              val484.set(key488, val489);
             }
             input.readMapEnd();
-            this.success[key483] = val484;
+            this.success.set(key483, val484);
           }
           input.readMapEnd();
         } else {
@@ -8232,7 +8232,7 @@ const ConcourseService_diffKeyStartstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3500 = input.readMapBegin();
           const _size499 = _rtmp3500.size || 0;
           for (let _i501 = 0; _i501 < _size499; ++_i501) {
@@ -8240,7 +8240,7 @@ const ConcourseService_diffKeyStartstr_result = class {
             let val503 = null;
             key502 = new data_ttypes.TObject();
             key502.read(input);
-            val503 = {};
+            val503 = new Map();
             const _rtmp3505 = input.readMapBegin();
             const _size504 = _rtmp3505.size || 0;
             for (let _i506 = 0; _i506 < _size504; ++_i506) {
@@ -8256,10 +8256,10 @@ const ConcourseService_diffKeyStartstr_result = class {
                 val508.push(elem512);
               }
               input.readSetEnd();
-              val503[key507] = val508;
+              val503.set(key507, val508);
             }
             input.readMapEnd();
-            this.success[key502] = val503;
+            this.success.set(key502, val503);
           }
           input.readMapEnd();
         } else {
@@ -8420,7 +8420,7 @@ const ConcourseService_diffKeyStartEnd_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3519 = input.readMapBegin();
           const _size518 = _rtmp3519.size || 0;
           for (let _i520 = 0; _i520 < _size518; ++_i520) {
@@ -8428,7 +8428,7 @@ const ConcourseService_diffKeyStartEnd_result = class {
             let val522 = null;
             key521 = new data_ttypes.TObject();
             key521.read(input);
-            val522 = {};
+            val522 = new Map();
             const _rtmp3524 = input.readMapBegin();
             const _size523 = _rtmp3524.size || 0;
             for (let _i525 = 0; _i525 < _size523; ++_i525) {
@@ -8444,10 +8444,10 @@ const ConcourseService_diffKeyStartEnd_result = class {
                 val527.push(elem531);
               }
               input.readSetEnd();
-              val522[key526] = val527;
+              val522.set(key526, val527);
             }
             input.readMapEnd();
-            this.success[key521] = val522;
+            this.success.set(key521, val522);
           }
           input.readMapEnd();
         } else {
@@ -8608,7 +8608,7 @@ const ConcourseService_diffKeyStartstrEndstr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3538 = input.readMapBegin();
           const _size537 = _rtmp3538.size || 0;
           for (let _i539 = 0; _i539 < _size537; ++_i539) {
@@ -8616,7 +8616,7 @@ const ConcourseService_diffKeyStartstrEndstr_result = class {
             let val541 = null;
             key540 = new data_ttypes.TObject();
             key540.read(input);
-            val541 = {};
+            val541 = new Map();
             const _rtmp3543 = input.readMapBegin();
             const _size542 = _rtmp3543.size || 0;
             for (let _i544 = 0; _i544 < _size542; ++_i544) {
@@ -8632,10 +8632,10 @@ const ConcourseService_diffKeyStartstrEndstr_result = class {
                 val546.push(elem550);
               }
               input.readSetEnd();
-              val541[key545] = val546;
+              val541.set(key545, val546);
             }
             input.readMapEnd();
-            this.success[key540] = val541;
+            this.success.set(key540, val541);
           }
           input.readMapEnd();
         } else {
@@ -9629,7 +9629,7 @@ const ConcourseService_insertJsonRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3572 = input.readMapBegin();
           const _size571 = _rtmp3572.size || 0;
           for (let _i573 = 0; _i573 < _size571; ++_i573) {
@@ -9637,7 +9637,7 @@ const ConcourseService_insertJsonRecords_result = class {
             let val575 = null;
             key574 = input.readI64();
             val575 = input.readBool();
-            this.success[key574] = val575;
+            this.success.set(key574, val575);
           }
           input.readMapEnd();
         } else {
@@ -9988,7 +9988,7 @@ const ConcourseService_removeKeyValueRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3584 = input.readMapBegin();
           const _size583 = _rtmp3584.size || 0;
           for (let _i585 = 0; _i585 < _size583; ++_i585) {
@@ -9996,7 +9996,7 @@ const ConcourseService_removeKeyValueRecords_result = class {
             let val587 = null;
             key586 = input.readI64();
             val587 = input.readBool();
-            this.success[key586] = val587;
+            this.success.set(key586, val587);
           }
           input.readMapEnd();
         } else {
@@ -10911,7 +10911,7 @@ const ConcourseService_selectRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3606 = input.readMapBegin();
           const _size605 = _rtmp3606.size || 0;
           for (let _i607 = 0; _i607 < _size605; ++_i607) {
@@ -10928,7 +10928,7 @@ const ConcourseService_selectRecord_result = class {
               val609.push(elem613);
             }
             input.readSetEnd();
-            this.success[key608] = val609;
+            this.success.set(key608, val609);
           }
           input.readMapEnd();
         } else {
@@ -11070,14 +11070,14 @@ const ConcourseService_selectRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3623 = input.readMapBegin();
           const _size622 = _rtmp3623.size || 0;
           for (let _i624 = 0; _i624 < _size622; ++_i624) {
             let key625 = null;
             let val626 = null;
             key625 = input.readI64();
-            val626 = {};
+            val626 = new Map();
             const _rtmp3628 = input.readMapBegin();
             const _size627 = _rtmp3628.size || 0;
             for (let _i629 = 0; _i629 < _size627; ++_i629) {
@@ -11094,10 +11094,10 @@ const ConcourseService_selectRecords_result = class {
                 val631.push(elem635);
               }
               input.readSetEnd();
-              val626[key630] = val631;
+              val626.set(key630, val631);
             }
             input.readMapEnd();
-            this.success[key625] = val626;
+            this.success.set(key625, val626);
           }
           input.readMapEnd();
         } else {
@@ -11241,7 +11241,7 @@ const ConcourseService_selectRecordTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3642 = input.readMapBegin();
           const _size641 = _rtmp3642.size || 0;
           for (let _i643 = 0; _i643 < _size641; ++_i643) {
@@ -11258,7 +11258,7 @@ const ConcourseService_selectRecordTime_result = class {
               val645.push(elem649);
             }
             input.readSetEnd();
-            this.success[key644] = val645;
+            this.success.set(key644, val645);
           }
           input.readMapEnd();
         } else {
@@ -11410,7 +11410,7 @@ const ConcourseService_selectRecordTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3654 = input.readMapBegin();
           const _size653 = _rtmp3654.size || 0;
           for (let _i655 = 0; _i655 < _size653; ++_i655) {
@@ -11427,7 +11427,7 @@ const ConcourseService_selectRecordTimestr_result = class {
               val657.push(elem661);
             }
             input.readSetEnd();
-            this.success[key656] = val657;
+            this.success.set(key656, val657);
           }
           input.readMapEnd();
         } else {
@@ -11586,14 +11586,14 @@ const ConcourseService_selectRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3671 = input.readMapBegin();
           const _size670 = _rtmp3671.size || 0;
           for (let _i672 = 0; _i672 < _size670; ++_i672) {
             let key673 = null;
             let val674 = null;
             key673 = input.readI64();
-            val674 = {};
+            val674 = new Map();
             const _rtmp3676 = input.readMapBegin();
             const _size675 = _rtmp3676.size || 0;
             for (let _i677 = 0; _i677 < _size675; ++_i677) {
@@ -11610,10 +11610,10 @@ const ConcourseService_selectRecordsTime_result = class {
                 val679.push(elem683);
               }
               input.readSetEnd();
-              val674[key678] = val679;
+              val674.set(key678, val679);
             }
             input.readMapEnd();
-            this.success[key673] = val674;
+            this.success.set(key673, val674);
           }
           input.readMapEnd();
         } else {
@@ -11772,14 +11772,14 @@ const ConcourseService_selectRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3695 = input.readMapBegin();
           const _size694 = _rtmp3695.size || 0;
           for (let _i696 = 0; _i696 < _size694; ++_i696) {
             let key697 = null;
             let val698 = null;
             key697 = input.readI64();
-            val698 = {};
+            val698 = new Map();
             const _rtmp3700 = input.readMapBegin();
             const _size699 = _rtmp3700.size || 0;
             for (let _i701 = 0; _i701 < _size699; ++_i701) {
@@ -11796,10 +11796,10 @@ const ConcourseService_selectRecordsTimestr_result = class {
                 val703.push(elem707);
               }
               input.readSetEnd();
-              val698[key702] = val703;
+              val698.set(key702, val703);
             }
             input.readMapEnd();
-            this.success[key697] = val698;
+            this.success.set(key697, val698);
           }
           input.readMapEnd();
         } else {
@@ -12445,7 +12445,7 @@ const ConcourseService_selectKeysRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3734 = input.readMapBegin();
           const _size733 = _rtmp3734.size || 0;
           for (let _i735 = 0; _i735 < _size733; ++_i735) {
@@ -12462,7 +12462,7 @@ const ConcourseService_selectKeysRecord_result = class {
               val737.push(elem741);
             }
             input.readSetEnd();
-            this.success[key736] = val737;
+            this.success.set(key736, val737);
           }
           input.readMapEnd();
         } else {
@@ -12622,7 +12622,7 @@ const ConcourseService_selectKeysRecordTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3751 = input.readMapBegin();
           const _size750 = _rtmp3751.size || 0;
           for (let _i752 = 0; _i752 < _size750; ++_i752) {
@@ -12639,7 +12639,7 @@ const ConcourseService_selectKeysRecordTime_result = class {
               val754.push(elem758);
             }
             input.readSetEnd();
-            this.success[key753] = val754;
+            this.success.set(key753, val754);
           }
           input.readMapEnd();
         } else {
@@ -12807,7 +12807,7 @@ const ConcourseService_selectKeysRecordTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3768 = input.readMapBegin();
           const _size767 = _rtmp3768.size || 0;
           for (let _i769 = 0; _i769 < _size767; ++_i769) {
@@ -12824,7 +12824,7 @@ const ConcourseService_selectKeysRecordTimestr_result = class {
               val771.push(elem775);
             }
             input.readSetEnd();
-            this.success[key770] = val771;
+            this.success.set(key770, val771);
           }
           input.readMapEnd();
         } else {
@@ -12990,14 +12990,14 @@ const ConcourseService_selectKeysRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3790 = input.readMapBegin();
           const _size789 = _rtmp3790.size || 0;
           for (let _i791 = 0; _i791 < _size789; ++_i791) {
             let key792 = null;
             let val793 = null;
             key792 = input.readI64();
-            val793 = {};
+            val793 = new Map();
             const _rtmp3795 = input.readMapBegin();
             const _size794 = _rtmp3795.size || 0;
             for (let _i796 = 0; _i796 < _size794; ++_i796) {
@@ -13014,10 +13014,10 @@ const ConcourseService_selectKeysRecords_result = class {
                 val798.push(elem802);
               }
               input.readSetEnd();
-              val793[key797] = val798;
+              val793.set(key797, val798);
             }
             input.readMapEnd();
-            this.success[key792] = val793;
+            this.success.set(key792, val793);
           }
           input.readMapEnd();
         } else {
@@ -13168,7 +13168,7 @@ const ConcourseService_selectKeyRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3814 = input.readMapBegin();
           const _size813 = _rtmp3814.size || 0;
           for (let _i815 = 0; _i815 < _size813; ++_i815) {
@@ -13185,7 +13185,7 @@ const ConcourseService_selectKeyRecords_result = class {
               val817.push(elem821);
             }
             input.readSetEnd();
-            this.success[key816] = val817;
+            this.success.set(key816, val817);
           }
           input.readMapEnd();
         } else {
@@ -13345,7 +13345,7 @@ const ConcourseService_selectKeyRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3831 = input.readMapBegin();
           const _size830 = _rtmp3831.size || 0;
           for (let _i832 = 0; _i832 < _size830; ++_i832) {
@@ -13362,7 +13362,7 @@ const ConcourseService_selectKeyRecordsTime_result = class {
               val834.push(elem838);
             }
             input.readSetEnd();
-            this.success[key833] = val834;
+            this.success.set(key833, val834);
           }
           input.readMapEnd();
         } else {
@@ -13530,7 +13530,7 @@ const ConcourseService_selectKeyRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3848 = input.readMapBegin();
           const _size847 = _rtmp3848.size || 0;
           for (let _i849 = 0; _i849 < _size847; ++_i849) {
@@ -13547,7 +13547,7 @@ const ConcourseService_selectKeyRecordsTimestr_result = class {
               val851.push(elem855);
             }
             input.readSetEnd();
-            this.success[key850] = val851;
+            this.success.set(key850, val851);
           }
           input.readMapEnd();
         } else {
@@ -13722,14 +13722,14 @@ const ConcourseService_selectKeysRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3870 = input.readMapBegin();
           const _size869 = _rtmp3870.size || 0;
           for (let _i871 = 0; _i871 < _size869; ++_i871) {
             let key872 = null;
             let val873 = null;
             key872 = input.readI64();
-            val873 = {};
+            val873 = new Map();
             const _rtmp3875 = input.readMapBegin();
             const _size874 = _rtmp3875.size || 0;
             for (let _i876 = 0; _i876 < _size874; ++_i876) {
@@ -13746,10 +13746,10 @@ const ConcourseService_selectKeysRecordsTime_result = class {
                 val878.push(elem882);
               }
               input.readSetEnd();
-              val873[key877] = val878;
+              val873.set(key877, val878);
             }
             input.readMapEnd();
-            this.success[key872] = val873;
+            this.success.set(key872, val873);
           }
           input.readMapEnd();
         } else {
@@ -13924,14 +13924,14 @@ const ConcourseService_selectKeysRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3899 = input.readMapBegin();
           const _size898 = _rtmp3899.size || 0;
           for (let _i900 = 0; _i900 < _size898; ++_i900) {
             let key901 = null;
             let val902 = null;
             key901 = input.readI64();
-            val902 = {};
+            val902 = new Map();
             const _rtmp3904 = input.readMapBegin();
             const _size903 = _rtmp3904.size || 0;
             for (let _i905 = 0; _i905 < _size903; ++_i905) {
@@ -13948,10 +13948,10 @@ const ConcourseService_selectKeysRecordsTimestr_result = class {
                 val907.push(elem911);
               }
               input.readSetEnd();
-              val902[key906] = val907;
+              val902.set(key906, val907);
             }
             input.readMapEnd();
-            this.success[key901] = val902;
+            this.success.set(key901, val902);
           }
           input.readMapEnd();
         } else {
@@ -14094,14 +14094,14 @@ const ConcourseService_selectCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3918 = input.readMapBegin();
           const _size917 = _rtmp3918.size || 0;
           for (let _i919 = 0; _i919 < _size917; ++_i919) {
             let key920 = null;
             let val921 = null;
             key920 = input.readI64();
-            val921 = {};
+            val921 = new Map();
             const _rtmp3923 = input.readMapBegin();
             const _size922 = _rtmp3923.size || 0;
             for (let _i924 = 0; _i924 < _size922; ++_i924) {
@@ -14118,10 +14118,10 @@ const ConcourseService_selectCriteria_result = class {
                 val926.push(elem930);
               }
               input.readSetEnd();
-              val921[key925] = val926;
+              val921.set(key925, val926);
             }
             input.readMapEnd();
-            this.success[key920] = val921;
+            this.success.set(key920, val921);
           }
           input.readMapEnd();
         } else {
@@ -14264,14 +14264,14 @@ const ConcourseService_selectCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3937 = input.readMapBegin();
           const _size936 = _rtmp3937.size || 0;
           for (let _i938 = 0; _i938 < _size936; ++_i938) {
             let key939 = null;
             let val940 = null;
             key939 = input.readI64();
-            val940 = {};
+            val940 = new Map();
             const _rtmp3942 = input.readMapBegin();
             const _size941 = _rtmp3942.size || 0;
             for (let _i943 = 0; _i943 < _size941; ++_i943) {
@@ -14288,10 +14288,10 @@ const ConcourseService_selectCcl_result = class {
                 val945.push(elem949);
               }
               input.readSetEnd();
-              val940[key944] = val945;
+              val940.set(key944, val945);
             }
             input.readMapEnd();
-            this.success[key939] = val940;
+            this.success.set(key939, val940);
           }
           input.readMapEnd();
         } else {
@@ -14443,14 +14443,14 @@ const ConcourseService_selectCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3956 = input.readMapBegin();
           const _size955 = _rtmp3956.size || 0;
           for (let _i957 = 0; _i957 < _size955; ++_i957) {
             let key958 = null;
             let val959 = null;
             key958 = input.readI64();
-            val959 = {};
+            val959 = new Map();
             const _rtmp3961 = input.readMapBegin();
             const _size960 = _rtmp3961.size || 0;
             for (let _i962 = 0; _i962 < _size960; ++_i962) {
@@ -14467,10 +14467,10 @@ const ConcourseService_selectCriteriaTime_result = class {
                 val964.push(elem968);
               }
               input.readSetEnd();
-              val959[key963] = val964;
+              val959.set(key963, val964);
             }
             input.readMapEnd();
-            this.success[key958] = val959;
+            this.success.set(key958, val959);
           }
           input.readMapEnd();
         } else {
@@ -14622,14 +14622,14 @@ const ConcourseService_selectCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3975 = input.readMapBegin();
           const _size974 = _rtmp3975.size || 0;
           for (let _i976 = 0; _i976 < _size974; ++_i976) {
             let key977 = null;
             let val978 = null;
             key977 = input.readI64();
-            val978 = {};
+            val978 = new Map();
             const _rtmp3980 = input.readMapBegin();
             const _size979 = _rtmp3980.size || 0;
             for (let _i981 = 0; _i981 < _size979; ++_i981) {
@@ -14646,10 +14646,10 @@ const ConcourseService_selectCriteriaTimestr_result = class {
                 val983.push(elem987);
               }
               input.readSetEnd();
-              val978[key982] = val983;
+              val978.set(key982, val983);
             }
             input.readMapEnd();
-            this.success[key977] = val978;
+            this.success.set(key977, val978);
           }
           input.readMapEnd();
         } else {
@@ -14809,14 +14809,14 @@ const ConcourseService_selectCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp3994 = input.readMapBegin();
           const _size993 = _rtmp3994.size || 0;
           for (let _i995 = 0; _i995 < _size993; ++_i995) {
             let key996 = null;
             let val997 = null;
             key996 = input.readI64();
-            val997 = {};
+            val997 = new Map();
             const _rtmp3999 = input.readMapBegin();
             const _size998 = _rtmp3999.size || 0;
             for (let _i1000 = 0; _i1000 < _size998; ++_i1000) {
@@ -14833,10 +14833,10 @@ const ConcourseService_selectCclTime_result = class {
                 val1002.push(elem1006);
               }
               input.readSetEnd();
-              val997[key1001] = val1002;
+              val997.set(key1001, val1002);
             }
             input.readMapEnd();
-            this.success[key996] = val997;
+            this.success.set(key996, val997);
           }
           input.readMapEnd();
         } else {
@@ -14996,14 +14996,14 @@ const ConcourseService_selectCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31013 = input.readMapBegin();
           const _size1012 = _rtmp31013.size || 0;
           for (let _i1014 = 0; _i1014 < _size1012; ++_i1014) {
             let key1015 = null;
             let val1016 = null;
             key1015 = input.readI64();
-            val1016 = {};
+            val1016 = new Map();
             const _rtmp31018 = input.readMapBegin();
             const _size1017 = _rtmp31018.size || 0;
             for (let _i1019 = 0; _i1019 < _size1017; ++_i1019) {
@@ -15020,10 +15020,10 @@ const ConcourseService_selectCclTimestr_result = class {
                 val1021.push(elem1025);
               }
               input.readSetEnd();
-              val1016[key1020] = val1021;
+              val1016.set(key1020, val1021);
             }
             input.readMapEnd();
-            this.success[key1015] = val1016;
+            this.success.set(key1015, val1016);
           }
           input.readMapEnd();
         } else {
@@ -15175,7 +15175,7 @@ const ConcourseService_selectKeyCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31032 = input.readMapBegin();
           const _size1031 = _rtmp31032.size || 0;
           for (let _i1033 = 0; _i1033 < _size1031; ++_i1033) {
@@ -15192,7 +15192,7 @@ const ConcourseService_selectKeyCriteria_result = class {
               val1035.push(elem1039);
             }
             input.readSetEnd();
-            this.success[key1034] = val1035;
+            this.success.set(key1034, val1035);
           }
           input.readMapEnd();
         } else {
@@ -15344,7 +15344,7 @@ const ConcourseService_selectKeyCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31044 = input.readMapBegin();
           const _size1043 = _rtmp31044.size || 0;
           for (let _i1045 = 0; _i1045 < _size1043; ++_i1045) {
@@ -15361,7 +15361,7 @@ const ConcourseService_selectKeyCcl_result = class {
               val1047.push(elem1051);
             }
             input.readSetEnd();
-            this.success[key1046] = val1047;
+            this.success.set(key1046, val1047);
           }
           input.readMapEnd();
         } else {
@@ -15522,7 +15522,7 @@ const ConcourseService_selectKeyCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31056 = input.readMapBegin();
           const _size1055 = _rtmp31056.size || 0;
           for (let _i1057 = 0; _i1057 < _size1055; ++_i1057) {
@@ -15539,7 +15539,7 @@ const ConcourseService_selectKeyCriteriaTime_result = class {
               val1059.push(elem1063);
             }
             input.readSetEnd();
-            this.success[key1058] = val1059;
+            this.success.set(key1058, val1059);
           }
           input.readMapEnd();
         } else {
@@ -15700,7 +15700,7 @@ const ConcourseService_selectKeyCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31068 = input.readMapBegin();
           const _size1067 = _rtmp31068.size || 0;
           for (let _i1069 = 0; _i1069 < _size1067; ++_i1069) {
@@ -15717,7 +15717,7 @@ const ConcourseService_selectKeyCriteriaTimestr_result = class {
               val1071.push(elem1075);
             }
             input.readSetEnd();
-            this.success[key1070] = val1071;
+            this.success.set(key1070, val1071);
           }
           input.readMapEnd();
         } else {
@@ -15886,7 +15886,7 @@ const ConcourseService_selectKeyCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31080 = input.readMapBegin();
           const _size1079 = _rtmp31080.size || 0;
           for (let _i1081 = 0; _i1081 < _size1079; ++_i1081) {
@@ -15903,7 +15903,7 @@ const ConcourseService_selectKeyCclTime_result = class {
               val1083.push(elem1087);
             }
             input.readSetEnd();
-            this.success[key1082] = val1083;
+            this.success.set(key1082, val1083);
           }
           input.readMapEnd();
         } else {
@@ -16072,7 +16072,7 @@ const ConcourseService_selectKeyCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31092 = input.readMapBegin();
           const _size1091 = _rtmp31092.size || 0;
           for (let _i1093 = 0; _i1093 < _size1091; ++_i1093) {
@@ -16089,7 +16089,7 @@ const ConcourseService_selectKeyCclTimestr_result = class {
               val1095.push(elem1099);
             }
             input.readSetEnd();
-            this.success[key1094] = val1095;
+            this.success.set(key1094, val1095);
           }
           input.readMapEnd();
         } else {
@@ -16248,14 +16248,14 @@ const ConcourseService_selectKeysCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31109 = input.readMapBegin();
           const _size1108 = _rtmp31109.size || 0;
           for (let _i1110 = 0; _i1110 < _size1108; ++_i1110) {
             let key1111 = null;
             let val1112 = null;
             key1111 = input.readI64();
-            val1112 = {};
+            val1112 = new Map();
             const _rtmp31114 = input.readMapBegin();
             const _size1113 = _rtmp31114.size || 0;
             for (let _i1115 = 0; _i1115 < _size1113; ++_i1115) {
@@ -16272,10 +16272,10 @@ const ConcourseService_selectKeysCriteria_result = class {
                 val1117.push(elem1121);
               }
               input.readSetEnd();
-              val1112[key1116] = val1117;
+              val1112.set(key1116, val1117);
             }
             input.readMapEnd();
-            this.success[key1111] = val1112;
+            this.success.set(key1111, val1112);
           }
           input.readMapEnd();
         } else {
@@ -16434,14 +16434,14 @@ const ConcourseService_selectKeysCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31133 = input.readMapBegin();
           const _size1132 = _rtmp31133.size || 0;
           for (let _i1134 = 0; _i1134 < _size1132; ++_i1134) {
             let key1135 = null;
             let val1136 = null;
             key1135 = input.readI64();
-            val1136 = {};
+            val1136 = new Map();
             const _rtmp31138 = input.readMapBegin();
             const _size1137 = _rtmp31138.size || 0;
             for (let _i1139 = 0; _i1139 < _size1137; ++_i1139) {
@@ -16458,10 +16458,10 @@ const ConcourseService_selectKeysCcl_result = class {
                 val1141.push(elem1145);
               }
               input.readSetEnd();
-              val1136[key1140] = val1141;
+              val1136.set(key1140, val1141);
             }
             input.readMapEnd();
-            this.success[key1135] = val1136;
+            this.success.set(key1135, val1136);
           }
           input.readMapEnd();
         } else {
@@ -16629,14 +16629,14 @@ const ConcourseService_selectKeysCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31157 = input.readMapBegin();
           const _size1156 = _rtmp31157.size || 0;
           for (let _i1158 = 0; _i1158 < _size1156; ++_i1158) {
             let key1159 = null;
             let val1160 = null;
             key1159 = input.readI64();
-            val1160 = {};
+            val1160 = new Map();
             const _rtmp31162 = input.readMapBegin();
             const _size1161 = _rtmp31162.size || 0;
             for (let _i1163 = 0; _i1163 < _size1161; ++_i1163) {
@@ -16653,10 +16653,10 @@ const ConcourseService_selectKeysCriteriaTime_result = class {
                 val1165.push(elem1169);
               }
               input.readSetEnd();
-              val1160[key1164] = val1165;
+              val1160.set(key1164, val1165);
             }
             input.readMapEnd();
-            this.success[key1159] = val1160;
+            this.success.set(key1159, val1160);
           }
           input.readMapEnd();
         } else {
@@ -16824,14 +16824,14 @@ const ConcourseService_selectKeysCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31181 = input.readMapBegin();
           const _size1180 = _rtmp31181.size || 0;
           for (let _i1182 = 0; _i1182 < _size1180; ++_i1182) {
             let key1183 = null;
             let val1184 = null;
             key1183 = input.readI64();
-            val1184 = {};
+            val1184 = new Map();
             const _rtmp31186 = input.readMapBegin();
             const _size1185 = _rtmp31186.size || 0;
             for (let _i1187 = 0; _i1187 < _size1185; ++_i1187) {
@@ -16848,10 +16848,10 @@ const ConcourseService_selectKeysCriteriaTimestr_result = class {
                 val1189.push(elem1193);
               }
               input.readSetEnd();
-              val1184[key1188] = val1189;
+              val1184.set(key1188, val1189);
             }
             input.readMapEnd();
-            this.success[key1183] = val1184;
+            this.success.set(key1183, val1184);
           }
           input.readMapEnd();
         } else {
@@ -17027,14 +17027,14 @@ const ConcourseService_selectKeysCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31205 = input.readMapBegin();
           const _size1204 = _rtmp31205.size || 0;
           for (let _i1206 = 0; _i1206 < _size1204; ++_i1206) {
             let key1207 = null;
             let val1208 = null;
             key1207 = input.readI64();
-            val1208 = {};
+            val1208 = new Map();
             const _rtmp31210 = input.readMapBegin();
             const _size1209 = _rtmp31210.size || 0;
             for (let _i1211 = 0; _i1211 < _size1209; ++_i1211) {
@@ -17051,10 +17051,10 @@ const ConcourseService_selectKeysCclTime_result = class {
                 val1213.push(elem1217);
               }
               input.readSetEnd();
-              val1208[key1212] = val1213;
+              val1208.set(key1212, val1213);
             }
             input.readMapEnd();
-            this.success[key1207] = val1208;
+            this.success.set(key1207, val1208);
           }
           input.readMapEnd();
         } else {
@@ -17230,14 +17230,14 @@ const ConcourseService_selectKeysCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31229 = input.readMapBegin();
           const _size1228 = _rtmp31229.size || 0;
           for (let _i1230 = 0; _i1230 < _size1228; ++_i1230) {
             let key1231 = null;
             let val1232 = null;
             key1231 = input.readI64();
-            val1232 = {};
+            val1232 = new Map();
             const _rtmp31234 = input.readMapBegin();
             const _size1233 = _rtmp31234.size || 0;
             for (let _i1235 = 0; _i1235 < _size1233; ++_i1235) {
@@ -17254,10 +17254,10 @@ const ConcourseService_selectKeysCclTimestr_result = class {
                 val1237.push(elem1241);
               }
               input.readSetEnd();
-              val1232[key1236] = val1237;
+              val1232.set(key1236, val1237);
             }
             input.readMapEnd();
-            this.success[key1231] = val1232;
+            this.success.set(key1231, val1232);
           }
           input.readMapEnd();
         } else {
@@ -17879,7 +17879,7 @@ const ConcourseService_getKeysRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31253 = input.readMapBegin();
           const _size1252 = _rtmp31253.size || 0;
           for (let _i1254 = 0; _i1254 < _size1252; ++_i1254) {
@@ -17888,7 +17888,7 @@ const ConcourseService_getKeysRecord_result = class {
             key1255 = input.readString();
             val1256 = new data_ttypes.TObject();
             val1256.read(input);
-            this.success[key1255] = val1256;
+            this.success.set(key1255, val1256);
           }
           input.readMapEnd();
         } else {
@@ -18048,7 +18048,7 @@ const ConcourseService_getKeysRecordTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31265 = input.readMapBegin();
           const _size1264 = _rtmp31265.size || 0;
           for (let _i1266 = 0; _i1266 < _size1264; ++_i1266) {
@@ -18057,7 +18057,7 @@ const ConcourseService_getKeysRecordTime_result = class {
             key1267 = input.readString();
             val1268 = new data_ttypes.TObject();
             val1268.read(input);
-            this.success[key1267] = val1268;
+            this.success.set(key1267, val1268);
           }
           input.readMapEnd();
         } else {
@@ -18225,7 +18225,7 @@ const ConcourseService_getKeysRecordTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31277 = input.readMapBegin();
           const _size1276 = _rtmp31277.size || 0;
           for (let _i1278 = 0; _i1278 < _size1276; ++_i1278) {
@@ -18234,7 +18234,7 @@ const ConcourseService_getKeysRecordTimestr_result = class {
             key1279 = input.readString();
             val1280 = new data_ttypes.TObject();
             val1280.read(input);
-            this.success[key1279] = val1280;
+            this.success.set(key1279, val1280);
           }
           input.readMapEnd();
         } else {
@@ -18400,14 +18400,14 @@ const ConcourseService_getKeysRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31294 = input.readMapBegin();
           const _size1293 = _rtmp31294.size || 0;
           for (let _i1295 = 0; _i1295 < _size1293; ++_i1295) {
             let key1296 = null;
             let val1297 = null;
             key1296 = input.readI64();
-            val1297 = {};
+            val1297 = new Map();
             const _rtmp31299 = input.readMapBegin();
             const _size1298 = _rtmp31299.size || 0;
             for (let _i1300 = 0; _i1300 < _size1298; ++_i1300) {
@@ -18416,10 +18416,10 @@ const ConcourseService_getKeysRecords_result = class {
               key1301 = input.readString();
               val1302 = new data_ttypes.TObject();
               val1302.read(input);
-              val1297[key1301] = val1302;
+              val1297.set(key1301, val1302);
             }
             input.readMapEnd();
-            this.success[key1296] = val1297;
+            this.success.set(key1296, val1297);
           }
           input.readMapEnd();
         } else {
@@ -18570,7 +18570,7 @@ const ConcourseService_getKeyRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31313 = input.readMapBegin();
           const _size1312 = _rtmp31313.size || 0;
           for (let _i1314 = 0; _i1314 < _size1312; ++_i1314) {
@@ -18579,7 +18579,7 @@ const ConcourseService_getKeyRecords_result = class {
             key1315 = input.readI64();
             val1316 = new data_ttypes.TObject();
             val1316.read(input);
-            this.success[key1315] = val1316;
+            this.success.set(key1315, val1316);
           }
           input.readMapEnd();
         } else {
@@ -18739,7 +18739,7 @@ const ConcourseService_getKeyRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31325 = input.readMapBegin();
           const _size1324 = _rtmp31325.size || 0;
           for (let _i1326 = 0; _i1326 < _size1324; ++_i1326) {
@@ -18748,7 +18748,7 @@ const ConcourseService_getKeyRecordsTime_result = class {
             key1327 = input.readI64();
             val1328 = new data_ttypes.TObject();
             val1328.read(input);
-            this.success[key1327] = val1328;
+            this.success.set(key1327, val1328);
           }
           input.readMapEnd();
         } else {
@@ -18916,7 +18916,7 @@ const ConcourseService_getKeyRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31337 = input.readMapBegin();
           const _size1336 = _rtmp31337.size || 0;
           for (let _i1338 = 0; _i1338 < _size1336; ++_i1338) {
@@ -18925,7 +18925,7 @@ const ConcourseService_getKeyRecordsTimestr_result = class {
             key1339 = input.readI64();
             val1340 = new data_ttypes.TObject();
             val1340.read(input);
-            this.success[key1339] = val1340;
+            this.success.set(key1339, val1340);
           }
           input.readMapEnd();
         } else {
@@ -19100,14 +19100,14 @@ const ConcourseService_getKeysRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31354 = input.readMapBegin();
           const _size1353 = _rtmp31354.size || 0;
           for (let _i1355 = 0; _i1355 < _size1353; ++_i1355) {
             let key1356 = null;
             let val1357 = null;
             key1356 = input.readI64();
-            val1357 = {};
+            val1357 = new Map();
             const _rtmp31359 = input.readMapBegin();
             const _size1358 = _rtmp31359.size || 0;
             for (let _i1360 = 0; _i1360 < _size1358; ++_i1360) {
@@ -19116,10 +19116,10 @@ const ConcourseService_getKeysRecordsTime_result = class {
               key1361 = input.readString();
               val1362 = new data_ttypes.TObject();
               val1362.read(input);
-              val1357[key1361] = val1362;
+              val1357.set(key1361, val1362);
             }
             input.readMapEnd();
-            this.success[key1356] = val1357;
+            this.success.set(key1356, val1357);
           }
           input.readMapEnd();
         } else {
@@ -19294,14 +19294,14 @@ const ConcourseService_getKeysRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31378 = input.readMapBegin();
           const _size1377 = _rtmp31378.size || 0;
           for (let _i1379 = 0; _i1379 < _size1377; ++_i1379) {
             let key1380 = null;
             let val1381 = null;
             key1380 = input.readI64();
-            val1381 = {};
+            val1381 = new Map();
             const _rtmp31383 = input.readMapBegin();
             const _size1382 = _rtmp31383.size || 0;
             for (let _i1384 = 0; _i1384 < _size1382; ++_i1384) {
@@ -19310,10 +19310,10 @@ const ConcourseService_getKeysRecordsTimestr_result = class {
               key1385 = input.readString();
               val1386 = new data_ttypes.TObject();
               val1386.read(input);
-              val1381[key1385] = val1386;
+              val1381.set(key1385, val1386);
             }
             input.readMapEnd();
-            this.success[key1380] = val1381;
+            this.success.set(key1380, val1381);
           }
           input.readMapEnd();
         } else {
@@ -19465,7 +19465,7 @@ const ConcourseService_getKeyCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31392 = input.readMapBegin();
           const _size1391 = _rtmp31392.size || 0;
           for (let _i1393 = 0; _i1393 < _size1391; ++_i1393) {
@@ -19474,7 +19474,7 @@ const ConcourseService_getKeyCriteria_result = class {
             key1394 = input.readI64();
             val1395 = new data_ttypes.TObject();
             val1395.read(input);
-            this.success[key1394] = val1395;
+            this.success.set(key1394, val1395);
           }
           input.readMapEnd();
         } else {
@@ -19609,14 +19609,14 @@ const ConcourseService_getCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31399 = input.readMapBegin();
           const _size1398 = _rtmp31399.size || 0;
           for (let _i1400 = 0; _i1400 < _size1398; ++_i1400) {
             let key1401 = null;
             let val1402 = null;
             key1401 = input.readI64();
-            val1402 = {};
+            val1402 = new Map();
             const _rtmp31404 = input.readMapBegin();
             const _size1403 = _rtmp31404.size || 0;
             for (let _i1405 = 0; _i1405 < _size1403; ++_i1405) {
@@ -19625,10 +19625,10 @@ const ConcourseService_getCriteria_result = class {
               key1406 = input.readString();
               val1407 = new data_ttypes.TObject();
               val1407.read(input);
-              val1402[key1406] = val1407;
+              val1402.set(key1406, val1407);
             }
             input.readMapEnd();
-            this.success[key1401] = val1402;
+            this.success.set(key1401, val1402);
           }
           input.readMapEnd();
         } else {
@@ -19771,14 +19771,14 @@ const ConcourseService_getCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31413 = input.readMapBegin();
           const _size1412 = _rtmp31413.size || 0;
           for (let _i1414 = 0; _i1414 < _size1412; ++_i1414) {
             let key1415 = null;
             let val1416 = null;
             key1415 = input.readI64();
-            val1416 = {};
+            val1416 = new Map();
             const _rtmp31418 = input.readMapBegin();
             const _size1417 = _rtmp31418.size || 0;
             for (let _i1419 = 0; _i1419 < _size1417; ++_i1419) {
@@ -19787,10 +19787,10 @@ const ConcourseService_getCcl_result = class {
               key1420 = input.readString();
               val1421 = new data_ttypes.TObject();
               val1421.read(input);
-              val1416[key1420] = val1421;
+              val1416.set(key1420, val1421);
             }
             input.readMapEnd();
-            this.success[key1415] = val1416;
+            this.success.set(key1415, val1416);
           }
           input.readMapEnd();
         } else {
@@ -19942,14 +19942,14 @@ const ConcourseService_getCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31427 = input.readMapBegin();
           const _size1426 = _rtmp31427.size || 0;
           for (let _i1428 = 0; _i1428 < _size1426; ++_i1428) {
             let key1429 = null;
             let val1430 = null;
             key1429 = input.readI64();
-            val1430 = {};
+            val1430 = new Map();
             const _rtmp31432 = input.readMapBegin();
             const _size1431 = _rtmp31432.size || 0;
             for (let _i1433 = 0; _i1433 < _size1431; ++_i1433) {
@@ -19958,10 +19958,10 @@ const ConcourseService_getCriteriaTime_result = class {
               key1434 = input.readString();
               val1435 = new data_ttypes.TObject();
               val1435.read(input);
-              val1430[key1434] = val1435;
+              val1430.set(key1434, val1435);
             }
             input.readMapEnd();
-            this.success[key1429] = val1430;
+            this.success.set(key1429, val1430);
           }
           input.readMapEnd();
         } else {
@@ -20113,14 +20113,14 @@ const ConcourseService_getCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31441 = input.readMapBegin();
           const _size1440 = _rtmp31441.size || 0;
           for (let _i1442 = 0; _i1442 < _size1440; ++_i1442) {
             let key1443 = null;
             let val1444 = null;
             key1443 = input.readI64();
-            val1444 = {};
+            val1444 = new Map();
             const _rtmp31446 = input.readMapBegin();
             const _size1445 = _rtmp31446.size || 0;
             for (let _i1447 = 0; _i1447 < _size1445; ++_i1447) {
@@ -20129,10 +20129,10 @@ const ConcourseService_getCriteriaTimestr_result = class {
               key1448 = input.readString();
               val1449 = new data_ttypes.TObject();
               val1449.read(input);
-              val1444[key1448] = val1449;
+              val1444.set(key1448, val1449);
             }
             input.readMapEnd();
-            this.success[key1443] = val1444;
+            this.success.set(key1443, val1444);
           }
           input.readMapEnd();
         } else {
@@ -20292,14 +20292,14 @@ const ConcourseService_getCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31455 = input.readMapBegin();
           const _size1454 = _rtmp31455.size || 0;
           for (let _i1456 = 0; _i1456 < _size1454; ++_i1456) {
             let key1457 = null;
             let val1458 = null;
             key1457 = input.readI64();
-            val1458 = {};
+            val1458 = new Map();
             const _rtmp31460 = input.readMapBegin();
             const _size1459 = _rtmp31460.size || 0;
             for (let _i1461 = 0; _i1461 < _size1459; ++_i1461) {
@@ -20308,10 +20308,10 @@ const ConcourseService_getCclTime_result = class {
               key1462 = input.readString();
               val1463 = new data_ttypes.TObject();
               val1463.read(input);
-              val1458[key1462] = val1463;
+              val1458.set(key1462, val1463);
             }
             input.readMapEnd();
-            this.success[key1457] = val1458;
+            this.success.set(key1457, val1458);
           }
           input.readMapEnd();
         } else {
@@ -20471,14 +20471,14 @@ const ConcourseService_getCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31469 = input.readMapBegin();
           const _size1468 = _rtmp31469.size || 0;
           for (let _i1470 = 0; _i1470 < _size1468; ++_i1470) {
             let key1471 = null;
             let val1472 = null;
             key1471 = input.readI64();
-            val1472 = {};
+            val1472 = new Map();
             const _rtmp31474 = input.readMapBegin();
             const _size1473 = _rtmp31474.size || 0;
             for (let _i1475 = 0; _i1475 < _size1473; ++_i1475) {
@@ -20487,10 +20487,10 @@ const ConcourseService_getCclTimestr_result = class {
               key1476 = input.readString();
               val1477 = new data_ttypes.TObject();
               val1477.read(input);
-              val1472[key1476] = val1477;
+              val1472.set(key1476, val1477);
             }
             input.readMapEnd();
-            this.success[key1471] = val1472;
+            this.success.set(key1471, val1472);
           }
           input.readMapEnd();
         } else {
@@ -20650,7 +20650,7 @@ const ConcourseService_getKeyCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31483 = input.readMapBegin();
           const _size1482 = _rtmp31483.size || 0;
           for (let _i1484 = 0; _i1484 < _size1482; ++_i1484) {
@@ -20659,7 +20659,7 @@ const ConcourseService_getKeyCcl_result = class {
             key1485 = input.readI64();
             val1486 = new data_ttypes.TObject();
             val1486.read(input);
-            this.success[key1485] = val1486;
+            this.success.set(key1485, val1486);
           }
           input.readMapEnd();
         } else {
@@ -20820,7 +20820,7 @@ const ConcourseService_getKeyCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31490 = input.readMapBegin();
           const _size1489 = _rtmp31490.size || 0;
           for (let _i1491 = 0; _i1491 < _size1489; ++_i1491) {
@@ -20829,7 +20829,7 @@ const ConcourseService_getKeyCriteriaTime_result = class {
             key1492 = input.readI64();
             val1493 = new data_ttypes.TObject();
             val1493.read(input);
-            this.success[key1492] = val1493;
+            this.success.set(key1492, val1493);
           }
           input.readMapEnd();
         } else {
@@ -20990,7 +20990,7 @@ const ConcourseService_getKeyCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31497 = input.readMapBegin();
           const _size1496 = _rtmp31497.size || 0;
           for (let _i1498 = 0; _i1498 < _size1496; ++_i1498) {
@@ -20999,7 +20999,7 @@ const ConcourseService_getKeyCriteriaTimestr_result = class {
             key1499 = input.readI64();
             val1500 = new data_ttypes.TObject();
             val1500.read(input);
-            this.success[key1499] = val1500;
+            this.success.set(key1499, val1500);
           }
           input.readMapEnd();
         } else {
@@ -21168,7 +21168,7 @@ const ConcourseService_getKeyCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31504 = input.readMapBegin();
           const _size1503 = _rtmp31504.size || 0;
           for (let _i1505 = 0; _i1505 < _size1503; ++_i1505) {
@@ -21177,7 +21177,7 @@ const ConcourseService_getKeyCclTime_result = class {
             key1506 = input.readI64();
             val1507 = new data_ttypes.TObject();
             val1507.read(input);
-            this.success[key1506] = val1507;
+            this.success.set(key1506, val1507);
           }
           input.readMapEnd();
         } else {
@@ -21346,7 +21346,7 @@ const ConcourseService_getKeyCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31511 = input.readMapBegin();
           const _size1510 = _rtmp31511.size || 0;
           for (let _i1512 = 0; _i1512 < _size1510; ++_i1512) {
@@ -21355,7 +21355,7 @@ const ConcourseService_getKeyCclTimestr_result = class {
             key1513 = input.readI64();
             val1514 = new data_ttypes.TObject();
             val1514.read(input);
-            this.success[key1513] = val1514;
+            this.success.set(key1513, val1514);
           }
           input.readMapEnd();
         } else {
@@ -21514,14 +21514,14 @@ const ConcourseService_getKeysCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31523 = input.readMapBegin();
           const _size1522 = _rtmp31523.size || 0;
           for (let _i1524 = 0; _i1524 < _size1522; ++_i1524) {
             let key1525 = null;
             let val1526 = null;
             key1525 = input.readI64();
-            val1526 = {};
+            val1526 = new Map();
             const _rtmp31528 = input.readMapBegin();
             const _size1527 = _rtmp31528.size || 0;
             for (let _i1529 = 0; _i1529 < _size1527; ++_i1529) {
@@ -21530,10 +21530,10 @@ const ConcourseService_getKeysCriteria_result = class {
               key1530 = input.readString();
               val1531 = new data_ttypes.TObject();
               val1531.read(input);
-              val1526[key1530] = val1531;
+              val1526.set(key1530, val1531);
             }
             input.readMapEnd();
-            this.success[key1525] = val1526;
+            this.success.set(key1525, val1526);
           }
           input.readMapEnd();
         } else {
@@ -21692,14 +21692,14 @@ const ConcourseService_getKeysCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31542 = input.readMapBegin();
           const _size1541 = _rtmp31542.size || 0;
           for (let _i1543 = 0; _i1543 < _size1541; ++_i1543) {
             let key1544 = null;
             let val1545 = null;
             key1544 = input.readI64();
-            val1545 = {};
+            val1545 = new Map();
             const _rtmp31547 = input.readMapBegin();
             const _size1546 = _rtmp31547.size || 0;
             for (let _i1548 = 0; _i1548 < _size1546; ++_i1548) {
@@ -21708,10 +21708,10 @@ const ConcourseService_getKeysCcl_result = class {
               key1549 = input.readString();
               val1550 = new data_ttypes.TObject();
               val1550.read(input);
-              val1545[key1549] = val1550;
+              val1545.set(key1549, val1550);
             }
             input.readMapEnd();
-            this.success[key1544] = val1545;
+            this.success.set(key1544, val1545);
           }
           input.readMapEnd();
         } else {
@@ -21879,14 +21879,14 @@ const ConcourseService_getKeysCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31561 = input.readMapBegin();
           const _size1560 = _rtmp31561.size || 0;
           for (let _i1562 = 0; _i1562 < _size1560; ++_i1562) {
             let key1563 = null;
             let val1564 = null;
             key1563 = input.readI64();
-            val1564 = {};
+            val1564 = new Map();
             const _rtmp31566 = input.readMapBegin();
             const _size1565 = _rtmp31566.size || 0;
             for (let _i1567 = 0; _i1567 < _size1565; ++_i1567) {
@@ -21895,10 +21895,10 @@ const ConcourseService_getKeysCriteriaTime_result = class {
               key1568 = input.readString();
               val1569 = new data_ttypes.TObject();
               val1569.read(input);
-              val1564[key1568] = val1569;
+              val1564.set(key1568, val1569);
             }
             input.readMapEnd();
-            this.success[key1563] = val1564;
+            this.success.set(key1563, val1564);
           }
           input.readMapEnd();
         } else {
@@ -22066,14 +22066,14 @@ const ConcourseService_getKeysCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31580 = input.readMapBegin();
           const _size1579 = _rtmp31580.size || 0;
           for (let _i1581 = 0; _i1581 < _size1579; ++_i1581) {
             let key1582 = null;
             let val1583 = null;
             key1582 = input.readI64();
-            val1583 = {};
+            val1583 = new Map();
             const _rtmp31585 = input.readMapBegin();
             const _size1584 = _rtmp31585.size || 0;
             for (let _i1586 = 0; _i1586 < _size1584; ++_i1586) {
@@ -22082,10 +22082,10 @@ const ConcourseService_getKeysCriteriaTimestr_result = class {
               key1587 = input.readString();
               val1588 = new data_ttypes.TObject();
               val1588.read(input);
-              val1583[key1587] = val1588;
+              val1583.set(key1587, val1588);
             }
             input.readMapEnd();
-            this.success[key1582] = val1583;
+            this.success.set(key1582, val1583);
           }
           input.readMapEnd();
         } else {
@@ -22261,14 +22261,14 @@ const ConcourseService_getKeysCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31599 = input.readMapBegin();
           const _size1598 = _rtmp31599.size || 0;
           for (let _i1600 = 0; _i1600 < _size1598; ++_i1600) {
             let key1601 = null;
             let val1602 = null;
             key1601 = input.readI64();
-            val1602 = {};
+            val1602 = new Map();
             const _rtmp31604 = input.readMapBegin();
             const _size1603 = _rtmp31604.size || 0;
             for (let _i1605 = 0; _i1605 < _size1603; ++_i1605) {
@@ -22277,10 +22277,10 @@ const ConcourseService_getKeysCclTime_result = class {
               key1606 = input.readString();
               val1607 = new data_ttypes.TObject();
               val1607.read(input);
-              val1602[key1606] = val1607;
+              val1602.set(key1606, val1607);
             }
             input.readMapEnd();
-            this.success[key1601] = val1602;
+            this.success.set(key1601, val1602);
           }
           input.readMapEnd();
         } else {
@@ -22456,14 +22456,14 @@ const ConcourseService_getKeysCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31618 = input.readMapBegin();
           const _size1617 = _rtmp31618.size || 0;
           for (let _i1619 = 0; _i1619 < _size1617; ++_i1619) {
             let key1620 = null;
             let val1621 = null;
             key1620 = input.readI64();
-            val1621 = {};
+            val1621 = new Map();
             const _rtmp31623 = input.readMapBegin();
             const _size1622 = _rtmp31623.size || 0;
             for (let _i1624 = 0; _i1624 < _size1622; ++_i1624) {
@@ -22472,10 +22472,10 @@ const ConcourseService_getKeysCclTimestr_result = class {
               key1625 = input.readString();
               val1626 = new data_ttypes.TObject();
               val1626.read(input);
-              val1621[key1625] = val1626;
+              val1621.set(key1625, val1626);
             }
             input.readMapEnd();
-            this.success[key1620] = val1621;
+            this.success.set(key1620, val1621);
           }
           input.readMapEnd();
         } else {
@@ -26377,7 +26377,7 @@ const ConcourseService_pingRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31767 = input.readMapBegin();
           const _size1766 = _rtmp31767.size || 0;
           for (let _i1768 = 0; _i1768 < _size1766; ++_i1768) {
@@ -26385,7 +26385,7 @@ const ConcourseService_pingRecords_result = class {
             let val1770 = null;
             key1769 = input.readI64();
             val1770 = input.readBool();
-            this.success[key1769] = val1770;
+            this.success.set(key1769, val1770);
           }
           input.readMapEnd();
         } else {
@@ -39190,7 +39190,7 @@ const ConcourseService_navigateKeyRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31849 = input.readMapBegin();
           const _size1848 = _rtmp31849.size || 0;
           for (let _i1850 = 0; _i1850 < _size1848; ++_i1850) {
@@ -39207,7 +39207,7 @@ const ConcourseService_navigateKeyRecord_result = class {
               val1852.push(elem1856);
             }
             input.readSetEnd();
-            this.success[key1851] = val1852;
+            this.success.set(key1851, val1852);
           }
           input.readMapEnd();
         } else {
@@ -39360,7 +39360,7 @@ const ConcourseService_navigateKeyRecordTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31861 = input.readMapBegin();
           const _size1860 = _rtmp31861.size || 0;
           for (let _i1862 = 0; _i1862 < _size1860; ++_i1862) {
@@ -39377,7 +39377,7 @@ const ConcourseService_navigateKeyRecordTime_result = class {
               val1864.push(elem1868);
             }
             input.readSetEnd();
-            this.success[key1863] = val1864;
+            this.success.set(key1863, val1864);
           }
           input.readMapEnd();
         } else {
@@ -39538,7 +39538,7 @@ const ConcourseService_navigateKeyRecordTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31873 = input.readMapBegin();
           const _size1872 = _rtmp31873.size || 0;
           for (let _i1874 = 0; _i1874 < _size1872; ++_i1874) {
@@ -39555,7 +39555,7 @@ const ConcourseService_navigateKeyRecordTimestr_result = class {
               val1876.push(elem1880);
             }
             input.readSetEnd();
-            this.success[key1875] = val1876;
+            this.success.set(key1875, val1876);
           }
           input.readMapEnd();
         } else {
@@ -39714,14 +39714,14 @@ const ConcourseService_navigateKeysRecord_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31890 = input.readMapBegin();
           const _size1889 = _rtmp31890.size || 0;
           for (let _i1891 = 0; _i1891 < _size1889; ++_i1891) {
             let key1892 = null;
             let val1893 = null;
             key1892 = input.readI64();
-            val1893 = {};
+            val1893 = new Map();
             const _rtmp31895 = input.readMapBegin();
             const _size1894 = _rtmp31895.size || 0;
             for (let _i1896 = 0; _i1896 < _size1894; ++_i1896) {
@@ -39738,10 +39738,10 @@ const ConcourseService_navigateKeysRecord_result = class {
                 val1898.push(elem1902);
               }
               input.readSetEnd();
-              val1893[key1897] = val1898;
+              val1893.set(key1897, val1898);
             }
             input.readMapEnd();
-            this.success[key1892] = val1893;
+            this.success.set(key1892, val1893);
           }
           input.readMapEnd();
         } else {
@@ -39901,14 +39901,14 @@ const ConcourseService_navigateKeysRecordTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31914 = input.readMapBegin();
           const _size1913 = _rtmp31914.size || 0;
           for (let _i1915 = 0; _i1915 < _size1913; ++_i1915) {
             let key1916 = null;
             let val1917 = null;
             key1916 = input.readI64();
-            val1917 = {};
+            val1917 = new Map();
             const _rtmp31919 = input.readMapBegin();
             const _size1918 = _rtmp31919.size || 0;
             for (let _i1920 = 0; _i1920 < _size1918; ++_i1920) {
@@ -39925,10 +39925,10 @@ const ConcourseService_navigateKeysRecordTime_result = class {
                 val1922.push(elem1926);
               }
               input.readSetEnd();
-              val1917[key1921] = val1922;
+              val1917.set(key1921, val1922);
             }
             input.readMapEnd();
-            this.success[key1916] = val1917;
+            this.success.set(key1916, val1917);
           }
           input.readMapEnd();
         } else {
@@ -40096,14 +40096,14 @@ const ConcourseService_navigateKeysRecordTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31938 = input.readMapBegin();
           const _size1937 = _rtmp31938.size || 0;
           for (let _i1939 = 0; _i1939 < _size1937; ++_i1939) {
             let key1940 = null;
             let val1941 = null;
             key1940 = input.readI64();
-            val1941 = {};
+            val1941 = new Map();
             const _rtmp31943 = input.readMapBegin();
             const _size1942 = _rtmp31943.size || 0;
             for (let _i1944 = 0; _i1944 < _size1942; ++_i1944) {
@@ -40120,10 +40120,10 @@ const ConcourseService_navigateKeysRecordTimestr_result = class {
                 val1946.push(elem1950);
               }
               input.readSetEnd();
-              val1941[key1945] = val1946;
+              val1941.set(key1945, val1946);
             }
             input.readMapEnd();
-            this.success[key1940] = val1941;
+            this.success.set(key1940, val1941);
           }
           input.readMapEnd();
         } else {
@@ -40289,14 +40289,14 @@ const ConcourseService_navigateKeysRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31967 = input.readMapBegin();
           const _size1966 = _rtmp31967.size || 0;
           for (let _i1968 = 0; _i1968 < _size1966; ++_i1968) {
             let key1969 = null;
             let val1970 = null;
             key1969 = input.readI64();
-            val1970 = {};
+            val1970 = new Map();
             const _rtmp31972 = input.readMapBegin();
             const _size1971 = _rtmp31972.size || 0;
             for (let _i1973 = 0; _i1973 < _size1971; ++_i1973) {
@@ -40313,10 +40313,10 @@ const ConcourseService_navigateKeysRecords_result = class {
                 val1975.push(elem1979);
               }
               input.readSetEnd();
-              val1970[key1974] = val1975;
+              val1970.set(key1974, val1975);
             }
             input.readMapEnd();
-            this.success[key1969] = val1970;
+            this.success.set(key1969, val1970);
           }
           input.readMapEnd();
         } else {
@@ -40467,7 +40467,7 @@ const ConcourseService_navigateKeyRecords_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp31991 = input.readMapBegin();
           const _size1990 = _rtmp31991.size || 0;
           for (let _i1992 = 0; _i1992 < _size1990; ++_i1992) {
@@ -40484,7 +40484,7 @@ const ConcourseService_navigateKeyRecords_result = class {
               val1994.push(elem1998);
             }
             input.readSetEnd();
-            this.success[key1993] = val1994;
+            this.success.set(key1993, val1994);
           }
           input.readMapEnd();
         } else {
@@ -40644,7 +40644,7 @@ const ConcourseService_navigateKeyRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32008 = input.readMapBegin();
           const _size2007 = _rtmp32008.size || 0;
           for (let _i2009 = 0; _i2009 < _size2007; ++_i2009) {
@@ -40661,7 +40661,7 @@ const ConcourseService_navigateKeyRecordsTime_result = class {
               val2011.push(elem2015);
             }
             input.readSetEnd();
-            this.success[key2010] = val2011;
+            this.success.set(key2010, val2011);
           }
           input.readMapEnd();
         } else {
@@ -40829,7 +40829,7 @@ const ConcourseService_navigateKeyRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32025 = input.readMapBegin();
           const _size2024 = _rtmp32025.size || 0;
           for (let _i2026 = 0; _i2026 < _size2024; ++_i2026) {
@@ -40846,7 +40846,7 @@ const ConcourseService_navigateKeyRecordsTimestr_result = class {
               val2028.push(elem2032);
             }
             input.readSetEnd();
-            this.success[key2027] = val2028;
+            this.success.set(key2027, val2028);
           }
           input.readMapEnd();
         } else {
@@ -41021,14 +41021,14 @@ const ConcourseService_navigateKeysRecordsTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32047 = input.readMapBegin();
           const _size2046 = _rtmp32047.size || 0;
           for (let _i2048 = 0; _i2048 < _size2046; ++_i2048) {
             let key2049 = null;
             let val2050 = null;
             key2049 = input.readI64();
-            val2050 = {};
+            val2050 = new Map();
             const _rtmp32052 = input.readMapBegin();
             const _size2051 = _rtmp32052.size || 0;
             for (let _i2053 = 0; _i2053 < _size2051; ++_i2053) {
@@ -41045,10 +41045,10 @@ const ConcourseService_navigateKeysRecordsTime_result = class {
                 val2055.push(elem2059);
               }
               input.readSetEnd();
-              val2050[key2054] = val2055;
+              val2050.set(key2054, val2055);
             }
             input.readMapEnd();
-            this.success[key2049] = val2050;
+            this.success.set(key2049, val2050);
           }
           input.readMapEnd();
         } else {
@@ -41223,14 +41223,14 @@ const ConcourseService_navigateKeysRecordsTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32076 = input.readMapBegin();
           const _size2075 = _rtmp32076.size || 0;
           for (let _i2077 = 0; _i2077 < _size2075; ++_i2077) {
             let key2078 = null;
             let val2079 = null;
             key2078 = input.readI64();
-            val2079 = {};
+            val2079 = new Map();
             const _rtmp32081 = input.readMapBegin();
             const _size2080 = _rtmp32081.size || 0;
             for (let _i2082 = 0; _i2082 < _size2080; ++_i2082) {
@@ -41247,10 +41247,10 @@ const ConcourseService_navigateKeysRecordsTimestr_result = class {
                 val2084.push(elem2088);
               }
               input.readSetEnd();
-              val2079[key2083] = val2084;
+              val2079.set(key2083, val2084);
             }
             input.readMapEnd();
-            this.success[key2078] = val2079;
+            this.success.set(key2078, val2079);
           }
           input.readMapEnd();
         } else {
@@ -41410,7 +41410,7 @@ const ConcourseService_navigateKeyCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32095 = input.readMapBegin();
           const _size2094 = _rtmp32095.size || 0;
           for (let _i2096 = 0; _i2096 < _size2094; ++_i2096) {
@@ -41427,7 +41427,7 @@ const ConcourseService_navigateKeyCcl_result = class {
               val2098.push(elem2102);
             }
             input.readSetEnd();
-            this.success[key2097] = val2098;
+            this.success.set(key2097, val2098);
           }
           input.readMapEnd();
         } else {
@@ -41596,7 +41596,7 @@ const ConcourseService_navigateKeyCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32107 = input.readMapBegin();
           const _size2106 = _rtmp32107.size || 0;
           for (let _i2108 = 0; _i2108 < _size2106; ++_i2108) {
@@ -41613,7 +41613,7 @@ const ConcourseService_navigateKeyCclTime_result = class {
               val2110.push(elem2114);
             }
             input.readSetEnd();
-            this.success[key2109] = val2110;
+            this.success.set(key2109, val2110);
           }
           input.readMapEnd();
         } else {
@@ -41782,7 +41782,7 @@ const ConcourseService_navigateKeyCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32119 = input.readMapBegin();
           const _size2118 = _rtmp32119.size || 0;
           for (let _i2120 = 0; _i2120 < _size2118; ++_i2120) {
@@ -41799,7 +41799,7 @@ const ConcourseService_navigateKeyCclTimestr_result = class {
               val2122.push(elem2126);
             }
             input.readSetEnd();
-            this.success[key2121] = val2122;
+            this.success.set(key2121, val2122);
           }
           input.readMapEnd();
         } else {
@@ -41966,14 +41966,14 @@ const ConcourseService_navigateKeysCcl_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32136 = input.readMapBegin();
           const _size2135 = _rtmp32136.size || 0;
           for (let _i2137 = 0; _i2137 < _size2135; ++_i2137) {
             let key2138 = null;
             let val2139 = null;
             key2138 = input.readI64();
-            val2139 = {};
+            val2139 = new Map();
             const _rtmp32141 = input.readMapBegin();
             const _size2140 = _rtmp32141.size || 0;
             for (let _i2142 = 0; _i2142 < _size2140; ++_i2142) {
@@ -41990,10 +41990,10 @@ const ConcourseService_navigateKeysCcl_result = class {
                 val2144.push(elem2148);
               }
               input.readSetEnd();
-              val2139[key2143] = val2144;
+              val2139.set(key2143, val2144);
             }
             input.readMapEnd();
-            this.success[key2138] = val2139;
+            this.success.set(key2138, val2139);
           }
           input.readMapEnd();
         } else {
@@ -42169,14 +42169,14 @@ const ConcourseService_navigateKeysCclTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32160 = input.readMapBegin();
           const _size2159 = _rtmp32160.size || 0;
           for (let _i2161 = 0; _i2161 < _size2159; ++_i2161) {
             let key2162 = null;
             let val2163 = null;
             key2162 = input.readI64();
-            val2163 = {};
+            val2163 = new Map();
             const _rtmp32165 = input.readMapBegin();
             const _size2164 = _rtmp32165.size || 0;
             for (let _i2166 = 0; _i2166 < _size2164; ++_i2166) {
@@ -42193,10 +42193,10 @@ const ConcourseService_navigateKeysCclTime_result = class {
                 val2168.push(elem2172);
               }
               input.readSetEnd();
-              val2163[key2167] = val2168;
+              val2163.set(key2167, val2168);
             }
             input.readMapEnd();
-            this.success[key2162] = val2163;
+            this.success.set(key2162, val2163);
           }
           input.readMapEnd();
         } else {
@@ -42372,14 +42372,14 @@ const ConcourseService_navigateKeysCclTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32184 = input.readMapBegin();
           const _size2183 = _rtmp32184.size || 0;
           for (let _i2185 = 0; _i2185 < _size2183; ++_i2185) {
             let key2186 = null;
             let val2187 = null;
             key2186 = input.readI64();
-            val2187 = {};
+            val2187 = new Map();
             const _rtmp32189 = input.readMapBegin();
             const _size2188 = _rtmp32189.size || 0;
             for (let _i2190 = 0; _i2190 < _size2188; ++_i2190) {
@@ -42396,10 +42396,10 @@ const ConcourseService_navigateKeysCclTimestr_result = class {
                 val2192.push(elem2196);
               }
               input.readSetEnd();
-              val2187[key2191] = val2192;
+              val2187.set(key2191, val2192);
             }
             input.readMapEnd();
-            this.success[key2186] = val2187;
+            this.success.set(key2186, val2187);
           }
           input.readMapEnd();
         } else {
@@ -42559,7 +42559,7 @@ const ConcourseService_navigateKeyCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32203 = input.readMapBegin();
           const _size2202 = _rtmp32203.size || 0;
           for (let _i2204 = 0; _i2204 < _size2202; ++_i2204) {
@@ -42576,7 +42576,7 @@ const ConcourseService_navigateKeyCriteria_result = class {
               val2206.push(elem2210);
             }
             input.readSetEnd();
-            this.success[key2205] = val2206;
+            this.success.set(key2205, val2206);
           }
           input.readMapEnd();
         } else {
@@ -42745,7 +42745,7 @@ const ConcourseService_navigateKeyCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32215 = input.readMapBegin();
           const _size2214 = _rtmp32215.size || 0;
           for (let _i2216 = 0; _i2216 < _size2214; ++_i2216) {
@@ -42762,7 +42762,7 @@ const ConcourseService_navigateKeyCriteriaTime_result = class {
               val2218.push(elem2222);
             }
             input.readSetEnd();
-            this.success[key2217] = val2218;
+            this.success.set(key2217, val2218);
           }
           input.readMapEnd();
         } else {
@@ -42931,7 +42931,7 @@ const ConcourseService_navigateKeyCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32227 = input.readMapBegin();
           const _size2226 = _rtmp32227.size || 0;
           for (let _i2228 = 0; _i2228 < _size2226; ++_i2228) {
@@ -42948,7 +42948,7 @@ const ConcourseService_navigateKeyCriteriaTimestr_result = class {
               val2230.push(elem2234);
             }
             input.readSetEnd();
-            this.success[key2229] = val2230;
+            this.success.set(key2229, val2230);
           }
           input.readMapEnd();
         } else {
@@ -43115,14 +43115,14 @@ const ConcourseService_navigateKeysCriteria_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32244 = input.readMapBegin();
           const _size2243 = _rtmp32244.size || 0;
           for (let _i2245 = 0; _i2245 < _size2243; ++_i2245) {
             let key2246 = null;
             let val2247 = null;
             key2246 = input.readI64();
-            val2247 = {};
+            val2247 = new Map();
             const _rtmp32249 = input.readMapBegin();
             const _size2248 = _rtmp32249.size || 0;
             for (let _i2250 = 0; _i2250 < _size2248; ++_i2250) {
@@ -43139,10 +43139,10 @@ const ConcourseService_navigateKeysCriteria_result = class {
                 val2252.push(elem2256);
               }
               input.readSetEnd();
-              val2247[key2251] = val2252;
+              val2247.set(key2251, val2252);
             }
             input.readMapEnd();
-            this.success[key2246] = val2247;
+            this.success.set(key2246, val2247);
           }
           input.readMapEnd();
         } else {
@@ -43318,14 +43318,14 @@ const ConcourseService_navigateKeysCriteriaTime_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32268 = input.readMapBegin();
           const _size2267 = _rtmp32268.size || 0;
           for (let _i2269 = 0; _i2269 < _size2267; ++_i2269) {
             let key2270 = null;
             let val2271 = null;
             key2270 = input.readI64();
-            val2271 = {};
+            val2271 = new Map();
             const _rtmp32273 = input.readMapBegin();
             const _size2272 = _rtmp32273.size || 0;
             for (let _i2274 = 0; _i2274 < _size2272; ++_i2274) {
@@ -43342,10 +43342,10 @@ const ConcourseService_navigateKeysCriteriaTime_result = class {
                 val2276.push(elem2280);
               }
               input.readSetEnd();
-              val2271[key2275] = val2276;
+              val2271.set(key2275, val2276);
             }
             input.readMapEnd();
-            this.success[key2270] = val2271;
+            this.success.set(key2270, val2271);
           }
           input.readMapEnd();
         } else {
@@ -43521,14 +43521,14 @@ const ConcourseService_navigateKeysCriteriaTimestr_result = class {
       switch (fid) {
         case 0:
         if (ftype == Thrift.Type.MAP) {
-          this.success = {};
+          this.success = new Map();
           const _rtmp32292 = input.readMapBegin();
           const _size2291 = _rtmp32292.size || 0;
           for (let _i2293 = 0; _i2293 < _size2291; ++_i2293) {
             let key2294 = null;
             let val2295 = null;
             key2294 = input.readI64();
-            val2295 = {};
+            val2295 = new Map();
             const _rtmp32297 = input.readMapBegin();
             const _size2296 = _rtmp32297.size || 0;
             for (let _i2298 = 0; _i2298 < _size2296; ++_i2298) {
@@ -43545,10 +43545,10 @@ const ConcourseService_navigateKeysCriteriaTimestr_result = class {
                 val2300.push(elem2304);
               }
               input.readSetEnd();
-              val2295[key2299] = val2300;
+              val2295.set(key2299, val2300);
             }
             input.readMapEnd();
-            this.success[key2294] = val2295;
+            this.success.set(key2294, val2295);
           }
           input.readMapEnd();
         } else {
