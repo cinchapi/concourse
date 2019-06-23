@@ -42,7 +42,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
-import com.cinchapi.concourse.util.LinkNavigation;
+import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
 import com.google.common.collect.Lists;
@@ -541,7 +541,7 @@ public final class Operations {
         for (String k : keys) {
             Map<Long, Set<TObject>> data = navigateKeyRecordAtomic(k, record,
                     timestamp, atomic);
-            String key = LinkNavigation.getNavigationSchemeDestination(k);
+            String key = Navigation.getKeyDestination(k);
             data.forEach((rec, values) -> {
                 Map<String, Set<TObject>> vals = result.get(rec);
                 if(vals == null) {

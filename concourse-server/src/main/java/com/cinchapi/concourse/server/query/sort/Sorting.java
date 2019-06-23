@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.server.query.sort;
 
+import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.data.sort.Sorter;
+import com.cinchapi.concourse.lang.sort.NoOrder;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.TObject;
@@ -37,8 +40,9 @@ public final class Sorting {
      * @param store
      * @return the {@link StoreSorter}
      */
-    public static StoreSorter<TObject> byValue(Order order, Store store) {
-        return new ByValueSorter(order, store);
+    public static Sorter<TObject> byValue(Order order, Store store) {
+        return order instanceof NoOrder ? new NoOrderSorter<>()
+                : new ByValueSorter(order, store);
     }
 
     /**
@@ -49,11 +53,32 @@ public final class Sorting {
      * @param store
      * @return the {@link StoreSorter}
      */
-    public static StoreSorter<Set<TObject>> byValues(Order order, Store store) {
-        return new ByValuesSorter(order, store);
+    public static Sorter<Set<TObject>> byValues(Order order, Store store) {
+        return order instanceof NoOrder ? new NoOrderSorter<>()
+                : new ByValuesSorter(order, store);
     }
 
     private Sorting() {/* no-init */}
+
+    /**
+     * A {@link Sorter} that doesn't actually do any sorting.
+     *
+     * @author Jeff Nelson
+     */
+    static class NoOrderSorter<V> implements Sorter<V> {
+
+        @Override
+        public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data) {
+            return data;
+        }
+
+        @Override
+        public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data,
+                Long at) {
+            return data;
+        }
+
+    }
 
     /**
      * A {@link StoreSorter} for scalar values.
@@ -88,7 +113,7 @@ public final class Sorting {
         }
 
     }
-
+    
     /**
      * A {@link StoreSorter} for sets of values.
      *

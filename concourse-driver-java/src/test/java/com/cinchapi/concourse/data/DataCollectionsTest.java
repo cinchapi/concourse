@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.cinchapi.concourse.data.transform.DataTable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.ImmutableMap;
@@ -31,7 +32,7 @@ import com.google.common.collect.Maps;
  *
  * @author Jeff Nelson
  */
-public class ResultSetTest {
+public class DataCollectionsTest {
 
     @Test
     public void testRecordKeyValuesResultSet() {
@@ -44,8 +45,8 @@ public class ResultSetTest {
                 ImmutableMap.of("b", ImmutableSet.of(Convert.javaToThrift(100),
                         Convert.javaToThrift(false), Convert.javaToThrift("a")),
                         "c", ImmutableSet.of(Convert.javaToThrift(34))));
-        Map<Long, Map<String, Set<Object>>> pretty = RecordKeyValuesResultSet
-                .of(results);
+        Map<Long, Map<String, Set<Object>>> pretty = DataTable
+                .multiValued(results);
         System.out.println(pretty);
     }
 

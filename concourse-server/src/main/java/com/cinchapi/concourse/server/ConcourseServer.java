@@ -54,7 +54,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.data.sort.SortableTableMap;
+import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
@@ -128,8 +128,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -2009,10 +2009,41 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclOrder(String ccl, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        try {
+            Order $order = JavaThriftBridge.convert(order);
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record);
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+                result.sort(Sorting.byValue($order, atomic));
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -4205,35 +4236,11 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
-            AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Set<String> keys = atomic.describe(record);
-                    Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        entry.put(key, atomic.select(key, record));
-                    }
-                    TMaps.putResultDatasetOptimized(result, record, entry);
-                }
-            });
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return selectCclOrder(ccl, TOrder.none(), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4248,8 +4255,8 @@ public class ConcourseServer extends BaseConcourseServer
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            SortableTableMap<Set<TObject>> result = SortableTableMap
-                    .ensure(emptyResultDataset());
+            SortableTable<Set<TObject>> result = SortableTable
+                    .multiValued(emptyResultDataset());
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -5150,8 +5157,8 @@ public class ConcourseServer extends BaseConcourseServer
             throws TException {
         Order order = JavaThriftBridge.convert($order);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTableMap<Set<TObject>> result = SortableTableMap
-                .ensure(emptyResultDataset());
+        SortableTable<Set<TObject>> result = SortableTable
+                .multiValued(emptyResultDataset());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 TMaps.putResultDatasetOptimized(result, record,

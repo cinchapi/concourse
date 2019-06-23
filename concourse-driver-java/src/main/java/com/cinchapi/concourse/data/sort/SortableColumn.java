@@ -17,39 +17,68 @@ package com.cinchapi.concourse.data.sort;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.data.Column;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableMap;
 
 /**
+ * A {@link Column} whose contents can be sorted using a {@link Sorter}.
  * <p>
- * A {@link SortableMap} is one that can be {@link #sort(Sorter) sorted}
- * using a
- * {@link Sorter}.
- * </p>
- * <p>
- * A {@link SortableMap} is implicitly a {@link SortableTableMap} with a single
- * key/column.
- * </p>
- * <p>
- * In practice, a {@link SortableMap} simply forwards to another map. When
- * {@link #sort(Sorter)} is called, the delegate is replaced by a sorted
- * version.
+ * In practice, a {@link SortableColumn} simply forwards to another
+ * {@link Column}. When {@link #sort(Sorter)} is called, the delegate is
+ * replaced by a sorted version.
  * </p>
  *
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public class SortableMap<V> extends ForwardingMap<Long, V>
-        implements Sortable<V> {
+public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
+        Column<V>,
+        Sortable<V> {
+
+    /**
+     * Ensure that the {@code data} is a {@link SortableColumn}.
+     * 
+     * @param key
+     * @param data
+     * @return the {@code data} in the form of a {@link SortableColumn}.
+     */
+    public static <V> SortableColumn<Set<V>> multiValued(String key,
+            Map<Long, Set<V>> data) {
+        if(data instanceof SortableColumn) {
+            return (SortableColumn<Set<V>>) data;
+        }
+        else {
+            return new SortableColumn<>(key, data);
+        }
+    }
+
+    /**
+     * Ensure that the {@code data} is a {@link SortableColumn}.
+     * 
+     * @param key
+     * @param data
+     * @return the {@code data} in the form of a {@link SortableColumn}.
+     */
+    public static <V> SortableColumn<V> singleValued(String key,
+            Map<Long, V> data) {
+        if(data instanceof SortableColumn) {
+            return (SortableColumn<V>) data;
+        }
+        else {
+            return new SortableColumn<>(key, data);
+        }
+
+    }
 
     /**
      * The delegate to which calls are forwarded. If {@link #sort(Sorter)}
-     * has
-     * been called, this delegate is sorted.
+     * has been called, this delegate is sorted.
      */
     private Map<Long, V> delegate;
 
@@ -63,7 +92,7 @@ public class SortableMap<V> extends ForwardingMap<Long, V>
      * 
      * @param map
      */
-    protected SortableMap(String key, Map<Long, V> delegate) {
+    private SortableColumn(String key, Map<Long, V> delegate) {
         this.delegate = delegate;
         this.key = key;
     }
@@ -78,9 +107,14 @@ public class SortableMap<V> extends ForwardingMap<Long, V>
         }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
+    @Override
+    protected Map<Long, V> delegate() {
+        return delegate;
+    }
+
     /**
-     * Return a "sortable" view of this map (e.g. pin {@link #key} as the only
-     * key/column in a {@link SortableTableMap}.
+     * Return a "sortable" view of this column (e.g. pin {@link #key} as the
+     * only key/column in a {@link SortableTable}.
      * 
      * @return a sortable view of the {@link #delegate}
      */
@@ -90,11 +124,6 @@ public class SortableMap<V> extends ForwardingMap<Long, V>
             Map<String, V> value = ImmutableMap.of(this.key, entry.getValue());
             return new SimpleImmutableEntry<>(key, value);
         }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-    }
-
-    @Override
-    protected Map<Long, V> delegate() {
-        return delegate;
     }
 
 }

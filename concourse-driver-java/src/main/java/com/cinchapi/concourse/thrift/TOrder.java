@@ -43,6 +43,16 @@ public class TOrder implements
         java.io.Serializable,
         Cloneable,
         Comparable<TOrder> {
+
+    /**
+     * Return a {@link TOrder} with no order specification.
+     * 
+     * @return the {@link TOrder}
+     */
+    public static TOrder none() {
+        return new TOrder();
+    }
+
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
             "TOrder");
 

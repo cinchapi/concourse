@@ -34,6 +34,15 @@ import java.util.List;
 public interface Order {
 
     /**
+     * Return an {@link Order} that specifies no order.
+     * 
+     * @return a no-op {@link Order}
+     */
+    public static Order none() {
+        return new NoOrder();
+    }
+
+    /**
      * Start building a new {@link Order}.
      *
      * @return the Order builder

@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.concourse.data.sort.SortableTableMap;
+import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
@@ -34,7 +34,7 @@ import io.atomix.catalyst.buffer.Buffer;
  * @author Jeff Nelson
  */
 public class TObjectResultDataset extends ResultDataset<TObject>
-        implements SortableTableMap<Set<TObject>> {
+        implements SortableTable<Set<TObject>> {
 
     /**
      * Return a {@link TObjectResultDataset} that wraps the original
