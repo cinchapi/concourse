@@ -38,8 +38,7 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  */
 @NotThreadSafe
 public abstract class DataRow<F, T> extends AbstractMap<String, T>
-        implements
-        Row<T> {
+        implements Row<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java
