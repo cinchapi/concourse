@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.data.transform;
 
 import java.util.AbstractMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +38,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  */
 @NotThreadSafe
 public abstract class DataRow<F, T> extends AbstractMap<String, T>
-        implements Row<T> {
+        implements
+        Row<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java
@@ -102,7 +104,8 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T>
                 String key = entry.getKey();
                 T value = transform(entry.getValue());
                 return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                    (e1, e2) -> e2, LinkedHashMap::new));
         }
         return transformed.entrySet();
     }

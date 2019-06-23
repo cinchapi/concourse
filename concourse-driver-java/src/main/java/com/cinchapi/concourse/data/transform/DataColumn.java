@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.data.transform;
 
 import java.util.AbstractMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,7 +101,8 @@ public abstract class DataColumn<F, T> extends AbstractMap<Long, T>
                 Long key = entry.getKey();
                 T value = transform(entry.getValue());
                 return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                    (e1, e2) -> e2, LinkedHashMap::new));
         }
         return transformed.entrySet();
     }

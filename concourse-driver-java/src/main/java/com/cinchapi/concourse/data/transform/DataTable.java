@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.data.transform;
 
 import java.util.AbstractMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +38,8 @@ import com.cinchapi.concourse.util.PrettyLinkedTableMap;
  */
 @NotThreadSafe
 public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
-        implements Table<T> {
+        implements
+        Table<T> {
 
     /**
      * Return a {@link DataTable} that contains multi-valued cells of
@@ -96,10 +98,12 @@ public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
                         .map(e -> {
                             return new SimpleImmutableEntry<>(e.getKey(),
                                     transform(e.getValue()));
-                        }).collect(Collectors.toMap(Entry::getKey,
-                                Entry::getValue));
+                        }).collect(
+                                Collectors.toMap(Entry::getKey, Entry::getValue,
+                                        (e1, e2) -> e2, LinkedHashMap::new));
                 return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                    (e1, e2) -> e2, LinkedHashMap::new));
         }
         return transformed.entrySet();
     }
