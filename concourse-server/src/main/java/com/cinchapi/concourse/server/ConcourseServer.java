@@ -4239,8 +4239,7 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectCclOrder(ccl, TOrder.none(), creds, transaction,
-                environment);
+        return selectCclOrder(ccl, null, creds, transaction, environment);
     }
 
     @Override
@@ -4251,7 +4250,8 @@ public class ConcourseServer extends BaseConcourseServer
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Order $order = JavaThriftBridge.convert(order);
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
