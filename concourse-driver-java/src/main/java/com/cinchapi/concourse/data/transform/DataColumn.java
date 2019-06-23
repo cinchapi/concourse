@@ -34,8 +34,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  *
  * @author Jeff Nelson
  */
-public abstract class DataColumn<F, T> extends AbstractMap<Long, T> implements
-        Column<T> {
+public abstract class DataColumn<F, T> extends AbstractMap<Long, T>
+        implements Column<T> {
 
     /**
      * Return a {@link DataColumn} that contains multi-valued cells of

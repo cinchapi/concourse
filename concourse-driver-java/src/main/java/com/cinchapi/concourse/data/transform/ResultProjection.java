@@ -26,13 +26,14 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 
 /**
- * A {@link Projection} based on a {@link TObject} result set, that transforms values
+ * A {@link Projection} based on a {@link TObject} result set, that transforms
+ * values
  * on the fly.
  *
  * @author Jeff Nelson
  */
-public class ResultProjection<T> extends AbstractMap<T, Set<Long>> implements
-        Projection<T> {
+public class ResultProjection<T> extends AbstractMap<T, Set<Long>>
+        implements Projection<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java

@@ -113,7 +113,7 @@ public final class Sorting {
         }
 
     }
-    
+
     /**
      * A {@link StoreSorter} for sets of values.
      *

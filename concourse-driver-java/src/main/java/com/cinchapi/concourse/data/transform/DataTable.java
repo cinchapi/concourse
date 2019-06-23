@@ -37,8 +37,7 @@ import com.cinchapi.concourse.util.PrettyLinkedTableMap;
  */
 @NotThreadSafe
 public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
-        implements
-        Table<T> {
+        implements Table<T> {
 
     /**
      * Return a {@link DataTable} that contains multi-valued cells of

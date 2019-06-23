@@ -61,9 +61,8 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         }
     }
 
-    static class ForwardingSortableTable<V>
-            extends ForwardingMap<Long, Map<String, V>> implements
-            SortableTable<V> {
+    static class ForwardingSortableTable<V> extends
+            ForwardingMap<Long, Map<String, V>> implements SortableTable<V> {
 
         /**
          * The delegate to which calls are forwarded. If {@link #sort(Sorter)}

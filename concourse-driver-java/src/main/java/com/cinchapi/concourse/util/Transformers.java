@@ -121,7 +121,7 @@ public final class Transformers {
         }
         return transformed;
     }
-    
+
     /**
      * Return a new {@link Map} where the key and value of each entry is
      * transformed by the {@code keyFunction} and {@code valueFunction}

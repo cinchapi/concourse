@@ -32,9 +32,8 @@ import com.cinchapi.concourse.util.Transformers;
  *
  * @author Jeff Nelson
  */
-public final class ResultIndex<T>
-        extends AbstractMap<String, Map<T, Set<Long>>> implements
-        Index<T> {
+public final class ResultIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
+        implements Index<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java
