@@ -18,3 +18,7 @@ dependencies {
     testCompile project(':concourse-driver-java')
     testCompile project(':concourse-ete-test-core')
 }
+
+test {
+	exclude '**'
+}
