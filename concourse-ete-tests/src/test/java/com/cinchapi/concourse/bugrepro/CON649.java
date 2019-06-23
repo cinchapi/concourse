@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * e * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,15 @@ public class CON649 extends ClientServerTest {
     public void repro()
             throws IOException, TTransportException, InterruptedException {
         List<Thread> clients = Lists.newArrayList();
-        for (int i = 0; i < 1; ++i) {
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); ++i) {
             clients.add(new Thread(() -> {
                 Concourse $client = server.connect();
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         $client.add(Random.getSimpleString(),
                                 Random.getSimpleString(), Random.getLong());
+                        Random.tinySleep(); // allow some transports to go
+                                            // through...
                     }
                     catch (Exception e) {
                         Thread.currentThread().interrupt();
@@ -62,6 +64,7 @@ public class CON649 extends ClientServerTest {
         }
         clients.forEach(Thread::start);
         Thread.sleep(10000);
+        Random.microSleep();
         server.stop();
         Path db = server.getDatabaseDirectory().resolve("default");
         List<Path> directories = ImmutableList.of(db.resolve("cpb"),
@@ -87,10 +90,10 @@ public class CON649 extends ClientServerTest {
         });
         System.out.println(counts.size());
         Assert.assertEquals(1, distinct.size());
-        // server.start();
-        // TODO: reconnect client and try to make a call and verify that there
-        // is no exception
-
+        server.start();
+        client = server.connect();
+        client.describe();
+        Assert.assertTrue(true); // lack of Exception means the test passes
     }
 
     @Override
