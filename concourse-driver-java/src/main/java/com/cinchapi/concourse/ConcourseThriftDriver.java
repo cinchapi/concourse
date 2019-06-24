@@ -37,9 +37,10 @@ import org.apache.thrift.transport.TTransportException;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.data.transform.DataColumn;
+import com.cinchapi.concourse.data.transform.DataIndex;
+import com.cinchapi.concourse.data.transform.DataProjection;
 import com.cinchapi.concourse.data.transform.DataRow;
 import com.cinchapi.concourse.data.transform.DataTable;
-import com.cinchapi.concourse.data.transform.ResultIndex;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.lang.sort.Order;
@@ -363,18 +364,9 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Map<String, Map<Object, Set<Long>>> browse(Collection<String> keys) {
         return execute(() -> {
-            Map<String, Map<TObject, Set<Long>>> raw = client.browseKeys(
+            Map<String, Map<TObject, Set<Long>>> data = client.browseKeys(
                     Collections.toList(keys), creds, transaction, environment);
-            Map<String, Map<Object, Set<Long>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Key");
-            for (Entry<String, Map<TObject, Set<Long>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.thriftToJava(),
-                                Conversions.<Long> none()));
-            }
-            return pretty;
+            return DataIndex.of(data);
         });
     }
 
@@ -391,7 +383,7 @@ class ConcourseThriftDriver extends Concourse {
                 data = client.browseKeysTime(Collections.toList(keys),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            return ResultIndex.from(data);
+            return DataIndex.of(data);
         });
     }
 
@@ -400,35 +392,23 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<TObject, Set<Long>> data = client.browseKey(key, creds,
                     transaction, environment);
-            Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap(key, "Records");
-            for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
-                pretty.put(Convert.thriftToJava(entry.getKey()),
-                        entry.getValue());
-            }
-            return pretty;
+            return DataProjection.of(data);
         });
     }
 
     @Override
     public Map<Object, Set<Long>> browse(String key, Timestamp timestamp) {
         return execute(() -> {
-            Map<TObject, Set<Long>> raw;
+            Map<TObject, Set<Long>> data;
             if(timestamp.isString()) {
-                raw = client.browseKeyTimestr(key, timestamp.toString(), creds,
+                data = client.browseKeyTimestr(key, timestamp.toString(), creds,
                         transaction, environment);
             }
             else {
-                raw = client.browseKeyTime(key, timestamp.getMicros(), creds,
+                data = client.browseKeyTime(key, timestamp.getMicros(), creds,
                         transaction, environment);
             }
-            Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap(key, "Records");
-            for (Entry<TObject, Set<Long>> entry : raw.entrySet()) {
-                pretty.put(Convert.thriftToJava(entry.getKey()),
-                        entry.getValue());
-            }
-            return pretty;
+            return DataProjection.of(data);
         });
     }
 

@@ -16,80 +16,85 @@
 package com.cinchapi.concourse.data.transform;
 
 import java.util.AbstractMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.cinchapi.concourse.data.Index;
+import com.cinchapi.concourse.data.Projection;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.util.Conversions;
-import com.cinchapi.concourse.util.PrettyLinkedTableMap;
-import com.cinchapi.concourse.util.Transformers;
+import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 
 /**
- * Synthetic class that represents a result set that maps records to keys to
- * values.
+ * A {@link Projection} based on a {@link TObject} result set, that transforms
+ * values on the fly.
  *
  * @author Jeff Nelson
  */
-public final class ResultIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
-        implements Index<T> {
+public class DataProjection<T> extends AbstractMap<T, Set<Long>>
+        implements Projection<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java
-     * counterparts and {@link PrettyLinkedTableMap prettify} the result set
+     * counterparts and {@link PrettyLinkedHashMap prettify} the result set
      * lazily.
      * 
-     * @param rowName
-     * @param results
+     * @param data
      * @return the converted {@code results} in the form of a {@link Map} whose
      *         {@link #toString()} method does pretty printing
      */
-    public static <T> Map<String, Map<T, Set<Long>>> from(
-            Map<String, Map<TObject, Set<Long>>> results) {
-        return new ResultIndex<>(results);
+    public static <T> DataProjection<T> of(Map<TObject, Set<Long>> data) {
+        return new DataProjection<>(data);
     }
 
     /**
      * The data that must be transformed.
      */
-    private final Map<String, Map<TObject, Set<Long>>> data;
+    private final Map<TObject, Set<Long>> data;
 
     /**
      * A cache of the prettified results
      */
-    private Map<String, Map<T, Set<Long>>> pretty = null;
+    private Map<T, Set<Long>> pretty = null;
+
+    /**
+     * A cache of the transformed, but unpretty results.
+     */
+    private Map<T, Set<Long>> transformed = null;
 
     /**
      * Construct a new instance.
      * 
      * @param data
      */
-    private ResultIndex(Map<String, Map<TObject, Set<Long>>> data) {
+    private DataProjection(Map<TObject, Set<Long>> data) {
         this.data = data;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Set<Entry<String, Map<T, Set<Long>>>> entrySet() {
-        return pretty != null ? pretty.entrySet()
-                : data.entrySet().stream().map(entry -> {
-                    return new SimpleImmutableEntry<>(entry.getKey(),
-                            Transformers
-                                    .<TObject, T, Long, Long> transformMapSet(
-                                            entry.getValue(),
-                                            Conversions.thriftToJavaCasted(),
-                                            Conversions.none()));
-                }).collect(Collectors.toSet());
+    public Set<Entry<T, Set<Long>>> entrySet() {
+        if(transformed == null) {
+            transformed = data.entrySet().stream().map(entry -> {
+                return new SimpleImmutableEntry<>(
+                        (T) Convert.thriftToJava(entry.getKey()),
+                        entry.getValue());
+            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                    (e1, e2) -> e2, LinkedHashMap::new));
+        }
+        return transformed.entrySet();
     }
 
     @Override
     public String toString() {
         if(pretty == null) {
-            Map<String, Map<T, Set<Long>>> $pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Key");
+            Map<T, Set<Long>> $pretty = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Value", "Records");
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;
+            transformed = pretty;
         }
         return pretty.toString();
     }
