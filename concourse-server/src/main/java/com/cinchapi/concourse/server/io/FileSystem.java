@@ -34,6 +34,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.util.FileOps;
@@ -146,8 +147,8 @@ public final class FileSystem extends FileOps {
         return new ReadOnlyIterator<String>() {
 
             private final File[] files = new File(directory).listFiles();
-            private int position = 0;
             private File next = null;
+            private int position = 0;
             {
                 findNext();
             }
@@ -278,8 +279,8 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return {@code true} if {@code file} exists
      */
-    public static boolean hasFile(String file) {
-        return hasFile(Paths.get(file));
+    public static boolean hasFile(Path file) {
+        return Files.exists(file) && !Files.isDirectory(file);
     }
 
     /**
@@ -289,8 +290,8 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return {@code true} if {@code file} exists
      */
-    public static boolean hasFile(Path file) {
-        return Files.exists(file) && !Files.isDirectory(file);
+    public static boolean hasFile(String file) {
+        return hasFile(Paths.get(file));
     }
 
     /**
@@ -317,6 +318,22 @@ public final class FileSystem extends FileOps {
             catch (IOException e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
             }
+        }
+    }
+
+    /**
+     * Return a {@link Stream} that contains a non-recursive list of all the
+     * files in the {@code directory}.
+     * 
+     * @param directory
+     * @return the files in the directory
+     */
+    public static Stream<Path> ls(Path directory) {
+        try {
+            return Files.list(directory);
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
 
