@@ -34,5 +34,7 @@ public interface Sortable<T> {
      * @param sorter
      */
     public void sort(Sorter<T> sorter);
+    
+    public void sort(Sorter<T> sorter, long at);
 
 }

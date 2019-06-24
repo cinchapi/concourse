@@ -37,8 +37,9 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class SortableColumn<V> extends ForwardingMap<Long, V>
-        implements Column<V>, Sortable<V> {
+public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
+        Column<V>,
+        Sortable<V> {
 
     /**
      * Ensure that the {@code data} is a {@link SortableColumn}.
@@ -107,8 +108,14 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V>
     }
 
     @Override
-    protected Map<Long, V> delegate() {
-        return delegate;
+    public void sort(Sorter<V> sorter, long at) {
+        Map<Long, Map<String, V>> sorted = sorter.sort(sortable(), at);
+        delegate = sorted.entrySet().stream().map(entry -> {
+            Long key = entry.getKey();
+            V value = entry.getValue().get(this.key);
+            return new SimpleImmutableEntry<>(key, value);
+        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
     }
 
     /**
@@ -123,6 +130,11 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V>
             Map<String, V> value = ImmutableMap.of(this.key, entry.getValue());
             return new SimpleImmutableEntry<>(key, value);
         }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    }
+
+    @Override
+    protected Map<Long, V> delegate() {
+        return delegate;
     }
 
 }

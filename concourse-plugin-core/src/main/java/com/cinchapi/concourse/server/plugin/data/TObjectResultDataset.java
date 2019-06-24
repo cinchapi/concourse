@@ -33,8 +33,8 @@ import io.atomix.catalyst.buffer.Buffer;
  * 
  * @author Jeff Nelson
  */
-public class TObjectResultDataset extends ResultDataset<TObject>
-        implements SortableTable<Set<TObject>> {
+public class TObjectResultDataset extends ResultDataset<TObject> implements
+        SortableTable<Set<TObject>> {
 
     /**
      * Return a {@link TObjectResultDataset} that wraps the original
@@ -55,6 +55,12 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     @Nullable
     private Sorter<Set<TObject>> sorter;
 
+    /**
+     * The timestamp to sort at.
+     */
+    @Nullable
+    private Long sortAt;
+
     @Override
     public Set<Entry<Long, Map<String, Set<TObject>>>> entrySet() {
         Set<Entry<Long, Map<String, Set<TObject>>>> entrySet = super.entrySet();
@@ -64,7 +70,7 @@ public class TObjectResultDataset extends ResultDataset<TObject>
             // {@link #sort()}.
             Map<Long, Map<String, Set<TObject>>> map = entrySet.stream()
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-            map = sorter.sort(map);
+            map = sortAt == null ? sorter.sort(map) : sorter.sort(map, sortAt);
             entrySet = map.entrySet();
         }
         return entrySet;
@@ -73,6 +79,13 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     @Override
     public void sort(Sorter<Set<TObject>> sorter) {
         this.sorter = sorter;
+    }
+
+    @Override
+    public void sort(Sorter<Set<TObject>> sorter, long at) {
+        this.sorter = sorter;
+        this.sortAt = at;
+
     }
 
     @Override

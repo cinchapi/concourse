@@ -128,8 +128,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -4253,17 +4253,29 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
+        return selectCclTimeOrder(ccl, timestamp, NO_ORDER, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrder(String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            SortableTable<Set<TObject>> result = SortableTable
+                    .multiValued(emptyResultDataset());
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4276,25 +4288,13 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
+                result.sort(Sorting.byValues($order, atomic), timestamp);
             });
             return result;
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrder(String ccl,
-            long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override

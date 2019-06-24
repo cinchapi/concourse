@@ -86,6 +86,11 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         }
 
         @Override
+        public void sort(Sorter<V> sorter, long at) {
+            delegate = sorter.sort(delegate, at);
+        }
+
+        @Override
         protected Map<Long, Map<String, V>> delegate() {
             return delegate;
         }
