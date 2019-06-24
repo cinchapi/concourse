@@ -115,22 +115,4 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
         Map<Long, Map<String, Set<Object>>> actual = client.select("mother.children = 3");
         Assert.assertEquals(expected, actual);
     }
-
-    @Test
-    public void testNavigateFindAsSelectionKey() {
-        Set<Long> expected = setupNavigateFindSelection(client);
-        Set<Long> actual = client.find("mother.children", Operator.EQUALS, 2);
-
-        Assert.assertEquals(expected, actual);
-    }
-
-
-    @Test
-    public void testNavigateAsSelectionKeyAndEvaluationKey() {
-        Map<Long, Map<String, Set<Object>>> expected = setupNavigateSelectionAndEvaluation(
-                client);
-        Map<Long, Map<String, Set<Object>>> actual = client.select(Lists
-                .newArrayList("name", "mother.children"), "mother.children = 3");
-        Assert.assertEquals(expected, actual);
-    }
 }
