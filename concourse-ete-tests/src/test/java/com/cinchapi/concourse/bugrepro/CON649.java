@@ -98,7 +98,7 @@ public class CON649 extends ClientServerTest {
         System.out.println(counts.size());
         server.start();
         client = server.connect();
-        for(Cell<Long, String, String> cell : expected.cellSet()) {
+        for (Cell<Long, String, String> cell : expected.cellSet()) {
             long record = cell.getRowKey();
             String key = cell.getColumnKey();
             Object value = cell.getValue();
