@@ -1745,7 +1745,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 Set<Long> records = store.getAllRecords();
                 Set<Long> temp = Sets.newConcurrentHashSet();
 
@@ -1904,7 +1904,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (key.contains(".")) {
+                            if (LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 Time.NONE, atomic);
@@ -1954,7 +1954,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (key.contains(".")) {
+                            if (LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 timestamp, atomic);
@@ -2012,7 +2012,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2059,7 +2059,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2111,7 +2111,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2153,7 +2153,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2203,7 +2203,7 @@ public class ConcourseServer extends BaseConcourseServer
             Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2240,7 +2240,7 @@ public class ConcourseServer extends BaseConcourseServer
             Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
                                         atomic);
@@ -2282,7 +2282,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<TObject> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if(key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
                         .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
                 Set<TObject> union = Sets.newHashSet();
@@ -2312,7 +2312,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 try {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2407,7 +2407,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (key.contains(".")) {
+                            if (LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 Time.NONE, atomic);
@@ -2457,7 +2457,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (key.contains(".")) {
+                            if (LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 timestamp, atomic);
@@ -2515,7 +2515,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2562,7 +2562,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2610,7 +2610,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
                 try {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2646,7 +2646,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2687,7 +2687,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, TObject> entry = TMaps.newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2737,7 +2737,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
                 try {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record,
                                         timestamp, atomic);
@@ -4162,7 +4162,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                if (key.contains(".")) {
+                if (LinkNavigation.isNavigationScheme(key)) {
                     for (long record : records) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record,
@@ -4200,7 +4200,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                if (key.contains(".")) {
+                if (LinkNavigation.isNavigationScheme(key)) {
                     for (long record : records) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4247,7 +4247,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
@@ -4281,7 +4281,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4321,7 +4321,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<TObject>> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
                         .navigateKeyRecordAtomic(key, record, Time.NONE,
                                 atomic);
@@ -4346,7 +4346,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
@@ -4377,7 +4377,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Set<TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4417,7 +4417,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<TObject>> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (key.contains(".")) {
+            if (LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
                         .navigateKeyRecordAtomic(key, record, timestamp,
                                 atomic);
@@ -4461,7 +4461,7 @@ public class ConcourseServer extends BaseConcourseServer
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -4503,7 +4503,7 @@ public class ConcourseServer extends BaseConcourseServer
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
-                        if (key.contains(".")) {
+                        if (LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -4555,7 +4555,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record,
                                         Time.NONE, atomic);
@@ -4592,7 +4592,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record,
                                         timestamp, atomic);
@@ -4632,7 +4632,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                if (key.contains(".")) {
+                if (LinkNavigation.isNavigationScheme(key)) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
                                     atomic);
@@ -4663,7 +4663,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -4698,7 +4698,7 @@ public class ConcourseServer extends BaseConcourseServer
             for (long record : records) {
                 Map<String, Set<TObject>> entry = TMaps.newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (key.contains(".")) {
+                    if (LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
                                         atomic);
@@ -4742,7 +4742,7 @@ public class ConcourseServer extends BaseConcourseServer
                 .newLinkedHashMapWithCapacity(keys.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                if (key.contains(".")) {
+                if (LinkNavigation.isNavigationScheme(key)) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
                                     atomic);
