@@ -54,6 +54,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
@@ -128,8 +129,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -4463,29 +4464,11 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
-            AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    result.put(record, atomic.select(key, record, timestamp));
-                }
-            });
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return selectKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4495,10 +4478,28 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyCclTimeOrder(String key, String ccl,
             long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        try {
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableColumn<Set<TObject>> result = SortableColumn
+                    .multiValued(key, Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    result.put(record, atomic.select(key, record, timestamp));
+                }
+                result.sort(Sorting.byValues($order, atomic), timestamp);
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override

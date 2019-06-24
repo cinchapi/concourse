@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.data.sort;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,9 +38,8 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
-        Column<V>,
-        Sortable<V> {
+public final class SortableColumn<V> extends ForwardingMap<Long, V>
+        implements Column<V>, Sortable<V> {
 
     /**
      * Ensure that the {@code data} is a {@link SortableColumn}.
@@ -104,7 +104,8 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
             Long key = entry.getKey();
             V value = entry.getValue().get(this.key);
             return new SimpleImmutableEntry<>(key, value);
-        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                (e1, e2) -> e2, LinkedHashMap::new));;
     }
 
     @Override
@@ -114,7 +115,8 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
             Long key = entry.getKey();
             V value = entry.getValue().get(this.key);
             return new SimpleImmutableEntry<>(key, value);
-        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                (e1, e2) -> e2, LinkedHashMap::new));
 
     }
 

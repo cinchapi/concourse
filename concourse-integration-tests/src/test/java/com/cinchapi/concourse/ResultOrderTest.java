@@ -131,25 +131,7 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
                 Order.by("name").at(Timestamp.now()));
         Assert.assertEquals(b, (long) data.keySet().iterator().next());
         data = client.select("age = 30", timestamp, Order.by("name"));
-        Assert.assertEquals(a, (long) data.keySet().iterator().next()); // NOTE:
-                                                                        // This
-                                                                        // order
-                                                                        // is
-                                                                        // expected
-                                                                        // because
-                                                                        // the
-                                                                        // Order
-                                                                        // timestamp
-                                                                        // is
-                                                                        // implicitly
-                                                                        // pinned
-                                                                        // to
-                                                                        // the
-                                                                        // time
-                                                                        // of
-                                                                        // the
-                                                                        // selected
-                                                                        // data
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
     }
 
     @Test
@@ -167,6 +149,20 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
             name = $name;
             score = $score;
         }
+    }
+
+    @Test
+    public void testSelectKeyCclTimeOrderWithTime() {
+        long a = client.insert(ImmutableMap.of("name", "a", "zage", 30));
+        long b = client.insert(ImmutableMap.of("name", "b", "zage", 30));
+        Timestamp timestamp = Timestamp.now();
+        client.set("name", "z", a);
+        Map<Long, Set<Object>> data = client.select("zage", "zage > 0",
+                timestamp, Order.by("name"));
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
+        data = client.select("zage", "zage > 0", timestamp,
+                Order.by("name").at(Timestamp.now()));
+        Assert.assertEquals(b, (long) data.keySet().iterator().next());
     }
 
     /**
