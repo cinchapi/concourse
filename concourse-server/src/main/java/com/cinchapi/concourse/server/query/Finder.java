@@ -36,6 +36,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.TSets;
 import com.google.common.collect.Sets;
 
@@ -139,7 +140,7 @@ public class Finder implements Visitor<Set<Long>> {
 
             // If the key is a navigation key
             Set<Long> results;
-            if(key.contains(".")) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 TObject[] builtValues = values.build();
                 results = Sets.newHashSet();
                 Set<Long> records = store.getAllRecords();
