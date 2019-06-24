@@ -147,11 +147,13 @@ public class Finder implements Visitor<Set<Long>> {
 
                 for (long record : records) {
                     Map<Long, Set<TObject>> result = Operations
-                            .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
+                            .navigateKeyRecordAtomic(key, record, Time.NONE,
+                                    atomic);
 
-                    for (Map.Entry<Long, Set<TObject>> entry : result.entrySet()) {
+                    for (Map.Entry<Long, Set<TObject>> entry : result
+                            .entrySet()) {
                         for (TObject value : entry.getValue()) {
-                            if (value.is(operator, builtValues)) {
+                            if(value.is(operator, builtValues)) {
                                 results.add(record);
                                 break;
                             }
@@ -161,10 +163,10 @@ public class Finder implements Visitor<Set<Long>> {
             }
             else {
 
-                results = expression.timestamp() == TimestampSymbol.PRESENT ?
-                                store.find(key, operator, values.build()) :
-                                store.find(expression.raw().timestamp(), key,
-                                        operator, values.build());
+                results = expression.timestamp() == TimestampSymbol.PRESENT
+                        ? store.find(key, operator, values.build())
+                        : store.find(expression.raw().timestamp(), key,
+                                operator, values.build());
             }
             return results;
         }

@@ -15,16 +15,15 @@
  */
 package com.cinchapi.concourse;
 
-import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import com.cinchapi.concourse.thrift.Operator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
-import java.util.Set;
+import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Tests for navigation as a first class concept
@@ -62,7 +61,8 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
     public void testNavigateAsEvaluationKey() {
         Map<Long, Map<String, Set<Object>>> expected = setupNavigateEvaluation(
                 client);
-        Map<Long, Map<String, Set<Object>>> actual = client.select("mother.children = 3");
+        Map<Long, Map<String, Set<Object>>> actual = client
+                .select("mother.children = 3");
         Assert.assertEquals(expected, actual);
     }
 }
