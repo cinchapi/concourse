@@ -128,8 +128,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -1970,43 +1970,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
-            AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Set<String> keys = atomic.describe(record);
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables
-                                    .getLast(atomic.select(key, record)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                }
-            });
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return getCclOrder(ccl, NO_ORDER, creds, transaction, environment);
     }
 
     @Override
@@ -2017,7 +1984,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = JavaThriftBridge.convert(order);
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);

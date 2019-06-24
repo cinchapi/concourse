@@ -50,6 +50,16 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testGetCclNoOrder() {
+        Map<Long, Map<String, Set<Object>>> data = client.get("active = true");
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
     public void testSelectCclOrder() {
         Map<Long, Map<String, Set<Object>>> data = client.select(
                 "active = true", Order.by("score").then("name").largestFirst());
@@ -58,6 +68,23 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
         for (Map<String, Set<Object>> row : data.values()) {
             String $name = (String) row.get("name").iterator().next();
             int $score = (int) row.get("score").iterator().next();
+            Assert.assertTrue(Integer.compare($score, score) > 0
+                    || (Integer.compare($score, score) == 0
+                            && $name.compareTo(name) < 0));
+            name = $name;
+            score = $score;
+        }
+    }
+
+    @Test
+    public void testGetCclOrder() {
+        Map<Long, Map<String, Object>> data = client.get("active = true",
+                Order.by("score").then("name").largestFirst());
+        String name = "";
+        int score = 0;
+        for (Map<String, Object> row : data.values()) {
+            String $name = (String) row.get("name");
+            int $score = (int) row.get("score");
             Assert.assertTrue(Integer.compare($score, score) > 0
                     || (Integer.compare($score, score) == 0
                             && $name.compareTo(name) < 0));
