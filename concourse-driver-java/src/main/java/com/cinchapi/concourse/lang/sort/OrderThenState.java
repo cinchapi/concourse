@@ -26,7 +26,7 @@ public class OrderThenState extends OrderState {
      *
      * @param order
      */
-    OrderThenState(Order order) {
+    OrderThenState(BuiltOrder order) {
         super(order);
     }
 

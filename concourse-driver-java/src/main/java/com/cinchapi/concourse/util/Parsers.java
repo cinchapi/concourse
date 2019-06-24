@@ -36,7 +36,7 @@ public final class Parsers {
      * @return a {@link Parser}
      */
     public static Parser create(Criteria criteria) {
-        return create(criteria.getCclString());
+        return create(criteria.ccl());
     }
 
     /**
@@ -49,7 +49,7 @@ public final class Parsers {
      */
     public static Parser create(Criteria criteria,
             Multimap<String, Object> data) {
-        return create(criteria.getCclString(), data);
+        return create(criteria.ccl(), data);
     }
 
     /**
@@ -83,8 +83,7 @@ public final class Parsers {
      * @return a {@link Parser}
      */
     public static Parser create(TCriteria criteria) {
-        return create(
-                Language.translateFromThriftCriteria(criteria).getCclString());
+        return create(Language.translateFromThriftCriteria(criteria).ccl());
     }
 
     /**
@@ -97,8 +96,7 @@ public final class Parsers {
      */
     public static Parser create(TCriteria criteria,
             Multimap<String, Object> data) {
-        return create(
-                Language.translateFromThriftCriteria(criteria).getCclString(),
+        return create(Language.translateFromThriftCriteria(criteria).ccl(),
                 data);
     }
 

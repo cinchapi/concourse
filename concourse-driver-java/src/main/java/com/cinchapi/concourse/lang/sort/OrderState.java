@@ -16,8 +16,9 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * This is the base class and marker for any valid state in the {@link Order}
- * builder. Each {@link OrderState} is passed the current {@link Order} and
+ * This is the base class and marker for any valid state in the
+ * {@link BuiltOrder}
+ * builder. Each {@link OrderState} is passed the current {@link BuiltOrder} and
  * holds a reference.
  * <p>
  * For the purposes of a builder, an {@link OrderState} typically describes what
@@ -27,16 +28,16 @@ package com.cinchapi.concourse.lang.sort;
 public abstract class OrderState {
 
     /**
-     * A reference to the {@link Order} that is being built.
+     * A reference to the {@link BuiltOrder} that is being built.
      */
-    protected final Order order;
+    protected final BuiltOrder order;
 
     /**
      * Construct a new instance.
      *
      * @param order
      */
-    protected OrderState(Order order) {
+    protected OrderState(BuiltOrder order) {
         this.order = order;
     }
 

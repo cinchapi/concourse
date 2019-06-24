@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * A {@link State} that represents a building {@link Order} that just had
+ * A {@link State} that represents a building {@link BuiltOrder} that just had
  * direction information specified for the most recently added key.
  *
  * @author Jeff Nelson
@@ -29,9 +29,9 @@ public class OrderDirectionState extends BuildableOrderState
      * 
      * @param order
      */
-    OrderDirectionState(Order order, String key, Direction direction) {
+    OrderDirectionState(BuiltOrder order, String key, Direction direction) {
         super(order);
-        order.add(key, direction);
+        order.set(key, direction);
     }
 
     @Override

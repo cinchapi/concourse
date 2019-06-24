@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.lang.sort;
+
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 /**
- * Utilities for link-navigation queries.
- * 
+ * A specification for no {@link Order}.
+ *
  * @author Jeff Nelson
  */
-public final class LinkNavigation {
+public class NoOrder implements Order {
 
-    /**
-     * Given a navigation scheme, return the destination to which the scheme
-     * navigates.
-     * 
-     * @param scheme
-     * @return the destination
-     */
-    public static String getNavigationSchemeDestination(String scheme) {
-        String[] toks = scheme.split("\\.");
-        return toks[toks.length - 1];
+    @Override
+    public List<OrderComponent> spec() {
+        return ImmutableList.of();
     }
-
-    private LinkNavigation() {/* no-op */}
 
 }

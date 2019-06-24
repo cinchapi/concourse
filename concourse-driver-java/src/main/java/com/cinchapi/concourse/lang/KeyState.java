@@ -31,7 +31,7 @@ public class KeyState extends State {
      * 
      * @param criteria
      */
-    protected KeyState(Criteria criteria) {
+    protected KeyState(BuiltCriteria criteria) {
         super(criteria);
     }
 

@@ -15,29 +15,36 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
+import java.util.List;
+
 /**
  * The base class for a Sort Order state that can be transformed into a complete
- * and well-formed {@link Order}.
+ * and well-formed {@link BuiltOrder}.
  */
-public abstract class BuildableOrderState extends OrderState {
+public abstract class BuildableOrderState extends OrderState implements Order {
 
     /**
      * Construct a new instance.
      *
      * @param order
      */
-    protected BuildableOrderState(Order order) {
+    protected BuildableOrderState(BuiltOrder order) {
         super(order);
     }
 
     /**
-     * Build and return the {@link Order}.
+     * Build and return the {@link BuiltOrder}.
      *
      * @return the built Order
      */
-    public final Order build() {
+    public final BuiltOrder build() {
         order.close();
         return order;
+    }
+
+    @Override
+    public final List<OrderComponent> spec() {
+        return build().spec();
     }
 
 }
