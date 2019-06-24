@@ -128,8 +128,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -149,6 +149,12 @@ public class ConcourseServer extends BaseConcourseServer
      * The minimum heap size required to run Concourse Server.
      */
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    /**
+     * A placeholder to signfiy that no {@link Order} should be imposed on a
+     * result set.
+     */
+    private static final TOrder NO_ORDER = null;
 
     /**
      * The number of worker threads that Concourse Server uses.
@@ -4239,7 +4245,7 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectCclOrder(ccl, null, creds, transaction, environment);
+        return selectCclOrder(ccl, NO_ORDER, creds, transaction, environment);
     }
 
     @Override
@@ -5656,6 +5662,42 @@ public class ConcourseServer extends BaseConcourseServer
         });
     }
 
+    @Override
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    protected String getDbStore() {
+        return dbStore;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
+     *
+     * @param env
+     * @return the Engine
+     */
+    protected Engine getEngine(String env) {
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    @Override
+    protected PluginManager plugins() {
+        return pluginManager;
+    }
+
+    @Override
+    protected UserService users() {
+        return users;
+    }
+
     /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
@@ -5797,42 +5839,6 @@ public class ConcourseServer extends BaseConcourseServer
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
-    }
-
-    @Override
-    protected String getBufferStore() {
-        return bufferStore;
-    }
-
-    @Override
-    protected String getDbStore() {
-        return dbStore;
-    }
-
-    /**
-     * Return the {@link Engine} that is associated with {@code env}. If such an
-     * Engine does not exist, create a new one and add it to the collection.
-     *
-     * @param env
-     * @return the Engine
-     */
-    protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
-    }
-
-    @Override
-    protected PluginManager plugins() {
-        return pluginManager;
-    }
-
-    @Override
-    protected UserService users() {
-        return users;
     }
 
     /**
