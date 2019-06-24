@@ -65,7 +65,7 @@ public final class Sorting {
      *
      * @author Jeff Nelson
      */
-    static class NoOrderSorter<V> implements Sorter<V> {
+    private static class NoOrderSorter<V> implements Sorter<V> {
 
         @Override
         public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data) {
