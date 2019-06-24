@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.query;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
@@ -28,9 +29,12 @@ import com.cinchapi.ccl.syntax.Visitor;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Constants;
+import com.cinchapi.concourse.server.ops.Operations;
+import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
 import com.google.common.collect.Sets;
@@ -58,6 +62,12 @@ public class Finder implements Visitor<Set<Long>> {
     }
 
     private Finder() {/* singleton */}
+
+    @Override
+    public Set<Long> visit(AbstractSyntaxTree abstractSyntaxTree,
+            Object... objects) {
+        return null;
+    }
 
     @Override
     public Set<Long> visit(ConjunctionTree tree, Object... data) {
@@ -99,6 +109,7 @@ public class Finder implements Visitor<Set<Long>> {
         Verify.that(data.length >= 1);
         Verify.that(data[0] instanceof Store);
         Store store = (Store) data[0];
+        AtomicOperation atomic = (AtomicOperation) data[0];
         Expression expression = ((Expression) tree.root());
         String key = expression.raw().key();
         Operator operator = (Operator) expression.raw().operator();
@@ -125,11 +136,36 @@ public class Finder implements Visitor<Set<Long>> {
             ArrayBuilder<TObject> values = ArrayBuilder.builder();
             expression.values().forEach(
                     value -> values.add(Convert.javaToThrift(value.value())));
-            Set<Long> results = expression
-                    .timestamp() == TimestampSymbol.PRESENT
-                            ? store.find(key, operator, values.build())
-                            : store.find(expression.raw().timestamp(), key,
-                                    operator, values.build());
+
+            // If the key is a navigation key
+            Set<Long> results;
+            if(key.contains(".")) {
+                TObject[] builtValues = values.build();
+                results = Sets.newHashSet();
+                Set<Long> records = store.getAllRecords();
+                key = expression.key().toString();
+
+                for (long record : records) {
+                    Map<Long, Set<TObject>> result = Operations
+                            .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
+
+                    for (Map.Entry<Long, Set<TObject>> entry : result.entrySet()) {
+                        for (TObject value : entry.getValue()) {
+                            if (value.is(operator, builtValues)) {
+                                results.add(record);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+
+                results = expression.timestamp() == TimestampSymbol.PRESENT ?
+                                store.find(key, operator, values.build()) :
+                                store.find(expression.raw().timestamp(), key,
+                                        operator, values.build());
+            }
             return results;
         }
 
