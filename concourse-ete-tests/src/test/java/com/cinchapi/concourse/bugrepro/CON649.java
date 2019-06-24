@@ -30,10 +30,13 @@ import org.junit.Test;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.util.Random;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
+import com.google.common.collect.Table.Cell;
 
 /**
  * Unit test to reproduce the issues described in CON-649.
@@ -46,13 +49,17 @@ public class CON649 extends ClientServerTest {
     public void repro()
             throws IOException, TTransportException, InterruptedException {
         List<Thread> clients = Lists.newArrayList();
+        Table<Long, String, String> expected = HashBasedTable.create();
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); ++i) {
             clients.add(new Thread(() -> {
                 Concourse $client = server.connect();
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        $client.add(Random.getSimpleString(),
-                                Random.getSimpleString(), Random.getLong());
+                        long id = Random.getLong();
+                        String key = Random.getSimpleString();
+                        String value = Random.getSimpleString();
+                        $client.add(key, value, id);
+                        expected.put(id, key, value);
                         Random.tinySleep(); // allow some transports to go
                                             // through...
                     }
@@ -89,11 +96,14 @@ public class CON649 extends ClientServerTest {
             distinct.add(count.get());
         });
         System.out.println(counts.size());
-        Assert.assertEquals(1, distinct.size());
         server.start();
         client = server.connect();
-        client.describe();
-        Assert.assertTrue(true); // lack of Exception means the test passes
+        for(Cell<Long, String, String> cell : expected.cellSet()) {
+            long record = cell.getRowKey();
+            String key = cell.getColumnKey();
+            Object value = cell.getValue();
+            Assert.assertEquals(value, client.get(key, record));
+        }
     }
 
     @Override
