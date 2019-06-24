@@ -37,7 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import com.cinchapi.concourse.util.LinkNavigation;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
@@ -101,6 +100,7 @@ import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.LinkNavigation;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.TMaps;
@@ -1745,17 +1745,19 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 Set<Long> records = store.getAllRecords();
                 Set<Long> temp = Sets.newConcurrentHashSet();
 
                 for (long record : records) {
                     Map<Long, Set<TObject>> result = Operations
-                            .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
+                            .navigateKeyRecordAtomic(key, record, Time.NONE,
+                                    atomic);
 
-                    for (Map.Entry<Long, Set<TObject>> entry : result.entrySet()) {
+                    for (Map.Entry<Long, Set<TObject>> entry : result
+                            .entrySet()) {
                         for (TObject value : entry.getValue()) {
-                            if (value.is(operator, tValues)) {
+                            if(value.is(operator, tValues)) {
                                 temp.add(record);
                                 break;
                             }
@@ -1904,7 +1906,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (LinkNavigation.isNavigationScheme(key)) {
+                            if(LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 Time.NONE, atomic);
@@ -1913,8 +1915,8 @@ public class ConcourseServer extends BaseConcourseServer
                                 entry.put(key, Iterables.getLast(union));
                             }
                             else {
-                                entry.put(key, Iterables.getLast(atomic
-                                        .select(key, record)));
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
                             }
                         }
                         catch (NoSuchElementException e) {
@@ -1954,7 +1956,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (LinkNavigation.isNavigationScheme(key)) {
+                            if(LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 timestamp, atomic);
@@ -1963,8 +1965,8 @@ public class ConcourseServer extends BaseConcourseServer
                                 entry.put(key, Iterables.getLast(union));
                             }
                             else {
-                                entry.put(key, Iterables.getLast(atomic
-                                        .select(key, record, timestamp)));
+                                entry.put(key, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
                             }
                         }
                         catch (NoSuchElementException e) {
@@ -2012,7 +2014,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2021,8 +2023,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, Iterables.getLast(union));
                         }
                         else {
-                            entry.put(key, Iterables.getLast(atomic
-                                    .select(key, record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         entry.put(key,
                                 Iterables.getLast(atomic.select(key, record)));
@@ -2059,7 +2061,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2068,8 +2070,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, Iterables.getLast(union));
                         }
                         else {
-                            entry.put(key, Iterables.getLast(atomic
-                                    .select(key, record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -2111,7 +2113,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2120,8 +2122,8 @@ public class ConcourseServer extends BaseConcourseServer
                             result.put(record, Iterables.getLast(union));
                         }
                         else {
-                            result.put(record, Iterables.getLast(atomic
-                                    .select(key, record)));
+                            result.put(record, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -2153,7 +2155,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
                 for (long record : records) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2162,8 +2164,8 @@ public class ConcourseServer extends BaseConcourseServer
                             result.put(record, Iterables.getLast(union));
                         }
                         else {
-                            result.put(record, Iterables.getLast(atomic
-                                    .select(key, record, timestamp)));
+                            result.put(record, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -2203,7 +2205,7 @@ public class ConcourseServer extends BaseConcourseServer
             Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2212,8 +2214,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, Iterables.getLast(union));
                     }
                     else {
-                        result.put(record, Iterables.getLast(atomic
-                                .select(key, record)));
+                        result.put(record,
+                                Iterables.getLast(atomic.select(key, record)));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -2240,7 +2242,7 @@ public class ConcourseServer extends BaseConcourseServer
             Set<Long> records = ast.accept(Finder.instance(), atomic);
             for (long record : records) {
                 try {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
                                         atomic);
@@ -2249,8 +2251,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, Iterables.getLast(union));
                     }
                     else {
-                        result.put(record, Iterables.getLast(atomic
-                                .select(key, record, timestamp)));
+                        result.put(record, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -2282,9 +2284,10 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<TObject> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
-                        .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
+                        .navigateKeyRecordAtomic(key, record, Time.NONE,
+                                atomic);
                 Set<TObject> union = Sets.newHashSet();
                 navigation.values().forEach(union::addAll);
                 result.set(Iterables.getLast(union));
@@ -2293,10 +2296,10 @@ public class ConcourseServer extends BaseConcourseServer
 
         return result.get();
         /*
-        return Iterables.getLast(
-                getStore(transaction, environment).select(key, record),
-                TObject.NULL);
-                */
+         * return Iterables.getLast(
+         * getStore(transaction, environment).select(key, record),
+         * TObject.NULL);
+         */
     }
 
     @Override
@@ -2312,7 +2315,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 try {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2321,8 +2324,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, Iterables.getLast(union));
                     }
                     else {
-                        result.put(record, Iterables.getLast(atomic
-                                .select(key, record)));
+                        result.put(record,
+                                Iterables.getLast(atomic.select(key, record)));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -2407,7 +2410,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (LinkNavigation.isNavigationScheme(key)) {
+                            if(LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 Time.NONE, atomic);
@@ -2416,8 +2419,8 @@ public class ConcourseServer extends BaseConcourseServer
                                 entry.put(key, Iterables.getLast(union));
                             }
                             else {
-                                entry.put(key, Iterables.getLast(atomic
-                                        .select(key, record)));
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
                             }
                         }
                         catch (NoSuchElementException e) {
@@ -2457,7 +2460,7 @@ public class ConcourseServer extends BaseConcourseServer
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
                         try {
-                            if (LinkNavigation.isNavigationScheme(key)) {
+                            if(LinkNavigation.isNavigationScheme(key)) {
                                 Map<Long, Set<TObject>> navigation = Operations
                                         .navigateKeyRecordAtomic(key, record,
                                                 timestamp, atomic);
@@ -2466,8 +2469,8 @@ public class ConcourseServer extends BaseConcourseServer
                                 entry.put(key, Iterables.getLast(union));
                             }
                             else {
-                                entry.put(key, Iterables.getLast(atomic
-                                        .select(key, record, timestamp)));
+                                entry.put(key, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
                             }
                         }
                         catch (NoSuchElementException e) {
@@ -2515,7 +2518,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2524,8 +2527,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, Iterables.getLast(union));
                         }
                         else {
-                            entry.put(key, Iterables.getLast(atomic
-                                    .select(key, record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                         entry.put(key,
                                 Iterables.getLast(atomic.select(key, record)));
@@ -2562,7 +2565,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2571,8 +2574,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, Iterables.getLast(union));
                         }
                         else {
-                            entry.put(key, Iterables.getLast(atomic
-                                    .select(key, record, timestamp)));
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -2610,7 +2613,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
                 try {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -2619,8 +2622,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(key, Iterables.getLast(union));
                     }
                     else {
-                        result.put(key, Iterables.getLast(atomic
-                                .select(key, record)));
+                        result.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -2646,7 +2649,7 @@ public class ConcourseServer extends BaseConcourseServer
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -2655,8 +2658,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, Iterables.getLast(union));
                         }
                         else {
-                            entry.put(key, Iterables.getLast(atomic
-                                    .select(key, record)));
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -2684,10 +2687,11 @@ public class ConcourseServer extends BaseConcourseServer
                 .newLinkedHashMapWithCapacity(records.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
-                Map<String, TObject> entry = TMaps.newLinkedHashMapWithCapacity(keys.size());
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
                     try {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -2737,10 +2741,10 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
                 try {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
-                                .navigateKeyRecordAtomic(key, record,
-                                        timestamp, atomic);
+                                .navigateKeyRecordAtomic(key, record, timestamp,
+                                        atomic);
                         Set<TObject> union = Sets.newHashSet();
                         navigation.values().forEach(union::addAll);
                         result.put(key, Iterables.getLast(union));
@@ -4162,11 +4166,11 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                if (LinkNavigation.isNavigationScheme(key)) {
+                if(LinkNavigation.isNavigationScheme(key)) {
                     for (long record : records) {
                         Map<Long, Set<TObject>> navigation = Operations
-                                .navigateKeyRecordAtomic(key, record,
-                                        Time.NONE, atomic);
+                                .navigateKeyRecordAtomic(key, record, Time.NONE,
+                                        atomic);
                         Set<TObject> union = Sets.newHashSet();
                         navigation.values().forEach(union::addAll);
                         result.put(record, union);
@@ -4200,7 +4204,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                if (LinkNavigation.isNavigationScheme(key)) {
+                if(LinkNavigation.isNavigationScheme(key)) {
                     for (long record : records) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4212,7 +4216,8 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 else {
                     for (long record : records) {
-                        result.put(record, atomic.select(key, record, timestamp));
+                        result.put(record,
+                                atomic.select(key, record, timestamp));
                     }
                 }
             });
@@ -4247,7 +4252,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
@@ -4281,7 +4286,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4321,7 +4326,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<TObject>> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
                         .navigateKeyRecordAtomic(key, record, Time.NONE,
                                 atomic);
@@ -4346,7 +4351,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
@@ -4377,7 +4382,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<Long, Set<TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(records.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 for (long record : records) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
@@ -4417,7 +4422,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         AtomicReference<Set<TObject>> result = new AtomicReference<>();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
-            if (LinkNavigation.isNavigationScheme(key)) {
+            if(LinkNavigation.isNavigationScheme(key)) {
                 Map<Long, Set<TObject>> navigation = Operations
                         .navigateKeyRecordAtomic(key, record, timestamp,
                                 atomic);
@@ -4461,7 +4466,7 @@ public class ConcourseServer extends BaseConcourseServer
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             Time.NONE, atomic);
@@ -4503,7 +4508,7 @@ public class ConcourseServer extends BaseConcourseServer
                     Map<String, Set<TObject>> entry = TMaps
                             .newLinkedHashMapWithCapacity(keys.size());
                     for (String key : keys) {
-                        if (LinkNavigation.isNavigationScheme(key)) {
+                        if(LinkNavigation.isNavigationScheme(key)) {
                             Map<Long, Set<TObject>> navigation = Operations
                                     .navigateKeyRecordAtomic(key, record,
                                             timestamp, atomic);
@@ -4512,7 +4517,8 @@ public class ConcourseServer extends BaseConcourseServer
                             entry.put(key, union);
                         }
                         else {
-                            entry.put(key, atomic.select(key, record, timestamp));
+                            entry.put(key,
+                                    atomic.select(key, record, timestamp));
                         }
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
@@ -4555,10 +4561,10 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
-                                .navigateKeyRecordAtomic(key, record,
-                                        Time.NONE, atomic);
+                                .navigateKeyRecordAtomic(key, record, Time.NONE,
+                                        atomic);
                         Set<TObject> union = Sets.newHashSet();
                         navigation.values().forEach(union::addAll);
                         entry.put(key, union);
@@ -4592,10 +4598,10 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
-                                .navigateKeyRecordAtomic(key, record,
-                                        timestamp, atomic);
+                                .navigateKeyRecordAtomic(key, record, timestamp,
+                                        atomic);
                         Set<TObject> union = Sets.newHashSet();
                         navigation.values().forEach(union::addAll);
                         entry.put(key, union);
@@ -4632,7 +4638,7 @@ public class ConcourseServer extends BaseConcourseServer
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                if (LinkNavigation.isNavigationScheme(key)) {
+                if(LinkNavigation.isNavigationScheme(key)) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, Time.NONE,
                                     atomic);
@@ -4663,7 +4669,7 @@ public class ConcourseServer extends BaseConcourseServer
                 Map<String, Set<TObject>> entry = TMaps
                         .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, Time.NONE,
                                         atomic);
@@ -4696,9 +4702,10 @@ public class ConcourseServer extends BaseConcourseServer
                 records.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
-                Map<String, Set<TObject>> entry = TMaps.newLinkedHashMapWithCapacity(keys.size());
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
                 for (String key : keys) {
-                    if (LinkNavigation.isNavigationScheme(key)) {
+                    if(LinkNavigation.isNavigationScheme(key)) {
                         Map<Long, Set<TObject>> navigation = Operations
                                 .navigateKeyRecordAtomic(key, record, timestamp,
                                         atomic);
@@ -4742,7 +4749,7 @@ public class ConcourseServer extends BaseConcourseServer
                 .newLinkedHashMapWithCapacity(keys.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                if (LinkNavigation.isNavigationScheme(key)) {
+                if(LinkNavigation.isNavigationScheme(key)) {
                     Map<Long, Set<TObject>> navigation = Operations
                             .navigateKeyRecordAtomic(key, record, timestamp,
                                     atomic);

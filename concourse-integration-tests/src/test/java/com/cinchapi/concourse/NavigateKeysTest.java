@@ -18,12 +18,12 @@ package com.cinchapi.concourse;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.thrift.Operator;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.cinchapi.concourse.thrift.Operator;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -64,8 +64,7 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
      *
      * @param client
      */
-    private static Set<Long> setupNavigateFindEvaluation(
-            Concourse client) {
+    private static Set<Long> setupNavigateFindEvaluation(Concourse client) {
         client.add("name", "john", 1);
         client.add("mother", Link.to(2), 1);
 
@@ -121,8 +120,7 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
     @Test
     public void testNavigateFindAsEvaluationKey() {
         Set<Long> expected = setupNavigateFindEvaluation(client);
-        Set<Long> actual = client
-                .find("mother.children", Operator.EQUALS, 2);
+        Set<Long> actual = client.find("mother.children", Operator.EQUALS, 2);
         Assert.assertEquals(expected, actual);
     }
 
@@ -130,8 +128,9 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
     public void testNavigateAsSelectionAndEvaluationKey() {
         Map<Long, Map<String, Set<Object>>> expected = setupNavigateSelectionEvaluation(
                 client);
-        Map<Long, Map<String, Set<Object>>> actual = client
-                .select(Lists.newArrayList("name", "mother.children"), "mother.children = 3");
+        Map<Long, Map<String, Set<Object>>> actual = client.select(
+                Lists.newArrayList("name", "mother.children"),
+                "mother.children = 3");
         Assert.assertEquals(expected, actual);
     }
 }
