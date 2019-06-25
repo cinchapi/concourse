@@ -41,133 +41,6 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testSelectCclNoOrder() {
-        Map<Long, Map<String, Set<Object>>> data = client
-                .select("active = true");
-        long last = 0;
-        for (long record : data.keySet()) {
-            Assert.assertTrue(record > last);
-            last = record;
-        }
-    }
-
-    @Test
-    public void testSelectCclTimeNoOrder() {
-        Timestamp timestamp = Timestamp.now();
-        long id = client.find("active = true").iterator().next();
-        client.set("name", "FooFooFoo", id);
-        Map<Long, Map<String, Set<Object>>> data = client
-                .select("active = true", timestamp);
-        long last = 0;
-        for (long record : data.keySet()) {
-            Assert.assertTrue(record > last);
-            last = record;
-        }
-        Assert.assertNotEquals("FooFooFoo",
-                data.get(id).get("name").iterator().next());
-    }
-
-    @Test
-    public void testGetCclNoOrder() {
-        Map<Long, Map<String, Set<Object>>> data = client.get("active = true");
-        long last = 0;
-        for (long record : data.keySet()) {
-            Assert.assertTrue(record > last);
-            last = record;
-        }
-    }
-
-    @Test
-    public void testSelectCclOrder() {
-        Map<Long, Map<String, Set<Object>>> data = client.select(
-                "active = true", Order.by("score").then("name").largestFirst());
-        String name = "";
-        int score = 0;
-        for (Map<String, Set<Object>> row : data.values()) {
-            String $name = (String) row.get("name").iterator().next();
-            int $score = (int) row.get("score").iterator().next();
-            Assert.assertTrue(Integer.compare($score, score) > 0
-                    || (Integer.compare($score, score) == 0
-                            && $name.compareTo(name) < 0));
-            name = $name;
-            score = $score;
-        }
-    }
-
-    @Test
-    public void testSelectCclTimeOrder() {
-        Timestamp timestamp = Timestamp.now();
-        long id = client.find("active = true").iterator().next();
-        client.set("name", "FooFooFoo", id);
-        Map<Long, Map<String, Set<Object>>> data = client.select(
-                "active = true", timestamp,
-                Order.by("score").then("name").largestFirst());
-        String name = "";
-        int score = 0;
-        for (Map<String, Set<Object>> row : data.values()) {
-            String $name = (String) row.get("name").iterator().next();
-            int $score = (int) row.get("score").iterator().next();
-            Assert.assertTrue(Integer.compare($score, score) > 0
-                    || (Integer.compare($score, score) == 0
-                            && $name.compareTo(name) < 0));
-            name = $name;
-            score = $score;
-        }
-        Assert.assertNotEquals("FooFooFoo",
-                data.get(id).get("name").iterator().next());
-    }
-
-    @Test
-    public void testSelectCclTimeOrderWithTime() {
-        long a = client.insert(ImmutableMap.of("name", "a", "age", 30));
-        long b = client.insert(ImmutableMap.of("name", "b", "age", 30));
-        Timestamp timestamp = Timestamp.now();
-        client.set("name", "z", a);
-        Map<Long, Map<String, Set<Object>>> data = client.select("age = 30",
-                Order.by("name").at(timestamp));
-        Assert.assertEquals(a, (long) data.keySet().iterator().next());
-        data = client.select("age = 30", timestamp,
-                Order.by("name").at(timestamp));
-        Assert.assertEquals(a, (long) data.keySet().iterator().next());
-        data = client.select("age = 30", timestamp,
-                Order.by("name").at(Timestamp.now()));
-        Assert.assertEquals(b, (long) data.keySet().iterator().next());
-        data = client.select("age = 30", timestamp, Order.by("name"));
-        Assert.assertEquals(a, (long) data.keySet().iterator().next());
-    }
-
-    @Test
-    public void testGetCclOrder() {
-        Map<Long, Map<String, Object>> data = client.get("active = true",
-                Order.by("score").then("name").largestFirst());
-        String name = "";
-        int score = 0;
-        for (Map<String, Object> row : data.values()) {
-            String $name = (String) row.get("name");
-            int $score = (int) row.get("score");
-            Assert.assertTrue(Integer.compare($score, score) > 0
-                    || (Integer.compare($score, score) == 0
-                            && $name.compareTo(name) < 0));
-            name = $name;
-            score = $score;
-        }
-    }
-
-    @Test
-    public void testSelectKeyCclTimeOrderWithTime() {
-        long a = client.insert(ImmutableMap.of("name", "a", "zage", 30));
-        long b = client.insert(ImmutableMap.of("name", "b", "zage", 30));
-        Timestamp timestamp = Timestamp.now();
-        client.set("name", "z", a);
-        Map<Long, Set<Object>> data = client.select("zage", "zage > 0",
-                timestamp, Order.by("name"));
-        Assert.assertEquals(a, (long) data.keySet().iterator().next());
-        data = client.select("zage", "zage > 0", timestamp,
-                Order.by("name").at(Timestamp.now()));
-        Assert.assertEquals(b, (long) data.keySet().iterator().next());
-    }
-
-    @Test
     public void testFindCclNoOrder() {
         Set<Long> records = client.find("active = true");
         Assert.assertEquals(4, records.size());
@@ -213,6 +86,33 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testGetCclNoOrder() {
+        Map<Long, Map<String, Set<Object>>> data = client.get("active = true");
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
+    public void testGetCclOrder() {
+        Map<Long, Map<String, Object>> data = client.get("active = true",
+                Order.by("score").then("name").largestFirst());
+        String name = "";
+        int score = 0;
+        for (Map<String, Object> row : data.values()) {
+            String $name = (String) row.get("name");
+            int $score = (int) row.get("score");
+            Assert.assertTrue(Integer.compare($score, score) > 0
+                    || (Integer.compare($score, score) == 0
+                            && $name.compareTo(name) < 0));
+            name = $name;
+            score = $score;
+        }
+    }
+
+    @Test
     public void testGetCclTimeNoOrder() {
         Map<Long, Map<String, Object>> data = client.get("active = true");
         long last = 0;
@@ -241,6 +141,128 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
             score = $score;
         }
         Assert.assertNotEquals("FooFooFoo", data.get(id).get("name"));
+    }
+
+    @Test
+    public void testGetCriteriaNoOrder() {
+        Map<Long, Map<String, Set<Object>>> data = client.get(Criteria.where()
+                .key("active").operator(Operator.EQUALS).value(true));
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
+    public void testGetCriteriaTimeNoOrder() {
+        Map<Long, Map<String, Object>> data = client.get(Criteria.where()
+                .key("active").operator(Operator.EQUALS).value(true));
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
+    public void testSelectCclNoOrder() {
+        Map<Long, Map<String, Set<Object>>> data = client
+                .select("active = true");
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
+    public void testSelectCclOrder() {
+        Map<Long, Map<String, Set<Object>>> data = client.select(
+                "active = true", Order.by("score").then("name").largestFirst());
+        String name = "";
+        int score = 0;
+        for (Map<String, Set<Object>> row : data.values()) {
+            String $name = (String) row.get("name").iterator().next();
+            int $score = (int) row.get("score").iterator().next();
+            Assert.assertTrue(Integer.compare($score, score) > 0
+                    || (Integer.compare($score, score) == 0
+                            && $name.compareTo(name) < 0));
+            name = $name;
+            score = $score;
+        }
+    }
+
+    @Test
+    public void testSelectCclTimeNoOrder() {
+        Timestamp timestamp = Timestamp.now();
+        long id = client.find("active = true").iterator().next();
+        client.set("name", "FooFooFoo", id);
+        Map<Long, Map<String, Set<Object>>> data = client
+                .select("active = true", timestamp);
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+        Assert.assertNotEquals("FooFooFoo",
+                data.get(id).get("name").iterator().next());
+    }
+
+    @Test
+    public void testSelectCclTimeOrder() {
+        Timestamp timestamp = Timestamp.now();
+        long id = client.find("active = true").iterator().next();
+        client.set("name", "FooFooFoo", id);
+        Map<Long, Map<String, Set<Object>>> data = client.select(
+                "active = true", timestamp,
+                Order.by("score").then("name").largestFirst());
+        String name = "";
+        int score = 0;
+        for (Map<String, Set<Object>> row : data.values()) {
+            String $name = (String) row.get("name").iterator().next();
+            int $score = (int) row.get("score").iterator().next();
+            Assert.assertTrue(Integer.compare($score, score) > 0
+                    || (Integer.compare($score, score) == 0
+                            && $name.compareTo(name) < 0));
+            name = $name;
+            score = $score;
+        }
+        Assert.assertNotEquals("FooFooFoo",
+                data.get(id).get("name").iterator().next());
+    }
+
+    @Test
+    public void testSelectCclTimeOrderWithTime() {
+        long a = client.insert(ImmutableMap.of("name", "a", "age", 30));
+        long b = client.insert(ImmutableMap.of("name", "b", "age", 30));
+        Timestamp timestamp = Timestamp.now();
+        client.set("name", "z", a);
+        Map<Long, Map<String, Set<Object>>> data = client.select("age = 30",
+                Order.by("name").at(timestamp));
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
+        data = client.select("age = 30", timestamp,
+                Order.by("name").at(timestamp));
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
+        data = client.select("age = 30", timestamp,
+                Order.by("name").at(Timestamp.now()));
+        Assert.assertEquals(b, (long) data.keySet().iterator().next());
+        data = client.select("age = 30", timestamp, Order.by("name"));
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
+    }
+
+    @Test
+    public void testSelectKeyCclTimeOrderWithTime() {
+        long a = client.insert(ImmutableMap.of("name", "a", "zage", 30));
+        long b = client.insert(ImmutableMap.of("name", "b", "zage", 30));
+        Timestamp timestamp = Timestamp.now();
+        client.set("name", "z", a);
+        Map<Long, Set<Object>> data = client.select("zage", "zage > 0",
+                timestamp, Order.by("name"));
+        Assert.assertEquals(a, (long) data.keySet().iterator().next());
+        data = client.select("zage", "zage > 0", timestamp,
+                Order.by("name").at(Timestamp.now()));
+        Assert.assertEquals(b, (long) data.keySet().iterator().next());
     }
 
     /**
