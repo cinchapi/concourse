@@ -1797,15 +1797,13 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Set<Long> findKeyOperatorstrValuesTimestrOrder(String key,
             String operator, List<TObject> values, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
-            ParseException, PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            String environment) throws TException {
+        return findKeyOperatorstrValuesTimeOrder(key, operator, values,
+                NaturalLanguage.parseMicros(timestamp), order, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1872,15 +1870,13 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesTimestrOrder(String key,
             Operator operator, List<TObject> values, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
-            ParseException, PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            String environment) throws TException {
+        return findKeyOperatorValuesTimeOrder(key, operator, values,
+                NaturalLanguage.parseMicros(timestamp), order, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2086,15 +2082,12 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTimestrOrder(String ccl,
             String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        return getCclTimeOrder(ccl, NaturalLanguage.parseMicros(timestamp),
+                order, creds, transaction, environment);
     }
 
     @Override
@@ -2209,10 +2202,10 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Map<String, TObject>> getCriteriaTimestrOrder(
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        return getCriteriaTimeOrder(criteria,
+                NaturalLanguage.parseMicros(timestamp), order, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2315,15 +2308,13 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTimestrOrder(String key, String ccl,
             String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        return getKeyCclTimeOrder(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), order, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2419,15 +2410,13 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaTimestrOrder(String key,
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        return getKeyCriteriaTimeOrder(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), order, creds,
+                transaction, environment);
     }
 
     @Override
