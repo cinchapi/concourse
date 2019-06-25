@@ -15,11 +15,11 @@
  */
 package com.cinchapi.concourse.data.sort;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ForwardingSet;
@@ -31,8 +31,8 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
-    
-    public static <V> SortableSet<V> of(Set<Long> data){
+
+    public static <V> SortableSet<V> of(Set<Long> data) {
         return new SortableSet<>(data);
     }
 

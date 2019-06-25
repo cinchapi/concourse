@@ -32,8 +32,8 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 public class ResultOrderTest extends ConcourseIntegrationTest {
-    
-    //TODO test findCcl and findCclOrder
+
+    // TODO test findCcl and findCclOrder
 
     @Override
     public void beforeEachTest() {
