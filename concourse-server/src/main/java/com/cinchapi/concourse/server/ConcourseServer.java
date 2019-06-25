@@ -55,6 +55,7 @@ import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.data.sort.SortableColumn;
+import com.cinchapi.concourse.data.sort.SortableSet;
 import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
@@ -129,8 +130,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -1676,24 +1677,10 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
-            AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Set<Long>> results = new AtomicReference<>(null);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                results.set(ast.accept(Finder.instance(), atomic));
-            });
-            return results.get();
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return findCclOrder(ccl, NO_ORDER, creds, transaction, environment);
     }
 
     @Override
@@ -1702,10 +1689,25 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyReadPermission
     public Set<Long> findCclOrder(String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        try {
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                SortableSet<TObject> records = SortableSet
+                        .of(ast.accept(Finder.instance(), atomic));
+                records.sort(Sorting.byValue($order, store));
+                results.set(records);
+            });
+            return results.get();
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override

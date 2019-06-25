@@ -105,7 +105,7 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V>
             V value = entry.getValue().get(this.key);
             return new SimpleImmutableEntry<>(key, value);
         }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                (e1, e2) -> e2, LinkedHashMap::new));;
+                (e1, e2) -> e2, LinkedHashMap::new));
     }
 
     @Override
