@@ -197,6 +197,21 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
         Assert.assertArrayEquals(actual.toArray(), expected.toArray());
     }
 
+    @Test
+    public void testFindKeyOperatorValuesNoOrder() {
+        Set<Long> records = client.find("active", Operator.EQUALS, true);
+        Assert.assertEquals(4, records.size());
+    }
+
+    @Test
+    public void testFindKeyOperatorValuesOrder() {
+        Set<Long> actual = client.find("active", Operator.EQUALS, true,
+                Order.by("name"));
+        Set<Long> expected = client.select("active = true", Order.by("name"))
+                .keySet();
+        Assert.assertArrayEquals(actual.toArray(), expected.toArray());
+    }
+
     /**
      * Seed the test database.
      */
