@@ -1717,14 +1717,8 @@ public class ConcourseServer extends BaseConcourseServer
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
-        AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            results.set(ast.accept(Finder.instance(), atomic));
-        });
-        return results.get();
+        return findCriteriaOrder(criteria, NO_ORDER, creds, transaction,
+                environment);
     }
 
     @Override
@@ -1733,10 +1727,20 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyReadPermission
     public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, PermissionException,
-            TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            SortableSet<Set<TObject>> records = SortableSet
+                    .of(ast.accept(Finder.instance(), atomic));
+            records.sort(Sorting.byValues($order, store));
+            results.set(records);
+        });
+        return results.get();
     }
 
     @Override

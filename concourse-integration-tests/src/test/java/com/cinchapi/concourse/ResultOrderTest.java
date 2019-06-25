@@ -21,8 +21,10 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -174,6 +176,22 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
     @Test
     public void testFindCclOrder() {
         Set<Long> actual = client.find("active = true", Order.by("name"));
+        Set<Long> expected = client.select("active = true", Order.by("name"))
+                .keySet();
+        Assert.assertArrayEquals(actual.toArray(), expected.toArray());
+    }
+
+    @Test
+    public void testFindCriteriaNoOrder() {
+        Set<Long> records = client.find(Criteria.where().key("active")
+                .operator(Operator.EQUALS).value(true));
+        Assert.assertEquals(4, records.size());
+    }
+
+    @Test
+    public void testFindCriteriaOrder() {
+        Set<Long> actual = client.find(Criteria.where().key("active")
+                .operator(Operator.EQUALS).value(true), Order.by("name"));
         Set<Long> expected = client.select("active = true", Order.by("name"))
                 .keySet();
         Assert.assertArrayEquals(actual.toArray(), expected.toArray());
