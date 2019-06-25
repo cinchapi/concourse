@@ -32,6 +32,12 @@ import com.google.common.collect.ImmutableMap;
  */
 public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
 
+    /**
+     * Return a {@link SortableSet}.
+     * 
+     * @param data
+     * @return the {@link SortableSet}
+     */
     public static <V> SortableSet<V> of(Set<Long> data) {
         return new SortableSet<>(data);
     }
