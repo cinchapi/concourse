@@ -94,7 +94,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
                         v1 = at != null ? lookup(key, r1, at) : lookup(key, r1);
                     }
                     v2 = d2.get(key);
-                    if(v1 == null) {
+                    if(v2 == null) {
                         v2 = at != null ? lookup(key, r2, at) : lookup(key, r2);
                     }
                 }

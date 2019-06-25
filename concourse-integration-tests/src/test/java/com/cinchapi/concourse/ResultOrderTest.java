@@ -33,8 +33,6 @@ import com.google.common.collect.ImmutableMap;
  */
 public class ResultOrderTest extends ConcourseIntegrationTest {
 
-    // TODO test findCcl and findCclOrder
-
     @Override
     public void beforeEachTest() {
         seed();
@@ -165,6 +163,20 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
         data = client.select("zage", "zage > 0", timestamp,
                 Order.by("name").at(Timestamp.now()));
         Assert.assertEquals(b, (long) data.keySet().iterator().next());
+    }
+
+    @Test
+    public void testFindCclNoOrder() {
+        Set<Long> records = client.find("active = true");
+        Assert.assertEquals(4, records.size());
+    }
+
+    @Test
+    public void testFindCclOrder() {
+        Set<Long> actual = client.find("active = true", Order.by("name"));
+        Set<Long> expected = client.select("active = true", Order.by("name"))
+                .keySet();
+        Assert.assertArrayEquals(actual.toArray(), expected.toArray());
     }
 
     /**

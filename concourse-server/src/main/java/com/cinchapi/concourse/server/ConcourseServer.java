@@ -1698,9 +1698,9 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicSupport store = getStore(transaction, environment);
             AtomicReference<Set<Long>> results = new AtomicReference<>(null);
             AtomicOperations.executeWithRetry(store, (atomic) -> {
-                SortableSet<TObject> records = SortableSet
+                SortableSet<Set<TObject>> records = SortableSet
                         .of(ast.accept(Finder.instance(), atomic));
-                records.sort(Sorting.byValue($order, store));
+                records.sort(Sorting.byValues($order, store));
                 results.set(records);
             });
             return results.get();
