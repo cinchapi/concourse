@@ -1971,6 +1971,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, TObject>> getCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -4211,6 +4212,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4254,6 +4256,7 @@ public class ConcourseServer extends BaseConcourseServer
     }
 
     @Override
+    @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
