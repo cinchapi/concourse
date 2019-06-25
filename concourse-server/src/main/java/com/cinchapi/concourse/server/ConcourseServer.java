@@ -1836,15 +1836,12 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        TObject[] tValues = values.toArray(new TObject[values.size()]);
-        return getStore(transaction, environment).find(timestamp, key, operator,
-                tValues);
+        return findKeyOperatorValuesTimeOrder(key, operator, values, timestamp,
+                NO_ORDER, creds, transaction, environment);
     }
 
     @Override
@@ -1854,10 +1851,15 @@ public class ConcourseServer extends BaseConcourseServer
     public Set<Long> findKeyOperatorValuesTimeOrder(String key,
             Operator operator, List<TObject> values, long timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
+            String environment) throws TException {
+        TObject[] tValues = values.toArray(new TObject[values.size()]);
+        AtomicSupport store = getStore(transaction, environment);
+        SortableSet<Set<TObject>> records = SortableSet
+                .of(store.find(timestamp, key, operator, tValues));
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
+        records.sort(Sorting.byValues($order, store));
+        return records;
     }
 
     @Override
