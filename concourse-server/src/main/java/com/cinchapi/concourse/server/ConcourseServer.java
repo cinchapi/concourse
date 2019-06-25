@@ -50,6 +50,7 @@ import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
@@ -1824,7 +1825,7 @@ public class ConcourseServer extends BaseConcourseServer
             List<TObject> values, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        TObject[] tValues = values.toArray(new TObject[values.size()]);
+        TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
                 .of(store.find(key, operator, tValues));
@@ -1852,7 +1853,7 @@ public class ConcourseServer extends BaseConcourseServer
             Operator operator, List<TObject> values, long timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        TObject[] tValues = values.toArray(new TObject[values.size()]);
+        TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
                 .of(store.find(timestamp, key, operator, tValues));
@@ -2025,16 +2026,29 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
+        return getCclTimeOrder(ccl, timestamp, NO_ORDER, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getCclTimeOrder(String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -2054,6 +2068,7 @@ public class ConcourseServer extends BaseConcourseServer
                     if(!entry.isEmpty()) {
                         result.put(record, entry);
                     }
+                    result.sort(Sorting.byValue($order, store));
                 }
             });
             return result;
@@ -2061,19 +2076,6 @@ public class ConcourseServer extends BaseConcourseServer
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getCclTimeOrder(String ccl,
-            long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override

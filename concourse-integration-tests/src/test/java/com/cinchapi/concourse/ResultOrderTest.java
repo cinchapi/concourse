@@ -212,6 +212,37 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
         Assert.assertArrayEquals(actual.toArray(), expected.toArray());
     }
 
+    @Test
+    public void testGetCclTimeNoOrder() {
+        Map<Long, Map<String, Object>> data = client.get("active = true");
+        long last = 0;
+        for (long record : data.keySet()) {
+            Assert.assertTrue(record > last);
+            last = record;
+        }
+    }
+
+    @Test
+    public void testGetCclTimeOrder() {
+        Timestamp timestamp = Timestamp.now();
+        long id = client.find("active = true").iterator().next();
+        client.set("name", "FooFooFoo", id);
+        Map<Long, Map<String, Object>> data = client.get("active = true",
+                timestamp, Order.by("score").then("name").largestFirst());
+        String name = "";
+        int score = 0;
+        for (Map<String, Object> row : data.values()) {
+            String $name = (String) row.get("name");
+            int $score = (int) row.get("score");
+            Assert.assertTrue(Integer.compare($score, score) > 0
+                    || (Integer.compare($score, score) == 0
+                            && $name.compareTo(name) < 0));
+            name = $name;
+            score = $score;
+        }
+        Assert.assertNotEquals("FooFooFoo", data.get(id).get("name"));
+    }
+
     /**
      * Seed the test database.
      */
