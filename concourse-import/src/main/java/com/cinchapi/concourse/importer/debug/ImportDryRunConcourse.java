@@ -984,6 +984,116 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<String, T> grab(Collection<String> keys, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<String, T> grab(Collection<String> keys, long record,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(Criteria criteria,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, Criteria criteria,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T grab(String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> T grab(String key, long record, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> grab(String key, String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> grab(String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public String getServerEnvironment() {
         throw new UnsupportedOperationException();
     }
@@ -1662,6 +1772,141 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> gather(
+            Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> gather(Collection<Long> records,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(Collection<String> keys,
+            long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(Collection<String> keys, long record,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<String, Set<Object>> gather(long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<String, Set<Object>> gather(long record, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Set<T> gather(String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Set<T> gather(String key, long record, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> gather(String key, String ccl,
+            Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }

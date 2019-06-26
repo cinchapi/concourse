@@ -37,6 +37,7 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import com.cinchapi.concourse.util.LinkNavigation;
 import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -3620,6 +3621,700 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabCcl(String ccl, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record);
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record, timestamp);
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> grabCclTimestr(String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return grabCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabCriteria(TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record);
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabCriteriaTime(TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record, timestamp);
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> grabCriteriaTimestr(
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return grabCriteriaTime(criteria, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyCcl(String key, String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    try {
+                        result.put(record,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    try {
+                        result.put(record, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> grabKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return grabKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyCriteria(String key, TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                try {
+                    result.put(record,
+                            Iterables.getLast(atomic.select(key, record)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                try {
+                    result.put(record, Iterables
+                            .getLast(atomic.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> grabKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public TObject grabKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return Iterables.getLast(
+                getStore(transaction, environment).select(key, record),
+                TObject.NULL);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                try {
+                    result.put(record,
+                            Iterables.getLast(atomic.select(key, record)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> grabKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            try {
+                result.put(record, Iterables
+                        .getLast(store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, TObject> grabKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public TObject grabKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return Iterables.getLast(getStore(transaction, environment).select(key,
+                record, timestamp), TObject.NULL);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public TObject grabKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return grabKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysCcl(List<String> keys,
+            String ccl, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysCclTime(List<String> keys,
+            String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {
+                            continue;
+                        }
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> grabKeysCclTimestr(List<String> keys,
+            String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeysCclTime(keys, ccl, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysCriteria(List<String> keys,
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysCriteriaTime(
+            List<String> keys, TCriteria criteria, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key, Iterables.getLast(
+                                atomic.select(key, record, timestamp)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> grabKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, TObject> grabKeysRecord(List<String> keys, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<String, TObject> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (String key : keys) {
+                try {
+                    result.put(key,
+                            Iterables.getLast(atomic.select(key, record)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysRecords(List<String> keys,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                Map<String, TObject> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    try {
+                        entry.put(key,
+                                Iterables.getLast(atomic.select(key, record)));
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> grabKeysRecordsTime(List<String> keys,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, TObject>> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            Map<String, TObject> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key, Iterables
+                            .getLast(store.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                result.put(record, entry);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, TObject>> grabKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, TObject> grabKeysRecordTime(List<String> keys,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<String, TObject> result = TMaps
+                .newLinkedHashMapWithCapacity(keys.size());
+        for (String key : keys) {
+            try {
+                result.put(key, Iterables
+                        .getLast(store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<String, TObject> grabKeysRecordTimestr(List<String> keys,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return grabKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public String getServerEnvironment(AccessToken creds,
             TransactionToken transaction, String env)
             throws SecurityException, TException {
@@ -6564,6 +7259,666 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         return selectRecordTime(record, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherCcl(String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record);
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Set<String> keys = atomic.describe(record, timestamp);
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record, timestamp));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherCclTimestr(String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectCclTime(ccl, NaturalLanguage.parseMicros(timestamp), creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherCriteria(
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record);
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherCriteriaTime(
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Set<String> keys = atomic.describe(record, timestamp);
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record, timestamp));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherCriteriaTimestr(
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherCriteriaTime(criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyCcl(String key, String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    result.put(record, atomic.select(key, record));
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    result.put(record, atomic.select(key, record, timestamp));
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> gatherKeyCclTimestr(String key, String ccl,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return gatherKeyCclTime(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyCriteria(String key,
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                result.put(record, atomic.select(key, record));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyCriteriaTime(String key,
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                result.put(record, atomic.select(key, record, timestamp));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> gatherKeyCriteriaTimestr(String key,
+            TCriteria criteria, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeyCriteriaTime(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, TObject> gatherKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            if(LinkNavigation.isNavigationScheme(key)) {
+                Map<Long, Set<TObject>> result = Operations
+                        .navigateKeyRecordAtomic(key, record, Time.NONE, atomic);
+            }
+        });
+
+        //return getStore(transaction, environment).select(key, record);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyRecords(String key,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                result.put(record, atomic.select(key, record));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Set<TObject>> gatherKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Set<TObject>> result = TMaps
+                .newLinkedHashMapWithCapacity(records.size());
+        for (long record : records) {
+            result.put(record, store.select(key, record, timestamp));
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Set<TObject>> gatherKeyRecordsTimestr(String key,
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeyRecordsTime(key, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Set<TObject> gatherKeyRecordTime(String key, long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getStore(transaction, environment).select(key, record,
+                timestamp);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Set<TObject> gatherKeyRecordTimestr(String key, long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return gatherKeyRecordTime(key, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCcl(List<String> keys,
+            String ccl, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCclTime(
+            List<String> keys, String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                for (long record : records) {
+                    Map<String, Set<TObject>> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        entry.put(key, atomic.select(key, record, timestamp));
+                    }
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCriteria(
+            List<String> keys, TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCriteriaTime(
+            List<String> keys, TCriteria criteria, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record, timestamp));
+                }
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysCriteriaTimestr(
+            List<String> keys, TCriteria criteria, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeysCriteriaTime(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<TObject>> gatherKeysRecord(List<String> keys,
+            long record, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (String key : keys) {
+                result.put(key, atomic.select(key, record));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = TMaps
+                        .newLinkedHashMapWithCapacity(keys.size());
+                for (String key : keys) {
+                    entry.put(key, atomic.select(key, record));
+                }
+                if(!entry.isEmpty()) {
+                    TMaps.putResultDatasetOptimized(result, record, entry);
+                }
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
+        for (long record : records) {
+            Map<String, Set<TObject>> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                entry.put(key, store.select(key, record, timestamp));
+            }
+            if(!entry.isEmpty()) {
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherKeysRecordsTimestr(
+            List<String> keys, List<Long> records, String timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeysRecordsTime(keys, records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<TObject>> gatherKeysRecordTime(List<String> keys,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<String, Set<TObject>> result = TMaps
+                .newLinkedHashMapWithCapacity(keys.size());
+        for (String key : keys) {
+            result.put(key, store.select(key, record, timestamp));
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<String, Set<TObject>> gatherKeysRecordTimestr(List<String> keys,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherKeysRecordTime(keys, record,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<TObject>> gatherRecord(long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getStore(transaction, environment).select(record);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherRecords(
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDataset();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            for (long record : records) {
+                TMaps.putResultDatasetOptimized(result, record,
+                        atomic.select(record));
+            }
+        });
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> gatherRecordsTime(
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, Map<String, Set<TObject>>> result = emptyResultDatasetWithCapacity(
+                records.size());
+        for (long record : records) {
+            TMaps.putResultDatasetOptimized(result, record,
+                    store.select(record, timestamp));
+        }
+        return result;
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> gatherRecordsTimestr(
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return gatherRecordsTime(records,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<TObject>> gatherRecordTime(long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getStore(transaction, environment).select(record, timestamp);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<String, Set<TObject>> gatherRecordTimestr(long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return gatherRecordTime(record, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
     }
 

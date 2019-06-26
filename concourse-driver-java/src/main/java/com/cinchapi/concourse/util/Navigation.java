@@ -35,5 +35,15 @@ public final class Navigation {
     }
 
     private Navigation() {/* no-op */}
+    /**
+     * Given a string, returns whether or not it is an appropriately formed
+     * navigation scheme
+     *
+     * @param scheme
+     * @return
+     */
+    public static boolean isNavigationScheme(String scheme) {
+        return scheme.contains(".");
+    }
 
 }

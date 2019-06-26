@@ -467,7 +467,7 @@ public class ManagedConcourseServer {
     /**
      * Return {@code true} if this server should be destroyed when the JVM
      * exits.
-     * 
+     *
      * @return whether the server should be destroyed or not when the JVM exits
      */
     public synchronized boolean destroyOnExit() {
@@ -477,7 +477,7 @@ public class ManagedConcourseServer {
     /**
      * Set a flag that determines whether this instance will be destroyed on
      * exit.
-     * 
+     *
      * @param destroyOnExit
      */
     public synchronized void destroyOnExit(boolean destroyOnExit) {
@@ -2036,6 +2036,133 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                Collection<Long> records) {
+            return invoke("grab", Collection.class, Collection.class).with(keys,
+                    records);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                Collection<Long> records, Timestamp timestamp) {
+            return invoke("grab", Collection.class, Collection.class,
+                    Timestamp.class).with(keys, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                Criteria criteria) {
+            return invoke("grab", Collection.class, Criteria.class).with(keys,
+                    criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                Criteria criteria, Timestamp timestamp) {
+            return invoke("grab", Collection.class, Criteria.class,
+                    Timestamp.class).with(keys, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Map<String, T> grab(Collection<String> keys, long record) {
+            return invoke("grab", String.class, long.class).with(keys, record);
+        }
+
+        @Override
+        public <T> Map<String, T> grab(Collection<String> keys, long record,
+                Timestamp timestamp) {
+            return invoke("grab", Collection.class, long.class, Timestamp.class)
+                    .with(keys, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                String ccl) {
+            return invoke("grab", Collection.class, String.class).with(keys,
+                    ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+                String ccl, Timestamp timestamp) {
+            return invoke("grab", Collection.class, String.class,
+                    Timestamp.class).with(keys, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Criteria criteria) {
+            return invoke("grab", Criteria.class).with(criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("grab", Criteria.class, Timestamp.class).with(criteria,
+                    timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(String ccl) {
+            return invoke("grab", String.class).with(ccl);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, Collection<Long> records) {
+            return invoke("grab", String.class, Collection.class).with(key,
+                    records);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, Collection<Long> records,
+                Timestamp timestamp) {
+            return invoke("grab", String.class, Collection.class,
+                    Timestamp.class).with(key, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, Criteria criteria) {
+            return invoke("grab", String.class, Criteria.class).with(key,
+                    criteria);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("grab", String.class, Criteria.class, Timestamp.class)
+                    .with(key, criteria, timestamp);
+        }
+
+        @Override
+        public <T> T grab(String key, long record) {
+            return invoke("grab", String.class, long.class).with(key, record);
+        }
+
+        @Override
+        public <T> T grab(String key, long record, Timestamp timestamp) {
+            return invoke("grab", String.class, long.class, Timestamp.class)
+                    .with(key, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, String ccl) {
+            return invoke("grab", String.class, String.class).with(key, ccl);
+        }
+
+        @Override
+        public <T> Map<Long, T> grab(String key, String ccl,
+                Timestamp timestamp) {
+            return invoke("grab", String.class, String.class, Timestamp.class)
+                    .with(key, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> grab(String ccl,
+                Timestamp timestamp) {
+            return invoke("grab", String.class, Timestamp.class).with(ccl,
+                    timestamp);
+        }
+
+        @Override
         public String getServerEnvironment() {
             return invoke("getServerEnvironment").with();
         }
@@ -2855,6 +2982,163 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Map<Long, Map<String, Set<Object>>> gather(
+                Collection<Long> records) {
+            return invoke("gather", Collection.class).with(records);
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> gather(
+                Collection<Long> records, Timestamp timestamp) {
+            return invoke("gather", Collection.class, Timestamp.class)
+                    .with(records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, Collection<Long> records) {
+            return invoke("gather", Collection.class, Collection.class)
+                    .with(keys, records);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            return invoke("gather", Collection.class, Collection.class,
+                    Timestamp.class).with(keys, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, Criteria criteria) {
+            return invoke("gather", Collection.class, Criteria.class).with(keys,
+                    criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("gather", Collection.class, Criteria.class,
+                    Timestamp.class).with(keys, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Map<String, Set<T>> gather(Collection<String> keys,
+                long record) {
+            return invoke("gather", Collection.class, long.class).with(keys,
+                    record);
+        }
+
+        @Override
+        public <T> Map<String, Set<T>> gather(Collection<String> keys,
+                long record, Timestamp timestamp) {
+            return invoke("gather", Collection.class, long.class,
+                    Timestamp.class).with(keys, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, String ccl) {
+            return invoke("gather", Collection.class, String.class).with(keys,
+                    ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(
+                Collection<String> keys, String ccl, Timestamp timestamp) {
+            return invoke("gather", Collection.class, String.class,
+                    Timestamp.class).with(keys, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria) {
+            return invoke("gather", Criteria.class).with(criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("gather", Criteria.class, Timestamp.class)
+                    .with(criteria, timestamp);
+        }
+
+        @Override
+        public Map<String, Set<Object>> gather(long record) {
+            return invoke("gather", long.class).with(record);
+        }
+
+        @Override
+        public Map<String, Set<Object>> gather(long record,
+                Timestamp timestamp) {
+            return invoke("gather", long.class, Timestamp.class).with(record,
+                    timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(String ccl) {
+            return invoke("gather", String.class).with(ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key,
+                Collection<Long> records) {
+            return invoke("gather", String.class, Collection.class).with(key,
+                    records);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key,
+                Collection<Long> records, Timestamp timestamp) {
+            return invoke("gather", String.class, Collection.class,
+                    Timestamp.class).with(key, records, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key, Criteria criteria) {
+            return invoke("gather", String.class, Criteria.class).with(key,
+                    criteria);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key, Criteria criteria,
+                Timestamp timestamp) {
+            return invoke("gather", String.class, Criteria.class,
+                    Timestamp.class).with(key, criteria, timestamp);
+        }
+
+        @Override
+        public <T> Set<T> gather(String key, long record) {
+            return invoke("gather", String.class, long.class).with(key, record);
+        }
+
+        @Override
+        public <T> Set<T> gather(String key, long record, Timestamp timestamp) {
+            return invoke("gather", String.class, long.class, Timestamp.class)
+                    .with(key, record, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key, String ccl) {
+            return invoke("gather", String.class, String.class).with(key, ccl);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> gather(String key, String ccl,
+                Timestamp timestamp) {
+            return invoke("gather", String.class, String.class, Timestamp.class)
+                    .with(key, ccl, timestamp);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+                Timestamp timestamp) {
+            return invoke("gather", String.class, Timestamp.class).with(ccl,
+                    timestamp);
+        }
+
+        @Override
         public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
                 Timestamp timestamp, Order order) {
             return invoke("select", String.class, Timestamp.class, Order.class)
@@ -3186,7 +3470,7 @@ public class ManagedConcourseServer {
 
 /**
  * The valid options for the {@link #clientPrefsCleanupAction} variable.
- * 
+ *
  * @author Jeff Nelson
  */
 enum ClientPrefsCleanupAction {
