@@ -2262,16 +2262,29 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
+        return getKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
+            Order $order = order == null ? Order.none()
+                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                    Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 result.clear();
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -2284,25 +2297,13 @@ public class ConcourseServer extends BaseConcourseServer
                         continue;
                     }
                 }
+                result.sort(Sorting.byValue($order, store), timestamp);
             });
             return result;
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
-            long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, ParseException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -2327,15 +2328,28 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
+        return getKeyCriteriaOrder(key, criteria, NO_ORDER, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyCriteriaOrder(String key,
+            TCriteria criteria, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -2348,34 +2362,35 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
+            result.sort(Sorting.byValue($order, store));
         });
         return result;
     }
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, TObject> getKeyCriteriaOrder(String key,
-            TCriteria criteria, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, PermissionException,
-            TException {
-        // TODO Auto-generated method stub
-        return null;
+    public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getKeyCriteriaTimeOrder(key, criteria, timestamp, NO_ORDER,
+                creds, transaction, environment);
     }
 
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
+            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, TObject> result = Maps.newLinkedHashMap();
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             result.clear();
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -2388,21 +2403,9 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
+            result.sort(Sorting.byValue($order, store), timestamp);
         });
         return result;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, PermissionException,
-            TException {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -2441,14 +2444,25 @@ public class ConcourseServer extends BaseConcourseServer
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
+        return getKeyRecordsOrder(key, records, NO_ORDER, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, TObject> getKeyRecordsOrder(String key, List<Long> records,
+            TOrder order, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
-        Map<Long, TObject> result = TMaps
-                .newLinkedHashMapWithCapacity(records.size());
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 try {
@@ -2459,42 +2473,18 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
+            result.sort(Sorting.byValue($order, store));
         });
         return result;
     }
 
     @Override
     @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, TObject> getKeyRecordsOrder(String key, List<Long> records,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
-            PermissionException, TException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    @ThrowsClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, TObject> result = TMaps
-                .newLinkedHashMapWithCapacity(records.size());
-        for (long record : records) {
-            try {
-                result.put(record, Iterables
-                        .getLast(store.select(key, record, timestamp)));
-            }
-            catch (NoSuchElementException e) {
-                continue;
-            }
-        }
-        return result;
+        return getKeyRecordsTimeOrder(key, records, timestamp, NO_ORDER, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2504,10 +2494,23 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, TObject> getKeyRecordsTimeOrder(String key,
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
-            throws SecurityException, TransactionException, PermissionException,
-            TException {
-        // TODO Auto-generated method stub
-        return null;
+            throws TException {
+        Order $order = order == null ? Order.none()
+                : JavaThriftBridge.convert(order);
+        AtomicSupport store = getStore(transaction, environment);
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
+        for (long record : records) {
+            try {
+                result.put(record, Iterables
+                        .getLast(store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        result.sort(Sorting.byValue($order, store), timestamp);
+        return result;
     }
 
     @Override
