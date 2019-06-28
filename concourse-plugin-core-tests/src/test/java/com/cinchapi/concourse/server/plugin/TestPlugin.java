@@ -50,6 +50,9 @@ public class TestPlugin extends Plugin {
         return Reflection.call(Thread.currentThread(), "environment");
     }
 
+    @PluginRestricted
+    public String testPluginRestricted() { return "Testing"; }
+
     @Override
     protected PluginConfiguration getConfig() {
         return new StandardPluginConfiguration() {

@@ -28,7 +28,6 @@ import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.google.common.base.Throwables;
-import static com.cinchapi.common.reflect.Reflection.isDeclaredAnnotationPresentInHierarchy;
 
 /**
  * A daemon {@link Thread} that is responsible for processing a
@@ -166,7 +165,8 @@ final class RemoteInvocationThread extends Thread
             }
             Object result0 = Reflection.callIf(
                     (method) -> Modifier.isPublic(method.getModifiers())
-                        && !isDeclaredAnnotationPresentInHierarchy(method, PluginRestricted.class),
+                            && !Reflection.isDeclaredAnnotationPresentInHierarchy(method,
+                                    PluginRestricted.class),
                     invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
