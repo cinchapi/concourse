@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013-2019 Cinchapi Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.cinchapi.concourse.server.plugin;
 
 import com.cinchapi.concourse.test.ClientServerTest;
@@ -5,12 +20,8 @@ import com.cinchapi.concourse.test.PluginTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PluginRestrictedTest extends ClientServerTest implements PluginTest {
-    private class ChildPlugin extends TestPlugin {
-        public ChildPlugin(String fromServer, String fromPlugin) {
-            super(fromServer, fromPlugin);
-        }
-    }
+public class PluginRestrictedTest extends ClientServerTest implements
+        PluginTest {
 
     @Override
     protected String getServerVersion() {
@@ -18,11 +29,32 @@ public class PluginRestrictedTest extends ClientServerTest implements PluginTest
     }
 
     @Test
-    public void testPluginAnnotationRestriction() {
+    public void testPluginAnnotationRestrictionAcrossHiearchy() {
         try {
-            client.invokePlugin(ChildPlugin.class.getName(), "testPluginRestricted");
+            client.invokePlugin(ClassifiedPlugin.class.getName(), "restricted");
             Assert.fail();
-        } catch (Exception e) { }
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
     }
-}
 
+    @Test
+    public void testPluginAnnotationRestrictionDirect() {
+        try {
+            client.invokePlugin(ClassifiedPlugin.class.getName(), "secret");
+            Assert.fail();
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testNoPluginRestriction() {
+        String actual = client.invokePlugin(ClassifiedPlugin.class.getName(),
+                "open");
+        Assert.assertEquals("open", actual);
+    }
+
+}
