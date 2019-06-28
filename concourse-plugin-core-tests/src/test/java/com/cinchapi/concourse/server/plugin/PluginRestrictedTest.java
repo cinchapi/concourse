@@ -15,13 +15,14 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-import com.cinchapi.concourse.test.ClientServerTest;
-import com.cinchapi.concourse.test.PluginTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PluginRestrictedTest extends ClientServerTest implements
-        PluginTest {
+import com.cinchapi.concourse.test.ClientServerTest;
+import com.cinchapi.concourse.test.PluginTest;
+
+public class PluginRestrictedTest extends ClientServerTest
+        implements PluginTest {
 
     @Override
     protected String getServerVersion() {

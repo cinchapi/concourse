@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server.plugin;
 
-
 public interface Classified {
 
     @PluginRestricted

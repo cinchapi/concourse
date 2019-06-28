@@ -24,7 +24,7 @@ public class ClassifiedPlugin extends TestPlugin implements Classified {
     public String open() {
         return "open";
     }
-    
+
     @PluginRestricted
     public String secret() {
         return "secret";
