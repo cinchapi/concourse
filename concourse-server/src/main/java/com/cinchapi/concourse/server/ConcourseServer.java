@@ -78,6 +78,7 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.query.Finder;
+import com.cinchapi.concourse.server.query.sort.Orders;
 import com.cinchapi.concourse.server.query.sort.Sorting;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
@@ -94,7 +95,6 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
-import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
@@ -1693,8 +1693,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -1702,7 +1700,7 @@ public class ConcourseServer extends BaseConcourseServer
             AtomicOperations.executeWithRetry(store, (atomic) -> {
                 SortableSet<Set<TObject>> records = SortableSet
                         .of(ast.accept(Finder.instance(), atomic));
-                records.sort(Sorting.byValues($order, store));
+                records.sort(Sorting.byValues(Orders.from(order), store));
                 results.set(records);
             });
             return results.get();
@@ -1728,8 +1726,6 @@ public class ConcourseServer extends BaseConcourseServer
     public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -1737,7 +1733,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             SortableSet<Set<TObject>> records = SortableSet
                     .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues($order, store));
+            records.sort(Sorting.byValues(Orders.from(order), store));
             results.set(records);
         });
         return results.get();
@@ -1830,9 +1826,7 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
                 .of(store.find(key, operator, tValues));
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
-        records.sort(Sorting.byValues($order, store));
+        records.sort(Sorting.byValues(Orders.from(order), store));
         return records;
     }
 
@@ -1858,11 +1852,9 @@ public class ConcourseServer extends BaseConcourseServer
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
                 .of(store.find(timestamp, key, operator, tValues));
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         // NOTE: The #timestamp is not considered when sorting because it is a
         // component of criteria evaluation and no data is being selected.
-        records.sort(Sorting.byValues($order, store));
+        records.sort(Sorting.byValues(Orders.from(order), store));
         return records;
     }
 
@@ -1991,8 +1983,6 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2018,7 +2008,7 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, entry);
                     }
                 }
-                result.sort(Sorting.byValue($order, atomic));
+                result.sort(Sorting.byValue(Orders.from(order), atomic));
             });
             return result;
         }
@@ -2045,8 +2035,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2072,7 +2060,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, entry);
                     }
                 }
-                result.sort(Sorting.byValue($order, store), timestamp);
+                result.sort(Sorting.byValue(Orders.from(order), store),
+                        timestamp);
             });
             return result;
         }
@@ -2116,8 +2105,6 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, Map<String, TObject>> getCriteriaOrder(TCriteria criteria,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2143,7 +2130,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            result.sort(Sorting.byValue($order, store));
+            result.sort(Sorting.byValue(Orders.from(order), store));
         });
         return result;
     }
@@ -2165,8 +2152,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2192,7 +2177,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            result.sort(Sorting.byValue($order, store), timestamp);
+            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -2235,8 +2220,6 @@ public class ConcourseServer extends BaseConcourseServer
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2254,7 +2237,7 @@ public class ConcourseServer extends BaseConcourseServer
                         continue;
                     }
                 }
-                result.sort(Sorting.byValue($order, store));
+                result.sort(Sorting.byValue(Orders.from(order), store));
             });
             return result;
         }
@@ -2281,8 +2264,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2300,7 +2281,8 @@ public class ConcourseServer extends BaseConcourseServer
                         continue;
                     }
                 }
-                result.sort(Sorting.byValue($order, store), timestamp);
+                result.sort(Sorting.byValue(Orders.from(order), store),
+                        timestamp);
             });
             return result;
         }
@@ -2346,8 +2328,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2365,7 +2345,7 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
-            result.sort(Sorting.byValue($order, store));
+            result.sort(Sorting.byValue(Orders.from(order), store));
         });
         return result;
     }
@@ -2387,8 +2367,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2406,7 +2384,7 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
-            result.sort(Sorting.byValue($order, store), timestamp);
+            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -2461,8 +2439,6 @@ public class ConcourseServer extends BaseConcourseServer
     public Map<Long, TObject> getKeyRecordsOrder(String key, List<Long> records,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
@@ -2476,7 +2452,7 @@ public class ConcourseServer extends BaseConcourseServer
                     continue;
                 }
             }
-            result.sort(Sorting.byValue($order, store));
+            result.sort(Sorting.byValue(Orders.from(order), store));
         });
         return result;
     }
@@ -2498,8 +2474,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
@@ -2512,7 +2486,7 @@ public class ConcourseServer extends BaseConcourseServer
                 continue;
             }
         }
-        result.sort(Sorting.byValue($order, store), timestamp);
+        result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
         return result;
     }
 
@@ -2576,8 +2550,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2602,7 +2574,7 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, entry);
                     }
                 }
-                result.sort(Sorting.byValue($order, store));
+                result.sort(Sorting.byValue(Orders.from(order), store));
             });
             return result;
         }
@@ -2630,8 +2602,6 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -2656,7 +2626,8 @@ public class ConcourseServer extends BaseConcourseServer
                         result.put(record, entry);
                     }
                 }
-                result.sort(Sorting.byValue($order, store), timestamp);
+                result.sort(Sorting.byValue(Orders.from(order), store),
+                        timestamp);
             });
             return result;
         }
@@ -2703,8 +2674,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2729,7 +2698,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            result.sort(Sorting.byValue($order, store));
+            result.sort(Sorting.byValue(Orders.from(order), store));
         });
         return result;
     }
@@ -2752,8 +2721,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -2778,7 +2745,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            result.sort(Sorting.byValue($order, store), timestamp);
+            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -2845,8 +2812,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -2867,7 +2832,7 @@ public class ConcourseServer extends BaseConcourseServer
                     result.put(record, entry);
                 }
             }
-            result.sort(Sorting.byValue($order, store));
+            result.sort(Sorting.byValue(Orders.from(order), store));
         });
         return result;
     }
@@ -2890,8 +2855,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
@@ -2911,7 +2874,7 @@ public class ConcourseServer extends BaseConcourseServer
                 result.put(record, entry);
             }
         }
-        result.sort(Sorting.byValue($order, store), timestamp);
+        result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
         return result;
     }
 
@@ -4226,8 +4189,6 @@ public class ConcourseServer extends BaseConcourseServer
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4244,7 +4205,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
-                result.sort(Sorting.byValues($order, atomic));
+                result.sort(Sorting.byValues(Orders.from(order), atomic));
             });
             return result;
         }
@@ -4271,8 +4232,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4289,7 +4248,8 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
-                result.sort(Sorting.byValues($order, atomic), timestamp);
+                result.sort(Sorting.byValues(Orders.from(order), atomic),
+                        timestamp);
             });
             return result;
         }
@@ -4334,8 +4294,7 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
+
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4352,7 +4311,7 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            result.sort(Sorting.byValues($order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -4375,8 +4334,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4393,7 +4350,7 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            result.sort(Sorting.byValues($order, store), timestamp);
+            result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -4437,8 +4394,6 @@ public class ConcourseServer extends BaseConcourseServer
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4450,7 +4405,7 @@ public class ConcourseServer extends BaseConcourseServer
                 for (long record : records) {
                     result.put(record, atomic.select(key, record));
                 }
-                result.sort(Sorting.byValues($order, store));
+                result.sort(Sorting.byValues(Orders.from(order), store));
             });
             return result;
         }
@@ -4477,8 +4432,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4490,7 +4443,8 @@ public class ConcourseServer extends BaseConcourseServer
                 for (long record : records) {
                     result.put(record, atomic.select(key, record, timestamp));
                 }
-                result.sort(Sorting.byValues($order, atomic), timestamp);
+                result.sort(Sorting.byValues(Orders.from(order), atomic),
+                        timestamp);
             });
             return result;
         }
@@ -4537,8 +4491,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4550,7 +4502,7 @@ public class ConcourseServer extends BaseConcourseServer
             for (long record : records) {
                 result.put(record, atomic.select(key, record));
             }
-            result.sort(Sorting.byValues($order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -4573,8 +4525,6 @@ public class ConcourseServer extends BaseConcourseServer
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4586,7 +4536,7 @@ public class ConcourseServer extends BaseConcourseServer
             for (long record : records) {
                 result.put(record, atomic.select(key, record, timestamp));
             }
-            result.sort(Sorting.byValues($order, store), timestamp);
+            result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -4640,8 +4590,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<Long> records, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
@@ -4649,7 +4597,7 @@ public class ConcourseServer extends BaseConcourseServer
             for (long record : records) {
                 result.put(record, atomic.select(key, record));
             }
-            result.sort(Sorting.byValues($order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -4672,15 +4620,13 @@ public class ConcourseServer extends BaseConcourseServer
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
         for (long record : records) {
             result.put(record, store.select(key, record, timestamp));
         }
-        result.sort(Sorting.byValues($order, store), timestamp);
+        result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         return result;
     }
 
@@ -4745,8 +4691,6 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4762,7 +4706,7 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
-                result.sort(Sorting.byValues($order, store));
+                result.sort(Sorting.byValues(Orders.from(order), store));
             });
             return result;
         }
@@ -4790,8 +4734,6 @@ public class ConcourseServer extends BaseConcourseServer
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Order $order = order == null ? Order.none()
-                    : JavaThriftBridge.convert(order);
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
@@ -4807,7 +4749,8 @@ public class ConcourseServer extends BaseConcourseServer
                     }
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
-                result.sort(Sorting.byValues($order, store), timestamp);
+                result.sort(Sorting.byValues(Orders.from(order), store),
+                        timestamp);
             });
             return result;
         }
@@ -4856,8 +4799,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4873,7 +4814,7 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            result.sort(Sorting.byValues($order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -4896,8 +4837,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4913,7 +4852,7 @@ public class ConcourseServer extends BaseConcourseServer
                 }
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
-            result.sort(Sorting.byValues($order, store), timestamp);
+            result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         });
         return result;
     }
@@ -4975,8 +4914,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
@@ -4991,7 +4928,7 @@ public class ConcourseServer extends BaseConcourseServer
                     TMaps.putResultDatasetOptimized(result, record, entry);
                 }
             }
-            result.sort(Sorting.byValues($order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -5014,8 +4951,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
@@ -5029,7 +4964,7 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
         }
-        result.sort(Sorting.byValues($order, store), timestamp);
+        result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         return result;
     }
 
@@ -5107,10 +5042,9 @@ public class ConcourseServer extends BaseConcourseServer
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsOrder(
-            List<Long> records, TOrder $order, AccessToken creds,
+            List<Long> records, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order order = JavaThriftBridge.convert($order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
@@ -5118,7 +5052,7 @@ public class ConcourseServer extends BaseConcourseServer
                 TMaps.putResultDatasetOptimized(result, record,
                         atomic.select(record));
             }
-            result.sort(Sorting.byValues(order, store));
+            result.sort(Sorting.byValues(Orders.from(order), store));
         });
         return result;
     }
@@ -5141,8 +5075,6 @@ public class ConcourseServer extends BaseConcourseServer
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Order $order = order == null ? Order.none()
-                : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
@@ -5150,7 +5082,7 @@ public class ConcourseServer extends BaseConcourseServer
             TMaps.putResultDatasetOptimized(result, record,
                     store.select(record, timestamp));
         }
-        result.sort(Sorting.byValues($order, store), timestamp);
+        result.sort(Sorting.byValues(Orders.from(order), store), timestamp);
         return result;
     }
 
