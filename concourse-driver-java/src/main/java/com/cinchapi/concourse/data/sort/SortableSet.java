@@ -65,6 +65,15 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
         }).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    @Override
+    public void sort(Sorter<V> sorter, long at) {
+        Map<Long, Map<String, V>> sorted = sorter.sort(sortable(), at);
+        delegate = sorted.entrySet().stream().map(entry -> {
+            return entry.getKey();
+        }).collect(Collectors.toCollection(LinkedHashSet::new));
+
+    }
+
     /**
      * Return a "sortable" view of this column (e.g. pin {@link #key} as the
      * only key/column in a {@link SortableTable}.
@@ -77,15 +86,6 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
             Map<String, V> value = ImmutableMap.of();
             return new SimpleImmutableEntry<>(key, value);
         }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-    }
-
-    @Override
-    public void sort(Sorter<V> sorter, long at) {
-        Map<Long, Map<String, V>> sorted = sorter.sort(sortable(), at);
-        delegate = sorted.entrySet().stream().map(entry -> {
-            return entry.getKey();
-        }).collect(Collectors.toCollection(LinkedHashSet::new));
-
     }
 
     @Override
