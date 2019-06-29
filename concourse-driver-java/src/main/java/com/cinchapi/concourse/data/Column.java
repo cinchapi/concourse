@@ -13,27 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.data;
+
+import java.util.Map;
 
 /**
- * Utilities for link-navigation queries.
+ * A {@link Column} is a mapping from records ({@link Long} to a value. Each of
+ * the values is implicitly associated with a key within each record.
  * 
  * @author Jeff Nelson
  */
-public final class LinkNavigation {
-
-    /**
-     * Given a navigation scheme, return the destination to which the scheme
-     * navigates.
-     * 
-     * @param scheme
-     * @return the destination
-     */
-    public static String getNavigationSchemeDestination(String scheme) {
-        String[] toks = scheme.split("\\.");
-        return toks[toks.length - 1];
-    }
-
-    private LinkNavigation() {/* no-op */}
-
-}
+public interface Column<V> extends Map<Long, V> {}

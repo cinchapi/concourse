@@ -56,6 +56,8 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.StartState;
+import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.Sort;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
@@ -405,7 +407,7 @@ public final class ConcourseShell {
      */
     protected static List<Class<?>> IMPORTED_CLASSES = ImmutableList.of(
             Timestamp.class, Diff.class, Link.class, Tag.class, Criteria.class,
-            Operator.class); // visible for testing
+            Operator.class, Order.class, Sort.class); // visible for testing
 
     /**
      * A closure that converts a string value to a tag.
