@@ -265,10 +265,11 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
                 Order.by("name").at(Timestamp.now()));
         Assert.assertEquals(b, (long) data.keySet().iterator().next());
     }
-    
+
     @Test
     public void testGetKeyRecordsOrder() {
-        Map<Long, Object> data = client.get("age", client.inventory(), Order.by("age"));
+        Map<Long, Object> data = client.get("age", client.inventory(),
+                Order.by("age"));
         AtomicInteger last = new AtomicInteger(0);
         data.forEach((record, age) -> {
             Assert.assertTrue((int) age >= last.get());
