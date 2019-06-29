@@ -17,6 +17,7 @@ package com.cinchapi.concourse;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -263,6 +264,17 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
         data = client.select("zage", "zage > 0", timestamp,
                 Order.by("name").at(Timestamp.now()));
         Assert.assertEquals(b, (long) data.keySet().iterator().next());
+    }
+    
+    @Test
+    public void testGetKeyRecordsOrder() {
+        Map<Long, Object> data = client.get("age", client.inventory(), Order.by("age"));
+        AtomicInteger last = new AtomicInteger(0);
+        data.forEach((record, age) -> {
+            Assert.assertTrue((int) age >= last.get());
+            last.set((int) age);
+            Assert.assertEquals(age, client.get("age", record));
+        });
     }
 
     /**
