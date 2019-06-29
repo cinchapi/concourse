@@ -35,6 +35,13 @@ public interface Sortable<T> {
      */
     public void sort(Sorter<T> sorter);
 
+    /**
+     * Sort this object using the {@code sorter} with the {@code at} timestamp
+     * as a contextual reference.
+     * 
+     * @param sorter
+     * @param at
+     */
     public void sort(Sorter<T> sorter, long at);
 
 }
