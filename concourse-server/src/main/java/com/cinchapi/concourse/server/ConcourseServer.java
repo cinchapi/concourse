@@ -1859,6 +1859,8 @@ public class ConcourseServer extends BaseConcourseServer
                 .of(store.find(timestamp, key, operator, tValues));
         Order $order = order == null ? Order.none()
                 : JavaThriftBridge.convert(order);
+        // NOTE: The #timestamp is not considered when sorting because it is a
+        // component of criteria evaluation and no data is being selected.
         records.sort(Sorting.byValues($order, store));
         return records;
     }
@@ -2462,7 +2464,7 @@ public class ConcourseServer extends BaseConcourseServer
                 : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
+                TMaps.newLinkedHashMapWithCapacity(records.size()));
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 try {
@@ -2499,7 +2501,7 @@ public class ConcourseServer extends BaseConcourseServer
                 : JavaThriftBridge.convert(order);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
+                TMaps.newLinkedHashMapWithCapacity(records.size()));
         for (long record : records) {
             try {
                 result.put(record, Iterables
