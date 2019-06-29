@@ -130,8 +130,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -5046,7 +5046,8 @@ public class ConcourseServer extends BaseConcourseServer
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
+        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
+                records.size());
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (long record : records) {
                 TMaps.putResultDatasetOptimized(result, record,
