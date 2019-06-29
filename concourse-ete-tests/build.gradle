@@ -19,4 +19,9 @@ dependencies {
     testCompile project(':concourse-ete-test-core')
 
     testCompile 'junit:junit:4.11'
+    testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
+}
+
+test {
+	exclude '**'
 }
