@@ -56,7 +56,7 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     private Sorter<Set<TObject>> sorter;
 
     /**
-     * The timestamp to sort at.
+     * The timestamp at which to sort.
      */
     @Nullable
     private Long sortAt;
@@ -85,7 +85,6 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     public void sort(Sorter<Set<TObject>> sorter, long at) {
         this.sorter = sorter;
         this.sortAt = at;
-
     }
 
     @Override
