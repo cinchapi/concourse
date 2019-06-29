@@ -16,12 +16,12 @@
 package com.cinchapi.concourse.lang.sort;
 
 /**
- * Serves as an alias for {@link BuiltOrder}
+ * Serves as an alias for {@link Order}
  */
 public final class Sort {
 
     /**
-     * Start building a new {@link BuiltOrder}.
+     * Start building a new {@link Order}.
      *
      * @return the Order builder
      */
