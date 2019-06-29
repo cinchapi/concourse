@@ -5,7 +5,7 @@
 ##### New Features
 
 ###### Sorting
-Concourse Server now (finally) has the ability to sort a results!
+Concourse Server now (finally) has the ability to sort results!
 * A result set that returns data from multiple records (across any number of keys) can be sorted.
 * Concourse drivers now feature an `Order` framework that allows the client to specify how Concourse Server should sort a result set. An `Order` can be generated using an intuitive builder chain.
 * An Order can be specified using values for any keys; regardless of whether those keys are explictly fetched or not.
