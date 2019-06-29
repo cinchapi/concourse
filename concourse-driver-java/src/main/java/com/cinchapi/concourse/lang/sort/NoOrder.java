@@ -26,6 +26,16 @@ import com.google.common.collect.ImmutableList;
  */
 public class NoOrder implements Order {
 
+    /**
+     * Singleton instance.
+     */
+    public static NoOrder INSTANCE = new NoOrder();
+
+    /**
+     * Construct a new instance.
+     */
+    private NoOrder() {/* singleton */}
+
     @Override
     public List<OrderComponent> spec() {
         return ImmutableList.of();

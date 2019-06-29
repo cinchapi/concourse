@@ -39,7 +39,7 @@ public interface Order {
      * @return a no-op {@link Order}
      */
     public static Order none() {
-        return new NoOrder();
+        return NoOrder.INSTANCE;
     }
 
     /**
