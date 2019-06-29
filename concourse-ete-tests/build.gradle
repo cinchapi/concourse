@@ -17,4 +17,6 @@
 dependencies {
     testCompile project(':concourse-driver-java')
     testCompile project(':concourse-ete-test-core')
+
+    testCompile 'junit:junit:4.11'
 }
