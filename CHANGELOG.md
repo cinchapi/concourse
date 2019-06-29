@@ -3,13 +3,29 @@
 #### Version 0.10.0 (TBD)
 
 ##### New Features
+
+###### Sorting
+Concourse Server now (finally) has the ability to sort a results!
+* A result set that returns data from multiple records (across any number of keys) can be sorted.
+* Concourse drivers now feature an `Order` framework that allows the client to specify how Concourse Server should sort a result set. An `Order` can be generated using an intuitive builder chain.
+* An Order can be specified using values for any keys; regardless of whether those keys are explictly fetched or not.
+* A timestamp can optionally be associated with each order component.
+	* **NOTE**: If no timestamp is specified with an order component, Concourse Server uses the value that is explicitly fetched in the request OR it looks up the value using the selection timestamp of the request. If there is no selection timestamp, the lookup returns the current value(s).
+* A direction (ascending or descending) can optionally be associated with each order component.
+	* **NOTE**: The default direction is *ascending*.
+* An Order can contain an unlimited number of components. If, after evaluating all the order components, two records still have the same sort order, Concourse Server automatically sorts based on the record id.
+* If a `null` value is encountered when evaluating an order components, Concourse Server pushes the record containing that `null` value to the "end" of the result set regardless of the order component's direction.
+
+###### ETL 
+* Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
+	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
+	* The `Transform` class contains functions for common data transformations. 
+
+###### Miscellaneous
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
 * Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
 * Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
 * Upgraded the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
-* Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
-	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
-	* The `Transform` class contains functions for common data transformations. 
 
 ##### Improvements
 * Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
