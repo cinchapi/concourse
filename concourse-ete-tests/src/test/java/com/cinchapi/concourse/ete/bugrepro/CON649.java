@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.bugrepro;
+package com.cinchapi.concourse.ete.bugrepro;
 
 import java.io.IOException;
 import java.nio.file.Files;
