@@ -52,7 +52,7 @@ public class PageTest {
         page = page.resize(100).back();
         Assert.assertEquals(44 * 100, page.skip());
     }
-    
+
     @Test
     public void testPageSize() {
         Page page = Page.number(45);

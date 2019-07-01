@@ -204,5 +204,5 @@ public final class Page {
     public int skip() {
         return offset();
     }
-  
+
 }
