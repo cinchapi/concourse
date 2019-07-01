@@ -19,9 +19,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
+ * Unit tests for {@link Page} class.
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
 
 public class PageTest {
