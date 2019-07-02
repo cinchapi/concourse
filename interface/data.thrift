@@ -96,3 +96,11 @@ struct TOrderComponent {
 struct TOrder {
   1:required list<TOrderComponent> spec
 }
+
+/**
+ * Encapsulation for a skip/limit parameters that make up a page of data.
+ */
+struct TPage {
+  1:required i32 skip,
+  2:required i32 limit
+}
