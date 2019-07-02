@@ -41,7 +41,7 @@ public class PageTest {
 
     @Test
     public void testPageLimitAndSkip() {
-        Page page = Page.ofSize(50).goTo(10);
+        Page page = Page.sized(50).go(10);
         Assert.assertEquals(450, page.skip());
     }
 

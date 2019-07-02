@@ -55,7 +55,7 @@ public final class Page {
      * @return the {@code number} Page
      */
     public static Page number(int number) {
-        return first().goTo(number);
+        return first().go(number);
     }
 
     /**
@@ -64,7 +64,7 @@ public final class Page {
      * @param size
      * @return the first {@link Page} with {@code size} items
      */
-    public static Page ofSize(int size) {
+    public static Page sized(int size) {
         return first().size(size);
     }
 
@@ -121,7 +121,7 @@ public final class Page {
      * @param page
      * @return the specified page
      */
-    public Page goTo(int page) {
+    public Page go(int page) {
         return new Page((page - 1) * limit, limit);
     }
 
