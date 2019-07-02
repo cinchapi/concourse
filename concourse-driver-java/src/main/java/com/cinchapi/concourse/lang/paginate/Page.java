@@ -23,6 +23,10 @@ import javax.annotation.concurrent.Immutable;
  * A {@link Page} contains a subset of data. The data on a {@link Page} is
  * determined by applying an {@link #offset() offset} and {@link #limit() limit}
  * to a data set with a consistent order.
+ * <p>
+ * Effectively, a {@link Page} encapsulates the limit and skip/offset parameters
+ * that can be used to pagination through a result set.
+ * </p>
  *
  * @author Jeff Nelson
  */
@@ -143,6 +147,10 @@ public final class Page {
 
     /**
      * Return the "next" {@link Page}.
+     * <p>
+     * This method returns a new {@link Page} whose skip/offset parameter is
+     * advanced by this pagination's limit.
+     * </p>
      * 
      * @return the next Page
      */
