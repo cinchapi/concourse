@@ -33,7 +33,7 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.server.AbstractNonblockingServer.*;
 
-@SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked" })
+@SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked", "unused" })
 /**
  * Encapsulation for a skip/limit parameters that make up a page of data.
  */
