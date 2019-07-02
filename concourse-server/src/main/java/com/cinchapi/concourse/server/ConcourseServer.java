@@ -38,6 +38,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -91,8 +92,8 @@ import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
-import com.cinchapi.concourse.thrift.ConcourseService.Iface;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
@@ -133,7 +134,7 @@ import com.google.inject.Injector;
  * @author Jeff Nelson
  */
 public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface {
+        implements ConcourseService.Iface, ConcourseNavigateService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -5648,8 +5649,11 @@ public class ConcourseServer extends BaseConcourseServer
         FileSystem.lock(bufferStore);
         FileSystem.lock(dbStore);
         TServerSocket socket = new TServerSocket(port);
-        ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
-                this);
+        TMultiplexedProcessor processor = new TMultiplexedProcessor();
+        processor.registerProcessor("core",
+                new ConcourseService.Processor<>(this));
+        processor.registerProcessor("navigate",
+                new ConcourseNavigateService.Processor<>(this));
         Args args = new TThreadPoolServer.Args(socket);
         args.processor(processor);
         args.maxWorkerThreads(NUM_WORKER_THREADS);

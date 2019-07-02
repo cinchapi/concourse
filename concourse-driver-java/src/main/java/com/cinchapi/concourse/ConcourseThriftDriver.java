@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
@@ -47,6 +48,7 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
@@ -92,9 +94,14 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     /**
-     * The Thrift client that actually handles all RPC communication.
+     * The Thrift client that actually handles core RPC communication.
      */
     private final ConcourseService.Client client;
+
+    /**
+     * The Thrift client that actually handles navigate RPC communication.
+     */
+    private final ConcourseNavigateService.Client navigate;
 
     /**
      * The client keeps a copy of its {@link AccessToken} and passes it to
@@ -195,7 +202,10 @@ class ConcourseThriftDriver extends Concourse {
         try {
             transport.open();
             TProtocol protocol = new TBinaryProtocol(transport);
-            client = new ConcourseService.Client(protocol);
+            client = new ConcourseService.Client(
+                    new TMultiplexedProtocol(protocol, "core"));
+            navigate = new ConcourseNavigateService.Client(
+                    new TMultiplexedProtocol(protocol, "navigate"));
             authenticate();
             Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
@@ -1648,7 +1658,7 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = client
+            Map<Long, Map<String, Set<TObject>>> data = navigate
                     .navigateKeysRecords(Collections.toList(keys),
                             Collections.toLongList(records), creds, transaction,
                             environment);
@@ -1661,7 +1671,7 @@ class ConcourseThriftDriver extends Concourse {
             final Collection<String> keys, final Collection<Long> records,
             final Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = client
+            Map<Long, Map<String, Set<TObject>>> data = navigate
                     .navigateKeysRecordsTime(Collections.toList(keys),
                             Collections.toLongList(records),
                             timestamp.getMicros(), creds, transaction,
@@ -1674,7 +1684,7 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = client
+            Map<Long, Map<String, Set<TObject>>> data = navigate
                     .navigateKeysCriteria(Collections.toList(keys),
                             Language.translateToThriftCriteria(criteria), creds,
                             transaction, environment);
@@ -1688,13 +1698,14 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeysCriteriaTimestr(
+                data = navigate.navigateKeysCriteriaTimestr(
                         Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                data = client.navigateKeysCriteriaTime(Collections.toList(keys),
+                data = navigate.navigateKeysCriteriaTime(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
@@ -1706,7 +1717,7 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final long record) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = client
+            Map<Long, Map<String, Set<TObject>>> data = navigate
                     .navigateKeysRecord(Collections.toList(keys), record, creds,
                             transaction, environment);
             return DataTable.multiValued(data);
@@ -1720,12 +1731,12 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeysRecordTimestr(
+                data = navigate.navigateKeysRecordTimestr(
                         Collections.toList(keys), record, timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                data = client.navigateKeysRecordTime(Collections.toList(keys),
+                data = navigate.navigateKeysRecordTime(Collections.toList(keys),
                         record, timestamp.getMicros(), creds, transaction,
                         environment);
             }
@@ -1737,9 +1748,9 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> navigate(
             final Collection<String> keys, final String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = client.navigateKeysCcl(
-                    Collections.toList(keys), ccl, creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .navigateKeysCcl(Collections.toList(keys), ccl, creds,
+                            transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -1751,13 +1762,14 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeysCclTimestr(Collections.toList(keys),
+                data = navigate.navigateKeysCclTimestr(Collections.toList(keys),
                         ccl, timestamp.toString(), creds, transaction,
                         environment);
             }
             else {
-                data = client.navigateKeysCclTime(Collections.toList(keys), ccl,
-                        timestamp.getMicros(), creds, transaction, environment);
+                data = navigate.navigateKeysCclTime(Collections.toList(keys),
+                        ccl, timestamp.getMicros(), creds, transaction,
+                        environment);
             }
             return DataTable.multiValued(data);
         });
@@ -1767,7 +1779,7 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = client.navigateKeyRecords(key,
+            Map<Long, Set<TObject>> data = navigate.navigateKeyRecords(key,
                     Collections.toLongList(records), creds, transaction,
                     environment);
             String destination = Navigation.getKeyDestination(key);
@@ -1781,12 +1793,12 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeyRecordsTimestr(key,
+                data = navigate.navigateKeyRecordsTimestr(key,
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                data = client.navigateKeyRecordsTime(key,
+                data = navigate.navigateKeyRecordsTime(key,
                         Collections.toLongList(records), timestamp.getMicros(),
                         creds, transaction, environment);
             }
@@ -1799,7 +1811,7 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> navigate(final String key,
             final Criteria criteria) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = client.navigateKeyCriteria(key,
+            Map<Long, Set<TObject>> data = navigate.navigateKeyCriteria(key,
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
             String destination = Navigation.getKeyDestination(key);
@@ -1813,12 +1825,12 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeyCriteriaTimestr(key,
+                data = navigate.navigateKeyCriteriaTimestr(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                data = client.navigateKeyCriteriaTime(key,
+                data = navigate.navigateKeyCriteriaTime(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
@@ -1830,8 +1842,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final long record) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = client.navigateKeyRecord(key, record,
-                    creds, transaction, environment);
+            Map<Long, Set<TObject>> data = navigate.navigateKeyRecord(key,
+                    record, creds, transaction, environment);
             String destination = Navigation.getKeyDestination(key);
             return DataColumn.multiValued(destination, data);
         });
@@ -1843,11 +1855,11 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeyRecordTimestr(key, record,
+                data = navigate.navigateKeyRecordTimestr(key, record,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                data = client.navigateKeyRecordTime(key, record,
+                data = navigate.navigateKeyRecordTime(key, record,
                         timestamp.getMicros(), creds, transaction, environment);
             }
             String destination = Navigation.getKeyDestination(key);
@@ -1858,7 +1870,7 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Set<T>> navigate(final String key, final String ccl) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = client.navigateKeyCcl(key, ccl,
+            Map<Long, Set<TObject>> data = navigate.navigateKeyCcl(key, ccl,
                     creds, transaction, environment);
             String destination = Navigation.getKeyDestination(key);
             return DataColumn.multiValued(destination, data);
@@ -1871,11 +1883,11 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = client.navigateKeyCclTimestr(key, ccl,
+                data = navigate.navigateKeyCclTimestr(key, ccl,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                data = client.navigateKeyCclTime(key, ccl,
+                data = navigate.navigateKeyCclTime(key, ccl,
                         timestamp.getMicros(), creds, transaction, environment);
             }
             String destination = Navigation.getKeyDestination(key);

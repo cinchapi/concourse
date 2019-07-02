@@ -3456,6 +3456,22 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public String getServerEnvironment() {
+        throw new UnsupportedOperationException();
+    }
+
+    public String getServerVersion() {
+        throw new UnsupportedOperationException();
+    }
+
+    public long time() {
+        throw new UnsupportedOperationException();
+    }
+
+    public long timePhrase(String phrase) {
+        throw new UnsupportedOperationException();
+    }
+
     public Map<Long, Set<Object>> navigateKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
@@ -3571,22 +3587,6 @@ abstract class StatefulConcourseService {
 
     public Map<Long, Map<String, Set<Object>>> navigateKeysCriteriaTimestr(
             List<String> keys, Criteria criteria, String timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getServerEnvironment() {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getServerVersion() {
-        throw new UnsupportedOperationException();
-    }
-
-    public long time() {
-        throw new UnsupportedOperationException();
-    }
-
-    public long timePhrase(String phrase) {
         throw new UnsupportedOperationException();
     }
 
