@@ -5792,8 +5792,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsOrderPage(java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectRecordsOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectRecordsOrderPage(
@@ -5805,8 +5812,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimePage(java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectRecordsTimePage(java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimePage(
@@ -5818,8 +5831,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimeOrderPage(java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectRecordsTimeOrderPage(java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrderPage(
@@ -5831,8 +5851,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimestrPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectRecordsTimestrPage(java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrPage(
@@ -5844,8 +5870,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimestrOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectRecordsTimestrOrderPage(java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrOrderPage(
@@ -5857,8 +5890,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsPage(java.util.List, java.util.List,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsPage(
@@ -5870,8 +5909,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsOrderPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsOrderPage(java.util.List, java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrderPage(
@@ -5883,8 +5929,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsPage
+     * (java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsPage(String key,
@@ -5896,8 +5948,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsOrderPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyRecordsOrderPage(java.lang.String, java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsOrderPage(String key,
@@ -5909,8 +5968,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimePage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyRecordsTimePage(java.lang.String, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsTimePage(String key,
@@ -5922,8 +5987,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsTimeOrderPage(String key,
@@ -5935,8 +6007,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimestrPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyRecordsTimestrPage(java.lang.String, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsTimestrPage(String key,
@@ -5948,8 +6026,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimestrOrderPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyRecordsTimestrOrderPage(java.lang.String, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyRecordsTimestrOrderPage(String key,
@@ -5961,8 +6046,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimePage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsTimePage(java.util.List, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimePage(
@@ -5974,8 +6065,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimeOrderPage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsTimeOrderPage(java.util.List, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrderPage(
@@ -5987,8 +6085,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimestrPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsTimestrPage(java.util.List, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrPage(
@@ -6000,8 +6104,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimestrOrderPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysRecordsTimestrOrderPage(java.util.List, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrOrderPage(
@@ -6014,8 +6125,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaPage(
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
@@ -6027,8 +6145,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrderPage(
@@ -6040,8 +6165,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclPage(java.
+     * lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
@@ -6052,8 +6183,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclOrderPage(
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclOrderPage(String ccl,
@@ -6065,8 +6203,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimePage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCriteriaTimePage(com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimePage(
@@ -6078,8 +6222,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria,
+     * long, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrderPage(
@@ -6091,8 +6242,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrPage(
@@ -6104,8 +6261,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrOrderPage(
@@ -6117,8 +6281,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimePage(java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimePage(
+     * java.lang.String, long, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclTimePage(String ccl,
@@ -6130,8 +6300,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimeOrderPage(java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCclTimeOrderPage(java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrderPage(
@@ -6143,8 +6320,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimestrPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimestrPage
+     * (java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestrPage(String ccl,
@@ -6156,8 +6339,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimestrOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectCclTimestrOrderPage(java.lang.String, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestrOrderPage(
@@ -6169,8 +6359,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaPage(String key,
@@ -6182,8 +6379,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaOrderPage(String key,
@@ -6195,8 +6400,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclPage(
+     * java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
@@ -6207,8 +6418,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCclOrderPage(java.lang.String, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclOrderPage(String key, String ccl,
@@ -6220,8 +6438,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimePage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaTimePage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaTimePage(String key,
@@ -6233,8 +6458,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaTimeOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrderPage(String key,
@@ -6246,8 +6479,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaTimestrPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestrPage(String key,
@@ -6259,8 +6499,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCriteriaTimestrOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestrOrderPage(String key,
@@ -6272,8 +6520,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimePage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimePage
+     * (java.lang.String, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclTimePage(String key, String ccl,
@@ -6285,8 +6540,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimeOrderPage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCclTimeOrderPage(java.lang.String, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclTimeOrderPage(String key,
@@ -6298,8 +6560,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimestrPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCclTimestrPage(java.lang.String, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclTimestrPage(String key,
@@ -6311,8 +6579,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimestrOrderPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeyCclTimestrOrderPage(java.lang.String, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Set<TObject>> selectKeyCclTimestrOrderPage(String key,
@@ -6324,8 +6599,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
@@ -6337,8 +6619,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
@@ -6350,8 +6640,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclPage(
+     * java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
@@ -6363,8 +6659,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCclOrderPage(java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrderPage(
@@ -6376,8 +6679,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimePage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaTimePage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
@@ -6389,8 +6699,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimeOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaTimeOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrderPage(
@@ -6402,8 +6720,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimestrPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaTimestrPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrPage(
@@ -6415,8 +6740,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimestrOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCriteriaTimestrOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrderPage(
@@ -6429,8 +6762,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimePage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCclTimePage(java.util.List, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimePage(
@@ -6442,8 +6781,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimeOrderPage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCclTimeOrderPage(java.util.List, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrderPage(
@@ -6455,8 +6801,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimestrPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCclTimestrPage(java.util.List, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrPage(
@@ -6468,8 +6820,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimestrOrderPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * selectKeysCclTimestrOrderPage(java.util.List, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrOrderPage(
@@ -6481,8 +6840,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsPage(
+     * java.util.List, java.util.List, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
@@ -6494,8 +6859,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsOrderPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysRecordsOrderPage(java.util.List, java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsOrderPage(
@@ -6507,8 +6879,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsPage(
+     * java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
@@ -6519,8 +6897,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsOrderPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyRecordsOrderPage(java.lang.String, java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsOrderPage(String key,
@@ -6532,8 +6917,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimePage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyRecordsTimePage(java.lang.String, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsTimePage(String key,
@@ -6545,8 +6936,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsTimeOrderPage(String key,
@@ -6558,8 +6956,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimestrPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyRecordsTimestrPage(java.lang.String, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsTimestrPage(String key,
@@ -6571,8 +6975,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimestrOrderPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyRecordsTimestrOrderPage(java.lang.String, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyRecordsTimestrOrderPage(String key,
@@ -6584,8 +6995,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimePage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysRecordsTimePage(java.util.List, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsTimePage(
@@ -6597,8 +7014,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimeOrderPage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysRecordsTimeOrderPage(java.util.List, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrderPage(
@@ -6610,8 +7034,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimestrPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysRecordsTimestrPage(java.util.List, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestrPage(
@@ -6623,8 +7053,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimestrOrderPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysRecordsTimestrOrderPage(java.util.List, java.util.List,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestrOrderPage(
@@ -6637,8 +7074,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaPage(
+     * java.lang.String, com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
@@ -6649,8 +7093,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCriteriaOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaOrderPage(String key,
@@ -6662,8 +7114,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaPage(com.
+     * cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
@@ -6674,8 +7132,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaOrderPage
+     * (com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaOrderPage(
@@ -6687,8 +7153,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclPage(java.lang
+     * .String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
@@ -6699,8 +7171,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclOrderPage(java
+     * .lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclOrderPage(String ccl,
@@ -6712,8 +7191,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimePage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimePage(
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaTimePage(
@@ -6725,8 +7211,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaTimeOrderPage(
@@ -6738,8 +7231,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria,
+     * java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaTimestrPage(
@@ -6751,8 +7250,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCriteriaTimestrOrderPage(
@@ -6764,8 +7270,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimePage(java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimePage(java.
+     * lang.String, long, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclTimePage(String ccl,
@@ -6777,8 +7289,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimeOrderPage(java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimeOrderPage(
+     * java.lang.String, long, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclTimeOrderPage(String ccl,
@@ -6790,8 +7309,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimestrPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimestrPage(
+     * java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclTimestrPage(String ccl,
@@ -6803,8 +7328,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimestrOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getCclTimestrOrderPage(java.lang.String, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getCclTimestrOrderPage(String ccl,
@@ -6816,8 +7348,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclPage(java.
+     * lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
@@ -6828,8 +7366,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclOrderPage(
+     * java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclOrderPage(String key, String ccl,
@@ -6841,8 +7386,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimePage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCriteriaTimePage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaTimePage(String key,
@@ -6854,8 +7406,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCriteriaTimeOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaTimeOrderPage(String key,
@@ -6867,8 +7427,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCriteriaTimestrPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaTimestrPage(String key,
@@ -6880,8 +7447,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCriteriaTimestrOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCriteriaTimestrOrderPage(String key,
@@ -6893,8 +7468,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimePage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimePage(
+     * java.lang.String, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
@@ -6906,8 +7488,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimeOrderPage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCclTimeOrderPage(java.lang.String, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclTimeOrderPage(String key, String ccl,
@@ -6919,8 +7508,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimestrPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimestrPage
+     * (java.lang.String, java.lang.String, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclTimestrPage(String key, String ccl,
@@ -6932,8 +7528,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimestrOrderPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeyCclTimestrOrderPage(java.lang.String, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, TObject> getKeyCclTimestrOrderPage(String key, String ccl,
@@ -6945,8 +7548,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaPage(
+     * java.util.List, com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
@@ -6958,8 +7568,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCriteriaOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaOrderPage(
@@ -6971,8 +7589,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclPage(java.
+     * util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
@@ -6984,8 +7608,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclOrderPage(
+     * java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclOrderPage(
@@ -6997,8 +7628,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimePage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCriteriaTimePage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimePage(
@@ -7010,8 +7648,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimeOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCriteriaTimeOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrderPage(
@@ -7023,8 +7669,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimestrPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCriteriaTimestrPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrPage(
@@ -7036,8 +7689,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimestrOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCriteriaTimestrOrderPage(java.util.List,
+     * com.cinchapi.concourse.thrift.TCriteria, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrOrderPage(
@@ -7050,8 +7711,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimePage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimePage(
+     * java.util.List, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclTimePage(List<String> keys,
@@ -7063,8 +7731,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimeOrderPage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCclTimeOrderPage(java.util.List, java.lang.String, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclTimeOrderPage(
@@ -7076,8 +7751,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimestrPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCclTimestrPage(java.util.List, java.lang.String, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclTimestrPage(
@@ -7089,8 +7770,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimestrOrderPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * getKeysCclTimestrOrderPage(java.util.List, java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Map<Long, Map<String, TObject>> getKeysCclTimestrOrderPage(
@@ -7102,8 +7790,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#findCriteriaPage(com
+     * .cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findCriteriaPage(TCriteria criteria, TPage page,
@@ -7114,8 +7809,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findCriteriaOrderPage(TCriteria criteria, TOrder order,
@@ -7126,8 +7828,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclPage(java.
+     * lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
@@ -7138,8 +7846,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclOrderPage(
+     * java.lang.String, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findCclOrderPage(String ccl, TOrder order, TPage page,
@@ -7150,8 +7865,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
@@ -7163,8 +7885,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesOrderPage(String key,
@@ -7176,8 +7906,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimePage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesTimePage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesTimePage(String key,
@@ -7189,8 +7926,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesTimeOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List, long,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesTimeOrderPage(String key,
@@ -7203,8 +7948,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesTimestrPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesTimestrPage(String key,
@@ -7216,8 +7968,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorValuesTimestrOrderPage(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorValuesTimestrOrderPage(String key,
@@ -7230,8 +7990,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesPage(java.lang.String, java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesPage(java.lang.String, java.lang.String,
+     * java.util.List, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesPage(String key, String operator,
@@ -7243,8 +8009,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesOrderPage(java.lang.String, java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesOrderPage(java.lang.String, java.lang.String,
+     * java.util.List, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesOrderPage(String key,
@@ -7256,8 +8029,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimePage(java.lang.String, java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesTimePage(java.lang.String, java.lang.String,
+     * java.util.List, long, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesTimePage(String key,
@@ -7269,8 +8048,15 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimeOrderPage(java.lang.String, java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesTimeOrderPage(java.lang.String, java.lang.String,
+     * java.util.List, long, com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesTimeOrderPage(String key,
@@ -7282,8 +8068,14 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimestrPage(java.lang.String, java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesTimestrPage(java.lang.String, java.lang.String,
+     * java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesTimestrPage(String key,
@@ -7295,8 +8087,16 @@ public class ConcourseServer extends BaseConcourseServer
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimestrOrderPage(java.lang.String, java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#
+     * findKeyOperatorstrValuesTimestrOrderPage(java.lang.String,
+     * java.lang.String, java.util.List, java.lang.String,
+     * com.cinchapi.concourse.thrift.TOrder,
+     * com.cinchapi.concourse.thrift.TPage,
+     * com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
      */
     @Override
     public Set<Long> findKeyOperatorstrValuesTimestrOrderPage(String key,
