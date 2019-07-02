@@ -90,6 +90,15 @@ public class StatefulConcourseServiceGenerator {
     protected static Multimap<String, Integer> ORDER_TRANSFORM = HashMultimap.create();
 
     /**
+     * A mapping from Thrift method names to a collection of parameter
+     * posions that take TPage objects. For convenience, a
+     * StatefulConcourseService accepts generic objects for those parameters
+     * and we must keep track here so it is known what must be translated into
+     * a TPage for proper routing in ConcourseServer.
+     */
+    protected static Multimap<String, Integer> PAGE_TRANSFORM = HashMultimap.create();
+
+    /**
      * A collection of Thrift methods that have a return value that contains
      * a TObject. For convenience, a StatefulConcourseService will return
      * generic objects and we must keep track here so it is known what must be
@@ -130,6 +139,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.paginate.Page;
 
 /**
  * A modified version of {@link ConcourseService} that maintains client state
@@ -208,6 +218,12 @@ abstract class StatefulConcourseService {
     ORDER_TRANSFORM.put("${name}", ${pos});
 """
                                     type = "Order"
+                                }
+                                else if(type.equals("TPage")){
+                                    TOBJECT_TRANSFORM_CODE="""${TOBJECT_TRANSFORM_CODE}
+    PAGE_TRANSFORM.put("${name}", ${pos});
+"""
+                                    type = "Page"
                                 }
                                 sb.append(type);
                                 sb.append(" ");

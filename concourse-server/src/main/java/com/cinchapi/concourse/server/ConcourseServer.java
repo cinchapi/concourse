@@ -98,10 +98,12 @@ import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.PermissionException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TOrder;
+import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.Type;
@@ -5779,6 +5781,1532 @@ public class ConcourseServer extends BaseConcourseServer
             return value;
         }
 
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsPage(
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsOrderPage(java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsOrderPage(
+            List<Long> records, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimePage(java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimePage(
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimeOrderPage(java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrderPage(
+            List<Long> records, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimestrPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrPage(
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectRecordsTimestrOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrOrderPage(
+            List<Long> records, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsPage(
+            List<String> keys, List<Long> records, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsOrderPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrderPage(
+            List<String> keys, List<Long> records, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsPage(String key,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsOrderPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsOrderPage(String key,
+            List<Long> records, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimePage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsTimePage(String key,
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsTimeOrderPage(String key,
+            List<Long> records, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimestrPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsTimestrPage(String key,
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyRecordsTimestrOrderPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyRecordsTimestrOrderPage(String key,
+            List<Long> records, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimePage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimePage(
+            List<String> keys, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimeOrderPage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrderPage(
+            List<String> keys, List<Long> records, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimestrPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrPage(
+            List<String> keys, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysRecordsTimestrOrderPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrOrderPage(
+            List<String> keys, List<Long> records, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrderPage(
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclOrderPage(String ccl,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimePage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimePage(
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrderPage(
+            TCriteria criteria, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrPage(
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrOrderPage(
+            TCriteria criteria, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimePage(java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimePage(String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimeOrderPage(java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrderPage(
+            String ccl, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimestrPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimestrPage(String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectCclTimestrOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimestrOrderPage(
+            String ccl, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaPage(String key,
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaOrderPage(String key,
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclOrderPage(String key, String ccl,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimePage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimePage(String key,
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrderPage(String key,
+            TCriteria criteria, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimestrPage(String key,
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCriteriaTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimestrOrderPage(String key,
+            TCriteria criteria, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimePage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclTimePage(String key, String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimeOrderPage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclTimeOrderPage(String key,
+            String ccl, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimestrPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclTimestrPage(String key,
+            String ccl, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeyCclTimestrOrderPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Set<TObject>> selectKeyCclTimestrOrderPage(String key,
+            String ccl, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
+            List<String> keys, TCriteria criteria, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
+            List<String> keys, String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrderPage(
+            List<String> keys, String ccl, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimePage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
+            List<String> keys, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimeOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrderPage(
+            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimestrPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrPage(
+            List<String> keys, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCriteriaTimestrOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrderPage(
+            List<String> keys, TCriteria criteria, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimePage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimePage(
+            List<String> keys, String ccl, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimeOrderPage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrderPage(
+            List<String> keys, String ccl, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimestrPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrPage(
+            List<String> keys, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#selectKeysCclTimestrOrderPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrOrderPage(
+            List<String> keys, String ccl, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsOrderPage(java.util.List, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsOrderPage(
+            List<String> keys, List<Long> records, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsOrderPage(java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsOrderPage(String key,
+            List<Long> records, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimePage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsTimePage(String key,
+            List<Long> records, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimeOrderPage(java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsTimeOrderPage(String key,
+            List<Long> records, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimestrPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsTimestrPage(String key,
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyRecordsTimestrOrderPage(java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyRecordsTimestrOrderPage(String key,
+            List<Long> records, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimePage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimePage(
+            List<String> keys, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimeOrderPage(java.util.List, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrderPage(
+            List<String> keys, List<Long> records, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimestrPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimestrPage(
+            List<String> keys, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysRecordsTimestrOrderPage(java.util.List, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimestrOrderPage(
+            List<String> keys, List<Long> records, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaOrderPage(String key,
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaOrderPage(
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclOrderPage(String ccl,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimePage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaTimePage(
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimeOrderPage(com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaTimeOrderPage(
+            TCriteria criteria, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimestrPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaTimestrPage(
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCriteriaTimestrOrderPage(com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaTimestrOrderPage(
+            TCriteria criteria, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimePage(java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclTimePage(String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimeOrderPage(java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclTimeOrderPage(String ccl,
+            long timestamp, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimestrPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclTimestrPage(String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getCclTimestrOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getCclTimestrOrderPage(String ccl,
+            String timestamp, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclOrderPage(java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclOrderPage(String key, String ccl,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimePage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaTimePage(String key,
+            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaTimeOrderPage(String key,
+            TCriteria criteria, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaTimestrPage(String key,
+            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCriteriaTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCriteriaTimestrOrderPage(String key,
+            TCriteria criteria, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimePage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
+            long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimeOrderPage(java.lang.String, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclTimeOrderPage(String key, String ccl,
+            long timestamp, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimestrPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclTimestrPage(String key, String ccl,
+            String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeyCclTimestrOrderPage(java.lang.String, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, TObject> getKeyCclTimestrOrderPage(String key, String ccl,
+            String timestamp, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaOrderPage(
+            List<String> keys, TCriteria criteria, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
+            String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclOrderPage(java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclOrderPage(
+            List<String> keys, String ccl, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimePage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimePage(
+            List<String> keys, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimeOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrderPage(
+            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimestrPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrPage(
+            List<String> keys, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCriteriaTimestrOrderPage(java.util.List, com.cinchapi.concourse.thrift.TCriteria, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrOrderPage(
+            List<String> keys, TCriteria criteria, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimePage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclTimePage(List<String> keys,
+            String ccl, long timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimeOrderPage(java.util.List, java.lang.String, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclTimeOrderPage(
+            List<String> keys, String ccl, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimestrPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclTimestrPage(
+            List<String> keys, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#getKeysCclTimestrOrderPage(java.util.List, java.lang.String, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysCclTimestrOrderPage(
+            List<String> keys, String ccl, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCriteriaPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findCriteriaPage(TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCriteriaOrderPage(com.cinchapi.concourse.thrift.TCriteria, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findCriteriaOrderPage(TCriteria criteria, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclPage(java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findCclOrderPage(java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findCclOrderPage(String ccl, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
+            List<TObject> values, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesOrderPage(String key,
+            Operator operator, List<TObject> values, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimePage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesTimePage(String key,
+            Operator operator, List<TObject> values, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimeOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesTimeOrderPage(String key,
+            Operator operator, List<TObject> values, long timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimestrPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesTimestrPage(String key,
+            Operator operator, List<TObject> values, String timestamp,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorValuesTimestrOrderPage(java.lang.String, com.cinchapi.concourse.thrift.Operator, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorValuesTimestrOrderPage(String key,
+            Operator operator, List<TObject> values, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesPage(java.lang.String, java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesPage(String key, String operator,
+            List<TObject> values, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesOrderPage(java.lang.String, java.lang.String, java.util.List, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesOrderPage(String key,
+            String operator, List<TObject> values, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimePage(java.lang.String, java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesTimePage(String key,
+            String operator, List<TObject> values, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimeOrderPage(java.lang.String, java.lang.String, java.util.List, long, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesTimeOrderPage(String key,
+            String operator, List<TObject> values, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
+            ParseException, PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimestrPage(java.lang.String, java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesTimestrPage(String key,
+            String operator, List<TObject> values, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.cinchapi.concourse.thrift.ConcourseService.Iface#findKeyOperatorstrValuesTimestrOrderPage(java.lang.String, java.lang.String, java.util.List, java.lang.String, com.cinchapi.concourse.thrift.TOrder, com.cinchapi.concourse.thrift.TPage, com.cinchapi.concourse.thrift.AccessToken, com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> findKeyOperatorstrValuesTimestrOrderPage(String key,
+            String operator, List<TObject> values, String timestamp,
+            TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, ParseException,
+            PermissionException, TException {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
