@@ -48,6 +48,7 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.ConcourseCalculateService;
 import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
@@ -102,6 +103,11 @@ class ConcourseThriftDriver extends Concourse {
      * The Thrift client that actually handles navigate RPC communication.
      */
     private final ConcourseNavigateService.Client navigate;
+
+    /**
+     * The thrift client that actually handles calcuation RPC communication.
+     */
+    private final ConcourseCalculateService.Client calculate;
 
     /**
      * The client keeps a copy of its {@link AccessToken} and passes it to
@@ -204,6 +210,8 @@ class ConcourseThriftDriver extends Concourse {
             TProtocol protocol = new TBinaryProtocol(transport);
             client = new ConcourseService.Client(
                     new TMultiplexedProtocol(protocol, "core"));
+            calculate = new ConcourseCalculateService.Client(
+                    new TMultiplexedProtocol(protocol, "calculate"));
             navigate = new ConcourseNavigateService.Client(
                     new TMultiplexedProtocol(protocol, "navigate"));
             authenticate();
@@ -2909,6 +2917,15 @@ class ConcourseThriftDriver extends Concourse {
                 ByteBuffers.getString(ClientSecurity.decrypt(username)),
                 ByteBuffers.getString(ClientSecurity.decrypt(password)),
                 environment);
+    }
+
+    /**
+     * Return the thrift calculate RPC client.
+     * 
+     * @return the {@link #calculate client}
+     */
+    ConcourseCalculateService.Client $calculate() {
+        return calculate;
     }
 
     /**

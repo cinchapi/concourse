@@ -92,6 +92,7 @@ import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
 import com.cinchapi.concourse.shell.CommandLine;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.ConcourseCalculateService;
 import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
@@ -133,8 +134,10 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer
-        implements ConcourseService.Iface, ConcourseNavigateService.Iface {
+public class ConcourseServer extends BaseConcourseServer implements
+        ConcourseService.Iface,
+        ConcourseNavigateService.Iface,
+        ConcourseCalculateService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -5652,6 +5655,8 @@ public class ConcourseServer extends BaseConcourseServer
         TMultiplexedProcessor processor = new TMultiplexedProcessor();
         processor.registerProcessor("core",
                 new ConcourseService.Processor<>(this));
+        processor.registerProcessor("calculate",
+                new ConcourseCalculateService.Processor<>(this));
         processor.registerProcessor("navigate",
                 new ConcourseNavigateService.Processor<>(this));
         Args args = new TThreadPoolServer.Args(socket);

@@ -3129,6 +3129,22 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public String getServerEnvironment() {
+        throw new UnsupportedOperationException();
+    }
+
+    public String getServerVersion() {
+        throw new UnsupportedOperationException();
+    }
+
+    public long time() {
+        throw new UnsupportedOperationException();
+    }
+
+    public long timePhrase(String phrase) {
+        throw new UnsupportedOperationException();
+    }
+
     public Object sumKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
@@ -3453,22 +3469,6 @@ abstract class StatefulConcourseService {
     }
 
     public Object minKeyRecords(String key, List<Long> records) {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getServerEnvironment() {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getServerVersion() {
-        throw new UnsupportedOperationException();
-    }
-
-    public long time() {
-        throw new UnsupportedOperationException();
-    }
-
-    public long timePhrase(String phrase) {
         throw new UnsupportedOperationException();
     }
 
