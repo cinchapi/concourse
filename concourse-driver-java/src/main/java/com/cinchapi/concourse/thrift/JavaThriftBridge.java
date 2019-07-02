@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Direction;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.lang.sort.OrderComponent;
@@ -71,6 +72,16 @@ public final class JavaThriftBridge {
     }
 
     /**
+     * Translate a {@link Page} to a {@link TPage}.
+     * 
+     * @param page
+     * @return the analogous {@link TPage}
+     */
+    public static TPage convert(Page page) {
+        return new TPage(page.skip(), page.limit());
+    }
+
+    /**
      * Translate a {@link TOrder} to an {@link Order}.
      * 
      * @param torder
@@ -102,7 +113,8 @@ public final class JavaThriftBridge {
      */
     public static OrderComponent convert(TOrderComponent tcomponent) {
         Object $timestamp = tcomponent.isSetTimestamp()
-                ? Convert.thriftToJava(tcomponent.getTimestamp()) : null;
+                ? Convert.thriftToJava(tcomponent.getTimestamp())
+                : null;
         if($timestamp != null && !($timestamp instanceof Number)) {
             // Assume that this method is being called from ConcourseServer and
             // convert a string timestamp to micros so that it can be properly
@@ -112,9 +124,12 @@ public final class JavaThriftBridge {
             }
             catch (Exception e) {/* ignore */}
         }
-        Timestamp timestamp = $timestamp != null ? ($timestamp instanceof Number
-                ? Timestamp.fromMicros(((Number) $timestamp).longValue())
-                : Timestamp.fromString($timestamp.toString())) : null;
+        Timestamp timestamp = $timestamp != null
+                ? ($timestamp instanceof Number
+                        ? Timestamp
+                                .fromMicros(((Number) $timestamp).longValue())
+                        : Timestamp.fromString($timestamp.toString()))
+                : null;
         Direction direction = null;
         for (Direction $direction : Direction.values()) {
             if(tcomponent.getDirection() == $direction.coefficient()) {
@@ -123,6 +138,17 @@ public final class JavaThriftBridge {
             }
         }
         return new OrderComponent(tcomponent.getKey(), timestamp, direction);
+    }
+
+    /**
+     * Translate a {@link TPage} to a {@link Page}.
+     * 
+     * @param page
+     * @return the analogous {@link Page}
+     */
+    public static Page convert(TPage tpage) {
+        return Page.sized(tpage.getLimit())
+                .go(tpage.getLimit() / tpage.getSkip());
     }
 
     private JavaThriftBridge() {/* no-init */}
