@@ -27,6 +27,7 @@ import org.junit.runner.Description;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.ConcourseCodebase;
@@ -163,6 +164,14 @@ public class ManagedConcourseServerTest {
         long record = concourse.add("time", Timestamp.now());
         Object time = concourse.get("time", record);
         Assert.assertTrue(time instanceof Timestamp);
+    }
+    
+    @Test
+    public void testTranslateCriteriaBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.find(Criteria.where().key("name").operator(Operator.EQUALS).value("foo"));
+        Assert.assertTrue(true); // lack of Exception means the test passes
     }
 
 }

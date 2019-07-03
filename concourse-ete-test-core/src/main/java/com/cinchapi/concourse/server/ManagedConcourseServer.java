@@ -2030,41 +2030,56 @@ public class ManagedConcourseServer {
                         }
                         else if(args[i] instanceof Criteria) {
                             Criteria obj = (Criteria) args[i];
-                            Field symbolField = Criteria.class
-                                    .getDeclaredField("symbols");
-                            symbolField.setAccessible(true);
-                            List<Symbol> symbols = (List<Symbol>) symbolField
-                                    .get(obj);
                             Class<?> rclazz = loader
                                     .loadClass(packageBase + "lang.Criteria");
-                            Constructor<?> rconstructor = rclazz
-                                    .getDeclaredConstructor();
-                            rconstructor.setAccessible(true);
-                            Object robj = rconstructor.newInstance();
-                            Method rmethod = rclazz.getDeclaredMethod("add",
-                                    loader.loadClass(
-                                            packageBase + "lang.Symbol"));
-                            rmethod.setAccessible(true);
-                            for (Symbol symbol : symbols) {
-                                Object rsymbol = null;
-                                if(symbol instanceof Enum) {
-                                    rsymbol = loader
-                                            .loadClass(
-                                                    symbol.getClass().getName())
-                                            .getMethod("valueOf", String.class)
-                                            .invoke(null,
-                                                    ((Enum<?>) symbol).name());
+                            Object robj;
+                            try {
+                                Method rfactory = rclazz.getMethod("parse",
+                                        String.class);
+                                rfactory.setAccessible(true);
+                                robj = rfactory.invoke(null, obj.ccl());
+                            }
+                            catch (NoSuchMethodException e) {
+                                // In Concourse versions prior to 0.10, Criteria
+                                // was a concrete class instead of an interface
+                                // so we have to manually reconstruct the class
+                                // and all of its symbols...
+                                Field symbolField = Criteria.class
+                                        .getDeclaredField("symbols");
+                                symbolField.setAccessible(true);
+                                List<Symbol> symbols = (List<Symbol>) symbolField
+                                        .get(obj);
+                                Constructor<?> rconstructor = rclazz
+                                        .getDeclaredConstructor();
+                                rconstructor.setAccessible(true);
+                                robj = rconstructor.newInstance();
+                                Method rmethod = rclazz.getDeclaredMethod("add",
+                                        loader.loadClass(
+                                                packageBase + "lang.Symbol"));
+                                rmethod.setAccessible(true);
+                                for (Symbol symbol : symbols) {
+                                    Object rsymbol = null;
+                                    if(symbol instanceof Enum) {
+                                        rsymbol = loader
+                                                .loadClass(symbol.getClass()
+                                                        .getName())
+                                                .getMethod("valueOf",
+                                                        String.class)
+                                                .invoke(null, ((Enum<?>) symbol)
+                                                        .name());
+                                    }
+                                    else {
+                                        Method symFactory = loader
+                                                .loadClass(symbol.getClass()
+                                                        .getName())
+                                                .getMethod("parse",
+                                                        String.class);
+                                        symFactory.setAccessible(true);
+                                        rsymbol = symFactory.invoke(null,
+                                                symbol.toString());
+                                    }
+                                    rmethod.invoke(robj, rsymbol);
                                 }
-                                else {
-                                    Method symFactory = loader
-                                            .loadClass(
-                                                    symbol.getClass().getName())
-                                            .getMethod("parse", String.class);
-                                    symFactory.setAccessible(true);
-                                    rsymbol = symFactory.invoke(null,
-                                            symbol.toString());
-                                }
-                                rmethod.invoke(robj, rsymbol);
                             }
                             args[i] = robj;
                         }
