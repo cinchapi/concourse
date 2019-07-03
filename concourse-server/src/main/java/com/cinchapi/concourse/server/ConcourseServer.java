@@ -38,6 +38,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -5650,6 +5651,7 @@ public class ConcourseServer extends BaseConcourseServer
                 this);
         Args args = new TThreadPoolServer.Args(socket);
         args.processor(processor);
+        args.protocolFactory(new TCompactProtocol.Factory());
         args.maxWorkerThreads(NUM_WORKER_THREADS);
         args.executorService(Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
