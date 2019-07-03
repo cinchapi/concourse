@@ -841,6 +841,26 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> find(Criteria criteria, Order order);
 
     /**
+     * Return the set of records that satisfy the {@link Criteria criteria}.
+     *
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Criteria criteria, Page page);
+
+    /**
+     * Return the set of records that satisfy the {@code ccl} filter.
+     * 
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String ccl);
+
+    /**
      * Return the set of records where {@code key} {@link Operator#EQUALS
      * equals} {@code value}.
      * <p>
@@ -871,6 +891,23 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records where {@code key} = {@code value}
      */
     public abstract Set<Long> find(String key, Object value, Order order);
+
+    /**
+     * Return the set of records where {@code key} {@link Operator#EQUALS
+     * equals} {@code value}.
+     * <p>
+     * This method is a shortcut for calling
+     * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
+     * </p>
+     *
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field for the
+     *            record to match
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records where {@code key} = {@code value}
+     */
+    public abstract Set<Long> find(String key, Object value, Page page);
 
     /**
      * Return the set of records where {@code key} was {@link Operator#EQUALS
@@ -927,6 +964,34 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp, Order order);
 
     /**
+     * Return the set of records where {@code key} was {@link Operator#EQUALS
+     * equal} to {@code value} at {@code timestamp}.
+     * <p>
+     * This method is a shortcut for calling
+     * {@link #find(String, Operator, Object, Timestamp)} with
+     * {@link Operator#EQUALS}.
+     * </p>
+     *
+     * @param key the field name
+     * @param value the value that must exist in the {@code key} field for the
+     *            record to match
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use when checking for matches – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records where {@code key} was equal to {@code value} at
+     *         {@code timestamp}
+     */
+    public abstract Set<Long> find(String key, Object value,
+            Timestamp timestamp, Page page);
+
+    /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to the
      * {@code value}.
@@ -973,6 +1038,24 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Object value2, Order order);
+
+    /**
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to
+     * {@code value} and {@code value2}.
+     *
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            values to those stored across the {@code key} field while
+     *            determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Page page);
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
@@ -1025,6 +1108,32 @@ public abstract class Concourse implements AutoCloseable {
             Object value2, Timestamp timestamp, Order order);
 
     /**
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to {@code value} and {@code value2}.
+     *
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            values to those stored across the {@code key} field while
+     *            determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use when checking for matches – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp, Page page);
+
+    /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to the
      * {@code value}.
@@ -1040,6 +1149,23 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Order order);
+
+    /**
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to the
+     * {@code value}.
+     *
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            {@code value} to those stored across the {@code key} field
+     *            while determining which records are matches
+     * @param value the comparison value for the {@code operator}
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Page page);
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
@@ -1090,13 +1216,29 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp, Order order);
 
     /**
-     * Return the set of records that satisfy the {@code ccl} filter.
-     * 
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@timestamp} that satisfies the {@code operator} in
+     * relation to the {@code value}.
+     *
+     * @param key the field name
+     * @param operator the {@link Operator} to use when comparing the specified
+     *            {@code value} to those stored across the {@code key} field
+     *            while determining which records are matches
+     * @param value the comparison value for the {@code operator}
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use when checking for matches – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
      * @return the records that match the criteria
      */
-    public abstract Set<Long> find(String ccl);
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp, Page page);
 
     /**
      * Return the set of records that satisfy the {@code ccl} filter.
@@ -1108,6 +1250,17 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String ccl, Order order);
+
+    /**
+     * Return the set of records that satisfy the {@code ccl} filter.
+     *
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String ccl, Page page);
 
     /**
      * Return the set of {@code records} where the {@code key} field contains at
@@ -1161,6 +1314,25 @@ public abstract class Concourse implements AutoCloseable {
             Object value2, Order order);
 
     /**
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to
+     * {@code value} and {@code value2}.
+     *
+     * @param key the field name
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2, Page page);
+
+    /**
      * Return the set of {@code records} where the {@code key} field contained
      * at least one value at {@code timestamp} that satisfies the
      * {@code operator} in relation to {@code value} and {@code value2}.
@@ -1213,6 +1385,33 @@ public abstract class Concourse implements AutoCloseable {
             Object value2, Timestamp timestamp, Order order);
 
     /**
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to {@code value} and {@code value2}.
+     *
+     * @param key the field name
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
+     * @param value the first comparison value for the {@code operator}
+     * @param value2 the second comparison value for the {@code operator}
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use when checking for matches – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp, Page page);
+
+    /**
      * Return the set of {@code records} where the {@code key} field contains at
      * least one value that satisfies the {@code operator} in relation to the
      * {@code value}.
@@ -1229,6 +1428,24 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, String operator, Object value,
             Order order);
+
+    /**
+     * Return the set of {@code records} where the {@code key} field contains at
+     * least one value that satisfies the {@code operator} in relation to the
+     * {@code value}.
+     *
+     * @param key the field name
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
+     * @param value the comparison value for the {@code operator}
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Page page);
 
     /**
      * Return the set of {@code records} where the {@code key} field contained
@@ -1279,6 +1496,32 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Order order);
+
+    /**
+     * Return the set of {@code records} where the {@code key} field contained
+     * at least one value at {@code timestamp} that satisfies the
+     * {@code operator} in relation to the {@code value}.
+     *
+     * @param key the field name
+     * @param operator a valid {@link Convert#stringToOperator(String)
+     *            description} of an {@link Operator} to use when comparing the
+     *            specified {@code value} to those stored across the {@code key}
+     *            field while determining which records are matches
+     * @param value the comparison value for the {@code operator}
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use when checking for matches – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp, Page page);
 
     /**
      * Return the unique record where {@code key} {@link Operator#EQUALS equals}
@@ -1595,6 +1838,21 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For each of the {@code keys} in each of the {@code records}, return the
+     * stored value that was most recently added.
+     *
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Page page);
+
+    /**
+     * For each of the {@code keys} in each of the {@code records}, return the
      * stored value that was most recently added at {@code timestamp}.
      * 
      * @param keys a collection of field names
@@ -1638,6 +1896,29 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Timestamp timestamp, Order order);
 
     /**
+     * For each of the {@code keys} in each of the {@code records}, return the
+     * stored value that was most recently added at {@code timestamp}.
+     *
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page);
+
+    /**
      * For each of the {@code keys} in every record that matches the
      * {@code criteria}, return the stored value that was most recently
      * added.
@@ -1668,6 +1949,23 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Order order);
+
+    /**
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
+     * added.
+     * 
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Page page);
 
     /**
      * For each of the {@code keys} in every record that matches the
@@ -1716,6 +2014,31 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order);
+
+    /**
+     * For each of the {@code keys} in every record that matches the
+     * {@code criteria}, return the stored value that was most recently
+     * added at {@code timestamp}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page);
 
     /**
      * For each of the {@code keys} in {@code record}, return the stored value
@@ -1782,6 +2105,22 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For each of the {@code keys} in every record that matches the {@code ccl}
+     * filter, return the stored value that was most recently added.
+     *
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Page page);
+
+    /**
+     * For each of the {@code keys} in every record that matches the {@code ccl}
      * filter, return the stored value that was most recently added at
      * {@code timestamp}.
      * 
@@ -1829,6 +2168,31 @@ public abstract class Concourse implements AutoCloseable {
             String ccl, Timestamp timestamp, Order order);
 
     /**
+     * For each of the {@code keys} in every record that matches the {@code ccl}
+     * filter, return the stored value that was most recently added at
+     * {@code timestamp}.
+     *
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} to the freshest
+     *         value in the field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page);
+
+    /**
      * For every key in every record that matches the {@code criteria}, return
      * the stored value that was most recently added.
      * 
@@ -1854,6 +2218,21 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Order order);
+
+    /**
+     * For every key in every record that matches the {@code criteria}, return
+     * the stored value that was most recently added.
+     *
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the record's keys to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Page page);
 
     /**
      * For every key in every record that matches the {@code criteria}, return
@@ -1938,6 +2317,20 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For each of the {@code records}, return the stored value in the
+     * {@code key} field that was most recently added.
+     *
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to the
+     *         freshest value in the {@code key} field
+     */
+    public abstract <T> Map<Long, T> get(String key, Collection<Long> records,
+            Page page);
+
+    /**
+     * For each of the {@code records}, return the stored value in the
      * {@code key} field that was most recently added at {@code timestamp}
      * 
      * @param key the field name
@@ -1979,6 +2372,28 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp, Order order);
 
     /**
+     * For each of the {@code records}, return the stored value in the
+     * {@code key} field that was most recently added at {@code timestamp}
+     *
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to the
+     *         freshest value in the {@code key} field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, T> get(String key, Collection<Long> records,
+            Timestamp timestamp, Page page);
+
+    /**
      * For every record that matches the {@code criteria}, return the stored
      * value in the {@code key} field that was most recently added.
      * 
@@ -2004,6 +2419,21 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, T> get(String key, Criteria criteria,
             Order order);
+
+    /**
+     * For every record that matches the {@code criteria}, return the stored
+     * value in the {@code key} field that was most recently added.
+     *
+     * @param key the field name
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to the
+     *         freshest value in the {@code key} field
+     */
+    public abstract <T> Map<Long, T> get(String key, Criteria criteria,
+            Page page);
 
     /**
      * For every record that matches the {@code criteria}, return the
@@ -2050,6 +2480,30 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Order order);
+
+    /**
+     * For every record that matches the {@code criteria}, return the
+     * stored value in the {@code key} field that was most recently added at
+     * {@code timestamp}.
+     *
+     * @param key the field name
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to the
+     *         freshest value in the {@code key} field
+     */
+    public abstract <T> Map<Long, T> get(String key, Criteria criteria,
+            Timestamp timestamp, Page page);
 
     /**
      * Return the stored value that was most recently added for {@code key} in
@@ -2132,6 +2586,20 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, T>> get(String ccl, Order order);
 
     /**
+     * For every key in every record that matches the {@code ccl} filter, return
+     * the stored value that was most recently added.
+     *
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the record's keys to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(String ccl, Page page);
+
+    /**
      * For every record that matches the {@code ccl} filter, return the
      * stored value in the {@code key} field that was most recently added.
      * <p>
@@ -2169,6 +2637,25 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * For every record that matches the {@code ccl} filter, return the
+     * stored value in the {@code key} field that was most recently added.
+     * <p>
+     * This method is syntactic sugar for {@link #get(String, Criteria)}. The
+     * only difference is that this method takes a in-process {@link Criteria}
+     * building sequence for convenience.
+     * </p>
+     *
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to the
+     *         freshest value in the {@code key} field
+     */
+    public abstract <T> Map<Long, T> get(String key, String ccl, Page page);
+
+    /**
+     * For every record that matches the {@code ccl} filter, return the
      * stored value in the {@code key} field that was most recently added at
      * {@code timestamp}.
      * <p>
@@ -2226,6 +2713,36 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp, Order order);
 
     /**
+     * For every record that matches the {@code ccl} filter, return the
+     * stored value in the {@code key} field that was most recently added at
+     * {@code timestamp}.
+     * <p>
+     * This method is syntactic sugar for
+     * {@link #get(String, Criteria, Timestamp)}. The only difference is that
+     * this method takes a in-process {@link Criteria} building sequence for
+     * convenience.
+     * </p>
+     *
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to the
+     *         freshest value in the {@code key} field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, T> get(String key, String ccl,
+            Timestamp timestamp, Page page);
+
+    /**
      * For every key in every record that matches the {@code ccl} filter,
      * return the stored value that was most recently added.
      * 
@@ -2268,6 +2785,29 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, T>> get(String ccl,
             Timestamp timestamp, Order order);
+
+    /**
+     * For every key in every record that matches the {@code ccl} filter,
+     * return the stored value that was most recently added.
+     *
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the record's keys to the freshest
+     *         value in the field
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(String ccl,
+            Timestamp timestamp, Page page);
 
     /**
      * Return the name of the connected environment.
@@ -3267,9 +3807,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records);
 
-    public abstract Map<Long, Map<String, Set<Object>>> select(
-            Collection<Long> records, Page page);
-
     /**
      * Return all the data that is currently stored in each of the
      * {@code records}.
@@ -3283,6 +3820,19 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records, Order order);
+
+    /**
+     * Return all the data that is currently stored in each of the
+     * {@code records}.
+     * 
+     * @param records a collection of record ids
+     * @param page
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating every key in that record to a {@link Set}
+     *         containing all the values stored in the respective field
+     */
+    public abstract Map<Long, Map<String, Set<Object>>> select(
+            Collection<Long> records, Page page);
 
     /**
      * Return all the data that was stored in each of the {@code records} at
@@ -3329,6 +3879,29 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Timestamp timestamp, Order order);
 
     /**
+     * Return all the data that was stored in each of the {@code records} at
+     * {@code timestamp}.
+     *
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating every key in that record at
+     *         {@code timestamp} to a {@link Set} containing all the values
+     *         stored in the respective field at {@code timestamp}
+     */
+    public abstract Map<Long, Map<String, Set<Object>>> select(
+            Collection<Long> records, Timestamp timestamp, Page page);
+
+    /**
      * Return all the values stored for each of the {@code keys} in each of the
      * {@code records}.
      * 
@@ -3355,6 +3928,21 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Collection<Long> records, Order order);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records}.
+     *
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Collection<Long> records, Page page);
 
     /**
      * Return all the values stored for each of the {@code keys} in each of the
@@ -3405,6 +3993,31 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp, Order order);
 
     /**
+     * Return all the values stored for each of the {@code keys} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param keys a collection of field names
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to another
+     *         {@link Map} associating each of the {@code keys} to a {@link Set}
+     *         containing all the values stored in the respective field at
+     *         {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp, Page page);
+
+    /**
      * Return all the values stored for each of the {@code keys} in every record
      * that matches the {@code criteria}.
      * 
@@ -3435,6 +4048,23 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Criteria criteria, Order order);
+
+    /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Page page);
 
     /**
      * Return all the values stored for each of the {@code keys} at
@@ -3484,6 +4114,32 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<String> keys, Criteria criteria, Timestamp timestamp,
             Order order);
+
+    /**
+     * Return all the values stored for each of the {@code keys} at
+     * {@code timestamp} in every record that matches the {@code criteria}
+     *
+     * @param keys a collection of field names
+     * @param criteria a {@link Criteria} that contains a
+     *            well-formed filter for the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Page page);
 
     /**
      * Return all the values stored for each of the {@code keys} in
@@ -3552,6 +4208,23 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, String ccl, Order order);
 
     /**
+     * Return all the values stored for each of the {@code keys} in every record
+     * that matches the {@code ccl} filter.
+     *
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, String ccl, Page page);
+
+    /**
      * Return all the values stored for each of the {@code keys} at
      * {@code timestamp} in every record that matches the {@code ccl} filter.
      * 
@@ -3602,6 +4275,31 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the data from every record that matches {@code criteria}.
+     *
+     * @param keys a collection of field names
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, String ccl, Timestamp timestamp,
+            Page page);
+
+    /**
+     * Return all the data from every record that matches {@code criteria}.
      * 
      * @param keys a collection of field names
      * @param criteria a {@link Criteria} that contains a well-formed filter for
@@ -3629,6 +4327,21 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Order order);
+
+    /**
+     * Return all the data from every record that matches {@code criteria}.
+     *
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Page page);
 
     /**
      * Return all the data at {@code timestamp} from every record that
@@ -3677,6 +4390,30 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Order order);
+
+    /**
+     * Return all the data at {@code timestamp} from every record that
+     * matches the {@code criteria}.
+     *
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp, Page page);
 
     /**
      * Return all the data from {@code record}.
@@ -3780,6 +4517,20 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Order order);
 
     /**
+     * Return all values stored for {@code key} in each of the {@code records}.
+     *
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key,
+            Collection<Long> records, Page page);
+
+    /**
      * Return all values stored for {@code key} in each of the {@code records}
      * at {@code timestamp}.
      * 
@@ -3824,6 +4575,29 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records, Timestamp timestamp, Order order);
 
     /**
+     * Return all values stored for {@code key} in each of the {@code records}
+     * at {@code timestamp}.
+     *
+     * @param key the field name
+     * @param records a collection of record ids
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the {@code records} to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key,
+            Collection<Long> records, Timestamp timestamp, Page page);
+
+    /**
      * Return all the values stored for {@code key} in every record that
      * matches the {@code criteria}.
      * 
@@ -3851,6 +4625,22 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Order order);
+
+    /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code criteria}.
+     *
+     * @param key the field name
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Page page);
 
     /**
      * Return all the values stored for {@code key} at {@code timestamp} in
@@ -3897,6 +4687,30 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Order order);
+
+    /**
+     * Return all the values stored for {@code key} at {@code timestamp} in
+     * every record that matches the {@code criteria}.
+     *
+     * @param key the field name
+     * @param criteria a {@link Criteria} that contains a well-formed filter for
+     *            the desired records
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Timestamp timestamp, Page page);
 
     /**
      * Return all the values stored for {@code key} in {@code record}.
@@ -3977,6 +4791,21 @@ public abstract class Concourse implements AutoCloseable {
             Order order);
 
     /**
+     * Return all the data from every record that matches {@code ccl} filter.
+     *
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Page page);
+
+    /**
      * Return all the values stored for {@code key} in every record that
      * matches the {@code ccl} filter.
      * 
@@ -4006,6 +4835,22 @@ public abstract class Concourse implements AutoCloseable {
             Order order);
 
     /**
+     * Return all the values stored for {@code key} in every record that
+     * matches the {@code ccl} filter.
+     *
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
+            Page page);
+
+    /**
      * Return all the values stored for {@code key} at {@code timestamp} in
      * every record that matches the {@code ccl} filter.
      * 
@@ -4050,6 +4895,30 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Order order);
+
+    /**
+     * Return all the values stored for {@code key} at {@code timestamp} in
+     * every record that matches the {@code ccl} filter.
+     *
+     * @param key the field name
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to a
+     *         {@link Set} containing all the values stored in the respective
+     *         field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
+            Timestamp timestamp, Page page);
 
     /**
      * Return all the data at {@code timestamp} from every record that
@@ -4098,6 +4967,30 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Order order);
+
+    /**
+     * Return all the data at {@code timestamp} from every record that
+     * matches the {@code ccl} filter.
+     *
+     * @param ccl a well-formed criteria expressed using the Concourse Criteria
+     *            Language
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param page a {@link Page) specification that describes the page of the
+     * result set to return
+     * @return a {@link Map} associating each of the matching records to another
+     *         {@link Map} associating each of the {@code keys} in that record
+     *         to a {@link Set} containing all the values stored in the
+     *         respective field at {@code timestamp}
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp, Page page);
 
     /**
      * In each of the {@code records}, atomically remove all the values stored
