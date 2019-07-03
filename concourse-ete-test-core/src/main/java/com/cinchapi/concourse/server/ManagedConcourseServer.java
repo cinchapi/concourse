@@ -70,6 +70,7 @@ import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.OrderComponent;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
@@ -1966,6 +1967,10 @@ public class ManagedConcourseServer {
                         parameterTypes[i] = loader
                                 .loadClass(packageBase + "lang.Criteria");
                     }
+                    else if(parameterTypes[i] == Order.class) {
+                        parameterTypes[i] = loader
+                                .loadClass(packageBase + "lang.sort.Order");
+                    }
                     else {
                         continue;
                     }
@@ -2083,6 +2088,27 @@ public class ManagedConcourseServer {
                             }
                             args[i] = robj;
                         }
+                        else if(args[i] instanceof Order) {
+                            Order order = (Order) args[i];
+                            List<OrderComponent> spec = order.spec();
+                            Class<?> rclazz = loader.loadClass(
+                                    packageBase + "lang.sort.BuiltOrder");
+                            Constructor<?> rconstructor = rclazz
+                                    .getDeclaredConstructor();
+                            rconstructor.setAccessible(true);
+                            Object robj = rconstructor.newInstance();
+                            Method rmethod = rclazz.getDeclaredMethod("set",
+                                    String.class, long.class, int.class);
+                            rmethod.setAccessible(true);
+                            for (OrderComponent component : spec) {
+                                rmethod.invoke(robj, component.key(),
+                                        component.timestamp() == null ? -1
+                                                : component.timestamp()
+                                                        .getMicros(),
+                                        component.direction().ordinal());
+                            }
+                            args[i] = robj;
+                        }
                         else {
                             continue;
                         }
@@ -2139,314 +2165,335 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(Criteria criteria, Order order) {
-            return invoke("find").with(Criteria.class, Order.class);
+            return invoke("find", Criteria.class, Order.class).with(criteria,
+                    order);
         }
 
         @Override
         public Set<Long> find(String key, Object value, Order order) {
-            return invoke("find").with(String.class, Object.class, Order.class);
+            return invoke("find", String.class, Object.class, Order.class)
+                    .with(key, value, order);
         }
 
         @Override
         public Set<Long> find(String key, Object value, Timestamp timestamp,
                 Order order) {
-            return invoke("find").with(String.class, Object.class,
-                    Timestamp.class, Order.class);
+            return invoke("find", String.class, Object.class, Timestamp.class,
+                    Order.class).with(key, value, timestamp, order);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
                 Object value2, Order order) {
-            return invoke("find").with(String.class, Operator.class,
-                    Object.class, Object.class, Order.class);
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Object.class, Order.class).with(key, operator, value,
+                            value2, order);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
                 Object value2, Timestamp timestamp, Order order) {
-            return invoke("find").with(String.class, Operator.class,
-                    Object.class, Object.class, Timestamp.class, Order.class);
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Object.class, Timestamp.class, Order.class).with(key,
+                            operator, value, value2, timestamp, order);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
                 Order order) {
-            return invoke("find").with(String.class, Operator.class,
-                    Object.class, Order.class);
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Order.class).with(key, operator, value, order);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
                 Timestamp timestamp, Order order) {
-            return invoke("find").with(String.class, Operator.class,
-                    Object.class, Timestamp.class, Order.class);
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Timestamp.class, Order.class).with(key, operator, value,
+                            timestamp, order);
         }
 
         @Override
         public Set<Long> find(String ccl, Order order) {
-            return invoke("find").with(String.class, Order.class);
+            return invoke("find", String.class, Order.class).with(ccl, order);
         }
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
                 Object value2, Order order) {
-            return invoke("find").with(String.class, String.class, Object.class,
-                    Object.class, Order.class);
+            return invoke("find", String.class, String.class, Object.class,
+                    Object.class, Order.class).with(key, operator, value,
+                            value2, order);
         }
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
                 Object value2, Timestamp timestamp, Order order) {
-            return invoke("find").with(String.class, String.class, Object.class,
-                    Object.class, Timestamp.class, Order.class);
+            return invoke("find", String.class, String.class, Object.class,
+                    Object.class, Timestamp.class, Order.class).with(key,
+                            operator, value, value2, timestamp, order);
         }
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
                 Order order) {
-            return invoke("find").with(String.class, String.class, Object.class,
-                    Order.class);
+            return invoke("find", String.class, String.class, Object.class,
+                    Order.class).with(key, operator, value, order);
         }
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
                 Timestamp timestamp, Order order) {
-            return invoke("find").with(String.class, String.class, Object.class,
-                    Timestamp.class, Order.class);
+            return invoke("find", String.class, String.class, Object.class,
+                    Timestamp.class, Order.class).with(key, operator, value,
+                            timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Collection<Long> records, Order order) {
-            return invoke("get").with(Collection.class, Collection.class,
-                    Order.class);
+            return invoke("get", Collection.class, Collection.class,
+                    Order.class).with(keys, records, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Collection<Long> records, Timestamp timestamp, Order order) {
-            return invoke("get").with(Collection.class, Collection.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", Collection.class, Collection.class,
+                    Timestamp.class, Order.class).with(keys, records, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Criteria criteria, Order order) {
-            return invoke("get").with(Collection.class, Criteria.class,
-                    Order.class);
+            return invoke("get", Collection.class, Criteria.class, Order.class)
+                    .with(keys, criteria, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Criteria criteria, Timestamp timestamp, Order order) {
-            return invoke("get").with(Collection.class, Criteria.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", Collection.class, Criteria.class,
+                    Timestamp.class, Order.class).with(keys, criteria,
+                            timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 String ccl, Order order) {
-            return invoke("get").with(Collection.class, String.class,
-                    Order.class);
+            return invoke("get", Collection.class, String.class, Order.class)
+                    .with(keys, ccl, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 String ccl, Timestamp timestamp, Order order) {
-            return invoke("get").with(Collection.class, String.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", Collection.class, String.class,
+                    Timestamp.class, Order.class).with(keys, ccl, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Criteria criteria,
                 Order order) {
-            return invoke("get").with(Criteria.class, Order.class);
+            return invoke("get", Criteria.class, Order.class).with(criteria,
+                    order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Criteria criteria,
                 Timestamp timestamp, Order order) {
-            return invoke("get").with(Criteria.class, Timestamp.class,
-                    Order.class);
+            return invoke("get", Criteria.class, Timestamp.class, Order.class)
+                    .with(criteria, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, Collection<Long> records,
                 Order order) {
-            return invoke("get").with(String.class, Collection.class,
-                    Order.class);
+            return invoke("get", String.class, Collection.class, Order.class)
+                    .with(key, records, order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, Collection<Long> records,
                 Timestamp timestamp, Order order) {
-            return invoke("get").with(String.class, Collection.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", String.class, Collection.class,
+                    Timestamp.class, Order.class).with(key, records, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, Criteria criteria,
                 Order order) {
-            return invoke("get").with(String.class, Criteria.class,
-                    Order.class);
+            return invoke("get", String.class, Criteria.class, Order.class)
+                    .with(key, criteria, order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, Criteria criteria,
                 Timestamp timestamp, Order order) {
-            return invoke("get").with(String.class, Criteria.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", String.class, Criteria.class, Timestamp.class,
+                    Order.class).with(key, criteria, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(String ccl, Order order) {
-            return invoke("get").with(String.class, Order.class);
+            return invoke("get", String.class, Order.class).with(ccl, order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, String ccl, Order order) {
-            return invoke("get").with(String.class, String.class, Order.class);
+            return invoke("get", String.class, String.class, Order.class)
+                    .with(key, ccl, order);
         }
 
         @Override
         public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
                 Order order) {
-            return invoke("get").with(String.class, String.class,
-                    Timestamp.class, Order.class);
+            return invoke("get", String.class, String.class, Timestamp.class,
+                    Order.class).with(key, ccl, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, T>> get(String ccl,
                 Timestamp timestamp, Order order) {
-            return invoke("get").with(String.class, Timestamp.class,
-                    Order.class);
+            return invoke("get", String.class, Timestamp.class, Order.class)
+                    .with(ccl, timestamp, order);
         }
 
         @Override
         public Map<Long, Map<String, Set<Object>>> select(
                 Collection<Long> records, Order order) {
-            return invoke("select").with(Collection.class, Order.class);
+            return invoke("select", Collection.class, Order.class).with(records,
+                    order);
         }
 
         @Override
         public Map<Long, Map<String, Set<Object>>> select(
                 Collection<Long> records, Timestamp timestamp, Order order) {
-            return invoke("select").with(Collection.class, Timestamp.class,
-                    Order.class);
+            return invoke("select", Collection.class, Timestamp.class,
+                    Order.class).with(records, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Collection<Long> records,
                 Order order) {
-            return invoke("select").with(Collection.class, Collection.class,
-                    Order.class);
+            return invoke("select", Collection.class, Collection.class,
+                    Order.class).with(keys, records, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Collection<Long> records,
                 Timestamp timestamp, Order order) {
-            return invoke("select").with(Collection.class, Collection.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", Collection.class, Collection.class,
+                    Timestamp.class, Order.class).with(keys, records, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Criteria criteria, Order order) {
-            return invoke("select").with(Collection.class, Criteria.class,
-                    Order.class);
+            return invoke("select", Collection.class, Criteria.class,
+                    Order.class).with(keys, criteria, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Criteria criteria, Timestamp timestamp,
                 Order order) {
-            return invoke("select").with(Collection.class, Criteria.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", Collection.class, Criteria.class,
+                    Timestamp.class, Order.class).with(keys, criteria,
+                            timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, String ccl, Order order) {
-            return invoke("select").with(Collection.class, String.class,
-                    Order.class);
+            return invoke("select", Collection.class, String.class, Order.class)
+                    .with(keys, ccl, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, String ccl, Timestamp timestamp,
                 Order order) {
-            return invoke("select").with(Collection.class, String.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", Collection.class, String.class,
+                    Timestamp.class, Order.class).with(keys, ccl, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
                 Order order) {
-            return invoke("select").with(Criteria.class, Order.class);
+            return invoke("select", Criteria.class, Order.class).with(criteria,
+                    order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
                 Timestamp timestamp, Order order) {
-            return invoke("select").with(Criteria.class, Timestamp.class,
-                    Order.class);
+            return invoke("select", Criteria.class, Timestamp.class,
+                    Order.class).with(criteria, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key,
                 Collection<Long> records, Order order) {
-            return invoke("select").with(String.class, Collection.class,
-                    Order.class);
+            return invoke("select", String.class, Collection.class, Order.class)
+                    .with(key, records, order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key,
                 Collection<Long> records, Timestamp timestamp, Order order) {
-            return invoke("select").with(String.class, Collection.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", String.class, Collection.class,
+                    Timestamp.class, Order.class).with(key, records, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
                 Order order) {
-            return invoke("select").with(String.class, Criteria.class,
-                    Order.class);
+            return invoke("select", String.class, Criteria.class, Order.class)
+                    .with(key, criteria, order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
                 Timestamp timestamp, Order order) {
-            return invoke("select").with(String.class, Criteria.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", String.class, Criteria.class,
+                    Timestamp.class, Order.class).with(key, criteria, timestamp,
+                            order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
                 Order order) {
-            return invoke("select").with(String.class, Order.class);
+            return invoke("select", String.class, Order.class).with(ccl, order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key, String ccl,
                 Order order) {
-            return invoke("select").with(String.class, String.class,
-                    Order.class);
+            return invoke("select", String.class, String.class, Order.class)
+                    .with(key, ccl, order);
         }
 
         @Override
         public <T> Map<Long, Set<T>> select(String key, String ccl,
                 Timestamp timestamp, Order order) {
-            return invoke("select").with(String.class, String.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", String.class, String.class, Timestamp.class,
+                    Order.class).with(key, ccl, timestamp, order);
         }
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
                 Timestamp timestamp, Order order) {
-            return invoke("select").with(String.class, Timestamp.class,
-                    Order.class);
+            return invoke("select", String.class, Timestamp.class, Order.class)
+                    .with(ccl, timestamp, order);
         }
     }
 }

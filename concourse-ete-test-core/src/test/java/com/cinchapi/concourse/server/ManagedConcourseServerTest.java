@@ -28,9 +28,11 @@ import org.junit.runner.Description;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.ConcourseCodebase;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.server.ManagedConcourseServer}.
@@ -171,6 +173,14 @@ public class ManagedConcourseServerTest {
         server.start();
         Concourse concourse = server.connect();
         concourse.find(Criteria.where().key("name").operator(Operator.EQUALS).value("foo"));
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+    
+    @Test
+    public void testTranslateOrderBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.select(ImmutableList.of(1L, 2L), Order.by("name"));
         Assert.assertTrue(true); // lack of Exception means the test passes
     }
 
