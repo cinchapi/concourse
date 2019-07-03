@@ -69,6 +69,7 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
@@ -2432,6 +2433,12 @@ public class ManagedConcourseServer {
                 Timestamp timestamp, Order order) {
             return invoke("select").with(String.class, Timestamp.class,
                     Order.class);
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> select(
+                Collection<Long> records, Page page) {
+            return invoke("select").with(Collection.class, Page.class);
         }
     }
 }

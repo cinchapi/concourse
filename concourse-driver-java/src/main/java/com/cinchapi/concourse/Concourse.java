@@ -29,6 +29,7 @@ import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
@@ -3265,6 +3266,9 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Long, Map<String, Set<Object>>> select(
             Collection<Long> records);
+
+    public abstract Map<Long, Map<String, Set<Object>>> select(
+            Collection<Long> records, Page page);
 
     /**
      * Return all the data that is currently stored in each of the

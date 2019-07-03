@@ -143,8 +143,7 @@ public final class JavaThriftBridge {
      * @return the analogous {@link Page}
      */
     public static Page convert(TPage tpage) {
-        return Page.sized(tpage.getLimit())
-                .go(tpage.getLimit() / tpage.getSkip());
+        return Page.of(tpage.getSkip(), tpage.getLimit());
     }
 
     private JavaThriftBridge() {/* no-init */}

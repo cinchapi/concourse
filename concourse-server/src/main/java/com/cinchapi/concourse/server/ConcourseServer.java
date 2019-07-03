@@ -56,6 +56,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.data.paginate.Paging;
 import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableSet;
 import com.cinchapi.concourse.data.sort.SortableTable;
@@ -97,6 +98,7 @@ import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
+import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
@@ -5798,7 +5800,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return null;
+        Map<Long, Map<String, Set<TObject>>> data = selectRecords(records,
+                creds, transaction, environment);
+        data = Paging.paginate(data, JavaThriftBridge.convert(page),
+                () -> emptySortableResultDataset(),
+                (map, entity) -> TMaps.putResultDatasetOptimized(map,
+                        entity.getKey(), entity.getValue()));
+        return data;
     }
 
     /*

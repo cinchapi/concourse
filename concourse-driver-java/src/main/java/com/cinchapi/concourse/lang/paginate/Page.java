@@ -63,6 +63,18 @@ public final class Page {
     }
 
     /**
+     * Return a {@link Page} with explicit {@code skip} and {@code limit}
+     * parameters.
+     * 
+     * @param skip
+     * @param limit
+     * @return the Page
+     */
+    public static Page of(int skip, int limit) {
+        return new Page(skip, limit);
+    }
+
+    /**
      * Return the first {@link Page} with {@code size} items.
      * 
      * @param size

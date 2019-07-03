@@ -44,6 +44,7 @@ import com.cinchapi.concourse.data.transform.DataRow;
 import com.cinchapi.concourse.data.transform.DataTable;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
@@ -2049,6 +2050,18 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> data = client
                     .selectRecordsOrder(Collections.toLongList(records),
                             JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectRecordsPage(Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
                             environment);
             return DataTable.multiValued(data);
         });
