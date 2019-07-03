@@ -566,8 +566,8 @@ class ConcourseThriftDriver extends Concourse {
     
     @Override
     public Set<String> inspect() {
-        return null;
-        
+        Set<String> results = Sets.newLinkedHashSet();
+        return results;
     }
 
     @Override
