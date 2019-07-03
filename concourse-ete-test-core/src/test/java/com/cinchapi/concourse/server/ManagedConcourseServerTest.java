@@ -167,15 +167,16 @@ public class ManagedConcourseServerTest {
         Object time = concourse.get("time", record);
         Assert.assertTrue(time instanceof Timestamp);
     }
-    
+
     @Test
     public void testTranslateCriteriaBetweenClientAndServer() {
         server.start();
         Concourse concourse = server.connect();
-        concourse.find(Criteria.where().key("name").operator(Operator.EQUALS).value("foo"));
+        concourse.find(Criteria.where().key("name").operator(Operator.EQUALS)
+                .value("foo"));
         Assert.assertTrue(true); // lack of Exception means the test passes
     }
-    
+
     @Test
     public void testTranslateOrderBetweenClientAndServer() {
         server.start();
