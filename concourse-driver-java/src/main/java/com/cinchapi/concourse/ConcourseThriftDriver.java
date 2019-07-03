@@ -563,6 +563,12 @@ class ConcourseThriftDriver extends Concourse {
                     : false;
         });
     }
+    
+    @Override
+    public Set<String> inspect() {
+        return null;
+        
+    }
 
     @Override
     public Set<String> describe() {

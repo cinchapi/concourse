@@ -1193,6 +1193,14 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3
   );
+  
+ /**
+  * List all plugins enabled in the database.
+  * 
+  * @return the {@link Set} of plugins enabled.
+  *
+  */
+  set<string> inspect()
 
   /**
    * List all the keys in the database.

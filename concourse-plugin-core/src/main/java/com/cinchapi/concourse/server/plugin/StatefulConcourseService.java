@@ -671,6 +671,10 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public Set<String> inspect() {
+        throw new UnsupportedOperationException();
+    }
+
     public Set<String> describe() {
         throw new UnsupportedOperationException();
     }
