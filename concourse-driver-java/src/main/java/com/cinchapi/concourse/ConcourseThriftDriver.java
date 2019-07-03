@@ -563,7 +563,7 @@ class ConcourseThriftDriver extends Concourse {
                     : false;
         });
     }
-    
+
     @Override
     public Set<String> inspect() {
         Set<String> results = Sets.newLinkedHashSet();

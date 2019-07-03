@@ -591,7 +591,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code false}
      */
     public abstract boolean commit();
-    
+
     /**
      * Return a list of enabled Concourse plugins.
      * 

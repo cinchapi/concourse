@@ -122,8 +122,8 @@ import com.google.inject.Injector;
  *
  * @author Jeff Nelson
  */
-public class ConcourseServer extends BaseConcourseServer implements
-        ConcourseService.Iface {
+public class ConcourseServer extends BaseConcourseServer
+        implements ConcourseService.Iface {
 
     /*
      * IMPORTANT NOTICE
