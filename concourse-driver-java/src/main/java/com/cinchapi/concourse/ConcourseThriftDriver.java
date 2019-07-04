@@ -835,29 +835,25 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(Criteria criteria, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            return client.findCriteriaOrderPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(Criteria criteria, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            return client.findCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+        });
     }
 
     @Override
@@ -877,29 +873,14 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(order, key, Operator.EQUALS, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.Object, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Object value, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(order, page, key, Operator.EQUALS, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.Object, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Object value, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(page, key, Operator.EQUALS, value);
     }
 
     @Override
@@ -913,33 +894,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(timestamp, order, key, Operator.EQUALS, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, order, page, key, Operator.EQUALS, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, key, Operator.EQUALS, value);
     }
 
     @Override
@@ -959,33 +923,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(order, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * java.lang.Object, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(order, page, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * java.lang.Object, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(page, key, operator, value, value2);
     }
 
     @Override
@@ -1000,35 +947,17 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(timestamp, order, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, order, page, key, operator, value,
+                value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, page, key, operator, value, value2);
     }
 
     @Override
@@ -1037,33 +966,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(order, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(order, page, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(page, key, operator, value);
     }
 
     @Override
@@ -1078,34 +990,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(timestamp, order, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, order, page, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
-     * com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, page, key, operator, value);
     }
 
     @Override
@@ -1116,29 +1010,21 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String ccl, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            return client.findCclOrderPage(ccl, JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            return client.findCclPage(ccl, JavaThriftBridge.convert(page),
+                    creds, transaction, environment);
+        });
     }
 
     @Override
@@ -1158,33 +1044,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(order, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, java.lang.Object,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(order, page, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, java.lang.Object,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(page, key, operator, value, value2);
     }
 
     @Override
@@ -1199,34 +1068,17 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(timestamp, order, key, operator, value, value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, java.lang.Object,
-     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, order, page, key, operator, value,
+                value2);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, java.lang.Object,
-     * com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, key, operator, value, value2);
     }
 
     @Override
@@ -1235,33 +1087,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(order, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(order, page, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(page, key, operator, value);
     }
 
     @Override
@@ -1276,33 +1111,16 @@ class ConcourseThriftDriver extends Concourse {
         return executeFind(timestamp, order, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, order, page, key, operator, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
-     * java.lang.String, java.lang.Object, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return executeFind(timestamp, page, key, operator, value);
     }
 
     @Override
@@ -1356,31 +1174,30 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client
+                    .getKeysRecordsOrderPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getKeysRecordsPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1424,34 +1241,52 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysRecordsTimestrOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeysRecordsTimeOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysRecordsTimestrPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeysRecordsTimePage(Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1479,33 +1314,31 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client
+                    .getKeysCriteriaOrderPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getKeysCriteriaPage(
+                    Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1549,33 +1382,51 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysCriteriaTimestrOrderPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeysCriteriaTimeOrderPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysCriteriaTimestrPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.getKeysCriteriaTimePage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1630,31 +1481,29 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getKeysCclOrderPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getKeysCclPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1694,33 +1543,47 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysCclTimestrOrderPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeysCclTimeOrderPage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getKeysCclTimestrPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeysCclTimePage(Collections.toList(keys), ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1744,30 +1607,28 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getCriteriaOrderPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1810,33 +1671,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getCriteriaTimestrOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getCriteriaTimeOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getCriteriaTimestrPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.getCriteriaTimePage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -1870,31 +1746,29 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyRecordsOrderPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyRecordsPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @Override
@@ -1937,33 +1811,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyRecordsTimestrOrderPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeyRecordsTimeOrderPage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyRecordsTimestrPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeyRecordsTimePage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @Override
@@ -1987,32 +1876,28 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyCriteriaOrderPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyCriteriaPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @Override
@@ -2055,33 +1940,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyCriteriaTimestrOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeyCriteriaTimeOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyCriteriaTimestrPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.getKeyCriteriaTimePage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -2121,30 +2021,26 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getCclOrderPage(ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data = client.getCclPage(ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -2166,30 +2062,26 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyCclOrderPage(key, ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data = client.getKeyCclPage(key, ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @Override
@@ -2227,33 +2119,44 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyCclTimestrOrderPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getKeyCclTimeOrderPage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, TObject> data;
+            if(timestamp.isString()) {
+                data = client.getKeyCclTimestrPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.getKeyCclTimePage(key, ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.singleValued(key, data);
+        });
     }
 
     @Override
@@ -2291,32 +2194,44 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getCclTimestrOrderPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getCclTimeOrderPage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
-     * com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, TObject>> data;
+            if(timestamp.isString()) {
+                data = client.getCclTimestrPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.getCclTimePage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.singleValued(data);
+        });
     }
 
     @Override
@@ -2843,18 +2758,17 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectRecordsOrderPage(Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -2908,32 +2822,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectRecordsTimestrOrderPage(
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectRecordsTimeOrderPage(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectRecordsTimestrPage(
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectRecordsTimePage(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -2961,31 +2891,31 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysRecordsOrderPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysRecordsPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3030,34 +2960,53 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysRecordsTimestrOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeysRecordsTimeOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysRecordsTimestrPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeysRecordsTimePage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3085,33 +3034,31 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysCriteriaOrderPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysCriteriaPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3157,33 +3104,52 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysCriteriaTimestrOrderPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeysCriteriaTimeOrderPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysCriteriaTimestrPage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.selectKeysCriteriaTimePage(
+                        Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3239,31 +3205,29 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysCclOrderPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectKeysCclPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3305,33 +3269,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysCclTimestrOrderPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeysCclTimeOrderPage(
+                        Collections.toList(keys), ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeysCclTimestrPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeysCclTimePage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3357,31 +3336,31 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectCriteriaOrderPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectCriteriaPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3424,33 +3403,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectCriteriaTimestrOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectCriteriaTimeOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
-     * Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectCriteriaTimestrPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.selectCriteriaTimePage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3509,31 +3503,29 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyRecordsOrderPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyRecordsPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3576,33 +3568,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyRecordsTimestrOrderPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeyRecordsTimeOrderPage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.util.Collection, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyRecordsTimestrPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeyRecordsTimePage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3627,33 +3634,29 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyCriteriaOrderPage(
+                    key, Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyCriteriaPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3696,33 +3699,48 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyCriteriaTimestrOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeyCriteriaTimeOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyCriteriaTimestrPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.selectKeyCriteriaTimePage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3762,30 +3780,26 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client
+                    .selectCclOrderPage(ccl, JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = client.selectCclPage(
+                    ccl, JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -3807,30 +3821,26 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
             Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyCclOrderPage(key,
+                    ccl, JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data = client.selectKeyCclPage(key, ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3869,33 +3879,44 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyCclTimestrOrderPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectKeyCclTimeOrderPage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * java.lang.String, com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = client.selectKeyCclTimestrPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = client.selectKeyCclTimePage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataColumn.multiValued(key, data);
+        });
     }
 
     @Override
@@ -3934,32 +3955,44 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Order order, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectCclTimestrOrderPage(ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectCclTimeOrderPage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
-     * com.cinchapi.concourse.Timestamp,
-     * com.cinchapi.concourse.lang.paginate.Page)
-     */
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Page page) {
-        // TODO Auto-generated method stub
-        return null;
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = client.selectCclTimestrPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = client.selectCclTimePage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
     }
 
     @Override
@@ -4077,8 +4110,158 @@ class ConcourseThriftDriver extends Concourse {
     /**
      * Perform an old-school/simple find operation where {@code key}
      * satisfied {@code operation} in relation to the specified
+     * {@code values} at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param key
+     * @param operator
+     * @param values
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return the records that match the criteria.
+     */
+    private Set<Long> executeFind(final Timestamp timestamp, Order order,
+            Page page, final String key, final Object operator,
+            final Object... values) {
+        final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::javaToThrift).collect(Collectors.toList());
+        return execute(() -> {
+            if(operator instanceof Operator) {
+                return client.findKeyOperatorValuesTimeOrderPage(key,
+                        (Operator) operator, tValues, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                return client.findKeyOperatorstrValuesTimeOrderPage(key,
+                        operator.toString(), tValues, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+        });
+    }
+
+    /**
+     * Perform an old-school/simple find operation where {@code key}
+     * satisfied {@code operation} in relation to the specified
+     * {@code values} at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @param page
+     * @param key
+     * @param operator
+     * @param values
+     * @param timestamp a {@link Timestamp} that represents the historical
+     *            instant to use in the lookup – created from either a
+     *            {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return the records that match the criteria.
+     */
+    private Set<Long> executeFind(final Timestamp timestamp, Page page,
+            final String key, final Object operator, final Object... values) {
+        final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::javaToThrift).collect(Collectors.toList());
+        return execute(() -> {
+            if(operator instanceof Operator) {
+                return client.findKeyOperatorValuesTimePage(key,
+                        (Operator) operator, tValues, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                return client.findKeyOperatorstrValuesTimePage(key,
+                        operator.toString(), tValues, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+        });
+    }
+
+    /**
+     * Perform an old-school/simple find operation where {@code key}
+     * satisfied {@code operation} in relation to the specified
      * {@code values}.
      * 
+     * @param order
+     * @param page
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that match the criteria.
+     */
+    private Set<Long> executeFind(Order order, Page page, final String key,
+            final Object operator, final Object... values) {
+        final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::javaToThrift).collect(Collectors.toList());
+        return execute(() -> {
+            if(operator instanceof Operator) {
+                return client.findKeyOperatorValuesOrderPage(key,
+                        (Operator) operator, tValues,
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                return client.findKeyOperatorstrValuesOrderPage(key,
+                        operator.toString(), tValues,
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+        });
+    }
+
+    /**
+     * Perform an old-school/simple find operation where {@code key}
+     * satisfied {@code operation} in relation to the specified
+     * {@code values}.
+     * 
+     * @param page
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that match the criteria.
+     */
+    private Set<Long> executeFind(Page page, final String key,
+            final Object operator, final Object... values) {
+        final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::javaToThrift).collect(Collectors.toList());
+        return execute(() -> {
+            if(operator instanceof Operator) {
+                return client.findKeyOperatorValuesPage(key,
+                        (Operator) operator, tValues,
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                return client.findKeyOperatorstrValuesPage(key,
+                        operator.toString(), tValues,
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+        });
+    }
+
+    /**
+     * Perform an old-school/simple find operation where {@code key}
+     * satisfied {@code operation} in relation to the specified
+     * {@code values}.
+     * 
+     * @param order
      * @param key
      * @param operator
      * @param values
