@@ -1213,6 +1213,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Set<Long> find(Criteria criteria, Order order, Page page) {
+            return invoke("find", Criteria.class, Order.class, Page.class)
+                    .with(criteria, order, page);
+        }
+
+        @Override
         public Set<Long> find(Criteria criteria, Page page) {
             return invoke("find", Criteria.class, Page.class).with(criteria,
                     page);
@@ -1235,6 +1241,13 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Set<Long> find(String key, Object value, Order order,
+                Page page) {
+            return invoke("find", String.class, Object.class, Order.class,
+                    Page.class).with(key, value, order, page);
+        }
+
+        @Override
         public Set<Long> find(String key, Object value, Page page) {
             return invoke("find", String.class, Object.class, Page.class)
                     .with(key, value, page);
@@ -1251,6 +1264,14 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("find", String.class, Object.class, Timestamp.class,
                     Order.class).with(key, value, timestamp, order);
+        }
+
+        @Override
+        public Set<Long> find(String key, Object value, Timestamp timestamp,
+                Order order, Page page) {
+            return invoke("find", String.class, Object.class, Timestamp.class,
+                    Order.class, Page.class).with(key, value, timestamp, order,
+                            page);
         }
 
         @Override
@@ -1283,6 +1304,14 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
+                Object value2, Order order, Page page) {
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Object.class, Order.class, Page.class).with(key, operator,
+                            value, value2, order, page);
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
                 Object value2, Page page) {
             return invoke("find", String.class, Operator.class, Object.class,
                     Object.class, Page.class).with(key, operator, value, value2,
@@ -1307,6 +1336,15 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
+                Object value2, Timestamp timestamp, Order order, Page page) {
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Object.class, Timestamp.class, Order.class, Page.class)
+                            .with(key, operator, value, value2, timestamp,
+                                    order, page);
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
                 Object value2, Timestamp timestamp, Page page) {
             return invoke("find", String.class, Operator.class, Object.class,
                     Object.class, Timestamp.class, Page.class).with(key,
@@ -1318,6 +1356,14 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("find", String.class, Operator.class, Object.class,
                     Order.class).with(key, operator, value, order);
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
+                Order order, Page page) {
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Order.class, Page.class).with(key, operator, value, order,
+                            page);
         }
 
         @Override
@@ -1344,6 +1390,14 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("find", String.class, Operator.class, Object.class,
+                    Timestamp.class, Order.class, Page.class).with(key,
+                            operator, value, timestamp, order, page);
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
                 Timestamp timestamp, Page page) {
             return invoke("find", String.class, Operator.class, Object.class,
                     Timestamp.class, Page.class).with(key, operator, value,
@@ -1353,6 +1407,12 @@ public class ManagedConcourseServer {
         @Override
         public Set<Long> find(String ccl, Order order) {
             return invoke("find", String.class, Order.class).with(ccl, order);
+        }
+
+        @Override
+        public Set<Long> find(String ccl, Order order, Page page) {
+            return invoke("find", String.class, Order.class, Page.class)
+                    .with(ccl, order, page);
         }
 
         @Override
@@ -1383,6 +1443,14 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
+                Object value2, Order order, Page page) {
+            return invoke("find", String.class, String.class, Object.class,
+                    Object.class, Order.class, Page.class).with(key, operator,
+                            value, value2, order, page);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
                 Object value2, Page page) {
             return invoke("find", String.class, String.class, Object.class,
                     Object.class, Page.class).with(key, operator, value, value2,
@@ -1407,6 +1475,15 @@ public class ManagedConcourseServer {
 
         @Override
         public Set<Long> find(String key, String operator, Object value,
+                Object value2, Timestamp timestamp, Order order, Page page) {
+            return invoke("find", String.class, String.class, Object.class,
+                    Object.class, Timestamp.class, Order.class, Page.class)
+                            .with(key, operator, value, value2, timestamp,
+                                    order, page);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
                 Object value2, Timestamp timestamp, Page page) {
             return invoke("find", String.class, String.class, Object.class,
                     Object.class, Timestamp.class, Page.class).with(key,
@@ -1418,6 +1495,14 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("find", String.class, String.class, Object.class,
                     Order.class).with(key, operator, value, order);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
+                Order order, Page page) {
+            return invoke("find", String.class, String.class, Object.class,
+                    Order.class, Page.class).with(key, operator, value, order,
+                            page);
         }
 
         @Override
@@ -1440,6 +1525,14 @@ public class ManagedConcourseServer {
             return invoke("find", String.class, String.class, Object.class,
                     Timestamp.class, Order.class).with(key, operator, value,
                             timestamp, order);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("find", String.class, String.class, Object.class,
+                    Timestamp.class, Order.class, Page.class).with(key,
+                            operator, value, timestamp, order, page);
         }
 
         @Override
@@ -1487,6 +1580,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                Collection<Long> records, Order order, Page page) {
+            return invoke("get", Collection.class, Collection.class,
+                    Order.class, Page.class).with(keys, records, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Collection<Long> records, Page page) {
             return invoke("get", Collection.class, Collection.class, Page.class)
                     .with(keys, records, page);
@@ -1505,6 +1605,15 @@ public class ManagedConcourseServer {
             return invoke("get", Collection.class, Collection.class,
                     Timestamp.class, Order.class).with(keys, records, timestamp,
                             order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                Collection<Long> records, Timestamp timestamp, Order order,
+                Page page) {
+            return invoke("get", Collection.class, Collection.class,
+                    Timestamp.class, Order.class, Page.class).with(keys,
+                            records, timestamp, order, page);
         }
 
         @Override
@@ -1531,6 +1640,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                Criteria criteria, Order order, Page page) {
+            return invoke("get", Collection.class, Criteria.class, Order.class,
+                    Page.class).with(keys, criteria, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 Criteria criteria, Page page) {
             return invoke("get", Collection.class, Criteria.class, Page.class)
                     .with(keys, criteria, page);
@@ -1549,6 +1665,15 @@ public class ManagedConcourseServer {
             return invoke("get", Collection.class, Criteria.class,
                     Timestamp.class, Order.class).with(keys, criteria,
                             timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                Criteria criteria, Timestamp timestamp, Order order,
+                Page page) {
+            return invoke("get", Collection.class, Criteria.class,
+                    Timestamp.class, Order.class, Page.class).with(keys,
+                            criteria, timestamp, order, page);
         }
 
         @Override
@@ -1587,6 +1712,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                String ccl, Order order, Page page) {
+            return invoke("get", Collection.class, String.class, Order.class,
+                    Page.class).with(keys, ccl, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
                 String ccl, Page page) {
             return invoke("get", Collection.class, String.class, Page.class)
                     .with(keys, ccl, page);
@@ -1605,6 +1737,14 @@ public class ManagedConcourseServer {
             return invoke("get", Collection.class, String.class,
                     Timestamp.class, Order.class).with(keys, ccl, timestamp,
                             order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+                String ccl, Timestamp timestamp, Order order, Page page) {
+            return invoke("get", Collection.class, String.class,
+                    Timestamp.class, Order.class, Page.class).with(keys, ccl,
+                            timestamp, order, page);
         }
 
         @Override
@@ -1628,6 +1768,13 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order,
+                Page page) {
+            return invoke("get", Criteria.class, Order.class, Page.class)
+                    .with(criteria, order, page);
+        }
+
+        @Override
         public <T> Map<Long, Map<String, T>> get(Criteria criteria, Page page) {
             return invoke("get", Criteria.class, Page.class).with(criteria,
                     page);
@@ -1648,6 +1795,20 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("get", Criteria.class, Timestamp.class, Order.class,
+                    Page.class).with(criteria, timestamp, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+                Timestamp timestamp, Page page) {
+            return invoke("get", Criteria.class, Timestamp.class, Page.class)
+                    .with(criteria, timestamp, page);
+        }
+
+        @Override
         public <T> Map<Long, Map<String, T>> get(String ccl) {
             return invoke("get", String.class).with(ccl);
         }
@@ -1663,6 +1824,13 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("get", String.class, Collection.class, Order.class)
                     .with(key, records, order);
+        }
+
+        @Override
+        public <T> Map<Long, T> get(String key, Collection<Long> records,
+                Order order, Page page) {
+            return invoke("get", String.class, Collection.class, Order.class,
+                    Page.class).with(key, records, order, page);
         }
 
         @Override
@@ -1689,6 +1857,14 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, T> get(String key, Collection<Long> records,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("get", String.class, Collection.class,
+                    Timestamp.class, Order.class, Page.class).with(key, records,
+                            timestamp, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, T> get(String key, Collection<Long> records,
                 Timestamp timestamp, Page page) {
             return invoke("get", String.class, Collection.class,
                     Timestamp.class, Page.class).with(key, records, timestamp,
@@ -1709,6 +1885,13 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, T> get(String key, Criteria criteria, Order order,
+                Page page) {
+            return invoke("get", String.class, Criteria.class, Order.class,
+                    Page.class).with(key, criteria, order, page);
+        }
+
+        @Override
         public <T> Map<Long, T> get(String key, Criteria criteria, Page page) {
             return invoke("get", String.class, Criteria.class, Page.class)
                     .with(key, criteria, page);
@@ -1726,6 +1909,14 @@ public class ManagedConcourseServer {
                 Timestamp timestamp, Order order) {
             return invoke("get", String.class, Criteria.class, Timestamp.class,
                     Order.class).with(key, criteria, timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, T> get(String key, Criteria criteria,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("get", String.class, Criteria.class, Timestamp.class,
+                    Order.class, Page.class).with(key, criteria, timestamp,
+                            order, page);
         }
 
         @Override
@@ -1752,6 +1943,13 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public <T> Map<Long, Map<String, T>> get(String ccl, Order order,
+                Page page) {
+            return invoke("get", String.class, Order.class, Page.class)
+                    .with(ccl, order, page);
+        }
+
+        @Override
         public <T> Map<Long, Map<String, T>> get(String ccl, Page page) {
             return invoke("get", String.class, Page.class).with(ccl, page);
         }
@@ -1765,6 +1963,13 @@ public class ManagedConcourseServer {
         public <T> Map<Long, T> get(String key, String ccl, Order order) {
             return invoke("get", String.class, String.class, Order.class)
                     .with(key, ccl, order);
+        }
+
+        @Override
+        public <T> Map<Long, T> get(String key, String ccl, Order order,
+                Page page) {
+            return invoke("get", String.class, String.class, Order.class,
+                    Page.class).with(key, ccl, order, page);
         }
 
         @Override
@@ -1789,6 +1994,14 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
+                Order order, Page page) {
+            return invoke("get", String.class, String.class, Timestamp.class,
+                    Order.class, Page.class).with(key, ccl, timestamp, order,
+                            page);
+        }
+
+        @Override
+        public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
                 Page page) {
             return invoke("get", String.class, String.class, Timestamp.class,
                     Page.class).with(key, ccl, timestamp, page);
@@ -1806,6 +2019,13 @@ public class ManagedConcourseServer {
                 Timestamp timestamp, Order order) {
             return invoke("get", String.class, Timestamp.class, Order.class)
                     .with(ccl, timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(String ccl,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("get", String.class, Timestamp.class, Order.class,
+                    Page.class).with(ccl, timestamp, order, page);
         }
 
         @Override
@@ -2036,24 +2256,18 @@ public class ManagedConcourseServer {
             return invoke("ping", long.class).with(record);
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see com.cinchapi.concourse.Concourse#reconcile(java.lang.String,
-         * long, java.util.Collection)
-         */
         @Override
         public <T> void reconcile(String key, long record,
                 Collection<T> values) {
-            // TODO Auto-generated method stub
-
+            invoke("reconcile", String.class, long.class, Collection.class)
+                    .with(key, record, values);
         }
 
         @Override
         public <T> Map<Long, Boolean> remove(String key, T value,
                 Collection<Long> records) {
-            return invoke("reconcile", String.class, long.class,
-                    Collection.class).with(key, value, records);
+            return invoke("remove", String.class, long.class, Collection.class)
+                    .with(key, value, records);
         }
 
         @Override
@@ -2067,7 +2281,6 @@ public class ManagedConcourseServer {
                 Timestamp timestamp) {
             invoke("revert", Collection.class, Collection.class,
                     Timestamp.class).with(keys, records, timestamp);
-
         }
 
         @Override
@@ -2114,8 +2327,16 @@ public class ManagedConcourseServer {
 
         @Override
         public Map<Long, Map<String, Set<Object>>> select(
+                Collection<Long> records, Order order, Page page) {
+            return invoke("select", Collection.class, Order.class, Page.class)
+                    .with(records, order, page);
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> select(
                 Collection<Long> records, Page page) {
-            return invoke("select").with(Collection.class, Page.class);
+            return invoke("select", Collection.class, Page.class).with(records,
+                    page);
         }
 
         @Override
@@ -2130,6 +2351,15 @@ public class ManagedConcourseServer {
                 Collection<Long> records, Timestamp timestamp, Order order) {
             return invoke("select", Collection.class, Timestamp.class,
                     Order.class).with(records, timestamp, order);
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> select(
+                Collection<Long> records, Timestamp timestamp, Order order,
+                Page page) {
+            return invoke("select", Collection.class, Timestamp.class,
+                    Order.class, Page.class).with(records, timestamp, order,
+                            page);
         }
 
         @Override
@@ -2152,6 +2382,14 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("select", Collection.class, Collection.class,
                     Order.class).with(keys, records, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Collection<Long> records, Order order,
+                Page page) {
+            return invoke("select", Collection.class, Collection.class,
+                    Order.class, Page.class).with(keys, records, order, page);
         }
 
         @Override
@@ -2181,6 +2419,15 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("select", Collection.class, Collection.class,
+                    Timestamp.class, Order.class, Page.class).with(keys,
+                            records, timestamp, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Collection<Long> records,
                 Timestamp timestamp, Page page) {
             return invoke("select", Collection.class, Collection.class,
                     Timestamp.class, Page.class).with(keys, records, timestamp,
@@ -2199,6 +2446,14 @@ public class ManagedConcourseServer {
                 Collection<String> keys, Criteria criteria, Order order) {
             return invoke("select", Collection.class, Criteria.class,
                     Order.class).with(keys, criteria, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Criteria criteria, Order order,
+                Page page) {
+            return invoke("select", Collection.class, Criteria.class,
+                    Order.class, Page.class).with(keys, criteria, order, page);
         }
 
         @Override
@@ -2223,6 +2478,15 @@ public class ManagedConcourseServer {
             return invoke("select", Collection.class, Criteria.class,
                     Timestamp.class, Order.class).with(keys, criteria,
                             timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, Criteria criteria, Timestamp timestamp,
+                Order order, Page page) {
+            return invoke("select", Collection.class, Criteria.class,
+                    Timestamp.class, Order.class, Page.class).with(keys,
+                            criteria, timestamp, order, page);
         }
 
         @Override
@@ -2264,6 +2528,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, String ccl, Order order, Page page) {
+            return invoke("select", Collection.class, String.class, Order.class,
+                    Page.class).with(keys, ccl, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, String ccl, Page page) {
             return invoke("select", Collection.class, String.class, Page.class)
                     .with(keys, ccl, page);
@@ -2280,9 +2551,19 @@ public class ManagedConcourseServer {
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, String ccl, Timestamp timestamp,
                 Order order) {
-            return invoke("select").with(Collection.class, String.class,
-                    Timestamp.class, Order.class);
+            return invoke("select", Collection.class, String.class,
+                    Timestamp.class, Order.class).with(keys, ccl, timestamp,
+                            order);
         }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                Collection<String> keys, String ccl, Timestamp timestamp,
+                Order order, Page page) {
+            return invoke("select", Collection.class, String.class, Order.class,
+                    Page.class).with(keys, ccl, order, page);
+        }
+
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<String> keys, String ccl, Timestamp timestamp,
@@ -2306,9 +2587,16 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+                Order order, Page page) {
+            return invoke("select", Criteria.class, Order.class, Page.class)
+                    .with(criteria, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
                 Page page) {
             return invoke("select", Criteria.class, Page.class).with(criteria,
-                    page);                
+                    page);
         }
 
         @Override
@@ -2323,6 +2611,14 @@ public class ManagedConcourseServer {
                 Timestamp timestamp, Order order) {
             return invoke("select", Criteria.class, Timestamp.class,
                     Order.class).with(criteria, timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("select", Criteria.class, Timestamp.class,
+                    Order.class, Page.class).with(criteria, timestamp, order,
+                            page);
         }
 
         @Override
@@ -2365,6 +2661,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Set<T>> select(String key,
+                Collection<Long> records, Order order, Page page) {
+            return invoke("select", String.class, Collection.class, Order.class,
+                    Page.class).with(key, records, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key,
                 Collection<Long> records, Page page) {
             return invoke("select", String.class, Collection.class, Page.class)
                     .with(key, records, page);
@@ -2383,6 +2686,15 @@ public class ManagedConcourseServer {
             return invoke("select", String.class, Collection.class,
                     Timestamp.class, Order.class).with(key, records, timestamp,
                             order);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key,
+                Collection<Long> records, Timestamp timestamp, Order order,
+                Page page) {
+            return invoke("select", String.class, Collection.class,
+                    Timestamp.class, Order.class, Page.class).with(key, records,
+                            timestamp, order, page);
         }
 
         @Override
@@ -2408,6 +2720,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+                Order order, Page page) {
+            return invoke("select", String.class, Criteria.class, Order.class,
+                    Page.class).with(key, criteria, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
                 Page page) {
             return invoke("select", String.class, Criteria.class, Page.class)
                     .with(key, criteria, page);
@@ -2426,6 +2745,14 @@ public class ManagedConcourseServer {
             return invoke("select", String.class, Criteria.class,
                     Timestamp.class, Order.class).with(key, criteria, timestamp,
                             order);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("select", String.class, Criteria.class,
+                    Timestamp.class, Order.class, Page.class).with(key,
+                            criteria, timestamp, order, page);
         }
 
         @Override
@@ -2455,6 +2782,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+                Order order, Page page) {
+            return invoke("select", String.class, Order.class, Page.class)
+                    .with(ccl, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
                 Page page) {
             return invoke("select", String.class, Page.class).with(ccl, page);
         }
@@ -2469,6 +2803,13 @@ public class ManagedConcourseServer {
                 Order order) {
             return invoke("select", String.class, String.class, Order.class)
                     .with(key, ccl, order);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
+                Page page) {
+            return invoke("select", String.class, String.class, Order.class,
+                    Page.class).with(key, ccl, order, page);
         }
 
         @Override
@@ -2489,6 +2830,14 @@ public class ManagedConcourseServer {
                 Timestamp timestamp, Order order) {
             return invoke("select", String.class, String.class, Timestamp.class,
                     Order.class).with(key, ccl, timestamp, order);
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(String key, String ccl,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("select", String.class, String.class, Timestamp.class,
+                    Order.class, Page.class).with(key, ccl, timestamp, order,
+                            page);
         }
 
         @Override
@@ -2514,6 +2863,13 @@ public class ManagedConcourseServer {
 
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+                Timestamp timestamp, Order order, Page page) {
+            return invoke("select", String.class, Timestamp.class, Order.class,
+                    Page.class).with(ccl, timestamp, order, page);
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
                 Timestamp timestamp, Page page) {
             return invoke("select", String.class, Timestamp.class, Page.class)
                     .with(ccl, timestamp, page);
@@ -2529,13 +2885,11 @@ public class ManagedConcourseServer {
         public <T> void set(String key, T value, long record) {
             invoke("set", String.class, Object.class, long.class).with(key,
                     value, record);
-
         }
 
         @Override
         public void stage() {
             invoke("stage").with();
-
         }
 
         @Override
@@ -2631,7 +2985,7 @@ public class ManagedConcourseServer {
         protected Concourse copyConnection() {
             throw new UnsupportedOperationException();
         }
-        
+
         /**
          * A wrapper around a {@link Method} object that funnels all invocations
          * to the {@link #delegate}.
@@ -2829,7 +3183,6 @@ public class ManagedConcourseServer {
         }
     }
 }
-
 
 /**
  * The valid options for the {@link #clientPrefsCleanupAction} variable.

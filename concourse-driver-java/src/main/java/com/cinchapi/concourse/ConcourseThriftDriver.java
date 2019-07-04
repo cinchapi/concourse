@@ -839,6 +839,19 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#find(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(Criteria criteria, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(com.cinchapi.concourse.lang.
      * Criteria, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -868,6 +881,19 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.Object, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Object value, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * java.lang.Object, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -885,6 +911,21 @@ class ConcourseThriftDriver extends Concourse {
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Order order) {
         return executeFind(timestamp, order, key, Operator.EQUALS, value);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.Object, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Object value, Timestamp timestamp,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -923,6 +964,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
+     * java.lang.Object, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
      * java.lang.Object, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -950,6 +1006,22 @@ class ConcourseThriftDriver extends Concourse {
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
      * java.lang.Object, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
+     * java.lang.Object, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -963,6 +1035,21 @@ class ConcourseThriftDriver extends Concourse {
     public Set<Long> find(String key, Operator operator, Object value,
             Order order) {
         return executeFind(order, key, operator, value);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -996,6 +1083,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
+     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * com.cinchapi.concourse.thrift.Operator, java.lang.Object,
      * com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
@@ -1012,6 +1114,19 @@ class ConcourseThriftDriver extends Concourse {
             return client.findCclOrder(ccl, JavaThriftBridge.convert(order),
                     creds, transaction, environment);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String ccl, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1048,6 +1163,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * java.lang.String, java.lang.Object, java.lang.Object,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.String, java.lang.Object, java.lang.Object,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1067,6 +1197,21 @@ class ConcourseThriftDriver extends Concourse {
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Order order) {
         return executeFind(timestamp, order, key, operator, value, value2);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.String, java.lang.Object, java.lang.Object,
+     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1095,6 +1240,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
      * java.lang.String, java.lang.Object,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.String, java.lang.Object,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1114,6 +1274,21 @@ class ConcourseThriftDriver extends Concourse {
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Order order) {
         return executeFind(timestamp, order, key, operator, value);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#find(java.lang.String,
+     * java.lang.String, java.lang.Object, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1185,6 +1360,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
      * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1240,6 +1429,22 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
      * java.util.Collection, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * java.util.Collection, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1272,6 +1477,21 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataTable.singleValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * com.cinchapi.concourse.lang.Criteria,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1327,6 +1547,21 @@ class ConcourseThriftDriver extends Concourse {
             }
             return DataTable.singleValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1399,6 +1634,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
      * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1450,6 +1699,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
      * java.lang.String, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.util.Collection,
+     * java.lang.String, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1478,6 +1742,20 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataTable.singleValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1532,6 +1810,35 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Timestamp timestamp, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl) {
         return execute(() -> {
@@ -1561,6 +1868,20 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataColumn.singleValued(key, data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1621,6 +1942,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
      * java.util.Collection, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * java.util.Collection, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1649,6 +1985,21 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataColumn.singleValued(key, data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * com.cinchapi.concourse.lang.Criteria,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1709,6 +2060,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
      * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1759,6 +2125,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1784,6 +2164,20 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataColumn.singleValued(key, data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -1838,6 +2232,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
      * java.lang.String, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -1880,6 +2289,20 @@ class ConcourseThriftDriver extends Concourse {
             }
             return DataTable.singleValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#get(java.lang.String,
+     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2420,6 +2843,20 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Page page) {
@@ -2475,6 +2912,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
      * com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
@@ -2508,6 +2959,20 @@ class ConcourseThriftDriver extends Concourse {
                             environment);
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2570,6 +3035,22 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
      * java.util.Collection, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * java.util.Collection, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -2602,6 +3083,21 @@ class ConcourseThriftDriver extends Concourse {
                             environment);
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * com.cinchapi.concourse.lang.Criteria,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2659,6 +3155,21 @@ class ConcourseThriftDriver extends Concourse {
             }
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2732,6 +3243,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
      * java.lang.String, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -2785,6 +3310,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
      * java.lang.String, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.util.Collection,
+     * java.lang.String, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -2815,6 +3355,20 @@ class ConcourseThriftDriver extends Concourse {
                             environment);
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2868,6 +3422,21 @@ class ConcourseThriftDriver extends Concourse {
             }
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(com.cinchapi.concourse.lang.
+     * Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -2944,6 +3513,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * java.util.Collection, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
      * java.util.Collection, com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -2998,6 +3581,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
      * java.util.Collection, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * java.util.Collection, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -3027,6 +3625,21 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataColumn.multiValued(key, data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * com.cinchapi.concourse.lang.Criteria,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -3088,6 +3701,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
      * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * com.cinchapi.concourse.lang.Criteria, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -3138,6 +3766,20 @@ class ConcourseThriftDriver extends Concourse {
      * (non-Javadoc)
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -3163,6 +3805,20 @@ class ConcourseThriftDriver extends Concourse {
                     environment);
             return DataColumn.multiValued(key, data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
+            Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
@@ -3218,6 +3874,21 @@ class ConcourseThriftDriver extends Concourse {
      * 
      * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
      * java.lang.String, com.cinchapi.concourse.Timestamp,
+     * com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * java.lang.String, com.cinchapi.concourse.Timestamp,
      * com.cinchapi.concourse.lang.paginate.Page)
      */
     @Override
@@ -3261,6 +3932,20 @@ class ConcourseThriftDriver extends Concourse {
             }
             return DataTable.multiValued(data);
         });
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.cinchapi.concourse.Concourse#select(java.lang.String,
+     * com.cinchapi.concourse.Timestamp, com.cinchapi.concourse.lang.sort.Order,
+     * com.cinchapi.concourse.lang.paginate.Page)
+     */
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /*
