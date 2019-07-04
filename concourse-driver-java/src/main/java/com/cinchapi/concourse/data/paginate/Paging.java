@@ -130,7 +130,7 @@ public final class Paging {
      * @param page
      * @return the modified stream
      */
-    private static <T> Stream<T> paginate(Stream<T> stream, Page page) {
+    public static <T> Stream<T> paginate(Stream<T> stream, Page page) {
         if(page.skip() > 0) {
             stream = stream.skip(page.skip());
         }

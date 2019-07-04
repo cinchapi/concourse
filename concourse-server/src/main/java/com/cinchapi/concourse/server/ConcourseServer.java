@@ -1870,8 +1870,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(
-                findKeyOperatorstrValues(key, operator, values, creds,
-                        transaction, environment),
+                findKeyOperatorstrValuesTime(key, operator, values, timestamp,
+                        creds, transaction, environment),
                 JavaThriftBridge.convert(page));
     }
 
@@ -2223,11 +2223,44 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCcl(ccl, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            Set<String> keys = atomic.describe(record);
+                            Map<String, TObject> entry = TMaps
+                                    .newLinkedHashMapWithCapacity(keys.size());
+                            for (String key : keys) {
+                                try {
+                                    entry.put(key, Iterables.getLast(
+                                            atomic.select(key, record)));
+                                }
+                                catch (NoSuchElementException e) {
+                                    continue;
+                                }
+                            }
+                            if(!entry.isEmpty()) {
+                                result.put(record, entry);
+                            }
+                        });
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -2295,13 +2328,46 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTimePage(String ccl,
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getCclTime(ccl, timestamp, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            Set<String> keys = atomic.describe(record,
+                                    timestamp);
+                            Map<String, TObject> entry = TMaps
+                                    .newLinkedHashMapWithCapacity(keys.size());
+                            for (String key : keys) {
+                                try {
+                                    entry.put(key, Iterables.getLast(atomic
+                                            .select(key, record, timestamp)));
+                                }
+                                catch (NoSuchElementException e) {
+                                    continue;
+                                }
+                            }
+                            if(!entry.isEmpty()) {
+                                result.put(record, entry);
+                            }
+                        });
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -2329,8 +2395,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCclTimestrOrder(ccl, timestamp, order, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        return getCclTimeOrderPage(ccl, NaturalLanguage.parseMicros(timestamp),
+                order, page, creds, transaction, environment);
     }
 
     @Override
@@ -2339,9 +2405,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getCclTimestr(ccl, timestamp, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getCclTimePage(ccl, NaturalLanguage.parseMicros(timestamp), page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -2402,12 +2467,39 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                getCriteria(criteria, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable
+                .singleValued(Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        Set<String> keys = atomic.describe(record);
+                        Map<String, TObject> entry = TMaps
+                                .newLinkedHashMapWithCapacity(keys.size());
+                        for (String key : keys) {
+                            try {
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -2471,12 +2563,40 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaTimePage(
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCriteriaTime(criteria, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable
+                .singleValued(Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        Set<String> keys = atomic.describe(record, timestamp);
+                        Map<String, TObject> entry = TMaps
+                                .newLinkedHashMapWithCapacity(keys.size());
+                        for (String key : keys) {
+                            try {
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -2506,10 +2626,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getCriteriaTimestrOrder(criteria, timestamp, order, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getCriteriaTimeOrderPage(criteria,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2518,8 +2637,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCriteriaTimestr(criteria, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        return getCriteriaTimePage(criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2577,12 +2697,34 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyCcl(key, ccl, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                    Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            try {
+                                result.put(record, Iterables
+                                        .getLast(atomic.select(key, record)));
+                            }
+                            catch (NoSuchElementException e) {/* ignore */}
+                        });
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -2644,12 +2786,36 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyCclTime(key, ccl, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                    Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            try {
+                                result.put(record, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
+                            }
+                            catch (NoSuchElementException e) {/* ignore */}
+                        });
+
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -2678,10 +2844,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyCclTimestrOrder(key, ccl, timestamp, order, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeyCclTimeOrderPage(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2690,8 +2855,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyCclTimestr(key, ccl, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        return getKeyCclTimePage(key, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2745,12 +2911,29 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                getKeyCriteria(key, criteria, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        try {
+                            result.put(record, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {/* ignore */}
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -2806,15 +2989,30 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaTimePage(String key,
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        getKeyCriteriaTime(key, criteria, timestamp, creds,
-                                transaction, environment),
-                        JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        try {
+                            result.put(record, Iterables.getLast(
+                                    atomic.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {/* ignore */}
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -2845,10 +3043,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyCriteriaTimestrOrder(key, criteria, timestamp, order,
-                        creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeyCriteriaTimeOrderPage(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2857,10 +3054,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyCriteriaTimestr(key, criteria, timestamp, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeyCriteriaTimePage(key, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2921,12 +3117,25 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                getKeyRecords(key, records, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        AtomicSupport store = getStore(transaction, environment);
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                TMaps.newLinkedHashMapWithCapacity(records.size()));
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        try {
+                            result.put(record, Iterables
+                                    .getLast(atomic.select(key, record)));
+                        }
+                        catch (NoSuchElementException e) {/* ignore */}
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -2976,12 +3185,25 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTimePage(String key,
             List<Long> records, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyRecordsTime(key, records, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        AtomicSupport store = getStore(transaction, environment);
+        SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                TMaps.newLinkedHashMapWithCapacity(records.size()));
+        Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                .forEach(record -> {
+                    try {
+                        result.put(record, Iterables
+                                .getLast(store.select(key, record, timestamp)));
+                    }
+                    catch (NoSuchElementException e) {/* ignore */
+                    }
+                });
+        return result;
     }
 
     @Override
@@ -3011,10 +3233,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyRecordsTimestrOrder(key, records, timestamp, order, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeyRecordsTimeOrderPage(key, records,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3023,10 +3244,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeyRecordsTimestr(key, records, timestamp, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeyRecordsTimePage(key, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3113,13 +3333,44 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
             String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysCcl(keys, ccl, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            Map<String, TObject> entry = TMaps
+                                    .newLinkedHashMapWithCapacity(keys.size());
+                            for (String key : keys) {
+                                try {
+                                    entry.put(key, Iterables.getLast(
+                                            atomic.select(key, record)));
+                                }
+                                catch (NoSuchElementException e) {
+                                    continue;
+                                }
+                            }
+                            if(!entry.isEmpty()) {
+                                result.put(record, entry);
+                            }
+                        });
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -3189,12 +3440,44 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclTimePage(List<String> keys,
             String ccl, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeysCclTime(keys, ccl, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        try {
+            Parser parser = Parsers.create(ccl);
+            AbstractSyntaxTree ast = parser.parse();
+            AtomicSupport store = getStore(transaction, environment);
+            SortableTable<TObject> result = SortableTable
+                    .singleValued(Maps.newLinkedHashMap());
+            AtomicOperations.executeWithRetry(store, (atomic) -> {
+                result.clear();
+                Set<Long> records = ast.accept(Finder.instance(), atomic);
+                Paging.paginate(records.stream(),
+                        JavaThriftBridge.convert(page)).forEach(record -> {
+                            Map<String, TObject> entry = TMaps
+                                    .newLinkedHashMapWithCapacity(keys.size());
+                            for (String key : keys) {
+                                try {
+                                    entry.put(key, Iterables.getLast(atomic
+                                            .select(key, record, timestamp)));
+                                }
+                                catch (NoSuchElementException e) {
+                                    continue;
+                                }
+                            }
+                            if(!entry.isEmpty()) {
+                                result.put(record, entry);
+                            }
+                        });
+            });
+            return result;
+        }
+        catch (Exception e) {
+            throw new ParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -3224,10 +3507,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, String timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                getKeysCclTimestrOrder(keys, ccl, timestamp, order, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeysCclTimeOrderPage(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3236,8 +3518,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeysCclTimestr(keys, ccl, timestamp, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        return getKeysCclTimePage(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3301,12 +3584,37 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
             List<String> keys, TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeysCriteria(keys, criteria, creds,
-                transaction, environment), JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable
+                .singleValued(Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        Map<String, TObject> entry = TMaps
+                                .newLinkedHashMapWithCapacity(keys.size());
+                        for (String key : keys) {
+                            try {
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
+                            }
+                            catch (NoSuchElementException e) {/* ignore */}
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -3370,14 +3678,37 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimePage(
             List<String> keys, TCriteria criteria, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysCriteriaTime(keys, criteria, timestamp, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        Parser parser = Parsers.create(criteria);
+        AbstractSyntaxTree ast = parser.parse();
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable
+                .singleValued(Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            result.clear();
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        Map<String, TObject> entry = TMaps
+                                .newLinkedHashMapWithCapacity(keys.size());
+                        for (String key : keys) {
+                            try {
+                                entry.put(key, Iterables.getLast(
+                                        atomic.select(key, record, timestamp)));
+                            }
+                            catch (NoSuchElementException e) {/* ignore */}
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -3409,10 +3740,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysCriteriaTimestrOrder(keys, criteria, timestamp, order,
-                        creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeysCriteriaTimeOrderPage(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3421,10 +3751,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysCriteriaTimestr(keys, criteria, timestamp, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeysCriteriaTimePage(keys, criteria,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3504,13 +3833,33 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysRecords(keys, records, creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable
+                .singleValued(Maps.newLinkedHashMap());
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                    .forEach(record -> {
+                        Map<String, TObject> entry = TMaps
+                                .newLinkedHashMapWithCapacity(keys.size());
+                        for (String key : keys) {
+                            try {
+                                entry.put(key, Iterables
+                                        .getLast(atomic.select(key, record)));
+                            }
+                            catch (NoSuchElementException e) {/* ignore */}
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    });
+        });
+        return result;
     }
 
     @Override
@@ -3568,15 +3917,31 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsTimePage(
             List<String> keys, List<Long> records, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        getKeysRecordsTime(keys, records, timestamp, creds,
-                                transaction, environment),
-                        JavaThriftBridge.convert(page));
+        AtomicSupport store = getStore(transaction, environment);
+        SortableTable<TObject> result = SortableTable.singleValued(
+                TMaps.newLinkedHashMapWithCapacity(records.size()));
+        Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
+                .forEach(record -> {
+                    Map<String, TObject> entry = TMaps
+                            .newLinkedHashMapWithCapacity(keys.size());
+                    for (String key : keys) {
+                        try {
+                            entry.put(key, Iterables.getLast(
+                                    store.select(key, record, timestamp)));
+                        }
+                        catch (NoSuchElementException e) {/* ignore */}
+                    }
+                    if(!entry.isEmpty()) {
+                        result.put(record, entry);
+                    }
+                });
+        return result;
     }
 
     @Override
@@ -3608,10 +3973,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysRecordsTimestrOrder(keys, records, timestamp, order,
-                        creds, transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeysRecordsTimeOrderPage(keys, records,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3620,10 +3984,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, List<Long> records, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                getKeysRecordsTimestr(keys, records, timestamp, creds,
-                        transaction, environment),
-                JavaThriftBridge.convert(page));
+        return getKeysRecordsTimePage(keys, records,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
