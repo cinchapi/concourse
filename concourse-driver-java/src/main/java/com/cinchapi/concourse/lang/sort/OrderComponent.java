@@ -113,6 +113,7 @@ public class OrderComponent {
      * 
      * @return the timestamp
      */
+    @Nullable
     public Timestamp timestamp() {
         return timestamp;
     }

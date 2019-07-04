@@ -121,7 +121,19 @@ final class BuiltOrder implements Order {
         Preconditions.checkState(!built, "Cannot modify a built Order");
         spec.put(key, new OrderComponent(key, timestamp, direction));
         this.lastKey = key;
+    }
 
+    /**
+     * Convenience method for ManagedConcourseServer to populate a remote order.
+     * 
+     * @param key
+     * @param timestamp
+     * @param direction
+     */
+    @SuppressWarnings("unused")
+    private void set(String key, long timestamp, int direction) {
+        set(key, timestamp > 0 ? Timestamp.fromMicros(timestamp) : null,
+                Direction.values()[direction]);
     }
 
 }
