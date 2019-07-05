@@ -135,8 +135,7 @@ public final class Paging {
             stream = stream.skip(page.skip());
         }
         if(page.limit() < Integer.MAX_VALUE) {
-            stream = stream.limit(page.limit()); // TODO: express no limit in a
-                                                 // different way...
+            stream = stream.limit(page.limit());
         }
         return stream;
     }
