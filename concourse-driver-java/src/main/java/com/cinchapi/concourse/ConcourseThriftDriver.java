@@ -300,8 +300,8 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                audit = core.auditRecordStart(record, start.getMicros(),
-                        creds, transaction, environment);
+                audit = core.auditRecordStart(record, start.getMicros(), creds,
+                        transaction, environment);
             }
             return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                     .transformMap(audit, Conversions.timestampToMicros()))
@@ -315,9 +315,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, String> audit;
             if(start.isString()) {
-                audit = core.auditRecordStartstrEndstr(record,
-                        start.toString(), end.toString(), creds, transaction,
-                        environment);
+                audit = core.auditRecordStartstrEndstr(record, start.toString(),
+                        end.toString(), creds, transaction, environment);
             }
             else {
                 audit = core.auditRecordStartEnd(record, start.getMicros(),
@@ -350,8 +349,8 @@ class ConcourseThriftDriver extends Concourse {
                         start.toString(), creds, transaction, environment);
             }
             else {
-                audit = core.auditKeyRecordStart(key, record,
-                        start.getMicros(), creds, transaction, environment);
+                audit = core.auditKeyRecordStart(key, record, start.getMicros(),
+                        creds, transaction, environment);
             }
             return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                     .transformMap(audit, Conversions.timestampToMicros()))
@@ -593,9 +592,8 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                raw = core.describeRecordsTime(
-                        Collections.toLongList(records), timestamp.getMicros(),
-                        creds, transaction, environment);
+                raw = core.describeRecordsTime(Collections.toLongList(records),
+                        timestamp.getMicros(), creds, transaction, environment);
             }
             Map<Long, Set<String>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Record", "Keys");
@@ -609,8 +607,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Set<String> describe(long record) {
         return execute(() -> {
-            Set<String> result = core.describeRecord(record, creds,
-                    transaction, environment);
+            Set<String> result = core.describeRecord(record, creds, transaction,
+                    environment);
             return result;
         });
     }
@@ -619,8 +617,8 @@ class ConcourseThriftDriver extends Concourse {
     public Set<String> describe(long record, Timestamp timestamp) {
         return execute(() -> {
             if(timestamp.isString()) {
-                return core.describeRecordTimestr(record,
-                        timestamp.toString(), creds, transaction, environment);
+                return core.describeRecordTimestr(record, timestamp.toString(),
+                        creds, transaction, environment);
             }
             else {
                 return core.describeRecordTime(record, timestamp.getMicros(),
@@ -703,8 +701,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Diff, Set<TObject>> raw;
             if(start.isString()) {
-                raw = core.diffKeyRecordStartstr(key, record,
-                        start.toString(), creds, transaction, environment);
+                raw = core.diffKeyRecordStartstr(key, record, start.toString(),
+                        creds, transaction, environment);
             }
             else {
                 raw = core.diffKeyRecordStart(key, record, start.getMicros(),
@@ -732,9 +730,8 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                raw = core.diffKeyRecordStartEnd(key, record,
-                        start.getMicros(), end.getMicros(), creds, transaction,
-                        environment);
+                raw = core.diffKeyRecordStartEnd(key, record, start.getMicros(),
+                        end.getMicros(), creds, transaction, environment);
             }
             Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Operation", "Value");
@@ -1022,8 +1019,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Set<Long> find(String ccl, Page page) {
         return execute(() -> {
-            return core.findCclPage(ccl, JavaThriftBridge.convert(page),
-                    creds, transaction, environment);
+            return core.findCclPage(ccl, JavaThriftBridge.convert(page), creds,
+                    transaction, environment);
         });
     }
 
@@ -1178,12 +1175,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> data = core
-                    .getKeysRecordsOrderPage(Collections.toList(keys),
-                            Collections.toLongList(records),
-                            JavaThriftBridge.convert(order),
-                            JavaThriftBridge.convert(page), creds, transaction,
-                            environment);
+            Map<Long, Map<String, TObject>> data = core.getKeysRecordsOrderPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
             return DataTable.singleValued(data);
         });
     }
@@ -1225,8 +1221,7 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, TObject>> data;
             if(timestamp.isString()) {
-                data = core.getKeysRecordsTimestrOrder(
-                        Collections.toList(keys),
+                data = core.getKeysRecordsTimestrOrder(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
@@ -1273,8 +1268,7 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, TObject>> data;
             if(timestamp.isString()) {
-                data = core.getKeysRecordsTimestrPage(
-                        Collections.toList(keys),
+                data = core.getKeysRecordsTimestrPage(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -1413,8 +1407,7 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, TObject>> data;
             if(timestamp.isString()) {
-                data = core.getKeysCriteriaTimestrPage(
-                        Collections.toList(keys),
+                data = core.getKeysCriteriaTimestrPage(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), JavaThriftBridge.convert(page),
                         creds, transaction, environment);
@@ -1450,9 +1443,8 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = core.getKeysRecordTime(Collections.toList(keys),
-                        record, timestamp.getMicros(), creds, transaction,
-                        environment);
+                data = core.getKeysRecordTime(Collections.toList(keys), record,
+                        timestamp.getMicros(), creds, transaction, environment);
             }
             return DataRow.singleValued(data);
         });
@@ -1549,8 +1541,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, TObject>> data;
             if(timestamp.isString()) {
-                data = core.getKeysCclTimestrOrderPage(
-                        Collections.toList(keys), ccl, timestamp.toString(),
+                data = core.getKeysCclTimestrOrderPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
                         JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -1572,10 +1564,9 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, TObject>> data;
             if(timestamp.isString()) {
-                data = core.getKeysCclTimestrPage(Collections.toList(keys),
-                        ccl, timestamp.toString(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                data = core.getKeysCclTimestrPage(Collections.toList(keys), ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             else {
                 data = core.getKeysCclTimePage(Collections.toList(keys), ccl,
@@ -2004,8 +1995,8 @@ class ConcourseThriftDriver extends Concourse {
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = core.getKeyRecordTime(key, record,
-                        timestamp.getMicros(), creds, transaction, environment);
+                raw = core.getKeyRecordTime(key, record, timestamp.getMicros(),
+                        creds, transaction, environment);
             }
             return raw == TObject.NULL ? null : (T) Convert.thriftToJava(raw);
         });
@@ -2111,9 +2102,9 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                data = core.getKeyCclTimeOrder(key, ccl,
-                        timestamp.getMicros(), JavaThriftBridge.convert(order),
-                        creds, transaction, environment);
+                data = core.getKeyCclTimeOrder(key, ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
             return DataColumn.singleValued(key, data);
         });
@@ -2146,9 +2137,9 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, TObject> data;
             if(timestamp.isString()) {
-                data = core.getKeyCclTimestrPage(key, ccl,
-                        timestamp.toString(), JavaThriftBridge.convert(page),
-                        creds, transaction, environment);
+                data = core.getKeyCclTimestrPage(key, ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
             }
             else {
                 data = core.getKeyCclTimePage(key, ccl, timestamp.getMicros(),
@@ -2258,9 +2249,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Map<Long, Boolean> insert(String json, Collection<Long> records) {
         return execute(() -> {
-            return core.insertJsonRecords(json,
-                    Collections.toLongList(records), creds, transaction,
-                    environment);
+            return core.insertJsonRecords(json, Collections.toLongList(records),
+                    creds, transaction, environment);
         });
     }
 
@@ -2287,8 +2277,8 @@ class ConcourseThriftDriver extends Concourse {
             for (Object arg : args) {
                 params.add(ComplexTObject.fromJavaObject(arg));
             }
-            ComplexTObject result = core.invokePlugin(id, method, params,
-                    creds, transaction, environment);
+            ComplexTObject result = core.invokePlugin(id, method, params, creds,
+                    transaction, environment);
             return result.getJavaObject();
         });
     }
@@ -2321,9 +2311,9 @@ class ConcourseThriftDriver extends Concourse {
                         includeId, creds, transaction, environment);
             }
             else {
-                return core.jsonifyRecordsTime(
-                        Collections.toLongList(records), timestamp.getMicros(),
-                        includeId, creds, transaction, environment);
+                return core.jsonifyRecordsTime(Collections.toLongList(records),
+                        timestamp.getMicros(), includeId, creds, transaction,
+                        environment);
             }
         });
     }
@@ -2705,9 +2695,8 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                core.revertKeyRecordsTime(key,
-                        Collections.toLongList(records), timestamp.getMicros(),
-                        creds, transaction, environment);
+                core.revertKeyRecordsTime(key, Collections.toLongList(records),
+                        timestamp.getMicros(), creds, transaction, environment);
             }
             return null;
         });
@@ -2750,10 +2739,10 @@ class ConcourseThriftDriver extends Concourse {
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectRecordsOrder(Collections.toLongList(records),
-                            JavaThriftBridge.convert(order), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsOrder(
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2775,10 +2764,10 @@ class ConcourseThriftDriver extends Concourse {
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectRecordsPage(Collections.toLongList(records),
-                            JavaThriftBridge.convert(page), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsPage(
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2870,10 +2859,9 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectKeysRecords(Collections.toList(keys),
-                            Collections.toLongList(records), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectKeysRecords(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    creds, transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2950,8 +2938,7 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = core.selectKeysRecordsTimeOrder(
-                        Collections.toList(keys),
+                data = core.selectKeysRecordsTimeOrder(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
@@ -2999,8 +2986,7 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = core.selectKeysRecordsTimePage(
-                        Collections.toList(keys),
+                data = core.selectKeysRecordsTimePage(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -3013,10 +2999,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectKeysCriteria(Collections.toList(keys),
-                            Language.translateToThriftCriteria(criteria), creds,
-                            transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectKeysCriteria(
+                    Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria), creds,
+                    transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -3067,8 +3053,7 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCriteriaTimestr(
-                        Collections.toList(keys),
+                data = core.selectKeysCriteriaTimestr(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
@@ -3142,8 +3127,7 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                data = core.selectKeysCriteriaTimePage(
-                        Collections.toList(keys),
+                data = core.selectKeysCriteriaTimePage(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), JavaThriftBridge.convert(page),
                         creds, transaction, environment);
@@ -3197,10 +3181,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectKeysCclOrder(Collections.toList(keys), ccl,
-                            JavaThriftBridge.convert(order), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectKeysCclOrder(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -3222,10 +3206,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectKeysCclPage(Collections.toList(keys), ccl,
-                            JavaThriftBridge.convert(page), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectKeysCclPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -3236,9 +3220,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCclTimestr(Collections.toList(keys),
-                        ccl, timestamp.toString(), creds, transaction,
-                        environment);
+                data = core.selectKeysCclTimestr(Collections.toList(keys), ccl,
+                        timestamp.toString(), creds, transaction, environment);
             }
             else {
                 data = core.selectKeysCclTime(Collections.toList(keys), ccl,
@@ -3254,8 +3237,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCclTimestrOrder(
-                        Collections.toList(keys), ccl, timestamp.toString(),
+                data = core.selectKeysCclTimestrOrder(Collections.toList(keys),
+                        ccl, timestamp.toString(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
             }
@@ -3282,8 +3265,8 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = core.selectKeysCclTimeOrderPage(
-                        Collections.toList(keys), ccl, timestamp.getMicros(),
+                data = core.selectKeysCclTimeOrderPage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
                         JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -3304,10 +3287,9 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = core.selectKeysCclTimePage(Collections.toList(keys),
-                        ccl, timestamp.getMicros(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                data = core.selectKeysCclTimePage(Collections.toList(keys), ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -3354,11 +3336,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectCriteriaPage(
-                            Language.translateToThriftCriteria(criteria),
-                            JavaThriftBridge.convert(page), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -3638,8 +3619,8 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Order order, Page page) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = core.selectKeyCriteriaOrderPage(
-                    key, Language.translateToThriftCriteria(criteria),
+            Map<Long, Set<TObject>> data = core.selectKeyCriteriaOrderPage(key,
+                    Language.translateToThriftCriteria(criteria),
                     JavaThriftBridge.convert(order),
                     JavaThriftBridge.convert(page), creds, transaction,
                     environment);
@@ -3773,8 +3754,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core.selectCclOrder(
-                    ccl, JavaThriftBridge.convert(order), creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data = core.selectCclOrder(ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
                     environment);
             return DataTable.multiValued(data);
         });
@@ -3784,10 +3765,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core
-                    .selectCclOrderPage(ccl, JavaThriftBridge.convert(order),
-                            JavaThriftBridge.convert(page), creds, transaction,
-                            environment);
+            Map<Long, Map<String, Set<TObject>>> data = core.selectCclOrderPage(
+                    ccl, JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
             return DataTable.multiValued(data);
         });
     }
@@ -3795,8 +3776,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = core.selectCclPage(
-                    ccl, JavaThriftBridge.convert(page), creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data = core.selectCclPage(ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
                     environment);
             return DataTable.multiValued(data);
         });
@@ -3825,8 +3806,8 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
             Page page) {
         return execute(() -> {
-            Map<Long, Set<TObject>> data = core.selectKeyCclOrderPage(key,
-                    ccl, JavaThriftBridge.convert(order),
+            Map<Long, Set<TObject>> data = core.selectKeyCclOrderPage(key, ccl,
+                    JavaThriftBridge.convert(order),
                     JavaThriftBridge.convert(page), creds, transaction,
                     environment);
             return DataColumn.multiValued(key, data);
@@ -3849,8 +3830,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = core.selectKeyCclTimestr(key, ccl,
-                        timestamp.toString(), creds, transaction, environment);
+                data = core.selectKeyCclTimestr(key, ccl, timestamp.toString(),
+                        creds, transaction, environment);
             }
             else {
                 data = core.selectKeyCclTime(key, ccl, timestamp.getMicros(),
@@ -3961,8 +3942,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectCclTimestrOrderPage(ccl,
-                        timestamp.toString(), JavaThriftBridge.convert(order),
+                data = core.selectCclTimestrOrderPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -4158,10 +4139,9 @@ class ConcourseThriftDriver extends Concourse {
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
-                return core.findKeyOperatorValuesOrder(key,
-                        (Operator) operator, tValues,
-                        JavaThriftBridge.convert(order), creds, transaction,
-                        environment);
+                return core.findKeyOperatorValuesOrder(key, (Operator) operator,
+                        tValues, JavaThriftBridge.convert(order), creds,
+                        transaction, environment);
             }
             else {
                 return core.findKeyOperatorstrValuesOrder(key,
@@ -4189,10 +4169,9 @@ class ConcourseThriftDriver extends Concourse {
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
-                return core.findKeyOperatorValuesPage(key,
-                        (Operator) operator, tValues,
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                return core.findKeyOperatorValuesPage(key, (Operator) operator,
+                        tValues, JavaThriftBridge.convert(page), creds,
+                        transaction, environment);
             }
             else {
                 return core.findKeyOperatorstrValuesPage(key,
@@ -4375,9 +4354,9 @@ class ConcourseThriftDriver extends Concourse {
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
-                return core.findKeyOperatorValuesTime(key,
-                        (Operator) operator, tValues, timestamp.getMicros(),
-                        creds, transaction, environment);
+                return core.findKeyOperatorValuesTime(key, (Operator) operator,
+                        tValues, timestamp.getMicros(), creds, transaction,
+                        environment);
             }
             else {
                 return core.findKeyOperatorstrValuesTime(key,
