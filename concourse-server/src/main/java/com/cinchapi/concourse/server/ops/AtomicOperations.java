@@ -21,7 +21,7 @@ import com.cinchapi.concourse.server.storage.AtomicSupport;
 
 /**
  * A collection of wrapper functions for executing an {@link AtomicOperation}
- * via an {AtomicRoutine} with special logic (i.e. retry on failure, etc).
+ * via an {@link AtomicRoutine} with special logic (i.e. retry on failure, etc).
  *
  * @author Jeff Nelson
  */

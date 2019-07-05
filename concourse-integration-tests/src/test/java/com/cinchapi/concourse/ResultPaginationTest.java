@@ -53,7 +53,26 @@ public class ResultPaginationTest extends ConcourseIntegrationTest {
             page = page.next();
         }
         Assert.assertTrue(records.isEmpty());
+    }
 
+    @Test
+    public void testGetCclPage() {
+        List<Long> records = Lists.newArrayList();
+        for (long i = 0; i < 100; ++i) {
+            client.add("foo", i, i);
+            records.add(i);
+        }
+        Page page = Page.sized(15);
+        Map<Long, Map<String, Set<Object>>> data = null;
+        while (data == null || !data.isEmpty()) {
+            data = client.get("foo >= 50", page);
+            for (long record : data.keySet()) {
+                Assert.assertTrue(record >= page.skip() + 50
+                        && record <= (page.limit() + page.skip() + 50));
+            }
+            records.removeAll(data.keySet());
+            page = page.next();
+        }
     }
 
 }

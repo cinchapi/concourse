@@ -2181,28 +2181,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Set<String> keys = atomic.describe(record);
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables
-                                    .getLast(atomic.select(key, record)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), atomic));
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getAstAtomic(ast, Time.NONE, result,
+                            null, $result -> $result.sort(Sorting
+                                    .byValue(Orders.from(order), atomic)),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -2234,28 +2217,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            Set<String> keys = atomic.describe(record);
-                            Map<String, TObject> entry = TMaps
-                                    .newLinkedHashMapWithCapacity(keys.size());
-                            for (String key : keys) {
-                                try {
-                                    entry.put(key, Iterables.getLast(
-                                            atomic.select(key, record)));
-                                }
-                                catch (NoSuchElementException e) {
-                                    continue;
-                                }
-                            }
-                            if(!entry.isEmpty()) {
-                                result.put(record, entry);
-                            }
-                        });
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getAstAtomic(ast, Time.NONE, result,
+                            records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -2286,29 +2252,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Set<String> keys = atomic.describe(record, timestamp);
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables.getLast(
-                                    atomic.select(key, record, timestamp)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), store),
-                        timestamp);
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getAstAtomic(ast, timestamp, result,
+                            null, $result -> $result.sort(
+                                    Sorting.byValue(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -2340,29 +2289,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            Set<String> keys = atomic.describe(record,
-                                    timestamp);
-                            Map<String, TObject> entry = TMaps
-                                    .newLinkedHashMapWithCapacity(keys.size());
-                            for (String key : keys) {
-                                try {
-                                    entry.put(key, Iterables.getLast(atomic
-                                            .select(key, record, timestamp)));
-                                }
-                                catch (NoSuchElementException e) {
-                                    continue;
-                                }
-                            }
-                            if(!entry.isEmpty()) {
-                                result.put(record, entry);
-                            }
-                        });
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getAstAtomic(ast, timestamp, result,
+                            records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -2430,28 +2361,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Set<String> keys = atomic.describe(record);
-                Map<String, TObject> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    try {
-                        entry.put(key,
-                                Iterables.getLast(atomic.select(key, record)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                if(!entry.isEmpty()) {
-                    result.put(record, entry);
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store));
-        });
+        AtomicOperations.executeWithRetry(store,
+                atomic -> Operations.getAstAtomic(ast, Time.NONE, result, null,
+                        $result -> $result.sort(
+                                Sorting.byValue(Orders.from(order), atomic)),
+                        atomic));
         return result;
     }
 
@@ -2477,28 +2391,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        Set<String> keys = atomic.describe(record);
-                        Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(keys.size());
-                        for (String key : keys) {
-                            try {
-                                entry.put(key, Iterables
-                                        .getLast(atomic.select(key, record)));
-                            }
-                            catch (NoSuchElementException e) {
-                                continue;
-                            }
-                        }
-                        if(!entry.isEmpty()) {
-                            result.put(record, entry);
-                        }
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getAstAtomic(ast, Time.NONE,
+                                result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -2524,28 +2423,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Set<String> keys = atomic.describe(record, timestamp);
-                Map<String, TObject> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    try {
-                        entry.put(key,
-                                Iterables.getLast(atomic.select(key, record)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                if(!entry.isEmpty()) {
-                    result.put(record, entry);
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getAstAtomic(ast, timestamp,
+                                result, null,
+                                $result -> $result.sort(Sorting.byValue(
+                                        Orders.from(order), atomic), timestamp),
+                                atomic));
         return result;
     }
 
@@ -2574,28 +2458,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        Set<String> keys = atomic.describe(record, timestamp);
-                        Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(keys.size());
-                        for (String key : keys) {
-                            try {
-                                entry.put(key, Iterables
-                                        .getLast(atomic.select(key, record)));
-                            }
-                            catch (NoSuchElementException e) {
-                                continue;
-                            }
-                        }
-                        if(!entry.isEmpty()) {
-                            result.put(record, entry);
-                        }
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getAstAtomic(ast, timestamp,
+                                result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -2664,20 +2533,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    try {
-                        result.put(record,
-                                Iterables.getLast(atomic.select(key, record)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), store));
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
+                            result, null,
+                            $result -> $result.sort(Sorting
+                                    .byValue(Orders.from(order), atomic)),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -2708,18 +2569,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            try {
-                                result.put(record, Iterables
-                                        .getLast(atomic.select(key, record)));
-                            }
-                            catch (NoSuchElementException e) {/* ignore */}
-                        });
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
+                            result, records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -2750,21 +2604,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    try {
-                        result.put(record, Iterables.getLast(
-                                atomic.select(key, record, timestamp)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), store),
-                        timestamp);
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyAstAtomic(key, ast, timestamp,
+                            result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValue(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -2798,19 +2644,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            try {
-                                result.put(record, Iterables.getLast(
-                                        atomic.select(key, record, timestamp)));
-                            }
-                            catch (NoSuchElementException e) {/* ignore */}
-                        });
-
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyAstAtomic(key, ast, timestamp,
+                            result, records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -2882,20 +2720,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                try {
-                    result.put(record,
-                            Iterables.getLast(atomic.select(key, record)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store));
-        });
+        AtomicOperations.executeWithRetry(store,
+                atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
+                        result, null,
+                        $result -> $result.sort(
+                                Sorting.byValue(Orders.from(order), atomic)),
+                        atomic));
         return result;
     }
 
@@ -2921,18 +2751,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        try {
-                            result.put(record, Iterables
-                                    .getLast(atomic.select(key, record)));
-                        }
-                        catch (NoSuchElementException e) {/* ignore */}
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeyAstAtomic(key, ast,
+                                Time.NONE, result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -2958,20 +2783,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                try {
-                    result.put(record, Iterables
-                            .getLast(atomic.select(key, record, timestamp)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeyAstAtomic(key, ast,
+                                timestamp, result, null,
+                                $result -> $result.sort(Sorting.byValue(
+                                        Orders.from(order), atomic), timestamp),
+                                atomic));
         return result;
     }
 
@@ -3000,18 +2818,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        try {
-                            result.put(record, Iterables.getLast(
-                                    atomic.select(key, record, timestamp)));
-                        }
-                        catch (NoSuchElementException e) {/* ignore */}
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeyAstAtomic(key, ast,
+                                timestamp, result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -3090,18 +2903,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
-                try {
-                    result.put(record,
-                            Iterables.getLast(atomic.select(key, record)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store));
-        });
+        AtomicOperations.executeWithRetry(store,
+                atomic -> Operations.getKeyRecordsOptionalAtomic(key, records,
+                        Time.NONE, result, null,
+                        $result -> $result.sort(
+                                Sorting.byValue(Orders.from(order), atomic)),
+                        atomic));
         return result;
     }
 
@@ -3125,16 +2932,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        try {
-                            result.put(record, Iterables
-                                    .getLast(atomic.select(key, record)));
-                        }
-                        catch (NoSuchElementException e) {/* ignore */}
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeyRecordsOptionalAtomic(key,
+                                records, Time.NONE, result,
+                                $records -> Paging.paginate($records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -3158,16 +2962,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        for (long record : records) {
-            try {
-                result.put(record, Iterables
-                        .getLast(store.select(key, record, timestamp)));
-            }
-            catch (NoSuchElementException e) {
-                continue;
-            }
-        }
-        result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
+        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
+                null,
+                $result -> $result.sort(
+                        Sorting.byValue(Orders.from(order), store), timestamp),
+                store);
         return result;
     }
 
@@ -3194,15 +2993,10 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                .forEach(record -> {
-                    try {
-                        result.put(record, Iterables
-                                .getLast(store.select(key, record, timestamp)));
-                    }
-                    catch (NoSuchElementException e) {/* ignore */
-                    }
-                });
+        Operations.getKeyRecordsOptionalAtomic(key,
+                records, timestamp, result, $records -> Paging
+                        .paginate($records, JavaThriftBridge.convert(page)),
+                null, store);
         return result;
     }
 
@@ -3293,27 +3087,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables
-                                    .getLast(atomic.select(key, record)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), store));
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
+                            result, null,
+                            $result -> $result.sort(Sorting
+                                    .byValue(Orders.from(order), atomic)),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -3345,27 +3124,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            Map<String, TObject> entry = TMaps
-                                    .newLinkedHashMapWithCapacity(keys.size());
-                            for (String key : keys) {
-                                try {
-                                    entry.put(key, Iterables.getLast(
-                                            atomic.select(key, record)));
-                                }
-                                catch (NoSuchElementException e) {
-                                    continue;
-                                }
-                            }
-                            if(!entry.isEmpty()) {
-                                result.put(record, entry);
-                            }
-                        });
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
+                            result, records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -3397,28 +3160,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                for (long record : records) {
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables.getLast(
-                                    atomic.select(key, record, timestamp)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                }
-                result.sort(Sorting.byValue(Orders.from(order), store),
-                        timestamp);
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysAstAtomic(keys, ast, timestamp,
+                            result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValue(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
             return result;
         }
         catch (Exception e) {
@@ -3452,27 +3200,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
-                result.clear();
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Paging.paginate(records.stream(),
-                        JavaThriftBridge.convert(page)).forEach(record -> {
-                            Map<String, TObject> entry = TMaps
-                                    .newLinkedHashMapWithCapacity(keys.size());
-                            for (String key : keys) {
-                                try {
-                                    entry.put(key, Iterables.getLast(atomic
-                                            .select(key, record, timestamp)));
-                                }
-                                catch (NoSuchElementException e) {
-                                    continue;
-                                }
-                            }
-                            if(!entry.isEmpty()) {
-                                result.put(record, entry);
-                            }
-                        });
-            });
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysAstAtomic(keys, ast, timestamp,
+                            result, records -> Paging.paginate(records,
+                                    JavaThriftBridge.convert(page)),
+                            null, atomic));
             return result;
         }
         catch (Exception e) {
@@ -3545,27 +3277,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, TObject> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    try {
-                        entry.put(key,
-                                Iterables.getLast(atomic.select(key, record)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                if(!entry.isEmpty()) {
-                    result.put(record, entry);
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store));
-        });
+        AtomicOperations.executeWithRetry(store,
+                atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
+                        result, null,
+                        $result -> $result.sort(
+                                Sorting.byValue(Orders.from(order), atomic)),
+                        atomic));
         return result;
     }
 
@@ -3595,25 +3312,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(keys.size());
-                        for (String key : keys) {
-                            try {
-                                entry.put(key, Iterables
-                                        .getLast(atomic.select(key, record)));
-                            }
-                            catch (NoSuchElementException e) {/* ignore */}
-                        }
-                        if(!entry.isEmpty()) {
-                            result.put(record, entry);
-                        }
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeysAstAtomic(keys, ast,
+                                Time.NONE, result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -3640,27 +3345,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            for (long record : records) {
-                Map<String, TObject> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    try {
-                        entry.put(key, Iterables.getLast(
-                                atomic.select(key, record, timestamp)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                if(!entry.isEmpty()) {
-                    result.put(record, entry);
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeysAstAtomic(keys, ast,
+                                timestamp, result, null,
+                                $result -> $result.sort(Sorting.byValue(
+                                        Orders.from(order), atomic), timestamp),
+                                atomic));
         return result;
     }
 
@@ -3689,25 +3380,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.clear();
-            Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(keys.size());
-                        for (String key : keys) {
-                            try {
-                                entry.put(key, Iterables.getLast(
-                                        atomic.select(key, record, timestamp)));
-                            }
-                            catch (NoSuchElementException e) {/* ignore */}
-                        }
-                        if(!entry.isEmpty()) {
-                            result.put(record, entry);
-                        }
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeysAstAtomic(keys, ast,
+                                timestamp, result,
+                                records -> Paging.paginate(records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -3799,25 +3478,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (long record : records) {
-                Map<String, TObject> entry = TMaps
-                        .newLinkedHashMapWithCapacity(keys.size());
-                for (String key : keys) {
-                    try {
-                        entry.put(key,
-                                Iterables.getLast(atomic.select(key, record)));
-                    }
-                    catch (NoSuchElementException e) {
-                        continue;
-                    }
-                }
-                if(!entry.isEmpty()) {
-                    result.put(record, entry);
-                }
-            }
-            result.sort(Sorting.byValue(Orders.from(order), store));
-        });
+        AtomicOperations.executeWithRetry(store,
+                atomic -> Operations.getKeysRecordsAtomic(keys, records, result,
+                        null, $result -> $result.sort(
+                                Sorting.byValue(Orders.from(order), atomic)),
+                        atomic));
         return result;
     }
 
@@ -3842,23 +3507,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                    .forEach(record -> {
-                        Map<String, TObject> entry = TMaps
-                                .newLinkedHashMapWithCapacity(keys.size());
-                        for (String key : keys) {
-                            try {
-                                entry.put(key, Iterables
-                                        .getLast(atomic.select(key, record)));
-                            }
-                            catch (NoSuchElementException e) {/* ignore */}
-                        }
-                        if(!entry.isEmpty()) {
-                            result.put(record, entry);
-                        }
-                    });
-        });
+        AtomicOperations
+                .executeWithRetry(store,
+                        atomic -> Operations.getKeysRecordsAtomic(keys, records,
+                                result, $records -> Paging.paginate($records,
+                                        JavaThriftBridge.convert(page)),
+                                null, atomic));
         return result;
     }
 
@@ -3883,23 +3537,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        for (long record : records) {
-            Map<String, TObject> entry = TMaps
-                    .newLinkedHashMapWithCapacity(keys.size());
-            for (String key : keys) {
-                try {
-                    entry.put(key, Iterables
-                            .getLast(store.select(key, record, timestamp)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
-            }
-            if(!entry.isEmpty()) {
-                result.put(record, entry);
-            }
-        }
-        result.sort(Sorting.byValue(Orders.from(order), store), timestamp);
+        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
+                result, null,
+                $result -> $result.sort(
+                        Sorting.byValue(Orders.from(order), store), timestamp),
+                store);
         return result;
     }
 
@@ -3926,21 +3568,10 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Paging.paginate(records.stream(), JavaThriftBridge.convert(page))
-                .forEach(record -> {
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, Iterables.getLast(
-                                    store.select(key, record, timestamp)));
-                        }
-                        catch (NoSuchElementException e) {/* ignore */}
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                });
+        Operations.getKeysRecordsOptionalAtomic(keys,
+                records, timestamp, result, $records -> Paging
+                        .paginate($records, JavaThriftBridge.convert(page)),
+                null, store);
         return result;
     }
 
