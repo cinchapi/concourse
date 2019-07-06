@@ -18,8 +18,8 @@ package com.cinchapi.concourse.server.aop;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
-import com.cinchapi.concourse.thrift.ManagementException;
-import com.cinchapi.concourse.thrift.SecurityException;
+import com.cinchapi.concourse.thrift.exceptions.messages.ManagementException;
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import com.google.common.base.Throwables;
 
 /**

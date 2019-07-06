@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import com.cinchapi.concourse.thrift.SecurityException;
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 
 /**
  * Test security exception which occurs when user session

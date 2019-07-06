@@ -22,7 +22,7 @@ import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.Inspector;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.PermissionException;
+import com.cinchapi.concourse.thrift.exceptions.messages.PermissionException;
 
 /**
  * Intercepts method invocations to verify that the provided {@link AccessToken}

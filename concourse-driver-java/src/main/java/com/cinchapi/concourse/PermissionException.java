@@ -31,7 +31,7 @@ public class PermissionException extends RuntimeException {
      * @param e
      */
     public PermissionException(
-            com.cinchapi.concourse.thrift.PermissionException e) {
+            com.cinchapi.concourse.thrift.exceptions.messages.PermissionException e) {
         super(e.getMessage());
     }
 

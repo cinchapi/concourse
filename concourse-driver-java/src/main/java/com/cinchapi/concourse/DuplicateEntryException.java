@@ -31,7 +31,7 @@ public class DuplicateEntryException extends RuntimeException {
      * @param thrift
      */
     public DuplicateEntryException(
-            com.cinchapi.concourse.thrift.DuplicateEntryException thrift) {
+            com.cinchapi.concourse.thrift.exceptions.messages.DuplicateEntryException thrift) {
         super(thrift.getMessage());
     }
 

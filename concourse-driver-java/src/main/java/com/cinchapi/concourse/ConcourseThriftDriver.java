@@ -51,7 +51,7 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.thrift.SecurityException;
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -784,7 +784,7 @@ class ConcourseThriftDriver extends Concourse {
             client.getInputProtocol().getTransport().close();
             client.getOutputProtocol().getTransport().close();
         }
-        catch (com.cinchapi.concourse.thrift.SecurityException
+        catch (SecurityException
                 | TTransportException e) {
             // Handle corner case where the client is existing because of
             // (or after the occurrence of) a password change, which means
@@ -2933,22 +2933,22 @@ class ConcourseThriftDriver extends Concourse {
             authenticate();
             return execute(callable);
         }
-        catch (com.cinchapi.concourse.thrift.TransactionException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.empty.TransactionException e) {
             throw new TransactionException();
         }
-        catch (com.cinchapi.concourse.thrift.DuplicateEntryException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.DuplicateEntryException e) {
             throw new DuplicateEntryException(e);
         }
-        catch (com.cinchapi.concourse.thrift.InvalidArgumentException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.InvalidArgumentException e) {
             throw new InvalidArgumentException(e);
         }
-        catch (com.cinchapi.concourse.thrift.ParseException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.ParseException e) {
             throw new ParseException(e);
         }
-        catch (com.cinchapi.concourse.thrift.PermissionException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.PermissionException e) {
             throw new PermissionException(e);
         }
-        catch (com.cinchapi.concourse.thrift.ManagementException e) {
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.ManagementException e) {
             throw new ManagementException(e);
         }
         catch (Exception e) {

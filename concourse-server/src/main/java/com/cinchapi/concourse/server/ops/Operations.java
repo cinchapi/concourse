@@ -35,7 +35,7 @@ import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.exceptions.messages.ParseException;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;

@@ -20,7 +20,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.cinchapi.concourse.thrift.ManagementException;
+import com.cinchapi.concourse.thrift.exceptions.messages.ManagementException;
 
 /**
  * Indicates that a method propagates exceptions to the client as a

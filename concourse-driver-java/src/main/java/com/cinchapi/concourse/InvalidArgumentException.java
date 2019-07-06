@@ -30,7 +30,7 @@ public class InvalidArgumentException extends RuntimeException {
      * @param e
      */
     public InvalidArgumentException(
-            com.cinchapi.concourse.thrift.InvalidArgumentException e) {
+            com.cinchapi.concourse.thrift.exceptions.messages.InvalidArgumentException e) {
         super(e.getMessage());
     }
 

@@ -28,6 +28,8 @@ import java.util.Map;
 
 import javax.annotation.Generated;
 
+import com.cinchapi.concourse.thrift.exceptions.messages.ManagementException;
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import org.apache.thrift.EncodingUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.AsyncMethodCallback;
@@ -67,7 +69,7 @@ public class ConcourseManagementService {
          */
         public com.cinchapi.concourse.thrift.AccessToken login(
                 ByteBuffer username, ByteBuffer password)
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException;
 
         /**
@@ -78,7 +80,7 @@ public class ConcourseManagementService {
          * @param creds
          */
         public void logout(com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException;
 
         /**
@@ -96,8 +98,8 @@ public class ConcourseManagementService {
          */
         public void disableUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -120,8 +122,8 @@ public class ConcourseManagementService {
          */
         public String dump(String id, String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -138,8 +140,8 @@ public class ConcourseManagementService {
          */
         public void enableUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -158,8 +160,8 @@ public class ConcourseManagementService {
          */
         public String getDumpList(String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -179,20 +181,20 @@ public class ConcourseManagementService {
          */
         public void createUser(ByteBuffer username, ByteBuffer password,
                 String role, com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         public void setUserPassword(ByteBuffer username, ByteBuffer password,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         public void setUserRole(ByteBuffer username, String role,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -210,8 +212,8 @@ public class ConcourseManagementService {
          */
         public boolean hasUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -227,8 +229,8 @@ public class ConcourseManagementService {
          */
         public void installPluginBundle(String file,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.ManagementException,
-                com.cinchapi.concourse.thrift.SecurityException,
+                throws ManagementException,
+            SecurityException,
                 org.apache.thrift.TException;
 
         /**
@@ -245,8 +247,8 @@ public class ConcourseManagementService {
          */
         public String listAllEnvironments(
                 com.cinchapi.concourse.thrift.AccessToken token)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -262,8 +264,8 @@ public class ConcourseManagementService {
          */
         public String listAllUserSessions(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -278,8 +280,8 @@ public class ConcourseManagementService {
          */
         public String listPluginBundles(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -295,8 +297,8 @@ public class ConcourseManagementService {
          */
         public void deleteUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -310,8 +312,8 @@ public class ConcourseManagementService {
          */
         public Map<Long, Map<String, String>> runningPluginsInfo(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         /**
@@ -327,21 +329,21 @@ public class ConcourseManagementService {
          */
         public void uninstallPluginBundle(String name,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         public void grant(ByteBuffer username, String permission,
                 String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
         public void revoke(ByteBuffer username, String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException;
 
     }
@@ -471,7 +473,7 @@ public class ConcourseManagementService {
 
         public com.cinchapi.concourse.thrift.AccessToken login(
                 ByteBuffer username, ByteBuffer password)
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException {
             send_login(username, password);
             return recv_login();
@@ -486,7 +488,7 @@ public class ConcourseManagementService {
         }
 
         public com.cinchapi.concourse.thrift.AccessToken recv_login()
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException {
             login_result result = new login_result();
             receiveBase(result, "login");
@@ -502,7 +504,7 @@ public class ConcourseManagementService {
         }
 
         public void logout(com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException {
             send_logout(creds);
             recv_logout();
@@ -516,7 +518,7 @@ public class ConcourseManagementService {
         }
 
         public void recv_logout()
-                throws com.cinchapi.concourse.thrift.SecurityException,
+                throws SecurityException,
                 org.apache.thrift.TException {
             logout_result result = new logout_result();
             receiveBase(result, "logout");
@@ -528,8 +530,8 @@ public class ConcourseManagementService {
 
         public void disableUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_disableUser(username, creds);
             recv_disableUser();
@@ -545,8 +547,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_disableUser()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             disableUser_result result = new disableUser_result();
             receiveBase(result, "disableUser");
@@ -561,8 +563,8 @@ public class ConcourseManagementService {
 
         public String dump(String id, String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_dump(id, environment, creds);
             return recv_dump();
@@ -579,8 +581,8 @@ public class ConcourseManagementService {
         }
 
         public String recv_dump()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             dump_result result = new dump_result();
             receiveBase(result, "dump");
@@ -600,8 +602,8 @@ public class ConcourseManagementService {
 
         public void enableUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_enableUser(username, creds);
             recv_enableUser();
@@ -617,8 +619,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_enableUser()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             enableUser_result result = new enableUser_result();
             receiveBase(result, "enableUser");
@@ -633,8 +635,8 @@ public class ConcourseManagementService {
 
         public String getDumpList(String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_getDumpList(environment, creds);
             return recv_getDumpList();
@@ -650,8 +652,8 @@ public class ConcourseManagementService {
         }
 
         public String recv_getDumpList()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             getDumpList_result result = new getDumpList_result();
             receiveBase(result, "getDumpList");
@@ -671,8 +673,8 @@ public class ConcourseManagementService {
 
         public void createUser(ByteBuffer username, ByteBuffer password,
                 String role, com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_createUser(username, password, role, creds);
             recv_createUser();
@@ -690,8 +692,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_createUser()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             createUser_result result = new createUser_result();
             receiveBase(result, "createUser");
@@ -706,8 +708,8 @@ public class ConcourseManagementService {
 
         public void setUserPassword(ByteBuffer username, ByteBuffer password,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_setUserPassword(username, password, creds);
             recv_setUserPassword();
@@ -725,8 +727,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_setUserPassword()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             setUserPassword_result result = new setUserPassword_result();
             receiveBase(result, "setUserPassword");
@@ -741,8 +743,8 @@ public class ConcourseManagementService {
 
         public void setUserRole(ByteBuffer username, String role,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_setUserRole(username, role, creds);
             recv_setUserRole();
@@ -759,8 +761,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_setUserRole()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             setUserRole_result result = new setUserRole_result();
             receiveBase(result, "setUserRole");
@@ -775,8 +777,8 @@ public class ConcourseManagementService {
 
         public boolean hasUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_hasUser(username, creds);
             return recv_hasUser();
@@ -792,8 +794,8 @@ public class ConcourseManagementService {
         }
 
         public boolean recv_hasUser()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             hasUser_result result = new hasUser_result();
             receiveBase(result, "hasUser");
@@ -813,8 +815,8 @@ public class ConcourseManagementService {
 
         public void installPluginBundle(String file,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.ManagementException,
-                com.cinchapi.concourse.thrift.SecurityException,
+                throws ManagementException,
+            SecurityException,
                 org.apache.thrift.TException {
             send_installPluginBundle(file, creds);
             recv_installPluginBundle();
@@ -830,8 +832,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_installPluginBundle()
-                throws com.cinchapi.concourse.thrift.ManagementException,
-                com.cinchapi.concourse.thrift.SecurityException,
+                throws ManagementException,
+            SecurityException,
                 org.apache.thrift.TException {
             installPluginBundle_result result = new installPluginBundle_result();
             receiveBase(result, "installPluginBundle");
@@ -846,8 +848,8 @@ public class ConcourseManagementService {
 
         public String listAllEnvironments(
                 com.cinchapi.concourse.thrift.AccessToken token)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_listAllEnvironments(token);
             return recv_listAllEnvironments();
@@ -862,8 +864,8 @@ public class ConcourseManagementService {
         }
 
         public String recv_listAllEnvironments()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             listAllEnvironments_result result = new listAllEnvironments_result();
             receiveBase(result, "listAllEnvironments");
@@ -883,8 +885,8 @@ public class ConcourseManagementService {
 
         public String listAllUserSessions(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_listAllUserSessions(creds);
             return recv_listAllUserSessions();
@@ -899,8 +901,8 @@ public class ConcourseManagementService {
         }
 
         public String recv_listAllUserSessions()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             listAllUserSessions_result result = new listAllUserSessions_result();
             receiveBase(result, "listAllUserSessions");
@@ -920,8 +922,8 @@ public class ConcourseManagementService {
 
         public String listPluginBundles(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_listPluginBundles(creds);
             return recv_listPluginBundles();
@@ -936,8 +938,8 @@ public class ConcourseManagementService {
         }
 
         public String recv_listPluginBundles()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             listPluginBundles_result result = new listPluginBundles_result();
             receiveBase(result, "listPluginBundles");
@@ -957,8 +959,8 @@ public class ConcourseManagementService {
 
         public void deleteUser(ByteBuffer username,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_deleteUser(username, creds);
             recv_deleteUser();
@@ -974,8 +976,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_deleteUser()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             deleteUser_result result = new deleteUser_result();
             receiveBase(result, "deleteUser");
@@ -990,8 +992,8 @@ public class ConcourseManagementService {
 
         public Map<Long, Map<String, String>> runningPluginsInfo(
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_runningPluginsInfo(creds);
             return recv_runningPluginsInfo();
@@ -1006,8 +1008,8 @@ public class ConcourseManagementService {
         }
 
         public Map<Long, Map<String, String>> recv_runningPluginsInfo()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             runningPluginsInfo_result result = new runningPluginsInfo_result();
             receiveBase(result, "runningPluginsInfo");
@@ -1027,8 +1029,8 @@ public class ConcourseManagementService {
 
         public void uninstallPluginBundle(String name,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_uninstallPluginBundle(name, creds);
             recv_uninstallPluginBundle();
@@ -1044,8 +1046,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_uninstallPluginBundle()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             uninstallPluginBundle_result result = new uninstallPluginBundle_result();
             receiveBase(result, "uninstallPluginBundle");
@@ -1061,8 +1063,8 @@ public class ConcourseManagementService {
         public void grant(ByteBuffer username, String permission,
                 String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_grant(username, permission, environment, creds);
             recv_grant();
@@ -1081,8 +1083,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_grant()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             grant_result result = new grant_result();
             receiveBase(result, "grant");
@@ -1097,8 +1099,8 @@ public class ConcourseManagementService {
 
         public void revoke(ByteBuffer username, String environment,
                 com.cinchapi.concourse.thrift.AccessToken creds)
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             send_revoke(username, environment, creds);
             recv_revoke();
@@ -1115,8 +1117,8 @@ public class ConcourseManagementService {
         }
 
         public void recv_revoke()
-                throws com.cinchapi.concourse.thrift.SecurityException,
-                com.cinchapi.concourse.thrift.ManagementException,
+                throws SecurityException,
+            ManagementException,
                 org.apache.thrift.TException {
             revoke_result result = new revoke_result();
             receiveBase(result, "revoke");
@@ -1198,7 +1200,7 @@ public class ConcourseManagementService {
             }
 
             public com.cinchapi.concourse.thrift.AccessToken getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
+                    throws SecurityException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1248,7 +1250,7 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
+                    throws SecurityException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1303,8 +1305,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1362,8 +1364,8 @@ public class ConcourseManagementService {
             }
 
             public String getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1418,8 +1420,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1475,8 +1477,8 @@ public class ConcourseManagementService {
             }
 
             public String getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1539,8 +1541,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1600,8 +1602,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1660,8 +1662,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1716,8 +1718,8 @@ public class ConcourseManagementService {
             }
 
             public boolean getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1773,8 +1775,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.ManagementException,
-                    com.cinchapi.concourse.thrift.SecurityException,
+                    throws ManagementException,
+                SecurityException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1827,8 +1829,8 @@ public class ConcourseManagementService {
             }
 
             public String getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1881,8 +1883,8 @@ public class ConcourseManagementService {
             }
 
             public String getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1935,8 +1937,8 @@ public class ConcourseManagementService {
             }
 
             public String getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -1991,8 +1993,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -2045,8 +2047,8 @@ public class ConcourseManagementService {
             }
 
             public Map<Long, Map<String, String>> getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -2102,8 +2104,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -2167,8 +2169,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -2227,8 +2229,8 @@ public class ConcourseManagementService {
             }
 
             public void getResult()
-                    throws com.cinchapi.concourse.thrift.SecurityException,
-                    com.cinchapi.concourse.thrift.ManagementException,
+                    throws SecurityException,
+                ManagementException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException(
@@ -2305,7 +2307,7 @@ public class ConcourseManagementService {
                 try {
                     result.success = iface.login(args.username, args.password);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
                 return result;
@@ -2332,7 +2334,7 @@ public class ConcourseManagementService {
                 try {
                     iface.logout(args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
                 return result;
@@ -2359,10 +2361,10 @@ public class ConcourseManagementService {
                 try {
                     iface.disableUser(args.username, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2390,10 +2392,10 @@ public class ConcourseManagementService {
                     result.success = iface.dump(args.id, args.environment,
                             args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2420,10 +2422,10 @@ public class ConcourseManagementService {
                 try {
                     iface.enableUser(args.username, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2451,10 +2453,10 @@ public class ConcourseManagementService {
                     result.success = iface.getDumpList(args.environment,
                             args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2482,10 +2484,10 @@ public class ConcourseManagementService {
                     iface.createUser(args.username, args.password, args.role,
                             args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2514,10 +2516,10 @@ public class ConcourseManagementService {
                     iface.setUserPassword(args.username, args.password,
                             args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2544,10 +2546,10 @@ public class ConcourseManagementService {
                 try {
                     iface.setUserRole(args.username, args.role, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2575,10 +2577,10 @@ public class ConcourseManagementService {
                     result.success = iface.hasUser(args.username, args.creds);
                     result.setSuccessIsSet(true);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2606,10 +2608,10 @@ public class ConcourseManagementService {
                 try {
                     iface.installPluginBundle(args.file, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex) {
+                catch (ManagementException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex2) {
+                catch (SecurityException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2637,10 +2639,10 @@ public class ConcourseManagementService {
                 try {
                     result.success = iface.listAllEnvironments(args.token);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2668,10 +2670,10 @@ public class ConcourseManagementService {
                 try {
                     result.success = iface.listAllUserSessions(args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2699,10 +2701,10 @@ public class ConcourseManagementService {
                 try {
                     result.success = iface.listPluginBundles(args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2729,10 +2731,10 @@ public class ConcourseManagementService {
                 try {
                     iface.deleteUser(args.username, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2760,10 +2762,10 @@ public class ConcourseManagementService {
                 try {
                     result.success = iface.runningPluginsInfo(args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2791,10 +2793,10 @@ public class ConcourseManagementService {
                 try {
                     iface.uninstallPluginBundle(args.name, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2822,10 +2824,10 @@ public class ConcourseManagementService {
                     iface.grant(args.username, args.permission,
                             args.environment, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2852,10 +2854,10 @@ public class ConcourseManagementService {
                 try {
                     iface.revoke(args.username, args.environment, args.creds);
                 }
-                catch (com.cinchapi.concourse.thrift.SecurityException ex) {
+                catch (SecurityException ex) {
                     result.ex = ex;
                 }
-                catch (com.cinchapi.concourse.thrift.ManagementException ex2) {
+                catch (ManagementException ex2) {
                     result.ex2 = ex2;
                 }
                 return result;
@@ -2940,8 +2942,8 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         login_result result = new login_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
@@ -3010,8 +3012,8 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         logout_result result = new logout_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
@@ -3080,13 +3082,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         disableUser_result result = new disableUser_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3156,13 +3158,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         dump_result result = new dump_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3232,13 +3234,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         enableUser_result result = new enableUser_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3308,13 +3310,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         getDumpList_result result = new getDumpList_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3383,13 +3385,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         createUser_result result = new createUser_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3459,13 +3461,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         setUserPassword_result result = new setUserPassword_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3535,13 +3537,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         setUserRole_result result = new setUserRole_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3613,13 +3615,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         hasUser_result result = new hasUser_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3688,13 +3690,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         installPluginBundle_result result = new installPluginBundle_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        if(e instanceof ManagementException) {
+                            result.ex = (ManagementException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        else if(e instanceof SecurityException) {
+                            result.ex2 = (SecurityException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3764,13 +3766,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         listAllEnvironments_result result = new listAllEnvironments_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3840,13 +3842,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         listAllUserSessions_result result = new listAllUserSessions_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3916,13 +3918,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         listPluginBundles_result result = new listPluginBundles_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -3991,13 +3993,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         deleteUser_result result = new deleteUser_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -4067,13 +4069,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         runningPluginsInfo_result result = new runningPluginsInfo_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -4142,13 +4144,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         uninstallPluginBundle_result result = new uninstallPluginBundle_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -4218,13 +4220,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         grant_result result = new grant_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -4294,13 +4296,13 @@ public class ConcourseManagementService {
                         byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
                         org.apache.thrift.TBase msg;
                         revoke_result result = new revoke_result();
-                        if(e instanceof com.cinchapi.concourse.thrift.SecurityException) {
-                            result.ex = (com.cinchapi.concourse.thrift.SecurityException) e;
+                        if(e instanceof SecurityException) {
+                            result.ex = (SecurityException) e;
                             result.setExIsSet(true);
                             msg = result;
                         }
-                        else if(e instanceof com.cinchapi.concourse.thrift.ManagementException) {
-                            result.ex2 = (com.cinchapi.concourse.thrift.ManagementException) e;
+                        else if(e instanceof ManagementException) {
+                            result.ex2 = (ManagementException) e;
                             result.setEx2IsSet(true);
                             msg = result;
                         }
@@ -4913,7 +4915,7 @@ public class ConcourseManagementService {
         }
 
         public com.cinchapi.concourse.thrift.AccessToken success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
+        public SecurityException ex; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -5007,7 +5009,7 @@ public class ConcourseManagementService {
         public login_result() {}
 
         public login_result(com.cinchapi.concourse.thrift.AccessToken success,
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this();
             this.success = success;
             this.ex = ex;
@@ -5022,7 +5024,7 @@ public class ConcourseManagementService {
                         other.success);
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
         }
@@ -5065,12 +5067,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public login_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -5110,7 +5112,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -5340,7 +5342,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -5424,7 +5426,7 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
@@ -5870,7 +5872,7 @@ public class ConcourseManagementService {
                     new logout_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
+        public SecurityException ex; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -5956,7 +5958,7 @@ public class ConcourseManagementService {
         public logout_result() {}
 
         public logout_result(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this();
             this.ex = ex;
         }
@@ -5966,7 +5968,7 @@ public class ConcourseManagementService {
          */
         public logout_result(logout_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
         }
@@ -5980,12 +5982,12 @@ public class ConcourseManagementService {
             this.ex = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public logout_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -6015,7 +6017,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -6190,7 +6192,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -6258,7 +6260,7 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
@@ -6842,8 +6844,8 @@ public class ConcourseManagementService {
                     new disableUser_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -6936,8 +6938,8 @@ public class ConcourseManagementService {
         public disableUser_result() {}
 
         public disableUser_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -6948,11 +6950,11 @@ public class ConcourseManagementService {
          */
         public disableUser_result(disableUser_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -6967,12 +6969,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public disableUser_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -6995,12 +6997,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public disableUser_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -7030,7 +7032,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -7039,7 +7041,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -7256,7 +7258,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -7267,7 +7269,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -7349,12 +7351,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -8042,8 +8044,8 @@ public class ConcourseManagementService {
         }
 
         public String success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -8145,8 +8147,8 @@ public class ConcourseManagementService {
         public dump_result() {}
 
         public dump_result(String success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -8161,11 +8163,11 @@ public class ConcourseManagementService {
                 this.success = other.success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -8208,12 +8210,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public dump_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -8236,12 +8238,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public dump_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -8280,7 +8282,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -8289,7 +8291,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -8556,7 +8558,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -8567,7 +8569,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -8661,12 +8663,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -9250,8 +9252,8 @@ public class ConcourseManagementService {
                     new enableUser_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -9344,8 +9346,8 @@ public class ConcourseManagementService {
         public enableUser_result() {}
 
         public enableUser_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -9356,11 +9358,11 @@ public class ConcourseManagementService {
          */
         public enableUser_result(enableUser_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -9375,12 +9377,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public enableUser_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -9403,12 +9405,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public enableUser_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -9438,7 +9440,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -9447,7 +9449,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -9664,7 +9666,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -9675,7 +9677,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -9757,12 +9759,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -10337,8 +10339,8 @@ public class ConcourseManagementService {
         }
 
         public String success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -10440,8 +10442,8 @@ public class ConcourseManagementService {
         public getDumpList_result() {}
 
         public getDumpList_result(String success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -10456,11 +10458,11 @@ public class ConcourseManagementService {
                 this.success = other.success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -10503,12 +10505,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public getDumpList_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -10531,12 +10533,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public getDumpList_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -10575,7 +10577,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -10584,7 +10586,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -10852,7 +10854,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -10863,7 +10865,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -10960,12 +10962,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -11799,8 +11801,8 @@ public class ConcourseManagementService {
                     new createUser_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -11893,8 +11895,8 @@ public class ConcourseManagementService {
         public createUser_result() {}
 
         public createUser_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -11905,11 +11907,11 @@ public class ConcourseManagementService {
          */
         public createUser_result(createUser_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -11924,12 +11926,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public createUser_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -11952,12 +11954,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public createUser_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -11987,7 +11989,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -11996,7 +11998,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -12213,7 +12215,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -12224,7 +12226,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -12306,12 +12308,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -13027,8 +13029,8 @@ public class ConcourseManagementService {
                     new setUserPassword_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -13121,8 +13123,8 @@ public class ConcourseManagementService {
         public setUserPassword_result() {}
 
         public setUserPassword_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -13133,11 +13135,11 @@ public class ConcourseManagementService {
          */
         public setUserPassword_result(setUserPassword_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -13152,12 +13154,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public setUserPassword_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -13180,12 +13182,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public setUserPassword_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -13215,7 +13217,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -13224,7 +13226,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -13441,7 +13443,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -13452,7 +13454,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -13534,12 +13536,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -14242,8 +14244,8 @@ public class ConcourseManagementService {
                     new setUserRole_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -14336,8 +14338,8 @@ public class ConcourseManagementService {
         public setUserRole_result() {}
 
         public setUserRole_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -14348,11 +14350,11 @@ public class ConcourseManagementService {
          */
         public setUserRole_result(setUserRole_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -14367,12 +14369,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public setUserRole_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -14395,12 +14397,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public setUserRole_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -14430,7 +14432,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -14439,7 +14441,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -14656,7 +14658,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -14667,7 +14669,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -14749,12 +14751,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -15337,8 +15339,8 @@ public class ConcourseManagementService {
         }
 
         public boolean success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -15442,8 +15444,8 @@ public class ConcourseManagementService {
         public hasUser_result() {}
 
         public hasUser_result(boolean success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
@@ -15458,11 +15460,11 @@ public class ConcourseManagementService {
             __isset_bitfield = other.__isset_bitfield;
             this.success = other.success;
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -15507,12 +15509,12 @@ public class ConcourseManagementService {
                     __SUCCESS_ISSET_ID, value);
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public hasUser_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -15535,12 +15537,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public hasUser_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -15579,7 +15581,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -15588,7 +15590,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -15854,7 +15856,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -15865,7 +15867,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -15959,12 +15961,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -16535,8 +16537,8 @@ public class ConcourseManagementService {
                     new installPluginBundle_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException ex; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex2; // required
+        public ManagementException ex; // required
+        public SecurityException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -16629,8 +16631,8 @@ public class ConcourseManagementService {
         public installPluginBundle_result() {}
 
         public installPluginBundle_result(
-                com.cinchapi.concourse.thrift.ManagementException ex,
-                com.cinchapi.concourse.thrift.SecurityException ex2) {
+                ManagementException ex,
+                SecurityException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -16641,11 +16643,11 @@ public class ConcourseManagementService {
          */
         public installPluginBundle_result(installPluginBundle_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex = new ManagementException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex2 = new SecurityException(
                         other.ex2);
             }
         }
@@ -16660,12 +16662,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx() {
+        public ManagementException getEx() {
             return this.ex;
         }
 
         public installPluginBundle_result setEx(
-                com.cinchapi.concourse.thrift.ManagementException ex) {
+                ManagementException ex) {
             this.ex = ex;
             return this;
         }
@@ -16688,12 +16690,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx2() {
+        public SecurityException getEx2() {
             return this.ex2;
         }
 
         public installPluginBundle_result setEx2(
-                com.cinchapi.concourse.thrift.SecurityException ex2) {
+                SecurityException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -16723,7 +16725,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx((ManagementException) value);
                 }
                 break;
 
@@ -16732,7 +16734,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx2((SecurityException) value);
                 }
                 break;
 
@@ -16949,7 +16951,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex = new ManagementException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -16960,7 +16962,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex2 = new SecurityException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -17042,12 +17044,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex = new ManagementException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex2 = new SecurityException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -17504,8 +17506,8 @@ public class ConcourseManagementService {
         }
 
         public String success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -17607,8 +17609,8 @@ public class ConcourseManagementService {
         public listAllEnvironments_result() {}
 
         public listAllEnvironments_result(String success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -17623,11 +17625,11 @@ public class ConcourseManagementService {
                 this.success = other.success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -17670,12 +17672,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public listAllEnvironments_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -17698,12 +17700,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public listAllEnvironments_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -17742,7 +17744,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -17751,7 +17753,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -18019,7 +18021,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -18030,7 +18032,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -18127,12 +18129,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -18589,8 +18591,8 @@ public class ConcourseManagementService {
         }
 
         public String success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -18692,8 +18694,8 @@ public class ConcourseManagementService {
         public listAllUserSessions_result() {}
 
         public listAllUserSessions_result(String success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -18708,11 +18710,11 @@ public class ConcourseManagementService {
                 this.success = other.success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -18755,12 +18757,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public listAllUserSessions_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -18783,12 +18785,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public listAllUserSessions_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -18827,7 +18829,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -18836,7 +18838,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -19104,7 +19106,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -19115,7 +19117,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -19212,12 +19214,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -19674,8 +19676,8 @@ public class ConcourseManagementService {
         }
 
         public String success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -19777,8 +19779,8 @@ public class ConcourseManagementService {
         public listPluginBundles_result() {}
 
         public listPluginBundles_result(String success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -19793,11 +19795,11 @@ public class ConcourseManagementService {
                 this.success = other.success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -19840,12 +19842,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public listPluginBundles_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -19868,12 +19870,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public listPluginBundles_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -19912,7 +19914,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -19921,7 +19923,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -20189,7 +20191,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -20200,7 +20202,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -20297,12 +20299,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -20886,8 +20888,8 @@ public class ConcourseManagementService {
                     new deleteUser_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -20980,8 +20982,8 @@ public class ConcourseManagementService {
         public deleteUser_result() {}
 
         public deleteUser_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -20992,11 +20994,11 @@ public class ConcourseManagementService {
          */
         public deleteUser_result(deleteUser_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -21011,12 +21013,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public deleteUser_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -21039,12 +21041,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public deleteUser_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -21074,7 +21076,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -21083,7 +21085,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -21300,7 +21302,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -21311,7 +21313,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -21393,12 +21395,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -21855,8 +21857,8 @@ public class ConcourseManagementService {
         }
 
         public Map<Long, Map<String, String>> success; // required
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -21966,8 +21968,8 @@ public class ConcourseManagementService {
         public runningPluginsInfo_result() {}
 
         public runningPluginsInfo_result(Map<Long, Map<String, String>> success,
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.success = success;
             this.ex = ex;
@@ -21999,11 +22001,11 @@ public class ConcourseManagementService {
                 this.success = __this__success;
             }
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -22058,12 +22060,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public runningPluginsInfo_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -22086,12 +22088,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public runningPluginsInfo_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -22130,7 +22132,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -22139,7 +22141,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -22433,7 +22435,7 @@ public class ConcourseManagementService {
                         break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -22444,7 +22446,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -22606,12 +22608,12 @@ public class ConcourseManagementService {
                     struct.setSuccessIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -23182,8 +23184,8 @@ public class ConcourseManagementService {
                     new uninstallPluginBundle_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -23276,8 +23278,8 @@ public class ConcourseManagementService {
         public uninstallPluginBundle_result() {}
 
         public uninstallPluginBundle_result(
-                com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                SecurityException ex,
+                ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -23289,11 +23291,11 @@ public class ConcourseManagementService {
         public uninstallPluginBundle_result(
                 uninstallPluginBundle_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -23308,12 +23310,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public uninstallPluginBundle_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -23336,12 +23338,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public uninstallPluginBundle_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -23371,7 +23373,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -23380,7 +23382,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -23598,7 +23600,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -23609,7 +23611,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -23691,12 +23693,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -24515,8 +24517,8 @@ public class ConcourseManagementService {
                     new grant_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -24608,8 +24610,8 @@ public class ConcourseManagementService {
 
         public grant_result() {}
 
-        public grant_result(com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+        public grant_result(SecurityException ex,
+                            ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -24620,11 +24622,11 @@ public class ConcourseManagementService {
          */
         public grant_result(grant_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -24639,12 +24641,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public grant_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -24667,12 +24669,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public grant_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -24702,7 +24704,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -24711,7 +24713,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -24927,7 +24929,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -24938,7 +24940,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -25017,12 +25019,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }
@@ -25721,8 +25723,8 @@ public class ConcourseManagementService {
                     new revoke_resultTupleSchemeFactory());
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException ex; // required
-        public com.cinchapi.concourse.thrift.ManagementException ex2; // required
+        public SecurityException ex; // required
+        public ManagementException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -25814,8 +25816,8 @@ public class ConcourseManagementService {
 
         public revoke_result() {}
 
-        public revoke_result(com.cinchapi.concourse.thrift.SecurityException ex,
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+        public revoke_result(SecurityException ex,
+                             ManagementException ex2) {
             this();
             this.ex = ex;
             this.ex2 = ex2;
@@ -25826,11 +25828,11 @@ public class ConcourseManagementService {
          */
         public revoke_result(revoke_result other) {
             if(other.isSetEx()) {
-                this.ex = new com.cinchapi.concourse.thrift.SecurityException(
+                this.ex = new SecurityException(
                         other.ex);
             }
             if(other.isSetEx2()) {
-                this.ex2 = new com.cinchapi.concourse.thrift.ManagementException(
+                this.ex2 = new ManagementException(
                         other.ex2);
             }
         }
@@ -25845,12 +25847,12 @@ public class ConcourseManagementService {
             this.ex2 = null;
         }
 
-        public com.cinchapi.concourse.thrift.SecurityException getEx() {
+        public SecurityException getEx() {
             return this.ex;
         }
 
         public revoke_result setEx(
-                com.cinchapi.concourse.thrift.SecurityException ex) {
+                SecurityException ex) {
             this.ex = ex;
             return this;
         }
@@ -25873,12 +25875,12 @@ public class ConcourseManagementService {
             }
         }
 
-        public com.cinchapi.concourse.thrift.ManagementException getEx2() {
+        public ManagementException getEx2() {
             return this.ex2;
         }
 
         public revoke_result setEx2(
-                com.cinchapi.concourse.thrift.ManagementException ex2) {
+                ManagementException ex2) {
             this.ex2 = ex2;
             return this;
         }
@@ -25908,7 +25910,7 @@ public class ConcourseManagementService {
                     unsetEx();
                 }
                 else {
-                    setEx((com.cinchapi.concourse.thrift.SecurityException) value);
+                    setEx((SecurityException) value);
                 }
                 break;
 
@@ -25917,7 +25919,7 @@ public class ConcourseManagementService {
                     unsetEx2();
                 }
                 else {
-                    setEx2((com.cinchapi.concourse.thrift.ManagementException) value);
+                    setEx2((ManagementException) value);
                 }
                 break;
 
@@ -26133,7 +26135,7 @@ public class ConcourseManagementService {
                     switch (schemeField.id) {
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                            struct.ex = new SecurityException();
                             struct.ex.read(iprot);
                             struct.setExIsSet(true);
                         }
@@ -26144,7 +26146,7 @@ public class ConcourseManagementService {
                         break;
                     case 2: // EX2
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                            struct.ex2 = new ManagementException();
                             struct.ex2.read(iprot);
                             struct.setEx2IsSet(true);
                         }
@@ -26223,12 +26225,12 @@ public class ConcourseManagementService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.ex = new com.cinchapi.concourse.thrift.SecurityException();
+                    struct.ex = new SecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.ex2 = new com.cinchapi.concourse.thrift.ManagementException();
+                    struct.ex2 = new ManagementException();
                     struct.ex2.read(iprot);
                     struct.setEx2IsSet(true);
                 }

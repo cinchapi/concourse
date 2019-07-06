@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import jline.console.ConsoleReader;
 
 import org.apache.thrift.TException;
@@ -218,7 +219,7 @@ public abstract class ManagementCli {
             try {
                 client.logout(token);
             }
-            catch (com.cinchapi.concourse.thrift.SecurityException e) {
+            catch (SecurityException e) {
                 // CON-590: The token has been invalidated, but we can ignore
                 // it at this point since the work that requires authorization
                 // has already been done.
