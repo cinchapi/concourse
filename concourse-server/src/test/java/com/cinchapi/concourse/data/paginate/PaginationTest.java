@@ -83,9 +83,13 @@ public class PaginationTest {
         }
         int skip = Math.abs(random.nextInt(size - 1));
         int limit = Math.abs(random.nextInt(size - 1));
-        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+        Assert.assertEquals(
+                list.stream().skip(skip).limit(limit)
+                        .collect(Collectors.toList()),
+                Lists.newArrayList(
+                        Paging.$paginate(list, Page.of(skip, limit))));
     }
-    
+
     @Test
     public void testSequentialPaging() {
         Random random = new Random();
@@ -99,7 +103,11 @@ public class PaginationTest {
         System.out.println(size);
         System.out.println(skip);
         System.out.println(limit);
-        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+        Assert.assertEquals(
+                list.stream().skip(skip).limit(limit)
+                        .collect(Collectors.toList()),
+                Lists.newArrayList(
+                        Paging.$paginate(list, Page.of(skip, limit))));
     }
 
     @Test
@@ -112,6 +120,10 @@ public class PaginationTest {
         }
         int skip = 0;
         int limit = 0;
-        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+        Assert.assertEquals(
+                list.stream().skip(skip).limit(limit)
+                        .collect(Collectors.toList()),
+                Lists.newArrayList(
+                        Paging.$paginate(list, Page.of(skip, limit))));
     }
 }
