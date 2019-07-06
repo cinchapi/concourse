@@ -22,8 +22,12 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.cinchapi.concourse.thrift.Operator;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -32,6 +36,13 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 public class ResultPaginationTest extends ConcourseIntegrationTest {
+
+    @Override
+    public void beforeEachTest() {
+        for (long i = 0; i < 100; ++i) {
+            client.add("bar", i, i);
+        }
+    }
 
     @Test
     public void testSelectRecordsPage() {
@@ -73,6 +84,85 @@ public class ResultPaginationTest extends ConcourseIntegrationTest {
             records.removeAll(data.keySet());
             page = page.next();
         }
+    }
+
+    @Test
+    public void testFindCclPage() {
+        Set<Long> records = client.find("bar > 30", Page.sized(7).go(3));
+        Assert.assertEquals(7, records.size());
+        Assert.assertEquals((long) (31 + 7 * 2),
+                Iterables.getFirst(records, 0));
+        Assert.assertEquals((long) ((31 + 7 * 2) + 6),
+                Iterables.getLast(records, 0));
+    }
+
+    @Test
+    public void testFindCclOrderPage() {
+        Set<Long> records = client.find("bar > 30",
+                Order.by("bar").largestFirst(), Page.sized(7).go(3));
+        Assert.assertEquals(7, records.size());
+        Assert.assertEquals((long) (99 - (7 * 2)),
+                Iterables.getFirst(records, 0));
+        Assert.assertEquals((long) (99 - (7 * 2) - 6),
+                Iterables.getLast(records, 0));
+    }
+
+    @Test
+    public void testFindCriteriaPage() {
+        int size = 11;
+        int page = 5;
+        int value = 27;
+        Set<Long> records = client.find(Criteria.where().key("bar")
+                .operator(Operator.GREATER_THAN).value(value),
+                Page.sized(size).go(page));
+        Assert.assertEquals(size, records.size());
+        Assert.assertEquals((long) ((value + 1) + size * (page - 1)),
+                Iterables.getFirst(records, 0));
+        Assert.assertEquals((long) (((value + 1) + size * 4) + (size - 1)),
+                Iterables.getLast(records, 0));
+    }
+
+    @Test
+    public void testFindCriteriaOrderPage() {
+        int size = 11;
+        int page = 5;
+        int value = 27;
+        Set<Long> records = client.find(
+                Criteria.where().key("bar").operator(Operator.GREATER_THAN)
+                        .value(value),
+                Order.by("bar").smallestFirst(), Page.sized(size).go(page));
+        Assert.assertEquals(size, records.size());
+        Assert.assertEquals((long) ((value + 1) + size * (page - 1)),
+                Iterables.getFirst(records, 0));
+        Assert.assertEquals(
+                (long) (((value + 1) + size * (page - 1)) + (size - 1)),
+                Iterables.getLast(records, 0));
+    }
+
+    @Test
+    public void testFindKeyOperatorValuePage() {
+        int size = 11;
+        int page = 1;
+        int value = 27;
+        Set<Long> records = client.find("bar", Operator.GREATER_THAN, value,
+                Page.sized(size));
+        Assert.assertEquals(size, records.size());
+        Assert.assertEquals((long) ((value + 1) + size * (page - 1)),
+                Iterables.getFirst(records, 0));
+        Assert.assertEquals(
+                (long) (((value + 1) + size * (page - 1)) + (size - 1)),
+                Iterables.getLast(records, 0));
+    }
+
+    @Test
+    public void testFindKeyOperatorValueTimePage() {
+        Timestamp timestamp = Timestamp.now();
+        for (int i = 100; i < 200; ++i) {
+            client.add("bar", i, i);
+        }
+        Set<Long> records = client.find("bar", Operator.GREATER_THAN, 99,
+                timestamp, Page.sized(10).next());
+        Assert.assertTrue(records.isEmpty());
     }
 
 }
