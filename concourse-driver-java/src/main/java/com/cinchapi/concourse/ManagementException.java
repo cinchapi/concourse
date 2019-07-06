@@ -30,7 +30,7 @@ public class ManagementException extends RuntimeException {
      * @param e
      */
     public ManagementException(
-            com.cinchapi.concourse.thrift.exceptions.messages.ManagementException e) {
+            com.cinchapi.concourse.thrift.ManagementException e) {
         super(e.getMessage());
     }
 

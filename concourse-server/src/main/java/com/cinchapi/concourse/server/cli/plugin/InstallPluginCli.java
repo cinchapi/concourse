@@ -29,7 +29,7 @@ import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.thrift.exceptions.messages.ManagementException;
+import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.util.FileOps;
 
 /**

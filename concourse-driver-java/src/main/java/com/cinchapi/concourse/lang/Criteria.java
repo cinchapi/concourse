@@ -64,7 +64,7 @@ public interface Criteria extends Symbol {
                     || e.getCause() != null && e
                             .getCause() instanceof com.cinchapi.ccl.v2.generated.ParseException) {
                 throw new ParseException(
-                        new com.cinchapi.concourse.thrift.exceptions.messages.ParseException(
+                        new com.cinchapi.concourse.thrift.ParseException(
                                 e.getMessage()));
             }
             else {
