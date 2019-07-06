@@ -87,7 +87,7 @@ public class PaginationTest {
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
                 Lists.newArrayList(
-                        Paging.$paginate(list, Page.of(skip, limit))));
+                        Paging.paginate(list, Page.of(skip, limit))));
     }
 
     @Test
@@ -107,12 +107,11 @@ public class PaginationTest {
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
                 Lists.newArrayList(
-                        Paging.$paginate(list, Page.of(skip, limit))));
+                        Paging.paginate(list, Page.of(skip, limit))));
     }
 
     @Test
     public void testSequentialPagingEdgeCase() {
-        Random random = new Random();
         int size = 19;
         Set<Integer> list = Sets.newHashSet();
         for (int i = 0; i < size; ++i) {
@@ -124,6 +123,6 @@ public class PaginationTest {
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
                 Lists.newArrayList(
-                        Paging.$paginate(list, Page.of(skip, limit))));
+                        Paging.paginate(list, Page.of(skip, limit))));
     }
 }

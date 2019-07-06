@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.data.paginate;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,6 +36,83 @@ import com.google.common.collect.Iterables;
  * @author Jeff Nelson
  */
 public final class Paging {
+
+    /**
+     * Return a copy of the original data that only contains data that appears
+     * on the provided {@code page}.
+     * 
+     * @param collection
+     * @param page
+     * @param supplier
+     * @return the paginated data
+     */
+    public static <T, C extends Collection<T>> C paginate(C collection,
+            Page page, Supplier<C> supplier) {
+        return paginate(collection, page, supplier, (s, i) -> s.add(i));
+    }
+
+    /**
+     * Return a copy of the original data that only contains data that appears
+     * on the provided {@code page}.
+     * 
+     * @param collection
+     * @param page
+     * @param supplier
+     * @param accumulator
+     * @return the paginated data
+     */
+    public static <T, C extends Collection<T>> C paginate(C collection,
+            Page page, Supplier<C> supplier, BiConsumer<C, T> accumulator) {
+        Iterable<T> stream = paginate(collection, page);
+        C $set = supplier.get();
+        for (T item : stream) {
+            accumulator.accept($set, item);
+        }
+        return $set;
+    }
+
+    /**
+     * Return a copy of the original {@code iterable} that only contains that
+     * that appears on the provided {@code page}.
+     * <p>
+     * This method is similar to calling
+     * {@link java.util.stream.Stream#limit(long)} and
+     * {@link java.util.stream.Stream#skip(long)} on a {@link Stream} except it
+     * may have better performance; especially for {@link List lists}.
+     * </p>
+     * 
+     * @param iterable
+     * @param page
+     * @return the paginated {@link Iterable}
+     */
+    public static <T> Iterable<T> paginate(Iterable<T> iterable, Page page) {
+        if(page.skip() == 0 && page.limit() == Integer.MAX_VALUE) {
+            return iterable;
+        }
+        else {
+            // Return a classic iterable instead of a stream based one for
+            // performance reasons. For best results, the returned Iterable
+            // should be used with a for loop.
+            return new Iterable<T>() {
+
+                @Override
+                public Iterator<T> iterator() {
+                    return iterable instanceof List
+                            ? new ListSkipLimitIterator<>((List<T>) iterable,
+                                    page.skip(), page.limit())
+                            : new DelegateSkipLimitIterator<>(iterable,
+                                    page.skip(), page.limit());
+
+                }
+
+                @Override
+                public String toString() {
+                    return Iterables.toString(this);
+                }
+
+            };
+        }
+    }
 
     /**
      * Return a copy of the original data that only contains data that appears
@@ -76,7 +154,7 @@ public final class Paging {
     public static <K, V, M extends Map<K, V>> M paginate(Map<K, V> map,
             Page page, Supplier<M> supplier,
             BiConsumer<Map<K, V>, Entry<K, V>> accumulator) {
-        Iterable<Entry<K, V>> stream = $paginate(map.entrySet(), page);
+        Iterable<Entry<K, V>> stream = paginate(map.entrySet(), page);
         M $map = supplier.get();
         for (Entry<K, V> entry : stream) {
             accumulator.accept($map, entry);
@@ -96,162 +174,7 @@ public final class Paging {
         return paginate(set, page, LinkedHashSet::new);
     }
 
-    /**
-     * Return a copy of the original data that only contains data that appears
-     * on the provided {@code page}.
-     * 
-     * @param set
-     * @param page
-     * @param supplier
-     * @return the paginated data
-     */
-    public static <T, S extends Set<T>> S paginate(Set<T> set, Page page,
-            Supplier<S> supplier) {
-        return paginate(set, page, supplier, (s, i) -> s.add(i));
-    }
-
-    /**
-     * Return a copy of the original data that only contains data that appears
-     * on the provided {@code page}.
-     * 
-     * @param set
-     * @param page
-     * @param supplier
-     * @param accumulator
-     * @return the paginated data
-     */
-    public static <T, S extends Set<T>> S paginate(Set<T> set, Page page,
-            Supplier<S> supplier, BiConsumer<Set<T>, T> accumulator) {
-        Iterable<T> stream = $paginate(set, page);
-        S $set = supplier.get();
-        for (T item : stream) {
-            accumulator.accept($set, item);
-        }
-        return $set;
-    }
-
-    /**
-     * Return a copy of the original {@code iterable} that only contains that
-     * that appears on the provided {@code page}.
-     * <p>
-     * This method is similar to calling
-     * {@link java.util.stream.Stream#limit(long)} and
-     * {@link java.util.stream.Stream#skip(long)} on a {@link Stream} except it
-     * may have better performance; especially for {@link List lists}.
-     * </p>
-     * 
-     * @param iterable
-     * @param page
-     * @return the paginated {@link Iterable}
-     */
-    public static <T> Iterable<T> $paginate(Iterable<T> iterable, Page page) {
-        if(page.skip() == 0 && page.limit() == Integer.MAX_VALUE) {
-            return iterable;
-        }
-        else {
-            // Return a classic iterable instead of a stream based one for
-            // performance reasons. For best results, the returned Iterable
-            // should be used with a for loop.
-            return new Iterable<T>() {
-
-                @Override
-                public Iterator<T> iterator() {
-                    return iterable instanceof List
-                            ? new ListSkipLimitIterator<>((List<T>) iterable,
-                                    page.skip(), page.limit())
-                            : new DelegateSkipLimitIterator<>(iterable,
-                                    page.skip(), page.limit());
-
-                }
-
-                @Override
-                public String toString() {
-                    return Iterables.toString(this);
-                }
-
-            };
-        }
-    }
-
-    /**
-     * A {@link Iterable} that displays data between bounds defined by a skip
-     * and limit.
-     *
-     * @author Jeff Nelson
-     */
-    private static abstract class SkipLimitIterator<T> implements Iterator<T> {
-
-        protected int index;
-        protected int min;
-        protected int max;
-        private boolean exhausted = false;
-
-        /**
-         * Return the {@code next} element with the skip/limit confines.
-         * 
-         * @return the next element
-         */
-        protected abstract T $next();
-
-        /**
-         * Return {@true} if the this iterator has a next element within the
-         * skip/limit confines.
-         * 
-         * @return {@code} true if another element remains
-         */
-        protected abstract boolean $hasNext();
-
-        /**
-         * The {@link Iterable} to which the skip/limit is applied.
-         */
-        protected Iterable<T> iterable;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param iterable
-         * @param skip
-         * @param limit
-         */
-        public SkipLimitIterator(Iterable<T> iterable, int skip, int limit) {
-            this.iterable = iterable;
-            this.index = 0;
-            min = skip;
-            max = limit + skip;
-            while (index < min) {
-                try {
-                    $next();
-                    ++index;
-                }
-                catch (NoSuchElementException e) {
-                    exhausted = true;
-                    break;
-                }
-            }
-            if(max - min == 0) {
-                this.exhausted = true;
-            }
-        }
-
-        @Override
-        public boolean hasNext() {
-            return !exhausted && $hasNext();
-        }
-
-        @Override
-        public T next() {
-            if(index < max) {
-                T next = $next();
-                ++index;
-                exhausted = index >= max;
-                return next;
-            }
-            else {
-                throw new NoSuchElementException();
-            }
-        }
-
-    }
+    private Paging() {/* no-init */}
 
     /**
      * {@link SkipLimitIterator} that delegates to another {@link Iterator}.
@@ -276,19 +199,19 @@ public final class Paging {
         }
 
         @Override
-        protected T $next() {
-            if(delegate == null) {
-                delegate = iterable.iterator();
-            }
-            return delegate.next();
-        }
-
-        @Override
         protected boolean $hasNext() {
             if(delegate == null) {
                 delegate = iterable.iterator();
             }
             return delegate.hasNext();
+        }
+
+        @Override
+        protected T $next() {
+            if(delegate == null) {
+                delegate = iterable.iterator();
+            }
+            return delegate.next();
         }
 
     }
@@ -313,6 +236,11 @@ public final class Paging {
         }
 
         @Override
+        protected boolean $hasNext() {
+            return index < max;
+        }
+
+        @Override
         protected T $next() {
             if(index < max) {
                 return ((List<T>) iterable).get(index);
@@ -323,12 +251,99 @@ public final class Paging {
         }
 
         @Override
-        protected boolean $hasNext() {
-            return index < max;
+        protected void advanceIndex(int min) {
+            index = min;
         }
 
     }
 
-    private Paging() {/* no-init */}
+    /**
+     * A {@link Iterable} that displays data between bounds defined by a skip
+     * and limit.
+     *
+     * @author Jeff Nelson
+     */
+    private static abstract class SkipLimitIterator<T> implements Iterator<T> {
+
+        protected int index;
+        protected int min;
+        protected int max;
+        private boolean exhausted = false;
+
+        /**
+         * The {@link Iterable} to which the skip/limit is applied.
+         */
+        protected Iterable<T> iterable;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param iterable
+         * @param skip
+         * @param limit
+         */
+        public SkipLimitIterator(Iterable<T> iterable, int skip, int limit) {
+            this.iterable = iterable;
+            this.index = 0;
+            this.min = skip;
+            this.max = limit + skip;
+            advanceIndex(min);
+            if(max - min == 0) {
+                this.exhausted = true;
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !exhausted && $hasNext();
+        }
+
+        @Override
+        public T next() {
+            if(index < max) {
+                T next = $next();
+                ++index;
+                exhausted = index >= max;
+                return next;
+            }
+            else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        /**
+         * Return {@true} if the this iterator has a next element within the
+         * skip/limit confines.
+         * 
+         * @return {@code} true if another element remains
+         */
+        protected abstract boolean $hasNext();
+
+        /**
+         * Return the {@code next} element with the skip/limit confines.
+         * 
+         * @return the next element
+         */
+        protected abstract T $next();
+
+        /**
+         * Advance the {@link #index} to the specific {@code min}.
+         * 
+         * @param min
+         */
+        protected void advanceIndex(int min) {
+            while (index < min) {
+                try {
+                    $next();
+                    ++index;
+                }
+                catch (NoSuchElementException e) {
+                    exhausted = true;
+                    break;
+                }
+            }
+        }
+
+    }
 
 }
