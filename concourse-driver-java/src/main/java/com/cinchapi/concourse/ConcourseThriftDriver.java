@@ -2932,6 +2932,9 @@ class ConcourseThriftDriver extends Concourse {
             authenticate();
             return execute(callable);
         }
+        catch (com.cinchapi.concourse.thrift.exceptions.messages.InvalidOperationException e) {
+            throw new UnsupportedOperationException(e);
+        }
         catch (com.cinchapi.concourse.thrift.exceptions.empty.TransactionException e) {
             throw new TransactionException();
         }
