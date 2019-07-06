@@ -27,6 +27,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import com.cinchapi.concourse.lang.paginate.Page;
+import com.google.common.collect.Iterables;
 
 /**
  * A utility for applying {@link Page Pages}.
@@ -163,6 +164,11 @@ public final class Paging {
 
                 }
 
+                @Override
+                public String toString() {
+                    return Iterables.toString(this);
+                }
+
             };
         }
     }
@@ -221,6 +227,9 @@ public final class Paging {
                     exhausted = true;
                     break;
                 }
+            }
+            if(max - min == 0) {
+                this.exhausted = true;
             }
         }
 
@@ -300,11 +309,12 @@ public final class Paging {
          */
         public ListSkipLimitIterator(List<T> iterable, int skip, int limit) {
             super(iterable, skip, limit);
+            max = Math.min(max, iterable.size());
         }
 
         @Override
         protected T $next() {
-            if(index < ((List<T>) iterable).size()) {
+            if(index < max) {
                 return ((List<T>) iterable).get(index);
             }
             else {
@@ -314,7 +324,7 @@ public final class Paging {
 
         @Override
         protected boolean $hasNext() {
-            return index < ((List<T>) iterable).size();
+            return index < max;
         }
 
     }

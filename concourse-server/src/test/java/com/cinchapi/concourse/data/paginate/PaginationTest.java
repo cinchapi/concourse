@@ -16,8 +16,10 @@
 package com.cinchapi.concourse.data.paginate;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,9 +32,12 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.query.sort.Sorting;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for the functionality contracted by the {@link Pageable} interface
@@ -68,4 +73,45 @@ public class PaginationTest {
         Assert.assertEquals(expected, table);
     }
 
+    @Test
+    public void testRandomAccessPaging() {
+        Random random = new Random();
+        int size = TestData.getScaleCount();
+        List<Integer> list = Lists.newArrayList();
+        for (int i = 0; i < size; ++i) {
+            list.add(i);
+        }
+        int skip = Math.abs(random.nextInt(size - 1));
+        int limit = Math.abs(random.nextInt(size - 1));
+        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+    }
+    
+    @Test
+    public void testSequentialPaging() {
+        Random random = new Random();
+        int size = TestData.getScaleCount();
+        Set<Integer> list = Sets.newHashSet();
+        for (int i = 0; i < size; ++i) {
+            list.add(i);
+        }
+        int skip = Math.abs(random.nextInt(size - 1));
+        int limit = Math.abs(random.nextInt(size - 1));
+        System.out.println(size);
+        System.out.println(skip);
+        System.out.println(limit);
+        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+    }
+
+    @Test
+    public void testSequentialPagingEdgeCase() {
+        Random random = new Random();
+        int size = 19;
+        Set<Integer> list = Sets.newHashSet();
+        for (int i = 0; i < size; ++i) {
+            list.add(i);
+        }
+        int skip = 0;
+        int limit = 0;
+        Assert.assertEquals(list.stream().skip(skip).limit(limit).collect(Collectors.toList()), Lists.newArrayList(Paging.$paginate(list, Page.of(skip, limit))));
+    }
 }
