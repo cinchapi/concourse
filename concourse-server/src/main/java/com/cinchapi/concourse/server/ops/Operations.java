@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -322,7 +321,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getAstAtomic(
             AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         getRecordsOptionalAtomic(records, timestamp, result, streamer, consumer,
@@ -348,7 +347,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, TObject>> void getKeyAstAtomic(
             String key, AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         getKeyRecordsOptionalAtomic(key, records, timestamp, result, streamer,
@@ -371,7 +370,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, TObject>> void getKeyRecordsAtomic(
             String key, Collection<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         getKeyRecordsOptionalAtomic(key, records, Time.NONE, result, streamer,
                 consumer, atomic);
@@ -395,20 +394,20 @@ public final class Operations {
      */
     public static <M extends Map<Long, TObject>> void getKeyRecordsOptionalAtomic(
             String key, Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    try {
-                        result.put(record,
-                                Iterables.getLast(timestamp == Time.NONE
-                                        ? store.select(key, record)
-                                        : store.select(key, record,
-                                                timestamp)));
-                    }
-                    catch (NoSuchElementException e) {/* ignore */}
-                });
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                result.put(record, Iterables.getLast(
+                        timestamp == Time.NONE ? store.select(key, record)
+                                : store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
         if(consumer != null) {
             consumer.accept(result);
         }
@@ -433,7 +432,8 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getKeysAstAtomic(
             Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
-            M result, @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         getKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
@@ -456,7 +456,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsAtomic(
             Collection<String> keys, Collection<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         getKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
                 consumer, atomic);
@@ -480,29 +480,28 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsOptionalAtomic(
             Collection<String> keys, Collection<Long> records, long timestamp,
-            M result, @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    Map<String, TObject> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key,
-                                    Iterables.getLast(timestamp == Time.NONE
-                                            ? store.select(key, record)
-                                            : store.select(key, record,
-                                                    timestamp)));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        result.put(record, entry);
-                    }
-                });
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, TObject> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key, Iterables.getLast(
+                            timestamp == Time.NONE ? store.select(key, record)
+                                    : store.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                result.put(record, entry);
+            }
+        }
         if(consumer != null) {
             consumer.accept(result);
         }
@@ -523,7 +522,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getRecordsAtomic(
             Set<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         getRecordsOptionalAtomic(records, Time.NONE, result, streamer, consumer,
                 atomic);
@@ -546,23 +545,21 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getRecordsOptionalAtomic(
             Set<Long> records, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    Map<String, TObject> data = (timestamp == Time.NONE
-                            ? store.select(record)
-                            : store.select(record, timestamp)).entrySet()
-                                    .stream()
-                                    .filter(e -> !e.getValue().isEmpty())
-                                    .collect(Collectors.toMap(Entry::getKey,
-                                            e -> Iterables
-                                                    .getLast(e.getValue())));
-                    if(!data.isEmpty()) {
-                        result.put(record, data);
-                    }
-                });
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, TObject> data = (timestamp == Time.NONE
+                    ? store.select(record) : store.select(record, timestamp))
+                            .entrySet().stream()
+                            .filter(e -> !e.getValue().isEmpty())
+                            .collect(Collectors.toMap(Entry::getKey,
+                                    e -> Iterables.getLast(e.getValue())));
+            if(!data.isEmpty()) {
+                result.put(record, data);
+            }
+        }
         if(consumer != null) {
             consumer.accept(result);
         }
@@ -977,7 +974,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectAstAtomic(
             AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         selectRecordsOptionalAtomic(records, timestamp, result, streamer,
@@ -1003,7 +1000,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Set<TObject>>> void selectKeyAstAtomic(
             String key, AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         selectKeyRecordsOptionalAtomic(key, records, timestamp, result,
@@ -1025,7 +1022,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsAtomic(
             String key, Collection<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         selectKeyRecordsOptionalAtomic(key, records, Time.NONE, result,
                 streamer, consumer, atomic);
@@ -1048,19 +1045,18 @@ public final class Operations {
      */
     public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsOptionalAtomic(
             String key, Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    try {
-                        result.put(record,
-                                timestamp == Time.NONE
-                                        ? store.select(key, record)
-                                        : store.select(key, record, timestamp));
-                    }
-                    catch (NoSuchElementException e) {/* ignore */}
-                });
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                result.put(record,
+                        timestamp == Time.NONE ? store.select(key, record)
+                                : store.select(key, record, timestamp));
+            }
+            catch (NoSuchElementException e) {/* ignore */}
+        }
         if(consumer != null) {
             consumer.accept(result);
         }
@@ -1085,7 +1081,8 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysAstAtomic(
             Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
-            M result, @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
         selectKeysRecordsOptionalAtomic(keys, records, timestamp, result,
@@ -1108,7 +1105,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsAtomic(
             Collection<String> keys, Collection<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         selectKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
                 streamer, consumer, atomic);
@@ -1132,27 +1129,28 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsOptionalAtomic(
             Collection<String> keys, Collection<Long> records, long timestamp,
-            M result, @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    Map<String, Set<TObject>> entry = TMaps
-                            .newLinkedHashMapWithCapacity(keys.size());
-                    for (String key : keys) {
-                        try {
-                            entry.put(key, timestamp == Time.NONE
-                                    ? store.select(key, record)
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, Set<TObject>> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key,
+                            timestamp == Time.NONE ? store.select(key, record)
                                     : store.select(key, record, timestamp));
-                        }
-                        catch (NoSuchElementException e) {
-                            continue;
-                        }
-                    }
-                    if(!entry.isEmpty()) {
-                        TMaps.putResultDatasetOptimized(result, record, entry);
-                    }
-                });
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        }
         if(consumer != null) {
             consumer.accept(result);
         }
@@ -1173,7 +1171,7 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsAtomic(
             Collection<Long> records, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         selectRecordsOptionalAtomic(records, Time.NONE, result, streamer,
                 consumer, atomic);
@@ -1196,16 +1194,15 @@ public final class Operations {
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsOptionalAtomic(
             Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Stream<Long>, Stream<Long>> streamer,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        (streamer != null ? streamer.apply(records.stream()) : records.stream())
-                .forEach(record -> {
-                    Map<String, Set<TObject>> data = timestamp == Time.NONE
-                            ? store.select(record)
-                            : store.select(record, timestamp);
-                    TMaps.putResultDatasetOptimized(result, record, data);
-                });
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, Set<TObject>> data = timestamp == Time.NONE
+                    ? store.select(record) : store.select(record, timestamp);
+            TMaps.putResultDatasetOptimized(result, record, data);
+        } ;
         if(consumer != null) {
             consumer.accept(result);
         }
