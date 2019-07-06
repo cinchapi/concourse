@@ -20,8 +20,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
+import com.cinchapi.concourse.thrift.TransactionToken;
 
 /**
  * Intercepts method invocations to verify that the provided {@link AccessToken}

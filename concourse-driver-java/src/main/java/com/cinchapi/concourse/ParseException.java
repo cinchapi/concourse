@@ -29,8 +29,7 @@ public class ParseException extends RuntimeException {
      * 
      * @param e
      */
-    public ParseException(
-            com.cinchapi.concourse.thrift.exceptions.messages.ParseException e) {
+    public ParseException(com.cinchapi.concourse.thrift.exceptions.messages.ParseException e) {
         super(e.getMessage());
     }
 

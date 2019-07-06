@@ -51,9 +51,9 @@ import com.cinchapi.concourse.thrift.ConcourseService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Conversions;
@@ -784,7 +784,8 @@ class ConcourseThriftDriver extends Concourse {
             client.getInputProtocol().getTransport().close();
             client.getOutputProtocol().getTransport().close();
         }
-        catch (SecurityException | TTransportException e) {
+        catch (SecurityException
+                | TTransportException e) {
             // Handle corner case where the client is existing because of
             // (or after the occurrence of) a password change, which means
             // it can't perform a traditional logout. Its worth nothing that

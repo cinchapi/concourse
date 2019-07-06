@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import jline.console.ConsoleReader;
 
 import org.apache.thrift.TException;
@@ -35,7 +36,6 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.exceptions.messages.SecurityException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;

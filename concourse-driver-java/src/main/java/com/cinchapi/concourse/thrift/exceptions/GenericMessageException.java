@@ -1,3 +1,5 @@
+package com.cinchapi.concourse.thrift.exceptions;
+
 /*
  * Copyright (c) 2013-2019 Cinchapi Inc.
  *
@@ -13,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.thrift.exceptions;
-
-import static org.apache.thrift.protocol.TProtocolUtil.skip;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import com.cinchapi.concourse.thrift.exceptions.messages.InvalidArgumentException;
 import org.apache.thrift.*;
 import org.apache.thrift.meta_data.FieldMetaData;
 import org.apache.thrift.meta_data.FieldValueMetaData;
@@ -41,27 +41,21 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.transport.TIOStreamTransport;
 
-import com.cinchapi.concourse.thrift.exceptions.messages.InvalidArgumentException;
+import static org.apache.thrift.protocol.TProtocolUtil.skip;
 
 @SuppressWarnings({ "cast", "rawtypes", "serial", "unchecked", "unused" })
 
 public class GenericMessageException extends TException implements
-        TBase<GenericMessageException, GenericMessageException.Fields>,
-        Serializable,
-        Cloneable,
-        Comparable<GenericMessageException> {
+    TBase<GenericMessageException, GenericMessageException.Fields>,
+    Serializable, Cloneable, Comparable<GenericMessageException> {
 
-    private static final TStruct STRUCT_DESC = new TStruct(
-            "GenericMessageException");
-    private static final TField MESSAGE_FIELD_DESC = new TField("message",
-            TType.STRING, (short) 1);
+    private static final TStruct STRUCT_DESC = new TStruct("GenericMessageException");
+    private static final TField MESSAGE_FIELD_DESC = new TField("message", TType.STRING, (short) 1);
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<>();
 
     static {
-        schemes.put(StandardScheme.class,
-                new GenericMessageExceptionStandardSchemeFactory());
-        schemes.put(TupleScheme.class,
-                new GenericMessageExceptionTupleSchemeFactory());
+        schemes.put(StandardScheme.class, new GenericMessageExceptionStandardSchemeFactory());
+        schemes.put(TupleScheme.class, new GenericMessageExceptionTupleSchemeFactory());
     }
 
     public String message;
@@ -90,14 +84,12 @@ public class GenericMessageException extends TException implements
 
         public static Fields findByThriftIdOrThrow(int fieldId) {
             return _findByThriftId(fieldId, () -> {
-                throw new IllegalArgumentException(
-                        "Field " + fieldId + " doesn't exist!");
+                throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
             });
         }
 
-        private static Fields _findByThriftId(int fieldId,
-                Supplier<Fields> failure) {
-            if(fieldId == 1)
+        private static Fields _findByThriftId(int fieldId, Supplier<Fields> failure) {
+            if (fieldId == 1)
                 return MESSAGE;
             else
                 return failure.get();
@@ -107,25 +99,19 @@ public class GenericMessageException extends TException implements
             return byName.get(name);
         }
 
-        public short getThriftFieldId() {
-            return thriftId;
-        }
-
-        public String getFieldName() {
-            return fieldName;
-        }
+        public short getThriftFieldId() { return thriftId; }
+        public String getFieldName() { return fieldName; }
     }
 
     // isset id assignments
     public static final Map<Fields, FieldMetaData> metaDataMap;
     static {
         Map<Fields, FieldMetaData> tmpMap = new EnumMap<>(Fields.class);
-        tmpMap.put(Fields.MESSAGE,
-                new FieldMetaData("message", TFieldRequirementType.DEFAULT,
-                        new FieldValueMetaData(TType.STRING)));
+        tmpMap.put(Fields.MESSAGE, new FieldMetaData(
+            "message", TFieldRequirementType.DEFAULT, new FieldValueMetaData(TType.STRING)
+        ));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
-        FieldMetaData.addStructMetaDataMap(GenericMessageException.class,
-                metaDataMap);
+        FieldMetaData.addStructMetaDataMap(GenericMessageException.class, metaDataMap);
     }
 
     public GenericMessageException() {}
@@ -172,8 +158,8 @@ public class GenericMessageException extends TException implements
     }
 
     public void setFieldValue(Fields field, Object value) {
-        if(field == Fields.MESSAGE) {
-            if(value == null || !(value instanceof String))
+        if (field == Fields.MESSAGE) {
+            if (value == null || !(value instanceof String))
                 unsetMessage();
             else
                 setMessage((String) value);
@@ -181,22 +167,22 @@ public class GenericMessageException extends TException implements
     }
 
     public Object getFieldValue(Fields field) {
-        if(field == Fields.MESSAGE)
+        if (field == Fields.MESSAGE)
             return getMessage();
         throw new IllegalStateException();
     }
 
     public boolean isSet(Fields field) {
-        if(field == null)
+        if (field == null)
             throw new IllegalArgumentException();
-        else if(field == Fields.MESSAGE)
+        else if (field == Fields.MESSAGE)
             return isSetMessage();
         else
             throw new IllegalStateException();
     }
 
     public boolean equals(Object other) {
-        if(other instanceof GenericMessageException)
+        if (other instanceof GenericMessageException)
             return this.equals((GenericMessageException) other);
         return false;
     }
@@ -238,7 +224,7 @@ public class GenericMessageException extends TException implements
         int lastComparison = 0;
 
         lastComparison = Boolean.valueOf(isSetMessage())
-                .compareTo(other.isSetMessage());
+            .compareTo(other.isSetMessage());
         if(lastComparison != 0) {
             return lastComparison;
         }
@@ -281,7 +267,7 @@ public class GenericMessageException extends TException implements
     }
 
     public void validate() throws TException {
-        if(message == null)
+        if (message == null)
             throw new InvalidArgumentException();
     }
 
@@ -294,8 +280,7 @@ public class GenericMessageException extends TException implements
         }
     }
 
-    private void readObject(ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         try {
             read(new TCompactProtocol(new TIOStreamTransport(in)));
         }
@@ -304,25 +289,21 @@ public class GenericMessageException extends TException implements
         }
     }
 
-    private static class GenericMessageExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class GenericMessageExceptionStandardSchemeFactory implements SchemeFactory {
         public GenericMessageExceptionStandardScheme getScheme() {
             return new GenericMessageExceptionStandardScheme();
         }
     }
 
-    private static class GenericMessageExceptionStandardScheme
-            extends StandardScheme<GenericMessageException> {
-        public void read(TProtocol iprot, GenericMessageException struct)
-                throws TException {
+    private static class GenericMessageExceptionStandardScheme extends StandardScheme<GenericMessageException> {
+        public void read(TProtocol iprot, GenericMessageException struct) throws TException {
             TField schemeField;
             iprot.readStructBegin();
             while (true) {
                 schemeField = iprot.readFieldBegin();
-                if(schemeField.type == TType.STOP)
+                if (schemeField.type == TType.STOP)
                     break;
-                else if(schemeField.id == 1
-                        && schemeField.type == TType.STRING) {
+                else if (schemeField.id == 1 && schemeField.type == TType.STRING) {
                     struct.message = iprot.readString();
                     struct.setMessageIsSet(true);
                 }
@@ -333,17 +314,15 @@ public class GenericMessageException extends TException implements
             }
             iprot.readStructEnd();
 
-            // TODO: check for required fields of primitive type, which can't be
-            // checked in validate
+            // TODO: check for required fields of primitive type, which can't be checked in validate
             struct.validate();
         }
 
-        public void write(TProtocol oprot, GenericMessageException struct)
-                throws TException {
+        public void write(TProtocol oprot, GenericMessageException struct) throws TException {
             struct.validate();
             oprot.writeStructBegin(STRUCT_DESC);
 
-            if(struct.message != null) {
+            if (struct.message != null) {
                 oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
                 oprot.writeString(struct.message);
                 oprot.writeFieldEnd();
@@ -355,34 +334,31 @@ public class GenericMessageException extends TException implements
 
     }
 
-    private static class GenericMessageExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class GenericMessageExceptionTupleSchemeFactory implements SchemeFactory {
         public GenericMessageExceptionTupleScheme getScheme() {
             return new GenericMessageExceptionTupleScheme();
         }
     }
 
-    private static class GenericMessageExceptionTupleScheme
-            extends TupleScheme<GenericMessageException> {
-        public void write(TProtocol prot, GenericMessageException struct)
-                throws TException {
+    private static class GenericMessageExceptionTupleScheme extends TupleScheme<GenericMessageException> {
+        public void write(TProtocol prot, GenericMessageException struct) throws TException {
             TTupleProtocol oprot = (TTupleProtocol) prot;
             BitSet optionals = new BitSet();
-            if(struct.isSetMessage())
+            if (struct.isSetMessage())
                 optionals.set(0);
             oprot.writeBitSet(optionals, 1);
-            if(struct.isSetMessage())
+            if (struct.isSetMessage())
                 oprot.writeString(struct.message);
         }
 
-        public void read(TProtocol prot, GenericMessageException struct)
-                throws TException {
+        public void read(TProtocol prot, GenericMessageException struct) throws TException {
             TTupleProtocol iprot = (TTupleProtocol) prot;
             BitSet incoming = iprot.readBitSet(1);
-            if(incoming.get(0)) {
+            if (incoming.get(0)) {
                 struct.message = iprot.readString();
                 struct.setMessageIsSet(true);
             }
         }
     }
 }
+
