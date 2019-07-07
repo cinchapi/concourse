@@ -27,8 +27,8 @@ import com.cinchapi.concourse.test.PluginTest;
  *
  * @author Jeff Nelson
  */
-public class PluginCommunicationTest extends ClientServerTest implements
-        PluginTest {
+public class PluginCommunicationTest extends ClientServerTest
+        implements PluginTest {
 
     @Override
     protected String getServerVersion() {

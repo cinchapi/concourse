@@ -17,11 +17,11 @@ package com.cinchapi.concourse.server.plugin.data;
 
 import java.util.Map;
 import java.util.Set;
+
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import io.atomix.catalyst.buffer.Buffer;
 
 /**
