@@ -34,6 +34,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
@@ -121,6 +122,7 @@ public class ConcourseRuntime extends StatefulConcourseService {
             Collection<Integer> criteriaTransform = CRITERIA_TRANSFORM
                     .get(method);
             Collection<Integer> orderTransform = ORDER_TRANSFORM.get(method);
+            Collection<Integer> pageTransform = PAGE_TRANSFORM.get(method);
             for (int i = 0; i < args.length; ++i) {
                 // Must go through each parameters and transform generic value
                 // objects into TObjects; all Criteria into TCriteria and all
@@ -151,6 +153,9 @@ public class ConcourseRuntime extends StatefulConcourseService {
                 }
                 else if(orderTransform.contains(i)) {
                     arg = JavaThriftBridge.convert((Order) arg);
+                }
+                else if(pageTransform.contains(i)) {
+                    arg = JavaThriftBridge.convert((Page) arg);
                 }
                 targs.add(ComplexTObject.fromJavaObject(arg));
             }
