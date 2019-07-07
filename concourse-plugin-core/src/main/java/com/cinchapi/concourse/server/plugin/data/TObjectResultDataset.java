@@ -60,7 +60,6 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     @Nullable
     private Long sortAt;
 
-
     @Override
     public Set<Entry<Long, Map<String, Set<TObject>>>> entrySet() {
         Set<Entry<Long, Map<String, Set<TObject>>>> entrySet = super.entrySet();

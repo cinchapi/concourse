@@ -80,6 +80,19 @@ public abstract class LazyTrackingResultDataset<T> extends ResultDataset<T> {
     }
 
     @Override
+    public void deserialize(Buffer buffer) {
+        while (buffer.hasRemaining()) {
+            long entity = buffer.readLong();
+            String attribute = buffer.readUTF8();
+            int values = buffer.readInt();
+            for (int i = 0; i < values; ++i) {
+                T value = deserializeValue(buffer);
+                insert(entity, attribute, value);
+            }
+        }
+    }
+
+    @Override
     public Set<Entry<Long, Map<String, Set<T>>>> entrySet() {
         return data.entrySet();
     }
@@ -127,6 +140,20 @@ public abstract class LazyTrackingResultDataset<T> extends ResultDataset<T> {
     @Override
     public Map<String, Set<T>> remove(Object entity) {
         return data.remove(entity);
+    }
+
+    @Override
+    public void serialize(Buffer buffer) {
+        for (Entry<Long, Map<String, Set<T>>> entry : data.entrySet()) {
+            buffer.writeLong(entry.getKey());
+            for (Entry<String, Set<T>> data : entry.getValue().entrySet()) {
+                buffer.writeUTF8(data.getKey());
+                buffer.writeInt(data.getValue().size());
+                for (T value : data.getValue()) {
+                    serializeValue(value, buffer);
+                }
+            }
+        }
     }
 
     @Override
