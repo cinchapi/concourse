@@ -21,19 +21,6 @@
 TARGET="../concourse-driver-java/src/main/java"
 PACKAGE=$TARGET"/com/cinchapi/concourse/thrift"
 
-HOME=$THRIFT_DIR/../utils
-cd $THRIFT_DIR
-
-# Gather all of the modules
-MODULES=(
-  concourse.thrift
-)
-cd module
-for f in *; do
-  MODULES+=(module/$f)
-done
-cd - >> /dev/null
-
 # Compile each module and cleanup the generated source code
 for module in "${MODULES[@]}"; do
   service=$(cat $module | grep service | cut -d ' ' -f 2)
