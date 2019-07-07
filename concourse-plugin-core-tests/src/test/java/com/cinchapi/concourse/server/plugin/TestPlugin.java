@@ -45,6 +45,10 @@ public class TestPlugin extends Plugin {
     public Set<Long> inventory() {
         return runtime.inventory();
     }
+    
+    public String getResultDatasetClassName() {
+        return runtime.selectCcl("foo = bar").getClass().getName();
+    }
 
     public String environment() {
         return Reflection.call(Thread.currentThread(), "environment");
