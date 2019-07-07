@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Direction;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.lang.sort.OrderComponent;
@@ -68,6 +69,16 @@ public final class JavaThriftBridge {
             tcomponent.setTimestamp(Convert.javaToThrift(timestamp));
         }
         return tcomponent;
+    }
+
+    /**
+     * Translate a {@link Page} to a {@link TPage}.
+     * 
+     * @param page
+     * @return the analogous {@link TPage}
+     */
+    public static TPage convert(Page page) {
+        return new TPage(page.skip(), page.limit());
     }
 
     /**
@@ -123,6 +134,16 @@ public final class JavaThriftBridge {
             }
         }
         return new OrderComponent(tcomponent.getKey(), timestamp, direction);
+    }
+
+    /**
+     * Translate a {@link TPage} to a {@link Page}.
+     * 
+     * @param page
+     * @return the analogous {@link Page}
+     */
+    public static Page convert(TPage tpage) {
+        return Page.of(tpage.getSkip(), tpage.getLimit());
     }
 
     private JavaThriftBridge() {/* no-init */}
