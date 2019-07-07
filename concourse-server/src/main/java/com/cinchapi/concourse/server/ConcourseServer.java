@@ -56,7 +56,6 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.data.paginate.Paging;
 import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableSet;
 import com.cinchapi.concourse.data.sort.SortableTable;
@@ -78,9 +77,10 @@ import com.cinchapi.concourse.server.ops.AtomicOperations;
 import com.cinchapi.concourse.server.ops.Operations;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
-import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.LazyTrackingTObjectResultDataset;
 import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.query.paginate.Pages;
+import com.cinchapi.concourse.server.query.paginate.Paging;
 import com.cinchapi.concourse.server.query.sort.Orders;
 import com.cinchapi.concourse.server.query.sort.Sorting;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
@@ -333,7 +333,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     private static SortableTable<Set<TObject>> emptySortableResultDataset() {
         return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread()
-                .getClass()) ? new TObjectResultDataset()
+                .getClass()) ? new LazyTrackingTObjectResultDataset()
                         : SortableTable.multiValued(Maps.newLinkedHashMap());
     }
 
@@ -353,7 +353,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     private static SortableTable<Set<TObject>> emptySortableResultDatasetWithCapacity(
             int capacity) {
         return (REMOTE_INVOCATION_THREAD_CLASS == Thread.currentThread()
-                .getClass()) ? new TObjectResultDataset()
+                .getClass()) ? new LazyTrackingTObjectResultDataset()
                         : SortableTable.multiValued(
                                 TMaps.newLinkedHashMapWithCapacity(capacity));
     }
