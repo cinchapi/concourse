@@ -165,4 +165,12 @@ public class ResultPaginationTest extends ConcourseIntegrationTest {
         Assert.assertTrue(records.isEmpty());
     }
 
+    @Test
+    public void testGetCclOrderPage() {
+        Map<Long, Map<String, Object>> data = client.get("bar >< 10 20",
+                Order.by("bar"), Page.sized(4).go(3));
+        Assert.assertEquals((long) 10 + (4 * 2),
+                (long) data.keySet().iterator().next());
+    }
+
 }
