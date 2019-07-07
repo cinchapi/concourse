@@ -1055,7 +1055,9 @@ public final class Operations {
                         timestamp == Time.NONE ? store.select(key, record)
                                 : store.select(key, record, timestamp));
             }
-            catch (NoSuchElementException e) {/* ignore */}
+            catch (NoSuchElementException e) {
+                continue;
+            }
         }
         if(consumer != null) {
             consumer.accept(result);

@@ -30,7 +30,7 @@ public final class AtomicOperations {
     private AtomicOperations() {/* no-init */}
 
     /**
-     * Run the {@link AtomicRoutine} with an {@link AtomicOperation} from the
+     * Run the {@link AtomicRoutine} within an {@link AtomicOperation} from the
      * provided {@code store} and continue to retry execution of the routine
      * until it terminates without failure.
      * 
