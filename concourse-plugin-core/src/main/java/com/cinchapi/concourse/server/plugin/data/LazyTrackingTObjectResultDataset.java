@@ -18,8 +18,11 @@ package com.cinchapi.concourse.server.plugin.data;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.data.sort.Sorter;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -31,6 +34,12 @@ import com.cinchapi.concourse.thrift.TObject;
 public class LazyTrackingTObjectResultDataset
         extends LazyTrackingResultDataset<TObject>
         implements SortableTable<Set<TObject>> {
+    
+    /**
+     * The last {@link Page} specified in the {@link #paginate(Page)} method.
+     */
+    @Nullable
+    private Page page;
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter) {
@@ -52,5 +61,4 @@ public class LazyTrackingTObjectResultDataset
     protected Supplier<ResultDataset<TObject>> supplier() {
         return TObjectResultDataset::new;
     }
-
 }

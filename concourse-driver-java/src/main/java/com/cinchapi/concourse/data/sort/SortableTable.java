@@ -18,12 +18,7 @@ package com.cinchapi.concourse.data.sort;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import com.cinchapi.concourse.data.Table;
-import com.cinchapi.concourse.data.paginate.Pageable;
-import com.cinchapi.concourse.data.paginate.Paging;
-import com.cinchapi.concourse.lang.paginate.Page;
 import com.google.common.collect.ForwardingMap;
 
 /**
@@ -32,7 +27,7 @@ import com.google.common.collect.ForwardingMap;
  *
  * @author Jeff Nelson
  */
-public interface SortableTable<V> extends Sortable<V>, Table<V>, Pageable {
+public interface SortableTable<V> extends Sortable<V>, Table<V> {
 
     /**
      * Ensure that the {@code data} is a {@link SortableTable}.
@@ -76,13 +71,6 @@ public interface SortableTable<V> extends Sortable<V>, Table<V>, Pageable {
             ForwardingMap<Long, Map<String, V>> implements SortableTable<V> {
 
         /**
-         * The last {@link Page} specified in the {@link #paginate(Page)}
-         * method.
-         */
-        @Nullable
-        private Page page = null;
-
-        /**
          * The delegate to which calls are forwarded. If {@link #sort(Sorter)}
          * has been called, this delegate is sorted.
          */
@@ -98,11 +86,6 @@ public interface SortableTable<V> extends Sortable<V>, Table<V>, Pageable {
         }
 
         @Override
-        public void paginate(Page page) {
-            this.page = page;
-        }
-
-        @Override
         public void sort(Sorter<V> sorter) {
             delegate = sorter.sort(delegate());
 
@@ -115,12 +98,7 @@ public interface SortableTable<V> extends Sortable<V>, Table<V>, Pageable {
 
         @Override
         protected Map<Long, Map<String, V>> delegate() {
-            if(page != null) {
-                return Paging.paginate(delegate, page);
-            }
-            else {
-                return delegate;
-            }
+            return delegate;
         }
     }
 

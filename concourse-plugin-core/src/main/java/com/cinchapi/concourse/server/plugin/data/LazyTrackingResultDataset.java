@@ -155,20 +155,30 @@ public abstract class LazyTrackingResultDataset<T> extends ResultDataset<T> {
     protected abstract Supplier<ResultDataset<T>> supplier();
 
     /**
+     * Populate {@link #tracking}.
+     */
+    protected final void track() {
+        tracking = supplier().get();
+        for (Entry<Long, Map<String, Set<T>>> entry : data.entrySet()) {
+            long entity = entry.getKey();
+            for (Entry<String, Set<T>> data : entry.getValue().entrySet()) {
+                String attribute = data.getKey();
+                for (T value : data.getValue()) {
+                    tracking.insert(entity, attribute, value);
+                }
+            }
+        }
+        data = tracking;
+    }
+
+    /**
      * Populate {@link #tracking} if necessary and return it.
      * 
      * @return the {@link #tracking} copy of the data
      */
     protected final ResultDataset<T> tracking() {
         if(tracking == null) {
-            tracking = supplier().get();
-            data.forEach((entity, data) -> {
-                data.forEach((attribute, values) -> {
-                    values.forEach(
-                            value -> tracking.insert(entity, attribute, value));
-                });
-            });
-            data = tracking;
+            track();
         }
         return tracking;
     }

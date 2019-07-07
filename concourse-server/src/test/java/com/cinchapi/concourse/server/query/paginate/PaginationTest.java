@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.data.paginate;
+package com.cinchapi.concourse.server.query.paginate;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,8 +69,9 @@ public class PaginationTest {
                 .stream().skip(page.skip()).limit(page.limit())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
                         (a, b) -> b, LinkedHashMap::new));
-        table.paginate(page);
-        Assert.assertEquals(expected, table);
+        Map<Long, Map<String, Set<TObject>>> actual = Paging.paginate(table,
+                page);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
