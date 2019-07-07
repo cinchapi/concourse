@@ -21,35 +21,38 @@
 TARGET="../concourse-driver-java/src/main/java"
 PACKAGE=$TARGET"/com/cinchapi/concourse/thrift"
 
-HOME=$THRIFT_DIR/../utils
-cd $THRIFT_DIR
+# Compile each module and cleanup the generated source code
+for module in "${MODULES[@]}"; do
+  service=$(cat $module | grep service | cut -d ' ' -f 2)
+  # Run the thrift compile
+  thrift -out $TARGET -gen java $module
 
-# Run the thrift compile
-thrift -out $TARGET -gen java concourse.thrift
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 
-if [ $? -ne 0 ]; then
-  exit 1
-fi
+  # Replace all instances of Hash* data structures with their LinkedHash
+  # counterparts (see THRIFT-2115)
+  perl -p -i -e "s/Hash/LinkedHash/g" $PACKAGE"/$service.java"
 
-# Replace all instances of Hash* data structures with their LinkedHash
-# counterparts (see THRIFT-2115)
-perl -p -i -e "s/Hash/LinkedHash/g" $PACKAGE"/ConcourseService.java"
+  # Supress all the necessary warnings
+  perl -p -i -e 's/"cast", "rawtypes", "serial", "unchecked"/"cast", "rawtypes", "serial", "unchecked", "unused"/g' $PACKAGE"/$service.java"
 
-# Remove unnecessary files
+  echo "Finished compiling the $service API for Java to "$(cd $PACKAGE && pwd)
+done
+
+ # Remove unnecessary files
 rm $PACKAGE"/concourseConstants.java"
-
-# Supress all the necessary warnings
-perl -p -i -e 's/"cast", "rawtypes", "serial", "unchecked"/"cast", "rawtypes", "serial", "unchecked", "unused"/g' $PACKAGE"/ConcourseService.java"
-
-echo "Finished compiling the Thrift API for Java to "$(cd $PACKAGE && pwd)
 
 # Generate the StatefulConcourseService class
 cd $HOME
-THRIFT_IDL=$HOME/../interface/concourse.thrift
 SOURCE_DESTINATION=$HOME/../concourse-plugin-core/src/main/java/com/cinchapi/concourse/server/plugin/StatefulConcourseService.java
 GENERATOR=$HOME/codegen/StatefulConcourseServiceGenerator.groovy
-
-groovy $GENERATOR $THRIFT_IDL $SOURCE_DESTINATION
+THRIFT_IDLS=""
+for module in "${MODULES[@]}"; do
+  THRIFT_IDLS="$THRIFT_IDLS $HOME/../interface/$module"
+done
+groovy $GENERATOR $THRIFT_IDLS $SOURCE_DESTINATION
 
 echo "Finished generating $SOURCE_DESTINATION"
 

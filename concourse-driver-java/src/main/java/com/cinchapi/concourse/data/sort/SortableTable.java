@@ -18,7 +18,12 @@ package com.cinchapi.concourse.data.sort;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.data.Table;
+import com.cinchapi.concourse.data.paginate.Pageable;
+import com.cinchapi.concourse.data.paginate.Paging;
+import com.cinchapi.concourse.lang.paginate.Page;
 import com.google.common.collect.ForwardingMap;
 
 /**
@@ -27,7 +32,7 @@ import com.google.common.collect.ForwardingMap;
  *
  * @author Jeff Nelson
  */
-public interface SortableTable<V> extends Sortable<V>, Table<V> {
+public interface SortableTable<V> extends Sortable<V>, Table<V>, Pageable {
 
     /**
      * Ensure that the {@code data} is a {@link SortableTable}.
@@ -61,8 +66,21 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         }
     }
 
+    /**
+     * A {@link SortableTable} that forwards to another delegate and lazily
+     * sorts upon request.
+     *
+     * @author Jeff Nelson
+     */
     static class ForwardingSortableTable<V> extends
             ForwardingMap<Long, Map<String, V>> implements SortableTable<V> {
+
+        /**
+         * The last {@link Page} specified in the {@link #paginate(Page)}
+         * method.
+         */
+        @Nullable
+        private Page page = null;
 
         /**
          * The delegate to which calls are forwarded. If {@link #sort(Sorter)}
@@ -80,19 +98,29 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         }
 
         @Override
+        public void paginate(Page page) {
+            this.page = page;
+        }
+
+        @Override
         public void sort(Sorter<V> sorter) {
-            delegate = sorter.sort(delegate);
+            delegate = sorter.sort(delegate());
 
         }
 
         @Override
         public void sort(Sorter<V> sorter, long at) {
-            delegate = sorter.sort(delegate, at);
+            delegate = sorter.sort(delegate(), at);
         }
 
         @Override
         protected Map<Long, Map<String, V>> delegate() {
-            return delegate;
+            if(page != null) {
+                return Paging.paginate(delegate, page);
+            }
+            else {
+                return delegate;
+            }
         }
     }
 
