@@ -38,7 +38,9 @@ args=$@
 newargs=""
 for i in ${args[@]}
 do
-  i=:$PROJECT:$i
+  if [[ $i != -* ]]; then
+    i=:$PROJECT:$i
+  fi
   newargs+="$i "
 done
 

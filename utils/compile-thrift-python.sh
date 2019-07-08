@@ -24,32 +24,35 @@ PACKAGE=$TARGET
 cd $THRIFT_DIR
 
 # Run the thrift compile
-thrift -out $TARGET -gen py concourse.thrift
+for module in "${MODULES[@]}"; do
+  service=$(cat $module | grep service | cut -d ' ' -f 2)
+  thrift -out $TARGET -gen py $module
 
-if [ $? -ne 0 ]; then
-  exit 1
-fi
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 
-# Run 2to3 to fix the source files
-2to3 -wn $TARGET/"concourse/thriftapi"
+  # Run 2to3 to fix the source files
+  2to3 -wn $TARGET/"concourse/thriftapi"
 
-# Delete unnecessary files
-rm $TARGET"/concourse/thriftapi/ttypes.py"
-rm $TARGET"/concourse/thriftapi/ConcourseService-remote"
+  # Delete unnecessary files
+  rm $TARGET"/concourse/thriftapi/ttypes.py"
+  rm $TARGET"/concourse/thriftapi/$service-remote"
 
-# Fix module importing in the $API file
-API=$TARGET"/concourse/thriftapi/ConcourseService.py"
-perl -i -0pe 's/from .ttypes import \*/from .data.ttypes import \*\nfrom .shared.ttypes import \*\nfrom .exceptions.ttypes import *\nfrom .complex.ttypes import */g' $API
-perl -p -i -e 's/concourse.thriftapi.(data|shared|exceptions|complex).ttypes.//g' $API
+  # Fix module importing in the $API file
+  API=$TARGET"/concourse/thriftapi/$service.py"
+  perl -i -0pe 's/from .ttypes import \*/from .data.ttypes import \*\nfrom .shared.ttypes import \*\nfrom .exceptions.ttypes import *\nfrom .complex.ttypes import */g' $API
+  perl -p -i -e 's/concourse.thriftapi.(data|shared|exceptions|complex).ttypes.//g' $API
 
-CONSTANTS=$TARGET"/concourse/thriftapi/constants.py"
-perl -p -i -e 's/.ttypes import \*/.data.ttypes import TObject/g' $CONSTANTS
-perl -p -i -e 's/concourse.thriftapi.data.ttypes.//g' $CONSTANTS
+  CONSTANTS=$TARGET"/concourse/thriftapi/constants.py"
+  perl -p -i -e 's/.ttypes import \*/.data.ttypes import TObject/g' $CONSTANTS
+  perl -p -i -e 's/concourse.thriftapi.data.ttypes.//g' $CONSTANTS
 
-# Use Python lists instead of sets so that insertion ordered is preserved
-perl -p -i -e 's/= set\(\)/= []/g' $API
-perl -p -i -e 's/\.add\(/.append(/g' $API
+  # Use Python lists instead of sets so that insertion ordered is preserved
+  perl -p -i -e 's/= set\(\)/= []/g' $API
+  perl -p -i -e 's/\.add\(/.append(/g' $API
 
-echo "Finished compiling the Thrift API for Python to "$(cd $PACKAGE && pwd)
+  echo "Finished compiling the Thrift API for Python to "$(cd $PACKAGE && pwd)
+done
 
 exit 0

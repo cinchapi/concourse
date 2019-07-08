@@ -21,7 +21,7 @@ import com.cinchapi.concourse.server.storage.AtomicSupport;
 
 /**
  * A collection of wrapper functions for executing an {@link AtomicOperation}
- * via an {AtomicRoutine} with special logic (i.e. retry on failure, etc).
+ * via an {@link AtomicRoutine} with special logic (i.e. retry on failure, etc).
  *
  * @author Jeff Nelson
  */
@@ -30,7 +30,7 @@ public final class AtomicOperations {
     private AtomicOperations() {/* no-init */}
 
     /**
-     * Run the {@link AtomicRoutine} with an {@link AtomicOperation} from the
+     * Run the {@link AtomicRoutine} within an {@link AtomicOperation} from the
      * provided {@code store} and continue to retry execution of the routine
      * until it terminates without failure.
      * 
