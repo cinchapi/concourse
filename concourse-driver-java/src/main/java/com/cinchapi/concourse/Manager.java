@@ -60,8 +60,8 @@ public class Manager {
                 ComplexTObject.fromJavaObject(uname),
                 ComplexTObject.fromJavaObject(pword),
                 ComplexTObject.fromJavaObject(role));
-        concourse.execute(() -> concourse.thrift()
-                .invokeManagement("createUser", params, concourse.creds()));
+        concourse.execute(() -> concourse.$core().invokeManagement("createUser",
+                params, concourse.creds()));
     }
 
     /**
@@ -89,7 +89,7 @@ public class Manager {
                 ComplexTObject.fromJavaObject(uname),
                 ComplexTObject.fromJavaObject(permission),
                 ComplexTObject.fromJavaObject(environment));
-        concourse.execute(() -> concourse.thrift().invokeManagement("grant",
+        concourse.execute(() -> concourse.$core().invokeManagement("grant",
                 params, concourse.creds()));
     }
 

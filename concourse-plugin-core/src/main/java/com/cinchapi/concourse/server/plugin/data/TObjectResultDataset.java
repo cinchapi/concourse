@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.plugin.data;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -68,8 +67,7 @@ public class TObjectResultDataset extends ResultDataset<TObject>
             // Sort the #entrySet on the fly so that iteration (and all
             // derivative functionality) adheres to the order specified by the
             // {@link #sort()}.
-            Map<Long, Map<String, Set<TObject>>> map = entrySet.stream()
-                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            Map<Long, Map<String, Set<TObject>>> map = this;
             map = sortAt == null ? sorter.sort(map) : sorter.sort(map, sortAt);
             entrySet = map.entrySet();
         }

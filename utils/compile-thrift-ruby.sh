@@ -24,12 +24,15 @@ PACKAGE=$TARGET
 cd $THRIFT_DIR
 
 # Run the thrift compile
-thrift -out $TARGET -gen rb:namespaced concourse.thrift
+for module in "${MODULES[@]}"; do
+  service=$(cat $module | grep service | cut -d ' ' -f 2)
+  thrift -out $TARGET -gen rb:namespaced $module
 
-if [ $? -ne 0 ]; then
-  exit 1
-fi
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 
-echo "Finished compiling the Thrift API for Ruby to "$(cd $PACKAGE && pwd)
+  echo "Finished compiling the Thrift API for Ruby to "$(cd $PACKAGE && pwd)
+done
 
 exit 0

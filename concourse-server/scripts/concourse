@@ -233,6 +233,15 @@ if [ -z "$JMX_PREF" ]; then
 fi
 JVMOPTS=${JVMOPTS/jmxremote.port=9010/jmxremote.port=$JMX_PREF}
 
+#remote_debugger_port
+RDP_PREF=`cat $PREFS | grep -e '^remote_debugger_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+if [ ! -z "$RDP_PREF" ] && [ "$RDP_PREF" -ne "0" ]; then
+    JVMOPTS=$JVMOPTS"
+    -Xdebug
+    -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$RDP_PREF
+    "
+fi
+
 #heap_size
 HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
 HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`

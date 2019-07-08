@@ -61,6 +61,12 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         }
     }
 
+    /**
+     * A {@link SortableTable} that forwards to another delegate and lazily
+     * sorts upon request.
+     *
+     * @author Jeff Nelson
+     */
     static class ForwardingSortableTable<V> extends
             ForwardingMap<Long, Map<String, V>> implements SortableTable<V> {
 
@@ -81,13 +87,13 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
 
         @Override
         public void sort(Sorter<V> sorter) {
-            delegate = sorter.sort(delegate);
+            delegate = sorter.sort(delegate());
 
         }
 
         @Override
         public void sort(Sorter<V> sorter, long at) {
-            delegate = sorter.sort(delegate, at);
+            delegate = sorter.sort(delegate(), at);
         }
 
         @Override
