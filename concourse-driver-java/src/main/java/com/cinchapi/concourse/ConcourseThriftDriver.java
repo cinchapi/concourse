@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -208,7 +208,7 @@ class ConcourseThriftDriver extends Concourse {
         final TTransport transport = new TSocket(host, port);
         try {
             transport.open();
-            TProtocol protocol = new TBinaryProtocol(transport);
+            TProtocol protocol = new TCompactProtocol(transport);
             core = new ConcourseService.Client(
                     new TMultiplexedProtocol(protocol, "core"));
             calculate = new ConcourseCalculateService.Client(
