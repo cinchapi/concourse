@@ -21,10 +21,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.concourse.data.paginate.Paging;
 import com.cinchapi.concourse.data.sort.SortableTable;
 import com.cinchapi.concourse.data.sort.Sorter;
-import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
 import io.atomix.catalyst.buffer.Buffer;
@@ -62,12 +60,6 @@ public class TObjectResultDataset extends ResultDataset<TObject>
     @Nullable
     private Long sortAt;
 
-    /**
-     * The last {@link Page} specified in the {@link #paginate(Page)} method.
-     */
-    @Nullable
-    private Page page;
-
     @Override
     public Set<Entry<Long, Map<String, Set<TObject>>>> entrySet() {
         Set<Entry<Long, Map<String, Set<TObject>>>> entrySet = super.entrySet();
@@ -79,15 +71,7 @@ public class TObjectResultDataset extends ResultDataset<TObject>
             map = sortAt == null ? sorter.sort(map) : sorter.sort(map, sortAt);
             entrySet = map.entrySet();
         }
-        if(page != null) {
-            entrySet = Paging.paginate(entrySet, page);
-        }
         return entrySet;
-    }
-
-    @Override
-    public void paginate(Page page) {
-        this.page = page;
     }
 
     @Override

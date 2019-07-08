@@ -20,7 +20,7 @@ Concourse Server now (finally) has the ability to sort results!
 * An Order can contain an unlimited number of components. If, after evaluating all the order components, two records still have the same sort order, Concourse Server automatically sorts based on the record id.
 * If a `null` value is encountered when evaluating an order components, Concourse Server pushes the record containing that `null` value to the "end" of the result set regardless of the order component's direction.
 
-##### Pagination
+###### Pagination
 Concourse Server now (finally) has the ability to page through results!
 * A result set that returns data from multiple records (across any number of keys) can be paginated.
 * Concourse drviers now feature a `Page` object that allows the client to specify how Concourse Server should paginate a result set. A `Page` is an abstraction for offset/skip and limit parameters. The `Page` class contains various factory methods to offset and limit a result set using various intuitive notions of pagination.
@@ -35,10 +35,12 @@ Concourse Server now (finally) has the ability to page through results!
 * Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
 * Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
 * Upgraded the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+* Added support for remote debugging of Concourse Server. Remote debugging can be enabled by specifying a `remote_debugger_port` in `concourse.prefs`.
 
 ##### Improvements
 * Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
 * Refactored the `Criteria` class into an interface that is implemented by any language symbols that can be immediately transformed to a well-built criteria (e.g. `ValueState` and `TimestampState`). The primary benefit of this change is that methods that took a generic Object parameter and checked whether that object could be built into a `Criteria` have now been removed from the `Concourse` driver since that logic is automatically captured within the new class hiearchy. Another positive side effect of this change is that it is no longer necessary to explicitly build a nested `Criteria` when using the `group` functionality of the `Criteria` builder.
+* Improved the performance of querying certain Concourse Server methods from a plugin via `ConcourseRuntime` by eliminating unnecessary server-side calculations meant to facilitate analytics. These calculations will continue to be computed when the plugin receives the data from `ConcourseRuntime`.
 
 ##### Bug Fixes
 * Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation. 

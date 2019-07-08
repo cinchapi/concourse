@@ -35,9 +35,6 @@ for module in "${MODULES[@]}"; do
   # counterparts (see THRIFT-2115)
   perl -p -i -e "s/Hash/LinkedHash/g" $PACKAGE"/$service.java"
 
-  # Supress all the necessary warnings
-  perl -p -i -e 's/"cast", "rawtypes", "serial", "unchecked"/"cast", "rawtypes", "serial", "unchecked", "unused"/g' $PACKAGE"/$service.java"
-
   echo "Finished compiling the $service API for Java to "$(cd $PACKAGE && pwd)
 done
 

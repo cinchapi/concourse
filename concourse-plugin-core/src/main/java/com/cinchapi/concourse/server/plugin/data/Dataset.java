@@ -151,7 +151,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Dataset) {
-            return inverted.equals(((Dataset<E, A, V>) obj).inverted);
+            return invert().equals(((Dataset<E, A, V>) obj).invert());
         }
         else {
             return false;
