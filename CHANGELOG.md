@@ -20,7 +20,7 @@ Concourse Server now (finally) has the ability to sort results!
 * An Order can contain an unlimited number of components. If, after evaluating all the order components, two records still have the same sort order, Concourse Server automatically sorts based on the record id.
 * If a `null` value is encountered when evaluating an order components, Concourse Server pushes the record containing that `null` value to the "end" of the result set regardless of the order component's direction.
 
-##### Pagination
+###### Pagination
 Concourse Server now (finally) has the ability to page through results!
 * A result set that returns data from multiple records (across any number of keys) can be paginated.
 * Concourse drviers now feature a `Page` object that allows the client to specify how Concourse Server should paginate a result set. A `Page` is an abstraction for offset/skip and limit parameters. The `Page` class contains various factory methods to offset and limit a result set using various intuitive notions of pagination.
