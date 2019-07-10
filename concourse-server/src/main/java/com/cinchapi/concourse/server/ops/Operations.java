@@ -179,6 +179,52 @@ public final class Operations {
         }
         return avg;
     }
+    
+    /**
+     * Perform "browse" functionality on a navigation key.
+     * 
+     * @param key
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each possible destination value for a given
+     *         navigation {@code key} to the records where the navigation could
+     *         begin to retrieve the value by selecting the navigation
+     *         {@code key}
+     */
+    public static Map<TObject, Set<Long>> browseNavigationKeyAtomic(String key,
+            long timestamp, AtomicOperation atomic) {
+        String[] toks = key.split("\\.");
+        if(toks.length == 1) {
+            return timestamp == Time.NONE ? atomic.browse(key)
+                    : atomic.browse(key, timestamp);
+        }
+        else {
+            String start = toks[0];
+            String $key = String.join(".", toks);
+            Map<TObject, Set<Long>> root = timestamp == Time.NONE
+                    ? atomic.browse(start)
+                    : atomic.browse(start, timestamp);
+            Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
+            root.entrySet().stream()
+                    .filter(e -> e.getKey().getType() == Type.LINK)
+                    .forEach(entry -> {
+                        Link link = (Link) Convert.thriftToJava(entry.getKey());
+                        Set<Long> nodes = entry.getValue();
+                        for (long node : nodes) {
+                            Map<Long, Set<TObject>> destinations = navigateKeyRecordAtomic(
+                                    $key, link.longValue(), timestamp, atomic);
+                            destinations.values().stream().flatMap(Set::stream)
+                                    .forEach(value -> index
+                                            .computeIfAbsent(value,
+                                                    ignore -> Sets
+                                                            .newLinkedHashSet())
+                                            .add(node));
+                        }
+                    });
+            return index;
+
+        }
+    }
 
     /**
      * Remove all the values mapped from the {@code key} in {@code record} using
