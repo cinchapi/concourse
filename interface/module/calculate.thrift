@@ -50,7 +50,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyRecordTime(
@@ -65,7 +65,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyRecordTimestr(
@@ -81,7 +81,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKeyRecords(
@@ -95,7 +95,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyRecordsTime(
@@ -110,7 +110,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyRecordsTimestr(
@@ -126,7 +126,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKey(
@@ -139,7 +139,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyTime(
@@ -153,7 +153,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyTimestr(
@@ -168,7 +168,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKeyCriteria(
@@ -182,7 +182,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyCriteriaTime(
@@ -197,7 +197,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject sumKeyCriteriaTimestr(
@@ -213,7 +213,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKeyCcl(
@@ -228,7 +228,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKeyCclTime(
@@ -244,7 +244,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject sumKeyCclTimestr(
@@ -260,7 +260,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyRecord(
@@ -274,7 +274,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyRecordTime(
@@ -289,7 +289,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyRecordTimestr(
@@ -305,7 +305,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyRecords(
@@ -319,7 +319,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyRecordsTime(
@@ -334,7 +334,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyRecordsTimestr(
@@ -350,7 +350,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKey(
@@ -363,7 +363,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyTime(
@@ -377,7 +377,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyTimestr(
@@ -392,7 +392,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyCriteria(
@@ -406,7 +406,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyCriteriaTime(
@@ -421,7 +421,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject averageKeyCriteriaTimestr(
@@ -437,7 +437,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyCcl(
@@ -452,7 +452,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyCclTime(
@@ -468,7 +468,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject averageKeyCclTimestr(
@@ -484,7 +484,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyRecord(
@@ -498,7 +498,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyRecordTime(
@@ -513,7 +513,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyRecordTimestr(
@@ -529,7 +529,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyRecords(
@@ -543,7 +543,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyRecordsTime(
@@ -558,7 +558,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
    i64 countKeyRecordsTimestr(
@@ -574,7 +574,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKey(
@@ -587,7 +587,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyTime(
@@ -601,7 +601,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyTimestr(
@@ -616,7 +616,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyCriteria(
@@ -630,7 +630,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   i64 countKeyCriteriaTime(
@@ -646,7 +646,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyCriteriaTimestr(
@@ -662,7 +662,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyCcl(
@@ -677,7 +677,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyCclTime(
@@ -693,7 +693,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   i64 countKeyCclTimestr(
@@ -709,7 +709,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyRecord(
@@ -723,7 +723,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyRecordTime(
@@ -738,7 +738,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyRecordTimestr(
@@ -754,7 +754,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyRecords(
@@ -768,7 +768,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyRecordsTime(
@@ -783,7 +783,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
    data.TObject maxKeyRecordsTimestr(
@@ -799,7 +799,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyCriteria(
@@ -813,7 +813,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyCriteriaTime(
@@ -828,7 +828,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyCriteriaTimestr(
@@ -844,7 +844,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyCcl(
@@ -859,7 +859,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyCclTime(
@@ -875,7 +875,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKeyCclTimestr(
@@ -891,7 +891,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject maxKey(
@@ -904,7 +904,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyTime(
@@ -918,7 +918,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject maxKeyTimestr(
@@ -933,7 +933,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyRecord(
@@ -947,7 +947,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject minKeyRecordTime(
@@ -962,7 +962,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject minKeyRecordTimestr(
@@ -978,7 +978,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKey(
@@ -991,7 +991,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject minKeyRecordsTime(
@@ -1006,7 +1006,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
    data.TObject minKeyRecordsTimestr(
@@ -1022,7 +1022,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyCriteria(
@@ -1036,7 +1036,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject minKeyCriteriaTime(
@@ -1051,7 +1051,7 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 
   data.TObject minKeyCriteriaTimestr(
@@ -1067,7 +1067,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyCcl(
@@ -1082,7 +1082,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyCclTime(
@@ -1098,7 +1098,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyCclTimestr(
@@ -1114,7 +1114,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   )
 
     data.TObject minKeyTime(
@@ -1128,7 +1128,7 @@ service ConcourseCalculateService {
       1: exceptions.SecurityException ex,
       2: exceptions.TransactionException ex2,
       3: exceptions.PermissionException ex3,
-      4: exceptions.InvalidOperationException ex4
+      4: exceptions.UnsupportedOperationException ex4
     );
 
   data.TObject minKeyTimestr(
@@ -1143,7 +1143,7 @@ service ConcourseCalculateService {
     2: exceptions.TransactionException ex2,
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4,
-    5: exceptions.InvalidOperationException ex5
+    5: exceptions.UnsupportedOperationException ex5
   );
 
   data.TObject minKeyRecords(
@@ -1157,6 +1157,6 @@ service ConcourseCalculateService {
     1: exceptions.SecurityException ex,
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3,
-    4: exceptions.InvalidOperationException ex4
+    4: exceptions.UnsupportedOperationException ex4
   );
 }

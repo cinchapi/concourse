@@ -54,7 +54,7 @@ exception InvalidArgumentException {
 /*
  * Signals that an invalid operation occurred.
  */
-exception InvalidOperationException {
+exception UnsupportedOperationException {
   1: string message
 }
 
