@@ -83,6 +83,18 @@ public class Options {
      * Java's main method.
      */
     @Parameter(description = "additional program arguments...")
-    protected List<String> args = Lists.newArrayList();
+    public List<String> args = Lists.newArrayList();
 
+    public boolean allFlagsAreMissing() {
+        final Options defaultOptions = new Options();
+        return help == defaultOptions.help &&
+            host.equals(defaultOptions.host) &&
+            port == defaultOptions.port &&
+            username.equals(defaultOptions.username) &&
+            password.equals(defaultOptions.password) &&
+            environment.equals(defaultOptions.environment) &&
+            prefs.equals(defaultOptions.prefs) &&
+            verbose == defaultOptions.verbose &&
+            dynamic.isEmpty();
+    }
 }
