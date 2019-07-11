@@ -808,7 +808,11 @@ public final class Operations {
      * @param atomic
      * @return a mapping from each record at the end of the navigation chain to
      *         the
+     * @deprecated use
+     *             {@link #traverseKeyRecordAtomic(String, long, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Set<TObject>> navigateKeyRecordAtomic(String key,
             long record, long timestamp, AtomicOperation atomic) {
         StringSplitter it = new StringSplitter(key, '.');
@@ -838,6 +842,12 @@ public final class Operations {
         return result;
     }
 
+    /**
+     * @deprecated use
+     *             {@link #traverseKeyRecordsAtomic(String, Collection, long, AtomicOperation)}
+     *             instead
+     */
+    @Deprecated
     public static Map<Long, Set<TObject>> navigateKeyRecordsAtomic(String key,
             Set<Long> records, long timestamp, AtomicOperation atomic) {
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
@@ -858,7 +868,11 @@ public final class Operations {
      * @param atomic
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
+     * @deprecated use
+     *             {@link #traverseKeysRecordAtomic(Collection, long, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordAtomic(
             List<String> keys, long record, long timestamp,
             AtomicOperation atomic) {
@@ -890,7 +904,11 @@ public final class Operations {
      * @param atomic
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
+     * @deprecated use
+     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsAtomic(
             List<String> keys, Set<Long> records, long timestamp,
             AtomicOperation atomic) {
@@ -1269,12 +1287,6 @@ public final class Operations {
     /**
      * Atomically traverse a navigation {@code key} from {@code record} and
      * return the values that are at the end of the path.
-     * <p>
-     * This method is similar to
-     * {@link #navigateKeyRecordAtomic(String, long, long, AtomicOperation)}
-     * with the exception that it does not map the returned values from the
-     * destination records in which they are contained
-     * </p>
      * 
      * @param key
      * @param record
@@ -1311,6 +1323,86 @@ public final class Operations {
             nodes = descendents;
         }
         return values;
+    }
+
+    /**
+     * Atomically traverse a navigation {@code key} from each of the specified
+     * {@code records} and map each to the values that are at the end of the
+     * path.
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code records} to all of the values
+     *         that can be reached by traversing the document graph along
+     *         {@code key} from the record
+     */
+    public static Map<Long, Set<TObject>> traverseKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Map<Long, Set<TObject>> data = Maps.newLinkedHashMap();
+        for (long record : records) {
+            Set<TObject> values = traverseKeyRecordAtomic(key, record,
+                    timestamp, atomic);
+            if(!values.isEmpty()) {
+                data.put(record, values);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Atomically traverse each of the navigation {@code keys} from
+     * {@code record} and map each key to the values that are at the end of the
+     * path.
+     * 
+     * @param keys
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code keys} to all of the values that
+     *         can be reached by traversing the document graph along the key
+     *         from {@code record}
+     */
+    public static Map<String, Set<TObject>> traverseKeysRecordAtomic(
+            Collection<String> keys, long record, long timestamp,
+            AtomicOperation atomic) {
+        Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
+        for (String key : keys) {
+            Set<TObject> values = traverseKeyRecordAtomic(key, record,
+                    timestamp, atomic);
+            if(!values.isEmpty()) {
+                data.put(key, values);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Atomically traverse each of the navigation {@code keys} from
+     * each of the {@code records} and map each record to a mapping of each key
+     * to the values that are at the end of the path.
+     * 
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code records} to each of the
+     *         {@code keys} to all of the values that can be reached by
+     *         traversing the document graph
+     */
+    public static Map<Long, Map<String, Set<TObject>>> traverseKeysRecordsAtomic(
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            AtomicOperation atomic) {
+        Map<Long, Map<String, Set<TObject>>> data = Maps.newLinkedHashMap();
+        for (long record : records) {
+            Map<String, Set<TObject>> entry = traverseKeysRecordAtomic(keys,
+                    record, timestamp, atomic);
+            if(!entry.isEmpty()) {
+                data.put(record, entry);
+            }
+        }
+        return data;
     }
 
     /**
