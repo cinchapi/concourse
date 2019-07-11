@@ -62,13 +62,13 @@ public class OperationsTest {
     }
 
     @Test
-    public void testNavigateKeyRecordAtomic() {
+    public void testTraverseKeyRecordAtomic() {
         AtomicSupport store = getStore();
         try {
             setupGraph(store);
             String key = "bar.baz.name";
-            Map<Long, Set<TObject>> data = Operations.navigateKeyRecordAtomic(
-                    key, 3, Time.NONE, store.startAtomicOperation());
+            Set<TObject> data = Operations.traverseKeyRecordAtomic(key, 3,
+                    Time.NONE, store.startAtomicOperation());
             Assert.assertTrue(data.isEmpty());
         }
         finally {
@@ -85,7 +85,7 @@ public class OperationsTest {
             Map<TObject, Set<Long>> data = Operations.browseNavigationKeyAtomic(
                     key, Time.NONE, store.startAtomicOperation());
             System.out.println(data);
-            //TODO: add Assert
+            // TODO: add Assert
         }
         finally {
             store.stop();

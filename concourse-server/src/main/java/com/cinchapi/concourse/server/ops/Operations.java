@@ -52,6 +52,7 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.TMaps;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -216,15 +217,14 @@ public final class Operations {
                         Link link = (Link) Convert.thriftToJava(entry.getKey());
                         Set<Long> nodes = entry.getValue();
                         for (long node : nodes) {
-                            Map<Long, Set<TObject>> destinations = navigateKeyRecordAtomic(
+                            Set<TObject> values = traverseKeyRecordAtomic(
                                     $key.toString(), link.longValue(),
                                     timestamp, atomic);
-                            destinations.values().stream().flatMap(Set::stream)
-                                    .forEach(value -> index
-                                            .computeIfAbsent(value,
-                                                    ignore -> Sets
-                                                            .newLinkedHashSet())
-                                            .add(node));
+                            for (TObject value : values) {
+                                index.computeIfAbsent(value,
+                                        ignore -> Sets.newLinkedHashSet())
+                                        .add(node);
+                            }
                         }
                     });
             return index;
@@ -959,59 +959,6 @@ public final class Operations {
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across the {@code key} at {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
-     * @return the sum
-     */
-    public static Number sumKeyAtomic(String key, long timestamp,
-            AtomicOperation atomic) {
-        return calculateKeyAtomic(key, timestamp, 0, atomic,
-                Calculations.sumKey());
-    }
-
-    /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across all the values stored for {@code key} in {@code record} at
-     * {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
-     * @return the sum
-     */
-    public static Number sumKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
-        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
-                Calculations.sumKeyRecord());
-    }
-
-    /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across all the values stored for {@code key} in each of the
-     * {@code records} at {@code timestamp}.
-     * 
-     * @param key the field name
-     * @param records the record ids
-     * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
-     * @return the sum
-     */
-    public static Number sumKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
-        Number sum = 0;
-        for (long record : records) {
-            sum = calculateKeyRecordAtomic(key, record, timestamp, sum, atomic,
-                    Calculations.sumKeyRecord());
-        }
-        return sum;
-    }
-
-    /**
      * Select all the values for every key in each of the records that are
      * resolved by the {@code ast}.
      * 
@@ -1264,6 +1211,106 @@ public final class Operations {
         if(consumer != null) {
             consumer.accept(result);
         }
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the sum
+     * across the {@code key} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the sum
+     */
+    public static Number sumKeyAtomic(String key, long timestamp,
+            AtomicOperation atomic) {
+        return calculateKeyAtomic(key, timestamp, 0, atomic,
+                Calculations.sumKey());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the sum
+     * across all the values stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the sum
+     */
+    public static Number sumKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+                Calculations.sumKeyRecord());
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to compute the sum
+     * across all the values stored for {@code key} in each of the
+     * {@code records} at {@code timestamp}.
+     * 
+     * @param key the field name
+     * @param records the record ids
+     * @param timestamp the selection timestamp
+     * @param atomic the {@link AtomicOperation} to join
+     * @return the sum
+     */
+    public static Number sumKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Number sum = 0;
+        for (long record : records) {
+            sum = calculateKeyRecordAtomic(key, record, timestamp, sum, atomic,
+                    Calculations.sumKeyRecord());
+        }
+        return sum;
+    }
+
+    /**
+     * Atomically traverse a navigation {@code key} from {@code record} and
+     * return the values that are at the end of the path.
+     * <p>
+     * This method is similar to
+     * {@link #navigateKeyRecordAtomic(String, long, long, AtomicOperation)}
+     * with the exception that it does not map the returned values from the
+     * destination records in which they are contained
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return all the values that can be reached by traversing the document
+     *         graph along {@code key} from {@code record}
+     */
+    public static Set<TObject> traverseKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        String[] toks = key.split("\\.");
+        Set<TObject> values = Sets.newLinkedHashSet();
+        Set<Long> nodes = ImmutableSet.of(record);
+        for (int i = 0; i < toks.length; ++i) {
+            key = toks[i];
+            Set<Long> descendents = Sets.newLinkedHashSet();
+            for (long node : nodes) {
+                Set<TObject> $values = timestamp == Time.NONE
+                        ? atomic.select(key, node)
+                        : atomic.select(key, node, timestamp);
+                if(i == toks.length - 1) {
+                    values.addAll($values);
+                }
+                else {
+                    for (TObject $value : $values) {
+                        if($value.getType() == Type.LINK) {
+                            descendents
+                                    .add(((Link) Convert.thriftToJava($value))
+                                            .longValue());
+                        }
+                    }
+                }
+            }
+            nodes = descendents;
+        }
+        return values;
     }
 
     /**
