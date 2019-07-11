@@ -27,6 +27,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.cinchapi.concourse.server.plugin.data.Insertable;
+import com.cinchapi.concourse.server.plugin.data.LazyTrackingTObjectResultDataset;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -159,7 +160,8 @@ public final class TMaps {
     @SuppressWarnings("unchecked")
     public static <E, A, V> void putResultDatasetOptimized(
             Map<E, Map<A, Set<V>>> map, E entity, Map<A, Set<V>> data) {
-        if(map instanceof Insertable) {
+        if(map instanceof Insertable
+                && map.getClass() != LazyTrackingTObjectResultDataset.class) {
             Insertable<E, A, V> dataset = (Insertable<E, A, V>) map;
             for (Entry<A, Set<V>> entry : data.entrySet()) {
                 A attribute = entry.getKey();
