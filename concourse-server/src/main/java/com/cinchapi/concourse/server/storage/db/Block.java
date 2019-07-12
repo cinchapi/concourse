@@ -354,25 +354,14 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.ignoreEmptySync = this instanceof SearchBlock;
     }
 
-    public boolean checkIfTimeInRange(Long time) {
-        return checkIfTimeInRange(n -> n.equals(time));
+    public boolean covers(long time) {
+        return revisions.stream().anyMatch(n ->
+            n.getVersion() == time);
     }
 
-    public boolean checkIfTimeInRange(Long startInclusive, Long endExclusive) {
-        return checkIfTimeInRange(n -> n > startInclusive && n < endExclusive);
-    }
-
-    public boolean checkIfTimeInRange(LongStream range) {
-        return checkIfTimeInRange(n -> range.filter(x -> x == n).count() > 0);
-    }
-
-    private boolean checkIfTimeInRange(Predicate<Long> check) {
-        try {
-            final Long n = Long.parseLong(id);
-            return check.test(n);
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    public boolean covers(Long startInclusive, Long endExclusive) {
+        return revisions.stream().anyMatch(n ->
+            n.getVersion() >= startInclusive && n.getVersion() < endExclusive);
     }
 
     @Override

@@ -158,34 +158,30 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         Assert.assertEquals(s, t);
     }
 
-    /* TODO: Make this test actually run in the suite.
-    For some reason that doesn't happen by default, even running this test individually just runs the suite.
-    I tried making the test in the children too (like PrimaryBlockTest), and running them there produces a
-    "No tests found matching Method testCheckIfTimeInRange" error as opposed to entirely not including them in
-    the tests to run.
-     */
     @Test
     public void testCheckIfTimeInRange() {
         Long start = Time.now();
 
         try {
             Thread.sleep(100);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         String id = Long.toString(Time.now());
         PrimaryBlock p = Block.createPrimaryBlock(id,
-            directory + File.separator + "cpb");
+                directory + File.separator + "cpb");
 
         try {
             Thread.sleep(100);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         Long end = Time.now();
-        Assert.assertTrue(p.checkIfTimeInRange(start, end));
+        Assert.assertTrue(p.covers(start, end));
     }
 
     @Test
