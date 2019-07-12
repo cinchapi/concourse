@@ -109,11 +109,20 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testNavigateAsEvaluationKey() {
+    public void testNavigateAsEvaluationKeyWithoutTimestamp() {
         Map<Long, Map<String, Set<Object>>> expected = setupNavigateEvaluation(
                 client);
         Map<Long, Map<String, Set<Object>>> actual = client
                 .select("mother.children = 3");
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNavigateAsEvaluationKeyWithTimestamp() {
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateEvaluation(
+                client);
+        Map<Long, Map<String, Set<Object>>> actual = client
+                .select("mother.children = 3 at now");
         Assert.assertEquals(expected, actual);
     }
 

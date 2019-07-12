@@ -1,18 +1,56 @@
 ## Changelog
 
-#### Version 1.0.0 (TBD)
-* Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
-* Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
-* Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
-* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation.  
-* Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
-* Upgrade the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+#### Version 0.10.0 (TBD)
+
+##### BREAKING CHANGES
+* **Pre version `0.10.0` clients are NOT compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs. When trying to connect to a version 0.10.0+ Concourse Server with an older client you will receivce an error message.
+* Additionally, version `0.10.0`+ clients are NOT compatible with older server versions.
+
+##### New Features
+
+###### Sorting
+Concourse Server now (finally) has the ability to sort results!
+* A result set that returns data from multiple records (across any number of keys) can be sorted.
+* Concourse drivers now feature an `Order` framework that allows the client to specify how Concourse Server should sort a result set. An `Order` can be generated using an intuitive builder chain.
+* An Order can be specified using values for any keys; regardless of whether those keys are explictly fetched or not.
+* A timestamp can optionally be associated with each order component.
+	* **NOTE**: If no timestamp is specified with an order component, Concourse Server uses the value that is explicitly fetched in the request OR it looks up the value using the selection timestamp of the request. If there is no selection timestamp, the lookup returns the current value(s).
+* A direction (ascending or descending) can optionally be associated with each order component.
+	* **NOTE**: The default direction is *ascending*.
+* An Order can contain an unlimited number of components. If, after evaluating all the order components, two records still have the same sort order, Concourse Server automatically sorts based on the record id.
+* If a `null` value is encountered when evaluating an order components, Concourse Server pushes the record containing that `null` value to the "end" of the result set regardless of the order component's direction.
+
+###### Pagination
+Concourse Server now (finally) has the ability to page through results!
+* A result set that returns data from multiple records (across any number of keys) can be paginated.
+* Concourse drviers now feature a `Page` object that allows the client to specify how Concourse Server should paginate a result set. A `Page` is an abstraction for offset/skip and limit parameters. The `Page` class contains various factory methods to offset and limit a result set using various intuitive notions of pagination.
+
+###### ETL 
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
 	* The `Transform` class contains functions for common data transformations. 
+
+###### Miscellaneous
+* Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
+* Added the `com.cinchapi.concourse.valididate.Keys` utility class which contains the `#isWritable` method that determines if a proposed key can be written to Concourse.
+* Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
+* Upgraded the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
+* Added support for remote debugging of Concourse Server. Remote debugging can be enabled by specifying a `remote_debugger_port` in `concourse.prefs`.
+
+##### Improvements
+* Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
+* Refactored the `Criteria` class into an interface that is implemented by any language symbols that can be immediately transformed to a well-built criteria (e.g. `ValueState` and `TimestampState`). The primary benefit of this change is that methods that took a generic Object parameter and checked whether that object could be built into a `Criteria` have now been removed from the `Concourse` driver since that logic is automatically captured within the new class hiearchy. Another positive side effect of this change is that it is no longer necessary to explicitly build a nested `Criteria` when using the `group` functionality of the `Criteria` builder.
+* Improved the performance of querying certain Concourse Server methods from a plugin via `ConcourseRuntime` by eliminating unnecessary server-side calculations meant to facilitate analytics. These calculations will continue to be computed when the plugin receives the data from `ConcourseRuntime`.
+
+##### Bug Fixes
+* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation. 
+* Fixed a bug that allowed Concourse Server to start an environment's storage engine in a partially or wholly unreadable state if the Engine partially completed a block sync while Concourse Server was going through its shutdown routine. In this scenario, the partially written block is malformed and should not be processed by the Engine since the data contained in the malformed block is still contained in the Buffer. While the malformed block files can be safely deleted, the implemented fix causes the Engine to simply ignore them if they are encountered upon initialization. 
+* Added checks to ensure that a storage Engine cannot transport writes from the Buffer to the Database while Concourse Server is shutting down.
+* Fixed a bug that allow methods annotated as `PluginRestricted` to be invoked if those methods were defined in an ancestor class or interface of the invokved plugin.
+
+##### Deprecations and Removed Features
 * Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
 * Removed the `StringSplitter` framework in favor of the same from `accent4j`.
-* Refactored the `Criteria` class into an interface that is implemented by any language symbols that can be immediately transformed to a well-built criteria (e.g. `ValueState` and `TimestampState`). The primary benefit of this change is that methods that took a generic Object parameter and checked whether that object could be built into a `Criteria` have now been removed from the `Concourse` driver since that logic is automatically captured within the new class hiearchy. Another positive side effect of this change is that it is no longer necessary to explicitly build a nested `Criteria` when using the `group` functionality of the `Criteria` builder.
 * Deprecated `Criteria#getCclString` in favor of `Criteria#ccl`.
 
 #### Version 0.9.6 (February 16, 2019)

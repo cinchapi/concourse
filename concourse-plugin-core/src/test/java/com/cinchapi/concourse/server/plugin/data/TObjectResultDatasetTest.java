@@ -37,11 +37,11 @@ import com.cinchapi.concourse.util.Random;
  */
 public class TObjectResultDatasetTest extends ConcourseBaseTest {
 
-    private Dataset<Long, String, TObject> dataset;
+    protected Dataset<Long, String, TObject> dataset;
 
     @Override
     public void beforeEachTest() {
-        dataset = new TObjectResultDataset();
+        dataset = createNewDataset();
     }
 
     @Override
@@ -123,6 +123,10 @@ public class TObjectResultDatasetTest extends ConcourseBaseTest {
     public void testGetRow() {
         dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
         Assert.assertNotNull(dataset.get(1L));
+    }
+
+    protected Dataset<Long, String, TObject> createNewDataset() {
+        return new TObjectResultDataset();
     }
 
 }

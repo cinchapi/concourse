@@ -19,7 +19,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
@@ -42,9 +48,12 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
-import com.cinchapi.concourse.util.LinkNavigation;
+import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
+import com.cinchapi.concourse.util.TMaps;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -99,7 +108,8 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+                ? atomic.browse(key)
+                : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -170,6 +180,56 @@ public final class Operations {
             }
         }
         return avg;
+    }
+
+    /**
+     * Perform "browse" functionality on a navigation key.
+     * 
+     * @param key
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each possible destination value for a given
+     *         navigation {@code key} to the records where the navigation could
+     *         begin to retrieve the value by selecting the navigation
+     *         {@code key}
+     */
+    public static Map<TObject, Set<Long>> browseNavigationKeyAtomic(String key,
+            long timestamp, AtomicOperation atomic) {
+        String[] toks = key.split("\\.");
+        if(toks.length == 1) {
+            return timestamp == Time.NONE ? atomic.browse(key)
+                    : atomic.browse(key, timestamp);
+        }
+        else {
+            String start = toks[0];
+            StringBuilder $key = new StringBuilder();
+            for (int i = 1; i < toks.length - 1; ++i) {
+                $key.append(toks[i]).append('.');
+            }
+            $key.append(toks[toks.length - 1]);
+            Map<TObject, Set<Long>> root = timestamp == Time.NONE
+                    ? atomic.browse(start)
+                    : atomic.browse(start, timestamp);
+            Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
+            root.entrySet().stream()
+                    .filter(e -> e.getKey().getType() == Type.LINK)
+                    .forEach(entry -> {
+                        Link link = (Link) Convert.thriftToJava(entry.getKey());
+                        Set<Long> nodes = entry.getValue();
+                        for (long node : nodes) {
+                            Set<TObject> values = traverseKeyRecordAtomic(
+                                    $key.toString(), link.longValue(),
+                                    timestamp, atomic);
+                            for (TObject value : values) {
+                                index.computeIfAbsent(value,
+                                        ignore -> Sets.newLinkedHashSet())
+                                        .add(node);
+                            }
+                        }
+                    });
+            return index;
+
+        }
     }
 
     /**
@@ -296,6 +356,270 @@ public final class Operations {
     }
 
     /**
+     * Get the most recently stored value for every key in each of the records
+     * that are resolved by the {@code ast}.
+     * 
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getAstAtomic(
+            AbstractSyntaxTree ast, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        getRecordsOptionalAtomic(records, timestamp, result, streamer, consumer,
+                atomic);
+    }
+
+    /**
+     * Get the most recently stored value for {@code key} in each of the records
+     * that are resolved by the {@code ast}.
+     * 
+     * @param key they key to lookup
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, TObject>> void getKeyAstAtomic(
+            String key, AbstractSyntaxTree ast, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        getKeyRecordsOptionalAtomic(key, records, timestamp, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Get the most recently stored value for {@code key} in each of the
+     * provided records.
+     * 
+     * @param key the lookup key
+     * @param records the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, TObject>> void getKeyRecordsAtomic(
+            String key, Collection<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        getKeyRecordsOptionalAtomic(key, records, Time.NONE, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Get the most recently stored value for {@code key} in each of the
+     * provided records.
+     * 
+     * @param key the lookup key
+     * @param records the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, TObject>> void getKeyRecordsOptionalAtomic(
+            String key, Collection<Long> records, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                result.put(record,
+                        Iterables.getLast(timestamp == Time.NONE
+                                ? store.select(key, record)
+                                : store.select(key, record, timestamp)));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
+     * Get the most recently stored value for each of the provided {@code keys}
+     * in each of the records that are resolved by the {@code ast}.
+     * 
+     * @param keys the lookup keys
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getKeysAstAtomic(
+            Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        getKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Get the most recently stored value for each of the provided {@code keys}
+     * in each of the specified {@code records}.
+     * 
+     * @param keys the lookup keys
+     * @param ast the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsAtomic(
+            Collection<String> keys, Collection<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        getKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Get the most recently stored value for each of the provided {@code keys}
+     * in each of the specified {@code records}.
+     * 
+     * @param keys the lookup keys
+     * @param ast the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsOptionalAtomic(
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, TObject> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key,
+                            Iterables.getLast(timestamp == Time.NONE
+                                    ? store.select(key, record)
+                                    : store.select(key, record, timestamp)));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                result.put(record, entry);
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
+     * Get the most recently stored value for each key in each of the provided
+     * {@code records}.
+     * 
+     * @param records the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getRecordsAtomic(
+            Set<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        getRecordsOptionalAtomic(records, Time.NONE, result, streamer, consumer,
+                atomic);
+    }
+
+    /**
+     * Get the most recently stored value for each key in each of the provided
+     * {@code records}.
+     * 
+     * @param records the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, TObject>>> void getRecordsOptionalAtomic(
+            Set<Long> records, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, TObject> data = (timestamp == Time.NONE
+                    ? store.select(record)
+                    : store.select(record, timestamp)).entrySet().stream()
+                            .filter(e -> !e.getValue().isEmpty())
+                            .collect(Collectors.toMap(Entry::getKey,
+                                    e -> Iterables.getLast(e.getValue())));
+            if(!data.isEmpty()) {
+                result.put(record, data);
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
      * Do the work to atomically insert all of the {@code data} into
      * {@code record} and return {@code true} if the operation is successful.
      *
@@ -384,7 +708,8 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -483,7 +808,11 @@ public final class Operations {
      * @param atomic
      * @return a mapping from each record at the end of the navigation chain to
      *         the
+     * @deprecated use
+     *             {@link #traverseKeyRecordAtomic(String, long, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Set<TObject>> navigateKeyRecordAtomic(String key,
             long record, long timestamp, AtomicOperation atomic) {
         StringSplitter it = new StringSplitter(key, '.');
@@ -513,6 +842,12 @@ public final class Operations {
         return result;
     }
 
+    /**
+     * @deprecated use
+     *             {@link #traverseKeyRecordsAtomic(String, Collection, long, AtomicOperation)}
+     *             instead
+     */
+    @Deprecated
     public static Map<Long, Set<TObject>> navigateKeyRecordsAtomic(String key,
             Set<Long> records, long timestamp, AtomicOperation atomic) {
         Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
@@ -533,7 +868,11 @@ public final class Operations {
      * @param atomic
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
+     * @deprecated use
+     *             {@link #traverseKeysRecordAtomic(Collection, long, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordAtomic(
             List<String> keys, long record, long timestamp,
             AtomicOperation atomic) {
@@ -541,7 +880,7 @@ public final class Operations {
         for (String k : keys) {
             Map<Long, Set<TObject>> data = navigateKeyRecordAtomic(k, record,
                     timestamp, atomic);
-            String key = LinkNavigation.getNavigationSchemeDestination(k);
+            String key = Navigation.getKeyDestination(k);
             data.forEach((rec, values) -> {
                 Map<String, Set<TObject>> vals = result.get(rec);
                 if(vals == null) {
@@ -565,7 +904,11 @@ public final class Operations {
      * @param atomic
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
+     * @deprecated use
+     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, AtomicOperation)}
+     *             instead
      */
+    @Deprecated
     public static Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsAtomic(
             List<String> keys, Set<Long> records, long timestamp,
             AtomicOperation atomic) {
@@ -634,6 +977,261 @@ public final class Operations {
     }
 
     /**
+     * Select all the values for every key in each of the records that are
+     * resolved by the {@code ast}.
+     * 
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectAstAtomic(
+            AbstractSyntaxTree ast, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        selectRecordsOptionalAtomic(records, timestamp, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Select all the values for {@code key} in each of the records that are
+     * resolved by the {@code ast}.
+     * 
+     * @param key they key to lookup
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Set<TObject>>> void selectKeyAstAtomic(
+            String key, AbstractSyntaxTree ast, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        selectKeyRecordsOptionalAtomic(key, records, timestamp, result,
+                streamer, consumer, atomic);
+    }
+
+    /**
+     * Select all the values for {@code key} in each of the provided records.
+     * 
+     * @param key the lookup key
+     * @param records the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsAtomic(
+            String key, Collection<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        selectKeyRecordsOptionalAtomic(key, records, Time.NONE, result,
+                streamer, consumer, atomic);
+    }
+
+    /**
+     * Select all the values for {@code key} in each of the provided records.
+     * 
+     * @param key the lookup key
+     * @param records the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsOptionalAtomic(
+            String key, Collection<Long> records, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                result.put(record,
+                        timestamp == Time.NONE ? store.select(key, record)
+                                : store.select(key, record, timestamp));
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
+     * Select all the values for each of the provided {@code keys} in each of
+     * the records that are resolved by the {@code ast}.
+     * 
+     * @param keys the lookup keys
+     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
+     *            resolves to a set of records from which data can be retrieved
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysAstAtomic(
+            Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        Set<Long> records = ast.accept(Finder.instance(), atomic);
+        selectKeysRecordsOptionalAtomic(keys, records, timestamp, result,
+                streamer, consumer, atomic);
+    }
+
+    /**
+     * Select all the values for each of the provided {@code keys} in each of
+     * the specified {@code records}.
+     * 
+     * @param keys the lookup keys
+     * @param ast the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsAtomic(
+            Collection<String> keys, Collection<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        selectKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
+                streamer, consumer, atomic);
+    }
+
+    /**
+     * Select all the values for each of the provided {@code keys} in each of
+     * the specified {@code records}.
+     * 
+     * @param keys the lookup keys
+     * @param ast the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsOptionalAtomic(
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, Set<TObject>> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    entry.put(key,
+                            timestamp == Time.NONE ? store.select(key, record)
+                                    : store.select(key, record, timestamp));
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
+     * Select all the values for each key in each of the provided
+     * {@code records}.
+     * 
+     * @param records the lookup records
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param atomic the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsAtomic(
+            Collection<Long> records, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
+        selectRecordsOptionalAtomic(records, Time.NONE, result, streamer,
+                consumer, atomic);
+    }
+
+    /**
+     * Select all the values for each key in each of the provided
+     * {@code records}.
+     * 
+     * @param records the lookup records
+     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
+     *            retrieve from the current state
+     * @param result a {@link Map} in which the results can be gathered
+     * @param streamer an optional {@link Function} that reduces a stream of all
+     *            the records resolved by processing the {@code ast} to those
+     *            for which data should be retrieved (i.e. pagination)
+     * @param consumer an optional {@link Consumer} for the populated
+     *            {@code result}
+     * @param store the store from which data is retrieved
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsOptionalAtomic(
+            Collection<Long> records, long timestamp, M result,
+            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
+            @Nullable Consumer<M> consumer, Store store) {
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, Set<TObject>> data = timestamp == Time.NONE
+                    ? store.select(record)
+                    : store.select(record, timestamp);
+            TMaps.putResultDatasetOptimized(result, record, data);
+        } ;
+        if(consumer != null) {
+            consumer.accept(result);
+        }
+    }
+
+    /**
      * Join the {@link AtomicOperation atomic} operation to compute the sum
      * across the {@code key} at {@code timestamp}.
      * 
@@ -687,6 +1285,127 @@ public final class Operations {
     }
 
     /**
+     * Atomically traverse a navigation {@code key} from {@code record} and
+     * return the values that are at the end of the path.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return all the values that can be reached by traversing the document
+     *         graph along {@code key} from {@code record}
+     */
+    public static Set<TObject> traverseKeyRecordAtomic(String key, long record,
+            long timestamp, AtomicOperation atomic) {
+        String[] toks = key.split("\\.");
+        Set<TObject> values = Sets.newLinkedHashSet();
+        Set<Long> nodes = ImmutableSet.of(record);
+        for (int i = 0; i < toks.length; ++i) {
+            key = toks[i];
+            Set<Long> descendents = Sets.newLinkedHashSet();
+            for (long node : nodes) {
+                Set<TObject> $values = timestamp == Time.NONE
+                        ? atomic.select(key, node)
+                        : atomic.select(key, node, timestamp);
+                if(i == toks.length - 1) {
+                    values.addAll($values);
+                }
+                else {
+                    for (TObject $value : $values) {
+                        if($value.getType() == Type.LINK) {
+                            descendents
+                                    .add(((Link) Convert.thriftToJava($value))
+                                            .longValue());
+                        }
+                    }
+                }
+            }
+            nodes = descendents;
+        }
+        return values;
+    }
+
+    /**
+     * Atomically traverse a navigation {@code key} from each of the specified
+     * {@code records} and map each to the values that are at the end of the
+     * path.
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code records} to all of the values
+     *         that can be reached by traversing the document graph along
+     *         {@code key} from the record
+     */
+    public static Map<Long, Set<TObject>> traverseKeyRecordsAtomic(String key,
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Map<Long, Set<TObject>> data = Maps.newLinkedHashMap();
+        for (long record : records) {
+            Set<TObject> values = traverseKeyRecordAtomic(key, record,
+                    timestamp, atomic);
+            if(!values.isEmpty()) {
+                data.put(record, values);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Atomically traverse each of the navigation {@code keys} from
+     * {@code record} and map each key to the values that are at the end of the
+     * path.
+     * 
+     * @param keys
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code keys} to all of the values that
+     *         can be reached by traversing the document graph along the key
+     *         from {@code record}
+     */
+    public static Map<String, Set<TObject>> traverseKeysRecordAtomic(
+            Collection<String> keys, long record, long timestamp,
+            AtomicOperation atomic) {
+        Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
+        for (String key : keys) {
+            Set<TObject> values = traverseKeyRecordAtomic(key, record,
+                    timestamp, atomic);
+            if(!values.isEmpty()) {
+                data.put(key, values);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Atomically traverse each of the navigation {@code keys} from
+     * each of the {@code records} and map each record to a mapping of each key
+     * to the values that are at the end of the path.
+     * 
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code records} to each of the
+     *         {@code keys} to all of the values that can be reached by
+     *         traversing the document graph
+     */
+    public static Map<Long, Map<String, Set<TObject>>> traverseKeysRecordsAtomic(
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            AtomicOperation atomic) {
+        Map<Long, Map<String, Set<TObject>>> data = Maps.newLinkedHashMap();
+        for (long record : records) {
+            Map<String, Set<TObject>> entry = traverseKeysRecordAtomic(keys,
+                    record, timestamp, atomic);
+            if(!entry.isEmpty()) {
+                data.put(record, entry);
+            }
+        }
+        return data;
+    }
+
+    /**
      * Use the provided {@link AtomicOperation atomic} operation to perform the
      * specified {@code calculation} across the {@code key} at
      * {@code timestamp}.
@@ -701,7 +1420,8 @@ public final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+                ? atomic.browse(key)
+                : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
