@@ -491,6 +491,26 @@ public class PluginManager {
     public Set<String> listBundles() {
         return FileSystem.getSubDirs(home);
     }
+    
+    /**
+     * 
+     * <ul>
+     * <li>class (primary key)</li>
+     * <li>bundle</li>
+     * <li>fromPlugin</li>
+     * <li>fromPluginResponses</li>
+     * <li>fromServer</li>
+     * <li>appInstance</li>
+     * <li>status</li>
+     * </ul>
+     */
+    public Map<String, List<String>> getPlugins() {
+        Map<String, List<String>> temp = Maps.newLinkedHashMap();
+        
+        Table<String, RegistryData, Object> reg = registry;
+        
+        return temp;
+    }
 
     /**
      * Return information about the running plugins as a mapping from each PID
