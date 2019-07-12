@@ -108,8 +108,7 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -208,8 +207,7 @@ public final class Operations {
             }
             $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
-                    ? atomic.browse(start)
-                    : atomic.browse(start, timestamp);
+                    ? atomic.browse(start) : atomic.browse(start, timestamp);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
             root.entrySet().stream()
                     .filter(e -> e.getKey().getType() == Type.LINK)
@@ -452,9 +450,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                result.put(record,
-                        Iterables.getLast(timestamp == Time.NONE
-                                ? store.select(key, record)
+                result.put(record, Iterables.getLast(
+                        timestamp == Time.NONE ? store.select(key, record)
                                 : store.select(key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
@@ -543,9 +540,8 @@ public final class Operations {
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    entry.put(key,
-                            Iterables.getLast(timestamp == Time.NONE
-                                    ? store.select(key, record)
+                    entry.put(key, Iterables.getLast(
+                            timestamp == Time.NONE ? store.select(key, record)
                                     : store.select(key, record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
@@ -605,8 +601,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, TObject> data = (timestamp == Time.NONE
-                    ? store.select(record)
-                    : store.select(record, timestamp)).entrySet().stream()
+                    ? store.select(record) : store.select(record, timestamp))
+                            .entrySet().stream()
                             .filter(e -> !e.getValue().isEmpty())
                             .collect(Collectors.toMap(Entry::getKey,
                                     e -> Iterables.getLast(e.getValue())));
@@ -708,8 +704,7 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -1222,8 +1217,7 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, Set<TObject>> data = timestamp == Time.NONE
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             TMaps.putResultDatasetOptimized(result, record, data);
         } ;
         if(consumer != null) {
@@ -1420,8 +1414,7 @@ public final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
