@@ -402,7 +402,7 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getKeyRecordsOptionalAtomic(key, records, timestamp, result, streamer,
+        getKeyRecordsAtomic(key, records, timestamp, result, streamer,
                 consumer, atomic);
     }
 
@@ -421,11 +421,39 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<Long, TObject>> void getKeyRecordsAtomic(
-            String key, Collection<Long> records, M result,
+            String key, Collection<Long> records, long timestamp, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        getKeyRecordsOptionalAtomic(key, records, Time.NONE, result, streamer,
-                consumer, atomic);
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                if (Navigation.isNavigationScheme(key)) {
+                    Map<TObject, Set<Long>> navigation = Operations
+                            .browseNavigationKeyAtomic(key, timestamp, atomic);
+
+                    Set<Long> union = Sets.newHashSet();
+                    navigation.values().forEach(union::addAll);
+
+                    result.put(record,
+                            Iterables.getLast(atomic.select(
+                                    Navigation.getKeyDestination(key),
+                                    Iterables.getLast(union))));
+                }
+                else {
+                    result.put(record, Iterables.getLast(
+                            timestamp == Time.NONE ?
+                                    atomic.select(key, record) :
+                                    atomic.select(key, record, timestamp)));
+                }
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
     }
 
     /**
@@ -489,7 +517,7 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
+        getKeysRecordsAtomic(keys, records, timestamp, result, streamer,
                 consumer, atomic);
     }
 
@@ -508,11 +536,47 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsAtomic(
-            Collection<String> keys, Collection<Long> records, M result,
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        getKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
-                consumer, atomic);
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, TObject> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    if (Navigation.isNavigationScheme(key)) {
+                        Map<TObject, Set<Long>> navigation = Operations
+                                .browseNavigationKeyAtomic(key, timestamp, atomic);
+
+                        Set<Long> union = Sets.newHashSet();
+                        navigation.values().forEach(union::addAll);
+
+                        entry.put(key,
+                               Iterables.getLast(atomic.select(
+                                       Navigation.getKeyDestination(key),
+                                        Iterables.getLast(union))));
+                    }
+                    else {
+                        entry.put(key, Iterables.getLast(
+                                timestamp == Time.NONE ?
+                                        atomic.select(key, record) :
+                                        atomic.select(key, record, timestamp)));
+                    }
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                result.put(record, entry);
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
     }
 
     /**
@@ -543,10 +607,10 @@ public final class Operations {
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    entry.put(key,
-                            Iterables.getLast(timestamp == Time.NONE
-                                    ? store.select(key, record)
-                                    : store.select(key, record, timestamp)));
+                    entry.put(key, Iterables.getLast(
+                            timestamp == Time.NONE ?
+                                    store.select(key, record) :
+                                    store.select(key, record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -1023,7 +1087,7 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeyRecordsOptionalAtomic(key, records, timestamp, result,
+        selectKeyRecordsAtomic(key, records, timestamp, result,
                 streamer, consumer, atomic);
     }
 
@@ -1041,11 +1105,39 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsAtomic(
-            String key, Collection<Long> records, M result,
+            String key, Collection<Long> records, long timestamp, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        selectKeyRecordsOptionalAtomic(key, records, Time.NONE, result,
-                streamer, consumer, atomic);
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            try {
+                if (Navigation.isNavigationScheme(key)) {
+                    Map<TObject, Set<Long>> navigation = Operations
+                            .browseNavigationKeyAtomic(key, timestamp, atomic);
+
+                    Set<Long> union = Sets.newHashSet();
+                    navigation.values().forEach(union::addAll);
+
+                    result.put(record,
+                            atomic.select(
+                                    Navigation.getKeyDestination(key),
+                                    Iterables.getLast(union)));
+                }
+                else {
+                    result.put(record,
+                            timestamp == Time.NONE ?
+                                    atomic.select(key, record) :
+                                    atomic.select(key, record, timestamp));
+                }
+            }
+            catch (NoSuchElementException e) {
+                continue;
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
     }
 
     /**
@@ -1107,7 +1199,7 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeysRecordsOptionalAtomic(keys, records, timestamp, result,
+        selectKeysRecordsAtomic(keys, records, timestamp, result,
                 streamer, consumer, atomic);
     }
 
@@ -1126,11 +1218,76 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsAtomic(
-            Collection<String> keys, Collection<Long> records, M result,
+            Collection<String> keys, Collection<Long> records, long timestamp,
+            M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        selectKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
-                streamer, consumer, atomic);
+        result.clear();
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
+            Map<String, Set<TObject>> entry = TMaps
+                    .newLinkedHashMapWithCapacity(keys.size());
+            for (String key : keys) {
+                try {
+                    if (Navigation.isNavigationScheme(key)) {
+                        Map<TObject, Set<Long>> navigation = Operations
+                                .browseNavigationKeyAtomic(key, timestamp, atomic);
+
+                        Set<Long> union = Sets.newHashSet();
+                        navigation.values().forEach(union::addAll);
+
+                        StringSplitter it = new StringSplitter(key, '.');
+                        Map<Long, Set<TObject>> values = Maps.newLinkedHashMap();
+                        while (it.hasNext()) {
+                            key = it.next();
+                            Set<Long> nextRecords = Sets.newLinkedHashSet();
+                            for (long rec : union) {
+                                Set<TObject> v = timestamp == Time.NONE
+                                        ? atomic.select(key, rec)
+                                        : atomic.select(key, rec, timestamp);
+                                if(!it.hasNext() && !values.isEmpty()) {
+                                    values.put(rec, v);
+                                }
+                                else {
+                                    values.forEach((value) -> {
+                                        if(value.type == Type.LINK) {
+                                            nextRecords.add(((Link) Convert.thriftToJava(value))
+                                                    .longValue());
+                                        }
+                                    });
+                                }
+                            }
+                            records = nextRecords;
+                        }
+
+                        System.out.println(Navigation.getKeyDestination(key));
+                        System.out.println(union.size());
+                        for(Long l : union) {
+                            System.out.println(l);
+                        }
+                        entry.put(key,
+                                atomic.select(
+                                        Navigation.getKeyDestination(key),
+                                        Iterables.getLast(union)));
+                    }
+                    else {
+                        entry.put(key,
+                                timestamp == Time.NONE ?
+                                        atomic.select(key, record) :
+                                        atomic.select(key, record, timestamp));
+                    }
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            if(!entry.isEmpty()) {
+                TMaps.putResultDatasetOptimized(result, record, entry);
+            }
+        }
+        if(consumer != null) {
+            consumer.accept(result);
+        }
     }
 
     /**
