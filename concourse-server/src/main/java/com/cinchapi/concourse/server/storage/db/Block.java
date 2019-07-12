@@ -32,7 +32,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -350,6 +352,27 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
+    }
+
+    public boolean checkIfTimeInRange(Long time) {
+        return checkIfTimeInRange(n -> n.equals(time));
+    }
+
+    public boolean checkIfTimeInRange(Long startInclusive, Long endExclusive) {
+        return checkIfTimeInRange(n -> n > startInclusive && n < endExclusive);
+    }
+
+    public boolean checkIfTimeInRange(LongStream range) {
+        return checkIfTimeInRange(n -> range.filter(x -> x == n).count() > 0);
+    }
+
+    private boolean checkIfTimeInRange(Predicate<Long> check) {
+        try {
+            final Long n = Long.parseLong(id);
+            return check.test(n);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     @Override
