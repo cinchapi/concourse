@@ -173,7 +173,8 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
     public void testNavigateRecordsAsSelectionAndEvaluationKey() {
         Map<Long, Set<Object>> expected = setupNavigateRecordsSelectionEvaluation(
                 client);
-        Map<Long, Set<Object>> actual = client.select("mother.children", "mother.children > 1");
+        Map<Long, Set<Object>> actual = client.select("mother.children",
+                "mother.children > 1");
         Assert.assertEquals(expected, actual);
     }
 }

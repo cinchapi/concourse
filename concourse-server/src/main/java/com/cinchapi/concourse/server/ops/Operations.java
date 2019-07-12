@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import ch.qos.logback.core.db.BindDataSourceToJNDIAction;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
@@ -433,11 +432,9 @@ public final class Operations {
 
                     Set<TObject> values = navigation.entrySet().stream()
                             .filter(e -> e.getValue().contains(record))
-                            .map(Map.Entry::getKey)
-                            .collect(Collectors.toSet());
+                            .map(Map.Entry::getKey).collect(Collectors.toSet());
 
-                    result.put(record,
-                            Iterables.getLast(values));
+                    result.put(record, Iterables.getLast(values));
                 }
                 else {
                     result.put(record, Iterables.getLast(
@@ -554,8 +551,7 @@ public final class Operations {
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toSet());
 
-                        entry.put(key,
-                                Iterables.getLast(values));
+                        entry.put(key, Iterables.getLast(values));
                     }
                     else {
                         entry.put(key, Iterables.getLast(timestamp == Time.NONE
@@ -1113,8 +1109,7 @@ public final class Operations {
 
                     Set<TObject> values = navigation.entrySet().stream()
                             .filter(e -> e.getValue().contains(record))
-                            .map(Map.Entry::getKey)
-                            .collect(Collectors.toSet());
+                            .map(Map.Entry::getKey).collect(Collectors.toSet());
 
                     result.put(record, values);
                 }

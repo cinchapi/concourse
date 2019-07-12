@@ -2983,7 +2983,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (Navigation.isNavigationScheme(key)) {
+        if(Navigation.isNavigationScheme(key)) {
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.getKeyRecordsAtomic(key, records,
                             timestamp, result, null,
@@ -3024,18 +3024,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (Navigation.isNavigationScheme(key)) {
+        if(Navigation.isNavigationScheme(key)) {
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.getKeyRecordsAtomic(key, records,
-                            timestamp, result,
-                            $records -> Paging.paginate($records, Pages.from(page)), null,
-                            atomic));
+                            timestamp, result, $records -> Paging
+                                    .paginate($records, Pages.from(page)),
+                            null, atomic));
         }
         else {
             Operations.getKeyRecordsOptionalAtomic(key, records, timestamp,
                     result,
-                    $records -> Paging.paginate($records, Pages.from(page)), null,
-                    store);
+                    $records -> Paging.paginate($records, Pages.from(page)),
+                    null, store);
         }
         return result;
     }
@@ -3091,7 +3091,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Iterables.getLast(getStore(transaction, environment).select(key,
-                    record, timestamp), TObject.NULL);
+                record, timestamp), TObject.NULL);
     }
 
     @Override
@@ -3579,8 +3579,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
-                Collectors.toList()).isEmpty()) {
+        if(!keys.stream().filter(Navigation::isNavigationScheme)
+                .collect(Collectors.toList()).isEmpty()) {
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.getKeysRecordsAtomic(keys, records,
                             timestamp, result, null,
@@ -3621,16 +3621,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
-                Collectors.toList()).isEmpty()) {
+        if(!keys.stream().filter(Navigation::isNavigationScheme)
+                .collect(Collectors.toList()).isEmpty()) {
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysRecordsAtomic(keys, records, timestamp,
-                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                    atomic -> Operations.getKeysRecordsAtomic(keys, records,
+                            timestamp, result, $records -> Paging
+                                    .paginate($records, Pages.from(page)),
                             null, atomic));
         }
         else {
             Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    result,
+                    $records -> Paging.paginate($records, Pages.from(page)),
                     null, store);
         }
         return result;
@@ -5782,19 +5784,21 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (Navigation.isNavigationScheme(key)) {
+        if(Navigation.isNavigationScheme(key)) {
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyRecordsAtomic(key, records, timestamp,
-                            result, null,
-                            $result -> $result.sort(
-                                    Sorting.byValues(Orders.from(order), atomic)),
+                    atomic -> Operations.selectKeyRecordsAtomic(key, records,
+                            timestamp, result, null,
+                            $result -> $result.sort(Sorting
+                                    .byValues(Orders.from(order), atomic)),
                             atomic));
         }
         else {
             Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                    result, null, $result -> $result
-                            .sort(Sorting.byValues(Orders.from(order), store),
-                                    timestamp), store);
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValues(Orders.from(order), store),
+                            timestamp),
+                    store);
         }
         return result;
     }
@@ -5823,15 +5827,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        if (Navigation.isNavigationScheme(key)) {
+        if(Navigation.isNavigationScheme(key)) {
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyRecordsAtomic(key, records, timestamp,
-                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                    atomic -> Operations.selectKeyRecordsAtomic(key, records,
+                            timestamp, result, $records -> Paging
+                                    .paginate($records, Pages.from(page)),
                             null, atomic));
         }
         else {
             Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    result,
+                    $records -> Paging.paginate($records, Pages.from(page)),
                     null, store);
         }
         return result;
@@ -6396,14 +6402,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
-                Collectors.toList()).isEmpty()) {
+        if(!keys.stream().filter(Navigation::isNavigationScheme)
+                .collect(Collectors.toList()).isEmpty()) {
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.selectKeysRecordsAtomic(keys, records,
                             timestamp, result, null,
-                            $result -> $result.sort(
-                                    Sorting.byValues(Orders.from(order), atomic),
-                                    timestamp),
+                            $result -> $result.sort(Sorting.byValues(
+                                    Orders.from(order), atomic), timestamp),
                             atomic));
         }
         else {
@@ -6442,16 +6447,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
-                Collectors.toList()).isEmpty()) {
+        if(!keys.stream().filter(Navigation::isNavigationScheme)
+                .collect(Collectors.toList()).isEmpty()) {
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeysRecordsAtomic(keys, records, timestamp,
-                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                    atomic -> Operations.selectKeysRecordsAtomic(keys, records,
+                            timestamp, result, $records -> Paging
+                                    .paginate($records, Pages.from(page)),
                             null, atomic));
         }
         else {
             Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    result,
+                    $records -> Paging.paginate($records, Pages.from(page)),
                     null, store);
         }
         return result;
