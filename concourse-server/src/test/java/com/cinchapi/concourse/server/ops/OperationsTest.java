@@ -30,6 +30,8 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Unit tests for {@link Operations}
@@ -84,8 +86,10 @@ public class OperationsTest {
             String key = "foo.bar.baz.name";
             Map<TObject, Set<Long>> data = Operations.browseNavigationKeyAtomic(
                     key, Time.NONE, store.startAtomicOperation());
-            System.out.println(data);
-            // TODO: add Assert
+            Assert.assertEquals(ImmutableMap.of(Convert.javaToThrift("C"),
+                    ImmutableSet.of(1L, 4L), Convert.javaToThrift("D"),
+                    ImmutableSet.of(1L, 4L), Convert.javaToThrift("E"),
+                    ImmutableSet.of(1L, 4L)), data);
         }
         finally {
             store.stop();
