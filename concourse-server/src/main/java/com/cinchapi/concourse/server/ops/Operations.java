@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import ch.qos.logback.core.db.BindDataSourceToJNDIAction;
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
@@ -108,8 +109,7 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -208,8 +208,7 @@ public final class Operations {
             }
             $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
-                    ? atomic.browse(start)
-                    : atomic.browse(start, timestamp);
+                    ? atomic.browse(start) : atomic.browse(start, timestamp);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
             root.entrySet().stream()
                     .filter(e -> e.getKey().getType() == Type.LINK)
@@ -402,8 +401,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getKeyRecordsAtomic(key, records, timestamp, result, streamer,
-                consumer, atomic);
+        getKeyRecordsAtomic(key, records, timestamp, result, streamer, consumer,
+                atomic);
     }
 
     /**
@@ -428,23 +427,22 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                if (Navigation.isNavigationScheme(key)) {
+                if(Navigation.isNavigationScheme(key)) {
                     Map<TObject, Set<Long>> navigation = Operations
                             .browseNavigationKeyAtomic(key, timestamp, atomic);
 
-                    Set<Long> union = Sets.newHashSet();
-                    navigation.values().forEach(union::addAll);
+                    Set<TObject> values = navigation.entrySet().stream()
+                            .filter(e -> e.getValue().contains(record))
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet());
 
                     result.put(record,
-                            Iterables.getLast(atomic.select(
-                                    Navigation.getKeyDestination(key),
-                                    Iterables.getLast(union))));
+                            Iterables.getLast(values));
                 }
                 else {
                     result.put(record, Iterables.getLast(
-                            timestamp == Time.NONE ?
-                                    atomic.select(key, record) :
-                                    atomic.select(key, record, timestamp)));
+                            timestamp == Time.NONE ? atomic.select(key, record)
+                                    : atomic.select(key, record, timestamp)));
                 }
             }
             catch (NoSuchElementException e) {
@@ -480,9 +478,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                result.put(record,
-                        Iterables.getLast(timestamp == Time.NONE
-                                ? store.select(key, record)
+                result.put(record, Iterables.getLast(
+                        timestamp == Time.NONE ? store.select(key, record)
                                 : store.select(key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
@@ -547,23 +544,23 @@ public final class Operations {
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    if (Navigation.isNavigationScheme(key)) {
+                    if(Navigation.isNavigationScheme(key)) {
                         Map<TObject, Set<Long>> navigation = Operations
-                                .browseNavigationKeyAtomic(key, timestamp, atomic);
+                                .browseNavigationKeyAtomic(key, timestamp,
+                                        atomic);
 
-                        Set<Long> union = Sets.newHashSet();
-                        navigation.values().forEach(union::addAll);
+                        Set<TObject> values = navigation.entrySet().stream()
+                                .filter(e -> e.getValue().contains(record))
+                                .map(Map.Entry::getKey)
+                                .collect(Collectors.toSet());
 
                         entry.put(key,
-                               Iterables.getLast(atomic.select(
-                                       Navigation.getKeyDestination(key),
-                                        Iterables.getLast(union))));
+                                Iterables.getLast(values));
                     }
                     else {
-                        entry.put(key, Iterables.getLast(
-                                timestamp == Time.NONE ?
-                                        atomic.select(key, record) :
-                                        atomic.select(key, record, timestamp)));
+                        entry.put(key, Iterables.getLast(timestamp == Time.NONE
+                                ? atomic.select(key, record)
+                                : atomic.select(key, record, timestamp)));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -608,9 +605,8 @@ public final class Operations {
             for (String key : keys) {
                 try {
                     entry.put(key, Iterables.getLast(
-                            timestamp == Time.NONE ?
-                                    store.select(key, record) :
-                                    store.select(key, record, timestamp)));
+                            timestamp == Time.NONE ? store.select(key, record)
+                                    : store.select(key, record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -669,8 +665,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, TObject> data = (timestamp == Time.NONE
-                    ? store.select(record)
-                    : store.select(record, timestamp)).entrySet().stream()
+                    ? store.select(record) : store.select(record, timestamp))
+                            .entrySet().stream()
                             .filter(e -> !e.getValue().isEmpty())
                             .collect(Collectors.toMap(Entry::getKey,
                                     e -> Iterables.getLast(e.getValue())));
@@ -772,8 +768,7 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -1087,8 +1082,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeyRecordsAtomic(key, records, timestamp, result,
-                streamer, consumer, atomic);
+        selectKeyRecordsAtomic(key, records, timestamp, result, streamer,
+                consumer, atomic);
     }
 
     /**
@@ -1112,23 +1107,21 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                if (Navigation.isNavigationScheme(key)) {
+                if(Navigation.isNavigationScheme(key)) {
                     Map<TObject, Set<Long>> navigation = Operations
                             .browseNavigationKeyAtomic(key, timestamp, atomic);
 
-                    Set<Long> union = Sets.newHashSet();
-                    navigation.values().forEach(union::addAll);
+                    Set<TObject> values = navigation.entrySet().stream()
+                            .filter(e -> e.getValue().contains(record))
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet());
 
-                    result.put(record,
-                            atomic.select(
-                                    Navigation.getKeyDestination(key),
-                                    Iterables.getLast(union)));
+                    result.put(record, values);
                 }
                 else {
                     result.put(record,
-                            timestamp == Time.NONE ?
-                                    atomic.select(key, record) :
-                                    atomic.select(key, record, timestamp));
+                            timestamp == Time.NONE ? atomic.select(key, record)
+                                    : atomic.select(key, record, timestamp));
                 }
             }
             catch (NoSuchElementException e) {
@@ -1199,8 +1192,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeysRecordsAtomic(keys, records, timestamp, result,
-                streamer, consumer, atomic);
+        selectKeysRecordsAtomic(keys, records, timestamp, result, streamer,
+                consumer, atomic);
     }
 
     /**
@@ -1229,52 +1222,22 @@ public final class Operations {
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    if (Navigation.isNavigationScheme(key)) {
+                    if(Navigation.isNavigationScheme(key)) {
                         Map<TObject, Set<Long>> navigation = Operations
-                                .browseNavigationKeyAtomic(key, timestamp, atomic);
+                                .browseNavigationKeyAtomic(key, timestamp,
+                                        atomic);
 
-                        Set<Long> union = Sets.newHashSet();
-                        navigation.values().forEach(union::addAll);
+                        Set<TObject> values = navigation.entrySet().stream()
+                                .filter(e -> e.getValue().contains(record))
+                                .map(Map.Entry::getKey)
+                                .collect(Collectors.toSet());
 
-                        StringSplitter it = new StringSplitter(key, '.');
-                        Map<Long, Set<TObject>> values = Maps.newLinkedHashMap();
-                        while (it.hasNext()) {
-                            key = it.next();
-                            Set<Long> nextRecords = Sets.newLinkedHashSet();
-                            for (long rec : union) {
-                                Set<TObject> v = timestamp == Time.NONE
-                                        ? atomic.select(key, rec)
-                                        : atomic.select(key, rec, timestamp);
-                                if(!it.hasNext() && !values.isEmpty()) {
-                                    values.put(rec, v);
-                                }
-                                else {
-                                    values.forEach((value) -> {
-                                        if(value.type == Type.LINK) {
-                                            nextRecords.add(((Link) Convert.thriftToJava(value))
-                                                    .longValue());
-                                        }
-                                    });
-                                }
-                            }
-                            records = nextRecords;
-                        }
-
-                        System.out.println(Navigation.getKeyDestination(key));
-                        System.out.println(union.size());
-                        for(Long l : union) {
-                            System.out.println(l);
-                        }
-                        entry.put(key,
-                                atomic.select(
-                                        Navigation.getKeyDestination(key),
-                                        Iterables.getLast(union)));
+                        entry.put(key, values);
                     }
                     else {
-                        entry.put(key,
-                                timestamp == Time.NONE ?
-                                        atomic.select(key, record) :
-                                        atomic.select(key, record, timestamp));
+                        entry.put(key, timestamp == Time.NONE
+                                ? atomic.select(key, record)
+                                : atomic.select(key, record, timestamp));
                     }
                 }
                 catch (NoSuchElementException e) {
@@ -1379,8 +1342,7 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, Set<TObject>> data = timestamp == Time.NONE
-                    ? store.select(record)
-                    : store.select(record, timestamp);
+                    ? store.select(record) : store.select(record, timestamp);
             TMaps.putResultDatasetOptimized(result, record, data);
         } ;
         if(consumer != null) {
@@ -1577,8 +1539,7 @@ public final class Operations {
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
         Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key)
-                : atomic.browse(key, timestamp);
+                ? atomic.browse(key) : atomic.browse(key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();

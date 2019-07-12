@@ -29,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -113,8 +114,8 @@ import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
-import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -1942,7 +1943,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
-        AtomicSupport store = getStore(transaction, environment);        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
+        AtomicSupport store = getStore(transaction, environment);
+        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             if(Navigation.isNavigationScheme(key)) {
                 Set<Long> records = store.getAllRecords();
@@ -1970,8 +1972,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         });
 
-        SortableSet<Set<TObject>> records = SortableSet
-                .of(results.get());
+        SortableSet<Set<TObject>> records = SortableSet.of(results.get());
         records.sort(Sorting.byValues(Orders.from(order), store));
         return records;
     }
@@ -2538,7 +2539,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCclOrder(String key, String ccl,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2575,7 +2575,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2610,7 +2609,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
             long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2649,7 +2647,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2716,7 +2713,6 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    //TODO: selection key
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2728,7 +2724,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCriteriaOrder(String key,
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2761,7 +2756,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2791,7 +2785,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2934,8 +2927,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyRecordsAtomic(key, records, Time.NONE,
-                        result, null, $result -> $result.sort(
+                atomic -> Operations.getKeyRecordsAtomic(key, records,
+                        Time.NONE, result, null,
+                        $result -> $result.sort(
                                 Sorting.byValue(Orders.from(order), atomic)),
                         atomic));
         return result;
@@ -2955,7 +2949,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2963,8 +2956,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyRecordsAtomic(key, records, Time.NONE,
-                        result, $records -> Paging.paginate($records, Pages.from(page)),
+                atomic -> Operations.getKeyRecordsAtomic(key, records,
+                        Time.NONE, result, $records -> Paging.paginate($records,
+                                Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -2982,7 +2976,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, TObject> getKeyRecordsTimeOrder(String key,
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2990,11 +2983,23 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
+        if (Navigation.isNavigationScheme(key)) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyRecordsAtomic(key, records,
+                            timestamp, result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValue(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
+        }
+        else {
+            Operations.getKeyRecordsOptionalAtomic(key, records, timestamp,
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValue(Orders.from(order), store),
+                            timestamp),
+                    store);
+        }
         return result;
     }
 
@@ -3019,9 +3024,19 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                $records -> Paging.paginate($records, Pages.from(page)), null,
-                store);
+        if (Navigation.isNavigationScheme(key)) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeyRecordsAtomic(key, records,
+                            timestamp, result,
+                            $records -> Paging.paginate($records, Pages.from(page)), null,
+                            atomic));
+        }
+        else {
+            Operations.getKeyRecordsOptionalAtomic(key, records, timestamp,
+                    result,
+                    $records -> Paging.paginate($records, Pages.from(page)), null,
+                    store);
+        }
         return result;
     }
 
@@ -3072,12 +3087,11 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Iterables.getLast(getStore(transaction, environment).select(key,
-                record, timestamp), TObject.NULL);
+                    record, timestamp), TObject.NULL);
     }
 
     @Override
@@ -3103,7 +3117,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysCclOrder(List<String> keys,
             String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3293,7 +3306,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysCriteriaOrder(
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3326,7 +3338,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
             List<String> keys, TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3358,7 +3369,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrder(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3503,7 +3513,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysRecordsOrder(
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3512,8 +3521,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysRecordsAtomic(keys, records, Time.NONE,
-                        result, null, $result -> $result.sort(
+                atomic -> Operations.getKeysRecordsAtomic(keys, records,
+                        Time.NONE, result, null,
+                        $result -> $result.sort(
                                 Sorting.byValue(Orders.from(order), atomic)),
                         atomic));
         return result;
@@ -3533,7 +3543,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3542,8 +3551,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysRecordsAtomic(keys, records,Time.NONE,
-                        result, $records -> Paging.paginate($records, Pages.from(page)),
+                atomic -> Operations.getKeysRecordsAtomic(keys, records,
+                        Time.NONE, result, $records -> Paging.paginate($records,
+                                Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -3562,7 +3572,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrder(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3570,11 +3579,24 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
+        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
+                Collectors.toList()).isEmpty()) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysRecordsAtomic(keys, records,
+                            timestamp, result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValue(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
+        }
+        else {
+            Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValue(Orders.from(order), store),
+                            timestamp),
+                    store);
+        }
         return result;
     }
 
@@ -3599,9 +3621,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable.singleValued(
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
+        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
+                Collectors.toList()).isEmpty()) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.getKeysRecordsAtomic(keys, records, timestamp,
+                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                            null, atomic));
+        }
+        else {
+            Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
+                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    null, store);
+        }
         return result;
     }
 
@@ -4984,7 +5015,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5131,7 +5161,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrder(
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5304,7 +5333,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyCclOrder(String key, String ccl,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5341,7 +5369,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5376,7 +5403,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyCclTimeOrder(String key, String ccl,
             long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5492,7 +5518,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyCriteriaOrder(String key,
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5556,7 +5581,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrder(String key,
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5692,7 +5716,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyRecordsOrder(String key,
             List<Long> records, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5752,7 +5775,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Set<TObject>> selectKeyRecordsTimeOrder(String key,
             List<Long> records, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5760,11 +5782,20 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
+        if (Navigation.isNavigationScheme(key)) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.selectKeyRecordsAtomic(key, records, timestamp,
+                            result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValues(Orders.from(order), atomic)),
+                            atomic));
+        }
+        else {
+            Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
+                    result, null, $result -> $result
+                            .sort(Sorting.byValues(Orders.from(order), store),
+                                    timestamp), store);
+        }
         return result;
     }
 
@@ -5792,9 +5823,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
+        if (Navigation.isNavigationScheme(key)) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.selectKeyRecordsAtomic(key, records, timestamp,
+                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                            null, atomic));
+        }
+        else {
+            Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
+                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    null, store);
+        }
         return result;
     }
 
@@ -5930,7 +5969,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
             List<String> keys, String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5966,7 +6004,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrder(
             List<String> keys, String ccl, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6086,7 +6123,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrder(
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6152,7 +6188,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrder(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6291,7 +6326,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6355,7 +6389,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    //TODO: selection key
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrder(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6363,11 +6396,24 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
+        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
+                Collectors.toList()).isEmpty()) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.selectKeysRecordsAtomic(keys, records,
+                            timestamp, result, null,
+                            $result -> $result.sort(
+                                    Sorting.byValues(Orders.from(order), atomic),
+                                    timestamp),
+                            atomic));
+        }
+        else {
+            Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValues(Orders.from(order), store),
+                            timestamp),
+                    store);
+        }
         return result;
     }
 
@@ -6396,9 +6442,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
+        if (!keys.stream().filter(Navigation::isNavigationScheme).collect(
+                Collectors.toList()).isEmpty()) {
+            AtomicOperations.executeWithRetry(store,
+                    atomic -> Operations.selectKeysRecordsAtomic(keys, records, timestamp,
+                            result, $records -> Paging.paginate($records, Pages.from(page)),
+                            null, atomic));
+        }
+        else {
+            Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
+                    result, $records -> Paging.paginate($records, Pages.from(page)),
+                    null, store);
+        }
         return result;
     }
 

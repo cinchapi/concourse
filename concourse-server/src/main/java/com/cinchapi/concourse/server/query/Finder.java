@@ -151,8 +151,7 @@ public class Finder implements Visitor<Set<Long>> {
                 Map<TObject, Set<Long>> result = Operations
                         .browseNavigationKeyAtomic(key, timestamp, atomic);
 
-                for (Map.Entry<TObject, Set<Long>> entry : result
-                        .entrySet()) {
+                for (Map.Entry<TObject, Set<Long>> entry : result.entrySet()) {
                     if(entry.getKey().is(operator, builtValues)) {
                         results.addAll(entry.getValue());
                     }

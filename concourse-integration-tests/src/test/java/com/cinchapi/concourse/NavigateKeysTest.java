@@ -108,6 +108,32 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
         return expected;
     }
 
+    /**
+     * Setup data for each of the tests.
+     *
+     * @param client
+     */
+    private static Map<Long, Set<Object>> setupNavigateRecordsSelectionEvaluation(
+            Concourse client) {
+        client.add("name", "john", 1);
+        client.add("mother", Link.to(2), 1);
+
+        client.add("name", "leslie", 2);
+        client.add("children", 3, 2);
+
+        client.add("name", "doe", 3);
+        client.add("mother", Link.to(4), 3);
+
+        client.add("name", "martha", 4);
+        client.add("children", 2, 4);
+
+        Map<Long, Set<Object>> expected = Maps.newHashMap();
+        expected.put(1L, Sets.newHashSet(3));
+        expected.put(3L, Sets.newHashSet(2));
+
+        return expected;
+    }
+
     @Test
     public void testNavigateAsEvaluationKeyWithoutTimestamp() {
         Map<Long, Map<String, Set<Object>>> expected = setupNavigateEvaluation(
@@ -140,6 +166,14 @@ public class NavigateKeysTest extends ConcourseIntegrationTest {
         Map<Long, Map<String, Set<Object>>> actual = client.select(
                 Lists.newArrayList("name", "mother.children"),
                 "mother.children = 3");
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNavigateRecordsAsSelectionAndEvaluationKey() {
+        Map<Long, Set<Object>> expected = setupNavigateRecordsSelectionEvaluation(
+                client);
+        Map<Long, Set<Object>> actual = client.select("mother.children", "mother.children > 1");
         Assert.assertEquals(expected, actual);
     }
 }
