@@ -1404,8 +1404,7 @@ public final class Operations {
      */
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();

@@ -910,7 +910,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Stores.browse(getStore(transaction, environment), key, timestamp);
+        return Stores.browse(getStore(transaction, environment), key,
+                timestamp);
     }
 
     @Override
