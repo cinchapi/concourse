@@ -856,7 +856,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return getStore(transaction, environment).browse(key);
+        return Stores.browse(getStore(transaction, environment), key);
     }
 
     @Override
@@ -870,7 +870,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Map<TObject, Set<Long>>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                result.put(key, atomic.browse(key));
+                result.put(key, Stores.browse(atomic, key));
             }
         });
         return result;
@@ -888,7 +888,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Map<TObject, Set<Long>>> result = TMaps
                 .newLinkedHashMapWithCapacity(keys.size());
         for (String key : keys) {
-            result.put(key, store.browse(key, timestamp));
+            result.put(key, Stores.browse(store, key, timestamp));
         }
         return result;
     }
@@ -910,7 +910,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getStore(transaction, environment).browse(key, timestamp);
+        return Stores.browse(getStore(transaction, environment), key, timestamp);
     }
 
     @Override
