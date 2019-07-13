@@ -3911,7 +3911,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records);
 
@@ -3938,7 +3940,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields at {@code timestamp}
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Collection<Long> records,
             Timestamp timestamp);
@@ -3957,7 +3961,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Criteria criteria);
 
@@ -3984,7 +3990,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields at {@code timestamp}
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, Criteria criteria, Timestamp timestamp);
 
@@ -4001,7 +4009,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, long record);
 
@@ -4026,7 +4036,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields at {@code timestamp}
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, long record, Timestamp timestamp);
 
@@ -4045,7 +4057,9 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl);
 
@@ -4073,6 +4087,7 @@ public abstract class Concourse implements AutoCloseable {
      *         the respective fields at {@code timestamp}
      * @see <a href=
      *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
     public abstract <T> Map<Long, Map<String, Set<T>>> navigate(
             Collection<String> keys, String ccl, Timestamp timestamp);
@@ -4088,7 +4103,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the {@code records} to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Collection<Long> records);
 
@@ -4114,7 +4131,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the {@code records} to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Collection<Long> records, Timestamp timestamp);
 
@@ -4133,7 +4152,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the the matching records to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Criteria criteria);
 
@@ -4160,7 +4181,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the the matching records to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key,
             Criteria criteria, Timestamp timestamp);
 
@@ -4173,7 +4196,9 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      * @return a {@link Map} containing record and all the values stored in the
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key, long record);
 
     /**
@@ -4194,7 +4219,9 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} containing all the values stored in the field at
      *         {@code timestamp}
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key, long record,
             Timestamp timestamp);
 
@@ -4207,7 +4234,9 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      * @return a {@link Map} containing record and all the values stored in the
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public final <T> Map<Long, Set<T>> navigate(String key, Long record) {
         return navigate(key, record.longValue());
     }
@@ -4230,7 +4259,9 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} containing all the values stored in the field at
      *         {@code timestamp}
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public final <T> Map<Long, Set<T>> navigate(String key, Long record,
             Timestamp timestamp) {
         return navigate(key, record.longValue(), timestamp);
@@ -4251,7 +4282,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the the matching records to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl);
 
     /**
@@ -4277,7 +4310,9 @@ public abstract class Concourse implements AutoCloseable {
      * @return a {@link Map} associating each of the the matching records to a
      *         {@link Set} containing all the values stored in the respective
      *         field
+     * @deprecated in version 0.10.0 in favor of analogous get/select methods
      */
+    @Deprecated
     public abstract <T> Map<Long, Set<T>> navigate(String key, String ccl,
             Timestamp timestamp);
 
