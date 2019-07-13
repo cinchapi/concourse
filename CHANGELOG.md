@@ -25,6 +25,19 @@ Concourse Server now (finally) has the ability to page through results!
 * A result set that returns data from multiple records (across any number of keys) can be paginated.
 * Concourse drviers now feature a `Page` object that allows the client to specify how Concourse Server should paginate a result set. A `Page` is an abstraction for offset/skip and limit parameters. The `Page` class contains various factory methods to offset and limit a result set using various intuitive notions of pagination.
 
+###### Navigable Data Reads
+* You can now traverse the document graph by specifying one ore more *navigation keys* in the following read methods:
+	* browse
+	* calculate
+	* get
+	* select
+* Reading a navigation key using `get` or `select` is intended to repleace the `navigate` methods.
+* When reading a navigation key in the context of one or more methods, the root record (e.g the record from which the document-graph traversal starts) is mapped to the values that are retrieved from the destination records. In the `navgiate` methods, the destination record is associated with the destination value(s).
+	* For example, assume record `1` is linked to record `2` on the `friends` key. Record `2` contains the value `Jeff` for the `name` key...
+	* if you `select("friends.name", 1)`, the return value will map `1` to `Jeff` whereas the return value of `navigate("friends.name", 1)` maps `2` to `Jeff`. 
+	
+
+
 ###### ETL 
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
@@ -52,6 +65,7 @@ Concourse Server now (finally) has the ability to page through results!
 * Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
 * Removed the `StringSplitter` framework in favor of the same from `accent4j`.
 * Deprecated `Criteria#getCclString` in favor of `Criteria#ccl`.
+* The `navigate` methods in the client drivers have been deprecated in favor of using `select`/`get` to traverse the document-graph.
 
 #### Version 0.9.6 (February 16, 2019)
 * Fixed a bug that caused a `ParseException` to be thrown when trying to use a `Criteria` object containing a string value wrapped in single or double quotes out of necessity (i.e. because the value contained a keyword). This bug happened because the wrapping quotes were dropped by Concourse Server when parsing the `Criteria`.
