@@ -1277,12 +1277,12 @@ public final class Operations {
      * @param key
      * @param record
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return all the values that can be reached by traversing the document
      *         graph along {@code key} from {@code record}
      */
     public static Set<TObject> traverseKeyRecordOptionalAtomic(String key,
-            long record, long timestamp, Store atomic) {
+            long record, long timestamp, Store store) {
         String[] toks = key.split("\\.");
         Set<TObject> values = Sets.newLinkedHashSet();
         Set<Long> nodes = ImmutableSet.of(record);
@@ -1291,8 +1291,8 @@ public final class Operations {
             Set<Long> descendents = Sets.newLinkedHashSet();
             for (long node : nodes) {
                 Set<TObject> $values = timestamp == Time.NONE
-                        ? atomic.select(key, node)
-                        : atomic.select(key, node, timestamp);
+                        ? store.select(key, node)
+                        : store.select(key, node, timestamp);
                 if(i == toks.length - 1) {
                     values.addAll($values);
                 }
@@ -1319,18 +1319,17 @@ public final class Operations {
      * @param key
      * @param records
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code records} to all of the values
      *         that can be reached by traversing the document graph along
      *         {@code key} from the record
      */
     public static Map<Long, Set<TObject>> traverseKeyRecordsOptionalAtomic(
-            String key, Collection<Long> records, long timestamp,
-            Store atomic) {
+            String key, Collection<Long> records, long timestamp, Store store) {
         Map<Long, Set<TObject>> data = Maps.newLinkedHashMap();
         for (long record : records) {
             Set<TObject> values = traverseKeyRecordOptionalAtomic(key, record,
-                    timestamp, atomic);
+                    timestamp, store);
             if(!values.isEmpty()) {
                 data.put(record, values);
             }
@@ -1346,18 +1345,17 @@ public final class Operations {
      * @param keys
      * @param record
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code keys} to all of the values that
      *         can be reached by traversing the document graph along the key
      *         from {@code record}
      */
     public static Map<String, Set<TObject>> traverseKeysRecordOptionalAtomic(
-            Collection<String> keys, long record, long timestamp,
-            Store atomic) {
+            Collection<String> keys, long record, long timestamp, Store store) {
         Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
         for (String key : keys) {
             Set<TObject> values = traverseKeyRecordOptionalAtomic(key, record,
-                    timestamp, atomic);
+                    timestamp, store);
             if(!values.isEmpty()) {
                 data.put(key, values);
             }
@@ -1373,18 +1371,18 @@ public final class Operations {
      * @param keys
      * @param records
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code records} to each of the
      *         {@code keys} to all of the values that can be reached by
      *         traversing the document graph
      */
     public static Map<Long, Map<String, Set<TObject>>> traverseKeysRecordsAtomic(
             Collection<String> keys, Collection<Long> records, long timestamp,
-            Store atomic) {
+            Store store) {
         Map<Long, Map<String, Set<TObject>>> data = Maps.newLinkedHashMap();
         for (long record : records) {
             Map<String, Set<TObject>> entry = traverseKeysRecordOptionalAtomic(
-                    keys, record, timestamp, atomic);
+                    keys, record, timestamp, store);
             if(!entry.isEmpty()) {
                 data.put(record, entry);
             }
