@@ -69,7 +69,7 @@ public class OperationsTest {
         try {
             setupGraph(store);
             String key = "bar.baz.name";
-            Set<TObject> data = Operations.traverseKeyRecordAtomic(key, 3,
+            Set<TObject> data = Operations.traverseKeyRecordOptionalAtomic(key, 3,
                     Time.NONE, store.startAtomicOperation());
             Assert.assertTrue(data.isEmpty());
         }
@@ -84,7 +84,7 @@ public class OperationsTest {
         try {
             setupGraph(store);
             String key = "foo.bar.baz.name";
-            Map<TObject, Set<Long>> data = Operations.browseNavigationKeyAtomic(
+            Map<TObject, Set<Long>> data = Operations.browseNavigationKeyOptionalAtomic(
                     key, Time.NONE, store.startAtomicOperation());
             Assert.assertEquals(ImmutableMap.of(Convert.javaToThrift("C"),
                     ImmutableSet.of(1L, 4L), Convert.javaToThrift("D"),
