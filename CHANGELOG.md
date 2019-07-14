@@ -32,9 +32,9 @@ Concourse Server now (finally) has the ability to page through results!
 	* get
 	* select
 * Reading a navigation key using `get` or `select` is intended to repleace the `navigate` methods.
-* When reading a navigation key in the context of one or more methods, the root record (e.g the record from which the document-graph traversal starts) is mapped to the values that are retrieved from the destination records. In the `navgiate` methods, the destination record is associated with the destination value(s).
+* When reading a navigation key in the context of one or more records, the root record (e.g the record from which the document-graph traversal starts) is mapped to the values that are retrieved from the destination records. In the `navgiate` methods, the destination record is associated with the destination value(s).
 	* For example, assume record `1` is linked to record `2` on the `friends` key. Record `2` contains the value `Jeff` for the `name` key...
-	* if you `select("friends.name", 1)`, the return value will map `1` to `Jeff` whereas the return value of `navigate("friends.name", 1)` maps `2` to `Jeff`. 
+	* if you `select("friends.name", 1)`, the return value will map `1` to `[Jeff]` whereas the return value of `navigate("friends.name", 1)` maps `2` to `[Jeff]`. 
 	
 
 
