@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -57,7 +59,7 @@ public class ReadNavigationKeyTest extends ConcourseIntegrationTest {
         for (int i = 1; i <= 5; ++i) {
             client.add("count", i, i);
         }
-        for (int i = 1; i < 5; ++i) {
+        for (int i = 1; i <= 5; ++i) {
             if(i != 3) {
                 client.add("scores", i * 10, i);
                 client.add("scores", i * 100, i);
@@ -109,6 +111,16 @@ public class ReadNavigationKeyTest extends ConcourseIntegrationTest {
     public void testSumKey() {
         Number actual = client.calculate().sum("foo.bar.count");
         Assert.assertEquals(12, actual);
+    }
+
+    @Test
+    public void testAverageKey() {
+        Number actual = client.calculate().average("bar.baz.scores");
+        List<Number> scores = ImmutableList.of(40, 400, 50, 500, 10, 100, 20,
+                200, 50, 500);
+        Number expected = scores.stream().mapToLong(Number::longValue).average()
+                .getAsDouble();
+        Assert.assertEquals(expected, actual);
     }
 
 }

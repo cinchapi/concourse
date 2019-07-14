@@ -107,8 +107,7 @@ public final class Operations {
      */
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
