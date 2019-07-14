@@ -797,7 +797,7 @@ public final class Operations {
      * @return a mapping from each record at the end of the navigation chain to
      *         the
      * @deprecated use
-     *             {@link #traverseKeyRecordOptionalAtomic(String, long, long, AtomicOperation)}
+     *             {@link #traverseKeyRecordOptionalAtomic(String, long, long, Store)}
      *             instead
      */
     @Deprecated
@@ -832,7 +832,7 @@ public final class Operations {
 
     /**
      * @deprecated use
-     *             {@link #traverseKeyRecordsOptionalAtomic(String, Collection, long, AtomicOperation)}
+     *             {@link #traverseKeyRecordsOptionalAtomic(String, Collection, long, Store)}
      *             instead
      */
     @Deprecated
@@ -857,7 +857,7 @@ public final class Operations {
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
      * @deprecated use
-     *             {@link #traverseKeysRecordOptionalAtomic(Collection, long, long, AtomicOperation)}
+     *             {@link #traverseKeysRecordOptionalAtomic(Collection, long, long, Store)}
      *             instead
      */
     @Deprecated
@@ -893,7 +893,7 @@ public final class Operations {
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
      * @deprecated use
-     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, AtomicOperation)}
+     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, Store)}
      *             instead
      */
     @Deprecated
