@@ -107,8 +107,7 @@ public final class Operations {
      */
     public static Number avgKeyAtomic(String key, long timestamp,
             AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -138,9 +137,7 @@ public final class Operations {
      */
     public static Number avgKeyRecordAtomic(String key, long record,
             long timestamp, AtomicOperation atomic) {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
+        Set<TObject> values = Stores.select(atomic, key, record, timestamp);
         Number sum = 0;
         for (TObject value : values) {
             Object object = Convert.thriftToJava(value);
@@ -167,9 +164,7 @@ public final class Operations {
         int count = 0;
         Number avg = 0;
         for (long record : records) {
-            Set<TObject> values = timestamp == Time.NONE
-                    ? atomic.select(key, record)
-                    : atomic.select(key, record, timestamp);
+            Set<TObject> values = Stores.select(atomic, key, record, timestamp);
             for (TObject value : values) {
                 Object object = Convert.thriftToJava(value);
                 Calculations.checkCalculatable(object);
@@ -186,18 +181,18 @@ public final class Operations {
      * 
      * @param key
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each possible destination value for a given
      *         navigation {@code key} to the records where the navigation could
      *         begin to retrieve the value by selecting the navigation
      *         {@code key}
      */
-    public static Map<TObject, Set<Long>> browseNavigationKeyAtomic(String key,
-            long timestamp, AtomicOperation atomic) {
+    public static Map<TObject, Set<Long>> browseNavigationKeyOptionalAtomic(
+            String key, long timestamp, Store store) {
         String[] toks = key.split("\\.");
         if(toks.length == 1) {
-            return timestamp == Time.NONE ? atomic.browse(key)
-                    : atomic.browse(key, timestamp);
+            return timestamp == Time.NONE ? store.browse(key)
+                    : store.browse(key, timestamp);
         }
         else {
             String start = toks[0];
@@ -207,7 +202,7 @@ public final class Operations {
             }
             $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
-                    ? atomic.browse(start) : atomic.browse(start, timestamp);
+                    ? store.browse(start) : store.browse(start, timestamp);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
             root.entrySet().stream()
                     .filter(e -> e.getKey().getType() == Type.LINK)
@@ -215,9 +210,9 @@ public final class Operations {
                         Link link = (Link) Convert.thriftToJava(entry.getKey());
                         Set<Long> nodes = entry.getValue();
                         for (long node : nodes) {
-                            Set<TObject> values = traverseKeyRecordAtomic(
+                            Set<TObject> values = traverseKeyRecordOptionalAtomic(
                                     $key.toString(), link.longValue(),
-                                    timestamp, atomic);
+                                    timestamp, store);
                             for (TObject value : values) {
                                 index.computeIfAbsent(value,
                                         ignore -> Sets.newLinkedHashSet())
@@ -450,9 +445,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                result.put(record, Iterables.getLast(
-                        timestamp == Time.NONE ? store.select(key, record)
-                                : store.select(key, record, timestamp)));
+                result.put(record, Iterables
+                        .getLast(Stores.select(store, key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
                 continue;
@@ -541,8 +535,7 @@ public final class Operations {
             for (String key : keys) {
                 try {
                     entry.put(key, Iterables.getLast(
-                            timestamp == Time.NONE ? store.select(key, record)
-                                    : store.select(key, record, timestamp)));
+                            Stores.select(store, key, record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -804,7 +797,7 @@ public final class Operations {
      * @return a mapping from each record at the end of the navigation chain to
      *         the
      * @deprecated use
-     *             {@link #traverseKeyRecordAtomic(String, long, long, AtomicOperation)}
+     *             {@link #traverseKeyRecordOptionalAtomic(String, long, long, Store)}
      *             instead
      */
     @Deprecated
@@ -839,7 +832,7 @@ public final class Operations {
 
     /**
      * @deprecated use
-     *             {@link #traverseKeyRecordsAtomic(String, Collection, long, AtomicOperation)}
+     *             {@link #traverseKeyRecordsOptionalAtomic(String, Collection, long, Store)}
      *             instead
      */
     @Deprecated
@@ -864,7 +857,7 @@ public final class Operations {
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
      * @deprecated use
-     *             {@link #traverseKeysRecordAtomic(Collection, long, long, AtomicOperation)}
+     *             {@link #traverseKeysRecordOptionalAtomic(Collection, long, long, Store)}
      *             instead
      */
     @Deprecated
@@ -900,7 +893,7 @@ public final class Operations {
      * @return Map<String, Set<TObject>> set of values.
      * @throws ParseException
      * @deprecated use
-     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, AtomicOperation)}
+     *             {@link #traverseKeysRecordsAtomic(Collection, Collection, long, Store)}
      *             instead
      */
     @Deprecated
@@ -1067,8 +1060,7 @@ public final class Operations {
                 : records) {
             try {
                 result.put(record,
-                        timestamp == Time.NONE ? store.select(key, record)
-                                : store.select(key, record, timestamp));
+                        Stores.select(store, key, record, timestamp));
             }
             catch (NoSuchElementException e) {
                 continue;
@@ -1157,8 +1149,7 @@ public final class Operations {
             for (String key : keys) {
                 try {
                     entry.put(key,
-                            timestamp == Time.NONE ? store.select(key, record)
-                                    : store.select(key, record, timestamp));
+                            Stores.select(store, key, record, timestamp));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -1285,12 +1276,12 @@ public final class Operations {
      * @param key
      * @param record
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return all the values that can be reached by traversing the document
      *         graph along {@code key} from {@code record}
      */
-    public static Set<TObject> traverseKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
+    public static Set<TObject> traverseKeyRecordOptionalAtomic(String key,
+            long record, long timestamp, Store store) {
         String[] toks = key.split("\\.");
         Set<TObject> values = Sets.newLinkedHashSet();
         Set<Long> nodes = ImmutableSet.of(record);
@@ -1299,8 +1290,8 @@ public final class Operations {
             Set<Long> descendents = Sets.newLinkedHashSet();
             for (long node : nodes) {
                 Set<TObject> $values = timestamp == Time.NONE
-                        ? atomic.select(key, node)
-                        : atomic.select(key, node, timestamp);
+                        ? store.select(key, node)
+                        : store.select(key, node, timestamp);
                 if(i == toks.length - 1) {
                     values.addAll($values);
                 }
@@ -1327,17 +1318,17 @@ public final class Operations {
      * @param key
      * @param records
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code records} to all of the values
      *         that can be reached by traversing the document graph along
      *         {@code key} from the record
      */
-    public static Map<Long, Set<TObject>> traverseKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+    public static Map<Long, Set<TObject>> traverseKeyRecordsOptionalAtomic(
+            String key, Collection<Long> records, long timestamp, Store store) {
         Map<Long, Set<TObject>> data = Maps.newLinkedHashMap();
         for (long record : records) {
-            Set<TObject> values = traverseKeyRecordAtomic(key, record,
-                    timestamp, atomic);
+            Set<TObject> values = traverseKeyRecordOptionalAtomic(key, record,
+                    timestamp, store);
             if(!values.isEmpty()) {
                 data.put(record, values);
             }
@@ -1353,18 +1344,17 @@ public final class Operations {
      * @param keys
      * @param record
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code keys} to all of the values that
      *         can be reached by traversing the document graph along the key
      *         from {@code record}
      */
-    public static Map<String, Set<TObject>> traverseKeysRecordAtomic(
-            Collection<String> keys, long record, long timestamp,
-            AtomicOperation atomic) {
+    public static Map<String, Set<TObject>> traverseKeysRecordOptionalAtomic(
+            Collection<String> keys, long record, long timestamp, Store store) {
         Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
         for (String key : keys) {
-            Set<TObject> values = traverseKeyRecordAtomic(key, record,
-                    timestamp, atomic);
+            Set<TObject> values = traverseKeyRecordOptionalAtomic(key, record,
+                    timestamp, store);
             if(!values.isEmpty()) {
                 data.put(key, values);
             }
@@ -1380,18 +1370,18 @@ public final class Operations {
      * @param keys
      * @param records
      * @param timestamp
-     * @param atomic
+     * @param store
      * @return a mapping from each of the {@code records} to each of the
      *         {@code keys} to all of the values that can be reached by
      *         traversing the document graph
      */
     public static Map<Long, Map<String, Set<TObject>>> traverseKeysRecordsAtomic(
             Collection<String> keys, Collection<Long> records, long timestamp,
-            AtomicOperation atomic) {
+            Store store) {
         Map<Long, Map<String, Set<TObject>>> data = Maps.newLinkedHashMap();
         for (long record : records) {
-            Map<String, Set<TObject>> entry = traverseKeysRecordAtomic(keys,
-                    record, timestamp, atomic);
+            Map<String, Set<TObject>> entry = traverseKeysRecordOptionalAtomic(
+                    keys, record, timestamp, store);
             if(!entry.isEmpty()) {
                 data.put(record, entry);
             }
@@ -1413,8 +1403,7 @@ public final class Operations {
      */
     private static Number calculateKeyAtomic(String key, long timestamp,
             Number result, AtomicOperation atomic, KeyCalculation calculation) {
-        Map<TObject, Set<Long>> data = timestamp == Time.NONE
-                ? atomic.browse(key) : atomic.browse(key, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
@@ -1441,9 +1430,7 @@ public final class Operations {
     private static Number calculateKeyRecordAtomic(String key, long record,
             long timestamp, Number result, AtomicOperation atomic,
             KeyRecordCalculation calculation) {
-        Set<TObject> values = timestamp == Time.NONE
-                ? atomic.select(key, record)
-                : atomic.select(key, record, timestamp);
+        Set<TObject> values = Stores.select(atomic, key, record, timestamp);
         for (TObject tobject : values) {
             Object value = Convert.thriftToJava(tobject);
             Calculations.checkCalculatable(value);
