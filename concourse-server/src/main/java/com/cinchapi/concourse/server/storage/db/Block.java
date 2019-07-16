@@ -32,9 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -355,13 +353,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     public boolean covers(long time) {
-        return covers(time, time+1);
+        return covers(time, time + 1);
     }
 
     public boolean covers(Long startInclusive, Long endExclusive) {
         Long min = stats.get(Attribute.MIN_REVISION_VERSION);
         Long max = stats.get(Attribute.MAX_REVISION_VERSION);
-        if (min != null && max != null) {
+        if(min != null && max != null) {
             return startInclusive >= min && endExclusive < max;
         }
         return false;
