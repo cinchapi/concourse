@@ -343,7 +343,7 @@ public interface Store {
      * <p>
      * This method checks that there was a mapping from {@code key} to
      * {@code value} in {@code record} at {@code timestamp}. This method has the
-     * same affect as calling {@link #select(String, long, DateTime)}
+     * same affect as calling {@link #select(String, long, long)}
      * {@link Set#contains(Object)}.
      * </p>
      * 

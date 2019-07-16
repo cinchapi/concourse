@@ -75,6 +75,7 @@ import com.cinchapi.concourse.server.management.ClientInvokable;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.ops.AtomicOperations;
 import com.cinchapi.concourse.server.ops.Operations;
+import com.cinchapi.concourse.server.ops.Stores;
 import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.plugin.data.LazyTrackingTObjectResultDataset;
@@ -855,7 +856,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return getStore(transaction, environment).browse(key);
+        return Stores.browse(getStore(transaction, environment), key);
     }
 
     @Override
@@ -869,7 +870,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Map<TObject, Set<Long>>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                result.put(key, atomic.browse(key));
+                result.put(key, Stores.browse(atomic, key));
             }
         });
         return result;
@@ -887,7 +888,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Map<TObject, Set<Long>>> result = TMaps
                 .newLinkedHashMapWithCapacity(keys.size());
         for (String key : keys) {
-            result.put(key, store.browse(key, timestamp));
+            result.put(key, Stores.browse(store, key, timestamp));
         }
         return result;
     }
@@ -909,7 +910,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getStore(transaction, environment).browse(key, timestamp);
+        return Stores.browse(getStore(transaction, environment), key,
+                timestamp);
     }
 
     @Override
@@ -2858,7 +2860,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         return Iterables.getLast(
-                getStore(transaction, environment).select(key, record),
+                Stores.select(getStore(transaction, environment), key, record),
                 TObject.NULL);
     }
 
@@ -3021,8 +3023,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Iterables.getLast(getStore(transaction, environment).select(key,
-                record, timestamp), TObject.NULL);
+        return Iterables
+                .getLast(Stores.select(getStore(transaction, environment), key,
+                        record, timestamp), TObject.NULL);
     }
 
     @Override
@@ -3410,8 +3413,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
                 try {
-                    result.put(key,
-                            Iterables.getLast(atomic.select(key, record)));
+                    result.put(key, Iterables
+                            .getLast(Stores.select(atomic, key, record)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -3592,7 +3595,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         for (String key : keys) {
             try {
                 result.put(key, Iterables
-                        .getLast(store.select(key, record, timestamp)));
+                        .getLast(Stores.select(store, key, record, timestamp)));
             }
             catch (NoSuchElementException e) {
                 continue;
@@ -4318,6 +4321,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4325,10 +4329,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4352,6 +4358,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4362,6 +4369,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCriteria(String key,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4369,10 +4377,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 transaction, environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4392,6 +4402,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4403,6 +4414,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4412,6 +4424,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4419,10 +4432,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 transaction, environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4439,6 +4454,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4448,10 +4464,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordTime(String key,
             long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4468,6 +4486,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4479,6 +4498,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
             List<String> keys, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4487,10 +4507,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTime(
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4515,6 +4537,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4526,6 +4549,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4534,10 +4558,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 transaction, environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4562,6 +4588,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4573,6 +4600,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecord(
             List<String> keys, long record, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4583,6 +4611,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4591,10 +4620,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 transaction, environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4611,6 +4642,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4620,10 +4652,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                 environment);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTime(
             List<String> keys, long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4640,6 +4674,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
+    @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestr(
             List<String> keys, long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5570,7 +5605,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<TObject> selectKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getStore(transaction, environment).select(key, record);
+        return Stores.select(getStore(transaction, environment), key, record);
     }
 
     @Override
@@ -5741,7 +5776,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getStore(transaction, environment).select(key, record,
+        return Stores.select(getStore(transaction, environment), key, record,
                 timestamp);
     }
 
@@ -6135,7 +6170,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             for (String key : keys) {
-                result.put(key, atomic.select(key, record));
+                result.put(key, Stores.select(atomic, key, record));
             }
         });
         return result;
@@ -6321,7 +6356,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Map<String, Set<TObject>> result = TMaps
                 .newLinkedHashMapWithCapacity(keys.size());
         for (String key : keys) {
-            result.put(key, store.select(key, record, timestamp));
+            result.put(key, Stores.select(store, key, record, timestamp));
         }
         return result;
     }
