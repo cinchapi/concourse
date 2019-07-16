@@ -123,4 +123,37 @@ public class ReadNavigationKeyTest extends ConcourseIntegrationTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testSelectKeysRecord() {
+        Map<String, Set<Object>> data = client
+                .select(ImmutableList.of("foo.bar.name", "baz.count"), 1);
+        Assert.assertEquals(ImmutableMap.of("foo.bar.name",
+                ImmutableSet.of("A", "D"), "baz.count", ImmutableSet.of(3, 4)),
+                data);
+    }
+
+    @Test
+    public void testSelectKeysRecords() {
+        Map<Long, Map<String, Set<Object>>> data = client.select(
+                ImmutableList.of("foo.bar.name", "baz.count"),
+                ImmutableList.of(1L, 2L, 3L, 4L));
+        System.out.println(data);
+        Assert.assertEquals(
+                ImmutableMap.of(1L,
+                        ImmutableMap.of("foo.bar.name",
+                                ImmutableSet.of("A", "D"), "baz.count",
+                                ImmutableSet.of(3, 4)),
+                        2L,
+                        ImmutableMap.of("foo.bar.name", ImmutableSet.of("B"),
+                                "baz.count", ImmutableSet.of()),
+                        3L,
+                        ImmutableMap.of("foo.bar.name", ImmutableSet.of(),
+                                "baz.count", ImmutableSet.of(1, 2, 5)),
+                        4L,
+                        ImmutableMap.of("foo.bar.name",
+                                ImmutableSet.of("A", "D"), "baz.count",
+                                ImmutableSet.of(5, 3))),
+                data);
+    }
+
 }
