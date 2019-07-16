@@ -355,13 +355,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     public boolean covers(long time) {
-        return revisions.stream().anyMatch(n ->
-            n.getVersion() == time);
+        return covers(time, time+1);
     }
 
     public boolean covers(Long startInclusive, Long endExclusive) {
-        return revisions.stream().anyMatch(n ->
-            n.getVersion() >= startInclusive && n.getVersion() < endExclusive);
+        Long min = stats.get(Attribute.MIN_REVISION_VERSION);
+        Long max = stats.get(Attribute.MAX_REVISION_VERSION);
+        if (min != null && max != null) {
+            return startInclusive >= min && endExclusive < max;
+        }
+        return false;
     }
 
     @Override
