@@ -491,7 +491,7 @@ public class PluginManager {
     public Set<String> listBundles() {
         return FileSystem.getSubDirs(home);
     }
-    
+
     /**
      * 
      * <ul>
@@ -506,9 +506,9 @@ public class PluginManager {
      */
     public Map<String, List<String>> getPlugins() {
         Map<String, List<String>> temp = Maps.newLinkedHashMap();
-        
+
         Table<String, RegistryData, Object> reg = registry;
-        
+
         return temp;
     }
 

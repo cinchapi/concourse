@@ -1200,16 +1200,20 @@ service ConcourseService {
   * @return the {@link Set} of plugins enabled.
   *
   */
-  set<string> inspect(
-    1: shared.AccessToken creds,
-    2: shared.TransactionToken transaction,
-    3: string environment
-  )
-  throws (
-    1: exceptions.SecurityException ex,
-    2: exceptions.TransactionException ex2,
-    3: exceptions.PermissionException ex3
-  );
+  set<string> inspect()
+  
+  /**
+  *  set<string> inspect(
+  *    1: shared.AccessToken creds,
+  *    2: shared.TransactionToken transaction,
+  *    3: string environment
+  *  )
+  *  throws (
+  *    1: exceptions.SecurityException ex,
+  *    2: exceptions.TransactionException ex2,
+  *    3: exceptions.PermissionException ex3
+  *  );
+  */
 
   /**
    * List all the keys in the database.

@@ -1285,18 +1285,21 @@ public class ConcourseServer extends BaseConcourseServer
         return countKeyTime(key, NaturalLanguage.parseMicros(timestamp), creds,
                 transaction, environment);
     }
-    
+
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Set<String> inspect(AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
+    public Set<String> inspect() throws SecurityException, TransactionException,
             PermissionException, TException {
-        
+
         Map<Long, Map<String, String>> plugins = pluginManager.runningPlugins();
         
-        return null;
+        for(Entry<Long, Map<String, String>> e : plugins.entrySet()) {
+            System.out.println(e.toString() + " Key: " + e.getKey() + " Value: " + e.getValue().keySet().toString());
+        }
+
+        return Sets.newLinkedHashSet();
     }
 
     @Override
