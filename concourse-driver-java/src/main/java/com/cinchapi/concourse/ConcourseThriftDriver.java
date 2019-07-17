@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -66,6 +67,7 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -109,6 +111,11 @@ class ConcourseThriftDriver extends Concourse {
      * The thrift client that actually handles calcuation RPC communication.
      */
     private final ConcourseCalculateService.Client calculate;
+
+    /**
+     * A container with all the thrift clients.
+     */
+    private final Set<TServiceClient> clients;
 
     /**
      * The client keeps a copy of its {@link AccessToken} and passes it to
@@ -215,6 +222,7 @@ class ConcourseThriftDriver extends Concourse {
                     new TMultiplexedProtocol(protocol, "calculate"));
             navigate = new ConcourseNavigateService.Client(
                     new TMultiplexedProtocol(protocol, "navigate"));
+            clients = ImmutableSet.of(core, calculate, navigate);
             authenticate();
             Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
@@ -797,8 +805,10 @@ class ConcourseThriftDriver extends Concourse {
     public void exit() {
         try {
             core.logout(creds, environment);
-            core.getInputProtocol().getTransport().close();
-            core.getOutputProtocol().getTransport().close();
+            for (TServiceClient client : clients) {
+                client.getInputProtocol().getTransport().close();
+                client.getOutputProtocol().getTransport().close();
+            }
         }
         catch (com.cinchapi.concourse.thrift.SecurityException
                 | TTransportException e) {
