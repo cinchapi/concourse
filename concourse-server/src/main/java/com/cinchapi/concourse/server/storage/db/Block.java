@@ -352,6 +352,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.ignoreEmptySync = this instanceof SearchBlock;
     }
 
+    /**
+     * Checks if the time overlaps in the min/max revisions.
+     *
+     * @param time the time to check overlapping.
+     * @return true if the time overlaps false if it does not
+     */
     public boolean overlaps(long time) {
         Long min = stats.get(Attribute.MIN_REVISION_VERSION);
         Long max = stats.get(Attribute.MAX_REVISION_VERSION);
@@ -360,9 +366,18 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return time >= min && time <= max;
         return false;
     }
-
+    
+    /**
+     * Checks if the end occurs after the start and then checks if they both overlap.
+     *
+     * @param start the starting time
+     * @param end the ending time
+     * @return true if the time overlaps and end > start, otherwise false.
+     */
     public boolean overlaps(long start, long end) {
-        return overlaps(start) && overlaps(end);
+        if (end >= start)
+            return overlaps(start) && overlaps(end);
+        return false;
     }
 
     @Override
