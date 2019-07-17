@@ -81,4 +81,18 @@ public class CriteriaNavigationTest extends ConcourseIntegrationTest {
                 .value(3).at(Timestamp.now()));
         Assert.assertEquals(expected, actual);
     }
+
+    @Test
+    public void testFindKeyOperatorValue() {
+        Set<Long> expected = setupNavigateEvaluation(client).keySet();
+        Set<Long> actual = client.find("mother.children", Operator.EQUALS, 3);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFindCcl() {
+        Set<Long> expected = setupNavigateEvaluation(client).keySet();
+        Set<Long> actual = client.find("mother.children = 3");
+        Assert.assertEquals(expected, actual);
+    }
 }

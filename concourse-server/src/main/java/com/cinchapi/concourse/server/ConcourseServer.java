@@ -1945,7 +1945,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
-                .of(store.find(key, operator, tValues));
+                .of(Stores.find(store, key, operator, tValues));
         records.sort(Sorting.byValues(Orders.from(order), store));
         return records;
     }
@@ -1991,7 +1991,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         SortableSet<Set<TObject>> records = SortableSet
-                .of(store.find(timestamp, key, operator, tValues));
+                .of(Stores.find(store, timestamp, key, operator, tValues));
         // NOTE: The #timestamp is not considered when sorting because it is a
         // component of criteria evaluation and no data is being selected.
         records.sort(Sorting.byValues(Orders.from(order), store));
