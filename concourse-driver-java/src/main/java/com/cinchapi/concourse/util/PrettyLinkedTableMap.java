@@ -49,6 +49,12 @@ import com.google.common.collect.Maps;
 public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
 
     /**
+     * The minimum column length. Is set equal to the size of the string "null"
+     * for consistent spacing when values don't exist.
+     */
+    private static int MIN_COLUMN_LENGTH = "null".length();
+
+    /**
      * Return an empty {@link PrettyLinkedTableMap} with the default row name.
      * 
      * @return the PrettyLinkedTableMap
@@ -106,7 +112,8 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             super.put(row, rowdata);
         }
         rowLength = Math.max(row.toString().length(), rowLength);
-        int current = columns.containsKey(column) ? columns.get(column) : 0;
+        int current = columns.containsKey(column) ? columns.get(column)
+                : MIN_COLUMN_LENGTH;
         columns.put(column, Math.max(current, Math
                 .max(column.toString().length(), value.toString().length())));
         return rowdata.put(column, value);

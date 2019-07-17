@@ -28,6 +28,7 @@ import com.cinchapi.ccl.syntax.Visitor;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Constants;
+import com.cinchapi.concourse.server.ops.Stores;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -127,9 +128,9 @@ public class Finder implements Visitor<Set<Long>> {
                     value -> values.add(Convert.javaToThrift(value.value())));
             Set<Long> results = expression
                     .timestamp() == TimestampSymbol.PRESENT
-                            ? store.find(key, operator, values.build())
-                            : store.find(expression.raw().timestamp(), key,
-                                    operator, values.build());
+                            ? Stores.find(store, key, operator, values.build())
+                            : Stores.find(store, expression.raw().timestamp(),
+                                    key, operator, values.build());
             return results;
         }
 
