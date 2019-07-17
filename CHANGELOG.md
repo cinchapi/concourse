@@ -36,7 +36,8 @@ Concourse Server now (finally) has the ability to page through results!
 	* For example, assume record `1` is linked to record `2` on the `friends` key. Record `2` contains the value `Jeff` for the `name` key...
 	* if you `select("friends.name", 1)`, the return value will map `1` to `[Jeff]` whereas the return value of `navigate("friends.name", 1)` maps `2` to `[Jeff]`. 
 	
-
+###### Navigable Criteria
+* You can now use navigation keys in `Criteria` objects or `ccl` statements that are passed to the `find`, `get` and `select` methods.
 
 ###### ETL 
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
