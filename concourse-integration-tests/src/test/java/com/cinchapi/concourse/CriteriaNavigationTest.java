@@ -95,4 +95,11 @@ public class CriteriaNavigationTest extends ConcourseIntegrationTest {
         Set<Long> actual = client.find("mother.children = 3");
         Assert.assertEquals(expected, actual);
     }
+
+    @Test
+    public void testFindLike() {
+        client.add("name", "Paul Pierce", 1);
+        client.link("friends", 1, 2);
+        Assert.assertTrue(true); // lack of Exception means we pass
+    }
 }
