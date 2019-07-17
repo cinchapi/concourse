@@ -62,7 +62,7 @@ Concourse Server now (finally) has the ability to page through results!
 * Added checks to ensure that a storage Engine cannot transport writes from the Buffer to the Database while Concourse Server is shutting down.
 * Fixed a bug that allow methods annotated as `PluginRestricted` to be invoked if those methods were defined in an ancestor class or interface of the invokved plugin.
 
-##### Deprecations and Removed Features
+##### Deprecated and Removed Features
 * Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
 * Removed the `StringSplitter` framework in favor of the same from `accent4j`.
 * Deprecated `Criteria#getCclString` in favor of `Criteria#ccl`.
