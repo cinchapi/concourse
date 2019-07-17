@@ -181,7 +181,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         }
 
         Long end = Time.now();
-        Assert.assertTrue(p.covers(start, end));
+        Assert.assertTrue(p.overlaps(start, end));
     }
 
     @Test

@@ -352,17 +352,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.ignoreEmptySync = this instanceof SearchBlock;
     }
 
-    public boolean covers(long time) {
-        return covers(time, time + 1);
-    }
-
-    public boolean covers(Long startInclusive, Long endExclusive) {
+    public boolean overlaps(long time) {
         Long min = stats.get(Attribute.MIN_REVISION_VERSION);
         Long max = stats.get(Attribute.MAX_REVISION_VERSION);
-        if(min != null && max != null) {
-            return startInclusive >= min && endExclusive < max;
-        }
+
+        if (min != null && max != null)
+            return time >= min && time <= max;
         return false;
+    }
+
+    public boolean overlaps(long start, long end) {
+        return overlaps(start) && overlaps(end);
     }
 
     @Override
