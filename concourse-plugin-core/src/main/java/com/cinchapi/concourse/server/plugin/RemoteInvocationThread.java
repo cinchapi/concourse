@@ -165,8 +165,9 @@ final class RemoteInvocationThread extends Thread
             }
             Object result0 = Reflection.callIf(
                     (method) -> Modifier.isPublic(method.getModifiers())
-                            && !method.isAnnotationPresent(
-                                    PluginRestricted.class),
+                            && !Reflection
+                                    .isDeclaredAnnotationPresentInHierarchy(
+                                            method, PluginRestricted.class),
                     invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY
