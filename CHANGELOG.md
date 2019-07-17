@@ -3,8 +3,9 @@
 #### Version 0.10.0 (TBD)
 
 ##### BREAKING CHANGES
-* **Pre version `0.10.0` clients are NOT compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs. When trying to connect to a version 0.10.0+ Concourse Server with an older client you will receivce an error message.
-* Additionally, version `0.10.0`+ clients are NOT compatible with older server versions.
+* **Pre version `0.10.0` clients are only PARTIALLY compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs.
+	* Older clients will receive an error when trying to invoke any navigate or calculation methods.
+* Version `0.10.0`+ clients are NOT compatible with older server versions.
 
 ##### New Features
 

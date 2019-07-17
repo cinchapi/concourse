@@ -39,6 +39,7 @@ import javax.management.NotCompliantMBeanException;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -3845,12 +3846,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
+    @ThrowsClientExceptions
     @PluginRestricted
     public void logout(AccessToken creds) throws TException {
         logout(creds, null);
     }
 
     @Override
+    @ThrowsClientExceptions
     @PluginRestricted
     @VerifyAccessToken
     public void logout(AccessToken creds, String environment)
@@ -7045,12 +7048,13 @@ public class ConcourseServer extends BaseConcourseServer implements
         FileSystem.lock(dbStore);
         TServerSocket socket = new TServerSocket(port);
         TMultiplexedProcessor processor = new TMultiplexedProcessor();
-        processor.registerProcessor("core",
-                new ConcourseService.Processor<>(this));
+        TProcessor core = new ConcourseService.Processor<>(this);
+        processor.registerProcessor("core", core);
         processor.registerProcessor("calculate",
                 new ConcourseCalculateService.Processor<>(this));
         processor.registerProcessor("navigate",
                 new ConcourseNavigateService.Processor<>(this));
+        processor.registerDefault(core);
         Args args = new TThreadPoolServer.Args(socket);
         args.processor(processor);
         args.maxWorkerThreads(NUM_WORKER_THREADS);
