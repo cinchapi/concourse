@@ -15,13 +15,16 @@
  */
 package com.cinchapi.concourse.server.ops;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Store;
+import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.validate.Keys;
@@ -103,6 +106,69 @@ public final class Stores {
             return timestamp == Time.NONE ? store.browse(key)
                     : store.browse(key, timestamp);
         }
+    }
+
+    /**
+     * Find the records that contain values that are stored for {@code key} and
+     * satisify {@code operator} in relation to the specified {@code values} at
+     * {@code timestamp}.
+     * <p>
+     * If the {@code key} is primitive, the store lookup is usually a simple
+     * {@link Store#find(String, Operator, TObject[]) find}. However, if the key
+     * is a navigation key, this method will process it by
+     * {@link #browse(Store, String) browsing} the destination values and
+     * checking the operator validity of each if and only if the {@code store}
+     * is an {@link AtomicOperation} or {@link AtomicSupport supports} starting
+     * one.
+     * </p>
+     * 
+     * @param store
+     * @param timestamp
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that satisfy the query
+     */
+    public static Set<Long> find(Store store, long timestamp, String key,
+            Operator operator, TObject... values) {
+        if(Keys.isNavigationKey(key)) {
+            Map<TObject, Set<Long>> index = timestamp == Time.NONE
+                    ? browse(store, key)
+                    : browse(store, key, timestamp);
+            Set<Long> records = index.entrySet().stream()
+                    .filter(e -> e.getKey().is(operator, values))
+                    .map(e -> e.getValue()).flatMap(Set::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            return records;
+        }
+        else {
+            return timestamp == Time.NONE ? store.find(key, operator, values)
+                    : store.find(timestamp, key, operator, values);
+        }
+    }
+
+    /**
+     * Find the records that contain values that are stored for {@code key} and
+     * satisify {@code operator} in relation to the specified {@code values}.
+     * <p>
+     * If the {@code key} is primitive, the store lookup is usually a simple
+     * {@link Store#find(String, Operator, TObject[]) find}. However, if the key
+     * is a navigation key, this method will process it by
+     * {@link #browse(Store, String) browsing} the destination values and
+     * checking the operator validity of each if and only if the {@code store}
+     * is an {@link AtomicOperation} or {@link AtomicSupport supports} starting
+     * one.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that satisfy the query
+     */
+    public static Set<Long> find(Store store, String key, Operator operator,
+            TObject... values) {
+        return find(store, Time.NONE, key, operator, values);
     }
 
     /**
