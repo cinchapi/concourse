@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
@@ -493,22 +495,34 @@ public class PluginManager {
     }
 
     /**
+     * Return a map containing the Plugin and 
+     * available public methods.
      * 
-     * <ul>
-     * <li>class (primary key)</li>
-     * <li>bundle</li>
-     * <li>fromPlugin</li>
-     * <li>fromPluginResponses</li>
-     * <li>fromServer</li>
-     * <li>appInstance</li>
-     * <li>status</li>
-     * </ul>
+     * @return the available plugin methods
      */
-    public Map<String, List<String>> getPlugins() {
-        Map<String, List<String>> temp = Maps.newLinkedHashMap();
-
-        Table<String, RegistryData, Object> reg = registry;
-
+    public Map<String, Set<String>> getPlugins() {
+        Map<String, Set<String>> temp = Maps.newHashMap();
+        registry.rowMap().forEach((clazz, data) -> {
+            PluginStatus status = (PluginStatus) data.get(RegistryData.STATUS);
+            if(status == PluginStatus.ACTIVE) {
+                Method[] methods = (Method[]) data
+                        .get(RegistryData.PLUGIN_METHODS);
+                if(!temp.containsKey(clazz)) {
+                    temp.put(clazz, Sets.newHashSet());
+                    for (Method method : methods) {
+                        Parameter[] parameters = method.getParameters();
+                        StringBuilder builder = new StringBuilder(
+                                method.getName());
+                        builder.append("(");
+                        for (Parameter parameter : parameters) {
+                            builder.append(parameter.getType().getName()).append(" ");
+                        }
+                        builder.append(")");
+                        temp.get(clazz).add(builder.toString());
+                    }
+                }
+            }
+        });
         return temp;
     }
 
@@ -865,6 +879,7 @@ public class PluginManager {
 
         // Store metadata about the Plugin
         String id = launchClass;
+        registry.put(id, RegistryData.PLUGIN_METHODS, plugin.getMethods());
         registry.put(id, RegistryData.PLUGIN_BUNDLE, bundle);
         registry.put(id, RegistryData.FROM_SERVER,
                 new MessageQueue(fromServer));
@@ -1070,6 +1085,11 @@ public class PluginManager {
          * A flag that contains the {@link PluginStatus status} for the plugin.
          */
         STATUS,
+
+        /**
+         * A flag that identifies a list of publicly available methods.
+         */
+        PLUGIN_METHODS,
     }
 
 }

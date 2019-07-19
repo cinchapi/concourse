@@ -599,7 +599,7 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @return a {@link Set} of enabled plugins.
      */
-    public abstract Set<String> inspect();
+    public abstract Map<String, Set<String>> inspect();
 
     /**
      * Return all of the keys in the database.

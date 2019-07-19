@@ -210,7 +210,7 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Set<String> inspect() {
+    public Map<String, Set<String>> inspect() {
         throw new UnsupportedOperationException();
     }
 

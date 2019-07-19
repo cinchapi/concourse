@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1316,16 +1317,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Set<String> inspect() throws SecurityException, TransactionException,
+    public Map<String, Set<String>> inspect(AccessToken creds, TransactionToken transaction,
+            String environment) throws SecurityException, TransactionException,
             PermissionException, TException {
-
-        Map<Long, Map<String, String>> plugins = pluginManager.runningPlugins();
-        
-        for(Entry<Long, Map<String, String>> e : plugins.entrySet()) {
-            System.out.println(e.toString() + " Key: " + e.getKey() + " Value: " + e.getValue().keySet().toString());
-        }
-
-        return Sets.newLinkedHashSet();
+        return pluginManager.getPlugins();
     }
 
     @Override
