@@ -32,6 +32,7 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -204,6 +205,21 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                         .key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000)
                         .build())));
+    }
+
+    @Test
+    public void testFindCriteriaTimestampValueBetweenOperator() {
+        Timestamp a = Timestamp.now();
+        Timestamp b = Timestamp.now();
+        Timestamp c = Timestamp.now();
+        Timestamp d = Timestamp.now();
+        Timestamp e = Timestamp.now();
+        client.add("foo", b, 1);
+        client.add("foo", c, 2);
+        client.add("foo", e, 3);
+        Criteria criteria = Criteria.where().key("foo")
+                .operator(Operator.BETWEEN).value(a).value(d);
+        Assert.assertEquals(ImmutableSet.of(1L, 2L), client.find(criteria));
     }
 
     /**
