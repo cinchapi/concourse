@@ -4436,7 +4436,7 @@ class ConcourseThriftDriver extends Concourse {
             throw new InvalidArgumentException(e);
         }
         catch (com.cinchapi.concourse.thrift.InvalidOperationException e) {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(e);
         }
         catch (com.cinchapi.concourse.thrift.ParseException e) {
             throw new ParseException(e);
