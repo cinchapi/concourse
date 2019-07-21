@@ -42,5 +42,16 @@ public final class Keys {
         return key.length() > 0 && KEY_VALIDATION_REGEX.matcher(key).matches();
     }
 
+    /**
+     * Return {@code true} if {@code key} is a navigation key.
+     * 
+     * @param key
+     * @return {@code true} if the provided {@code key} is a valid navigation
+     *         key
+     */
+    public static boolean isNavigationKey(String key) {
+        return key.indexOf('.') > 0;
+    }
+
     private Keys() {/* no-init */}
 }

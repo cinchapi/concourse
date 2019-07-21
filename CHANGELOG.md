@@ -3,8 +3,9 @@
 #### Version 0.10.0 (TBD)
 
 ##### BREAKING CHANGES
-* **Pre version `0.10.0` clients are NOT compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs. When trying to connect to a version 0.10.0+ Concourse Server with an older client you will receivce an error message.
-* Additionally, version `0.10.0`+ clients are NOT compatible with older server versions.
+* **Pre version `0.10.0` clients are only PARTIALLY compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs.
+	* Older clients will receive an error when trying to invoke any navigate or calculation methods.
+* Version `0.10.0`+ clients are NOT compatible with older server versions.
 
 ##### New Features
 
@@ -24,6 +25,20 @@ Concourse Server now (finally) has the ability to sort results!
 Concourse Server now (finally) has the ability to page through results!
 * A result set that returns data from multiple records (across any number of keys) can be paginated.
 * Concourse drviers now feature a `Page` object that allows the client to specify how Concourse Server should paginate a result set. A `Page` is an abstraction for offset/skip and limit parameters. The `Page` class contains various factory methods to offset and limit a result set using various intuitive notions of pagination.
+
+###### Navigable Data Reads
+* You can now traverse the document graph by specifying one ore more *navigation keys* in the following read methods:
+	* browse
+	* calculate
+	* get
+	* select
+* Reading a navigation key using `get` or `select` is intended to repleace the `navigate` methods.
+* When reading a navigation key in the context of one or more records, the root record (e.g the record from which the document-graph traversal starts) is mapped to the values that are retrieved from the destination records. In the `navgiate` methods, the destination record is associated with the destination value(s).
+	* For example, assume record `1` is linked to record `2` on the `friends` key. Record `2` contains the value `Jeff` for the `name` key...
+	* if you `select("friends.name", 1)`, the return value will map `1` to `[Jeff]` whereas the return value of `navigate("friends.name", 1)` maps `2` to `[Jeff]`. 
+	
+###### Navigable Criteria
+* You can now use navigation keys in `Criteria` objects or `ccl` statements that are passed to the `find`, `get` and `select` methods.
 
 ###### ETL 
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
@@ -47,11 +62,13 @@ Concourse Server now (finally) has the ability to page through results!
 * Fixed a bug that allowed Concourse Server to start an environment's storage engine in a partially or wholly unreadable state if the Engine partially completed a block sync while Concourse Server was going through its shutdown routine. In this scenario, the partially written block is malformed and should not be processed by the Engine since the data contained in the malformed block is still contained in the Buffer. While the malformed block files can be safely deleted, the implemented fix causes the Engine to simply ignore them if they are encountered upon initialization. 
 * Added checks to ensure that a storage Engine cannot transport writes from the Buffer to the Database while Concourse Server is shutting down.
 * Fixed a bug that allow methods annotated as `PluginRestricted` to be invoked if those methods were defined in an ancestor class or interface of the invokved plugin.
+* Fixed a bug introduced by [JEF-245](https://openjdk.java.net/jeps/245) that caused Concourse Server to fail to start on recent versions of Java 8 and Java 9+ due to an exploitation of a JVM bug that was used to allow Concourse Server to specify native thread prioritization when started by a non-root user. As a result of this fix, Concourse Server will only try to specify native thread prioritization when started by a root user.
 
-##### Deprecations and Removed Features
+##### Deprecated and Removed Features
 * Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
 * Removed the `StringSplitter` framework in favor of the same from `accent4j`.
 * Deprecated `Criteria#getCclString` in favor of `Criteria#ccl`.
+* The `navigate` methods in the client drivers have been deprecated in favor of using `select`/`get` to traverse the document-graph.
 
 #### Version 0.9.6 (February 16, 2019)
 * Fixed a bug that caused a `ParseException` to be thrown when trying to use a `Criteria` object containing a string value wrapped in single or double quotes out of necessity (i.e. because the value contained a keyword). This bug happened because the wrapping quotes were dropped by Concourse Server when parsing the `Criteria`.
