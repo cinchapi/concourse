@@ -25,10 +25,17 @@ import com.cinchapi.concourse.util.Numbers;
  */
 public final class Calculations {
 
+    /**
+     * Check if {@code value} can be included in a calculation.
+     * 
+     * @param value
+     */
     public static void checkCalculatable(Object value) {
         if(!(value instanceof Number)) {
             // TODO throw a specific/custom exception
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(
+                    "Cannot perform a calculation on a non-numeric value: "
+                            + value);
         }
     }
 
