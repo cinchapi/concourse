@@ -33,5 +33,5 @@ public class ClientExceptionsTest extends ConcourseIntegrationTest {
         client.add("foo", 1);
         client.calculate().sum("foo");
     }
-    
+
 }

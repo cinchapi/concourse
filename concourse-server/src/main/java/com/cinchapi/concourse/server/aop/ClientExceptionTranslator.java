@@ -15,12 +15,6 @@
  */
 package com.cinchapi.concourse.server.aop;
 
-import com.cinchapi.concourse.thrift.InvalidArgumentException;
-import com.cinchapi.concourse.thrift.InvalidOperationException;
-import com.cinchapi.concourse.thrift.ParseException;
-import com.cinchapi.concourse.thrift.SecurityException;
-import com.cinchapi.concourse.thrift.TransactionException;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
@@ -29,9 +23,13 @@ import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
+import com.cinchapi.concourse.thrift.InvalidArgumentException;
+import com.cinchapi.concourse.thrift.InvalidOperationException;
+import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.SecurityException;
+import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.util.Logger;
 import com.google.gson.JsonParseException;
-
 
 /**
  * A {@link MethodInterceptor} that delegates to the underlying annotated
