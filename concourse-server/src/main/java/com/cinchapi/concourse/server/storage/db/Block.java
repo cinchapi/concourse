@@ -362,21 +362,22 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         Long min = stats.get(Attribute.MIN_REVISION_VERSION);
         Long max = stats.get(Attribute.MAX_REVISION_VERSION);
 
-        if (min != null && max != null) {
+        if(min != null && max != null) {
             return time >= min && time <= max;
         }
         return false;
     }
-    
+
     /**
-     * Checks if the end occurs after the start and then checks if they both overlap.
+     * Checks if the end occurs after the start and then checks if they both
+     * overlap.
      *
      * @param start the starting time
      * @param end the ending time
      * @return true if the time overlaps and end > start, otherwise false.
      */
     public boolean overlaps(long start, long end) {
-        if (end >= start) {
+        if(end >= start) {
             return overlaps(start) || overlaps(end);
         }
         return false;
