@@ -22,7 +22,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1320,7 +1319,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<String, Set<String>> inspect(AccessToken creds, TransactionToken transaction,
             String environment) throws SecurityException, TransactionException,
             PermissionException, TException {
-        return pluginManager.getPlugins();
+        return pluginManager.describePlugins();
     }
 
     @Override

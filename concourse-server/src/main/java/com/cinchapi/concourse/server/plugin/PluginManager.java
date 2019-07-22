@@ -500,15 +500,15 @@ public class PluginManager {
      * 
      * @return the available plugin methods
      */
-    public Map<String, Set<String>> getPlugins() {
-        Map<String, Set<String>> temp = Maps.newHashMap();
+    public Map<String, Set<String>> describePlugins() {
+        Map<String, Set<String>> descriptions = Maps.newHashMap();
         registry.rowMap().forEach((clazz, data) -> {
             PluginStatus status = (PluginStatus) data.get(RegistryData.STATUS);
             if(status == PluginStatus.ACTIVE) {
                 Method[] methods = (Method[]) data
                         .get(RegistryData.PLUGIN_METHODS);
-                if(!temp.containsKey(clazz)) {
-                    temp.put(clazz, Sets.newHashSet());
+                if(!descriptions.containsKey(clazz)) {
+                    descriptions.put(clazz, Sets.newHashSet());
                     for (Method method : methods) {
                         Parameter[] parameters = method.getParameters();
                         StringBuilder builder = new StringBuilder(
@@ -518,12 +518,12 @@ public class PluginManager {
                             builder.append(parameter.getType().getName()).append(" ");
                         }
                         builder.append(")");
-                        temp.get(clazz).add(builder.toString());
+                        descriptions.get(clazz).add(builder.toString());
                     }
                 }
             }
         });
-        return temp;
+        return descriptions;
     }
 
     /**
