@@ -51,6 +51,13 @@ exception InvalidArgumentException {
     1: string message
 }
 
+/*
+ * Signals that an invalid operation occurred.
+ */
+exception InvalidOperationException {
+  1: string message
+}
+
 /**
  * Signals that an unexpected or invalid token was reached while parsing.
  */
@@ -103,7 +110,7 @@ exception ManagementException {
 }
 
 /**
- * Thrown when a user attempts an operation for which she has insufficient 
+ * Thrown when a user attempts an operation for which she has insufficient
  * permission.
  */
 exception PermissionException {

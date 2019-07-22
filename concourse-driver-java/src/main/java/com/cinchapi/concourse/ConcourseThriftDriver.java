@@ -27,7 +27,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
+import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -36,6 +38,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.data.transform.DataColumn;
 import com.cinchapi.concourse.data.transform.DataIndex;
@@ -66,6 +69,7 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -92,8 +96,12 @@ class ConcourseThriftDriver extends Concourse {
         USERNAME = config.getUsername();
         PASSWORD = new String(config.getPassword());
         ENVIRONMENT = config.getEnvironment();
-
     }
+
+    /**
+     * The thrift protocol.
+     */
+    private final TProtocol protocol;
 
     /**
      * The Thrift client that actually handles core RPC communication.
@@ -109,6 +117,11 @@ class ConcourseThriftDriver extends Concourse {
      * The thrift client that actually handles calcuation RPC communication.
      */
     private final ConcourseCalculateService.Client calculate;
+
+    /**
+     * A container with all the thrift clients.
+     */
+    private final Set<TServiceClient> clients;
 
     /**
      * The client keeps a copy of its {@link AccessToken} and passes it to
@@ -208,13 +221,14 @@ class ConcourseThriftDriver extends Concourse {
         final TTransport transport = new TSocket(host, port);
         try {
             transport.open();
-            TProtocol protocol = new TBinaryProtocol(transport);
-            core = new ConcourseService.Client(
+            this.protocol = new TBinaryProtocol(transport);
+            this.core = new ConcourseService.Client(
                     new TMultiplexedProtocol(protocol, "core"));
-            calculate = new ConcourseCalculateService.Client(
+            this.calculate = new ConcourseCalculateService.Client(
                     new TMultiplexedProtocol(protocol, "calculate"));
-            navigate = new ConcourseNavigateService.Client(
+            this.navigate = new ConcourseNavigateService.Client(
                     new TMultiplexedProtocol(protocol, "navigate"));
+            this.clients = ImmutableSet.of(core, calculate, navigate);
             authenticate();
             Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
@@ -804,8 +818,10 @@ class ConcourseThriftDriver extends Concourse {
     public void exit() {
         try {
             core.logout(creds, environment);
-            core.getInputProtocol().getTransport().close();
-            core.getOutputProtocol().getTransport().close();
+            for (TServiceClient client : clients) {
+                client.getInputProtocol().getTransport().close();
+                client.getOutputProtocol().getTransport().close();
+            }
         }
         catch (com.cinchapi.concourse.thrift.SecurityException
                 | TTransportException e) {
@@ -4090,6 +4106,19 @@ class ConcourseThriftDriver extends Concourse {
             creds = core.login(ClientSecurity.decrypt(username),
                     ClientSecurity.decrypt(password), environment);
         }
+        catch (TApplicationException e) {
+            if(e.getMessage().startsWith("Invalid method name:")) {
+                // Add limited back compatibility for pre-0.10 servers by
+                // using a non-multiplexed client that can access the core
+                // functions defined in the current version.
+                Reflection.set("core", new ConcourseService.Client(protocol),
+                        this);
+                authenticate();
+            }
+            else {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
         catch (TException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
@@ -4441,6 +4470,9 @@ class ConcourseThriftDriver extends Concourse {
         }
         catch (com.cinchapi.concourse.thrift.InvalidArgumentException e) {
             throw new InvalidArgumentException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.InvalidOperationException e) {
+            throw new UnsupportedOperationException(e);
         }
         catch (com.cinchapi.concourse.thrift.ParseException e) {
             throw new ParseException(e);

@@ -3,9 +3,13 @@
 #### Version 0.10.0 (TBD)
 
 ##### BREAKING CHANGES
-* **Pre version `0.10.0` clients are only PARTIALLY compatible with version `0.10.0`+ servers** due to a changes in Concourse's internal RPC APIs.
-	* Older clients will receive an error when trying to invoke any navigate or calculation methods.
-* Version `0.10.0`+ clients are NOT compatible with older server versions.
+There is only **PARTIAL COMPATIBILITY** between 
+* an `0.10.0+` client and an older server, and 
+* a `0.10.0+` server and an older client.
+
+Due to changes in Concourse's internal APIs,
+* Older client will receive an error when trying to invoke any navigate or calculation methods on a `0.10.0+` server.
+* Older servers will throw an error message when any navigate or calculation methods are invoked from an `0.10.0+` client. 
 
 ##### New Features
 
@@ -51,6 +55,7 @@ Concourse Server now (finally) has the ability to page through results!
 * Added `Parsers#create` static factory methods that accept a `Criteria` object as a parameter. These new methods compliment existing ones which take a CCL `String` and `TCriteria` object respectively.
 * Upgraded the `ccl` dependency to the latest version, which adds support for local criteria evaluation using the `Parser#evaluate` method. The parsers returned from the `Parsers#create` factories all support local evaluation using the function defined in the newly created `Operators#evaluate` utility.
 * Added support for remote debugging of Concourse Server. Remote debugging can be enabled by specifying a `remote_debugger_port` in `concourse.prefs`.
+* The `calculate` methods now throw an `UnsupportedOperationException` instead of a vague `RuntimeException` when trying to run calculations that aren't permitted (i.e. running an aggregation on a non-numeric index).
 
 ##### Improvements
 * Refactored the `concourse-import` framework to take advantage of version `1.1.0+` of the `data-transform-api` which has a more flexible notion of data transformations. As a result of this change, the `Importables` utility class has been removed. Custom importers that extend `DelimitedLineImporter` can leverage the protected `parseObject` and `importLines` methods to hook into the extraction and import logic in a manner similar to what was possible using the `Importables` functions.
@@ -62,6 +67,7 @@ Concourse Server now (finally) has the ability to page through results!
 * Fixed a bug that allowed Concourse Server to start an environment's storage engine in a partially or wholly unreadable state if the Engine partially completed a block sync while Concourse Server was going through its shutdown routine. In this scenario, the partially written block is malformed and should not be processed by the Engine since the data contained in the malformed block is still contained in the Buffer. While the malformed block files can be safely deleted, the implemented fix causes the Engine to simply ignore them if they are encountered upon initialization. 
 * Added checks to ensure that a storage Engine cannot transport writes from the Buffer to the Database while Concourse Server is shutting down.
 * Fixed a bug that allow methods annotated as `PluginRestricted` to be invoked if those methods were defined in an ancestor class or interface of the invokved plugin.
+* Fixed a bug introduced by [JEF-245](https://openjdk.java.net/jeps/245) that caused Concourse Server to fail to start on recent versions of Java 8 and Java 9+ due to an exploitation of a JVM bug that was used to allow Concourse Server to specify native thread prioritization when started by a non-root user. As a result of this fix, Concourse Server will only try to specify native thread prioritization when started by a root user.
 
 ##### Deprecated and Removed Features
 * Removed the `Strings` utility class in favor of `AnyStrings` from `accent4j`.
