@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -37,6 +38,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.data.transform.DataColumn;
 import com.cinchapi.concourse.data.transform.DataIndex;
@@ -94,8 +96,12 @@ class ConcourseThriftDriver extends Concourse {
         USERNAME = config.getUsername();
         PASSWORD = new String(config.getPassword());
         ENVIRONMENT = config.getEnvironment();
-
     }
+
+    /**
+     * The thrift protocol.
+     */
+    private final TProtocol protocol;
 
     /**
      * The Thrift client that actually handles core RPC communication.
@@ -215,14 +221,14 @@ class ConcourseThriftDriver extends Concourse {
         final TTransport transport = new TSocket(host, port);
         try {
             transport.open();
-            TProtocol protocol = new TBinaryProtocol(transport);
-            core = new ConcourseService.Client(
+            this.protocol = new TBinaryProtocol(transport);
+            this.core = new ConcourseService.Client(
                     new TMultiplexedProtocol(protocol, "core"));
-            calculate = new ConcourseCalculateService.Client(
+            this.calculate = new ConcourseCalculateService.Client(
                     new TMultiplexedProtocol(protocol, "calculate"));
-            navigate = new ConcourseNavigateService.Client(
+            this.navigate = new ConcourseNavigateService.Client(
                     new TMultiplexedProtocol(protocol, "navigate"));
-            clients = ImmutableSet.of(core, calculate, navigate);
+            this.clients = ImmutableSet.of(core, calculate, navigate);
             authenticate();
             Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
@@ -4092,6 +4098,19 @@ class ConcourseThriftDriver extends Concourse {
         try {
             creds = core.login(ClientSecurity.decrypt(username),
                     ClientSecurity.decrypt(password), environment);
+        }
+        catch (TApplicationException e) {
+            if(e.getMessage().startsWith("Invalid method name:")) {
+                // Add limited back compatibility for pre-0.10 servers by
+                // using a non-multiplexed client that can access the core
+                // functions defined in the current version.
+                Reflection.set("core", new ConcourseService.Client(protocol),
+                        this);
+                authenticate();
+            }
+            else {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
         }
         catch (TException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
