@@ -250,8 +250,8 @@ public final class Convert {
             }
             else if(object instanceof Point) {
                 bytes = ByteBuffer.allocate(16);
-                bytes.putFloat(((Point) object).getLatitude());
-                bytes.putFloat(((Point) object).getLongitude());
+                bytes.putFloat(((Point) object).getX());
+                bytes.putFloat(((Point) object).getY());
                 type = Type.POINT;
             }
             else {
