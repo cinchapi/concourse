@@ -20,12 +20,23 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class Point implements Comparable<Point> {
 
+    public static float MIN_LATITUDE = Float.valueOf("-90.0000");
+    public static float MAX_LATITUDE = Float.valueOf("90.0000");
+    public static float MIN_LONGITUDE = Float.valueOf("-180.0000");
+    public static float MAX_LONGITUDE = Float.valueOf("180.0000");
+
     private float latitude;
     private float longitude;
 
     public Point(float latitude, float longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+        if(isValidLatitude(latitude) && isValidLongitude(longitude)) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+        else {
+            throw new IllegalArgumentException(
+                    "The specified latitude and longitude contain inproper values, please respect min, max values.");
+        }
     }
 
     public static Point to(float latitude, float longitude) {
@@ -38,6 +49,14 @@ public final class Point implements Comparable<Point> {
 
     public float getLongitude() {
         return longitude;
+    }
+
+    public static boolean isValidLatitude(float latitude) {
+        return latitude >= MIN_LATITUDE && latitude <= MAX_LATITUDE;
+    }
+
+    public static boolean isValidLongitude(float longitude) {
+        return longitude >= MIN_LONGITUDE && longitude <= MAX_LONGITUDE;
     }
 
     @Override
