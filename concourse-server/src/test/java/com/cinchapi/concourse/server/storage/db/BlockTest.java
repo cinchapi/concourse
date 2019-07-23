@@ -172,12 +172,14 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
             insert.accept(previousVersion);
             Assert.assertFalse(block.overlaps(start, end));
             Assert.assertFalse(block.overlaps(start));
+            Assert.assertFalse(block.overlaps(end));
             insert.accept(version);
             Assert.assertTrue(block.overlaps(start, end));
             Assert.assertTrue(block.overlaps(start));
             Assert.assertFalse(block.overlaps(end));
             insert.accept(version2);
             Assert.assertTrue(block.overlaps(start, end));
+            Assert.assertTrue(block.overlaps(start));
             Assert.assertTrue(block.overlaps(end));
         }
         catch (UnsupportedOperationException e) {
