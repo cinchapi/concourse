@@ -58,12 +58,12 @@ public final class Point {
         return x;
     }
 
-    public static boolean isValidY(float latitude) {
-        return latitude >= MIN_Y && latitude <= MAX_Y;
+    public static boolean isValidY(float y) {
+        return y >= MIN_Y && y <= MAX_Y;
     }
 
-    public static boolean isValidX(float longitude) {
-        return longitude >= MIN_X && longitude <= MAX_X;
+    public static boolean isValidX(float x) {
+        return x >= MIN_X && x <= MAX_X;
     }
 
 }
