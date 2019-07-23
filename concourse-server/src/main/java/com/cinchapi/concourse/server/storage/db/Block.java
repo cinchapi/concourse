@@ -38,6 +38,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.lang.math.LongRange;
+
 import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
@@ -359,8 +361,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return true if the time overlaps false if it does not
      */
     public boolean overlaps(long time) {
-        Long min = stats.get(Attribute.MIN_REVISION_VERSION);
-        Long max = stats.get(Attribute.MAX_REVISION_VERSION);
+        final Long min = stats.get(Attribute.MIN_REVISION_VERSION);
+        final Long max = stats.get(Attribute.MAX_REVISION_VERSION);
 
         if(min != null && max != null) {
             return time >= min && time <= max;
@@ -377,8 +379,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return true if the time overlaps and end > start, otherwise false.
      */
     public boolean overlaps(long start, long end) {
-        if(end >= start) {
-            return overlaps(start) || overlaps(end);
+        final Long min = stats.get(Attribute.MIN_REVISION_VERSION);
+        final Long max = stats.get(Attribute.MAX_REVISION_VERSION);
+        if(end >= start && min != null && max != null) {
+            final LongRange range = new LongRange(start, end);
+            for (long i = min; i <= max; i++)
+                if(range.containsLong(i))
+                    return true;
         }
         return false;
     }

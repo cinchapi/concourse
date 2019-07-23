@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -160,28 +161,28 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test
     public void testCheckIfTimeInRange() {
-        Long start = Time.now();
-
+        final Consumer<Long> insert = v -> block.insert(getLocator(), getKey(),
+                getValue(), v, Action.ADD);
+        final long start = Time.now();
+        final long previousVersion = start - 1000;
+        final long version = start + 1000;
+        final long end = start + 2000;
+        final long version2 = start + 3000;
         try {
-            Thread.sleep(100);
+            insert.accept(previousVersion);
+            Assert.assertFalse(block.overlaps(start, end));
+            Assert.assertFalse(block.overlaps(start));
+            insert.accept(version);
+            Assert.assertTrue(block.overlaps(start, end));
+            Assert.assertTrue(block.overlaps(start));
+            Assert.assertFalse(block.overlaps(end));
+            insert.accept(version2);
+            Assert.assertTrue(block.overlaps(start, end));
+            Assert.assertTrue(block.overlaps(end));
         }
-        catch (InterruptedException e) {
-            e.printStackTrace();
+        catch (UnsupportedOperationException e) {
+            System.out.println("Unsupported operation on this block.");
         }
-
-        String id = Long.toString(Time.now());
-        PrimaryBlock p = Block.createPrimaryBlock(id,
-                directory + File.separator + "cpb");
-
-        try {
-            Thread.sleep(100);
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Long end = Time.now();
-        Assert.assertTrue(p.overlaps(start, end));
     }
 
     @Test
