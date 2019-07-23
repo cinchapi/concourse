@@ -247,11 +247,12 @@ public final class Convert {
                     throw new UnsupportedOperationException(
                             "Cannot convert string based Timestamp to a TObject");
                 }
-            }else if(object instanceof Point) {
-                    bytes = ByteBuffer.allocate(16);
-                    bytes.putFloat(((Point) object).getLatitude());
-                    bytes.putFloat(((Point) object).getLongitude());
-                    type = Type.POINT;
+            }
+            else if(object instanceof Point) {
+                bytes = ByteBuffer.allocate(16);
+                bytes.putFloat(((Point) object).getLatitude());
+                bytes.putFloat(((Point) object).getLongitude());
+                type = Type.POINT;
             }
             else {
                 bytes = ByteBuffer.wrap(
