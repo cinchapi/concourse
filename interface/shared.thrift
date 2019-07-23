@@ -48,7 +48,8 @@ enum Operator {
   BETWEEN = 9,
   LINKS_TO = 10,
   LIKE = 11,
-  NOT_LIKE = 12
+  NOT_LIKE = 12,
+  WITHIN = 13
 }
 
 /**
@@ -65,6 +66,7 @@ enum Type {
   TAG = 8,
   NULL = 9,
   TIMESTAMP = 10,
+  POINT = 11
 }
 
 /** When re-constructing the state of a record/field/index from some base state,
