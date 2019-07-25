@@ -20,8 +20,8 @@
 // 2. Change gradleVersion here
 // 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
 // 4. Run ./gradlew wrapper
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
+wrapper() {
+    gradleVersion = '5.0'
 }
 
 // The project version is controlled externally by the "version.sh" script.
@@ -51,7 +51,7 @@ buildscript {
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.6.0"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.23.1"
     }
 }
 
@@ -111,7 +111,7 @@ subprojects {
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.6.0', changing:true
         compile 'com.cinchapi:lib-config:1.5.1'
-        
+
         testCompile 'junit:junit:4.11'
     }
 
