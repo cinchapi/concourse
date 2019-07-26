@@ -102,7 +102,7 @@ public class ManageEnvironmentsCli {
                     return null;
                 }
 
-                @Override
+                // Used to Override
                 public String optionPrefixes() {
                     return null;
                 }
@@ -120,6 +120,10 @@ public class ManageEnvironmentsCli {
                 @Override
                 public String[] commandNames() {
                     return null;
+                }
+
+                @Override public boolean hidden() {
+                    return false;
                 }
 
             };
