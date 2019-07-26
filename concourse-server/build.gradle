@@ -18,26 +18,23 @@
    id "com.jfrog.bintray" version "1.7"
  }
 
-sourceCompatibility = 11
-targetCompatibility = 11
-
 dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-plugin-core')
     compile project(':concourse-shell')
     compile project(':concourse-cli')
     compile project(':concourse-import')
-    compile 'com.beust:jcommander:1.32'
+    compile 'com.beust:jcommander:1.72'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
-    compile ('org.reflections:reflections:0.9.9-RC2'){
+    compile ('org.reflections:reflections:0.9.11'){
         exclude group: 'org.javassist', module:'javassist'
     }
-    compile 'org.javassist:javassist:3.18.2-GA'
-    compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
-    compile 'org.eclipse.jetty:jetty-webapp:9.2.9.v20150224'
-    compile 'com.github.spullara.mustache.java:compiler:0.8.15'
+    compile 'org.javassist:javassist:3.25.0-GA'
+    compile 'org.eclipse.jetty:jetty-server:9.4.13.v20181111'
+    compile 'org.eclipse.jetty:jetty-webapp:9.4.13.v20181111'
+    compile 'com.github.spullara.mustache.java:compiler:0.9.6'
     compile 'com.joestelmach:natty:0.12'
-    compile 'com.google.inject:guice:4.2.0'
+    compile 'com.google.inject:guice:4.2.2'
     compile 'io.atomix.catalyst:catalyst-buffer:1.1.1'
     compile 'com.cinchapi:process-watcher:1.0.0'
     compile (group:'com.cinchapi', name: 'bucket', version: bucketVersion, changing:true) {
