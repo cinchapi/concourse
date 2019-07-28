@@ -48,8 +48,7 @@ enum Operator {
   BETWEEN = 9,
   LINKS_TO = 10,
   LIKE = 11,
-  NOT_LIKE = 12,
-  WITHIN = 13
+  NOT_LIKE = 12
 }
 
 /**

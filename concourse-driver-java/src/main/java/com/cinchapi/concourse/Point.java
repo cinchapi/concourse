@@ -20,50 +20,24 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class Point {
 
-    /**
-     * Valid latitude values are between -90 and 90, both inclusive.
-     */
-    public static float MIN_Y = Float.valueOf("-90.0000");
-    public static float MAX_Y = Float.valueOf("90.0000");
+    private double x;
+    private double y;
 
-    /**
-     * Valid longitude values are between -180 and 180, both inclusive.
-     */
-    public static float MIN_X = Float.valueOf("-180.0000");
-    public static float MAX_X = Float.valueOf("180.0000");
-
-    private float x;
-    private float y;
-
-    public Point(float x, float y) {
-        if(isValidY(x) && isValidX(y)) {
+    public Point(double x, double y) {
             this.x = x;
             this.y = y;
-        }
-        else {
-            throw new IllegalArgumentException(
-                    "The specified x and y contain inproper values, please respect min, max values.");
-        }
     }
 
     public static Point to(float x, float y) {
         return new Point(x, y);
     }
 
-    public float getY() {
+    public double y() {
         return y;
     }
 
-    public float getX() {
+    public double x() {
         return x;
-    }
-
-    public static boolean isValidY(float y) {
-        return y >= MIN_Y && y <= MAX_Y;
-    }
-
-    public static boolean isValidX(float x) {
-        return x >= MIN_X && x <= MAX_X;
     }
 
 }
