@@ -17,6 +17,12 @@ package com.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * A {@link Point} is a data type which harbors 2-doubles.
+ * <p>
+ * A Point represents a specific location.
+ * </p>
+ */
 @Immutable
 public final class Point {
 
@@ -24,8 +30,8 @@ public final class Point {
     private double y;
 
     public Point(double x, double y) {
-            this.x = x;
-            this.y = y;
+        this.x = x;
+        this.y = y;
     }
 
     public static Point to(float x, float y) {
