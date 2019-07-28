@@ -34,8 +34,7 @@ public enum Operator
     BETWEEN(9),
     LINKS_TO(10),
     LIKE(11),
-    NOT_LIKE(12),
-    WITHIN(13);
+    NOT_LIKE(12);
 
     private final int value;
 
@@ -81,8 +80,6 @@ public enum Operator
             return LIKE;
         case 12:
             return NOT_LIKE;
-        case 13:
-            return WITHIN;
         default:
             return null;
         }
