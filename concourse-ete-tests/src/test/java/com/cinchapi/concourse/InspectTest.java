@@ -24,7 +24,7 @@ public class InspectTest extends ClientServerTest implements PluginTest {
     public void testInspect() {
         final String TEST_PLUGIN_NAME = "com.cinchapi.concourse.CON569TestPlugin01";
         
-        Map<String, Set<String>> descriptions = Maps.newHashMap();
+        Map<String, Set<String>> descriptions = client.inspect();
         
         Method[] methods = CON569TestPlugin01.class.getMethods();
         
@@ -45,6 +45,8 @@ public class InspectTest extends ClientServerTest implements PluginTest {
         Assert.assertTrue("CON569TestPlugin01 does not contain say(java.lang.String)", descriptions.get(TEST_PLUGIN_NAME).contains("say(java.lang.String )"));
         Assert.assertTrue("CON569TestPlugin01 does not contain bye()", descriptions.get(TEST_PLUGIN_NAME).contains("bye()"));
     }
+    
+
 
 }
 
