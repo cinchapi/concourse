@@ -93,4 +93,12 @@ public class TObjectTest {
         Assert.assertFalse(t.isBlank());
     }
 
+    @Test
+    public void testCompareTo() {
+        TObject big = Convert.javaToThrift(1564359884275001L);
+        TObject small = Convert.javaToThrift(1564359884211000L);
+        Assert.assertTrue(big.compareTo(small) > 0);
+        Assert.assertTrue(small.compareTo(big) < 0);
+    }
+
 }

@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.query.sort;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -76,8 +75,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
             @Nullable Long at) {
         ArrayBuilder<Comparator<Entry<Long, Map<String, V>>>> comparators = ArrayBuilder
                 .builder();
-        List<OrderComponent> spec = order.spec();
-        spec.forEach(component -> {
+        for (OrderComponent component : order.spec()) {
             String key = component.key();
             Timestamp timestamp = component.timestamp();
             Direction direction = component.direction();
@@ -120,7 +118,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
 
             };
             comparators.add($comparator);
-        });
+        }
         comparators.add((e1, e2) -> e1.getKey().compareTo(e2.getKey()));
         Comparator<Entry<Long, Map<String, V>>> comparator = CompoundComparator
                 .of(comparators.build());
