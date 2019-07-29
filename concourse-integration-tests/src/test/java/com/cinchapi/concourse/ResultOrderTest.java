@@ -26,6 +26,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -276,6 +277,23 @@ public class ResultOrderTest extends ConcourseIntegrationTest {
             last.set((int) age);
             Assert.assertEquals(age, client.get("age", record));
         });
+    }
+
+    @Test
+    public void testSortReproA() {
+        for (int i = 1; i <= 100; ++i) {
+            long record = client.add("ts", Time.now());
+            client.add("select", true, record);
+        }
+        Set<Long> records = client.find(Criteria.where().key("select")
+                .operator(Operator.EQUALS).value(true),
+                Order.by("ts").descending());
+        long ts = Long.MAX_VALUE;
+        for (long record : records) {
+            long actual = client.get("ts", record);
+            Assert.assertTrue(actual < ts);
+            ts = actual;
+        }
     }
 
     /**
