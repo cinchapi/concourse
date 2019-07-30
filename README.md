@@ -173,8 +173,8 @@ where
 * bug fixes or miscellaneous changes bumps the patch.
 
 ##### Additional Resources
-* [Installation](https://cinchapi.github.io/concourse/installation)
-* [Introduction](https://cinchapi.github.io/concourse/introduction)
+* [Installation](https://docs.cinchapi.com/concourse/installation)
+* [Introduction](https://docs.cinchapi.com/concourse/introduction)
 * [API](concourse-driver-java/README.md)
 * [Developer Setup](http://wiki.cinchapi.com/display/OSS/Concourse+Developer+Setup)
 
