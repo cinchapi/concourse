@@ -495,7 +495,7 @@ public class PluginManager {
     }
 
     /**
-     * Return a map containing the Plugin and 
+     * Return a map containing the Plugin and
      * available public methods.
      * 
      * @return the available plugin methods
@@ -515,7 +515,8 @@ public class PluginManager {
                                 method.getName());
                         builder.append("(");
                         for (Parameter parameter : parameters) {
-                            builder.append(parameter.getType().getName()).append(" ");
+                            builder.append(parameter.getType().getName())
+                                    .append(" ");
                         }
                         builder.append(")");
                         descriptions.get(clazz).add(builder.toString());

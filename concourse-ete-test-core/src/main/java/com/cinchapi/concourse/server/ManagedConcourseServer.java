@@ -1120,7 +1120,7 @@ public class ManagedConcourseServer {
         public boolean commit() {
             return invoke("commit").with();
         }
-        
+
         @Override
         public Map<String, Set<String>> inspect() {
             return invoke("inspect").with();
@@ -1153,7 +1153,7 @@ public class ManagedConcourseServer {
             return invoke("describe", long.class, Timestamp.class).with(record,
                     timestamp);
         }
-        
+
         @Override
         public Set<String> describe(Timestamp timestamp) {
             return invoke("describe", Timestamp.class).with(timestamp);

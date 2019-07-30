@@ -1316,9 +1316,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<String, Set<String>> inspect(AccessToken creds, TransactionToken transaction,
-            String environment) throws SecurityException, TransactionException,
-            PermissionException, TException {
+    public Map<String, Set<String>> inspect(AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
         return pluginManager.describePlugins();
     }
 
