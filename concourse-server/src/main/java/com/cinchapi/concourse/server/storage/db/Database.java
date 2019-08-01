@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -358,50 +359,60 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<Long, String> audit(long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record)).audit();
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk);
+        return $record.audit();
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).audit(key0);
+        Text $key = Text.wrapCached(key);
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk, $key);
+        return $record.audit($key);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrapCached(key)).browse(),
-                Value::getTObject, PrimaryKey::longValue,
-                TObjectSorter.INSTANCE);
+        Text $key = Text.wrapCached(key);
+        SecondaryRecord record = getSecondaryRecord($key);
+        Map<Value, Set<PrimaryKey>> data = record.browse();
+        return Transformers.transformTreeMapSet(data, Value::getTObject,
+                PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrapCached(key)).browse(timestamp),
-                Value::getTObject, PrimaryKey::longValue,
-                TObjectSorter.INSTANCE);
+        Text $key = Text.wrapCached(key);
+        SecondaryRecord record = getSecondaryRecord($key);
+        Map<Value, Set<PrimaryKey>> data = record.browse(timestamp);
+        return Transformers.transformTreeMapSet(data, Value::getTObject,
+                PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        return Transformers.transformMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record))
-                        .chronologize(Text.wrapCached(key), start, end),
-                com.google.common.base.Functions.<Long> identity(),
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        Text $key = Text.wrapCached(key);
+        PrimaryRecord $record = getPrimaryRecord(pk);
+        Map<Long, Set<Value>> data = $record.chronologize($key, start, end);
+        return Transformers.transformMapSet(data, Function.identity(),
                 Value::getTObject);
     }
 
     @Override
     public boolean contains(long record) {
-        return !getPrimaryRecord(PrimaryKey.wrap(record)).isEmpty();
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk);
+        return !$record.isEmpty();
     }
 
     @Override
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
+        Text $key = Text.wrapCached(key);
+        SecondaryRecord record = getSecondaryRecord($key);
         Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
@@ -411,7 +422,8 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
+        Text $key = Text.wrapCached(key);
+        SecondaryRecord record = getSecondaryRecord($key);
         Map<PrimaryKey, Set<Value>> map = record.explore(operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
@@ -467,43 +479,49 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<Long> search(String key, String query) {
-        return Transformers
-                .transformSet(
-                        getSearchRecord(Text.wrapCached(key), Text.wrap(query))
-                                .search(Text.wrap(query)),
-                        PrimaryKey::longValue);
+        Text $key = Text.wrapCached(key);
+        Text $query = Text.wrap(query);
+        SearchRecord record = getSearchRecord($key, $query);
+        Set<PrimaryKey> data = record.search($query);
+        return Transformers.transformSet(data, PrimaryKey::longValue);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Text::toString, Value::getTObject,
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk);
+        Map<Text, Set<Value>> data = $record.browse();
+        return Transformers.transformTreeMapSet(data, Text::toString,
+                Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
-                Text::toString, Value::getTObject,
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk);
+        Map<Text, Set<Value>> data = $record.browse(timestamp);
+        return Transformers.transformTreeMapSet(data, Text::toString,
+                Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Set<TObject> select(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
-                Value::getTObject);
+        Text $key = Text.wrapCached(key);
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk, $key);
+        Set<Value> data = $record.fetch($key);
+        return Transformers.transformSet(data, Value::getTObject);
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers
-                .transformSet(getPrimaryRecord(PrimaryKey.wrap(record), key0)
-                        .fetch(key0, timestamp), Value::getTObject);
+        Text $key = Text.wrapCached(key);
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk, $key);
+        Set<Value> data = $record.fetch($key, timestamp);
+        return Transformers.transformSet(data, Value::getTObject);
     }
 
     @SuppressWarnings("unlikely-arg-type")
@@ -577,16 +595,20 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public boolean verify(String key, TObject value, long record) {
         Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
-                Value.wrap(value));
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk, key0);
+        Value $value = Value.wrap(value);
+        return $record.verify(key0, $value);
     }
 
     @Override
     public boolean verify(String key, TObject value, long record,
             long timestamp) {
         Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
-                Value.wrap(value), timestamp);
+        PrimaryKey pk = PrimaryKey.wrap(record);
+        PrimaryRecord $record = getPrimaryRecord(pk, key0);
+        Value $value = Value.wrap(value);
+        return $record.verify(key0, $value, timestamp);
     }
 
     /**
