@@ -23,7 +23,7 @@ signing {
 
 dependencies {
     compile project(':concourse-driver-java')
-    compile 'com.beust:jcommander:1.32'
+    compile 'com.beust:jcommander:1.72'
     compile 'jline:jline:2.11'
 }
 

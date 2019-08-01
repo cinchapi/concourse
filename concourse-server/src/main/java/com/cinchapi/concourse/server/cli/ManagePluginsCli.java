@@ -101,7 +101,7 @@ public class ManagePluginsCli {
                     return null;
                 }
 
-                @Override
+                // Used to Override
                 public String optionPrefixes() {
                     return null;
                 }
@@ -119,6 +119,10 @@ public class ManagePluginsCli {
                 @Override
                 public String[] commandNames() {
                     return null;
+                }
+
+                @Override public boolean hidden() {
+                    return false;
                 }
 
             };

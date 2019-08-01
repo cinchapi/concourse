@@ -101,7 +101,7 @@ public class ManageDataCli {
                     return null;
                 }
 
-                @Override
+                // Used to Override
                 public String optionPrefixes() {
                     return null;
                 }
@@ -119,6 +119,10 @@ public class ManageDataCli {
                 @Override
                 public String[] commandNames() {
                     return null;
+                }
+
+                @Override public boolean hidden() {
+                    return false;
                 }
 
             };
