@@ -21,7 +21,7 @@
 // 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
 // 4. Run ./gradlew wrapper
 wrapper() {
-    gradleVersion = '5.2.1'
+    gradleVersion = '5.5.1'
 }
 
 // The project version is controlled externally by the "version.sh" script.
@@ -63,6 +63,7 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
 }
 
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -72,7 +73,7 @@ subprojects {
 
     sourceCompatibility = 11
     targetCompatibility = 11
-    // tasks.withType(Javadoc).all { enabled = false } // This is for disabling javadocs
+    tasks.withType(Javadoc).all { enabled = false } // This is for disabling javadocs, related issue: https://github.com/gradle/gradle/issues/8267
     repositories {
         mavenCentral()
         mavenLocal()

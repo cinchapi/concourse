@@ -91,10 +91,8 @@ public final class ServerProcesses {
 
         // Since the #routine is forked, we offer the external JVM process the
         // local classpath
-        String classpath = StringUtils.join(
-                ((URLClassLoader) Thread.currentThread()
-                        .getContextClassLoader()).getURLs(),
-                JavaApp.CLASSPATH_SEPARATOR);
+
+        String classpath = System.getProperty("java.class.path");
         FileChannel inputChannel = FileSystem.getFileChannel(input);
         try {
             Serializables.write(routine, inputChannel);
