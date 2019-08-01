@@ -57,7 +57,7 @@ public final class ServerProcesses {
      * @return the result of running the routine
      */
     public static <T extends Serializable> T fork(Forkable<T> routine) {
-        Callback<T> callback = new NoOpCallback<T>();
+        var callback = new NoOpCallback<T>();
         fork(routine, callback);
         return callback.getResult();
     }
@@ -76,39 +76,28 @@ public final class ServerProcesses {
      * @param callback the {@link Callback} that handles the result
      * @return the result of running the routine
      */
-    public static <T extends Serializable> void fork(final Forkable<T> routine,
+    public static <T extends Serializable> void fork(
+            final Forkable<T> routine,
             final Callback<T> callback) {
-        String input = FileSystem.tempFile(); // use to serialize the #routine
-                                              // so it can be read by forked
-                                              // process
-        final String output = FileSystem.tempFile(); // used to serialize the
-                                                     // return value for the
-                                                     // #routine so it be read
-                                                     // by this process
-        String source = FORK_TEMPLATE.replace("INSERT_INPUT_PATH", input)
-                .replace("INSERT_OUTPUT_PATH", output)
+        final var inputFilePath = FileSystem.tempFile();
+        final var outputFilePath = FileSystem.tempFile();
+        final var sourceCode = FORK_TEMPLATE
+                .replace("INSERT_INPUT_PATH", inputFilePath)
+                .replace("INSERT_OUTPUT_PATH", outputFilePath)
                 .replace("INSERT_CLASS_NAME", routine.getClass().getName());
+        final var inputChannel = FileSystem.getFileChannel(inputFilePath);
 
-        // Since the #routine is forked, we offer the external JVM process the
-        // local classpath
-
-        String classpath = System.getProperty("java.class.path");
-        FileChannel inputChannel = FileSystem.getFileChannel(input);
         try {
             Serializables.write(routine, inputChannel);
-            final JavaApp app = new JavaApp(classpath, source);
+            final var app = new JavaApp(sourceCode);
             app.run();
-            new Thread(new Runnable() { // Wait for completion in separate
-                                        // thread so as to not block the caller
 
-                @Override
-                public void run() {
-                    Processes.waitForSuccessfulCompletion(app);
-                    ByteBuffer result = FileSystem.readBytes(output);
-                    T ret = Serializables.read(result, routine.getReturnType());
-                    callback.result(ret);
-                }
-
+            new Thread(() -> {
+                Processes.waitForSuccessfulCompletion(app);
+                final var resultBytes = FileSystem.readBytes(outputFilePath);
+                final var type = routine.getReturnType();
+                final var result = Serializables.read(resultBytes, type);
+                callback.result(result);
             }).start();
         }
         finally {
