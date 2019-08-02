@@ -383,9 +383,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         final Long max = stats.get(Attribute.MAX_REVISION_VERSION);
         if(end >= start && min != null && max != null) {
             final LongRange range = new LongRange(start, end);
-            for (long i = min; i <= max; i++)
-                if(range.containsLong(i))
+            for (long i = min; i <= max; i++) {
+                if(range.containsLong(i)) {
                     return true;
+                }
+            }
         }
         return false;
     }
