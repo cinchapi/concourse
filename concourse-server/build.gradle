@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
- plugins {
-   id "com.jfrog.bintray" version "1.7"
- }
-
 dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-plugin-core')
