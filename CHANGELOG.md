@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.10.0 (TBD)
+#### Version 0.10.0 (August 3, 2019)
 
 ##### BREAKING CHANGES
 There is only **PARTIAL COMPATIBILITY** between 
