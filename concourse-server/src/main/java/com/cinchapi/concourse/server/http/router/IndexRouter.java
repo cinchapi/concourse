@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
+import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.EndpointContainer;
@@ -37,7 +38,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.ObjectUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -157,7 +157,7 @@ public class IndexRouter extends EndpointContainer {
             String arg1 = request.getParamValue(":record");
             String start = request.getParamValue("start");
             String end = request.getParamValue("end");
-            start = ObjectUtils.firstNonNullOrNull(start,
+            start = AnyObjects.firstThat(object -> object != null, start,
                     request.getParamValue("timestamp"));
             Long record = Longs.tryParse(arg1);
             Object data;

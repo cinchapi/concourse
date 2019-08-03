@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,10 @@ public class TestPlugin extends Plugin {
 
     public Set<Long> inventory() {
         return runtime.inventory();
+    }
+
+    public String getResultDatasetClassName() {
+        return runtime.selectCcl("foo = bar").getClass().getName();
     }
 
     public String environment() {

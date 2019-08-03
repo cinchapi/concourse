@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,13 @@ public class ConnectTest extends ConcourseIntegrationTest {
         client.add("foo", "bar");
         Concourse copy = Concourse.copyExistingConnection(client);
         Assert.assertEquals(1, copy.inventory().size());
+    }
+
+    @Test
+    public void testConnectionBuilder() {
+        client.add("foo", "bar");
+        Concourse concourse = Concourse.at().port(SERVER_PORT).connect();
+        Assert.assertEquals(1, concourse.inventory().size());
     }
 
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2018 Cinchapi Inc.
+# Copyright (c) 2013-2019 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,11 +48,11 @@ jobs:
             find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -d | awk NF | xargs cat > gradle.lock
       - restore_cache:
           key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
-      - run: 
+      - run:
           name: Build and Publish
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./gradlew clean build installer uploadArchives bintrayUpload dockerize --no-daemon
+            ./gradlew clean build installer uploadArchives bintrayUpload dockerize -x spotlessJava --no-daemon
       - save_cache:
           paths:
             - ~/.gradle
@@ -66,7 +66,7 @@ jobs:
           when: always
       - store_test_results:
           path: ~/junit
-      - run: 
+      - run:
           name: Save artifacts
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
@@ -74,4 +74,25 @@ jobs:
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
       - store_artifacts:
-          path: ~/artifacts 
+          path: ~/artifacts
+  publish_docs:
+    docker:
+      - image: circleci/python:3.6-stretch-node-browsers
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "34:53:71:d8:34:5a:c2:af:af:d0:a5:93:e2:ac:9e:f0"
+      - checkout:
+          path: ~/$CIRCLE_PROJECT_REPONAME
+      - run:
+          name: Publish Documentation
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            sudo ./docs/init.sh
+            sudo ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]" --remote-name https://$MKDOCS_DEPLOY_GH_USER:$MKDOCS_DEPLOY_GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --force
+workflows:
+  version: 2
+  build_and_publish_docs:
+    jobs:
+      - build
+      - publish_docs

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.plugin.data.TrackingMultimap.DataType;
-import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.util.Random;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 
 /**
@@ -141,10 +141,14 @@ public class TrackingMultimapTest
             map.put(Random.getString(), randomValueSet());
         }
         Assert.assertTrue(map.size() == count2);
+        Map<String, Set<Integer>> map0 = map;
         map.putAll(map1);
-        Variables.register("map", map.keySet());
-        Variables.register("map1", map1.keySet());
-        Assert.assertTrue(map.size() == (count1 + count2));
+        Sets.union(map1.keySet(), map0.keySet()).forEach(key -> {
+            Assert.assertEquals(Sets.union(
+                    MoreObjects.firstNonNull(map0.get(key), Sets.newHashSet()),
+                    MoreObjects.firstNonNull(map1.get(key), Sets.newHashSet())),
+                    map.get(key));
+        });
     }
 
     @Test

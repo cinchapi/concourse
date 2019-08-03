@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.importer;
 
-import java.util.AbstractMap;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -24,6 +23,7 @@ import org.junit.Test;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.util.Resources;
+import com.cinchapi.etl.Transformation;
 import com.cinchapi.etl.Transformer;
 import com.cinchapi.etl.Transformers;
 
@@ -48,7 +48,7 @@ public class TimestampImportTest extends CsvImportTest {
             protected Transformer transformer() {
                 return Transformers.compose((key, value) -> {
                     if(key.equals("Date")) {
-                        return new AbstractMap.SimpleEntry<>(key,
+                        return Transformation.to(key,
                                 AnyStrings.format("|{}|MM/dd/yyyy|", value));
                     }
                     else {

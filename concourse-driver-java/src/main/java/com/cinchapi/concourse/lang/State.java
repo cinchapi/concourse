@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ package com.cinchapi.concourse.lang;
 public abstract class State {
 
     /**
-     * A reference to the {@link Criteria} that is being built.
+     * A reference to the {@link BuiltCriteria} that is being built.
      */
-    protected final Criteria criteria;
+    protected final BuiltCriteria criteria;
 
     /**
      * Construct a new instance.
      * 
      * @param criteria
      */
-    protected State(Criteria criteria) {
+    protected State(BuiltCriteria criteria) {
         this.criteria = criteria;
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2013-2018 Cinchapi Inc.
+# Copyright (c) 2013-2019 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,3 +18,16 @@
 
 # The directory where the thrift files are stored
 THRIFT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../interface && pwd)
+
+HOME=$THRIFT_DIR/../utils
+cd $THRIFT_DIR
+
+# Gather all of the modules
+MODULES=(
+  concourse.thrift
+)
+cd module
+for f in *; do
+  MODULES+=(module/$f)
+done
+cd - >> /dev/null

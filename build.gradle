@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,10 +107,11 @@ subprojects {
         compile 'org.slf4j:slf4j-api:1.7.5'
         compile 'ch.qos.logback:logback-classic:1.0.13'
         compile 'joda-time:joda-time:2.2'
-        compile 'org.apache.thrift:libthrift:0.9.3'
+        compile 'org.apache.thrift:libthrift:0.12.0'
         compile 'commons-configuration:commons-configuration:1.9'
-        compile group: 'com.cinchapi', name: 'accent4j', version: '1.5.3', changing:true
-        compile 'com.cinchapi:lib-config:1.3.1'
+        compile group: 'com.cinchapi', name: 'accent4j', version: '1.6.0', changing:true
+        compile 'com.cinchapi:lib-config:1.5.1'
+        
         testCompile 'junit:junit:4.11'
     }
 
@@ -124,7 +125,7 @@ subprojects {
     version = globalVersion
 
     // Versions for some shared (but non-global) dependencies
-    ext.bucketVersion = '1.4.1'
+    ext.bucketVersion = '1.5.0'
 
     // Drop the build component from version number and use that for
     // publishing

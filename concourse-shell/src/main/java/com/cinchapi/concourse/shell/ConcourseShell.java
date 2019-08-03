@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,9 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.StartState;
+import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.Sort;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
@@ -405,7 +408,8 @@ public final class ConcourseShell {
      */
     protected static List<Class<?>> IMPORTED_CLASSES = ImmutableList.of(
             Timestamp.class, Diff.class, Link.class, Tag.class, Criteria.class,
-            Operator.class); // visible for testing
+            Operator.class, Order.class, Sort.class, Page.class); // visible for
+                                                                  // testing
 
     /**
      * A closure that converts a string value to a tag.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.google.common.base.Function;
 import com.google.common.collect.Sets;
 
 /**
@@ -40,16 +39,10 @@ public class TransformersTest extends ConcourseBaseTest {
             original.add(Random.getString());
         }
 
-        Function<String, String> function = new Function<String, String>() {
-
-            @Override
-            public String apply(String input) {
-                return StringUtils.reverse(input);
-            }
-        };
-
-        Assert.assertEquals(Transformers.transformSet(original, function),
-                Transformers.transformSetLazily(original, function));
+        Assert.assertEquals(
+                Transformers.transformSet(original, StringUtils::reverse),
+                Transformers.transformSetLazily(original,
+                        StringUtils::reverse));
     }
 
 }

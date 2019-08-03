@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,14 @@ public final class Comparators {
      * @return the comparator
      */
     public static <T> Comparator<T> equalOrArbitrary() {
-        return new EqualOrArbitraryComparator<T>();
+        return (o1, o2) -> {
+            if(o1 == o2 || o1.equals(o2)) {
+                return 0;
+            }
+            else {
+                return Ordering.arbitrary().compare(o1, o2);
+            }
+        };
     }
 
     /**
@@ -47,95 +54,27 @@ public final class Comparators {
      * 
      * @return the comparator
      */
+    @SuppressWarnings("unchecked")
     public static <T> Comparator<T> naturalOrArbitrary() {
-        return new NaturalOrArbitraryComparator<T>();
-    }
+        return (o1, o2) -> {
 
-    /**
-     * Perform an arbitrary comparison between {@code o1} and {@code o2}. This
-     * method assumes that the two objects are not considered equal.
-     * 
-     * @param o1
-     * @param o2
-     * @return the comparison value
-     */
-    private static <T> int arbitraryCompare(T o1, T o2) {
-        return Ordering.arbitrary().compare(o1, o2);
+            if(o1 instanceof Comparable) {
+                return ((Comparable<T>) o1).compareTo(o2);
+            }
+            else {
+                return Ordering.arbitrary().compare(o1, o2);
+            }
+
+        };
     }
 
     /**
      * A comparator that sorts strings lexicographically without regards to
      * case.
      */
-    public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = new Comparator<String>() {
-
-        @Override
-        public int compare(String s1, String s2) {
-            return s1.compareToIgnoreCase(s2);
-        }
-
-    };
-
-    /**
-     * A comparator that sorts longs in numerical order.
-     */
-    public final static Comparator<Long> LONG_COMPARATOR = new Comparator<Long>() {
-
-        @Override
-        public int compare(Long o1, Long o2) {
-            return Long.compare(o1, o2);
-        }
-
-    };
+    public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = (
+            s1, s2) -> s1.compareToIgnoreCase(s2);
 
     private Comparators() {/* noop */}
-
-    /**
-     * A {@link Comparator} that is similar to {@link Ordering#arbitrary()} in
-     * that in will return an arbitrary but consistent ordering of objects
-     * (during the duration of the JVM lifecycle), unless they are equal, in
-     * which case it returns 0.
-     * 
-     * @author Jeff Nelson
-     */
-    private static class EqualOrArbitraryComparator<T>
-            implements Comparator<T> {
-
-        @Override
-        public int compare(T o1, T o2) {
-            if(o1 == o2 || o1.equals(o2)) {
-                return 0;
-            }
-            else {
-                return arbitraryCompare(o1, o2);
-            }
-        }
-
-    }
-
-    /**
-     * A {@link Comparator} that uses the functionality of the {@link Ordering
-     * @natural()} comparator if the objects are {@link Comparable}. Otherwise,
-     * the functionality is similar to the {@link Ordering#arbitrary()}
-     * comparator.
-     * 
-     * 
-     * @author Jeff Nelson
-     */
-    private static class NaturalOrArbitraryComparator<T>
-            implements Comparator<T> {
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public int compare(T o1, T o2) {
-            if(o1 instanceof Comparable) {
-                return ((Comparable<T>) o1).compareTo(o2);
-            }
-            else {
-                return arbitraryCompare(o1, o2);
-            }
-        }
-
-    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,13 @@ import org.junit.runner.Description;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.ConcourseCodebase;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.server.ManagedConcourseServer}.
@@ -163,6 +167,31 @@ public class ManagedConcourseServerTest {
         long record = concourse.add("time", Timestamp.now());
         Object time = concourse.get("time", record);
         Assert.assertTrue(time instanceof Timestamp);
+    }
+
+    @Test
+    public void testTranslateCriteriaBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.find(Criteria.where().key("name").operator(Operator.EQUALS)
+                .value("foo"));
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testTranslateOrderBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.select(ImmutableList.of(1L, 2L), Order.by("name"));
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testTranslatePageBetweenClientAndServer() {
+        server.start();
+        Concourse concourse = server.connect();
+        concourse.select(ImmutableList.of(1L, 2L), Page.of(1, 1));
+        Assert.assertTrue(true); // lack of Exception means the test passes
     }
 
 }

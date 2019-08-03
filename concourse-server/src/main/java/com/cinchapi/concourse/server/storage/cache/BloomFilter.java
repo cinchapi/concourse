@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.StampedLock;
 
@@ -77,8 +78,36 @@ public class BloomFilter implements Syncable {
      * @param expectedInsertions
      * @return the BloomFilter
      */
+    public static BloomFilter create(Path file, int expectedInsertions) {
+        return create(file.toString(), expectedInsertions);
+    }
+
+    /**
+     * Create a new BloomFilter with enough capacity for
+     * {@code expectedInsertions}.
+     * <p>
+     * Note that overflowing a BloomFilter with significantly more elements than
+     * specified, will result in its saturation, and a sharp deterioration of
+     * its false positive probability (source:
+     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
+     * <p>
+     * 
+     * @param file
+     * @param expectedInsertions
+     * @return the BloomFilter
+     */
     public static BloomFilter create(String file, int expectedInsertions) {
         return new BloomFilter(file, expectedInsertions);
+    }
+
+    /**
+     * Return the BloomFilter that is stored on disk in {@code file}.
+     * 
+     * @param file
+     * @return the BloomFilter
+     */
+    public static BloomFilter open(Path file) {
+        return open(file.toString());
     }
 
     /**

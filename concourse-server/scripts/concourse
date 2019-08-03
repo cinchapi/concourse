@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2013-2018 Cinchapi Inc.
+# Copyright (c) 2013-2019 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ JVMOPTS="
 -Dcom.sun.management.jmxremote.authenticate=false
 -Dcom.sun.management.jmxremote.ssl=false
 -XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
 -XX:CompileThreshold=500
 "
 #-------------------------------------------------------------------------------
@@ -77,6 +76,14 @@ TEXT_COLOR_PURPLE=$ESC"0;35m"
 TEXT_COLOR_PURPLE_BOLD=$ESC"1;35m"
 TEXT_COLOR_YELLOW=$ESC"1;33m"
 TEXT_COLOR_RESET=$ESC"0;m"
+
+# Allow the JVM to attempt to hook into native thread prioritization if the application
+# user is root.
+if [ $(id -u) -eq 0 ]; then
+  JVMOPTS=$JVMOPTS"
+  -XX:ThreadPriorityPolicy=1
+  "
+fi
 
 # Random utility functions
 warn () {
@@ -232,6 +239,15 @@ if [ -z "$JMX_PREF" ]; then
   JMX_PREF="9010"
 fi
 JVMOPTS=${JVMOPTS/jmxremote.port=9010/jmxremote.port=$JMX_PREF}
+
+#remote_debugger_port
+RDP_PREF=`cat $PREFS | grep -e '^remote_debugger_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+if [ ! -z "$RDP_PREF" ] && [ "$RDP_PREF" -ne "0" ]; then
+    JVMOPTS=$JVMOPTS"
+    -Xdebug
+    -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$RDP_PREF
+    "
+fi
 
 #heap_size
 HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`

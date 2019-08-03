@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -32,10 +34,13 @@ import org.aopalliance.intercept.MethodInvocation;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
+import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.plugin.data.ObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
+import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.util.ConcurrentMaps;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Lists;
@@ -116,19 +121,28 @@ public class ConcourseRuntime extends StatefulConcourseService {
             Collection<Integer> valueTransform = VALUE_TRANSFORM.get(method);
             Collection<Integer> criteriaTransform = CRITERIA_TRANSFORM
                     .get(method);
+            Collection<Integer> orderTransform = ORDER_TRANSFORM.get(method);
+            Collection<Integer> pageTransform = PAGE_TRANSFORM.get(method);
             for (int i = 0; i < args.length; ++i) {
                 // Must go through each parameters and transform generic value
-                // objects into TObjects and all Criteria into TCriteria.
+                // objects into TObjects; all Criteria into TCriteria and all
+                // Order into TOrder
                 Object arg = args[i];
                 if(valueTransform.contains(i)) {
                     if(arg instanceof List) {
-                        arg = Convert.javaListToThrift((List<Object>) arg);
+                        arg = ((List<Object>) arg).stream()
+                                .map(Convert::javaToThrift)
+                                .collect(Collectors.toList());
                     }
                     else if(arg instanceof Set) {
-                        arg = Convert.javaSetToThrift((Set<Object>) arg);
+                        arg = ((Set<Object>) arg).stream()
+                                .map(Convert::javaToThrift)
+                                .collect(Collectors.toSet());
                     }
                     else if(arg instanceof Map) {
-                        arg = Convert.javaMapToThrift((Map<?, Object>) arg);
+                        arg = ((Map<?, Object>) arg).entrySet().stream()
+                                .collect(Collectors.toMap(Entry::getKey,
+                                        e -> Convert.javaToThrift(e)));
                     }
                     else {
                         arg = Convert.javaToThrift(arg);
@@ -136,6 +150,12 @@ public class ConcourseRuntime extends StatefulConcourseService {
                 }
                 else if(criteriaTransform.contains(i)) {
                     arg = Language.translateToThriftCriteria((Criteria) arg);
+                }
+                else if(orderTransform.contains(i)) {
+                    arg = JavaThriftBridge.convert((Order) arg);
+                }
+                else if(pageTransform.contains(i)) {
+                    arg = JavaThriftBridge.convert((Page) arg);
                 }
                 targs.add(ComplexTObject.fromJavaObject(arg));
             }

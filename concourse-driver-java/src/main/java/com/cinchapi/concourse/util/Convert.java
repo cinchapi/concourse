@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -181,50 +181,6 @@ public final class Convert {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         return result;
-    }
-
-    /**
-     * Return a List that represents the Thrift representation of each of the
-     * {@code objects} in the input list.
-     * 
-     * @param objects a List of java objects
-     * @return a List of TObjects
-     */
-    public static List<TObject> javaListToThrift(List<Object> objects) {
-        List<TObject> thrift = Lists.newArrayListWithCapacity(objects.size());
-        javaCollectionToThrift(objects, thrift);
-        return thrift;
-    }
-
-    /**
-     * Return a Map that represents the Thrift representation of each of the
-     * {@code objects} in the input Map.
-     * 
-     * @param objects a Map of java objects
-     * @return a Map of TObjects
-     */
-    public static <K> Map<K, TObject> javaMapToThrift(Map<K, Object> objects) {
-        Map<K, TObject> thrift = Maps.newLinkedHashMap();
-        for (Entry<K, Object> entry : objects.entrySet()) {
-            K key = entry.getKey();
-            TObject value = javaToThrift(entry.getValue());
-            thrift.put(key, value);
-        }
-        return thrift;
-    }
-
-    /**
-     * Return a Set that represents the Thrift representation of each of the
-     * {@code objects} in the input Set.
-     * 
-     * @param objects a Set of java objects
-     * @return a Set of TObjects
-     */
-    public static Set<TObject> javaSetToThrift(Set<Object> objects) {
-        Set<TObject> thrift = Sets
-                .newLinkedHashSetWithExpectedSize(objects.size());
-        javaCollectionToThrift(objects, thrift);
-        return thrift;
     }
 
     /**
@@ -444,18 +400,20 @@ public final class Convert {
             return (T) thriftToJava((TObject) tobject);
         }
         else if(tobject instanceof List) {
-            return (T) Lists.transform((List<?>) tobject,
-                    Conversions.possibleThriftToJava());
+            return (T) ((List<?>) tobject).stream()
+                    .map(Convert::possibleThriftToJava)
+                    .collect(Collectors.toList());
         }
         else if(tobject instanceof Set) {
-            return (T) Transformers.transformSetLazily((Set<Object>) tobject,
-                    Conversions.possibleThriftToJava());
+            return (T) ((Set<?>) tobject).stream()
+                    .map(Convert::possibleThriftToJava)
+                    .collect(Collectors.toSet());
         }
         else if(tobject instanceof Map) {
-            return (T) Transformers.transformMapEntries(
-                    (Map<Object, Object>) tobject,
-                    Conversions.possibleThriftToJava(),
-                    Conversions.possibleThriftToJava());
+            return (T) ((Map<?, ?>) tobject).entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> possibleThriftToJava(e.getKey()),
+                            e -> possibleThriftToJava(e.getValue())));
         }
         else {
             return (T) tobject;
@@ -638,20 +596,6 @@ public final class Convert {
     }
 
     /**
-     * Return a Set that represents the Java representation of each of the
-     * {@code TObjects} in the input Set.
-     * 
-     * @param objects a Set of TObjects
-     * @return a Set of Java objects
-     */
-    public static Set<Object> thriftSetToJava(Set<TObject> tobjects) {
-        Set<Object> java = Sets
-                .newLinkedHashSetWithExpectedSize(tobjects.size());
-        thriftCollectionToJava(tobjects, java);
-        return java;
-    }
-
-    /**
      * Return the Java Object that represents {@code object}.
      * 
      * @param object
@@ -700,21 +644,6 @@ public final class Convert {
             buffer.rewind();
         }
         return java;
-    }
-
-    /**
-     * In-place implementation for converting a collection of java objects to a
-     * typed {@code output} collection of TObjects.
-     * 
-     * @param input the original collection to convert
-     * @param output the output collection into which the converted objects are
-     *            placed
-     */
-    private static void javaCollectionToThrift(Collection<Object> input,
-            Collection<TObject> output) {
-        for (Object elt : input) {
-            output.add(javaToThrift(elt));
-        }
     }
 
     /**
@@ -830,21 +759,6 @@ public final class Convert {
         }
         catch (IOException | IllegalStateException e) {
             throw new JsonParseException(e.getMessage());
-        }
-    }
-
-    /**
-     * In-place implementation for converting a collection of TObjects to a
-     * typed {@code output} collection of java objects.
-     * 
-     * @param input the original collection to convert
-     * @param output the output collection into which the converted objects are
-     *            placed
-     */
-    private static void thriftCollectionToJava(Collection<TObject> input,
-            Collection<Object> output) {
-        for (TObject elt : input) {
-            output.add(thriftToJava(elt));
         }
     }
 

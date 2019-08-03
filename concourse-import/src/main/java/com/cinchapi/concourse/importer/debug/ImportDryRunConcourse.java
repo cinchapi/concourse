@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
@@ -305,7 +307,17 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Set<Long> find(Object criteria) {
+    public Set<Long> find(Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(Criteria criteria, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -320,7 +332,40 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public Set<Long> find(String key, Object value, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Object value, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Object value, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Object value, Timestamp timestamp,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Object value, Timestamp timestamp,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Object value, Timestamp timestamp,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -337,13 +382,100 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String ccl, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -360,13 +492,85 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
+            Object value2, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -396,7 +600,44 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -408,7 +649,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -425,19 +702,25 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -448,7 +731,41 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -459,13 +776,20 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria) {
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> get(Object criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(Criteria criteria,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -481,7 +805,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Collection<Long> records,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -491,8 +851,42 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -507,13 +901,18 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, T> get(String key, Object criteria) {
+    public <T> Map<Long, Map<String, T>> get(String ccl, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> get(String key, Object criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, T>> get(String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -523,12 +922,64 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, T> get(String key, String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -786,7 +1237,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -798,7 +1285,44 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -810,7 +1334,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -828,19 +1388,25 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
-            Object criteria, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -851,7 +1417,43 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -862,23 +1464,30 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Map<String, Set<Object>> select(long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
-            Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
@@ -894,7 +1503,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -905,7 +1550,43 @@ public class ImportDryRunConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -920,18 +1601,39 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -942,8 +1644,44 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Set<T>> select(String key, String ccl,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 

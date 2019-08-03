@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public final class VersionCli {
      */
     public static void main(String... args) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Copyright (c) 2013-2018, Cinchapi Inc. All Rights Reserved.")
+        sb.append("Copyright (c) 2013-2019, Cinchapi Inc. All Rights Reserved.")
                 .append(System.lineSeparator());
         sb.append("Concourse Server " + Version.getVersion(VersionCli.class))
                 .append(System.lineSeparator());

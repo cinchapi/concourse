@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
-
-import org.apache.http.annotation.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ import org.eclipse.jetty.server.session.SessionHandler;
 
 import spark.webserver.NotConsumedException;
 
+import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.HttpAuthToken;
 import com.cinchapi.concourse.server.http.HttpRequests;
-import com.cinchapi.concourse.util.ObjectUtils;
 
 /**
  * Simple Jetty Handler
@@ -105,7 +105,7 @@ public class ConcourseHttpHandler extends SessionHandler {
                 // Rewrite all requests to drop the declared environment from
                 // the path and use the request attributes to specify meta
                 // information
-                String token = ObjectUtils.firstNonNullOrNull(
+                String token = AnyObjects.firstThat(object -> object != null,
                         findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                                 request),
                         request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));
@@ -152,7 +152,7 @@ public class ConcourseHttpHandler extends SessionHandler {
             }
         }
         else {
-            String token = ObjectUtils.firstNonNullOrNull(
+            String token = AnyObjects.firstThat(object -> object != null,
                     findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                             request),
                     request.getHeader(GlobalState.HTTP_AUTH_TOKEN_HEADER));

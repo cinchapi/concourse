@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Functions;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Transformers;
@@ -132,8 +131,7 @@ public class RangeLockService
     public ReadLock getReadLock(String key, Operator operator,
             TObject... values) {
         return getReadLock(Text.wrapCached(key), operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class));
+                Transformers.transformArray(values, Value::wrap, Value.class));
     }
 
     /**

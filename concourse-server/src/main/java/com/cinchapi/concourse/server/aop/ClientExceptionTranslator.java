@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.thrift.InvalidArgumentException;
+import com.cinchapi.concourse.thrift.InvalidOperationException;
 import com.cinchapi.concourse.thrift.ParseException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TransactionException;
@@ -53,6 +54,9 @@ public class ClientExceptionTranslator implements MethodInterceptor {
         }
         catch (java.lang.SecurityException e) {
             throw new SecurityException(e.getMessage());
+        }
+        catch (UnsupportedOperationException e) {
+            throw new InvalidOperationException(e.getMessage());
         }
         catch (IllegalStateException | JsonParseException | SyntaxException e) {
             // java.text.ParseException is checked, so internal server

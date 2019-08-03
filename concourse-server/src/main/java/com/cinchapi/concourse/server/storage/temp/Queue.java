@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Cinchapi Inc.
+ * Copyright (c) 2013-2019 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.storage.temp;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +25,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.util.Producer;
+import com.cinchapi.concourse.util.EagerProducer;
 import com.google.common.collect.Lists;
 
 /**
@@ -55,18 +54,13 @@ public class Queue extends Limbo {
      * To some extent, this producer will queue up bloom filters so that the
      * overhead of creating them is not incurred directly by the caller.
      */
-    private static final Producer<BloomFilter> producer = new Producer<BloomFilter>(
-            new Callable<BloomFilter>() {
-
-                @Override
-                public BloomFilter call() throws Exception {
-                    // TODO: at some point this size should be determined based
-                    // on some intelligent heuristic
-                    BloomFilter filter = BloomFilter.create(500000);
-                    filter.disableThreadSafety();
-                    return filter;
-                }
-
+    private static final EagerProducer<BloomFilter> BLOOM_FILTER_PRODUCER = EagerProducer
+            .of(() -> {
+                // TODO: at some point this size should be determined based
+                // on some intelligent heuristic
+                BloomFilter filter = BloomFilter.create(500000);
+                filter.disableThreadSafety();
+                return filter;
             });
 
     /**
@@ -114,7 +108,7 @@ public class Queue extends Limbo {
                     write.getRecord());
         }
         else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
-            filter = producer.consume();
+            filter = BLOOM_FILTER_PRODUCER.consume();
             for (int i = 0; i < writes.size(); ++i) {
                 Write stored = writes.get(i);
                 filter.put(stored.getKey(), stored.getValue(),
