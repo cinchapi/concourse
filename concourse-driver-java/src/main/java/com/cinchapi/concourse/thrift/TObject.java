@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -253,7 +253,37 @@ public class TObject implements
 
     @Override
     public int compareTo(TObject other) {
-        return comparator().compare(this, other);
+        if(!getClass().equals(other.getClass())) {
+            return getClass().getName().compareTo(other.getClass().getName());
+        }
+
+        int lastComparison = 0;
+
+        lastComparison = Boolean.valueOf(isSetData())
+                .compareTo(other.isSetData());
+        if(lastComparison != 0) {
+            return lastComparison;
+        }
+        if(isSetData()) {
+            lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.data,
+                    other.data);
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+        }
+        lastComparison = Boolean.valueOf(isSetType())
+                .compareTo(other.isSetType());
+        if(lastComparison != 0) {
+            return lastComparison;
+        }
+        if(isSetType()) {
+            lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.type,
+                    other.type);
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+        }
+        return 0;
     }
 
     public TObject deepCopy() {

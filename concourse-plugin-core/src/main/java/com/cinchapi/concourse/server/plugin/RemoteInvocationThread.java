@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,9 +165,8 @@ final class RemoteInvocationThread extends Thread
             }
             Object result0 = Reflection.callIf(
                     (method) -> Modifier.isPublic(method.getModifiers())
-                            && !Reflection
-                                    .isDeclaredAnnotationPresentInHierarchy(
-                                            method, PluginRestricted.class),
+                            && !method.isAnnotationPresent(
+                                    PluginRestricted.class),
                     invokable, request.method, jargs);
             if(result0 instanceof PluginSerializable) {
                 // CON-509: PluginSerializable objects must be wrapped as BINARY

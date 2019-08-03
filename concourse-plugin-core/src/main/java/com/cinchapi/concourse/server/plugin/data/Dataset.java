@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ public abstract class Dataset<E, A, V> extends AbstractMap<E, Map<A, Set<V>>>
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Dataset) {
-            return invert().equals(((Dataset<E, A, V>) obj).invert());
+            return inverted.equals(((Dataset<E, A, V>) obj).inverted);
         }
         else {
             return false;

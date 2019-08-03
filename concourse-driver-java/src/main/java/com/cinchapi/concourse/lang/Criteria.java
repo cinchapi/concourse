@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,23 @@
  */
 package com.cinchapi.concourse.lang;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.SyntaxException;
+import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.util.Parsers;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 /**
@@ -42,7 +50,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public interface Criteria extends Symbol {
+public class Criteria implements Symbol {
 
     /**
      * Return a {@link Criteria} object that expresses the same as the
@@ -53,7 +61,7 @@ public interface Criteria extends Symbol {
      */
     public static Criteria parse(String ccl) {
         Parser parser = Parsers.create(ccl);
-        BuiltCriteria criteria = new BuiltCriteria();
+        Criteria criteria = new Criteria();
         try {
             criteria.symbols = Lists.newArrayList(parser.tokenize());
             return criteria;
@@ -79,7 +87,24 @@ public interface Criteria extends Symbol {
      * @return the Criteria builder
      */
     public static StartState where() {
-        return new StartState(new BuiltCriteria());
+        return new StartState(new Criteria());
+    }
+
+    /**
+     * A flag that indicates whether this {@link Criteria} has been built.
+     */
+    private boolean built = false;
+
+    /**
+     * The collection of {@link Symbol}s that make up this {@link Criteria}.
+     */
+    private List<Symbol> symbols;
+
+    /**
+     * Construct a new instance.
+     */
+    protected Criteria() {
+        this.symbols = Lists.newArrayList();
     }
 
     /**
@@ -94,24 +119,79 @@ public interface Criteria extends Symbol {
      * 
      * @return this {@link Criteria} pinned to {@code timestamp}
      */
-    public Criteria at(Timestamp timestamp);
+    public Criteria at(Timestamp timestamp) {
+        Parser parser = Parsers.create(getCclString());
+        List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
+        TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
+        symbols.forEach((symbol) -> {
+            if(symbol instanceof Expression) {
+                Expression expression = (Expression) symbol;
+                Reflection.set("timestamp", ts, expression); // (authorized)
+            }
+        });
+        Criteria criteria = new Criteria();
+        symbols = Parsing.ungroupExpressions(symbols);
+        criteria.symbols = symbols;
+        return criteria;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Criteria) {
+            return Objects.equals(symbols, ((Criteria) obj).symbols);
+        }
+        else {
+            return false;
+        }
+    }
 
     /**
      * Return a CCL string that is equivalent to this object.
      * 
      * @return an equivalent CCL string
      */
-    public String ccl();
+    public String getCclString() {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (Symbol symbol : symbols) {
+            if(!first) {
+                sb.append(" ");
+            }
+            sb.append(symbol);
+            first = false;
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(symbols);
+    }
+
+    @Override
+    public String toString() {
+        return getCclString();
+    }
 
     /**
-     * Return a CCL string that is equivalent to this object.
+     * Add a {@link Symbol} to this {@link Criteria}.
      * 
-     * @return an equivalent CCL string
-     * @deprecated in favor of {@link #ccl()}
+     * @param symbol
      */
-    @Deprecated
-    public default String getCclString() {
-        return ccl();
+    protected void add(Symbol symbol) {
+        Preconditions.checkState(!built,
+                "Cannot add a symbol to a built Criteria");
+        symbols.add(symbol);
+    }
+
+    /**
+     * Mark this {@link Criteria} as {@code built}.
+     */
+    protected void close() {
+        built = !built ? true : built;
+        List<Symbol> expanded = Lists.newArrayList();
+        expand(symbols, expanded);
+        this.symbols = expanded;
     }
 
     /**
@@ -119,6 +199,27 @@ public interface Criteria extends Symbol {
      * 
      * @return symbols
      */
-    public List<Symbol> symbols();
+    protected List<Symbol> getSymbols() {
+        return Collections.unmodifiableList(symbols);
+    }
+
+    /**
+     * Expand any sub/grouped Criteria.
+     * 
+     * @param symbols
+     * @param expanded
+     */
+    private void expand(List<Symbol> symbols, List<Symbol> expanded) {
+        for (Symbol symbol : symbols) {
+            if(symbol instanceof Criteria) {
+                expanded.add(ParenthesisSymbol.LEFT);
+                expand(((Criteria) symbol).symbols, expanded);
+                expanded.add(ParenthesisSymbol.RIGHT);
+            }
+            else {
+                expanded.add(symbol);
+            }
+        }
+    }
 
 }

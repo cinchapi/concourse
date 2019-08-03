@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Cinchapi Inc.
+# Copyright (c) 2013-2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -77,30 +77,4 @@ struct TSymbol {
  */
 struct TCriteria {
   1:required list<TSymbol> symbols
-}
-
-/**
- * Encapsulation for a single order component (key, direction and optional 
- * selection timestamp for the key).
- */
-struct TOrderComponent {
-  1:required string key,
-  2:optional TObject timestamp,
-  3:required i32 direction
-}
-
-/**
- * Encapsulation for a group of {@link TOrderComponent order components} 
- * that describe how a result set should be sorted.
- */ 
-struct TOrder {
-  1:required list<TOrderComponent> spec
-}
-
-/**
- * Encapsulation for a skip/limit parameters that make up a page of data.
- */
-struct TPage {
-  1:required i32 skip,
-  2:required i32 limit
 }

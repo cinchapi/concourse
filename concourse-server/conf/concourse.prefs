@@ -148,11 +148,3 @@
 #
 # DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434
-
-# The listener port (1-65535) for remote debugger connections. Choose a port between
-# 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host. If the value of this preference is set to 0, then remote debugging for
-# Concourse Server is disabled.
-#
-# DEFAULT: 0
-#remote_debugger_port = 0

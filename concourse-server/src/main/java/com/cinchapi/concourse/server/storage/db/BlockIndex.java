@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -63,17 +62,6 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Return a newly created BlockIndex.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BlockIndex
-     */
-    public static BlockIndex create(Path file, int expectedInsertions) {
-        return create(file.toString(), expectedInsertions);
-    }
-
-    /**
      * Return the BlockIndex that is stored in {@code file}.
      * 
      * @param file
@@ -81,16 +69,6 @@ public class BlockIndex implements Byteable, Syncable {
      */
     public static BlockIndex open(String file) {
         return new BlockIndex(file);
-    }
-
-    /**
-     * Return the BlockIndex that is stored in {@code file}.
-     * 
-     * @param file
-     * @return the BlockIndex
-     */
-    public static BlockIndex open(Path file) {
-        return open(file.toString());
     }
 
     /**

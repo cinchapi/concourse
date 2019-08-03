@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Cinchapi Inc.
+# Copyright (c) 2018 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
 FROM openjdk:8
 MAINTAINER Cinchapi Inc. <opensource@cinchapi.com>
 
-# Install depdenencies:
-# - sudo because some of the Concourse scripts require it
-# - ruby to generate CaSH docs
+# Install sudo because some of the Concourse scripts require it
 RUN apt-get update && \
-    apt-get -y --no-install-recommends install sudo && \
-    apt-get -y --no-install-recommends install ruby-full && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y install sudo
+
+# Install Ruby to generate CaSH docs
+RUN apt-get -y install ruby-full
 
 # Copy the application source to the container
 RUN mkdir -p /usr/src/app
@@ -36,12 +35,8 @@ RUN \
     mkdir -p /opt && \
     cp concourse-server/build/distributions/*.bin /opt
 
-WORKDIR /opt
-
-# Remove source code
-RUN rm -r /usr/src/app
-
 # Install the app
+WORKDIR /opt
 RUN sh *bin
 
 # Link log files

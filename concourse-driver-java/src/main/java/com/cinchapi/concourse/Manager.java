@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ public class Manager {
                 ComplexTObject.fromJavaObject(uname),
                 ComplexTObject.fromJavaObject(pword),
                 ComplexTObject.fromJavaObject(role));
-        concourse.execute(() -> concourse.$core().invokeManagement("createUser",
-                params, concourse.creds()));
+        concourse.execute(() -> concourse.thrift()
+                .invokeManagement("createUser", params, concourse.creds()));
     }
 
     /**
@@ -89,7 +89,7 @@ public class Manager {
                 ComplexTObject.fromJavaObject(uname),
                 ComplexTObject.fromJavaObject(permission),
                 ComplexTObject.fromJavaObject(environment));
-        concourse.execute(() -> concourse.$core().invokeManagement("grant",
+        concourse.execute(() -> concourse.thrift().invokeManagement("grant",
                 params, concourse.creds()));
     }
 

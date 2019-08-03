@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.profile.Benchmark;
-import com.cinchapi.concourse.server.plugin.data.LazyTrackingTObjectResultDataset;
+import com.cinchapi.concourse.server.plugin.data.TObjectResultDataset;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -59,7 +59,7 @@ public class TMapsTest {
             spec.put((long) i, entry);
         }
         Map<Long, Map<String, Set<TObject>>> map = Maps.newLinkedHashMap();
-        Map<Long, Map<String, Set<TObject>>> dataset = new LazyTrackingTObjectResultDataset();
+        Map<Long, Map<String, Set<TObject>>> dataset = new TObjectResultDataset();
         Benchmark mapBench = new Benchmark(unit) {
 
             @Override

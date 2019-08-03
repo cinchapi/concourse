@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ dependencies {
         exclude group: 'org.javassist', module:'javassist'
     }
     compile group: 'com.cinchapi', name: 'cinchapi-commons', version: '1.0.0-SNAPSHOT', changing:true
-    compile (group: 'com.cinchapi', name: 'data-transform-api', version: '1.4.0', changing:true) {
+    compile (group: 'com.cinchapi', name: 'data-transform-api', version: '1.0.0-SNAPSHOT', changing:true) {
         exclude group: 'com.cinchapi', module: 'concourse-driver-java'
     }
 }

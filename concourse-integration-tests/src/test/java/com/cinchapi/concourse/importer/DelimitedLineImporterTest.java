@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.importer;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -25,7 +24,6 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * Base unit test that validates the integrity of importing delimited line based
@@ -65,19 +63,6 @@ public abstract class DelimitedLineImporterTest
                 Lists.newArrayList(client.select(records).values()));
     }
 
-    @Test
-    public void testTagSource() {
-        Map<String, String> params = Maps.newLinkedHashMap(importer.params);
-        params.put(Importer.ANNOTATE_DATA_SOURCE_OPTION_NAME, "true");
-        importer.setParams(params);
-        Set<Long> records = importer
-                .importString("a,b" + System.lineSeparator() + "1,2");
-        records.forEach(record -> {
-            Assert.assertNotNull(
-                    client.get(Importer.DATA_SOURCE_ANNOTATION_KEY, record));
-        });
-    }
-
     @Test(expected = IllegalStateException.class)
     public void testCannotSetHeaderAfterImport() {
         String file = Resources.get("/" + getImportPath()).getFile();
@@ -95,7 +80,8 @@ public abstract class DelimitedLineImporterTest
 
     /**
      * Return a {@link com.cinchapi.concourse.importer.LineBasedImporter legacy}
-     * importer to use for validation of the new importer.
+     * importer to use for
+     * validation of the new importer.
      *
      * @return the legacy Importer
      */

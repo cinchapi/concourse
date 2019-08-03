@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.cinchapi.concourse.server.storage.AtomicSupport;
 
 /**
  * A collection of wrapper functions for executing an {@link AtomicOperation}
- * via an {@link AtomicRoutine} with special logic (i.e. retry on failure, etc).
+ * via an {AtomicRoutine} with special logic (i.e. retry on failure, etc).
  *
  * @author Jeff Nelson
  */
@@ -30,7 +30,7 @@ public final class AtomicOperations {
     private AtomicOperations() {/* no-init */}
 
     /**
-     * Run the {@link AtomicRoutine} within an {@link AtomicOperation} from the
+     * Run the {@link AtomicRoutine} with an {@link AtomicOperation} from the
      * provided {@code store} and continue to retry execution of the routine
      * until it terminates without failure.
      * 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,14 +58,16 @@ public class PluginSerializer {
     public <T> T deserialize(ByteBuffer bytes) {
         Scheme scheme = Scheme.values()[bytes.get()];
         if(scheme == Scheme.PLUGIN_SERIALIZABLE) {
-            Buffer buffer = HeapBuffer.wrap(ByteBuffers.getByteArray(bytes));
+            Buffer buffer = HeapBuffer.wrap(ByteBuffers.toByteArray(bytes));
+            buffer.position(bytes.position());
             Class<T> clazz = Reflection.getClassCasted(buffer.readUTF8());
             T instance = Reflection.newInstance(clazz);
             ((PluginSerializable) instance).deserialize(buffer);
             return instance;
         }
         else if(scheme == Scheme.REMOTE_MESSAGE) {
-            Buffer buffer = HeapBuffer.wrap(ByteBuffers.getByteArray(bytes));
+            Buffer buffer = HeapBuffer.wrap(ByteBuffers.toByteArray(bytes));
+            buffer.position(bytes.position());
             T instance = (T) RemoteMessage.fromBuffer(buffer);
             return instance;
         }
@@ -153,8 +155,8 @@ public class PluginSerializer {
             return serialize(ComplexTObject.fromJavaObject(object));
         }
         else if(object instanceof Serializable) {
-            byte[] bytes = ByteBuffers.getByteArray(
-                    Serializables.getBytes((Serializable) object));
+            byte[] bytes = ByteBuffers
+                    .toByteArray(Serializables.getBytes((Serializable) object));
             byte[] classBytes = object.getClass().getName()
                     .getBytes(StandardCharsets.UTF_8);
             buffer = ByteBuffer

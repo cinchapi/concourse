@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,10 @@ import com.cinchapi.concourse.util.Numbers;
  */
 public final class Calculations {
 
-    /**
-     * Check if {@code value} can be included in a calculation.
-     * 
-     * @param value
-     */
     public static void checkCalculatable(Object value) {
         if(!(value instanceof Number)) {
             // TODO throw a specific/custom exception
-            throw new UnsupportedOperationException(
-                    "Cannot perform a calculation on a non-numeric value: "
-                            + value);
+            throw new UnsupportedOperationException();
         }
     }
 

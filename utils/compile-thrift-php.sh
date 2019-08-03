@@ -24,29 +24,26 @@ PACKAGE=$TARGET"/src"
 cd $THRIFT_DIR
 
 # Run the thrift compile
-for module in "${MODULES[@]}"; do
-  service=$(cat $module | grep service | cut -d ' ' -f 2)
-  thrift -out $PACKAGE -gen php $module
+thrift -out $PACKAGE -gen php concourse.thrift
 
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
+if [ $? -ne 0 ]; then
+  exit 1
+fi
 
-  API=$PACKAGE"/concourse/thrift/$service.php"
+API=$PACKAGE"/concourse/thrift/ConcourseService.php"
 
-  # Replace all TransactionToken declarations to take no type since we allow that
-  # parameter to legally be null in method invocations.
-  perl -p -i -e "s/, \\\\concourse\\\\thrift\\\\shared\\\\TransactionToken/, /g" $API
+# Replace all TransactionToken declarations to take no type since we allow that
+# parameter to legally be null in method invocations.
+perl -p -i -e "s/, \\\\concourse\\\\thrift\\\\shared\\\\TransactionToken/, /g" $API
 
-  # Ensure that we consistently populate array values instead of array keys
-  # regardless of whether the value is scalar or not
-  perl -p -i -e 's/\[(\$[A-Za-z]{1,}[0-9]{0,})\]\s*=\strue;/ []= $1;/g' $API
+# Ensure that we consistently populate array values instead of array keys
+# regardless of whether the value is scalar or not
+perl -p -i -e 's/\[(\$[A-Za-z]{1,}[0-9]{0,})\]\s*=\strue;/ []= $1;/g' $API
 
-  # Serialize any array keys that are not strings or integers since PHP doesn't
-  # allow them.
-  perl -p -i -e 's/\[(\$[A-Za-z]{1,}[0-9]{0,})\]/[(!is_string($1) && !is_integer($1)) ? serialize($1) : $1]/g' $API
+# Serialize any array keys that are not strings or integers since PHP doesn't
+# allow them.
+perl -p -i -e 's/\[(\$[A-Za-z]{1,}[0-9]{0,})\]/[(!is_string($1) && !is_integer($1)) ? serialize($1) : $1]/g' $API
 
-  echo "Finished compiling the Thrift API for PHP to "$(cd $PACKAGE && pwd)
-done
+echo "Finished compiling the Thrift API for PHP to "$(cd $PACKAGE && pwd)
 
 exit 0

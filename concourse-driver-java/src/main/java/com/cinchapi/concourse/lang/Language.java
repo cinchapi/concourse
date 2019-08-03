@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ public final class Language {
      */
     public static TCriteria translateToThriftCriteria(Criteria criteria) {
         List<TSymbol> symbols = Lists.newArrayList();
-        for (Symbol symbol : criteria.symbols()) {
+        for (Symbol symbol : criteria.getSymbols()) {
             symbols.add(translateToThriftSymbol(symbol));
         }
         return new TCriteria(symbols);
@@ -116,7 +116,7 @@ public final class Language {
      * @return the analogous Java {@link Criteria}
      */
     public static Criteria translateFromThriftCriteria(TCriteria tcriteria) {
-        BuiltCriteria criteria = new BuiltCriteria();
+        Criteria criteria = new Criteria();
         for (TSymbol tsymbol : tcriteria.getSymbols()) {
             criteria.add(translateFromThriftSymbol(tsymbol));
         }

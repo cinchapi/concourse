@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,6 @@ import com.google.common.collect.Maps;
  */
 @SuppressWarnings("serial")
 public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
-
-    /**
-     * The minimum column length. Is set equal to the size of the string "null"
-     * for consistent spacing when values don't exist.
-     */
-    private static int MIN_COLUMN_LENGTH = "null".length();
 
     /**
      * Return an empty {@link PrettyLinkedTableMap} with the default row name.
@@ -112,8 +106,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             super.put(row, rowdata);
         }
         rowLength = Math.max(row.toString().length(), rowLength);
-        int current = columns.containsKey(column) ? columns.get(column)
-                : MIN_COLUMN_LENGTH;
+        int current = columns.containsKey(column) ? columns.get(column) : 0;
         columns.put(column, Math.max(current, Math
                 .max(column.toString().length(), value.toString().length())));
         return rowdata.put(column, value);

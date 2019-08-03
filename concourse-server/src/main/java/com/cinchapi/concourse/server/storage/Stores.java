@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.regex.Pattern;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.base.AnyStrings;
@@ -23,7 +25,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TStrings;
-import com.cinchapi.concourse.validate.Keys;
 
 /**
  * {@link Store} based utility functions.
@@ -101,7 +102,7 @@ public final class Stores {
      * @param value
      */
     public static void validateWriteData(String key, TObject value) { // CON-21
-        if(!Keys.isWritable(key)) {
+        if(key.length() == 0 || !KEY_VALIDATION_REGEX.matcher(key).matches()) {
             throw new IllegalArgumentException(
                     AnyStrings.joinWithSpace(key, "is not a valid key"));
         }
@@ -150,4 +151,12 @@ public final class Stores {
             return values;
         }
     }
+
+    /**
+     * A pre-compiled regex pattern that is used to validate that each key is
+     * non-empty, alphanumeric with no special characters other than underscore
+     * (_).
+     */
+    private static final Pattern KEY_VALIDATION_REGEX = Pattern
+            .compile("^[a-zA-Z0-9_]+$");
 }

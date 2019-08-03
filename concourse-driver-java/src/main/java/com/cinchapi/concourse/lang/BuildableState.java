@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
  */
 package com.cinchapi.concourse.lang;
 
-import java.util.List;
-
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
-import com.cinchapi.ccl.grammar.Symbol;
-import com.cinchapi.concourse.Timestamp;
 
 /**
  * The base class for a language state that can be transformed into a complete
@@ -27,14 +23,14 @@ import com.cinchapi.concourse.Timestamp;
  * 
  * @author Jeff Nelson
  */
-public abstract class BuildableState extends State implements Criteria {
+public abstract class BuildableState extends State {
 
     /**
      * Construct a new instance.
      * 
      * @param criteria
      */
-    protected BuildableState(BuiltCriteria criteria) {
+    protected BuildableState(Criteria criteria) {
         super(criteria);
     }
 
@@ -66,26 +62,6 @@ public abstract class BuildableState extends State implements Criteria {
     public StartState or() {
         criteria.add(ConjunctionSymbol.OR);
         return new StartState(criteria);
-    }
-
-    @Override
-    public Criteria at(Timestamp timestamp) {
-        return build().at(timestamp);
-    }
-
-    @Override
-    public final String ccl() {
-        return build().ccl();
-    }
-
-    @Override
-    public final List<Symbol> symbols() {
-        return build().symbols();
-    }
-
-    @Override
-    public final String toString() {
-        return build().toString();
     }
 
 }

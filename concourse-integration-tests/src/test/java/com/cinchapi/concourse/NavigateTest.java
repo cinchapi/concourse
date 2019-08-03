@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,14 @@ import org.junit.Test;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Tests to check the functionality of navigate feature.
  * 
  * @author Raghav Babu
- * @author Jeff Nelson
  */
 public class NavigateTest extends ConcourseIntegrationTest {
 
@@ -41,7 +40,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeyCriteria(Concourse client) {
+    private static Map<Long, Set<String>> setupNavigateKeyCriteria(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("age", 30, 1);
         client.add("friends", Link.to(2), 1);
@@ -49,6 +49,9 @@ public class NavigateTest extends ConcourseIntegrationTest {
         client.add("age", 20, 2);
         client.add("friends", Link.to(3), 2);
         client.add("name", "hello", 3);
+        Map<Long, Set<String>> expected = Maps.newHashMap();
+        expected.put(3L, Sets.newHashSet("hello"));
+        return expected;
     }
 
     /**
@@ -56,10 +59,14 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeyRecord(Concourse client) {
+    private static Map<Long, Set<String>> setupNavigateKeyRecord(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
+        Map<Long, Set<String>> expected = Maps.newHashMap();
+        expected.put(2L, Sets.newHashSet("bar"));
+        return expected;
     }
 
     /**
@@ -67,7 +74,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeyRecords(Concourse client) {
+    private static Map<Long, Set<String>> setupNavigateKeyRecords(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
@@ -75,6 +83,11 @@ public class NavigateTest extends ConcourseIntegrationTest {
         client.add("friends", Link.to(4), 2);
         client.add("name", "raghav", 3);
         client.add("name", "jeff", 4);
+        Map<Long, Set<String>> expected = Maps.newHashMap();
+        expected.put(2L, Sets.newHashSet("bar"));
+        expected.put(3L, Sets.newHashSet("raghav"));
+        expected.put(4L, Sets.newHashSet("jeff"));
+        return expected;
     }
 
     /**
@@ -82,7 +95,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeysCriteria(Concourse client) {
+    private static Map<Long, Map<String, Set<Object>>> setupNavigateKeysCriteria(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("age", 35, 1);
         client.add("friends", Link.to(2), 1);
@@ -90,6 +104,14 @@ public class NavigateTest extends ConcourseIntegrationTest {
         client.add("age", 20, 2);
         client.add("friends", Link.to(3), 2);
         client.add("name", "hello", 3);
+        Map<Long, Map<String, Set<Object>>> expected = Maps.newHashMap();
+        Map<String, Set<Object>> row2 = Maps.newHashMap();
+        row2.put("name", Sets.newHashSet("bar"));
+        Map<String, Set<Object>> row3 = Maps.newHashMap();
+        row3.put("name", Sets.newHashSet("hello"));
+        expected.put(2L, row2);
+        expected.put(3L, row3);
+        return expected;
     }
 
     /**
@@ -97,7 +119,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeysRecord(Concourse client) {
+    private static Map<Long, Map<String, Set<Object>>> setupNavigateKeysRecord(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
@@ -105,6 +128,17 @@ public class NavigateTest extends ConcourseIntegrationTest {
         client.add("friends", Link.to(4), 2);
         client.add("name", "raghav", 3);
         client.add("name", "jeff", 4);
+        Map<Long, Map<String, Set<Object>>> expected = Maps.newHashMap();
+        Map<String, Set<Object>> row2 = Maps.newHashMap();
+        Map<String, Set<Object>> row3 = Maps.newHashMap();
+        Map<String, Set<Object>> row4 = Maps.newHashMap();
+        expected.put(2L, row2);
+        expected.put(3L, row3);
+        expected.put(4L, row4);
+        row2.put("name", Sets.newHashSet("bar"));
+        row3.put("name", Sets.newHashSet("raghav"));
+        row4.put("name", Sets.newHashSet("jeff"));
+        return expected;
     }
 
     /**
@@ -112,7 +146,8 @@ public class NavigateTest extends ConcourseIntegrationTest {
      * 
      * @param client
      */
-    private static void setupNavigateKeysRecords(Concourse client) {
+    private static Map<Long, Map<String, Set<Object>>> setupNavigateKeysRecords(
+            Concourse client) {
         client.add("name", "foo", 1);
         client.add("friends", Link.to(2), 1);
         client.add("name", "bar", 2);
@@ -120,173 +155,167 @@ public class NavigateTest extends ConcourseIntegrationTest {
         client.add("friends", Link.to(4), 2);
         client.add("name", "raghav", 3);
         client.add("name", "jeff", 4);
+        Map<Long, Map<String, Set<Object>>> expected = Maps.newHashMap();
+        Map<String, Set<Object>> row2 = Maps.newHashMap();
+        Map<String, Set<Object>> row3 = Maps.newHashMap();
+        Map<String, Set<Object>> row4 = Maps.newHashMap();
+        expected.put(2L, row2);
+        expected.put(3L, row3);
+        expected.put(4L, row4);
+        row2.put("name", Sets.newHashSet("bar"));
+        row3.put("name", Sets.newHashSet("raghav"));
+        row4.put("name", Sets.newHashSet("jeff"));
+        return expected;
     }
 
     @Test
     public void testNavigateKeyCcl() {
         String direction = "friends.name";
-        setupNavigateKeyCriteria(client);
-        Map<Long, Set<String>> actual = client.select(direction, "age < 30");
-        Assert.assertEquals(ImmutableMap.of(2L, ImmutableSet.of("hello")),
-                actual);
+        Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
+        expected.put(3L, Sets.newHashSet("hello"));
+        Map<Long, Set<String>> actual = client.navigate(direction, "age < 30");
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCclTime() {
         String direction = "friends.name";
-        setupNavigateKeyCriteria(client);
+        Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
+        expected.put(3L, Sets.newHashSet("hello"));
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client.select(direction, "age < 30",
+        Map<Long, Set<String>> actual = client.navigate(direction, "age < 30",
                 timestamp);
-        Assert.assertEquals(ImmutableMap.of(2L, ImmutableSet.of("hello")),
-                actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCriteria() {
         String direction = "friends.name";
-        setupNavigateKeyCriteria(client);
-        Map<Long, Set<String>> actual = client.select(direction,
+        Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
+        expected.put(3L, Sets.newHashSet("hello"));
+        Map<Long, Set<String>> actual = client.navigate(direction,
                 Criteria.where().key("age").operator(Operator.LESS_THAN)
                         .value(30).build());
-        Assert.assertEquals(ImmutableMap.of(2L, ImmutableSet.of("hello")),
-                actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyCriteriaTime() {
         String direction = "friends.name";
-        setupNavigateKeyCriteria(client);
+        Map<Long, Set<String>> expected = setupNavigateKeyCriteria(client);
+        expected.put(3L, Sets.newHashSet("hello"));
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client.select(
+        Map<Long, Set<String>> actual = client.navigate(
                 direction, Criteria.where().key("age")
                         .operator(Operator.LESS_THAN).value(30).build(),
                 timestamp);
-        Assert.assertEquals(ImmutableMap.of(2L, ImmutableSet.of("hello")),
-                actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecord() {
         String direction = "friends.name";
-        setupNavigateKeyRecord(client);
-        Set<String> actual = client.select(direction, 1);
-        Assert.assertEquals(ImmutableSet.of("bar"), actual);
+        Map<Long, Set<String>> expected = setupNavigateKeyRecord(client);
+        Map<Long, Set<String>> actual = client.navigate(direction, 1);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecords() {
         String direction = "friends.name";
-        setupNavigateKeyRecords(client);
-        Map<Long, Set<String>> actual = client.select(direction,
+        Map<Long, Set<String>> expected = setupNavigateKeyRecords(client);
+        Map<Long, Set<String>> actual = client.navigate(direction,
                 Lists.newArrayList(1L, 2L));
-        Assert.assertEquals(ImmutableMap.of(1L, ImmutableSet.of("bar"), 2L,
-                ImmutableSet.of("raghav", "jeff")), actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecordsTime() {
         String direction = "friends.name";
-        setupNavigateKeyRecords(client);
+        Map<Long, Set<String>> expected = setupNavigateKeyRecords(client);
         Timestamp timestamp = Timestamp.now();
         client.set("name", "john", 3);
-        Map<Long, Set<String>> actual = client.select(direction,
+        Map<Long, Set<String>> actual = client.navigate(direction,
                 Lists.newArrayList(1L, 2L), timestamp);
-        Assert.assertEquals(ImmutableMap.of(1L, ImmutableSet.of("bar"), 2L,
-                ImmutableSet.of("raghav", "jeff")), actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeyRecordTime() {
         String direction = "friends.name";
-        setupNavigateKeyRecord(client);
+        Map<Long, Set<String>> expected = setupNavigateKeyRecord(client);
         Timestamp timestamp = Timestamp.now();
         client.add("name", "john", 3);
-        Set<String> actual = client.select(direction, 1, timestamp);
-        Assert.assertEquals(ImmutableSet.of("bar"), actual);
+        Map<Long, Set<String>> actual = client.navigate(direction, 1,
+                timestamp);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysCcl() {
-        setupNavigateKeysCriteria(client);
-        Map<Long, Map<String, Set<String>>> actual = client.get(
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysCriteria(
+                client);
+        Map<Long, Map<String, Set<String>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"),
                 "age > 30");
-        Assert.assertEquals(ImmutableMap.of(1L, ImmutableMap.of("friends.name",
-                "bar", "friends.friends.name", "hello")), actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysCclTime() {
-        setupNavigateKeysCriteria(client);
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysCriteria(
+                client);
         Timestamp timestamp = Timestamp.now();
         client.set("name", "foo", 2);
-        Map<Long, Map<String, Set<String>>> actual = client.get(
+        Map<Long, Map<String, Set<String>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"),
                 "age > 30", timestamp);
-        Assert.assertEquals(ImmutableMap.of(1L, ImmutableMap.of("friends.name",
-                "bar", "friends.friends.name", "hello")), actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysRecord() {
-        setupNavigateKeysRecord(client);
-        Map<String, Set<Object>> actual = client.get(
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysRecord(
+                client);
+        Map<Long, Map<String, Set<Object>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"), 1);
-        Assert.assertEquals(ImmutableMap.of("friends.name", "bar",
-                "friends.friends.name", "jeff"), actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysRecords() {
-        setupNavigateKeysRecords(client);
-        Map<Long, Map<String, Set<String>>> actual = client.select(
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysRecords(
+                client);
+        Map<Long, Map<String, Set<String>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"),
                 Lists.newArrayList(1L, 2L));
-        Assert.assertEquals(
-                ImmutableMap.of(1L,
-                        ImmutableMap.of("friends.name", ImmutableSet.of("bar"),
-                                "friends.friends.name",
-                                ImmutableSet.of("raghav", "jeff")),
-                        2L,
-                        ImmutableMap.of("friends.name",
-                                ImmutableSet.of("raghav", "jeff"),
-                                "friends.friends.name", ImmutableSet.of())),
-                actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysRecordsTime() {
-        setupNavigateKeysRecords(client);
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysRecords(
+                client);
         Timestamp timestamp = Timestamp.now();
         client.set("name", "jefferson", 4);
-        Map<Long, Map<String, Set<String>>> actual = client.select(
+        Map<Long, Map<String, Set<String>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"),
                 Lists.newArrayList(1L, 2L), timestamp);
-        Assert.assertEquals(
-                ImmutableMap.of(1L,
-                        ImmutableMap.of("friends.name", ImmutableSet.of("bar"),
-                                "friends.friends.name",
-                                ImmutableSet.of("raghav", "jeff")),
-                        2L,
-                        ImmutableMap.of("friends.name",
-                                ImmutableSet.of("raghav", "jeff"),
-                                "friends.friends.name", ImmutableSet.of())),
-                actual);
+        Assert.assertEquals(expected, actual);
     }
 
     @Test
     public void testNavigateKeysRecordTime() {
-        setupNavigateKeysRecord(client);
+        Map<Long, Map<String, Set<Object>>> expected = setupNavigateKeysRecord(
+                client);
         Timestamp timestamp = Timestamp.now();
-        client.add("name", "jeffery", 4);
-        Map<String, Set<Object>> actual = client.get(
+        client.set("name", "jeffery", 4);
+        Map<Long, Map<String, Set<Object>>> actual = client.navigate(
                 Lists.newArrayList("friends.name", "friends.friends.name"), 1,
                 timestamp);
-        Assert.assertEquals(ImmutableMap.of("friends.name", "bar",
-                "friends.friends.name", "jeff"), actual);
+        Assert.assertEquals(expected, actual);
     }
 
 }

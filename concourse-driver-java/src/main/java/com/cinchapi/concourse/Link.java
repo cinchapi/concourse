@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public final class Link extends Number implements Comparable<Link> {
      *         resolvable link instruction}
      */
     public static String toWhere(Criteria criteria) {
-        return toWhere(criteria.ccl());
+        return toWhere(criteria.getCclString());
     }
 
     /**

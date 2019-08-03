@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -32,14 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AdHocIterator;
-import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.annotate.PackagePrivate;
@@ -56,7 +53,6 @@ import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
 
@@ -307,44 +303,38 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param directory
      * @param diskLoad - set to {@code true} to deserialize the block {@code id}
      *            from {@code directory} on disk
-     * @throws MalformedBlockException if a loaded Block does not have all of
-     *             the required components
      */
-    protected Block(String id, String directory, boolean diskLoad)
-            throws MalformedBlockException {
+    protected Block(String id, String directory, boolean diskLoad) {
         FileSystem.mkdirs(directory);
         this.id = id;
         this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
-        Path $stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
-        Path $filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
-        Path $index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
-        this.stats = new BlockStats($stats);
+        this.stats = new BlockStats(
+                Paths.get(directory, id + STATS_NAME_EXTENSION));
         if(diskLoad) {
-            String[] missing = ImmutableList.of($stats, $filter, $index)
-                    .stream().filter(path -> !path.toFile().exists())
-                    .map(path -> path.getFileName().toString())
-                    .collect(Collectors.toList()).toArray(Array.containing());
-            if(missing.length > 0) {
-                throw new MalformedBlockException(id, directory, missing);
-            }
             this.mutable = false;
             this.size = (int) FileSystem.getFileSize(this.file);
             try {
-                this.filter = BloomFilter.open($filter);
+                this.filter = BloomFilter.open(directory + File.separator + id
+                        + FILTER_NAME_EXTENSION);
                 filter.disableThreadSafety();
             }
             catch (RuntimeException e) {
                 repair(e);
             }
-            this.index = BlockIndex.open($index);
+            this.index = BlockIndex.open(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION);
             this.revisions = null;
         }
         else {
             this.mutable = true;
             this.size = 0;
             this.revisions = createBackingStore(Sorter.INSTANCE);
-            this.filter = BloomFilter.create($filter, EXPECTED_INSERTIONS);
-            this.index = BlockIndex.create($index, EXPECTED_INSERTIONS);
+            this.filter = BloomFilter.create(
+                    (directory + File.separator + id + FILTER_NAME_EXTENSION),
+                    EXPECTED_INSERTIONS);
+            this.index = BlockIndex.create(
+                    directory + File.separator + id + INDEX_NAME_EXTENSION,
+                    EXPECTED_INSERTIONS);
             stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(

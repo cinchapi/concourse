@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -343,7 +343,7 @@ public interface Store {
      * <p>
      * This method checks that there was a mapping from {@code key} to
      * {@code value} in {@code record} at {@code timestamp}. This method has the
-     * same affect as calling {@link #select(String, long, long)}
+     * same affect as calling {@link #select(String, long, DateTime)}
      * {@link Set#contains(Object)}.
      * </p>
      * 

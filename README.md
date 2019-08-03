@@ -1,13 +1,13 @@
 # Concourse
 
- ![](https://img.shields.io/badge/version-0.10.0-green.svg)
+ ![](https://img.shields.io/badge/version-0.9.6-green.svg)
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
  [![](https://circleci.com/gh/cinchapi/concourse.svg?style=shield&circle-token=954a20e6114d649b1b6a046d95b953e7d05d2e2f)](https://circleci.com/gh/cinchapi/concourse)
 
 > [Concourse](http://concoursedb.com) is a distributed database warehouse for transactions search and analytics across time. Developers prefer Concourse because it simplifies building misssion-critical systems with on-demand data intelligence. Furthermore, Concourse makes end-to-end data management trivial by requiring no extra infrastructure, no prior configuration and no continuous tuning–all of which greatly reduce costs, and allow developers to focus on core business problems.
 
-This is version 0.10.0 of Concourse.
+This is version 0.9.6 of Concourse.
 
 ## Quickstart
 ### Docker
@@ -32,30 +32,6 @@ docker run -p 1717:1717 -e CONCOURSE_HEAP_SIZE=<HEAP_SIZE> --name concourse cinc
 #### Run `concourse shell` and connect to the running `concourse` docker container
 ```bash
 docker run -it --rm --link concourse:concourse cinchapi/concourse shell --host concourse --password admin
-```
-
-#### Run `concourse shell` and connect to a running `concourse` container spun up using `docker-compose`
-```bash
-docker-compose run concourse shell --host concourse
-```
-
-#### Use the `concourse import` to perform an [interactive import](https://docs.cinchapi.com/concourse/imports/) that reads input from the command line
-```bash
-docker run -it --rm --link concourse:concourse cinchapi/concourse import --host concourse --password admin
-```
-
-#### Use the `concourse import` to import a **file** from the host machine into the `concourse` docker container
-```bash
-xargs -I % docker run -i --rm --link concourse:concourse --mount type=bind,source=%,target=/data/% cinchapi/concourse import --host concourse --password admin -d /data/% <<< /absolute/path/to/file
-```
-
-#### Run server-side management commands (e.g. `concourse debug`) within the running container
-```bash
-docker exec -it concourse concourse <command> <args>
-```
-For example, you can call the `concourse users sessions` command
-```bash
-docker exec -it concourse concourse users sessions --password admin
 ```
 
 For more information, visit [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart).
@@ -193,6 +169,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2019 Cinchapi Inc.
+Copyright © 2013-2018 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

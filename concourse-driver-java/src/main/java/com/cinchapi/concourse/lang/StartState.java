@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class StartState extends State {
      * 
      * @param criteria
      */
-    public StartState(BuiltCriteria criteria) {
+    public StartState(Criteria criteria) {
         super(criteria);
     }
 

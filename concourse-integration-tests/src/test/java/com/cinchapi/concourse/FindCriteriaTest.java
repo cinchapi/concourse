@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Resources;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -89,6 +88,11 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                         .operator(Operator.GREATER_THAN).value(90)),
                 client.find(Criteria.where().key("graduation_rate")
                         .operator(Operator.GREATER_THAN).value(90).build()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNonBuildableStateParamDoesNotSucceed() {
+        client.find(new Object());
     }
 
     @Test
@@ -191,35 +195,6 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
         client.find(Criteria.where().key("foo").operator(Operator.EQUALS)
                 .value("\"a and b\"").build());
         Assert.assertTrue(true); // lack of Exception means test passes
-    }
-
-    @Test
-    public void testFindCriteriaImplicitBuild() {
-        Assert.assertTrue(hasSameResults(Criteria.where()
-                .group(Criteria.where().key("graduation_rate")
-                        .operator(Operator.GREATER_THAN).value(90).or()
-                        .key("yield_men").operator(Operator.EQUALS).value(20))
-                .and()
-                .group(Criteria.where().key("percent_undergrad_black")
-                        .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).or()
-                        .key("total_cost_out_state")
-                        .operator(Operator.GREATER_THAN).value(50000)
-                        .build())));
-    }
-
-    @Test
-    public void testFindCriteriaTimestampValueBetweenOperator() {
-        Timestamp a = Timestamp.now();
-        Timestamp b = Timestamp.now();
-        Timestamp c = Timestamp.now();
-        Timestamp d = Timestamp.now();
-        Timestamp e = Timestamp.now();
-        client.add("foo", b, 1);
-        client.add("foo", c, 2);
-        client.add("foo", e, 3);
-        Criteria criteria = Criteria.where().key("foo")
-                .operator(Operator.BETWEEN).value(a).value(d);
-        Assert.assertEquals(ImmutableSet.of(1L, 2L), client.find(criteria));
     }
 
     /**

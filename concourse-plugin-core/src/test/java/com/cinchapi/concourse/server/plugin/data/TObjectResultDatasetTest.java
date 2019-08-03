@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2018 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ import com.cinchapi.concourse.util.Random;
  */
 public class TObjectResultDatasetTest extends ConcourseBaseTest {
 
-    protected Dataset<Long, String, TObject> dataset;
+    private Dataset<Long, String, TObject> dataset;
 
     @Override
     public void beforeEachTest() {
-        dataset = createNewDataset();
+        dataset = new TObjectResultDataset();
     }
 
     @Override
@@ -123,10 +123,6 @@ public class TObjectResultDatasetTest extends ConcourseBaseTest {
     public void testGetRow() {
         dataset.insert(1L, "key", Convert.javaToThrift(Random.getObject()));
         Assert.assertNotNull(dataset.get(1L));
-    }
-
-    protected Dataset<Long, String, TObject> createNewDataset() {
-        return new TObjectResultDataset();
     }
 
 }
