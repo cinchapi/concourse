@@ -1120,6 +1120,12 @@ public class ManagedConcourseServer {
         public boolean commit() {
             return invoke("commit").with();
         }
+        
+        //TODO: More here
+        @Override
+        public boolean undo(String record, int revisions) {
+            return invoke("undo").with(record);
+        }
 
         @Override
         public Set<String> describe() {
@@ -3181,6 +3187,8 @@ public class ManagedConcourseServer {
                 return object;
             }
         }
+
+        
     }
 }
 

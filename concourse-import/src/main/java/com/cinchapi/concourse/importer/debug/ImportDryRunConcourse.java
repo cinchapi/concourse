@@ -1742,4 +1742,9 @@ public class ImportDryRunConcourse extends Concourse {
         return new ImportDryRunConcourse();
     }
 
+    @Override
+    public boolean undo(String record, int revisions) {
+        throw new UnsupportedOperationException();
+    }
+
 }
