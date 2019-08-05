@@ -572,6 +572,11 @@ class ConcourseThriftDriver extends Concourse {
                     : false;
         });
     }
+    
+    @Override
+    public boolean undo(String record, int revisions) {
+        return false;
+    }
 
     @Override
     public Set<String> describe() {
@@ -4490,5 +4495,7 @@ class ConcourseThriftDriver extends Concourse {
     TransactionToken transaction() {
         return transaction;
     }
+
+    
 
 }
