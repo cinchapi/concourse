@@ -104,6 +104,7 @@ import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.PermissionException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
@@ -6613,6 +6614,18 @@ public class ConcourseServer extends BaseConcourseServer implements
         Logger.info("Started Transaction {}", transaction);
         return token;
     }
+    
+    @Override
+    @ThrowsClientExceptions
+    @PluginRestricted
+    @VerifyAccessToken
+    public boolean undo(String record, long revision, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+//        return client.undo();
+        return false;
+    }
 
     /**
      * Start the server.
@@ -7223,5 +7236,4 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
 
     }
-
 }

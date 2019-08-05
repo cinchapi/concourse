@@ -1193,6 +1193,22 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3
   );
+  
+  /**
+   * Undo
+   */
+  bool undo(
+    1: string record
+    2: i64 revision
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in the database.
