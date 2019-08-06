@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.10.1 (August 6, 2019)
+* Fixed a regression that caused an error when attempting an action with a CCL statement containing an unquoted string value with one or more periods.
+
 #### Version 0.10.0 (August 3, 2019)
 
 ##### BREAKING CHANGES
