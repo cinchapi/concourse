@@ -574,8 +574,10 @@ class ConcourseThriftDriver extends Concourse {
     }
     
     @Override
-    public boolean undo(String record, int revisions) {
-        return false;
+    public boolean undo(String key, long record, long revision) {
+        return execute(() -> {
+            return core.undo(key, record, revision, creds, transaction, environment);
+        });
     }
 
     @Override

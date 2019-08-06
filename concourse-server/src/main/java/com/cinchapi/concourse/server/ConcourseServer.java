@@ -6619,11 +6619,11 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @PluginRestricted
     @VerifyAccessToken
-    public boolean undo(String record, long revision, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public boolean undo(String key, long record, long revision,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, PermissionException,
             TException {
-//        return client.undo();
+        // TODO Auto-generated method stub
         return false;
     }
 

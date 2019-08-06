@@ -596,7 +596,7 @@ public abstract class Concourse implements AutoCloseable {
 
 
     //TOOD: 
-    public abstract boolean undo(String record, int revisions);
+    public abstract boolean undo(String key, long record, long revision);
     
     /**
      * Return all of the keys in the database.

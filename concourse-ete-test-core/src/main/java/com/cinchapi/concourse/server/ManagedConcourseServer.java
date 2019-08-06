@@ -1121,10 +1121,9 @@ public class ManagedConcourseServer {
             return invoke("commit").with();
         }
         
-        //TODO: More here
         @Override
-        public boolean undo(String record, int revisions) {
-            return invoke("undo").with(record);
+        public boolean undo(String key, long record, long revision) {
+            return invoke("undo").with(key); //TODO: CON-265
         }
 
         @Override

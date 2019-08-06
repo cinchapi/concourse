@@ -1198,11 +1198,12 @@ service ConcourseService {
    * Undo
    */
   bool undo(
-    1: string record
-    2: i64 revision
-    3: shared.AccessToken creds,
-    4: shared.TransactionToken transaction,
-    5: string environment
+    1: string key,
+    2: i64 record,
+    3: i64 revision,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment
   )
   throws (
     1: exceptions.SecurityException ex,
