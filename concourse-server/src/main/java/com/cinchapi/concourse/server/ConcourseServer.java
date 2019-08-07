@@ -6623,7 +6623,14 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, PermissionException,
             TException {
-        // TODO Auto-generated method stub
+        //TODO: CON-265
+        
+        Map<Long, String> history = getStore(transaction, environment).audit(key, record);
+        
+        // Get the record
+        TObject tobject = Iterables.getLast(Stores.select(getStore(transaction, environment), key, record), TObject.NULL);
+        
+        
         return false;
     }
 
