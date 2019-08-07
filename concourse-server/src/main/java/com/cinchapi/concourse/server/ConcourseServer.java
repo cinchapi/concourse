@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -6626,10 +6627,52 @@ public class ConcourseServer extends BaseConcourseServer implements
         //TODO: CON-265
         
         Map<Long, String> history = getStore(transaction, environment).audit(key, record);
+        Map<String, Set<TObject>> select = getStore(transaction, environment).select(record);
         
-        // Get the record
-        TObject tobject = Iterables.getLast(Stores.select(getStore(transaction, environment), key, record), TObject.NULL);
+        /*
+         * Key              Value
+         * 1565204154078000,ADD hi AS bye (STRING) IN 1 AT 1565204154078000
+         */
         
+        for(Entry<Long, String> it : history.entrySet()) {
+            System.out.println("HISTORY: " + it.getKey() + ","+it.getValue());
+        }
+        
+        
+//        Testing select
+        for(Entry<String, Set<TObject>> it : select.entrySet()) {
+            StringBuilder builder = new StringBuilder();
+            it.getValue().forEach(obj -> {
+                builder.append(obj.toString());
+            });
+          
+            System.out.println("SELECT: " + it.getKey() + ","+builder.toString());
+        }
+        
+        Engine engine = getEngine(environment);
+        
+
+        int index = 1;
+        for(Entry<Long, String> it : history.entrySet()) {
+//            System.out.println("BEFORE: " + it.getKey() + ","+it.getValue());
+            
+            String action = it.getValue().split(" ")[0];
+            String opposite = action.equals("ADD") ? "ADD" : "REMOVE";
+//            String key = it.getValue().split(" ")[1].split(" ")[0];
+            
+//            engine.remove(key, engine.select(key, record), record);
+            if(index >= revision)break;
+            index++;
+        }
+        
+        
+//        Engine engine = getEngine(environment);
+//        
+//        engine.set("key", new TObject("".), record);
+//        
+//        for(long i = 0; i<50; i++) {
+//            getEngine(environment).verify(key, value, record)
+//        }
         
         return false;
     }
