@@ -48,7 +48,12 @@ public class ExportCli extends CommandLineInterface<ExportOptions> {
                 ).collect(Collectors.toList());
 
         try {
-            output(records, Files.newOutputStream(path));
+            if(path == null) {
+                output(records, System.out);
+            }
+            else {
+                output(records, Files.newOutputStream(path));
+            }
         }
         catch (IOException exception) {
             throw new RuntimeException(
@@ -69,9 +74,9 @@ public class ExportCli extends CommandLineInterface<ExportOptions> {
             Path path = getPathOrNull(reader.readLine());
 
             if(path == null) {
-                System.out.println("Please enter a valid path.");
+                return null;
             }
-            return path == null ? createFile() : Files.createFile(path);
+            return Files.createFile(path);
         }
         catch (IOException e) {
             throw new RuntimeException("Failed to interact with stdin.");
