@@ -71,7 +71,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newTreeMap();
-            for (Entry<Text, List<CompactRevision<Value>>> entry : history
+            for (Entry<Text, List<CompactRevision<Value>>> entry : getHistoryFromMemoryOrDisk()
                     .entrySet()) {
                 String key = entry.getKey().toString();
                 for (CompactRevision<Value> revision : entry.getValue()) {
@@ -96,7 +96,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = history
+            List<CompactRevision<Value>> revisions = getHistoryFromMemoryOrDisk()
                     .get(key); /* Authorized */
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
@@ -127,7 +127,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, Set<Value>> context = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = history.get(key);
+            List<CompactRevision<Value>> revisions = getHistoryFromMemoryOrDisk().get(key);
             Set<Value> snapshot = Sets.newLinkedHashSet();
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();
