@@ -594,9 +594,15 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract boolean commit();
 
-
-    //TOOD: CON-265
-    public abstract boolean undo(String key, long record, long revision);
+    /**
+     * Revert a record key back x revisions.
+     * 
+     * @param key The target key.
+     * @param changes Number of revisions to revert.
+     * @param record The specified target record.
+     * @return {@code true} if undo invoked successfully.
+     */
+    public abstract boolean undo(String key, int changes, long record);
     
     /**
      * Return all of the keys in the database.

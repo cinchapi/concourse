@@ -1113,7 +1113,6 @@ public class ManagedConcourseServer {
         @Override
         public void clear(String key, long record) {
             invoke("clear", String.class, long.class).with(key, record);
-
         }
 
         @Override
@@ -1122,8 +1121,8 @@ public class ManagedConcourseServer {
         }
         
         @Override
-        public boolean undo(String key, long record, long revision) {
-            return invoke("undo").with(key); //TODO: CON-265
+        public boolean undo(String key, int changes, long record) {
+            return invoke("undo", String.class, int.class, long.class).with(key, changes, record);
         }
 
         @Override
