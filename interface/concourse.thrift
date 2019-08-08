@@ -1198,8 +1198,8 @@ service ConcourseService {
    * Undo
    */
   bool undo(
-    1: string key,
-    2: i32 changes,
+    1: i32 changes,
+    2: string key,
     3: i64 record,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,

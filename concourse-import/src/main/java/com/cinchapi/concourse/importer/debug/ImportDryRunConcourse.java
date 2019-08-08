@@ -1743,7 +1743,7 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public boolean undo(String key, int changes, long record) {
+    public boolean undo(int changes, String key, long record) {
         throw new UnsupportedOperationException();
     }
 

@@ -572,11 +572,12 @@ class ConcourseThriftDriver extends Concourse {
                     : false;
         });
     }
-    
+
     @Override
-    public boolean undo(String key, int changes, long record) {
+    public boolean undo(int changes, String key, long record) {
         return execute(() -> {
-            return core.undo(key, changes, record, creds, transaction, environment);
+            return core.undo(changes, key, record, creds, transaction,
+                    environment);
         });
     }
 
@@ -4497,7 +4498,5 @@ class ConcourseThriftDriver extends Concourse {
     TransactionToken transaction() {
         return transaction;
     }
-
-    
 
 }
