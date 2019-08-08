@@ -20,10 +20,10 @@ dependencies {
 
 jar {
     manifest {
-        attributes("Specification-Title": "Concourse Importer", "Specification-Version": version, "Implementation-Version": version)
+        attributes("Specification-Title": "Concourse Exporter", "Specification-Version": version, "Implementation-Version": version)
     }
 }
 
 ext.uploadEnabled = true
-ext.title = 'Concourse Import Framework'
-ext.description = 'A framework for building scripts to import data into Concourse.'
+ext.title = 'Concourse Export Framework'
+ext.description = 'A framework for building scripts to export data into Concourse.'
