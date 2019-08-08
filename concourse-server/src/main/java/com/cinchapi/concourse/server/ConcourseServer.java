@@ -6621,7 +6621,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @PluginRestricted
     @VerifyAccessToken
-    public void undo(int changes, String key, long record,
+    public void undo(long changes, String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, PermissionException,
             TException {

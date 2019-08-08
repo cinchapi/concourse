@@ -602,7 +602,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param record The specified target record.
      * @return {@code true} if undo invoked successfully.
      */
-    public abstract void undo(int changes, String key, long record);
+    public abstract void undo(long changes, String key, long record);
 
     /**
      * Return all of the keys in the database.

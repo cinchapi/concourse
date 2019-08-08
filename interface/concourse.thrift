@@ -1214,7 +1214,7 @@ service ConcourseService {
    *         to end itself
    */
   void undo(
-    1: i32 changes,
+    1: i64 changes,
     2: string key,
     3: i64 record,
     4: shared.AccessToken creds,

@@ -1121,8 +1121,8 @@ public class ManagedConcourseServer {
         }
         
         @Override
-        public void undo(int changes, String key, long record) {
-            invoke("undo", int.class, String.class, long.class).with(changes, key, record);
+        public void undo(long changes, String key, long record) {
+            invoke("undo", long.class, String.class, long.class).with(changes, key, record);
         }
 
         @Override
