@@ -1,11 +1,9 @@
 package com.cinchapi.concourse.exporter;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 import jline.console.ConsoleReader;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -13,21 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ExportCli<E extends Exporter> extends CommandLineInterface<ExportOptions> {
-    private final E exporter;
-    private final Concourse concourse;
-
-    public ExportCli(E exporter, Concourse concourse) {
-        this.exporter = exporter;
-        this.concourse = concourse;
-    }
-
+public class ExportCli extends CommandLineInterface<ExportOptions> {
     @Override
     protected void doTask() {
         final Set<Long> recordIDs = options.records.size() > 0
@@ -36,27 +24,16 @@ public class ExportCli<E extends Exporter> extends CommandLineInterface<ExportOp
 
         Path path = createFile();
 
-        final Map<Long, Map<String, Object>> records = options.criteria != null
-                ? concourse.get(options.criteria)
+        final Iterable<Map<String, Object>> records = (options.criteria != null
+                ? concourse.get(options.criteria).entrySet().stream()
+                    .filter(r -> recordIDs.contains(r.getKey()))
+                    .map(Map.Entry::getValue)
                 : concourse.describe(recordIDs).entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            e -> concourse.get(e.getValue(), e.getKey())));
-//                        : concourse.describe(recordIDs).entrySet().stream().map(entry -> {
-//                            final long key = entry.getKey();
-//                            final Set<String> value = entry.getValue();
-//
-//                            final Map<String, Object> $records = concourse.get(value, key);
-//                            return new AbstractMap.SimpleImmutableEntry<>(key, $records);
-//                        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        final Iterable<Map<String, Object>> filteredRecords =
-                records.entrySet().stream()
-                        .filter(record -> recordIDs.contains(record.getKey()))
-                        .map(Map.Entry::getValue)
-                        .collect(Collectors.toList());
+                    .map(e -> concourse.get(e.getValue(), e.getKey()))
+                ).collect(Collectors.toList());
 
         try {
-            output(filteredRecords, Files.newOutputStream(path));
+            output(records, Files.newOutputStream(path));
         } catch(IOException exception) {
             throw new RuntimeException("Failed to create a stream for the file.");
         }
@@ -73,15 +50,11 @@ public class ExportCli<E extends Exporter> extends CommandLineInterface<ExportOp
             System.out.println("What's the path of the file you want to create?");
             Path path = getPathOrNull(reader.readLine());
 
-            if(path != null) {
-                Files.createFile(path);
-                return path;
-            }
-            else {
+            if(path == null) {
                 System.out.println("Please enter a valid path.");
-                return createFile();
             }
-        } catch(IOException except) {
+            return path == null ? createFile() : Files.createFile(path);
+        } catch(IOException e) {
             throw new RuntimeException("Failed to interact with stdin.");
         }
     }
@@ -89,12 +62,14 @@ public class ExportCli<E extends Exporter> extends CommandLineInterface<ExportOp
     private Path getPathOrNull(String path) {
         try {
             return Paths.get(path);
-        } catch (InvalidPathException | NullPointerException ex) {
+        } catch (InvalidPathException | NullPointerException e) {
             return null;
         }
     }
 
     // TODO: Replace the functions below this line with the library function
+    // TODO: When https://github.com/cinchapi/accent4j/pull/10 is merged
+    
     private static <T, Q> void output(Iterable<Map<T, Q>> items,
             OutputStream output) {
         PrintStream printer = new PrintStream(output);
