@@ -6621,7 +6621,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @PluginRestricted
     @VerifyAccessToken
-    public boolean undo(int changes, String key, long record,
+    public void undo(int changes, String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, PermissionException,
             TException {
@@ -6634,7 +6634,6 @@ public class ConcourseServer extends BaseConcourseServer implements
                 index++;
             }
         });
-        return true;
     }
 
     /**

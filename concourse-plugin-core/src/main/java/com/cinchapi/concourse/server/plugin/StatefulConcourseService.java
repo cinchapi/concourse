@@ -1536,7 +1536,7 @@ abstract class StatefulConcourseService {
 
     public void clearKeysRecords(List<String> keys, List<Long> records) { throw new UnsupportedOperationException(); }
 
-    public boolean undo(int changes, String key, long record) { throw new UnsupportedOperationException(); }
+    public void undo(int changes, String key, long record) { throw new UnsupportedOperationException(); }
 
     public Set<String> describe() { throw new UnsupportedOperationException(); }
 
