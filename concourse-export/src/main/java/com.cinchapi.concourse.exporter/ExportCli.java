@@ -31,7 +31,9 @@ import jline.console.ConsoleReader;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 
-public class ExportCli extends CommandLineInterface<ExportOptions> {
+public class ExportCli extends CommandLineInterface {
+    final ExportOptions options = getOptions();
+    
     @Override
     protected void doTask() {
         final Set<Long> recordIDs = options.records.size() > 0 ? options.records

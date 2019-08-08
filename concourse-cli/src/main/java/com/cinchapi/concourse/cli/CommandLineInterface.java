@@ -44,7 +44,7 @@ import com.google.common.base.Strings;
  * 
  * @author Jeff Nelson
  */
-public abstract class CommandLineInterface<ChildOptions extends Options> {
+public abstract class CommandLineInterface {
 
     /**
      * Internal {@link Concourse} instance that should be used to do the work of
@@ -60,7 +60,7 @@ public abstract class CommandLineInterface<ChildOptions extends Options> {
     /**
      * The CLI options.
      */
-    protected ChildOptions options;
+    protected Options options;
 
     /**
      * The parser that validates the CLI options.
@@ -192,5 +192,5 @@ public abstract class CommandLineInterface<ChildOptions extends Options> {
      * 
      * @return the {@link Options}.
      */
-    protected abstract ChildOptions getOptions();
+    protected abstract Options getOptions();
 }
