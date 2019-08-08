@@ -44,8 +44,8 @@ public class ExportCli extends CommandLineInterface<ExportOptions> {
                         .filter(r -> recordIDs.contains(r.getKey()))
                         .map(Map.Entry::getValue)
                 : concourse.describe(recordIDs).entrySet().stream()
-                        .map(e -> concourse.get(e.getValue(), e.getKey())))
-                                .collect(Collectors.toList());
+                        .map(e -> concourse.get(e.getValue(), e.getKey()))
+                ).collect(Collectors.toList());
 
         try {
             output(records, Files.newOutputStream(path));
