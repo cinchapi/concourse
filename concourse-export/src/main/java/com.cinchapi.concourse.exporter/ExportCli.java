@@ -35,7 +35,7 @@ public final class ExportCli extends CommandLineInterface {
 
     @Override
     protected void doTask() {
-        output(getKeyedRecords(), getOutputStream());
+        output(getRecords(), getOutputStream());
     }
 
     @Override
@@ -43,48 +43,19 @@ public final class ExportCli extends CommandLineInterface {
         return new ExportOptions();
     }
 
-    private Iterable<Map<String, Set<Object>>> getRecords(boolean showKey) {
-        final Map<Long, Map<String, Set<Object>>> records = getKeyedRecords();
+    private Iterable<Map<String, Set<Object>>> getRecords() {
+        return getKeyedRecords().entrySet().stream().map(e -> {
+            final Long id = e.getKey();
 
-        /*
-        records.flatMap { (id, xs) -> xs.map { (k, v) -> "$id,k" to v } }.toMap()
-         */
-        final Iterable<Map<String, Set<Object>>> things =
-                records.entrySet().stream().map(e -> {
-                    final Long id = e.getKey();
-
-                    return e.getValue().entrySet().stream()
-                            .map(ee -> new AbstractMap.SimpleEntry<>(
-                                    id.toString() + ee,
-                                    ee.getValue()
-                            )).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-//                    return e.getValue().entrySet().stream().collect(
-//                            Collectors.toMap(
-//                                    (Map<String, Set<Object>> ee) ->
-//                                            ee.keySet().stream().map(eee -> id.toString() + eee).collect(Collectors.toList()),
-//                                    (Map<String, Set<Object>> ee) -> ee.getValue()
-//                            )
-//                    );
-                }).collect(Collectors.toList());
-//        final Iterable<Map<String, Set<Object>>> things = records.entrySet().stream().flatMap(e -> {
-//            final Long id = e.getKey();
-//
-//            return e.getValue().entrySet().stream().map(ee -> {
-//                final String key = ee.getKey();
-//                final Set<Object> values = ee.getValue();
-//
-//                return new AbstractMap.SimpleEntry<String, Set<Object>>(
-//                        id.toString() + key, values
-//                );
-//            }).collect(Collectors.toMap(ee -> id.toString + ee.getKey(), ee.getValues));
-//        }).collect(Collectors.toList());
-//
-//        return showKey
-//                ? records.entrySet().stream().collect(Collectors.toMap(
-//                        e -> e,
-//                e -> e
-//        ))
+            return e.getValue().entrySet().stream()
+                    .map(ee -> new AbstractMap.SimpleEntry<>(
+                            !options.hidePrimaryKey ? id.toString() : "" + ee,
+                            ee.getValue()
+                    )).collect(Collectors.toMap(
+                            Map.Entry::getKey, Map.Entry::getValue));
+        }).collect(Collectors.toList());
     }
+    
     /*
     FUTURE NOTE: If https://openjdk.java.net/jeps/8213076 gets through,
     and a standard Tuple/Pair, or we construct one, then this could could be
