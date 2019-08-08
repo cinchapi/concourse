@@ -155,8 +155,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * number of times that the value appears <em>beforehand</em> at determine
      * if the mapping existed or not.
      */
-    protected final transient SoftReference<HashMap<K, List<CompactRevision<V>>>>
-            history = new SoftReference<>(Maps.newHashMap());
+    protected final transient SoftReference<HashMap<K, List<CompactRevision<V>>>> history = new SoftReference<>(
+            Maps.newHashMap());
 
     /**
      * The version of the Record's most recently appended {@link Revision}.
@@ -206,7 +206,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         final HashMap<K, List<CompactRevision<V>>> value = history.get();
 
         if(value == null) {
-            // reread history from disk
+            // TODO: Reread history from disk.
         }
         return value;
     }
@@ -379,7 +379,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<K> description = Sets.newLinkedHashSet();
-            Iterator<K> it = getHistoryFromMemoryOrDisk().keySet().iterator(); /* Authorized */
+            Iterator<K> it = getHistoryFromMemoryOrDisk().keySet()
+                    .iterator(); /* Authorized */
 
             while (it.hasNext()) {
                 K key = it.next();
@@ -424,8 +425,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<V> values = emptyValues;
-            List<CompactRevision<V>> stored =
-                    getHistoryFromMemoryOrDisk().get(key);
+            List<CompactRevision<V>> stored = getHistoryFromMemoryOrDisk()
+                    .get(key);
             if(stored != null) {
                 values = Sets.newLinkedHashSet();
                 Iterator<CompactRevision<V>> it = stored.iterator();

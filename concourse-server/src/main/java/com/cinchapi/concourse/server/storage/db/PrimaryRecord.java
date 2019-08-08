@@ -127,7 +127,8 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, Set<Value>> context = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = getHistoryFromMemoryOrDisk().get(key);
+            List<CompactRevision<Value>> revisions = getHistoryFromMemoryOrDisk()
+                    .get(key);
             Set<Value> snapshot = Sets.newLinkedHashSet();
             if(revisions != null) {
                 Iterator<CompactRevision<Value>> it = revisions.iterator();

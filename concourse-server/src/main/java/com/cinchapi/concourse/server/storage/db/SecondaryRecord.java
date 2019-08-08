@@ -152,8 +152,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.NOT_EQUALS) {
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : present.keySet()) {
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : present.keySet()) {
                     if(!value.equals(stored)) {
                         for (PrimaryKey record : historical
                                 ? get(stored, timestamp) : get(stored)) {
@@ -163,8 +164,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.GREATER_THAN) {
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : ((NavigableSet<Value>) present.keySet())
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : ((NavigableSet<Value>) present.keySet())
                                 .tailSet(value, false)) {
                     if(!historical || stored.compareTo(value) > 0) {
                         for (PrimaryKey record : historical
@@ -175,8 +177,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : ((NavigableSet<Value>) present.keySet())
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : ((NavigableSet<Value>) present.keySet())
                                 .tailSet(value, true)) {
                     if(!historical || stored.compareTo(value) >= 0) {
                         for (PrimaryKey record : historical
@@ -187,8 +190,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.LESS_THAN) {
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : ((NavigableSet<Value>) present.keySet())
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : ((NavigableSet<Value>) present.keySet())
                                 .headSet(value, false)) {
                     if(!historical || stored.compareTo(value) < 0) {
                         for (PrimaryKey record : historical
@@ -199,8 +203,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 }
             }
             else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : ((NavigableSet<Value>) present.keySet())
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : ((NavigableSet<Value>) present.keySet())
                                 .headSet(value, true)) {
                     if(!historical || stored.compareTo(value) <= 0) {
                         for (PrimaryKey record : historical
@@ -213,9 +218,10 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             else if(operator == Operator.BETWEEN) {
                 Preconditions.checkArgument(values.length > 1);
                 Value value2 = values[1];
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : ((NavigableSet<Value>) present.keySet())
-                        .subSet(value, true, value2, false)) {
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : ((NavigableSet<Value>) present.keySet()).subSet(value,
+                                true, value2, false)) {
                     if(!historical || (stored.compareTo(value) >= 0
                             && stored.compareTo(value2) < 0)) {
                         for (PrimaryKey record : historical
@@ -227,8 +233,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.REGEX) {
                 Pattern p = Pattern.compile(value.getObject().toString());
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : present.keySet()) {
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
                         for (PrimaryKey record : historical
@@ -240,8 +247,9 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             }
             else if(operator == Operator.NOT_REGEX) {
                 Pattern p = Pattern.compile(value.getObject().toString());
-                for (Value stored : historical ? getHistoryFromMemoryOrDisk()
-                        .keySet() : present.keySet()) {
+                for (Value stored : historical
+                        ? getHistoryFromMemoryOrDisk().keySet()
+                        : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(!m.matches()) {
                         for (PrimaryKey record : historical
