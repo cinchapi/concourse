@@ -29,9 +29,18 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.CommandLineInterface;
+import com.cinchapi.concourse.cli.presentation.IO;
 
 public final class ExportCli extends CommandLineInterface {
     private final ExportOptions options = getOptions();
+
+    public ExportCli(String[] args) {
+        super(args);
+    }
+
+    public ExportCli(String[] args, IO io) {
+        super(io, args);
+    }
 
     @Override
     protected void doTask() {
@@ -49,11 +58,12 @@ public final class ExportCli extends CommandLineInterface {
 
             return e.getValue().entrySet().stream()
                     .map(ee -> new AbstractMap.SimpleEntry<>(
-                            !options.hidePrimaryKey ? id.toString() : "" + ee,
+                            !options.hidePrimaryKey ? id.toString() + ", " +
+                                    ee.getKey() : ee.getKey(),
                             ee.getValue()
                     )).collect(Collectors.toMap(
                             Map.Entry::getKey, Map.Entry::getValue));
-        }).collect(Collectors.toList());
+            }).collect(Collectors.toList());
     }
     
     /*

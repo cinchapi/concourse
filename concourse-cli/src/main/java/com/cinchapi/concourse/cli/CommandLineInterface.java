@@ -20,6 +20,8 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.cli.presentation.ConsoleIO;
+import com.cinchapi.concourse.cli.presentation.IO;
 import jline.console.ConsoleReader;
 
 import org.apache.commons.lang.StringUtils;
@@ -55,7 +57,10 @@ public abstract class CommandLineInterface {
     /**
      * Handler to the console for interactive I/O.
      */
-    protected ConsoleReader console;
+    protected IO io;
+
+    // DEPRECATED
+    protected ConsoleReader reader;
 
     /**
      * The CLI options.
@@ -73,6 +78,10 @@ public abstract class CommandLineInterface {
      */
     protected Logger log = (Logger) LoggerFactory.getLogger(getClass());
 
+    protected CommandLineInterface(IO io, String... args) {
+        this.io = io;
+        constructInstance(args);
+    }
     /**
      * Construct a new instance.
      * 
@@ -80,57 +89,11 @@ public abstract class CommandLineInterface {
      */
     protected CommandLineInterface(String... args) {
         try {
-            this.options = getOptions();
-            this.parser = new JCommander(options, args);
-            parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
-                    CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
-            this.console = new ConsoleReader();
-            this.console.setExpandEvents(false);
-            if(options.help) {
-                parser.usage();
-                System.exit(1);
-            }
-            if(!Strings.isNullOrEmpty(options.prefs)) {
-                options.prefs = FileOps.expandPath(options.prefs,
-                        getLaunchDirectory());
-                ConcourseClientPreferences prefs = ConcourseClientPreferences
-                        .from(Paths.get(options.prefs));
-                options.username = prefs.getUsername();
-                options.password = new String(prefs.getPasswordExplicit());
-                options.host = prefs.getHost();
-                options.port = prefs.getPort();
-                options.environment = prefs.getEnvironment();
-            }
-            if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine(
-                        "password for [" + options.username + "]: ", '*');
-            }
-            int attemptsRemaining = 5;
-            while (concourse == null && attemptsRemaining > 0) {
-                try {
-                    concourse = Concourse.connect(options.host, options.port,
-                            options.username, options.password,
-                            options.environment);
-                }
-                catch (Exception e) {
-                    System.err.println("Error processing login. Please check "
-                            + "username/password combination and try again.");
-                    concourse = null;
-                    options.password = console.readLine(
-                            "password for [" + options.username + "]: ", '*');
-                    attemptsRemaining--;
-                }
-            }
-            if(concourse == null) {
-                System.err.println(
-                        "Unable to connect to Concourse. Is the server running?");
-                System.exit(1);
-            }
-        }
-        catch (ParameterException e) {
-            System.exit(die(e.getMessage()));
-        }
-        catch (IOException e) {
+            ConsoleIO consoleIO = new ConsoleIO();
+            this.io = consoleIO;
+            this.reader = consoleIO.reader;
+            constructInstance(args);
+        } catch (IOException e) {
             System.exit(die(e.getMessage()));
         }
     }
@@ -193,4 +156,58 @@ public abstract class CommandLineInterface {
      * @return the {@link Options}.
      */
     protected abstract Options getOptions();
+
+    private void constructInstance(String... args) {
+        this.options = getOptions();
+        this.parser = new JCommander(options, args);
+        parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
+                CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+        this.io.setExpandEvents(false);
+        if(options.help) {
+            parser.usage();
+            throw new RuntimeException("1");
+        }
+        if(!Strings.isNullOrEmpty(options.prefs)) {
+            options.prefs = FileOps.expandPath(options.prefs,
+                    getLaunchDirectory());
+            ConcourseClientPreferences prefs = ConcourseClientPreferences
+                    .from(Paths.get(options.prefs));
+            options.username = prefs.getUsername();
+            options.password = new String(prefs.getPasswordExplicit());
+            options.host = prefs.getHost();
+            options.port = prefs.getPort();
+            options.environment = prefs.getEnvironment();
+        }
+        if(Strings.isNullOrEmpty(options.password)) {
+            options.password = io.readLine(
+                    "password for [" + options.username + "]: ", '*');
+        }
+        int attemptsRemaining = 5;
+        while (concourse == null && attemptsRemaining > 0) {
+            try {
+                concourse = Concourse.connect(options.host, options.port,
+                        options.username, options.password,
+                        options.environment);
+            }
+            catch (Exception e) {
+                System.err.println("Error processing login. Please check "
+                        + "username/password combination and try again.");
+                concourse = null;
+                options.password = io.readLine(
+                        "password for [" + options.username + "]: ", '*');
+                attemptsRemaining--;
+            }
+        }
+        if(concourse == null) {
+            System.err.println(
+                    "Unable to connect to Concourse. Is the server running?");
+            throw new RuntimeException("System exit.");
+        }
+        try {
+
+        }
+        catch (ParameterException e) {
+            throw new RuntimeException("ERROR: " + e.getMessage());
+        }
+    }
 }
