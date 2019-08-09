@@ -6632,7 +6632,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             int index = 1;
             while (index <= changes && it.hasNext()) {
-                Operations.revertAtomic(key, record, it.hasNext().getKey(),
+                Operations.revertAtomic(key, record, it.next().getKey(),
                         atomic);
                 index++;
             }
