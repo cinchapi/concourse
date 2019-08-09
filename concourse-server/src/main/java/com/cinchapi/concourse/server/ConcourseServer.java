@@ -23,7 +23,6 @@ import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -6616,21 +6615,23 @@ public class ConcourseServer extends BaseConcourseServer implements
         Logger.info("Started Transaction {}", transaction);
         return token;
     }
-    
+
     @Override
     @ThrowsClientExceptions
     @PluginRestricted
     @VerifyAccessToken
-    public void undo(long changes, String key, long record,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public void undo(long changes, String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, PermissionException,
             TException {
-        AtomicSupport store = getStore(transaction, environment);      
-        Iterator<Entry<Long, String>> it = store.audit(key, record).entrySet().iterator();
+        AtomicSupport store = getStore(transaction, environment);
+        Iterator<Entry<Long, String>> it = store.audit(key, record).entrySet()
+                .iterator();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             int index = 1;
-            while(index < changes && it.hasNext()) {
-                Operations.revertAtomic(key, record, it.next().getKey(), atomic);
+            while (index < changes && it.hasNext()) {
+                Operations.revertAtomic(key, record, it.next().getKey(),
+                        atomic);
                 index++;
             }
         });
