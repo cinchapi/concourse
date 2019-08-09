@@ -205,11 +205,5 @@ public abstract class CommandLineInterface {
                     "Unable to connect to Concourse. Is the server running?");
             throw new RuntimeException("System exit.");
         }
-        try {
-
-        }
-        catch (ParameterException e) {
-            throw new RuntimeException("ERROR: " + e.getMessage());
-        }
     }
 }

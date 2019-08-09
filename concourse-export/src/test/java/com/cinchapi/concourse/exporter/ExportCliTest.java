@@ -17,11 +17,10 @@ package com.cinchapi.concourse.exporter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
-import org.junit.Assert.*;
 import org.junit.Test;
 
 import com.cinchapi.concourse.cli.presentation.IO;
@@ -51,26 +50,42 @@ public final class ExportCliTest {
         public void setExpandEvents(boolean expand) {}
     }
 
-    @Test
-    public void testHelp() {
+    private PrintStream console = System.out;
+
+    private Supplier<String> getOutput() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         System.setOut(new PrintStream(out));
+        return out::toString;
+    }
+
+    @Test
+    public void testHelp() {
+        Supplier<String> output = getOutput();
         String result = "";
+
         try {
-            new ExportCli(new String[] { "--help" },
-                    new TestIO(Arrays.asList("admin", "admin")));
+            new ExportCli(new String[] { "--help" });
         }
         catch (Exception e) {
-            result = out.toString();
+            result = output.get();
         }
 
-        Assert.assertTrue(result.startsWith(
-                "Usage: export-cli [options] additional program arguments..."));
+        console.println(result);
 
+        Assert.assertTrue(result.startsWith(
+                "Usage: export-cli2 [options] additional program arguments..."));
     }
 
     @Test
     public void test() {
+        Supplier<String> output = getOutput();
+        new ExportCli(new String[] {
+                "-u", "admin",
+                "--password", "admin",
+                "--records", "1", "2", "3",
+                "-ccl", "testin"
+        }).doTask();
 
+        Assert.assertTrue(output.get().contains("1"));
     }
 }

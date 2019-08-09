@@ -58,7 +58,7 @@ public final class ExportCli extends CommandLineInterface {
 
             return e.getValue().entrySet().stream().map(
                     ee -> new AbstractMap.SimpleEntry<>(!options.hidePrimaryKey
-                            ? id.toString() + ", " + ee.getKey() : ee.getKey(),
+                            ? id.toString() + "," + ee.getKey() : ee.getKey(),
                             ee.getValue()))
                     .collect(Collectors.toMap(Map.Entry::getKey,
                             Map.Entry::getValue));
@@ -81,6 +81,7 @@ public final class ExportCli extends CommandLineInterface {
             return concourse.select(options.criteria);
         }
         else if(options.records.size() > 0) {
+            System.out.println(options.records);
             return concourse.select(options.records);
         }
         else {
@@ -116,9 +117,6 @@ public final class ExportCli extends CommandLineInterface {
             return null;
         }
     }
-
-    // TODO: Replace the functions below this line with the library function
-    // TODO: When https://github.com/cinchapi/accent4j/pull/10 is merged
 
     private static <T, Q> void output(Iterable<Map<T, Q>> items,
             OutputStream output) {
