@@ -20,8 +20,6 @@ import java.nio.file.Paths;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.concourse.cli.presentation.ConsoleIO;
-import com.cinchapi.concourse.cli.presentation.IO;
 import jline.console.ConsoleReader;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +31,8 @@ import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.cli.presentation.ConsoleIO;
+import com.cinchapi.concourse.cli.presentation.IO;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.CaseFormat;
@@ -82,6 +82,7 @@ public abstract class CommandLineInterface {
         this.io = io;
         constructInstance(args);
     }
+
     /**
      * Construct a new instance.
      * 
@@ -93,7 +94,8 @@ public abstract class CommandLineInterface {
             this.io = consoleIO;
             this.reader = consoleIO.reader;
             constructInstance(args);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.exit(die(e.getMessage()));
         }
     }
@@ -160,8 +162,8 @@ public abstract class CommandLineInterface {
     private void constructInstance(String... args) {
         this.options = getOptions();
         this.parser = new JCommander(options, args);
-        parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
-                CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+        parser.setProgramName(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN,
+                this.getClass().getSimpleName()));
         this.io.setExpandEvents(false);
         if(options.help) {
             parser.usage();
@@ -179,8 +181,8 @@ public abstract class CommandLineInterface {
             options.environment = prefs.getEnvironment();
         }
         if(Strings.isNullOrEmpty(options.password)) {
-            options.password = io.readLine(
-                    "password for [" + options.username + "]: ", '*');
+            options.password = io
+                    .readLine("password for [" + options.username + "]: ", '*');
         }
         int attemptsRemaining = 5;
         while (concourse == null && attemptsRemaining > 0) {

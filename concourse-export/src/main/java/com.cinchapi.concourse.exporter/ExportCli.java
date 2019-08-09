@@ -56,27 +56,26 @@ public final class ExportCli extends CommandLineInterface {
         return getKeyedRecords().entrySet().stream().map(e -> {
             final Long id = e.getKey();
 
-            return e.getValue().entrySet().stream()
-                    .map(ee -> new AbstractMap.SimpleEntry<>(
-                            !options.hidePrimaryKey ? id.toString() + ", " +
-                                    ee.getKey() : ee.getKey(),
-                            ee.getValue()
-                    )).collect(Collectors.toMap(
-                            Map.Entry::getKey, Map.Entry::getValue));
-            }).collect(Collectors.toList());
+            return e.getValue().entrySet().stream().map(
+                    ee -> new AbstractMap.SimpleEntry<>(!options.hidePrimaryKey
+                            ? id.toString() + ", " + ee.getKey() : ee.getKey(),
+                            ee.getValue()))
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            Map.Entry::getValue));
+        }).collect(Collectors.toList());
     }
-    
+
     /*
-    FUTURE NOTE: If https://openjdk.java.net/jeps/8213076 gets through,
-    and a standard Tuple/Pair, or we construct one, then this could could be
-    quite a bit shorter.
+     * FUTURE NOTE: If https://openjdk.java.net/jeps/8213076 gets through,
+     * and a standard Tuple/Pair, or we construct one, then this could could be
+     * quite a bit shorter.
      */
     private Map<Long, Map<String, Set<Object>>> getKeyedRecords() {
         if(options.criteria != null && options.records.size() > 0) {
             return concourse.select(options.criteria).entrySet().stream()
                     .filter(e -> options.records.contains(e.getKey()))
-                    .collect(Collectors.toMap
-                            (Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            Map.Entry::getValue));
         }
         else if(options.criteria != null) {
             return concourse.select(options.criteria);

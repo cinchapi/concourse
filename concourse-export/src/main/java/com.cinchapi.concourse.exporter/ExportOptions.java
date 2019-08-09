@@ -15,9 +15,7 @@
  */
 package com.cinchapi.concourse.exporter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.beust.jcommander.Parameter;
@@ -32,7 +30,8 @@ public final class ExportOptions extends Options {
             "-ccl" }, description = "Criteria statement (in CCL) that describes how to find the records to export")
     String criteria = null;
 
-    @Parameter(names = { "-f", "--file" }, description = "File to export data to.")
+    @Parameter(names = { "-f",
+            "--file" }, description = "File to export data to.")
     String fileName = null;
 
     @Parameter(names = "--no-primary-key", description = "Flag to not display the primary key when exporting.")
