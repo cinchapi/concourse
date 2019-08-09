@@ -134,8 +134,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import edu.emory.mathcs.backport.java.util.Collections;
-
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
@@ -6628,7 +6626,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws SecurityException, TransactionException, PermissionException,
             TException {
         AtomicSupport store = getStore(transaction, environment);
-        Iterator<Entry<Long, String>> it = new TreeMap<Long, String>(store.audit(key, record)).descendingMap().entrySet().iterator();
+        Iterator<Entry<Long, String>> it = new TreeMap<Long, String>(
+                store.audit(key, record)).descendingMap().entrySet().iterator();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             int index = 1;
             while (index <= changes && it.hasNext()) {
