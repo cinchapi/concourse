@@ -29,21 +29,18 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.CommandLineInterface;
-import com.cinchapi.concourse.cli.presentation.IO;
 
 public final class ExportCli extends CommandLineInterface {
-    private final ExportOptions options = getOptions();
+    private final ExportOptions options;
 
     public ExportCli(String[] args) {
         super(args);
-    }
-
-    public ExportCli(String[] args, IO io) {
-        super(io, args);
+        this.options = (ExportOptions) super.options;
     }
 
     @Override
     protected void doTask() {
+        System.out.println(options.hidePrimaryKey);
         output(getRecords(), getOutputStream());
     }
 
@@ -57,7 +54,7 @@ public final class ExportCli extends CommandLineInterface {
             final Long id = e.getKey();
 
             return e.getValue().entrySet().stream().map(
-                    ee -> new AbstractMap.SimpleEntry<>(!options.hidePrimaryKey
+                    ee -> Helper.tuple(!options.hidePrimaryKey
                             ? id.toString() + "," + ee.getKey() : ee.getKey(),
                             ee.getValue()))
                     .collect(Collectors.toMap(Map.Entry::getKey,
@@ -71,6 +68,16 @@ public final class ExportCli extends CommandLineInterface {
      * quite a bit shorter.
      */
     private Map<Long, Map<String, Set<Object>>> getKeyedRecords() {
+        return Helper.when(
+            options.criteria != null && options.records.size() > 0,
+            () -> concourse.select(options.criteria).entrySet().stream()
+                    .filter(e -> options.records.contains(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            Map.Entry::getValue)),
+            options.criteria != null, () -> concourse.select(options.criteria),
+            options.records.size() > 0, () -> concourse.select(options.records),
+            true, () -> concourse.select(concourse.inventory())
+        );
         if(options.criteria != null && options.records.size() > 0) {
             return concourse.select(options.criteria).entrySet().stream()
                     .filter(e -> options.records.contains(e.getKey()))

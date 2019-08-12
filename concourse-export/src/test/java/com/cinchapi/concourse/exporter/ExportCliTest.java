@@ -17,38 +17,12 @@ package com.cinchapi.concourse.exporter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.List;
 import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.cli.presentation.IO;
-
 public final class ExportCliTest {
-    private static final class TestIO implements IO {
-        final List<String> responses;
-        int i = -1;
-
-        TestIO(List<String> responses) {
-            this.responses = responses;
-        }
-
-        @Override
-        public String readLine(String output, Character mask) {
-            i++;
-            try {
-                return responses.get(i);
-            }
-            catch (ArrayIndexOutOfBoundsException e) {
-                i = 0;
-                return responses.get(i);
-            }
-        }
-
-        @Override
-        public void setExpandEvents(boolean expand) {}
-    }
 
     private PrintStream console = System.out;
 
@@ -71,9 +45,8 @@ public final class ExportCliTest {
         }
 
         console.println(result);
-
         Assert.assertTrue(result.startsWith(
-                "Usage: export-cli2 [options] additional program arguments..."));
+                "Usage: export-cli [options] additional program arguments..."));
     }
 
     @Test
@@ -82,10 +55,20 @@ public final class ExportCliTest {
         new ExportCli(new String[] {
                 "-u", "admin",
                 "--password", "admin",
-                "--records", "1", "2", "3",
-                "-ccl", "testin"
+                "--records", "1"
         }).doTask();
-
         Assert.assertTrue(output.get().contains("1"));
+    }
+
+    @Test
+    public void testPrimaryKey() {
+        Supplier<String> output = getOutput();
+        new ExportCli(new String[] {
+                "-u", "admin",
+                "--password", "admin",
+                "--records", "1",
+                "--no-primary-key", "true"
+        }).doTask();
+        Assert.assertTrue(output.get().contains("true"));
     }
 }

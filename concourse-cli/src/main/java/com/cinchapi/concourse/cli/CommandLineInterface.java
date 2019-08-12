@@ -31,8 +31,6 @@ import ch.qos.logback.classic.Logger;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.cli.presentation.ConsoleIO;
-import com.cinchapi.concourse.cli.presentation.IO;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.CaseFormat;
@@ -43,7 +41,7 @@ import com.google.common.base.Strings;
  * {@link Concourse} via the client interface. This class contains boilerplate
  * logic for grabbing authentication credentials and establishing a connection
  * to Concourse.
- * 
+ *
  * @author Jeff Nelson
  */
 public abstract class CommandLineInterface {
@@ -57,10 +55,7 @@ public abstract class CommandLineInterface {
     /**
      * Handler to the console for interactive I/O.
      */
-    protected IO io;
-
-    // DEPRECATED
-    protected ConsoleReader reader;
+    protected ConsoleReader console;
 
     /**
      * The CLI options.
@@ -78,25 +73,62 @@ public abstract class CommandLineInterface {
      */
     protected Logger log = (Logger) LoggerFactory.getLogger(getClass());
 
-    protected CommandLineInterface(IO io, String... args) {
-        this.io = io;
-        constructInstance(args);
-    }
-
     /**
      * Construct a new instance.
-     * 
+     *
      * @param args - these usually come from the main method
      */
     protected CommandLineInterface(String... args) {
         try {
-            ConsoleIO consoleIO = new ConsoleIO();
-            this.io = consoleIO;
-            this.reader = consoleIO.reader;
-            constructInstance(args);
+            this.options = getOptions();
+            this.parser = new JCommander(options, args);
+            parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
+                    CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+            this.console = new ConsoleReader();
+            this.console.setExpandEvents(false);
+            if(options.help) {
+                parser.usage();
+                throw new RuntimeException();
+            }
+            if(!Strings.isNullOrEmpty(options.prefs)) {
+                options.prefs = FileOps.expandPath(options.prefs,
+                        getLaunchDirectory());
+                ConcourseClientPreferences prefs = ConcourseClientPreferences
+                        .from(Paths.get(options.prefs));
+                options.username = prefs.getUsername();
+                options.password = new String(prefs.getPasswordExplicit());
+                options.host = prefs.getHost();
+                options.port = prefs.getPort();
+                options.environment = prefs.getEnvironment();
+            }
+            if(Strings.isNullOrEmpty(options.password)) {
+                options.password = console.readLine(
+                        "password for [" + options.username + "]: ", '*');
+            }
+            int attemptsRemaining = 5;
+            while (concourse == null && attemptsRemaining > 0) {
+                try {
+                    concourse = Concourse.connect(options.host, options.port,
+                            options.username, options.password,
+                            options.environment);
+                }
+                catch (Exception e) {
+                    System.err.println("Error processing login. Please check "
+                            + "username/password combination and try again.");
+                    concourse = null;
+                    options.password = console.readLine(
+                            "password for [" + options.username + "]: ", '*');
+                    attemptsRemaining--;
+                }
+            }
+            if(concourse == null) {
+                System.err.println(
+                        "Unable to connect to Concourse. Is the server running?");
+                throw new RuntimeException();
+            }
         }
-        catch (IOException e) {
-            System.exit(die(e.getMessage()));
+        catch (ParameterException | IOException e) {
+            dieAndThrow(e.getMessage());
         }
     }
 
@@ -116,7 +148,7 @@ public abstract class CommandLineInterface {
 
     /**
      * Print {@code message} to stderr and exit with a non-zero status.
-     * 
+     *
      * @param message
      */
     protected int die(String message) {
@@ -124,6 +156,11 @@ public abstract class CommandLineInterface {
             System.err.println("ERROR: " + message);
         }
         return 2;
+    }
+
+    private void dieAndThrow(String message) {
+        die(message);
+        throw new RuntimeException();
     }
 
     /**
@@ -140,70 +177,22 @@ public abstract class CommandLineInterface {
     /**
      * Return the original working directory from which the CLI was launched.
      * This information is sometimes necessary to properly resolve file paths.
-     * 
+     *
      * @return the launch directory or {@code null} if the CLI is unable to
      *         determine its original working directory
      */
     @Nullable
     protected final String getLaunchDirectory() {
         return System.getProperty("user.dir.real"); // this is set by the .env
-                                                    // script that is sourced by
-                                                    // every server-side CLI
+        // script that is sourced by
+        // every server-side CLI
     }
 
     /**
      * Return an {@link Options} object that contains instructions for parsing
      * the command line arguments to the cli.
-     * 
+     *
      * @return the {@link Options}.
      */
     protected abstract Options getOptions();
-
-    private void constructInstance(String... args) {
-        this.options = getOptions();
-        this.parser = new JCommander(options, args);
-        parser.setProgramName(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN,
-                this.getClass().getSimpleName()));
-        this.io.setExpandEvents(false);
-        if(options.help) {
-            parser.usage();
-            throw new RuntimeException("1");
-        }
-        if(!Strings.isNullOrEmpty(options.prefs)) {
-            options.prefs = FileOps.expandPath(options.prefs,
-                    getLaunchDirectory());
-            ConcourseClientPreferences prefs = ConcourseClientPreferences
-                    .from(Paths.get(options.prefs));
-            options.username = prefs.getUsername();
-            options.password = new String(prefs.getPasswordExplicit());
-            options.host = prefs.getHost();
-            options.port = prefs.getPort();
-            options.environment = prefs.getEnvironment();
-        }
-        if(Strings.isNullOrEmpty(options.password)) {
-            options.password = io
-                    .readLine("password for [" + options.username + "]: ", '*');
-        }
-        int attemptsRemaining = 5;
-        while (concourse == null && attemptsRemaining > 0) {
-            try {
-                concourse = Concourse.connect(options.host, options.port,
-                        options.username, options.password,
-                        options.environment);
-            }
-            catch (Exception e) {
-                System.err.println("Error processing login. Please check "
-                        + "username/password combination and try again.");
-                concourse = null;
-                options.password = io.readLine(
-                        "password for [" + options.username + "]: ", '*');
-                attemptsRemaining--;
-            }
-        }
-        if(concourse == null) {
-            System.err.println(
-                    "Unable to connect to Concourse. Is the server running?");
-            throw new RuntimeException("System exit.");
-        }
-    }
 }
