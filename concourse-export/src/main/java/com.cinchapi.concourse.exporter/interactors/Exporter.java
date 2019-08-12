@@ -1,9 +1,9 @@
 package com.cinchapi.concourse.exporter.interactors;
 
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.exporter.helpers.Helper;
+import com.cinchapi.concourse.exporter.helpers.MapHelper;
+import com.cinchapi.concourse.exporter.helpers.Tuple;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +20,7 @@ public class Exporter {
         return format(concourse.select(concourse.inventory()));
     }
 
-    public String perform(List<Long> records) {
+    public String perform(Set<Long> records) {
         return format(concourse.select(records));
     }
 
@@ -28,8 +28,8 @@ public class Exporter {
         return format(concourse.select(ccl));
     }
 
-    public String perform(List<Long> records, String ccl) {
-        return format(Helper.filter(concourse.select(ccl), (k,v) ->
+    public String perform(Set<Long> records, String ccl) {
+        return format(MapHelper.filter(concourse.select(ccl), (k,v) ->
                 records.contains(k)));
     }
 
@@ -41,8 +41,8 @@ public class Exporter {
     private Iterable<Map<String, Set<Object>>> getRecords(
             Map<Long, Map<String, Set<Object>>> keyedRecords
     ) {
-        return Helper.map(keyedRecords, (id, xs) ->
-                Helper.toMap(Helper.map(xs, (k, v) -> Helper.tuple(
+        return MapHelper.map(keyedRecords, (id, xs) ->
+                MapHelper.toMap(MapHelper.map(xs, (k, v) -> new Tuple<>(
                         showPrimaryKey ? id.toString() + "," + k : k,
                         v))));
     }
