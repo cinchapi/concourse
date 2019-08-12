@@ -73,11 +73,11 @@ public final class ExportCli extends CommandLineInterface {
     }
 
     private OutputStream getOutputStream() {
-        return NullHelper.orElse(NullHelper.$try(() ->
-            Files.newOutputStream(Files.createFile(Paths.get(opts.fileName)))
-        ), System.out);
+        return NullHelper.orElse(
+                NullHelper.$try(() -> Files.newOutputStream(
+                        Files.createFile(Paths.get(opts.fileName)))),
+                System.out);
     }
-
 
     private static <T, Q> void output(Iterable<Map<T, Q>> items,
             OutputStream output) {

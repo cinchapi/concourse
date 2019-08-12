@@ -52,23 +52,16 @@ public final class ExportCliTest {
     @Test
     public void test() {
         Supplier<String> output = getOutput();
-        new ExportCli(new String[] {
-                "-u", "admin",
-                "--password", "admin",
-                "--records", "1"
-        }).doTask();
+        new ExportCli(new String[] { "-u", "admin", "--password", "admin",
+                "--records", "1" }).doTask();
         Assert.assertTrue(output.get().contains("1"));
     }
 
     @Test
     public void testPrimaryKey() {
         Supplier<String> output = getOutput();
-        new ExportCli(new String[] {
-                "-u", "admin",
-                "--password", "admin",
-                "--records", "1",
-                "--no-primary-key", "true"
-        }).doTask();
+        new ExportCli(new String[] { "-u", "admin", "--password", "admin",
+                "--records", "1", "--no-primary-key", "true" }).doTask();
         Assert.assertTrue(output.get().contains("true"));
     }
 }
