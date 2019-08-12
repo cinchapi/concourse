@@ -22,11 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.CommandLineInterface;
 
@@ -50,16 +47,9 @@ public final class ExportCli extends CommandLineInterface {
     }
 
     private Iterable<Map<String, Set<Object>>> getRecords() {
-        return getKeyedRecords().entrySet().stream().map(e -> {
-            final Long id = e.getKey();
-
-            return e.getValue().entrySet().stream().map(
-                    ee -> Helper.tuple(!options.hidePrimaryKey
-                            ? id.toString() + "," + ee.getKey() : ee.getKey(),
-                            ee.getValue()))
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue));
-        }).collect(Collectors.toList());
+        return Helper.map(getKeyedRecords(), (id, xs) ->
+            Helper.mapToMap(xs, (k, v) -> Helper.tuple(
+                    !options.hidePrimaryKey ? id.toString() + "," + k : k, v)));
     }
 
     /*
@@ -68,27 +58,14 @@ public final class ExportCli extends CommandLineInterface {
      * quite a bit shorter.
      */
     private Map<Long, Map<String, Set<Object>>> getKeyedRecords() {
-        return Helper.when(
-            options.criteria != null && options.records.size() > 0,
-            () -> concourse.select(options.criteria).entrySet().stream()
-                    .filter(e -> options.records.contains(e.getKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue)),
-            options.criteria != null, () -> concourse.select(options.criteria),
-            options.records.size() > 0, () -> concourse.select(options.records),
-            true, () -> concourse.select(concourse.inventory())
-        );
         if(options.criteria != null && options.records.size() > 0) {
-            return concourse.select(options.criteria).entrySet().stream()
-                    .filter(e -> options.records.contains(e.getKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue));
+            return Helper.filter(concourse.select(options.criteria),
+                    (k, v) -> options.records.contains(k));
         }
         else if(options.criteria != null) {
             return concourse.select(options.criteria);
         }
         else if(options.records.size() > 0) {
-            System.out.println(options.records);
             return concourse.select(options.records);
         }
         else {
