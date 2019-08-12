@@ -15,23 +15,25 @@
  */
 package com.cinchapi.concourse.exporter;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
+
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.CommandLineInterface;
+import com.cinchapi.concourse.exporter.helpers.Helper;
+import com.cinchapi.concourse.exporter.helpers.Null;
 
 public final class ExportCli extends CommandLineInterface {
-    private final ExportOptions options;
+    private final ExportOptions opts;
 
     public ExportCli(String[] args) {
         super(args);
-        this.options = (ExportOptions) super.options;
+        this.opts = (ExportOptions) super.options;
     }
 
     @Override
@@ -46,8 +48,9 @@ public final class ExportCli extends CommandLineInterface {
 
     private Iterable<Map<String, Set<Object>>> getRecords() {
         return Helper.map(getKeyedRecords(), (id, xs) ->
-            Helper.mapToMap(xs, (k, v) -> Helper.tuple(
-                    !options.hidePrimaryKey ? id.toString() + "," + k : k, v)));
+                Helper.toMap(Helper.map(xs, (k, v) -> Helper.tuple(
+                        !opts.hidePrimaryKey ? id.toString() + "," + k : k,
+                        v))));
     }
 
     /*
@@ -56,15 +59,17 @@ public final class ExportCli extends CommandLineInterface {
      * quite a bit shorter.
      */
     private Map<Long, Map<String, Set<Object>>> getKeyedRecords() {
-        if(options.criteria != null && options.records.size() > 0) {
-            return Helper.filter(concourse.select(options.criteria),
-                    (k, v) -> options.records.contains(k));
+        final Supplier<Map<Long, Map<String, Set<Object>>>> ccl = () ->
+                concourse.select(opts.criteria);
+
+        if(opts.criteria != null && opts.records.size() > 0) {
+            return Helper.filter(ccl.get(), (k, v) -> opts.records.contains(k));
         }
-        else if(options.criteria != null) {
-            return concourse.select(options.criteria);
+        else if(opts.criteria != null) {
+            return ccl.get();
         }
-        else if(options.records.size() > 0) {
-            return concourse.select(options.records);
+        else if(opts.records.size() > 0) {
+            return concourse.select(opts.records);
         }
         else {
             return concourse.select(concourse.inventory());
@@ -72,19 +77,9 @@ public final class ExportCli extends CommandLineInterface {
     }
 
     private OutputStream getOutputStream() {
-        Helper.tryOrNull(() -> {
-            final Path path = Null.$try(() -> Paths.get(options.fileName));
-            final Path file = Null.map(path, p -> Null.$try(() -> Files.createFile(p)));
-            return Null.orElse(file, System.out);
-        });
-        try {
-
-            final Path path = Helper.createFileOrNull(options.fileName);
-            return path == null ? System.out : Files.newOutputStream(path);
-        }
-        catch (IOException e) {
-
-        }
+        return Null.orElse(Null.$try(() ->
+            Files.newOutputStream(Files.createFile(Paths.get(opts.fileName)))
+        ), System.out);
     }
 
 
