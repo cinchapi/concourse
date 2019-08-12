@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -37,7 +36,6 @@ public final class ExportCli extends CommandLineInterface {
 
     @Override
     protected void doTask() {
-        System.out.println(options.hidePrimaryKey);
         output(getRecords(), getOutputStream());
     }
 
@@ -74,33 +72,21 @@ public final class ExportCli extends CommandLineInterface {
     }
 
     private OutputStream getOutputStream() {
+        Helper.tryOrNull(() -> {
+            final Path path = Null.$try(() -> Paths.get(options.fileName));
+            final Path file = Null.map(path, p -> Null.$try(() -> Files.createFile(p)));
+            return Null.orElse(file, System.out);
+        });
         try {
-            final Path path = createFile(options.fileName);
+
+            final Path path = Helper.createFileOrNull(options.fileName);
             return path == null ? System.out : Files.newOutputStream(path);
         }
         catch (IOException e) {
-            throw new RuntimeException("Failed to create file's stream");
+
         }
     }
 
-    private Path createFile(String fileName) {
-        try {
-            final Path path = getPathOrNull(fileName);
-            return path == null ? null : Files.createFile(path);
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Failed to interact with stdin.");
-        }
-    }
-
-    private Path getPathOrNull(String path) {
-        try {
-            return Paths.get(path);
-        }
-        catch (InvalidPathException | NullPointerException e) {
-            return null;
-        }
-    }
 
     private static <T, Q> void output(Iterable<Map<T, Q>> items,
             OutputStream output) {
