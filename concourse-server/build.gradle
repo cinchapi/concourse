@@ -20,6 +20,7 @@ dependencies {
     compile project(':concourse-shell')
     compile project(':concourse-cli')
     compile project(':concourse-import')
+    compile project(':concourse-export')
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     compile ('org.reflections:reflections:0.9.9-RC2'){
