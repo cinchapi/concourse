@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
 package com.cinchapi.concourse.exporter;
- 
-import org.junit.Assert;
-import org.junit.Test;
- 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
- 
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
- 
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 /**
  * Unit tests for {@link Printer}.
  *
  * @author jeff
  */
 public class ExporterTest {
- 
+
     @Test
     public void outputTest() {
         List<Map<String, Object>> stuff = ImmutableList.of(
                 ImmutableMap.of("a", "1", "b", 2),
-                ImmutableMap.of("b", 2, "c", 3, "d", 4),ImmutableMap.of("a", ImmutableList.of(1,2,3)));
+                ImmutableMap.of("b", 2, "c", 3, "d", 4),
+                ImmutableMap.of("a", ImmutableList.of(1, 2, 3)));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintStream stream = new PrintStream(out);
         Exporters.csv(stream).export(stuff);

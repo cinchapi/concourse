@@ -18,6 +18,7 @@ package com.cinchapi.concourse.exporter;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Map;
+
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -43,7 +44,7 @@ public abstract class Exporter<V> {
         this.output = output instanceof PrintStream ? (PrintStream) output
                 : new PrintStream(output);
     }
-    
+
     /**
      * Export each item in the {@code data} to the {@code output} stream using
      * the rules of this {@link Exporter}.

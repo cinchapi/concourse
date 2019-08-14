@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
+
 import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.describe.Empty;
@@ -50,8 +51,9 @@ public final class ExportCli extends CommandLineInterface {
 
     @Override
     protected void doTask() {
-        // TODO: depends on common parser for Order, Page 
-        // TODO: depends on common converter for comma separated strings to Collection
+        // TODO: depends on common parser for Order, Page
+        // TODO: depends on common converter for comma separated strings to
+        // Collection
         ExportOptions opts = (ExportOptions) options;
         Path file = null;
         if(!Empty.ness().describes(opts.file)) {
@@ -67,7 +69,8 @@ public final class ExportCli extends CommandLineInterface {
         }
         Map<Long, Map<String, Set<Object>>> data;
         // TODO: what about order and pagination?
-        if(!Empty.ness().describes(opts.ccl) && !Empty.ness().describes(opts.keys)) {
+        if(!Empty.ness().describes(opts.ccl)
+                && !Empty.ness().describes(opts.keys)) {
             data = concourse.select(opts.keys, opts.ccl);
         }
         else if(!Empty.ness().describes(opts.ccl)) {
@@ -111,8 +114,9 @@ public final class ExportCli extends CommandLineInterface {
 
         @Parameter(names = "--exclude-record-id", description = "Flag to not display the primary key when exporting.")
         public boolean excludeRecordId = false;
-        
-        @Parameter(names = {"-k", "--keys"}, description = "Comma separated list of keys to select from each record. By default, all of a record's keys are selected")
+
+        @Parameter(names = { "-k",
+                "--keys" }, description = "Comma separated list of keys to select from each record. By default, all of a record's keys are selected")
         public Set<String> keys = Sets.newHashSet();
     }
 
