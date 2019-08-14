@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.10.2 (TBD)
+* Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
+
 #### Version 0.10.1 (August 6, 2019)
 * Fixed a regression that caused an error when attempting an action with a CCL statement containing an unquoted string value with one or more periods.
 
