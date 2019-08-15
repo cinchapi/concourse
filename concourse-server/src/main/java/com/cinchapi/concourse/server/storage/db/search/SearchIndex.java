@@ -25,7 +25,8 @@ import com.cinchapi.concourse.server.storage.Action;
  * @author jeff
  */
 public interface SearchIndex {
-    
-    public void index(Text key, Text term, Position position, long version, Action type);
+
+    public void index(Text key, Text term, Position position, long version,
+            Action type);
 
 }

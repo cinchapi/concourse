@@ -19,6 +19,7 @@ import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.util.Comparator;
 import java.util.Set;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
@@ -56,8 +57,8 @@ import com.google.common.collect.SortedMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position> implements
-        SearchIndex {
+final class SearchBlock extends Block<Text, Text, Position>
+        implements SearchIndex {
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
