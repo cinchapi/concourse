@@ -251,6 +251,21 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
             : false;
 
+    /**
+     * The length of the longest substring that will be indexed for fulltext
+     * search.
+     * <p>
+     * Regardless of a word's length, this value controls the maximum length of
+     * any substring of the word that is added to the search index. For optimal
+     * performance, this value should be set to the longest possible substring
+     * of a word that would be entered for a search operation. To be safe, it is
+     * recommended to set this value to the length of the longest possible word
+     * in the target language. For example, the longest possible word in English
+     * is about 40 characters long.
+     * </p>
+     */
+    public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
@@ -312,6 +327,9 @@ public final class GlobalState extends Constants {
                 Networking.getCompanionPort(CLIENT_PORT, 4));
 
         SYSTEM_ID = getSystemId();
+
+        MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
+                "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
         // =================== PREF READING BLOCK ====================
     }
 
