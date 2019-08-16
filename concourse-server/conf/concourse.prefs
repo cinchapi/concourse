@@ -142,13 +142,16 @@
 
 # The length of the longest substring that will be indexed for fulltext search.
 #
-# This value does not mean that longer words will not be indexed. Instead
-# it simply means that no substring with a length greater than the configured
-# value will be extracted from a word and indexed. For best performance, this
-# value should be set to the longest word length of any possible search string.
-# To be safe, we recommend setting this value to be the length of the longest
-# possible word in the search language. For example, the longest possible word
-# word in English is about 40 characters long.
+# This value does not mean that longer words will not be indexed. It simply means 
+# that, for any indexable value (e.g. a String), any substring that is longer than
+# the value of this preference will not be added to the search index. The effect is
+# that search strings containing any words with a length greater than the value of 
+# this preference will return 0 results. 
+
+# For best performance, this value should be set to the longest word length of any 
+# possible search string. To be safe, we recommend setting this value to be the 
+# length of the longest possible word in the search language. For example, the longest 
+# possible word in English is about 40 characters long.
 #
 # By default, search substrings are not limited.
 #
