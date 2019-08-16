@@ -4,6 +4,7 @@
 * Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
 * Added an option to limit the length of substrings that are indexed for fulltext search. It is rare to add functionality in a patch release, but this improvement was needed to alleviate Concourse deployments that experience `OutOfMemory` exceptions because abnormally large String values are stuck in the Buffer waiting to be indexed. This option is **turned off by default** to maintain consistency with existing Concourse expectations for fulltext indexing. The option can be enabled by specifying a positive integer value for the newly added `max_search_substring_length` preference. When a value is supplied, the Storage Engine won't index any substrings longer than the provided value for any word in a String value.
 * Made internal improvements to the search indexing algorithm to reduce the number of itermediary objects created which should decrease the number of garbage collection cycles that are triggered.
+* Fixed a bug that caused the Engine to fail to accumulate metadata stats for fulltext search indices. This did not have any data correctness or consistency side-effects, but had the potential to make some search-related operations inefficient.
 
 #### Version 0.10.1 (August 6, 2019)
 * Fixed a regression that caused an error when attempting an action with a CCL statement containing an unquoted string value with one or more periods.
