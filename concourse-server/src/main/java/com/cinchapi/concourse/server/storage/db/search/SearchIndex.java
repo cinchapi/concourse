@@ -20,12 +20,22 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.Action;
 
 /**
+ * A {@link SearchIndex} stores indices to support fulltext search.
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
 public interface SearchIndex {
 
+    /**
+     * Insert an entry to support a search lookup for {@code term} as
+     * {@code position} for {@code key}.
+     * 
+     * @param key
+     * @param term
+     * @param position
+     * @param version
+     * @param type
+     */
     public void index(Text key, Text term, Position position, long version,
             Action type);
 
