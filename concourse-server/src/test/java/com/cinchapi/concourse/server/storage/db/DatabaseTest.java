@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -38,6 +39,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -109,6 +111,42 @@ public class DatabaseTest extends StoreTest {
         db.accept(Write.add(key, value, count * increase));
         Assert.assertTrue(db.find(key, Operator.EQUALS, value)
                 .contains((long) count * increase));
+    }
+
+    @Test
+    public void testSearchIndexMultipleEnvironmentsConcurrently() {
+        List<Database> dbs = Lists.newArrayList();
+        for (int i = 0; i < 10; ++i) {
+            Database db = getStore();
+            db.start();
+            dbs.add(db);
+        }
+        String key = "test";
+        String query = "son i";
+        TObject value = Convert.javaToThrift("Jeff Nelson is the CEO");
+        int count = 100;
+        Set<Long> expected = Sets.newLinkedHashSet();
+        Consumer<Database> func = db -> {
+            for (int i = 0; i < count; ++i) {
+                expected.add((long) i);
+                Write write = Write.add("test", value, i);
+                db.accept(write);
+            }
+        };
+        for (Database db : dbs) {
+            func.accept(db);
+        }
+        for (Database db : dbs) {
+            Set<Long> actual = db.search(key, query);
+            Assert.assertTrue(!actual.isEmpty());
+            Assert.assertEquals(expected, actual);
+        }
+        for (Database db : dbs) {
+            db.stop();
+            if(!current.contentEquals(db.getBackingStore())) {
+                FileSystem.deleteDirectory(db.getBackingStore());
+            }
+        }
     }
 
     @Test
