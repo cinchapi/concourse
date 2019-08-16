@@ -63,8 +63,8 @@ final class SearchBlock extends Block<Text, Text, Position> implements
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
      */
-    private static int NUM_INDEXER_THREADS = Math.max(8,
-            Runtime.getRuntime().availableProcessors());
+    private static int NUM_INDEXER_THREADS = Math.max(3,
+            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
 
     /**
      * The {@link SearchIndexer} that is responsible for multithreaded search
