@@ -98,7 +98,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -270,6 +273,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * Returned from the {@link #stats()} method.
      */
     private final BlockStats stats;
+
+    /**
+     * A running count of the number of {@link #revisions} that have been
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
+     * a {@link #mutable} {@link Block}.
+     */
+    private AtomicInteger revisionCount = new AtomicInteger(0);
 
     /**
      * A hint that this Block uses the
@@ -469,32 +479,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             Action type) throws IllegalStateException {
         Locks.lockIfCondition(write, mutable);
         try {
-            Preconditions.checkState(mutable,
-                    "Cannot modify a block that is not mutable");
-            Revision<L, K, V> revision = makeRevision(locator, key, value,
-                    version, type);
-            revisions.add(revision);
-            filter.put(revision.getLocator());
-            filter.put(revision.getLocator(), revision.getKey());
-            filter.put(revision.getLocator(), revision.getKey(),
-                    revision.getValue()); // NOTE: The entire revision is added
-                                          // to the filter so that we can
-                                          // quickly verify that a revision
-                                          // DOES NOT exist using
-                                          // #mightContain(L,K,V) without
-                                          // seeking
-            size += revision.size() + 4;
-
-            // CON-587: Set the min/max version of this Block because it cannot
-            // be assumed that revisions are inserted in monotonically
-            // increasing order of version.
-            if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
-                    MAX_REVISION_VERSION_CHECK) || revisions.size() < 2) {
-                stats.putIf(Attribute.MIN_REVISION_VERSION, version,
-                        MIN_REVISION_VERSION_CHECK);
-            }
-
-            return revision;
+            return insertUnsafe(locator, key, value, version, type);
         }
         finally {
             Locks.unlockIfCondition(write, mutable);
@@ -626,9 +611,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
@@ -814,6 +798,22 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Increment the {@link #size()} of this {@link Block} by {@code delta} in a
+     * manner that accounts for whether the {@link Block} is {@link #concurrent}
+     * or not.
+     * 
+     * @param delta
+     */
+    private void incrementSizeBy(int delta) {
+        if(concurrent) {
+            atomicSize.addAndGet(delta);
+        }
+        else {
+            size += delta;
+        }
+    }
+
+    /**
      * Return the backing store to hold revisions that are placed in this Block.
      * This is only relevant to use when the Block is {@link #mutable} and not
      * yet persisted to disk.
@@ -869,6 +869,19 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         }
     }
 
+    /**
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)} without
+     * locking. Only call this method directly if the {@link Block} is
+     * {@link #concurrent}.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @param version
+     * @param type
+     * @return the inserted {@link Revision}
+     * @throws IllegalStateException
+     */
     protected Revision<L, K, V> insertUnsafe(L locator, K key, V value,
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(mutable,
@@ -876,6 +889,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
+        revisionCount.incrementAndGet();
         filter.put(revision.getLocator());
         filter.put(revision.getLocator(), revision.getKey());
         filter.put(revision.getLocator(), revision.getKey(),
@@ -885,9 +899,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                       // DOES NOT exist using
                                       // #mightContain(L,K,V) without
                                       // seeking
-        atomicSize.addAndGet(revision.size() + 4);
+        incrementSizeBy(revision.size() + 4);
+        // CON-587: Set the min/max version of this Block because it cannot
+        // be assumed that revisions are inserted in monotonically
+        // increasing order of version.
+        if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
+                MAX_REVISION_VERSION_CHECK) || revisionCount.get() < 2) {
+            stats.putIf(Attribute.MIN_REVISION_VERSION, version,
+                    MIN_REVISION_VERSION_CHECK);
+        }
         return revision;
-
     }
 
     /**
