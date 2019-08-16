@@ -57,8 +57,8 @@ import com.google.common.collect.SortedMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position>
-        implements SearchIndex {
+final class SearchBlock extends Block<Text, Text, Position> implements
+        SearchIndex {
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
@@ -73,6 +73,10 @@ final class SearchBlock extends Block<Text, Text, Position>
      * The service is static (and therefore shared by each SearchBlock) because
      * only one search block at a time should be mutable and able to process
      * inserts.
+     * </p>
+     * <p>
+     * If multiple environments are active, they can all use this shared INDEXER
+     * without blocking.
      * </p>
      */
     private static final SearchIndexer INDEXER = SearchIndexer
