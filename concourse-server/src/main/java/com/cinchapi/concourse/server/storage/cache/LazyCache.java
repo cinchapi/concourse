@@ -15,13 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage.cache;
 
-import java.util.Map;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.Maps;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -56,8 +57,9 @@ public class LazyCache<K, V> {
      * @return the LazyCache
      */
     public static <K, V> LazyCache<K, V> withExpectedSize(int size) {
-        return new LazyCache<K, V>(
-                Maps.<K, V> newHashMapWithExpectedSize(size));
+        Cache<K, V> cache = CacheBuilder.newBuilder().softValues()
+                .expireAfterAccess(Duration.ofMinutes(2)).build();
+        return new LazyCache<K, V>(cache);
     }
 
     /**
@@ -68,14 +70,14 @@ public class LazyCache<K, V> {
     /**
      * The internal data structure the holds the cached content.
      */
-    private final Map<K, V> internal;
+    private final Cache<K, V> internal;
 
     /**
      * Construct a new instance
      * 
      * @param initialSize
      */
-    private LazyCache(Map<K, V> internal) {
+    private LazyCache(Cache<K, V> internal) {
         this.internal = internal;
         executor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
                 .setDaemon(true)
@@ -93,7 +95,7 @@ public class LazyCache<K, V> {
      */
     @Nullable
     public V get(K key) {
-        return internal.get(key);
+        return internal.getIfPresent(key);
     }
 
     /**
@@ -104,36 +106,7 @@ public class LazyCache<K, V> {
      * @param value
      */
     public void put(K key, V value) {
-        executor.execute(new PutRunnable(key, value));
-    }
-
-    /**
-     * The {@link Runnable} that is passed to the {@link #executor} to add items
-     * to the cache.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class PutRunnable implements Runnable {
-
-        private final K key;
-        private final V value;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param value
-         */
-        public PutRunnable(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public void run() {
-            internal.put(key, value);
-        }
-
+        executor.execute(() -> internal.put(key, value));
     }
 
 }

@@ -17,34 +17,30 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
+import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.ConcurrentSkipListMultiset;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedMultiset;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * A Block that stores SearchRevision data to be used in a SearchRecord.
@@ -61,27 +57,42 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position> {
+final class SearchBlock extends Block<Text, Text, Position>
+        implements SearchIndex {
 
     /**
-     * The executor service that is responsible for multithread search indexing.
+     * The number of worker threads to reserve for the {@link SearchIndexer}.
+     */
+    private static int NUM_INDEXER_THREADS = Math.max(3,
+            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
+
+    /**
+     * The {@link SearchIndexer} that is responsible for multithreaded search
+     * indexing.
      * <p>
-     * The executor is static (and therefore shared by each SearchBlock) because
+     * The service is static (and therefore shared by each SearchBlock) because
      * only one search block at a time should be mutable and able to process
      * inserts.
      * </p>
+     * <p>
+     * If multiple environments are active, they can all use this shared INDEXER
+     * without blocking.
+     * </p>
      */
-    private static final ExecutorService indexer = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors(),
-            new ThreadFactoryBuilder().setDaemon(true)
-                    .setNameFormat("Search Indexer" + " %d").build());
+    private static final SearchIndexer INDEXER = SearchIndexer
+            .create(NUM_INDEXER_THREADS);
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
-            Comparator<Revision> comparator) {
-        return ConcurrentSkipListMultiset.create(comparator);
-    }
+    /**
+     * A flag that indicates whether the
+     * {@link #prepare(CountUpLatch, Text, String, PrimaryKey, int, long, Action)
+     * prepare} function should limit the length of substrings that are indexed.
+     * <p>
+     * Generally, this value is {@code true} if the configuration has a value
+     * for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is greater than
+     * 0.
+     * </p>
+     */
+    private static final boolean LIMIT_SUBSTRING_LENGTH = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
 
     /**
      * DO NOT CALL!!
@@ -95,6 +106,18 @@ final class SearchBlock extends Block<Text, Text, Position> {
     SearchBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
         this.concurrent = true;
+    }
+
+    /**
+     * DO NOT CALL DIRECTLY.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
+    @Override
+    public void index(Text key, Text term, Position position, long version,
+            Action type) {
+        super.insertUnsafe(key, term, position, version, type);
     }
 
     /**
@@ -125,21 +148,83 @@ final class SearchBlock extends Block<Text, Text, Position> {
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string.split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+            CountUpLatch ticker = new CountUpLatch();
             int pos = 0;
-            List<Future<?>> futures = Lists.newArrayList();
+            int numPrepared = 0;
             for (String tok : toks) {
-                futures.addAll(process(key, tok, pos, record, version, type));
+                numPrepared += prepare(ticker, key, tok, record, pos, version,
+                        type);
                 ++pos;
             }
-            for (Future<?> future : futures) { // wait for completion
-                try {
-                    future.get();
-                }
-                catch (ExecutionException | InterruptedException e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
+            try {
+                ticker.await(numPrepared);
+            }
+            catch (InterruptedException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
+    }
+
+    /**
+     * Calculate all possible substrings for {@code term} and
+     * {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
+     * enqueue} work that will store a revision for the {@code term} at
+     * {@code position} for {@code key} in {@code record} at {@code version}.
+     * 
+     * @param ticker a {@link CountUpLatch} that is associated with each of the
+     *            tasks that are
+     *            {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
+     *            enqueued} by this method; when each index task completes, it
+     *            {@link CountUpLatch#countUp() increments} the ticker
+     * @param key
+     * @param term
+     * @param record
+     * @param position
+     * @param version
+     * @param type
+     * @return the number of inserts that have been enqueued so that the caller
+     *         can {@link CountUpLatch#await(int) await} all related inserts
+     *         to finish.
+     */
+    private int prepare(CountUpLatch ticker, Text key, String term,
+            PrimaryKey record, int position, long version, Action type) {
+        int count = 0;
+        if(!STOPWORDS.contains(term)) {
+            Position pos = Position.wrap(record, position);
+            int upperBound = (int) Math.pow(term.length(), 2);
+            // The set of substrings that have been indexed from {@code term} at
+            // {@code position} for {@code key} in {@code record} at {@code
+            // version}. This is used to ensure that we do not add duplicate
+            // indexes (i.e. 'abrakadabra')
+            Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
+            int length = term.length();
+            for (int i = 0; i < length; ++i) {
+                int start = i + 1;
+                int limit = (LIMIT_SUBSTRING_LENGTH
+                        ? Math.min(length,
+                                start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
+                        : length) + 1;
+                for (int j = start; j < limit; ++j) {
+                    final String substring = term.substring(i, j).trim();
+                    if(!Strings.isNullOrEmpty(substring)
+                            && !STOPWORDS.contains(substring)
+                            && indexed.add(substring)) {
+                        INDEXER.enqueue(this, ticker, key, substring, pos,
+                                version, type);
+                    }
+                }
+            }
+            count = indexed.size();
+            indexed = null; // make eligible for immediate GC
+        }
+        return count;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
+            Comparator<Revision> comparator) {
+        return ConcurrentSkipListMultiset.create(comparator);
     }
 
     @Override
@@ -152,77 +237,6 @@ final class SearchBlock extends Block<Text, Text, Position> {
     @Override
     protected Class<SearchRevision> xRevisionClass() {
         return SearchRevision.class;
-    }
-
-    /**
-     * Call super.{@link #insert(Text, Text, Position, long)}
-     * 
-     * @param locator
-     * @param key
-     * @param value
-     * @param version
-     * @param type
-     */
-    private final void doInsert(Text locator, Text key, Position value,
-            long version, Action type) {
-        super.insertUnsafe(locator, key, value, version, type);
-    }
-
-    /**
-     * Calculate all possible substrings for {@code term} and submit a task to
-     * the {@link #indexer} that will store a revision for the {@code term} at
-     * {@code position} for {@code key} in {@code record} at {@code version}.
-     * 
-     * @param key
-     * @param term
-     * @param position
-     * @param record
-     * @param version
-     * @param type
-     * @return {@link Future Futures} that can be used to wait for all the
-     *         submitted tasks to complete
-     */
-    private List<Future<?>> process(final Text key, final String term,
-            final int position, final PrimaryKey record, final long version,
-            final Action type) {
-        if(!STOPWORDS.contains(term)) {
-            int upperBound = (int) Math.pow(term.length(), 2);
-            List<Future<?>> futures = Lists
-                    .newArrayListWithCapacity(upperBound);
-
-            // The set of substrings that have been indexed from {@code term} at
-            // {@code position} for {@code key} in {@code record} at {@code
-            // version}. This is used to ensure that we do not add duplicate
-            // indexes (i.e. 'abrakadabra')
-            Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
-
-            for (int i = 0; i < term.length(); ++i) {
-                for (int j = i + 1; j < term.length() + 1; ++j) {
-                    final String substring = term.substring(i, j).trim();
-                    if(!Strings.isNullOrEmpty(substring)
-                            && !STOPWORDS.contains(substring)
-                            && !indexed.contains(substring)) {
-                        indexed.add(substring);
-                        futures.add(indexer.submit(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                doInsert(key, Text.wrap(substring),
-                                        Position.wrap(record, position),
-                                        version, type);
-                            }
-
-                        }));
-                    }
-
-                }
-            }
-            indexed = null; // make eligible for immediate GC
-            return futures;
-        }
-        else {
-            return Collections.emptyList();
-        }
     }
 
 }
