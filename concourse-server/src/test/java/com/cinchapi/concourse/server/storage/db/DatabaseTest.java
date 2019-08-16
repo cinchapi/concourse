@@ -116,7 +116,7 @@ public class DatabaseTest extends StoreTest {
     @Test
     public void testSearchIndexMultipleEnvironmentsConcurrently() {
         List<Database> dbs = Lists.newArrayList();
-        for(int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 10; ++i) {
             Database db = getStore();
             db.start();
             dbs.add(db);
@@ -136,16 +136,16 @@ public class DatabaseTest extends StoreTest {
         for (Database db : dbs) {
             func.accept(db);
         }
-        for(Database db : dbs) {
+        for (Database db : dbs) {
             Set<Long> actual = db.search(key, query);
             Assert.assertTrue(!actual.isEmpty());
             Assert.assertEquals(expected, actual);
         }
-        for(Database db : dbs) {
+        for (Database db : dbs) {
             db.stop();
             if(!current.contentEquals(db.getBackingStore())) {
                 FileSystem.deleteDirectory(db.getBackingStore());
-            }  
+            }
         }
     }
 
