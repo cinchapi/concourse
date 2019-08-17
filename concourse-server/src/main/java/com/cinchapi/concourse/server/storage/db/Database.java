@@ -38,6 +38,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
+import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
@@ -50,6 +51,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
+import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -83,7 +85,9 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements PermanentStore {
+public final class Database extends BaseStore implements
+        PermanentStore,
+        Gatherable {
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
@@ -337,10 +341,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -439,6 +442,20 @@ public final class Database extends BaseStore implements PermanentStore {
             sb.append(_ctb.dump());
         }
         return sb.toString();
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record) {
+        SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
+        Set<Value> values = r.gather(PrimaryKey.wrap(record));
+        return LazyTransformSet.of(values, Value::getTObject);
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
+        Set<Value> values = r.gather(PrimaryKey.wrap(record), timestamp);
+        return LazyTransformSet.of(values, Value::getTObject);
     }
 
     /**
@@ -760,8 +777,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>>
-            implements Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>> implements
+            Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
