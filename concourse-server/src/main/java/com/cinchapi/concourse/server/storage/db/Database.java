@@ -85,9 +85,8 @@ import com.google.common.io.Files;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements
-        PermanentStore,
-        Gatherable {
+public final class Database extends BaseStore
+        implements PermanentStore, Gatherable {
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
@@ -341,9 +340,10 @@ public final class Database extends BaseStore implements
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
+            Logger.warn(
+                    "The Engine refused to accept {} because "
+                            + "it appears that the data was already transported. "
+                            + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -777,8 +777,8 @@ public final class Database extends BaseStore implements
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>> implements
-            Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>>
+            implements Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
