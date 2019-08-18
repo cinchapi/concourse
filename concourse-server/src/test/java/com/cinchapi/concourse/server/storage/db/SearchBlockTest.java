@@ -209,6 +209,18 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     }
 
     @Test
+    @Ignore
+    public void testCannotGetChecksumOfMutableBlock() {
+        // Ignore because SearchBlock uses a different insert flow.
+    }
+
+    @Test
+    @Ignore
+    public void testChecksumSameAfterSyncAndWhenLoaded() {
+        // Ignore because SearchBlock uses a different insert flow.
+    }
+
+    @Test
     public void testDoesNotAddDuplicates() {
         // LINE 20:
         // imwhrxxhtysldepivwwpbererstvplxnoknicpboajbdoayadaceldzbeasolxrnxcizcjjvymugsqyotcefeoohggsxaapnc

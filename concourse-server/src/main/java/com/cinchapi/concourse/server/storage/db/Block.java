@@ -48,6 +48,7 @@ import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.io.Checksums;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
@@ -198,9 +199,26 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
+     * A checksum of the entire {@link Block Block's} content to help check for
+     * duplicates.
+     * <p>
+     * The value of this variable is always {@code null} for a {@link #mutable}
+     * block. When the block is {@link #sync() synced} or loaded from disk, the
+     * value is generated using the content of the underlying file.
+     * </p>
+     */
+    @Nullable
+    private String checksum = null;
+
+    /**
      * The location of the block file.
      */
     private final String file;
+
+    /**
+     * A {@link Path} object for {@link #file}.
+     */
+    private final Path $file;
 
     /**
      * A fixed size filter that is used to test whether elements are contained
@@ -322,6 +340,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         FileSystem.mkdirs(directory);
         this.id = id;
         this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
+        this.$file = Paths.get(file);
         Path $stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
         Path $filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
         Path $index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
@@ -345,6 +364,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
             this.index = BlockIndex.open($index);
             this.revisions = null;
+            this.checksum = Checksums.generate($file);
         }
         else {
             this.mutable = true;
@@ -353,10 +373,28 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.filter = BloomFilter.create($filter, EXPECTED_INSERTIONS);
             this.index = BlockIndex.create($index, EXPECTED_INSERTIONS);
             stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
+            this.checksum = null;
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
+    }
+
+    /**
+     * Return a checksum of the {@link Block Block's} content if and only if
+     * this {@link Block} is NOT {@link #mutable}.
+     * 
+     * @return a checksum of the Block's content
+     * @throws IllegalStateException if the Block is mutable
+     */
+    public final String checksum() {
+        if(!mutable) {
+            return checksum;
+        }
+        else {
+            throw new IllegalStateException(
+                    "Cannot return the checksum of a mutable Block");
+        }
     }
 
     @Override
@@ -594,7 +632,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             if(mutable && sizeImpl() > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
-                channel.write(getBytes());
+                ByteBuffer bytes = getBytes();
+                channel.write(bytes);
                 channel.force(true);
                 filter.sync();
                 index.sync();
@@ -603,6 +642,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
                 filter.disableThreadSafety();
+                bytes.rewind();
+                this.checksum = Checksums.generate(bytes);
             }
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);

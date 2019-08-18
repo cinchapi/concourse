@@ -230,6 +230,35 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
                 (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testCannotGetChecksumOfMutableBlock() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        block.checksum();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testChecksumSameAfterSyncAndWhenLoaded() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        block.sync();
+        String expected = block.checksum();
+        block = Reflection.newInstance(block.getClass(), block.getId(),
+                directory, true);
+        String actual = block.checksum();
+        Assert.assertEquals(expected, actual);
+
+    }
+
     protected abstract L getLocator();
 
     protected abstract K getKey();
