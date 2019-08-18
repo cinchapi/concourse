@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -52,15 +54,9 @@ public class BlockIndex implements Byteable, Syncable {
     // no longer mutable.
 
     /**
-     * Return a newly created BlockIndex.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BlockIndex
+     * Represents an entry that has not been recorded.
      */
-    public static BlockIndex create(String file, int expectedInsertions) {
-        return new BlockIndex(file, expectedInsertions);
-    }
+    public static final int NO_ENTRY = -1;
 
     /**
      * Return a newly created BlockIndex.
@@ -74,13 +70,14 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Return the BlockIndex that is stored in {@code file}.
+     * Return a newly created BlockIndex.
      * 
      * @param file
+     * @param expectedInsertions
      * @return the BlockIndex
      */
-    public static BlockIndex open(String file) {
-        return new BlockIndex(file);
+    public static BlockIndex create(String file, int expectedInsertions) {
+        return new BlockIndex(file, expectedInsertions);
     }
 
     /**
@@ -94,9 +91,57 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Represents an entry that has not been recorded.
+     * Return the BlockIndex that is stored in {@code file}.
+     * 
+     * @param file
+     * @return the BlockIndex
      */
-    public static final int NO_ENTRY = -1;
+    public static BlockIndex open(String file) {
+        return new BlockIndex(file);
+    }
+
+    /**
+     * If any of the {@code byteables} are {@link Value} objects, ensure that
+     * the representation of those values support conventional weak typing (i.e.
+     * different numeric types will produce the same binary form if the essence
+     * of those value are the same).
+     * <p>
+     * In cases where an index lookup is done using one or more {@link Value
+     * Values}, the {@link Byteable byteables} that are used to create the
+     * {@link Composite} must be the same in cases where the value type is
+     * technically different (i.e. Double vs Integer) but logically the same
+     * (i.e. 18.0 vs 18).
+     * </p>
+     * 
+     * @param byteables
+     * @return byteables where any {@link Value Values} have been make weakly
+     *         typed.
+     */
+    private static Byteable[] injectWeaklyTypedValues(Byteable... byteables) {
+        for (int i = 0; i < byteables.length; ++i) {
+            Byteable byteable = byteables[i];
+            if(byteable instanceof Value) {
+                Value value = (Value) byteable;
+                if(value.isNumericType()) {
+                    byteables[i] = new Byteable() {
+
+                        @Override
+                        public void copyTo(ByteBuffer buffer) {
+                            buffer.putDouble(
+                                    ((Number) value.getObject()).doubleValue());
+                        }
+
+                        @Override
+                        public int size() {
+                            return 8;
+                        }
+
+                    };
+                }
+            }
+        }
+        return byteables;
+    }
 
     /**
      * The entries contained in the index.
@@ -150,6 +195,15 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     @Override
+    public void copyTo(ByteBuffer buffer) {
+        Preconditions.checkState(mutable);
+        for (Entry entry : entries.values()) {
+            buffer.putInt(entry.size());
+            entry.copyTo(buffer);
+        }
+    }
+
+    @Override
     public ByteBuffer getBytes() {
         Preconditions.checkState(mutable);
         ByteBuffer bytes = ByteBuffer.allocate(size());
@@ -166,7 +220,8 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the end position
      */
     public int getEnd(Byteable... byteables) {
-        Composite composite = Composite.create(byteables);
+        Composite composite = Composite
+                .create(injectWeaklyTypedValues(byteables));
         Entry entry = entries().get(composite);
         if(entry != null) {
             return entry.getEnd();
@@ -184,7 +239,8 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the start position
      */
     public int getStart(Byteable... byteables) {
-        Composite composite = Composite.create(byteables);
+        Composite composite = Composite
+                .create(injectWeaklyTypedValues(byteables));
         Entry entry = entries().get(composite);
         if(entry != null) {
             return entry.getStart();
@@ -204,11 +260,16 @@ public class BlockIndex implements Byteable, Syncable {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(mutable);
-        Composite composite = Composite.create(byteables);
+        Composite composite = Composite
+                .create(injectWeaklyTypedValues(byteables));
         Entry entry = entries().get(composite);
+        if(entry == null) {
+            System.out.println("uh oh");
+        }
         Preconditions.checkState(entry != null,
                 "Cannot set the end position before setting "
-                        + "the start position. Tried to put %s",
+                        + "the start position. Tried to put %s for "
+                        + Arrays.toString(byteables),
                 end);
         entry.setEnd(end);
     }
@@ -223,7 +284,8 @@ public class BlockIndex implements Byteable, Syncable {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(mutable);
-        Composite composite = Composite.create(byteables);
+        Composite composite = Composite
+                .create(injectWeaklyTypedValues(byteables));
         Entry entry = entries().get(composite);
         if(entry == null) {
             entry = new Entry(composite);
@@ -255,25 +317,6 @@ public class BlockIndex implements Byteable, Syncable {
         finally {
             FileSystem.closeFileChannel(channel); // CON-162
         }
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        Preconditions.checkState(mutable);
-        for (Entry entry : entries.values()) {
-            buffer.putInt(entry.size());
-            entry.copyTo(buffer);
-        }
-    }
-
-    /**
-     * Return {@code true} if this index is considered <em>loaded</em> meaning
-     * all of its entries are available in memory.
-     * 
-     * @return {@code true} if the entries are loaded
-     */
-    protected boolean isLoaded() { // visible for testing
-        return mutable || (softEntries != null && softEntries.get() != null);
     }
 
     /**
@@ -313,6 +356,16 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
+     * Return {@code true} if this index is considered <em>loaded</em> meaning
+     * all of its entries are available in memory.
+     * 
+     * @return {@code true} if the entries are loaded
+     */
+    protected boolean isLoaded() { // visible for testing
+        return mutable || (softEntries != null && softEntries.get() != null);
+    }
+
+    /**
      * Represents a single entry in the Index.
      * 
      * @author Jeff Nelson
@@ -348,6 +401,13 @@ public class BlockIndex implements Byteable, Syncable {
          */
         public Entry(Composite key) {
             this.key = key;
+        }
+
+        @Override
+        public void copyTo(ByteBuffer buffer) {
+            buffer.putInt(start);
+            buffer.putInt(end);
+            key.copyTo(buffer);
         }
 
         @Override
@@ -406,13 +466,6 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public int size() {
             return CONSTANT_SIZE + key.size();
-        }
-
-        @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.putInt(start);
-            buffer.putInt(end);
-            key.copyTo(buffer);
         }
 
     }
