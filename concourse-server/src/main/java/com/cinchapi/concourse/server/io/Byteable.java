@@ -80,7 +80,12 @@ public interface Byteable {
      * 
      * @return the byte sequence.
      */
-    public ByteBuffer getBytes();
+    public default ByteBuffer getBytes() {
+        ByteBuffer bytes = ByteBuffer.allocate(size());
+        copyTo(bytes);
+        bytes.rewind();
+        return bytes;
+    }
 
     /**
      * Returns the total number of bytes used to represent this object.
