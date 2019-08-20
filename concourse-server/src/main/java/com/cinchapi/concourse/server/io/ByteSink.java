@@ -28,6 +28,20 @@ import com.cinchapi.common.base.CheckedExceptions;
  */
 public interface ByteSink {
 
+    /**
+     * The name of the Charset to use for encoding/decoding. We use the name
+     * instead of the charset object because Java caches encoders when
+     * referencing them by name, but creates a new encorder object when
+     * referencing them by Charset object.
+     */
+    public static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
+
+    /**
+     * Return a {@link ByteSink} that passes through to a {@link ByteBuffer}.
+     * 
+     * @param buffer
+     * @return the {@link ByteSink}
+     */
     public static ByteSink to(ByteBuffer buffer) {
         return new ByteBufferSink(buffer);
     }
@@ -39,31 +53,86 @@ public interface ByteSink {
      */
     public int position();
 
-    public ByteSink put(ByteBuffer src);
-
-    public ByteSink put(byte[] src);
-    
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
     public ByteSink put(byte value);
 
+    /**
+     * Put the {@code src} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param src
+     * @return this
+     */
+    public ByteSink put(byte[] src);
+
+    /**
+     * Put the {@code src} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param src
+     * @return this
+     */
+    public ByteSink put(ByteBuffer src);
+
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
     public ByteSink putChar(char value);
 
-    public ByteSink putShort(short value);
-
-    public ByteSink putInt(int value);
-
-    public ByteSink putLong(long value);
-
-    public ByteSink putFloat(float value);
-
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
     public ByteSink putDouble(double value);
 
     /**
-     * The name of the Charset to use for encoding/decoding. We use the name
-     * instead of the charset object because Java caches encoders when
-     * referencing them by name, but creates a new encorder object when
-     * referencing them by Charset object.
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
      */
-    public static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
+    public ByteSink putFloat(float value);
+
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
+    public ByteSink putInt(int value);
+
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
+    public ByteSink putLong(long value);
+
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
+    public ByteSink putShort(short value);
 
     public default ByteSink putUtf8(String value) {
         try {

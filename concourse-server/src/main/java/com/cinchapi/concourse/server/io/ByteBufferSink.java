@@ -18,34 +18,45 @@ package com.cinchapi.concourse.server.io;
 import java.nio.ByteBuffer;
 
 /**
+ * A {@link ByteSink} that writes to a {@link ByteBuffer}.
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
-class ByteBufferSink implements ByteSink {
-    
+final class ByteBufferSink implements ByteSink {
+
+    /**
+     * The destination where bytes are written.
+     */
     private final ByteBuffer buffer;
-    
+
     /**
      * Construct a new instance.
+     * 
      * @param buffer
      */
-    ByteBufferSink(ByteBuffer buffer){
+    ByteBufferSink(ByteBuffer buffer) {
         this.buffer = buffer;
     }
+
     @Override
     public int position() {
         return buffer.position();
     }
 
     @Override
-    public ByteSink put(ByteBuffer src) {
-        buffer.put(src);
+    public ByteSink put(byte value) {
+        buffer.put(value);
         return this;
     }
 
     @Override
     public ByteSink put(byte[] src) {
+        buffer.put(src);
+        return this;
+    }
+
+    @Override
+    public ByteSink put(ByteBuffer src) {
         buffer.put(src);
         return this;
     }
@@ -57,8 +68,14 @@ class ByteBufferSink implements ByteSink {
     }
 
     @Override
-    public ByteSink putShort(short value) {
-        buffer.putShort(value);
+    public ByteSink putDouble(double value) {
+        buffer.putDouble(value);
+        return this;
+    }
+
+    @Override
+    public ByteSink putFloat(float value) {
+        buffer.putFloat(value);
         return this;
     }
 
@@ -75,20 +92,8 @@ class ByteBufferSink implements ByteSink {
     }
 
     @Override
-    public ByteSink putFloat(float value) {
-        buffer.putFloat(value);
-        return this;
-    }
-
-    @Override
-    public ByteSink putDouble(double value) {
-        buffer.putDouble(value);
-        return this;
-    }
-
-    @Override
-    public ByteSink put(byte value) {
-        buffer.put(value);
+    public ByteSink putShort(short value) {
+        buffer.putShort(value);
         return this;
     }
 
