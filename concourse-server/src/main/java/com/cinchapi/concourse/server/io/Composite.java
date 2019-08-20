@@ -41,7 +41,7 @@ public final class Composite implements Byteable {
      * @param byteables
      * @return the Composite
      */
-    public static Composite create(Byteable... byteables) {
+    public static Composite create(Compositable... byteables) {
         return new Composite(byteables);
     }
 
@@ -55,7 +55,7 @@ public final class Composite implements Byteable {
      * @param byteables
      * @return the Composite
      */
-    public static Composite createCached(Byteable... byteables) {
+    public static Composite createCached(Compositable... byteables) {
         int hashCode = Arrays.hashCode(byteables);
         Composite composite = CACHE.get(hashCode);
         if(composite == null) {
@@ -86,6 +86,9 @@ public final class Composite implements Byteable {
      */
     private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
+    /**
+     * All the bytes that make up the {@link Composite}.
+     */
     private final ByteBuffer bytes;
 
     /**
@@ -107,18 +110,18 @@ public final class Composite implements Byteable {
      * 
      * @param byteables
      */
-    private Composite(Byteable... byteables) {
+    private Composite(Compositable... byteables) {
         if(byteables.length == 1) {
-            bytes = byteables[0].getBytes();
+            bytes = byteables[0].getCanonicalBytes();
         }
         else {
             int size = 0;
-            for (Byteable byteable : byteables) {
-                size += byteable.size();
+            for (Compositable byteable : byteables) {
+                size += byteable.getCanonicalLength();
             }
             bytes = ByteBuffer.allocate(size);
-            for (Byteable byteable : byteables) {
-                byteable.copyTo(bytes);
+            for (Compositable byteable : byteables) {
+                byteable.copyCanonicalBytesTo(bytes);
             }
             bytes.rewind();
         }
@@ -133,7 +136,7 @@ public final class Composite implements Byteable {
     public boolean equals(Object obj) {
         if(obj instanceof Composite) {
             Composite other = (Composite) obj;
-            return getBytes().equals(other.getBytes());
+            return getBytes().equals(other.getCanonicalBytes());
         }
         return false;
     }
@@ -153,11 +156,10 @@ public final class Composite implements Byteable {
         return bytes.capacity();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public String toString() {
-        return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
-                .toString();
+        return Hashing.murmur3_128()
+                .hashBytes(ByteBuffers.toByteArray(getBytes())).toString();
     }
 
 }

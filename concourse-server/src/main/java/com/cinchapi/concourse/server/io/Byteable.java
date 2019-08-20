@@ -49,7 +49,7 @@ import java.nio.ByteBuffer;
  * @see Byteables
  * @author Jeff Nelson
  */
-public interface Byteable {
+public interface Byteable extends Compositable {
 
     /**
      * Copy the byte sequence that represents this object to the {@code buffer}.
@@ -87,6 +87,11 @@ public interface Byteable {
         return bytes;
     }
 
+    @Override
+    public default ByteBuffer getCanonicalBytes() {
+        return getBytes();
+    }
+
     /**
      * Returns the total number of bytes used to represent this object.
      * <p>
@@ -98,5 +103,17 @@ public interface Byteable {
      * @return the number of bytes.
      */
     public int size();
+
+    @Override
+    public default void copyCanonicalBytesTo(ByteBuffer buffer) {
+        copyTo(buffer);
+    }
+
+    @Override
+    default int getCanonicalLength() {
+        return size();
+    }
+    
+    
 
 }
