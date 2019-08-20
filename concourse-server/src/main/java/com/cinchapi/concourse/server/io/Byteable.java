@@ -113,7 +113,5 @@ public interface Byteable extends Compositable {
     default int getCanonicalLength() {
         return size();
     }
-    
-    
 
 }
