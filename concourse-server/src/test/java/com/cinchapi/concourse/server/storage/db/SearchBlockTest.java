@@ -210,12 +210,14 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 
     @Test
     @Ignore
+    @Override
     public void testCannotGetChecksumOfMutableBlock() {
         // Ignore because SearchBlock uses a different insert flow.
     }
 
     @Test
     @Ignore
+    @Override
     public void testChecksumSameAfterSyncAndWhenLoaded() {
         // Ignore because SearchBlock uses a different insert flow.
     }
