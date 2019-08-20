@@ -324,7 +324,7 @@ public class ValueTest extends ByteableTest {
         Value b = Value.wrap(Convert.javaToThrift(bd));
         Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
     }
-    
+
     @Test
     public void getCanonicalBytesTagString() {
         String s = Random.getString();
