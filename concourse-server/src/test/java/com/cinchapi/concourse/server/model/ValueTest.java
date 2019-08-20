@@ -25,11 +25,13 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -320,6 +322,14 @@ public class ValueTest extends ByteableTest {
         long bd = (long) Value.MIN_DOUBLE_REPRESENTED_INTEGER + 1;
         Value a = Value.wrap(Convert.javaToThrift((ad)));
         Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+    
+    @Test
+    public void getCanonicalBytesTagString() {
+        String s = Random.getString();
+        Value a = Value.wrap(Convert.javaToThrift((Tag.create(s))));
+        Value b = Value.wrap(Convert.javaToThrift(s));
         Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
     }
 
