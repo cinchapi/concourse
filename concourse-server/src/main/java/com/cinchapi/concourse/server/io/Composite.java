@@ -36,30 +36,30 @@ import com.google.common.hash.Hashing;
 public final class Composite implements Byteable {
 
     /**
-     * Return a Composite for the list of {@code byteables}.
+     * Return a Composite for the list of {@code objects}.
      * 
-     * @param byteables
+     * @param objects
      * @return the Composite
      */
-    public static Composite create(Compositable... byteables) {
-        return new Composite(byteables);
+    public static Composite create(Compositable... objects) {
+        return new Composite(objects);
     }
 
     /**
-     * Create a Composite for the list of {@code byteables} with support for
+     * Create a Composite for the list of {@code objects} with support for
      * caching. Cached Composites are not guaranteed to perfectly match up with
-     * the list of byteables (because hash collisions can occur) so it is only
+     * the list of objects (because hash collisions can occur) so it is only
      * advisable to use this method of creation when precision is not a
      * requirement.
      * 
-     * @param byteables
+     * @param objects
      * @return the Composite
      */
-    public static Composite createCached(Compositable... byteables) {
-        int hashCode = Arrays.hashCode(byteables);
+    public static Composite createCached(Compositable... objects) {
+        int hashCode = Arrays.hashCode(objects);
         Composite composite = CACHE.get(hashCode);
         if(composite == null) {
-            composite = create(byteables);
+            composite = create(objects);
             CACHE.put(hashCode, composite);
         }
         return composite;
@@ -108,20 +108,20 @@ public final class Composite implements Byteable {
     /**
      * Construct a new instance.
      * 
-     * @param byteables
+     * @param objects
      */
-    private Composite(Compositable... byteables) {
-        if(byteables.length == 1) {
-            bytes = byteables[0].getCanonicalBytes();
+    private Composite(Compositable... objects) {
+        if(objects.length == 1) {
+            bytes = objects[0].getCanonicalBytes();
         }
         else {
             int size = 0;
-            for (Compositable byteable : byteables) {
-                size += byteable.getCanonicalLength();
+            for (Compositable object : objects) {
+                size += object.getCanonicalLength();
             }
             bytes = ByteBuffer.allocate(size);
-            for (Compositable byteable : byteables) {
-                byteable.copyCanonicalBytesTo(bytes);
+            for (Compositable object : objects) {
+                object.copyCanonicalBytesTo(bytes);
             }
             bytes.rewind();
         }
