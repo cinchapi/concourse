@@ -38,22 +38,6 @@ import java.nio.ByteBuffer;
 public interface Compositable {
 
     /**
-     * Return a {@link ByteBuffer} containing a byte sequence that encodes the
-     * essential information about this object.
-     * 
-     * @return the essential {@link ByteBuffer bytes}
-     */
-    public ByteBuffer getCanonicalBytes();
-
-    /**
-     * Return the number of {@link #getCanonicalBytes() bytes} needed to encode
-     * essential information about this object.
-     * 
-     * @return the {@link #getCanonicalBytes()} size
-     */
-    public int getCanonicalLength();
-
-    /**
      * Copy the essential {@link #getCanonicalBytes() bytes } from this
      * {@link Compositable} to the {@link ByteBuffer buffer}.
      * 
@@ -67,5 +51,29 @@ public interface Compositable {
      * @param buffer
      */
     public void copyCanonicalBytesTo(ByteBuffer buffer);
+
+    /**
+     * Copy the essential {@link #getCanonicalBytes() bytes} from this
+     * {@link Compositable} to the {@link ByteSink sink}.
+     * 
+     * @param sink
+     */
+    public void copyCanonicalBytesTo(ByteSink sink);
+
+    /**
+     * Return a {@link ByteBuffer} containing a byte sequence that encodes the
+     * essential information about this object.
+     * 
+     * @return the essential {@link ByteBuffer bytes}
+     */
+    public ByteBuffer getCanonicalBytes();
+    
+    /**
+     * Return the number of {@link #getCanonicalBytes() bytes} needed to encode
+     * essential information about this object.
+     * 
+     * @return the {@link #getCanonicalBytes()} size
+     */
+    public int getCanonicalLength();
 
 }

@@ -57,9 +57,9 @@ public interface Byteable extends Compositable {
      * representation, be sure to reset the position after copying data to the
      * buffer.
      * <p>
-     * This method is primary intended for pass-through gathering where data
-     * from multiple Byteables can be copied to a single bytebuffer without
-     * doing any unnecessary intermediate copying. So, if the binary
+     * This method is primarily intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single {@link ByteBuffer}
+     * without doing any unnecessary intermediate copying. So, if the binary
      * representation for this object depends on that of another Byteable, then
      * the implementation of this method should gather those bytes using the
      * {@link #copyTo(ByteBuffer)} method for the other Byteable.
@@ -73,7 +73,27 @@ public interface Byteable extends Compositable {
      * 
      * @param buffer
      */
-    public void copyTo(ByteBuffer buffer);
+    public default void copyTo(ByteBuffer buffer) {
+        copyTo(ByteSink.to(buffer));
+    }
+
+    /**
+     * Copy the byte sequence that represents this object to the {@code sink}.
+     * This method should be idempotent, so if the object caches its byte
+     * representation, be sure to reset the position after copying data to the
+     * buffer.
+     * <p>
+     * This method is primarily intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single {@link ByteSink}
+     * without doing any unnecessary intermediate copying. So, if the binary
+     * representation for this object depends on that of another Byteable, then
+     * the implementation of this method should gather those bytes using the
+     * {@link #copyTo(ByteSink)} method for the other Byteable.
+     * </p>
+     * 
+     * @param sink
+     */
+    public void copyTo(ByteSink sink);
 
     /**
      * Returns a byte sequence that represents this object.
@@ -107,6 +127,11 @@ public interface Byteable extends Compositable {
     @Override
     public default void copyCanonicalBytesTo(ByteBuffer buffer) {
         copyTo(buffer);
+    }
+    
+    @Override
+    public default void copyCanonicalBytesTo(ByteSink sink) {
+        copyTo(sink);
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -167,12 +168,12 @@ public final class Text implements Byteable, Comparable<Text> {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
+    public void copyTo(ByteSink sink) {
         if(bytes == null) {
-            ByteBuffers.putString(text, buffer);
+            sink.putUtf8(text);
         }
         else {
-            buffer.put(getBytes());
+            sink.put(getBytes());
         }
     }
 

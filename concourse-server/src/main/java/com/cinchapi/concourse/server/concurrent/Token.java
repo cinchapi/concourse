@@ -18,6 +18,8 @@ package com.cinchapi.concourse.server.concurrent;
 import java.nio.ByteBuffer;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.concourse.server.io.ByteSink;
+import com.cinchapi.concourse.server.io.ByteSinks;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -139,8 +141,8 @@ public class Token implements Byteable {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    public void copyTo(ByteSink sink) {
+        ByteSinks.copyAndRewindSource(bytes, sink);
     }
 
 }

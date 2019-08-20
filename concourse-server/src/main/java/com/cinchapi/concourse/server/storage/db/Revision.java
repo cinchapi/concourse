@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.annotate.DoNotInvoke;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.model.Position;
@@ -321,18 +322,18 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.put((byte) type.ordinal());
-        buffer.putLong(version);
+    public void copyTo(ByteSink sink) {
+        sink.put((byte) type.ordinal());
+        sink.putLong(version);
         if(xLocatorSize() == VARIABLE_SIZE) {
-            buffer.putInt(locator.size());
+            sink.putInt(locator.size());
         }
-        locator.copyTo(buffer);
+        locator.copyTo(sink);
         if(xKeySize() == VARIABLE_SIZE) {
-            buffer.putInt(key.size());
+            sink.putInt(key.size());
         }
-        key.copyTo(buffer);
-        value.copyTo(buffer);
+        key.copyTo(sink);
+        value.copyTo(sink);
     }
 
     /**

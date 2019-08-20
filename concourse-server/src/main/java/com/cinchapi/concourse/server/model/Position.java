@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
@@ -180,7 +181,7 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
+    public void copyTo(ByteSink sink) {
         // NOTE: Storing the index as an int instead of some size aware
         // variable length is probably overkill since most indexes will be
         // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
@@ -190,8 +191,8 @@ public final class Position implements Byteable, Comparable<Position> {
         // Position is constant so we won't need to store the overall size
         // prior to the Position to deserialize it, which is actually more
         // space efficient.
-        primaryKey.copyTo(buffer);
-        buffer.putInt(index);
+        primaryKey.copyTo(sink);
+        sink.putInt(index);
     }
 
 }

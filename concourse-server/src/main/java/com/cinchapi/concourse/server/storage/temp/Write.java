@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -308,13 +309,13 @@ public final class Write implements Byteable, Versioned {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.putInt(key.size());
-        buffer.put((byte) type.ordinal());
-        buffer.putLong(version);
-        record.copyTo(buffer);
-        key.copyTo(buffer);
-        value.copyTo(buffer);
+    public void copyTo(ByteSink sink) {
+        sink.putInt(key.size());
+        sink.put((byte) type.ordinal());
+        sink.putLong(version);
+        record.copyTo(sink);
+        key.copyTo(sink);
+        value.copyTo(sink);
     }
 
 }

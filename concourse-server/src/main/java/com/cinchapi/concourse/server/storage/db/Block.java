@@ -45,6 +45,7 @@ import com.cinchapi.common.base.validate.BiCheck;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
@@ -102,50 +103,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
 
     /**
-     * Return a new PrimaryBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the PrimaryBlock
-     */
-    public static PrimaryBlock createPrimaryBlock(String id, String directory) {
-        return new PrimaryBlock(id, directory, false);
-    }
-
-    /**
-     * Return a new SearchBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the SearchBlock
-     */
-    public static SearchBlock createSearchBlock(String id, String directory) {
-        return new SearchBlock(id, directory, false);
-    }
-
-    /**
-     * Return a new SecondaryBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the SecondaryBlock
-     */
-    public static SecondaryBlock createSecondaryBlock(String id,
-            String directory) {
-        return new SecondaryBlock(id, directory, false);
-    }
-
-    /**
-     * Return the block id from the name of the block file.
-     * 
-     * @param filename
-     * @return the block id
-     */
-    public static String getId(String filename) {
-        return FileSystem.getSimpleName(filename);
-    }
-
-    /**
      * The expected number of Block insertions. This number is used to size the
      * Block's internal data structures. This value should be large enough to
      * reflect the fact that, for each revision, we make 3 inserts into the
@@ -199,6 +156,50 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
+     * Return a new PrimaryBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the PrimaryBlock
+     */
+    public static PrimaryBlock createPrimaryBlock(String id, String directory) {
+        return new PrimaryBlock(id, directory, false);
+    }
+
+    /**
+     * Return a new SearchBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the SearchBlock
+     */
+    public static SearchBlock createSearchBlock(String id, String directory) {
+        return new SearchBlock(id, directory, false);
+    }
+
+    /**
+     * Return a new SecondaryBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the SecondaryBlock
+     */
+    public static SecondaryBlock createSecondaryBlock(String id,
+            String directory) {
+        return new SecondaryBlock(id, directory, false);
+    }
+
+    /**
+     * Return the block id from the name of the block file.
+     * 
+     * @param filename
+     * @return the block id
+     */
+    public static String getId(String filename) {
+        return FileSystem.getSimpleName(filename);
+    }
+
+    /**
      * A checksum of the entire {@link Block Block's} content to help check for
      * duplicates.
      * <p>
@@ -243,9 +244,24 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * The index to determine which bytes in the block pertain to a locator or
      * locator/key pair.
      */
-    private final BlockIndex index; // Since the index is only used for
-                                    // immutable blocks, it is only populated
-                                    // during the call to #getBytes()
+    private BlockIndex index; // Since the index is only used for immutable
+                              // blocks, it is only populated during the call to
+                              // #serialize()
+
+    /**
+     * Path to the {@link #index} file.
+     */
+    private final Path $index;
+
+    /**
+     * Path to the {@link #stats} file.
+     */
+    private final Path $stats;
+
+    /**
+     * Path to the {@link #filter} file.
+     */
+    private final Path $filter;
 
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
@@ -287,7 +303,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     /**
      * Returned from the {@link #stats()} method.
      */
-    private final BlockStats stats;
+    private BlockStats stats;
 
     /**
      * A running count of the number of {@link #revisions} that have been
@@ -341,9 +357,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.id = id;
         this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
         this.$file = Paths.get(file);
-        Path $stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
-        Path $filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
-        Path $index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
+        this.$stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
+        this.$filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
+        this.$index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
         this.stats = new BlockStats($stats);
         if(diskLoad) {
             String[] missing = ImmutableList.of($stats, $filter, $index)
@@ -398,7 +414,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
+    public void copyTo(ByteSink sink) {
         Locks.lockIfCondition(read, mutable);
         try {
             L locator = null;
@@ -407,9 +423,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             boolean populated = false;
             for (Revision<L, K, V> revision : revisions) {
                 populated = true;
-                buffer.putInt(revision.size());
-                revision.copyTo(buffer);
-                position = buffer.position() - revision.size() - 4;
+                sink.putInt(revision.size());
+                revision.copyTo(sink);
+                position = sink.position() - revision.size() - 4;
                 /*
                  * States that trigger this condition to be true:
                  * 1. This is the first locator we've seen
@@ -449,7 +465,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 key = revision.getKey();
             }
             if(populated) {
-                position = buffer.position() - 1;
+                position = sink.position() - 1;
                 index.putEnd(position, locator);
                 index.putEnd(position, locator, key);
             }
@@ -622,6 +638,15 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Return the {@link Stats} for this {@link Block}
+     * 
+     * @return the stats metadata
+     */
+    public BlockStats stats() {
+        return stats;
+    }
+
+    /**
      * Flush the content to disk in a block file, sync the stats, filter and
      * index and finally make the Block immutable.
      */
@@ -663,18 +688,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         }
     }
 
-    /**
-     * Return the {@link Stats} for this {@link Block}
-     * 
-     * @return the stats metadata
-     */
-    public BlockStats stats() {
-        return stats;
-    }
-
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + id;
+    }
+
+    /**
+     * Increment the {@link #size()} of this {@link Block} by {@code delta} in a
+     * manner that accounts for whether the {@link Block} is {@link #concurrent}
+     * or not.
+     * 
+     * @param delta
+     */
+    private void incrementSizeBy(int delta) {
+        if(concurrent) {
+            atomicSize.addAndGet(delta);
+        }
+        else {
+            size += delta;
+        }
     }
 
     /**
@@ -834,22 +866,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     private int sizeImpl() {
         return concurrent ? atomicSize.get() : size;
-    }
-
-    /**
-     * Increment the {@link #size()} of this {@link Block} by {@code delta} in a
-     * manner that accounts for whether the {@link Block} is {@link #concurrent}
-     * or not.
-     * 
-     * @param delta
-     */
-    private void incrementSizeBy(int delta) {
-        if(concurrent) {
-            atomicSize.addAndGet(delta);
-        }
-        else {
-            size += delta;
-        }
     }
 
     /**

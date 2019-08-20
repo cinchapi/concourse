@@ -24,6 +24,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
@@ -236,9 +237,14 @@ public final class Value implements Byteable, Comparable<Value> {
     public int compareTo(Value other) {
         return Sorter.INSTANCE.compare(this, other);
     }
-
+    
     @Override
     public void copyCanonicalBytesTo(ByteBuffer buffer) {
+        copyCanonicalBytesTo(ByteSink.to(buffer));
+    }
+
+    @Override
+    public void copyCanonicalBytesTo(ByteSink sink) {
         if(isNumericType()) {
             // Must canonicalize numbers so that integer and floating point
             // representations have the same binary form if those
@@ -250,28 +256,28 @@ public final class Value implements Byteable, Comparable<Value> {
             if(number instanceof Long && (number
                     .longValue() < MIN_DOUBLE_REPRESENTED_INTEGER
                     || number.longValue() > MAX_DOUBLE_REPRESENTED_INTEGER)) {
-                buffer.putLong(number.longValue());
+                sink.putLong(number.longValue());
             }
             else {
                 // Must parse the Double from a string (instead of calling
                 // number#doubleValue()) because a Float that looks like a
                 // double is actually represented with less precision and will
                 // suffer from widening primitive conversion.
-                buffer.putDouble(Double.parseDouble(number.toString()));
+                sink.putDouble(Double.parseDouble(number.toString()));
             }
         }
         else if(isCharSequenceType()) {
-            ByteBuffers.putUtf8String(getObject().toString(), buffer);
+            sink.putUtf8(getObject().toString());
         }
         else {
-            Byteable.super.copyCanonicalBytesTo(buffer);
+            Byteable.super.copyCanonicalBytesTo(sink);
         }
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.put((byte) data.getType().ordinal());
-        buffer.put(data.bufferForData());
+    public void copyTo(ByteSink sink) {
+        sink.put((byte) data.getType().ordinal());
+        sink.put(data.bufferForData());
     }
 
     @Override

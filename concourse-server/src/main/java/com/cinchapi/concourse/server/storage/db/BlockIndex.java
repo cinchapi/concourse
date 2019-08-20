@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
@@ -258,11 +259,11 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
+    public void copyTo(ByteSink sink) {
         Preconditions.checkState(mutable);
         for (Entry entry : entries.values()) {
-            buffer.putInt(entry.size());
-            entry.copyTo(buffer);
+            sink.putInt(entry.size());
+            entry.copyTo(sink);
         }
     }
 
@@ -293,8 +294,9 @@ public class BlockIndex implements Byteable, Syncable {
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-            Map<Composite, Entry> entries = Maps.newHashMapWithExpectedSize(
-                    bytes.capacity() / Entry.CONSTANT_SIZE);
+            Map<Composite, Entry> entries = Maps
+                    .newLinkedHashMapWithExpectedSize(
+                            bytes.capacity() / Entry.CONSTANT_SIZE);
             while (it.hasNext()) {
                 Entry entry = new Entry(it.next());
                 entries.put(entry.getKey(), entry);
@@ -409,10 +411,10 @@ public class BlockIndex implements Byteable, Syncable {
         }
 
         @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.putInt(start);
-            buffer.putInt(end);
-            key.copyTo(buffer);
+        public void copyTo(ByteSink sink) {
+            sink.putInt(start);
+            sink.putInt(end);
+            key.copyTo(sink);
         }
 
     }

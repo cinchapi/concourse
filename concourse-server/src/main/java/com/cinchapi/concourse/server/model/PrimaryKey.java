@@ -21,6 +21,7 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.primitives.Longs;
@@ -160,8 +161,8 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.putLong(data);
+    public void copyTo(ByteSink sink) {
+        sink.putLong(data);
     }
 
     /**

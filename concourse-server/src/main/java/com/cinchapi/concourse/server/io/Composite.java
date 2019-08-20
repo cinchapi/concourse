@@ -128,8 +128,8 @@ public final class Composite implements Byteable {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    public void copyTo(ByteSink sink) {
+        ByteSinks.copyAndRewindSource(bytes, sink);
     }
 
     @Override

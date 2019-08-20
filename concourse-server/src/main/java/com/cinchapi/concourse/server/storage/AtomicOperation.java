@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
@@ -865,9 +866,9 @@ public class AtomicOperation extends BufferedStore
         }
 
         @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.put((byte) type.ordinal());
-            token.copyTo(buffer);
+        public void copyTo(ByteSink sink) {
+            sink.put((byte) type.ordinal());
+            token.copyTo(sink);
         }
 
         @Override
