@@ -270,13 +270,6 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     @Override
     @Test
     @Ignore
-    public void testReindex() {
-        // Direct insert for SearchBlock is unsupported
-    }
-
-    @Override
-    @Test
-    @Ignore
     public void testRevisionVersionTrackingPersistence() {
         // Direct insert for SearchBlock is unsupported
     }

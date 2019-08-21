@@ -1047,7 +1047,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             Block<L, K, V> block = Reflection.newInstance(getClass(), directory,
                     id, false);
             for (Revision<L, K, V> revision : revisions()) {
-                block.insert(revision.getLocator(), revision.getKey(),
+                block.insertUnsafe(revision.getLocator(), revision.getKey(),
                         revision.getValue(), revision.getVersion(),
                         revision.getType());
             }
