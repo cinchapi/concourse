@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;

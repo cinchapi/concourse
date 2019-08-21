@@ -413,7 +413,5 @@ public class BloomFilter implements Syncable {
             return source.put(composite);
         }
     }
-    
-    
 
 }

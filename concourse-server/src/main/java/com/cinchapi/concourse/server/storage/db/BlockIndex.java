@@ -350,7 +350,7 @@ public class BlockIndex implements Byteable, Syncable {
     private boolean isMutable() {
         return file == null;
     }
-    
+
     @Override
     public int hashCode() {
         return entries().hashCode();
