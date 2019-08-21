@@ -21,8 +21,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.ByteSink;
@@ -32,6 +35,7 @@ import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.util.ByteBuffers;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
@@ -53,35 +57,44 @@ public class BlockIndex implements Byteable, Syncable {
     // no longer mutable.
 
     /**
-     * Return a newly created BlockIndex.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BlockIndex
+     * Represents an entry that has not been recorded.
      */
-    public static BlockIndex create(String file, int expectedInsertions) {
-        return new BlockIndex(file, expectedInsertions);
+    public static final int NO_ENTRY = -1;
+
+    /**
+     * Return a newly created {@link BlockIndex}.
+     * 
+     * @param expectedInsertions
+     * @return the {@link BlockIndex}
+     */
+    public static BlockIndex create(int expectedInsertions) {
+        return new BlockIndex(expectedInsertions);
     }
 
     /**
-     * Return a newly created BlockIndex.
+     * Return a newly created {@link BlockIndex} with the intention to
+     * eventually {@link #sync() sync} it to {@code file}.
      * 
      * @param file
      * @param expectedInsertions
-     * @return the BlockIndex
+     * @return the {@link BlockIndex}
      */
     public static BlockIndex create(Path file, int expectedInsertions) {
-        return create(file.toString(), expectedInsertions);
+        BlockIndex index = new BlockIndex(expectedInsertions);
+        index.intendedFile = file;
+        return index;
     }
 
     /**
-     * Return the BlockIndex that is stored in {@code file}.
+     * Return a newly created {@link BlockIndex} with the intention to
+     * eventually {@link #sync() sync} it to {@code file}.
      * 
      * @param file
-     * @return the BlockIndex
+     * @param expectedInsertions
+     * @return the {@link BlockIndex}
      */
-    public static BlockIndex open(String file) {
-        return new BlockIndex(file);
+    public static BlockIndex create(String file, int expectedInsertions) {
+        return create(Paths.get(file), expectedInsertions);
     }
 
     /**
@@ -91,13 +104,18 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the BlockIndex
      */
     public static BlockIndex open(Path file) {
-        return open(file.toString());
+        return new BlockIndex(file);
     }
 
     /**
-     * Represents an entry that has not been recorded.
+     * Return the BlockIndex that is stored in {@code file}.
+     * 
+     * @param file
+     * @return the BlockIndex
      */
-    public static final int NO_ENTRY = -1;
+    public static BlockIndex open(String file) {
+        return open(Paths.get(file));
+    }
 
     /**
      * The entries contained in the index.
@@ -105,15 +123,19 @@ public class BlockIndex implements Byteable, Syncable {
     private Map<Composite, Entry> entries;
 
     /**
-     * The file where the BlockIndex is stored during an diskSync.
+     * The file where the BlockIndex was last {@link #sync(Path) synced}. This
+     * value is {@code null} if the {@link BlockIndex} has never been
+     * {@link #sync(Path) synced}
      */
-    private final String file;
+    @Nullable
+    private Path file;
 
     /**
-     * A flag that indicates if this index is mutable. An index is no longer
-     * mutable after it has been synced.
+     * A file passed in with the the legacy {@link #create(Path, int)} factory.
+     * If this exist, {@link #sync()} to it if {@link #file} has not been set.
      */
-    private boolean mutable;
+    @Nullable
+    private Path intendedFile;
 
     /**
      * The running size of the index in bytes.
@@ -127,32 +149,40 @@ public class BlockIndex implements Byteable, Syncable {
     private SoftReference<Map<Composite, Entry>> softEntries;
 
     /**
-     * Lazily construct an existing instance from the data in {@code file}.
-     * 
-     * @param file
-     */
-    public BlockIndex(String file) {
-        this.file = file;
-        this.mutable = false;
-        this.entries = null;
-        this.softEntries = null;
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param expectedInsertions
      */
-    private BlockIndex(String file, int expectedInsertions) {
-        this.file = file;
-        this.entries = Maps.newHashMapWithExpectedSize(expectedInsertions);
+    private BlockIndex(int expectedInsertions) {
+        this.file = null;
+        this.entries = Maps
+                .newLinkedHashMapWithExpectedSize(expectedInsertions);
         this.softEntries = null;
-        this.mutable = true;
+    }
+
+    /**
+     * Lazily construct an existing instance from the data in {@code file}.
+     * 
+     * @param file
+     */
+    private BlockIndex(Path file) {
+        this.file = file;
+        this.entries = null;
+        this.softEntries = null;
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        Preconditions.checkState(isMutable());
+        for (Entry entry : entries.values()) {
+            sink.putInt(entry.size());
+            entry.copyTo(sink);
+        }
     }
 
     @Override
     public ByteBuffer getBytes() {
-        Preconditions.checkState(mutable);
+        Preconditions.checkState(isMutable());
         ByteBuffer bytes = ByteBuffer.allocate(size());
         copyTo(bytes);
         bytes.rewind();
@@ -204,7 +234,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putEnd(int end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
-        Preconditions.checkState(mutable);
+        Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
@@ -223,7 +253,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putStart(int start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
-        Preconditions.checkState(mutable);
+        Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry == null) {
@@ -241,14 +271,24 @@ public class BlockIndex implements Byteable, Syncable {
 
     @Override
     public void sync() {
-        Preconditions.checkState(mutable);
-        FileChannel channel = FileSystem.getFileChannel(file);
+        Preconditions.checkState(file != null || intendedFile != null,
+                "Cannot sync because a file has not been specified");
+        sync(MoreObjects.firstNonNull(file, intendedFile));
+    }
+
+    /**
+     * Write the data to {@code file} and fsync to guarantee durability.
+     * 
+     * @param file
+     */
+    public void sync(Path file) {
+        FileChannel channel = FileSystem.getFileChannel(file.toString());
         try {
             channel.write(getBytes());
             channel.force(true);
             softEntries = new SoftReference<Map<Composite, Entry>>(entries);
-            mutable = false;
             entries = null;
+            this.file = file;
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -258,13 +298,44 @@ public class BlockIndex implements Byteable, Syncable {
         }
     }
 
-    @Override
-    public void copyTo(ByteSink sink) {
-        Preconditions.checkState(mutable);
-        for (Entry entry : entries.values()) {
-            sink.putInt(entry.size());
-            entry.copyTo(sink);
+    /**
+     * Return the entries in this index. This method will lazily load the
+     * entries on demand if they do not currently exist in memory.
+     * 
+     * @return the entries
+     */
+    private synchronized Map<Composite, Entry> entries() {
+        if(entries != null) {
+            return entries;
         }
+        else {
+            while (softEntries == null || softEntries.get() == null) {
+                ByteBuffer bytes = FileSystem.map(file.toString(),
+                        MapMode.READ_ONLY, 0,
+                        FileSystem.getFileSize(file.toString()));
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                Map<Composite, Entry> entries = Maps
+                        .newLinkedHashMapWithExpectedSize(
+                                bytes.capacity() / Entry.CONSTANT_SIZE);
+                while (it.hasNext()) {
+                    Entry entry = new Entry(it.next());
+                    entries.put(entry.getKey(), entry);
+                }
+                softEntries = new SoftReference<Map<Composite, Entry>>(entries);
+            }
+            return softEntries.get();
+        }
+    }
+
+    /**
+     * Return {@code true} of this {@link BlockIndex} currently supports adding
+     * new entries. A {@link BlockIndex} is no longer mutable after it has been
+     * {@code synced}
+     * 
+     * @return a boolean that indicates the mutability of this {@link Block}
+     */
+    private boolean isMutable() {
+        return file == null;
     }
 
     /**
@@ -274,44 +345,8 @@ public class BlockIndex implements Byteable, Syncable {
      * @return {@code true} if the entries are loaded
      */
     protected boolean isLoaded() { // visible for testing
-        return mutable || (softEntries != null && softEntries.get() != null);
-    }
-
-    /**
-     * Return the entries in this index. This method will lazily load the
-     * entries on demand if they do not currently exist in memory.
-     * 
-     * @return the entries
-     */
-    private synchronized Map<Composite, Entry> entries() {
-        if(mutable && entries != null) {
-            return entries;
-        }
-        else if(!mutable
-                && (softEntries == null || softEntries.get() == null)) { // do
-                                                                         // lazy
-                                                                         // load
-            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                    FileSystem.getFileSize(file));
-            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-            Map<Composite, Entry> entries = Maps
-                    .newLinkedHashMapWithExpectedSize(
-                            bytes.capacity() / Entry.CONSTANT_SIZE);
-            while (it.hasNext()) {
-                Entry entry = new Entry(it.next());
-                entries.put(entry.getKey(), entry);
-            }
-            softEntries = new SoftReference<Map<Composite, Entry>>(entries);
-            return softEntries.get();
-        }
-        else if(!mutable && softEntries.get() != null) {
-            return softEntries.get();
-        }
-        else {
-            // "If i'm really an engineer thats worth a damn, we won't ever get
-            // to this point" -jnelson
-            throw new IllegalStateException();
-        }
+        return isMutable()
+                || (softEntries != null && softEntries.get() != null);
     }
 
     /**
@@ -350,6 +385,13 @@ public class BlockIndex implements Byteable, Syncable {
          */
         public Entry(Composite key) {
             this.key = key;
+        }
+
+        @Override
+        public void copyTo(ByteSink sink) {
+            sink.putInt(start);
+            sink.putInt(end);
+            key.copyTo(sink);
         }
 
         @Override
@@ -408,13 +450,6 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public int size() {
             return CONSTANT_SIZE + key.size();
-        }
-
-        @Override
-        public void copyTo(ByteSink sink) {
-            sink.putInt(start);
-            sink.putInt(end);
-            key.copyTo(sink);
         }
 
     }

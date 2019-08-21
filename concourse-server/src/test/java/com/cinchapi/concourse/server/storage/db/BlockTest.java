@@ -17,7 +17,12 @@ package com.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -25,6 +30,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -33,6 +39,7 @@ import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -256,7 +263,47 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
                 directory, true);
         String actual = block.checksum();
         Assert.assertEquals(expected, actual);
+    }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testReindex() {
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(
+                        ((Iterable<Revision<L, K, V>>) Reflection
+                                .get("revisions", block)).iterator(),
+                        Spliterator.ORDERED), false)
+                .forEach(System.out::println);
+        block.sync();
+        System.out.println("AHHHHHH");
+        StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(block.iterator(),
+                        Spliterator.ORDERED), false)
+                .forEach(System.out::println);
+        BlockIndex a = Reflection.get("index", block); // (authorized)
+        block.reindex();
+        BlockIndex b = Reflection.get("index", block); // (authorized)
+        Assert.assertNotSame(a, b);
+        List<String> ab = Lists.newArrayList();
+        List<String> bb = Lists.newArrayList();
+        ((Map<?, ? extends Byteable>) Reflection.call(a, "entries")).values()
+                .forEach(entry -> {
+                    ab.add(ByteBuffers.encodeAsHex(entry.getBytes()));
+                });
+        ((Map<?, ? extends Byteable>) Reflection.call(b, "entries")).values()
+                .forEach(entry -> {
+                    bb.add(ByteBuffers.encodeAsHex(entry.getBytes()));
+                });
+        for (int i = 0; i < ab.size(); ++i) {
+            System.out.println(ab.get(i) + " vs " + bb.get(i));
+        }
+        Assert.assertEquals(ab, bb);
+        //TODO: check bloom filter and stats
     }
 
     protected abstract L getLocator();

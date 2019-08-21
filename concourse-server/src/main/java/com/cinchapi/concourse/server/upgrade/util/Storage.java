@@ -112,6 +112,13 @@ public class Storage {
         }
 
         /**
+         * Regenerate the BlockIndex for the block.
+         */
+        public void reindex() {
+            Reflection.call(source, "reindex");
+        }
+
+        /**
          * Return the {@link BlockStats}.
          * 
          * @return the stats

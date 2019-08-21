@@ -38,10 +38,10 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.validate.BiCheck;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
@@ -100,7 +100,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * The expected number of Block insertions. This number is used to size the
@@ -674,9 +677,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
@@ -754,46 +756,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
-     * Return an {@link Iterable} over this Block's {@link Revision revisions},
-     * streamed from disk.
+     * Return an {@link Iterable} over this Block's {@link Revision revisions}.
      * <p>
-     * <strong>NOTE:</strong> This method should be used with caution and only
-     * as a last resort. There are likely more efficient ways to iterate over
-     * this Block's revisions (e.g. checking to see if the Block is still
-     * mutable OR has its revisions loaded in memory via the
-     * {@link #softRevisions} collection). This method should only be used when
-     * the caller intentionally wants to iterate over the revisions by streaming
-     * them entirely from disk.
+     * Unless the {@link Block} is {@link #mutable} and has its
+     * {@link #revisions} in memory, this method will stream the data directly
+     * from disk in an efficient manner.
      * </p>
      * 
      * @return an iterable over the revisions
      */
     private Iterable<Revision<L, K, V>> revisions() {
-        ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                FileSystem.getFileSize(file));
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-        return new Iterable<Revision<L, K, V>>() {
-
-            @Override
-            public Iterator<Revision<L, K, V>> iterator() {
-                return new AdHocIterator<Revision<L, K, V>>() {
-
-                    @Override
-                    protected Revision<L, K, V> findNext() {
-                        if(it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables
-                                    .read(it.next(), xRevisionClass());
-                            return revision;
-                        }
-                        else {
-                            return null;
-                        }
-                    }
-
-                };
-            }
-
-        };
+        if(mutable && revisions != null) {
+            return revisions;
+        }
+        else if(mutable && softRevisions.get() != null) {
+            return softRevisions.get();
+        }
+        else {
+            return () -> iterator();
+        }
     }
 
     /**
@@ -859,6 +840,75 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Write this {@link Block Block's} data to the {@code sink}
+     * 
+     * @param sink
+     * @return
+     */
+    private BlockIndex serialize(ByteSink sink) {
+        BlockIndex index = BlockIndex.create(revisionCount.get());
+        Locks.lockIfCondition(read, mutable);
+        try {
+            L locator = null;
+            K key = null;
+            int position = 0;
+            boolean populated = false;
+            for (Revision<L, K, V> revision : revisions) {
+                populated = true;
+                sink.putInt(revision.size());
+                revision.copyTo(sink);
+                position = sink.position() - revision.size() - 4;
+                /*
+                 * States that trigger this condition to be true:
+                 * 1. This is the first locator we've seen
+                 * 2. This locator is different than the last one we've seen
+                 */
+                if(locator == null || !locator.equals(revision.getLocator())) {
+                    index.putStart(position, revision.getLocator());
+                    if(locator != null) {
+                        // There was a locator before us (we are not the first!)
+                        // and we need to record the end index.
+                        index.putEnd(position - 1, locator);
+                    }
+                }
+                /*
+                 * NOTE: IF key == null, then it must be the case that locator
+                 * == null since they are set at the same time. Therefore we do
+                 * not need to explicitly check for that condition below
+                 * 
+                 * States that trigger this condition to be true:
+                 * 1. This is the first key we've seen
+                 * 2. This key is different than the last one we've seen
+                 * (regardless of whether the locator is different or the same!)
+                 * 3. This key is the same as the last one we've seen, but the
+                 * locator is different.
+                 */
+                if(key == null || !key.equals(revision.getKey())
+                        || !locator.equals(revision.getLocator())) {
+                    index.putStart(position, revision.getLocator(),
+                            revision.getKey());
+                    if(key != null) {
+                        // There was a locator, key before us (we are not the
+                        // first!) and we need to record the end index.
+                        index.putEnd(position - 1, locator, key);
+                    }
+                }
+                locator = revision.getLocator();
+                key = revision.getKey();
+            }
+            if(populated) {
+                position = sink.position() - 1;
+                index.putEnd(position, locator);
+                index.putEnd(position, locator, key);
+            }
+            return index;
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
+    }
+
+    /**
      * Internal implementation to return size of this Block without grabbing any
      * locks.
      * 
@@ -904,17 +954,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             sb.append("\n");
             sb.append("------");
             sb.append("\n");
-            if(mutable) {
-                for (Revision<L, K, V> revision : revisions) {
-                    sb.append(revision);
-                    sb.append("\n");
-                }
-            }
-            else {
-                revisions().forEach(revision -> {
-                    sb.append(revision);
-                    sb.append("\n");
-                });
+            for (Revision<L, K, V> revision : revisions()) {
+                sb.append(revision);
+                sb.append("\n");
             }
             sb.append("\n");
             return sb.toString();
@@ -979,6 +1021,52 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value,
             long version, Action type);
+
+    /**
+     * Regenerate the {@link Block Block's} metadata.
+     * <p>
+     * Reindexing does <strong>not</strong> modify the {@link #revisions} in the
+     * {@link Block}. Instead, the {@link #revisions} are used to recreate the
+     * associated metadata (i.e. stats, filter, index, etc).
+     * </p>
+     * <p>
+     * Reindexing is useful for cases when parts of the metadata have become
+     * corrupted beyond normal {@link #repair(RuntimeException)}.
+     * </p>
+     * <p>
+     * <strong>CAUTION:</strong>Reindexing is a disruptive operation that is
+     * <strong>not</strong> thread safe. If the {@link Database} must support
+     * live reindexing, it should block access to this {@link Block} when it is
+     * performing this job.
+     * </p>
+     */
+    @SuppressWarnings("unchecked")
+    protected void reindex() {
+        Preconditions.checkState(!mutable, "Cannot reindex a mutable Block");
+        String directory = FileSystem.tempDir("concourse-block-reindex");
+        try {
+            String id = getId();
+            Block<L, K, V> block = Reflection.newInstance(getClass(), directory,
+                    id, false);
+            for (Revision<L, K, V> revision : revisions()) {
+                block.insert(revision.getLocator(), revision.getKey(),
+                        revision.getValue(), revision.getVersion(),
+                        revision.getType());
+            }
+            BlockIndex index = block.serialize(ByteSink.toDevNull());
+            index.sync($index);
+            this.index = index;
+            // save block.stats
+            // save block.filter
+            
+            this.stats = block.stats;
+            this.filter = block.filter;
+            block = null;
+        }
+        finally {
+            FileSystem.deleteDirectory(directory);
+        }
+    }
 
     /**
      * Return the class of the {@code revision} type.
