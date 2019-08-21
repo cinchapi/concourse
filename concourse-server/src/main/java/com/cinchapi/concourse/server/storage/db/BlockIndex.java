@@ -72,32 +72,6 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Return a newly created {@link BlockIndex} with the intention to
-     * eventually {@link #sync() sync} it to {@code file}.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the {@link BlockIndex}
-     */
-    public static BlockIndex create(Path file, int expectedInsertions) {
-        BlockIndex index = new BlockIndex(expectedInsertions);
-        index.intendedFile = file;
-        return index;
-    }
-
-    /**
-     * Return a newly created {@link BlockIndex} with the intention to
-     * eventually {@link #sync() sync} it to {@code file}.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the {@link BlockIndex}
-     */
-    public static BlockIndex create(String file, int expectedInsertions) {
-        return create(Paths.get(file), expectedInsertions);
-    }
-
-    /**
      * Return the BlockIndex that is stored in {@code file}.
      * 
      * @param file
@@ -118,6 +92,32 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
+     * Return a newly created {@link BlockIndex} with the intention to
+     * eventually {@link #sync() sync} it to {@code file}.
+     * 
+     * @param file
+     * @param expectedInsertions
+     * @return the {@link BlockIndex}
+     */
+    public static BlockIndex reserve(Path file, int expectedInsertions) {
+        BlockIndex index = new BlockIndex(expectedInsertions);
+        index.intendedFile = file;
+        return index;
+    }
+
+    /**
+     * Return a newly created {@link BlockIndex} with the intention to
+     * eventually {@link #sync() sync} it to {@code file}.
+     * 
+     * @param file
+     * @param expectedInsertions
+     * @return the {@link BlockIndex}
+     */
+    public static BlockIndex reserve(String file, int expectedInsertions) {
+        return reserve(Paths.get(file), expectedInsertions);
+    }
+
+    /**
      * The entries contained in the index.
      */
     private Map<Composite, Entry> entries;
@@ -131,7 +131,7 @@ public class BlockIndex implements Byteable, Syncable {
     private Path file;
 
     /**
-     * A file passed in with the the legacy {@link #create(Path, int)} factory.
+     * A file passed in with the the legacy {@link #reserve(Path, int)} factory.
      * If this exist, {@link #sync()} to it if {@link #file} has not been set.
      */
     @Nullable
@@ -300,6 +300,17 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
+     * Return {@code true} if this index is considered <em>loaded</em> meaning
+     * all of its entries are available in memory.
+     * 
+     * @return {@code true} if the entries are loaded
+     */
+    protected boolean isLoaded() { // visible for testing
+        return isMutable()
+                || (softEntries != null && softEntries.get() != null);
+    }
+
+    /**
      * Return the entries in this index. This method will lazily load the
      * entries on demand if they do not currently exist in memory.
      * 
@@ -337,17 +348,6 @@ public class BlockIndex implements Byteable, Syncable {
      */
     private boolean isMutable() {
         return file == null;
-    }
-
-    /**
-     * Return {@code true} if this index is considered <em>loaded</em> meaning
-     * all of its entries are available in memory.
-     * 
-     * @return {@code true} if the entries are loaded
-     */
-    protected boolean isLoaded() { // visible for testing
-        return isMutable()
-                || (softEntries != null && softEntries.get() != null);
     }
 
     /**

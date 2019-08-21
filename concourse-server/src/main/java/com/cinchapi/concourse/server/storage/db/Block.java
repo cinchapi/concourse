@@ -387,7 +387,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.size = 0;
             this.revisions = createBackingStore(Sorter.INSTANCE);
             this.filter = BloomFilter.create($filter, EXPECTED_INSERTIONS);
-            this.index = BlockIndex.create($index, EXPECTED_INSERTIONS);
+            this.index = BlockIndex.reserve($index, EXPECTED_INSERTIONS);
             stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
             this.checksum = null;
         }
