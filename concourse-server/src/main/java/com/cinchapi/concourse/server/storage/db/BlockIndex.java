@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -349,6 +350,22 @@ public class BlockIndex implements Byteable, Syncable {
     private boolean isMutable() {
         return file == null;
     }
+    
+    @Override
+    public int hashCode() {
+        return entries().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof BlockIndex) {
+            BlockIndex other = (BlockIndex) obj;
+            return entries().equals(other.entries());
+        }
+        else {
+            return false;
+        }
+    }
 
     /**
      * Represents a single entry in the Index.
@@ -451,6 +468,23 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public int size() {
             return CONSTANT_SIZE + key.size();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(key, start, end);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Entry) {
+                Entry other = (Entry) obj;
+                return start == other.start && end == other.end
+                        && key.equals(other.key);
+            }
+            else {
+                return false;
+            }
         }
 
     }

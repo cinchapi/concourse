@@ -906,7 +906,7 @@ public class ManagedConcourseServer {
         private Client(String username, String password, String environment,
                 int retries) {
             Object delegate = null;
-            while (retries > 0) {
+            while (retries > 0 && delegate == null) {
                 --retries;
                 try {
                     this.loader = new URLClassLoader(

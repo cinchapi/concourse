@@ -136,7 +136,7 @@ public final class Composite implements Byteable {
     public boolean equals(Object obj) {
         if(obj instanceof Composite) {
             Composite other = (Composite) obj;
-            return getBytes().equals(other.getCanonicalBytes());
+            return getBytes().equals(other.getBytes());
         }
         return false;
     }

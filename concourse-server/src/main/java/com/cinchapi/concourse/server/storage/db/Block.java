@@ -100,7 +100,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * The expected number of Block insertions. This number is used to size the
@@ -386,7 +389,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.mutable = true;
             this.size = 0;
             this.revisions = createBackingStore(Sorter.INSTANCE);
-            this.filter = BloomFilter.create($filter, EXPECTED_INSERTIONS);
+            this.filter = BloomFilter.reserve($filter, EXPECTED_INSERTIONS);
             this.index = BlockIndex.reserve($index, EXPECTED_INSERTIONS);
             stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
             this.checksum = null;
@@ -674,9 +677,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
@@ -728,7 +730,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             String backup = target + ".bak";
             FileSystem.copyBytes(target, backup);
             FileSystem.deleteFile(target);
-            filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
+            filter = BloomFilter.reserve(target, EXPECTED_INSERTIONS);
             MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
@@ -1054,11 +1056,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             BlockIndex index = block.serialize(ByteSink.toDevNull());
             index.sync($index);
             this.index = index;
+            
+            block.filter.sync($filter);
+            this.filter = block.filter;
             // save block.stats
             // save block.filter
 
             this.stats = block.stats;
-            this.filter = block.filter;
             block = null;
         }
         finally {
