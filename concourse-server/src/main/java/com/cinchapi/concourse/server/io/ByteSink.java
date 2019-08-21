@@ -47,6 +47,15 @@ public interface ByteSink {
     }
 
     /**
+     * Return a {@link ByteSink} that discards bytes that are written.
+     * 
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink toDevNull() {
+        return new NullByteSink();
+    }
+
+    /**
      * Return the sink's current position.
      * 
      * @return the position of this sink
