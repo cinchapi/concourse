@@ -100,7 +100,10 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Syncable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * The expected number of Block insertions. This number is used to size the
@@ -242,8 +245,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     /**
      * The index to determine which bytes in the block pertain to a locator or
-     * locator/key pair.
+     * locator/key pair. The value of this variable is {@code null} until
+     * {@link #copyTo(ByteSink)} is called.
      */
+    @Nullable
     private BlockIndex index; // Since the index is only used for immutable
                               // blocks, it is only populated during the call to
                               // #serialize()
@@ -387,9 +392,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.size = 0;
             this.revisions = createBackingStore(Sorter.INSTANCE);
             this.filter = BloomFilter.reserve($filter, EXPECTED_INSERTIONS);
-            this.index = BlockIndex.reserve($index, EXPECTED_INSERTIONS);
-            stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
+            this.index = null;
             this.checksum = null;
+            stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -417,58 +422,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public void copyTo(ByteSink sink) {
         Locks.lockIfCondition(read, mutable);
         try {
-            L locator = null;
-            K key = null;
-            int position = 0;
-            boolean populated = false;
-            for (Revision<L, K, V> revision : revisions) {
-                populated = true;
-                sink.putInt(revision.size());
-                revision.copyTo(sink);
-                position = sink.position() - revision.size() - 4;
-                /*
-                 * States that trigger this condition to be true:
-                 * 1. This is the first locator we've seen
-                 * 2. This locator is different than the last one we've seen
-                 */
-                if(locator == null || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator());
-                    if(locator != null) {
-                        // There was a locator before us (we are not the first!)
-                        // and we need to record the end index.
-                        index.putEnd(position - 1, locator);
-                    }
-                }
-                /*
-                 * NOTE: IF key == null, then it must be the case that locator
-                 * == null since they are set at the same time. Therefore we do
-                 * not need to explicitly check for that condition below
-                 * 
-                 * States that trigger this condition to be true:
-                 * 1. This is the first key we've seen
-                 * 2. This key is different than the last one we've seen
-                 * (regardless of whether the locator is different or the same!)
-                 * 3. This key is the same as the last one we've seen, but the
-                 * locator is different.
-                 */
-                if(key == null || !key.equals(revision.getKey())
-                        || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator(),
-                            revision.getKey());
-                    if(key != null) {
-                        // There was a locator, key before us (we are not the
-                        // first!) and we need to record the end index.
-                        index.putEnd(position - 1, locator, key);
-                    }
-                }
-                locator = revision.getLocator();
-                key = revision.getKey();
-            }
-            if(populated) {
-                position = sink.position() - 1;
-                index.putEnd(position, locator);
-                index.putEnd(position, locator, key);
-            }
+            index = serialize(sink);
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
@@ -660,8 +614,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 ByteBuffer bytes = getBytes();
                 channel.write(bytes);
                 channel.force(true);
-                filter.sync();
-                index.sync();
+                filter.sync($filter);
+                index.sync($index);
                 stats.sync();
                 FileSystem.closeFileChannel(channel);
                 revisions = null; // Set to NULL so that the Set is eligible for
@@ -674,9 +628,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn(
-                        "Cannot sync a block that is empty: {}. "
-                                + "Was there an unexpected server shutdown recently?",
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
@@ -845,65 +798,59 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     private BlockIndex serialize(ByteSink sink) {
         BlockIndex index = BlockIndex.create(revisionCount.get());
-        Locks.lockIfCondition(read, mutable);
-        try {
-            L locator = null;
-            K key = null;
-            int position = 0;
-            boolean populated = false;
-            for (Revision<L, K, V> revision : revisions) {
-                populated = true;
-                sink.putInt(revision.size());
-                revision.copyTo(sink);
-                position = sink.position() - revision.size() - 4;
-                /*
-                 * States that trigger this condition to be true:
-                 * 1. This is the first locator we've seen
-                 * 2. This locator is different than the last one we've seen
-                 */
-                if(locator == null || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator());
-                    if(locator != null) {
-                        // There was a locator before us (we are not the first!)
-                        // and we need to record the end index.
-                        index.putEnd(position - 1, locator);
-                    }
+        L locator = null;
+        K key = null;
+        int position = 0;
+        boolean populated = false;
+        for (Revision<L, K, V> revision : revisions) {
+            populated = true;
+            sink.putInt(revision.size());
+            revision.copyTo(sink);
+            position = sink.position() - revision.size() - 4;
+            /*
+             * States that trigger this condition to be true:
+             * 1. This is the first locator we've seen
+             * 2. This locator is different than the last one we've seen
+             */
+            if(locator == null || !locator.equals(revision.getLocator())) {
+                index.putStart(position, revision.getLocator());
+                if(locator != null) {
+                    // There was a locator before us (we are not the first!)
+                    // and we need to record the end index.
+                    index.putEnd(position - 1, locator);
                 }
-                /*
-                 * NOTE: IF key == null, then it must be the case that locator
-                 * == null since they are set at the same time. Therefore we do
-                 * not need to explicitly check for that condition below
-                 * 
-                 * States that trigger this condition to be true:
-                 * 1. This is the first key we've seen
-                 * 2. This key is different than the last one we've seen
-                 * (regardless of whether the locator is different or the same!)
-                 * 3. This key is the same as the last one we've seen, but the
-                 * locator is different.
-                 */
-                if(key == null || !key.equals(revision.getKey())
-                        || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator(),
-                            revision.getKey());
-                    if(key != null) {
-                        // There was a locator, key before us (we are not the
-                        // first!) and we need to record the end index.
-                        index.putEnd(position - 1, locator, key);
-                    }
+            }
+            /*
+             * NOTE: IF key == null, then it must be the case that locator
+             * == null since they are set at the same time. Therefore we do
+             * not need to explicitly check for that condition below
+             * 
+             * States that trigger this condition to be true:
+             * 1. This is the first key we've seen
+             * 2. This key is different than the last one we've seen
+             * (regardless of whether the locator is different or the same!)
+             * 3. This key is the same as the last one we've seen, but the
+             * locator is different.
+             */
+            if(key == null || !key.equals(revision.getKey())
+                    || !locator.equals(revision.getLocator())) {
+                index.putStart(position, revision.getLocator(),
+                        revision.getKey());
+                if(key != null) {
+                    // There was a locator, key before us (we are not the
+                    // first!) and we need to record the end index.
+                    index.putEnd(position - 1, locator, key);
                 }
-                locator = revision.getLocator();
-                key = revision.getKey();
             }
-            if(populated) {
-                position = sink.position() - 1;
-                index.putEnd(position, locator);
-                index.putEnd(position, locator, key);
-            }
-            return index;
+            locator = revision.getLocator();
+            key = revision.getKey();
         }
-        finally {
-            Locks.unlockIfCondition(read, mutable);
+        if(populated) {
+            position = sink.position() - 1;
+            index.putEnd(position, locator);
+            index.putEnd(position, locator, key);
         }
+        return index;
     }
 
     /**
@@ -1025,7 +972,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * <p>
      * Reindexing does <strong>not</strong> modify the {@link #revisions} in the
      * {@link Block}. Instead, the {@link #revisions} are used to recreate the
-     * associated metadata (i.e. stats, filter, index, etc).
+     * associated metadata (i.e. filter, index, etc).
      * </p>
      * <p>
      * Reindexing is useful for cases when parts of the metadata have become
@@ -1057,10 +1004,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
             block.filter.sync($filter);
             this.filter = block.filter;
-            // save block.stats
-            // save block.filter
 
-            this.stats = block.stats;
             block = null;
         }
         finally {
