@@ -135,7 +135,7 @@ public interface Byteable extends Compositable {
     }
 
     @Override
-    default int getCanonicalLength() {
+    public default int getCanonicalLength() {
         return size();
     }
 
