@@ -100,10 +100,7 @@ import com.google.common.collect.TreeMultiset;
 @ThreadSafe
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements
-        Byteable,
-        Syncable,
-        Iterable<Revision<L, K, V>> {
+        implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
 
     /**
      * The expected number of Block insertions. This number is used to size the
@@ -628,8 +625,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
             else if(!ignoreEmptySync) {
-                Logger.warn("Cannot sync a block that is empty: {}. "
-                        + "Was there an unexpected server shutdown recently?",
+                Logger.warn(
+                        "Cannot sync a block that is empty: {}. "
+                                + "Was there an unexpected server shutdown recently?",
                         id);
             }
         }
