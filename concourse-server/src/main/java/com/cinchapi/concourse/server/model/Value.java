@@ -237,7 +237,7 @@ public final class Value implements Byteable, Comparable<Value> {
     public int compareTo(Value other) {
         return Sorter.INSTANCE.compare(this, other);
     }
-    
+
     @Override
     public void copyCanonicalBytesTo(ByteBuffer buffer) {
         copyCanonicalBytesTo(ByteSink.to(buffer));

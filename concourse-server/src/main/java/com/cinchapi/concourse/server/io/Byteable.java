@@ -128,7 +128,7 @@ public interface Byteable extends Compositable {
     public default void copyCanonicalBytesTo(ByteBuffer buffer) {
         copyTo(buffer);
     }
-    
+
     @Override
     public default void copyCanonicalBytesTo(ByteSink sink) {
         copyTo(sink);

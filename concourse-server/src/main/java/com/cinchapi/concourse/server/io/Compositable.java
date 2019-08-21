@@ -67,7 +67,7 @@ public interface Compositable {
      * @return the essential {@link ByteBuffer bytes}
      */
     public ByteBuffer getCanonicalBytes();
-    
+
     /**
      * Return the number of {@link #getCanonicalBytes() bytes} needed to encode
      * essential information about this object.

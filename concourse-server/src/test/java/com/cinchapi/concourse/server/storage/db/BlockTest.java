@@ -303,7 +303,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
             System.out.println(ab.get(i) + " vs " + bb.get(i));
         }
         Assert.assertEquals(ab, bb);
-        //TODO: check bloom filter and stats
+        // TODO: check bloom filter and stats
     }
 
     protected abstract L getLocator();

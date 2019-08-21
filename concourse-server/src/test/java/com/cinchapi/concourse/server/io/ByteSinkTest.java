@@ -26,7 +26,7 @@ import org.junit.Test;
  * @author Jeff Nelson
  */
 public class ByteSinkTest {
-    
+
     @Test
     public void testNullByteSinkTracksPosition() {
         ByteSink a = ByteSink.to(ByteBuffer.allocate(100));
