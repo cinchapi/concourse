@@ -16,8 +16,7 @@
 package com.cinchapi.concouse.server.upgrade;
 
 import java.nio.file.Paths;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import org.junit.Assert;
@@ -28,7 +27,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.ClientServerTests;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 /**
  * Unit test to ensure that Blocks are properly reindexed on upgrade after
@@ -38,10 +37,11 @@ import com.google.common.collect.Sets;
  */
 public class UpgradeTask0_10_2_1Test extends UpgradeTest {
 
-    Set<String> checksums = Sets.newHashSet();
     String cpb;
     String csb;
     String ctb;
+
+    Map<String, String> checksums = Maps.newHashMap();
 
     @Override
     protected String getInitialServerVersion() {
@@ -63,23 +63,34 @@ public class UpgradeTask0_10_2_1Test extends UpgradeTest {
             ImmutableList.of(cpb, csb, ctb).forEach(group -> {
                 Iterable<String> files = () -> FileSystem
                         .fileOnlyIterator(group);
-                checksums.addAll(StreamSupport
-                        .stream(files.spliterator(), false).map(Paths::get)
-                        .filter(p -> p.toString().endsWith(".fltr")
-                                || p.toString().endsWith(".indx"))
-                        .map(Checksums::generate).collect(Collectors.toSet()));
+                StreamSupport.stream(files.spliterator(), false)
+                        .filter(p -> p.endsWith(".fltr") || p.endsWith(".indx")
+                                || p.endsWith("stts") || p.endsWith("blk"))
+                        .map(Paths::get).forEach(path -> {
+                            checksums.put(path.toString(),
+                                    Checksums.generate(path));
+                        });
             });
 
         }
     }
 
     @Test
-    public void testFilesHaveBeenReindexed() {
+    public void testOnlyFltrAndIndxFilesHaveChanged() {
         Assert.assertTrue(client.verify("payRangeMax", 18, 1));
         ImmutableList.of(cpb, csb, ctb).forEach(group -> {
-            FileSystem.fileOnlyIterator(group)
-                    .forEachRemaining(file -> Assert.assertFalse(checksums
-                            .contains(Checksums.generate(Paths.get(file)))));
+            FileSystem.fileOnlyIterator(group).forEachRemaining(file -> {
+                String actual = Checksums.generate(Paths.get(file));
+                String expected = checksums.get(file);
+                if(expected != null) {
+                    if(file.endsWith(".indx") || file.endsWith(".fltr")) {
+                        Assert.assertNotEquals(expected, actual);
+                    }
+                    else {
+                        Assert.assertEquals(expected, actual);
+                    }
+                }
+            });
         });
     }
 
