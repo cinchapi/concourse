@@ -773,7 +773,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         catch (RejectedExecutionException e) {
-            // This should happen in normal situations but may occur if the
+            // This should not happen in normal situations but may occur if the
             // Buffer was prematurely stopped during a unit test.
             pageSync.run();
             inventorySync.run();
