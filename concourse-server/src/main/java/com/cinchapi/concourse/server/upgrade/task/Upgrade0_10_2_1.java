@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.upgrade.task;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
 import com.cinchapi.concourse.server.upgrade.util.Storage;
 import com.cinchapi.concourse.server.upgrade.util.Storage.Database;
+import com.cinchapi.concourse.util.Logger;
 
 /**
  * {@link UpgradeTask} to re-index the Database. This is necessary for changes
@@ -40,6 +41,7 @@ public class Upgrade0_10_2_1 extends SmartUpgradeTask {
             try {
                 database.blocks().forEach(block -> {
                     block.reindex();
+                    Logger.info("Reindexed {}", block);
                 });
             }
             finally {
