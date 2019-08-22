@@ -91,6 +91,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
         @Override
         protected void finished(Description desc) {
+            store.stop();
             cleanup(store);
         }
 
