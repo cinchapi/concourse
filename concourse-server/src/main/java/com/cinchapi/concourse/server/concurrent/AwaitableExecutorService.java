@@ -67,7 +67,9 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
      * @throws InterruptedException
      */
     public final boolean await(Runnable... tasks) throws InterruptedException {
-        return await((task, error) -> error.printStackTrace(), tasks);
+        return await((task, error) -> {
+            throw CheckedExceptions.wrapAsRuntimeException(error);
+        }, tasks);
     }
 
     /**

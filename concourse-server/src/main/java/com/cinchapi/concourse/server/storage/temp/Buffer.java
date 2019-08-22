@@ -731,7 +731,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
             running = true;
             Logger.info("Buffer configured to store data in {}", directory);
             syncer = new AwaitableExecutorService(Executors.newCachedThreadPool(
-                    ThreadFactories.namingDaemonThreadFactory(
+                    ThreadFactories.namingThreadFactory(
                             threadNamePrefix + "-%d")));
             SortedMap<File, Page> pageSorter = Maps
                     .newTreeMap(NaturalSorter.INSTANCE);
