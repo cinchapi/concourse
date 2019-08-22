@@ -38,6 +38,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.lang.math.LongRange;
+
 import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
@@ -357,6 +359,44 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
         this.ignoreEmptySync = this instanceof SearchBlock;
+    }
+
+    /**
+     * Checks if the time overlaps in the min/max revisions.
+     *
+     * @param time the time to check overlapping.
+     * @return true if the time overlaps false if it does not
+     */
+    public boolean overlaps(long time) {
+        final Long min = stats.get(Attribute.MIN_REVISION_VERSION);
+        final Long max = stats.get(Attribute.MAX_REVISION_VERSION);
+
+        if(min != null && max != null) {
+            return time >= min && time <= max;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the end occurs after the start and then checks if they both
+     * overlap.
+     *
+     * @param start the starting time
+     * @param end the ending time
+     * @return true if the time overlaps and end > start, otherwise false.
+     */
+    public boolean overlaps(long start, long end) {
+        final Long min = stats.get(Attribute.MIN_REVISION_VERSION);
+        final Long max = stats.get(Attribute.MAX_REVISION_VERSION);
+        if(end >= start && min != null && max != null) {
+            final LongRange range = new LongRange(start, end);
+            for (long i = min; i <= max; i++) {
+                if(range.containsLong(i)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

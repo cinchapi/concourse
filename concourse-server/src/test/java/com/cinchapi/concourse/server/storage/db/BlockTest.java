@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -156,6 +157,34 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         Assert.assertEquals(p, s);
         Assert.assertEquals(p, t);
         Assert.assertEquals(s, t);
+    }
+
+    @Test
+    public void testCheckIfTimeInRange() {
+        final Consumer<Long> insert = v -> block.insert(getLocator(), getKey(),
+                getValue(), v, Action.ADD);
+        final long start = Time.now();
+        final long previousVersion = start - 1000;
+        final long version = start + 1000;
+        final long end = start + 2000;
+        final long version2 = start + 3000;
+        try {
+            insert.accept(previousVersion);
+            Assert.assertFalse(block.overlaps(start, end));
+            Assert.assertFalse(block.overlaps(start));
+            Assert.assertFalse(block.overlaps(end));
+            insert.accept(version);
+            Assert.assertTrue(block.overlaps(start, end));
+            Assert.assertTrue(block.overlaps(start));
+            Assert.assertFalse(block.overlaps(end));
+            insert.accept(version2);
+            Assert.assertTrue(block.overlaps(start, end));
+            Assert.assertTrue(block.overlaps(start));
+            Assert.assertTrue(block.overlaps(end));
+        }
+        catch (UnsupportedOperationException e) {
+            System.out.println("Unsupported operation on this block.");
+        }
     }
 
     @Test
