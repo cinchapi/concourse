@@ -59,6 +59,22 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
     /**
      * Atomically submit each of the {@link tasks} for execution and await their
      * completion. If an error occurs if any of the tasks, the entire operation
+     * is considered to have {@code failed}.
+     * 
+     * @param tasks
+     * @return a boolean that indicates whether all of the tasks have completed
+     *         successfully
+     * @throws InterruptedException
+     */
+    public final boolean await(Runnable... tasks) throws InterruptedException {
+        return await((task, error) -> {
+            throw CheckedExceptions.wrapAsRuntimeException(error);
+        }, tasks);
+    }
+
+    /**
+     * Atomically submit each of the {@link tasks} for execution and await their
+     * completion. If an error occurs if any of the tasks, the entire operation
      * is considered to have {@code failed} and exceptions are handled by the
      * provided {@code errorHandler}.
      * 

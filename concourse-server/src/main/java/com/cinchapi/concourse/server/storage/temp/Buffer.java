@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -42,11 +43,12 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.concurrent.ConcourseExecutors;
+import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
@@ -179,14 +181,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * A runnable that flushes the inventory to disk.
      */
-    private Runnable inventorySync = new Runnable() {
-
-        @Override
-        public void run() {
-            inventory.sync();
-        }
-
-    };
+    private Runnable inventorySync = () -> inventory.sync();
 
     /**
      * The number of verifies initiated.
@@ -297,19 +292,17 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * A runnable instance that flushes the content the current buffer page to
      * disk.
      */
-    private Runnable pageSync = new Runnable() {
-
-        @Override
-        public void run() {
-            currentPage.content.force();
-        }
-
-    };
+    private Runnable pageSync = () -> currentPage.content.force();
 
     /**
      * A flag to indicate if the Buffer is running or not.
      */
     private boolean running = false;
+
+    /**
+     * Executor service that is responsible for {@link #sync() syncing} data.
+     */
+    private AwaitableExecutorService syncer;
 
     /**
      * The structure lock ensures that only a single thread can modify the
@@ -737,6 +730,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
         if(!running) {
             running = true;
             Logger.info("Buffer configured to store data in {}", directory);
+            syncer = new AwaitableExecutorService(
+                    Executors.newCachedThreadPool(ThreadFactories
+                            .namingThreadFactory(threadNamePrefix + "-%d")));
             SortedMap<File, Page> pageSorter = Maps
                     .newTreeMap(NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
@@ -765,12 +761,23 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                            // threads to terminate
             }
         }
+        syncer.shutdown();
     }
 
     @Override
     public void sync() {
-        ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-                pageSync, inventorySync);
+        try {
+            syncer.await(pageSync, inventorySync);
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        catch (RejectedExecutionException e) {
+            // This should not happen in normal situations but may occur if the
+            // Buffer was prematurely stopped during a unit test.
+            pageSync.run();
+            inventorySync.run();
+        }
     }
 
     /**

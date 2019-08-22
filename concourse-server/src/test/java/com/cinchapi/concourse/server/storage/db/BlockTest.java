@@ -261,6 +261,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     @Test
     public void testReindex() {
+        String directory = TestData.getTemporaryTestDir();
         Block<L, K, V> block = getMutableBlock(directory);
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
             block.insertUnsafe(getLocator(), getKey(), getValue(), Time.now(),
