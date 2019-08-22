@@ -26,7 +26,6 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 
-
 /**
  * Unit tests for{@link AwaitableExecutorService}.
  *
@@ -42,7 +41,8 @@ public class AwaitableExecutorServiceTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testServiceDoesntPreventJVMShutdown() throws InterruptedException {
+    public void testServiceDoesntPreventJVMShutdown()
+            throws InterruptedException {
         service.await(new Runnable() {
 
             @Override
@@ -55,7 +55,8 @@ public class AwaitableExecutorServiceTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCallingThreadIsBlockedUntilTaskCompletes() throws InterruptedException {
+    public void testCallingThreadIsBlockedUntilTaskCompletes()
+            throws InterruptedException {
         long ts = Time.now();
         service.await(new Runnable() {
 
@@ -72,7 +73,8 @@ public class AwaitableExecutorServiceTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCallingThreadIsBlockedUntilAllTaskCompletes() throws InterruptedException {
+    public void testCallingThreadIsBlockedUntilAllTaskCompletes()
+            throws InterruptedException {
         long ts = Time.now();
         service.await(new Runnable() {
 

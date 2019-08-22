@@ -55,7 +55,7 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
     protected ExecutorService delegate() {
         return delegate;
     }
-    
+
     /**
      * Atomically submit each of the {@link tasks} for execution and await their
      * completion. If an error occurs if any of the tasks, the entire operation
@@ -66,10 +66,10 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
      *         successfully
      * @throws InterruptedException
      */
-    public final boolean await(Runnable...tasks) throws InterruptedException {
+    public final boolean await(Runnable... tasks) throws InterruptedException {
         return await((task, error) -> error.printStackTrace(), tasks);
     }
- 
+
     /**
      * Atomically submit each of the {@link tasks} for execution and await their
      * completion. If an error occurs if any of the tasks, the entire operation
