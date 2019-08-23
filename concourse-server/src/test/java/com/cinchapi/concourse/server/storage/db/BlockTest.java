@@ -26,6 +26,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
@@ -46,6 +47,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     protected Block<L, K, V> block;
     protected String directory;
+    private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
 
     @Rule
     public TestWatcher watcher = new TestWatcher() {
@@ -54,12 +56,15 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         protected void starting(Description description) {
             directory = TestData.DATA_DIR + File.separator + Time.now();
             block = getMutableBlock(directory);
+            // Don't allow dev preferences to interfere with unit test logic...
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = -1;
         }
 
         @Override
         protected void finished(Description description) {
             block = null;
             FileSystem.deleteDirectory(directory);
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = pref;
         }
 
         @Override
