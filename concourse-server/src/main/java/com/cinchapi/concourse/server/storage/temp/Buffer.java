@@ -775,6 +775,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
         catch (RejectedExecutionException e) {
             // This should not happen in normal situations but may occur if the
             // Buffer was prematurely stopped during a unit test.
+            Logger.warn("The {} Buffer fsync executor service is "
+                    + "rejecting tasks, so changes to the Buffer and "
+                    + "Inventory were made serially", environment);
             pageSync.run();
             inventorySync.run();
         }
