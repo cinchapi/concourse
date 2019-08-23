@@ -74,21 +74,21 @@ public final class SearchIndexer {
     /**
      * Schedule an insertion into the search {@code index} for {@code term} and
      * {@code position} for {@code key}. When the insertion is complete, the
-     * {@code ticker} will be {@link CountUpLatch#countUp() incremented} by 1.
+     * {@code tracker} will be {@link CountUpLatch#countUp() incremented} by 1.
      * 
      * @param index
-     * @param ticker
+     * @param tracker
      * @param key
      * @param term
      * @param position
      * @param version
      * @param type
      */
-    public void enqueue(SearchIndex index, CountUpLatch ticker, Text key,
+    public void enqueue(SearchIndex index, CountUpLatch tracker, Text key,
             String term, Position position, long version, Action type) {
         workers.execute(() -> {
             index.index(key, Text.wrapCached(term), position, version, type);
-            ticker.countUp();
+            tracker.countUp();
         });
     }
 

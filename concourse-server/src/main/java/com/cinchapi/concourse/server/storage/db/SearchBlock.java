@@ -57,8 +57,8 @@ import com.google.common.collect.SortedMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position>
-        implements SearchIndex {
+final class SearchBlock extends Block<Text, Text, Position> implements
+        SearchIndex {
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
@@ -136,16 +136,16 @@ final class SearchBlock extends Block<Text, Text, Position>
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string.split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            CountUpLatch ticker = new CountUpLatch();
+            CountUpLatch tracker = new CountUpLatch();
             int pos = 0;
             int numPrepared = 0;
             for (String tok : toks) {
-                numPrepared += prepare(ticker, key, tok, record, pos, version,
+                numPrepared += prepare(tracker, key, tok, record, pos, version,
                         type);
                 ++pos;
             }
             try {
-                ticker.await(numPrepared);
+                tracker.await(numPrepared);
             }
             catch (InterruptedException e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -159,11 +159,11 @@ final class SearchBlock extends Block<Text, Text, Position>
      * enqueue} work that will store a revision for the {@code term} at
      * {@code position} for {@code key} in {@code record} at {@code version}.
      * 
-     * @param ticker a {@link CountUpLatch} that is associated with each of the
+     * @param tracker a {@link CountUpLatch} that is associated with each of the
      *            tasks that are
      *            {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
      *            enqueued} by this method; when each index task completes, it
-     *            {@link CountUpLatch#countUp() increments} the ticker
+     *            {@link CountUpLatch#countUp() increments} the tracker
      * @param key
      * @param term
      * @param record
@@ -174,7 +174,7 @@ final class SearchBlock extends Block<Text, Text, Position>
      *         can {@link CountUpLatch#await(int) await} all related inserts
      *         to finish.
      */
-    private int prepare(CountUpLatch ticker, Text key, String term,
+    private int prepare(CountUpLatch tracker, Text key, String term,
             PrimaryKey record, int position, long version, Action type) {
         int count = 0;
         if(!STOPWORDS.contains(term)) {
@@ -208,7 +208,7 @@ final class SearchBlock extends Block<Text, Text, Position>
                     if(!Strings.isNullOrEmpty(substring)
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
-                        INDEXER.enqueue(this, ticker, key, substring, pos,
+                        INDEXER.enqueue(this, tracker, key, substring, pos,
                                 version, type);
                     }
                 }
