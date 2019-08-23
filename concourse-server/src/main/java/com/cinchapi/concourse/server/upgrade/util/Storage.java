@@ -135,7 +135,7 @@ public class Storage {
         public boolean isMutable() {
             return Reflection.get("mutable", source);
         }
-        
+
         @Override
         public String toString() {
             return source.toString();
