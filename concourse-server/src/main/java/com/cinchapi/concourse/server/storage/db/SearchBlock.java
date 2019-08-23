@@ -18,12 +18,14 @@ package com.cinchapi.concourse.server.storage.db;
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
@@ -39,6 +41,8 @@ import com.cinchapi.concourse.util.ConcurrentSkipListMultiset;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedMultiset;
 
@@ -57,8 +61,8 @@ import com.google.common.collect.SortedMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position>
-        implements SearchIndex {
+final class SearchBlock extends Block<Text, Text, Position> implements
+        SearchIndex {
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
@@ -136,18 +140,21 @@ final class SearchBlock extends Block<Text, Text, Position>
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string.split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            CountUpLatch ticker = new CountUpLatch();
+            List<Iterable<Future<?>>> futures = Lists
+                    .newArrayListWithCapacity(toks.length);
             int pos = 0;
-            int numPrepared = 0;
             for (String tok : toks) {
-                numPrepared += prepare(ticker, key, tok, record, pos, version,
-                        type);
+                futures.add(prepare(key, tok, record, pos, version, type));
                 ++pos;
             }
             try {
-                ticker.await(numPrepared);
+                for (Iterable<Future<?>> $futures : futures) {
+                    for (Future<?> future : $futures) {
+                        future.get();
+                    }
+                }
             }
-            catch (InterruptedException e) {
+            catch (InterruptedException | ExecutionException e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
             }
         }
@@ -155,34 +162,27 @@ final class SearchBlock extends Block<Text, Text, Position>
 
     /**
      * Calculate all possible substrings for {@code term} and
-     * {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
+     * {@link SearchIndexer#enqueue(SearchIndex, Text, String, Position, long, Action)
      * enqueue} work that will store a revision for the {@code term} at
      * {@code position} for {@code key} in {@code record} at {@code version}.
      * 
-     * @param ticker a {@link CountUpLatch} that is associated with each of the
-     *            tasks that are
-     *            {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
-     *            enqueued} by this method; when each index task completes, it
-     *            {@link CountUpLatch#countUp() increments} the ticker
      * @param key
      * @param term
      * @param record
      * @param position
      * @param version
      * @param type
-     * @return the number of inserts that have been enqueued so that the caller
-     *         can {@link CountUpLatch#await(int) await} all related inserts
-     *         to finish.
+     * @return a sequence of {@link Future futures} that can be used to track
+     *         the completion of each index task
      */
-    private int prepare(CountUpLatch ticker, Text key, String term,
+    private Iterable<Future<?>> prepare(Text key, String term,
             PrimaryKey record, int position, long version, Action type) {
-        int count = 0;
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
             int upperBound = (int) Math.pow(term.length(), 2);
 
-            // A flag that indicates whether the {@link #prepare(CountUpLatch,
-            // Text, String, PrimaryKey, int, long, Action) prepare} function
+            // A flag that indicates whether the {@link #prepare(Text, String,
+            // PrimaryKey, int, long, Action) prepare} function
             // should limit the length of substrings that are indexed.
             // Generally, this value is {@code true} if the configuration has a
             // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
@@ -196,6 +196,8 @@ final class SearchBlock extends Block<Text, Text, Position>
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
             Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
+            List<Future<?>> futures = Lists
+                    .newArrayListWithExpectedSize(upperBound);
             int length = term.length();
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
@@ -208,15 +210,18 @@ final class SearchBlock extends Block<Text, Text, Position>
                     if(!Strings.isNullOrEmpty(substring)
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
-                        INDEXER.enqueue(this, ticker, key, substring, pos,
-                                version, type);
+                        Future<?> future = INDEXER.enqueue(this, key, substring,
+                                pos, version, type);
+                        futures.add(future);
                     }
                 }
             }
-            count = indexed.size();
             indexed = null; // make eligible for immediate GC
+            return futures;
         }
-        return count;
+        else {
+            return ImmutableList.of();
+        }
     }
 
     @SuppressWarnings("rawtypes")

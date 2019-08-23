@@ -17,8 +17,8 @@ package com.cinchapi.concourse.server.storage.db.search;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.Action;
@@ -32,13 +32,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * <p>
  * The {@link SearchIndexer} works asynchronously. A request for index insertion
  * happens by
- * {@link #enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
+ * {@link #enqueue(SearchIndex, Text, String, Position, long, Action)
  * enqueing} the term and metadata. The {@link SearchIndexer} will process
- * insertion requests and signal completion by incrementing a
- * {@link CountUpLatch} that is associated with each
- * {@link #enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
- * request}. The caller can use the {@link CountUpLatch} to
- * {@link CountUpLatch#await(int)} for all the requested insertions to complete.
+ * insertion requests in the background and return a {@link Future} that the
+ * caller can use to track progress.
  * </p>
  *
  * @author Jeff Nelson
@@ -73,22 +70,20 @@ public final class SearchIndexer {
 
     /**
      * Schedule an insertion into the search {@code index} for {@code term} and
-     * {@code position} for {@code key}. When the insertion is complete, the
-     * {@code ticker} will be {@link CountUpLatch#countUp() incremented} by 1.
+     * {@code position} for {@code key}.
      * 
      * @param index
-     * @param ticker
      * @param key
      * @param term
      * @param position
      * @param version
      * @param type
+     * @return a {@link Future} representing the submitted task.
      */
-    public void enqueue(SearchIndex index, CountUpLatch ticker, Text key,
-            String term, Position position, long version, Action type) {
-        workers.execute(() -> {
+    public Future<?> enqueue(SearchIndex index, Text key, String term,
+            Position position, long version, Action type) {
+        return workers.submit(() -> {
             index.index(key, Text.wrapCached(term), position, version, type);
-            ticker.countUp();
         });
     }
 
