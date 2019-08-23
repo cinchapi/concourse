@@ -15,8 +15,6 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +22,6 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ForwardingExecutorService;
 
 /**
@@ -59,6 +56,22 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
     /**
      * Atomically submit each of the {@link tasks} for execution and await their
      * completion. If an error occurs if any of the tasks, the entire operation
+     * is considered to have {@code failed}.
+     * 
+     * @param tasks
+     * @return a boolean that indicates whether all of the tasks have completed
+     *         successfully
+     * @throws InterruptedException
+     */
+    public final boolean await(Runnable... tasks) throws InterruptedException {
+        return await((task, error) -> {
+            throw CheckedExceptions.wrapAsRuntimeException(error);
+        }, tasks);
+    }
+
+    /**
+     * Atomically submit each of the {@link tasks} for execution and await their
+     * completion. If an error occurs if any of the tasks, the entire operation
      * is considered to have {@code failed} and exceptions are handled by the
      * provided {@code errorHandler}.
      * 
@@ -70,20 +83,19 @@ public class AwaitableExecutorService extends ForwardingExecutorService {
      */
     public final boolean await(BiConsumer<Runnable, Throwable> errorHandler,
             Runnable... tasks) throws InterruptedException {
-        Map<Runnable, Future<?>> futures = Maps
-                .newHashMapWithExpectedSize(tasks.length);
+        Future<?>[] futures = new Future<?>[tasks.length];
         for (int i = 0; i < tasks.length; ++i) {
             Runnable task = tasks[i];
-            futures.put(task, delegate.submit(task));
+            futures[i] = delegate.submit(task);
         }
         boolean success = true;
-        for (Entry<Runnable, Future<?>> entry : futures.entrySet()) {
-            Runnable task = entry.getKey();
-            Future<?> future = entry.getValue();
+        for (int i = 0; i < futures.length; ++i) {
+            Future<?> future = futures[i];
             try {
                 future.get();
             }
             catch (ExecutionException e) {
+                Runnable task = tasks[i];
                 success = false;
                 errorHandler.accept(task, e);
                 throw CheckedExceptions.wrapAsRuntimeException(e);

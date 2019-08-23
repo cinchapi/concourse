@@ -121,7 +121,7 @@ public final class Composite implements Byteable {
             }
             bytes = ByteBuffer.allocate(size);
             for (Compositable object : objects) {
-                object.copyCanonicalBytesTo(bytes);
+                object.copyCanonicalBytesTo(ByteSink.to(bytes));
             }
             bytes.rewind();
         }
