@@ -83,18 +83,6 @@ final class SearchBlock extends Block<Text, Text, Position>
             .create(NUM_INDEXER_THREADS);
 
     /**
-     * A flag that indicates whether the
-     * {@link #prepare(CountUpLatch, Text, String, PrimaryKey, int, long, Action)
-     * prepare} function should limit the length of substrings that are indexed.
-     * <p>
-     * Generally, this value is {@code true} if the configuration has a value
-     * for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is greater than
-     * 0.
-     * </p>
-     */
-    private static final boolean LIMIT_SUBSTRING_LENGTH = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
-
-    /**
      * DO NOT CALL!!
      * 
      * @param id
@@ -192,6 +180,17 @@ final class SearchBlock extends Block<Text, Text, Position>
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
             int upperBound = (int) Math.pow(term.length(), 2);
+
+            // A flag that indicates whether the {@link #prepare(CountUpLatch,
+            // Text, String, PrimaryKey, int, long, Action) prepare} function
+            // should limit the length of substrings that are indexed.
+            // Generally, this value is {@code true} if the configuration has a
+            // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
+            // greater than 0.
+            // NOTE: This is NOT static because unit tests sequencing would
+            // cause this to fail :-/
+            boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
+
             // The set of substrings that have been indexed from {@code term} at
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
@@ -200,7 +199,7 @@ final class SearchBlock extends Block<Text, Text, Position>
             int length = term.length();
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
-                int limit = (LIMIT_SUBSTRING_LENGTH
+                int limit = (shouldLimitSubstringLength
                         ? Math.min(length,
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;

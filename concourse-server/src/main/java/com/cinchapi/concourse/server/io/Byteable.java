@@ -102,7 +102,7 @@ public interface Byteable extends Compositable {
      */
     public default ByteBuffer getBytes() {
         ByteBuffer bytes = ByteBuffer.allocate(size());
-        copyTo(bytes);
+        copyTo(ByteSink.to(bytes));
         bytes.rewind();
         return bytes;
     }

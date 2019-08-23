@@ -86,6 +86,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     protected Store store;
 
+    private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
+
     @Rule
     public TestRule watcher = new TestWatcher() {
 
@@ -93,12 +95,16 @@ public abstract class StoreTest extends ConcourseBaseTest {
         protected void finished(Description desc) {
             store.stop();
             cleanup(store);
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = pref;
         }
 
         @Override
         protected void starting(Description desc) {
             store = getStore();
             store.start();
+            // Don't allow dev preferences to interfere with unit test logic...
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = -1;
+
         }
     };
 

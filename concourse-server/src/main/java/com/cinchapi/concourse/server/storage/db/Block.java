@@ -442,10 +442,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public ByteBuffer getBytes() {
         read.lock();
         try {
-            ByteBuffer bytes = ByteBuffer.allocate(sizeImpl());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
+            return Byteable.super.getBytes();
         }
         finally {
             read.unlock();

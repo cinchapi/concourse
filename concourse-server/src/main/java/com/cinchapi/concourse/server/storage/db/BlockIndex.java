@@ -184,10 +184,7 @@ public class BlockIndex implements Byteable, Syncable {
     @Override
     public ByteBuffer getBytes() {
         Preconditions.checkState(isMutable());
-        ByteBuffer bytes = ByteBuffer.allocate(size());
-        copyTo(bytes);
-        bytes.rewind();
-        return bytes;
+        return Byteable.super.getBytes();
     }
 
     /**
