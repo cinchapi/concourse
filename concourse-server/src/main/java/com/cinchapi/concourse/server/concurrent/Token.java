@@ -34,6 +34,12 @@ import com.google.common.io.BaseEncoding;
 public class Token implements Byteable {
 
     /**
+     * The cache of string tokens that represent record keys.
+     */
+    private static final LazyCache<String, Token> cache = LazyCache
+            .withExpectedSize(5000);
+
+    /**
      * Return the Token encoded in {@code bytes} so long as those bytes adhere
      * to the format specified by the {@link #getBytes()} method. This method
      * assumes that all the bytes in the {@code bytes} belong to the Token. In
@@ -78,12 +84,6 @@ public class Token implements Byteable {
     }
 
     /**
-     * The cache of string tokens that represent record keys.
-     */
-    private static final LazyCache<String, Token> cache = LazyCache
-            .withExpectedSize(5000);
-
-    /**
      * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
@@ -105,6 +105,11 @@ public class Token implements Byteable {
     }
 
     @Override
+    public void copyTo(ByteSink sink) {
+        ByteSinks.copyAndRewindSource(bytes, sink);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof Token) {
             return getBytes().equals(((Token) obj).getBytes());
@@ -122,13 +127,6 @@ public class Token implements Byteable {
         return getBytes().hashCode();
     }
 
-    /**
-     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
-     */
-    public void upgrade() {
-        this.cardinality += 1;
-    }
-
     @Override
     public int size() {
         return bytes.capacity();
@@ -140,9 +138,11 @@ public class Token implements Byteable {
                 .toLowerCase();
     }
 
-    @Override
-    public void copyTo(ByteSink sink) {
-        ByteSinks.copyAndRewindSource(bytes, sink);
+    /**
+     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
+     */
+    public void upgrade() {
+        this.cardinality += 1;
     }
 
 }

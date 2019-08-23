@@ -409,14 +409,6 @@ public class BlockIndex implements Byteable, Syncable {
             key.copyTo(sink);
         }
 
-        @Override
-        public ByteBuffer getBytes() {
-            ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
-        }
-
         /**
          * Return the end position.
          * 

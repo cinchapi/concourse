@@ -310,8 +310,7 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
+            bytes = Byteable.super.getBytes();
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);

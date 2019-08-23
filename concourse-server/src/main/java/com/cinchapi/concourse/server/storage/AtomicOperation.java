@@ -880,18 +880,6 @@ public class AtomicOperation extends BufferedStore
             return false;
         }
 
-        @Override
-        public ByteBuffer getBytes() {
-            // We do not create a cached copy for the entire class because we'll
-            // only ever getBytes() for a lock description once and that only
-            // happens if the AtomicOperation is not aborted before an attempt
-            // to commit, so its best to not create a copy if we don't have to
-            ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
-        }
-
         /**
          * Return the lock that is described by this LockDescription. This
          * method DOES NOT return a TLock, but will return a ReadLock or

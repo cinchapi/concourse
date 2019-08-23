@@ -130,7 +130,6 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = Byteable.super.getBytes();
-            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
