@@ -60,7 +60,7 @@ public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
 
             @Override
             public void action() {
-                client.select("foo < "+Time.now());
+                client.select("foo < " + Time.now());
             }
 
         };
