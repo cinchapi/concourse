@@ -143,6 +143,13 @@ public interface ByteSink {
      */
     public ByteSink putShort(short value);
 
+    /**
+     * Put the {@code value} in this {@link ByteSink sink}, starting at the
+     * current position.
+     * 
+     * @param value
+     * @return this
+     */
     public default ByteSink putUtf8(String value) {
         try {
             byte[] bytes = value.getBytes(UTF_8_CHARSET);
