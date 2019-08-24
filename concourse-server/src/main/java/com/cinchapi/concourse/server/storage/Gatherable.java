@@ -20,8 +20,8 @@ import java.util.Set;
 import com.cinchapi.concourse.thrift.TObject;
 
 /**
- * A {@link Store} that is {@link Gatherable} can {@link #gather(String, long)
- * gather} values that are stored for a {@code key} in a {@code record}.
+ * A {@link Store} that can indirectly {@link #gather(String, long) gather}
+ * values that are stored for a {@code key} in a {@code record}.
  *
  * @author Jeff Nelson
  */

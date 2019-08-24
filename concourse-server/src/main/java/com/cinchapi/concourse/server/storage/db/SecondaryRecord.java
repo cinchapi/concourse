@@ -119,23 +119,62 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         return explore(false, 0, operator, values);
     }
 
-    public Set<Value> gather(PrimaryKey record) {
-        return gather(record, Time.NONE);
+    /**
+     * Return all the keys that map to {@code value}.
+     * <p>
+     * In the broader {@link Database} sense, this method can be used to return
+     * all the data "values" that are stored within a data "record" under a data
+     * "key" that is equivalent to this {@link SecondaryRecord
+     * SecondaryRecord's} locator.
+     * </p>
+     * <p>
+     * NOTE: The order of the items in the returned {@link Set} are not
+     * necessarily reflective of the order in which they were inserted into the
+     * {@link SecondaryRecord}.
+     * </p>
+     * 
+     * @param value
+     * @return a {@link Set} containing all the keys that map to the
+     *         {@code value}
+     */
+    public Set<Value> gather(PrimaryKey value) {
+        return gather(value, Time.NONE);
     }
 
-    public Set<Value> gather(PrimaryKey record, long timestamp) {
+    /**
+     * Return all the keys that mapped to {@code value} at {@code timestamp}.
+     * <p>
+     * In the broader {@link Database} sense, this method can be used to return
+     * all the data "values" that were stored within a data "record" under a
+     * data
+     * "key" that is equivalent to this {@link SecondaryRecord
+     * SecondaryRecord's} locator at {@code timestamp}.
+     * </p>
+     * <p>
+     * NOTE: The order of the items in the returned {@link Set} are not
+     * necessarily reflective of the order in which they were inserted into the
+     * {@link SecondaryRecord}.
+     * </p>
+     * 
+     * @param value
+     * @return a {@link Set} containing all the keys that map to the
+     *         {@code value}
+     */
+    public Set<Value> gather(PrimaryKey value, long timestamp) {
+        Preconditions.checkState(!isPartial(),
+                "Cannot gather from a partial Secondary Record.");
         read.lock();
         try {
             boolean historical = timestamp == Time.NONE;
-            Set<Value> values = Sets.newLinkedHashSet();
-            for (Value value : history.keySet()) {
-                Set<PrimaryKey> records = historical ? get(value, timestamp)
-                        : get(value);
-                if(records.contains(record)) {
-                    values.add(value);
+            Set<Value> keys = Sets.newLinkedHashSet();
+            for (Value key : history.keySet()) {
+                Set<PrimaryKey> values = historical ? get(key, timestamp)
+                        : get(key);
+                if(values.contains(value)) {
+                    keys.add(key);
                 }
             }
-            return values;
+            return keys;
         }
         finally {
             read.unlock();
@@ -181,7 +220,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                         : present.keySet()) {
                     if(!value.equals(stored)) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -193,7 +233,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .tailSet(value, false)) {
                     if(!historical || stored.compareTo(value) > 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -205,7 +246,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .tailSet(value, true)) {
                     if(!historical || stored.compareTo(value) >= 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -217,7 +259,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .headSet(value, false)) {
                     if(!historical || stored.compareTo(value) < 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -229,7 +272,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .headSet(value, true)) {
                     if(!historical || stored.compareTo(value) <= 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -244,7 +288,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || (stored.compareTo(value) >= 0
                             && stored.compareTo(value2) < 0)) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -257,7 +302,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -270,7 +316,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(!m.matches()) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
