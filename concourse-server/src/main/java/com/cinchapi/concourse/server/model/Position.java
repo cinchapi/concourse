@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
@@ -34,6 +35,11 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 public final class Position implements Byteable, Comparable<Position> {
+
+    /**
+     * The total number of bytes used to store each Position
+     */
+    public static final int SIZE = PrimaryKey.SIZE + 4; // index
 
     /**
      * Return the Position encoded in {@code bytes} so long as those bytes
@@ -63,11 +69,6 @@ public final class Position implements Byteable, Comparable<Position> {
     public static Position wrap(PrimaryKey primaryKey, int index) {
         return new Position(primaryKey, index);
     }
-
-    /**
-     * The total number of bytes used to store each Position
-     */
-    public static final int SIZE = PrimaryKey.SIZE + 4; // index
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -119,6 +120,21 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     @Override
+    public void copyTo(ByteSink sink) {
+        // NOTE: Storing the index as an int instead of some size aware
+        // variable length is probably overkill since most indexes will be
+        // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
+        // size indexes means that the size of the entire Position (as an
+        // int) must be stored before the Position for proper
+        // deserialization. By storing the index as an int, the size of each
+        // Position is constant so we won't need to store the overall size
+        // prior to the Position to deserialize it, which is actually more
+        // space efficient.
+        primaryKey.copyTo(sink);
+        sink.putInt(index);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof Position) {
             Position other = (Position) obj;
@@ -139,8 +155,7 @@ public final class Position implements Byteable, Comparable<Position> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
+            bytes = Byteable.super.getBytes();
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -177,21 +192,6 @@ public final class Position implements Byteable, Comparable<Position> {
     @Override
     public String toString() {
         return "Position " + index + " in Record " + primaryKey;
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        // NOTE: Storing the index as an int instead of some size aware
-        // variable length is probably overkill since most indexes will be
-        // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
-        // size indexes means that the size of the entire Position (as an
-        // int) must be stored before the Position for proper
-        // deserialization. By storing the index as an int, the size of each
-        // Position is constant so we won't need to store the overall size
-        // prior to the Position to deserialize it, which is actually more
-        // space efficient.
-        primaryKey.copyTo(buffer);
-        buffer.putInt(index);
     }
 
 }

@@ -21,6 +21,7 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.primitives.Longs;
@@ -35,6 +36,11 @@ import com.google.common.primitives.UnsignedLongs;
  */
 @Immutable
 public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
+
+    /**
+     * The total number of bytes used to encode a PrimaryKey.
+     */
+    public static final int SIZE = 8;
 
     /**
      * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
@@ -62,11 +68,6 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public static PrimaryKey wrap(long data) {
         return new PrimaryKey(data);
     }
-
-    /**
-     * The total number of bytes used to encode a PrimaryKey.
-     */
-    public static final int SIZE = 8;
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -108,6 +109,11 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     }
 
     @Override
+    public void copyTo(ByteSink sink) {
+        sink.putLong(data);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof PrimaryKey) {
             final PrimaryKey other = (PrimaryKey) obj;
@@ -128,9 +134,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(SIZE);
-            copyTo(bytes);
-            bytes.rewind();
+            bytes = Byteable.super.getBytes();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -157,11 +161,6 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public String toString() {
         return UnsignedLongs.toString(data);
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.putLong(data);
     }
 
     /**

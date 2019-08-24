@@ -83,18 +83,6 @@ final class SearchBlock extends Block<Text, Text, Position>
             .create(NUM_INDEXER_THREADS);
 
     /**
-     * A flag that indicates whether the
-     * {@link #prepare(CountUpLatch, Text, String, PrimaryKey, int, long, Action)
-     * prepare} function should limit the length of substrings that are indexed.
-     * <p>
-     * Generally, this value is {@code true} if the configuration has a value
-     * for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is greater than
-     * 0.
-     * </p>
-     */
-    private static final boolean LIMIT_SUBSTRING_LENGTH = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
-
-    /**
      * DO NOT CALL!!
      * 
      * @param id
@@ -148,16 +136,16 @@ final class SearchBlock extends Block<Text, Text, Position>
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string.split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            CountUpLatch ticker = new CountUpLatch();
+            CountUpLatch tracker = new CountUpLatch();
             int pos = 0;
             int numPrepared = 0;
             for (String tok : toks) {
-                numPrepared += prepare(ticker, key, tok, record, pos, version,
+                numPrepared += prepare(tracker, key, tok, record, pos, version,
                         type);
                 ++pos;
             }
             try {
-                ticker.await(numPrepared);
+                tracker.await(numPrepared);
             }
             catch (InterruptedException e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -171,11 +159,11 @@ final class SearchBlock extends Block<Text, Text, Position>
      * enqueue} work that will store a revision for the {@code term} at
      * {@code position} for {@code key} in {@code record} at {@code version}.
      * 
-     * @param ticker a {@link CountUpLatch} that is associated with each of the
+     * @param tracker a {@link CountUpLatch} that is associated with each of the
      *            tasks that are
      *            {@link SearchIndexer#enqueue(SearchIndex, CountUpLatch, Text, String, Position, long, Action)
      *            enqueued} by this method; when each index task completes, it
-     *            {@link CountUpLatch#countUp() increments} the ticker
+     *            {@link CountUpLatch#countUp() increments} the tracker
      * @param key
      * @param term
      * @param record
@@ -186,12 +174,23 @@ final class SearchBlock extends Block<Text, Text, Position>
      *         can {@link CountUpLatch#await(int) await} all related inserts
      *         to finish.
      */
-    private int prepare(CountUpLatch ticker, Text key, String term,
+    private int prepare(CountUpLatch tracker, Text key, String term,
             PrimaryKey record, int position, long version, Action type) {
         int count = 0;
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
             int upperBound = (int) Math.pow(term.length(), 2);
+
+            // A flag that indicates whether the {@link #prepare(CountUpLatch,
+            // Text, String, PrimaryKey, int, long, Action) prepare} function
+            // should limit the length of substrings that are indexed.
+            // Generally, this value is {@code true} if the configuration has a
+            // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
+            // greater than 0.
+            // NOTE: This is NOT static because unit tests sequencing would
+            // cause this to fail :-/
+            boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
+
             // The set of substrings that have been indexed from {@code term} at
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
@@ -200,7 +199,7 @@ final class SearchBlock extends Block<Text, Text, Position>
             int length = term.length();
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
-                int limit = (LIMIT_SUBSTRING_LENGTH
+                int limit = (shouldLimitSubstringLength
                         ? Math.min(length,
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;
@@ -209,7 +208,7 @@ final class SearchBlock extends Block<Text, Text, Position>
                     if(!Strings.isNullOrEmpty(substring)
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
-                        INDEXER.enqueue(this, ticker, key, substring, pos,
+                        INDEXER.enqueue(this, tracker, key, substring, pos,
                                 version, type);
                     }
                 }

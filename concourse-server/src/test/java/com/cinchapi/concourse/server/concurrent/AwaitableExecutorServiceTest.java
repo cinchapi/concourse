@@ -15,33 +15,35 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 
 /**
- * Unit tests for
- * {@link com.cinchapi.concourse.server.concurrent.BlockingExecutorService}.
+ * Unit tests for{@link AwaitableExecutorService}.
  *
  * @author Jeff Nelson
  */
-public class BlockingExecutorServiceTest extends ConcourseBaseTest {
+public class AwaitableExecutorServiceTest extends ConcourseBaseTest {
 
-    private BlockingExecutorService service = null;
+    private AwaitableExecutorService service = null;
 
     @Override
     public void beforeEachTest() {
-        service = BlockingExecutorService.create();
+        service = new AwaitableExecutorService(Executors.newCachedThreadPool());
     }
 
     @Test
-    public void testServiceDoesntPreventJVMShutdown() {
-        service.execute(new Runnable() {
+    public void testServiceDoesntPreventJVMShutdown()
+            throws InterruptedException {
+        service.await(new Runnable() {
 
             @Override
             public void run() {
@@ -53,9 +55,10 @@ public class BlockingExecutorServiceTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCallingThreadIsBlockedUntilTaskCompletes() {
+    public void testCallingThreadIsBlockedUntilTaskCompletes()
+            throws InterruptedException {
         long ts = Time.now();
-        service.execute(new Runnable() {
+        service.await(new Runnable() {
 
             @Override
             public void run() {
@@ -70,9 +73,10 @@ public class BlockingExecutorServiceTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCallingThreadIsBlockedUntilAllTaskCompletes() {
+    public void testCallingThreadIsBlockedUntilAllTaskCompletes()
+            throws InterruptedException {
         long ts = Time.now();
-        service.execute(new Runnable() {
+        service.await(new Runnable() {
 
             @Override
             public void run() {
@@ -113,18 +117,23 @@ public class BlockingExecutorServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                service.execute(new Runnable() {
+                try {
+                    service.await(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        while (!aDone.get()) {
-                            continue;
+                        @Override
+                        public void run() {
+                            while (!aDone.get()) {
+                                continue;
+                            }
+                            aSelfDone.set(true);
+
                         }
-                        aSelfDone.set(true);
 
-                    }
-
-                });
+                    });
+                }
+                catch (InterruptedException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
 
             }
 
@@ -134,31 +143,36 @@ public class BlockingExecutorServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                service.execute(new Runnable() {
+                try {
+                    service.await(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        Threads.sleep(100);
+                        @Override
+                        public void run() {
+                            Threads.sleep(100);
 
-                    }
+                        }
 
-                }, new Runnable() {
+                    }, new Runnable() {
 
-                    @Override
-                    public void run() {
-                        Threads.sleep(50);
+                        @Override
+                        public void run() {
+                            Threads.sleep(50);
 
-                    }
+                        }
 
-                }, new Runnable() {
+                    }, new Runnable() {
 
-                    @Override
-                    public void run() {
-                        Threads.sleep(150);
+                        @Override
+                        public void run() {
+                            Threads.sleep(150);
 
-                    }
+                        }
 
-                });
+                    });
+                }
+                catch (InterruptedException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
                 bDone.set(true);
 
             }

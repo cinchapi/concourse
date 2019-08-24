@@ -21,12 +21,13 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 
@@ -54,6 +55,43 @@ import com.cinchapi.concourse.util.Numbers;
  */
 @Immutable
 public final class Value implements Byteable, Comparable<Value> {
+
+    /**
+     * A constant representing the smallest possible Value. This should be used
+     * in normal operations, but should only be used to indicate an infinite
+     * range.
+     */
+    public static Value NEGATIVE_INFINITY = Value
+            .wrap(Convert.javaToThrift(Long.MIN_VALUE));
+
+    /**
+     * A constant representing the largest possible Value. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static Value POSITIVE_INFINITY = Value
+            .wrap(Convert.javaToThrift(Long.MAX_VALUE));
+
+    /**
+     * The largest integer/long that can be represented by a Double without
+     * losing precision. This value is derived from the fact that the mantissa
+     * is 53 bytes.
+     */
+    protected static long MAX_DOUBLE_REPRESENTED_INTEGER = (long) Math.pow(2,
+            53);
+
+    /**
+     * The smallest integer/long that can be represented by a Double without
+     * losing precision. This value is derived from the fact that the mantissa
+     * is 53 bytes.
+     */
+    protected static long MIN_DOUBLE_REPRESENTED_INTEGER = -1
+            * MAX_DOUBLE_REPRESENTED_INTEGER;
+
+    /**
+     * The minimum number of bytes needed to encode every Value.
+     */
+    private static final int CONSTANT_SIZE = 1; // type(1)
 
     /**
      * Return the Value encoded in {@code bytes} so long as those bytes adhere
@@ -155,32 +193,18 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     /**
-     * A constant representing the smallest possible Value. This should be used
-     * in normal operations, but should only be used to indicate an infinite
-     * range.
-     */
-    public static Value NEGATIVE_INFINITY = Value
-            .wrap(Convert.javaToThrift(Long.MIN_VALUE));
-
-    /**
-     * A constant representing the largest possible Value. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    public static Value POSITIVE_INFINITY = Value
-            .wrap(Convert.javaToThrift(Long.MAX_VALUE));
-
-    /**
-     * The minimum number of bytes needed to encode every Value.
-     */
-    private static final int CONSTANT_SIZE = 1; // type(1)
-
-    /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
     @Nullable
     private transient ByteBuffer bytes = null;
+
+    /**
+     * A cached copy of the binary representation that is returned from
+     * {@link #getCanonicalBytes()}.
+     */
+    @Nullable
+    private ByteBuffer cbytes = null;
 
     /**
      * The underlying data represented by this Value. This representation is
@@ -222,9 +246,51 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.put((byte) data.getType().ordinal());
-        buffer.put(data.bufferForData());
+    public void copyCanonicalBytesTo(ByteBuffer buffer) {
+        copyCanonicalBytesTo(ByteSink.to(buffer));
+    }
+
+    @Override
+    public void copyCanonicalBytesTo(ByteSink sink) {
+        if(cbytes != null) {
+            sink.put(getCanonicalBytes());
+        }
+        else {
+            if(isNumericType()) {
+                // Must canonicalize numbers so that integer and floating point
+                // representations have the same binary form if those
+                // representations are essentially equal (i.e. 18 vs 18.0). We
+                // do this by storing every number as a double unless its an
+                // integer that can't be stored as a double without losing
+                // precision, in which case we store it as a long.
+                Number number = (Number) getObject();
+                if(number instanceof Long && (number
+                        .longValue() < MIN_DOUBLE_REPRESENTED_INTEGER
+                        || number
+                                .longValue() > MAX_DOUBLE_REPRESENTED_INTEGER)) {
+                    sink.putLong(number.longValue());
+                }
+                else {
+                    // Must parse the Double from a string (instead of calling
+                    // number#doubleValue()) because a Float that looks like a
+                    // double is actually represented with less precision and
+                    // will suffer from widening primitive conversion.
+                    sink.putDouble(Double.parseDouble(number.toString()));
+                }
+            }
+            else if(isCharSequenceType()) {
+                sink.putUtf8(getObject().toString());
+            }
+            else {
+                Byteable.super.copyCanonicalBytesTo(sink);
+            }
+        }
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        sink.put((byte) data.getType().ordinal());
+        sink.put(data.bufferForData());
     }
 
     @Override
@@ -257,11 +323,34 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
+            bytes = Byteable.super.getBytes();
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
+
+    @Override
+    public ByteBuffer getCanonicalBytes() {
+        if(cbytes == null) {
+            ByteBuffer cbytes = ByteBuffer.allocate(getCanonicalLength());
+            copyCanonicalBytesTo(ByteSink.to(cbytes));
+            cbytes.flip();
+            this.cbytes = cbytes;
+        }
+        return ByteBuffers.asReadOnlyBuffer(cbytes);
+    }
+
+    @Override
+    public int getCanonicalLength() {
+        if(isNumericType()) {
+            return 8;
+        }
+        else if(isCharSequenceType()) {
+            return size() - CONSTANT_SIZE;
+        }
+        else {
+            return Byteable.super.getCanonicalLength();
+        }
     }
 
     /**
@@ -298,6 +387,17 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public int hashCode() {
         return data.hashCode();
+    }
+
+    /**
+     * Return {@code true} if the value {@link #getType() type} is a character
+     * sequence.
+     * 
+     * @return {@code true} if the value type is a character sequence
+     */
+    public boolean isCharSequenceType() {
+        Type type = getType();
+        return type == Type.STRING || type == Type.TAG;
     }
 
     /**

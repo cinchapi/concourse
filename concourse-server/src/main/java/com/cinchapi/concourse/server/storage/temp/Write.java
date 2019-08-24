@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -40,6 +41,13 @@ import com.cinchapi.concourse.util.ByteBuffers;
  */
 @Immutable
 public final class Write implements Byteable, Versioned {
+
+    /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
+                                                                   // version(8),
+                                                                   // keySize(4)
 
     /**
      * Return a storable Write that represents a revision to ADD {@code key} as
@@ -106,13 +114,6 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
-     * The minimum number of bytes needed to encode every Write.
-     */
-    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
-                                                                   // version(8),
-                                                                   // keySize(4)
-
-    /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
@@ -165,6 +166,32 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
+     * Copy a byte sequence that represents this Write with the following order:
+     * <ol>
+     * <li><strong>keySize</strong> - position 0</li>
+     * <li><strong>type</strong> - position 4</li>
+     * <li><strong>version</strong> - position 5</li>
+     * <li><strong>record</strong> - position 13</li>
+     * <li><strong>key</strong> - position 21</li>
+     * <li><strong>value</strong> - position(key) + keySize</li>
+     * </ol>
+     */
+    @Override
+    public void copyTo(ByteSink sink) {
+        if(bytes != null) {
+            sink.put(getBytes());
+        }
+        else {
+            sink.putInt(key.size());
+            sink.put((byte) type.ordinal());
+            sink.putLong(version);
+            record.copyTo(sink);
+            key.copyTo(sink);
+            value.copyTo(sink);
+        }
+    }
+
+    /**
      * {@inheritDoc}.
      * <p>
      * <strong>NOTE:</strong> The Write type is not taken into account when
@@ -182,25 +209,10 @@ public final class Write implements Byteable, Versioned {
         return false;
     }
 
-    /**
-     * Return a byte buffer that represents this Write with the following order:
-     * <ol>
-     * <li><strong>keySize</strong> - position 0</li>
-     * <li><strong>type</strong> - position 4</li>
-     * <li><strong>version</strong> - position 5</li>
-     * <li><strong>record</strong> - position 13</li>
-     * <li><strong>key</strong> - position 21</li>
-     * <li><strong>value</strong> - position(key) + keySize</li>
-     * </ol>
-     * 
-     * @return the ByteBuffer representation
-     */
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
+            bytes = Byteable.super.getBytes();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -259,11 +271,6 @@ public final class Write implements Byteable, Versioned {
         return Objects.hash(key, value, record);
     }
 
-    @Override
-    public boolean isStorable() {
-        return version != NO_VERSION;
-    }
-
     /**
      * Return a new {@link Write} (with a more recent and unique
      * {@link #version} that has the same {@link #key}, {@link #value} and
@@ -283,6 +290,11 @@ public final class Write implements Byteable, Versioned {
             throw new UnsupportedOperationException(
                     "Cannot take the inversion of a comparison write");
         }
+    }
+
+    @Override
+    public boolean isStorable() {
+        return version != NO_VERSION;
     }
 
     /**
@@ -305,16 +317,6 @@ public final class Write implements Byteable, Versioned {
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + record + " AT "
                 + version;
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.putInt(key.size());
-        buffer.put((byte) type.ordinal());
-        buffer.putLong(version);
-        record.copyTo(buffer);
-        key.copyTo(buffer);
-        value.copyTo(buffer);
     }
 
 }
