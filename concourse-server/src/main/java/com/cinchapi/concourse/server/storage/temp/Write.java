@@ -178,17 +178,12 @@ public final class Write implements Byteable, Versioned {
      */
     @Override
     public void copyTo(ByteSink sink) {
-        if(bytes != null) {
-            sink.put(getBytes());
-        }
-        else {
-            sink.putInt(key.size());
-            sink.put((byte) type.ordinal());
-            sink.putLong(version);
-            record.copyTo(sink);
-            key.copyTo(sink);
-            value.copyTo(sink);
-        }
+        sink.putInt(key.size());
+        sink.put((byte) type.ordinal());
+        sink.putLong(version);
+        record.copyTo(sink);
+        key.copyTo(sink);
+        value.copyTo(sink);
     }
 
     /**

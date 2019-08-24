@@ -38,11 +38,6 @@ import com.google.common.primitives.UnsignedLongs;
 public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 
     /**
-     * The total number of bytes used to encode a PrimaryKey.
-     */
-    public static final int SIZE = 8;
-
-    /**
      * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
      * adhere to the format specified by the {@link #getBytes()} method. This
      * method assumes that all the bytes in the {@code bytes} belong to the
@@ -68,6 +63,11 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public static PrimaryKey wrap(long data) {
         return new PrimaryKey(data);
     }
+
+    /**
+     * The total number of bytes used to encode a PrimaryKey.
+     */
+    public static final int SIZE = 8;
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -106,11 +106,6 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public int compareTo(PrimaryKey other) {
         return UnsignedLongs.compare(data, other.data);
-    }
-
-    @Override
-    public void copyTo(ByteSink sink) {
-        sink.putLong(data);
     }
 
     @Override
@@ -161,6 +156,11 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public String toString() {
         return UnsignedLongs.toString(data);
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        sink.putLong(data);
     }
 
     /**

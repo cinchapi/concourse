@@ -73,6 +73,11 @@ public final class Value implements Byteable, Comparable<Value> {
             .wrap(Convert.javaToThrift(Long.MAX_VALUE));
 
     /**
+     * The minimum number of bytes needed to encode every Value.
+     */
+    private static final int CONSTANT_SIZE = 1; // type(1)
+
+    /**
      * The largest integer/long that can be represented by a Double without
      * losing precision. This value is derived from the fact that the mantissa
      * is 53 bytes.
@@ -87,11 +92,6 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     protected static long MIN_DOUBLE_REPRESENTED_INTEGER = -1
             * MAX_DOUBLE_REPRESENTED_INTEGER;
-
-    /**
-     * The minimum number of bytes needed to encode every Value.
-     */
-    private static final int CONSTANT_SIZE = 1; // type(1)
 
     /**
      * Return the Value encoded in {@code bytes} so long as those bytes adhere
@@ -200,13 +200,6 @@ public final class Value implements Byteable, Comparable<Value> {
     private transient ByteBuffer bytes = null;
 
     /**
-     * A cached copy of the binary representation that is returned from
-     * {@link #getCanonicalBytes()}.
-     */
-    @Nullable
-    private ByteBuffer cbytes = null;
-
-    /**
      * The underlying data represented by this Value. This representation is
      * used when serializing/deserializing the data for RPC or disk and network
      * I/O.
@@ -252,38 +245,32 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public void copyCanonicalBytesTo(ByteSink sink) {
-        if(cbytes != null) {
-            sink.put(getCanonicalBytes());
-        }
-        else {
-            if(isNumericType()) {
-                // Must canonicalize numbers so that integer and floating point
-                // representations have the same binary form if those
-                // representations are essentially equal (i.e. 18 vs 18.0). We
-                // do this by storing every number as a double unless its an
-                // integer that can't be stored as a double without losing
-                // precision, in which case we store it as a long.
-                Number number = (Number) getObject();
-                if(number instanceof Long && (number
-                        .longValue() < MIN_DOUBLE_REPRESENTED_INTEGER
-                        || number
-                                .longValue() > MAX_DOUBLE_REPRESENTED_INTEGER)) {
-                    sink.putLong(number.longValue());
-                }
-                else {
-                    // Must parse the Double from a string (instead of calling
-                    // number#doubleValue()) because a Float that looks like a
-                    // double is actually represented with less precision and
-                    // will suffer from widening primitive conversion.
-                    sink.putDouble(Double.parseDouble(number.toString()));
-                }
-            }
-            else if(isCharSequenceType()) {
-                sink.putUtf8(getObject().toString());
+        if(isNumericType()) {
+            // Must canonicalize numbers so that integer and floating point
+            // representations have the same binary form if those
+            // representations are essentially equal (i.e. 18 vs 18.0). We do
+            // this by storing every number as a double unless its an integer
+            // that can't be stored as a double without losing precision, in
+            // which case we store it as a long.
+            Number number = (Number) getObject();
+            if(number instanceof Long && (number
+                    .longValue() < MIN_DOUBLE_REPRESENTED_INTEGER
+                    || number.longValue() > MAX_DOUBLE_REPRESENTED_INTEGER)) {
+                sink.putLong(number.longValue());
             }
             else {
-                Byteable.super.copyCanonicalBytesTo(sink);
+                // Must parse the Double from a string (instead of calling
+                // number#doubleValue()) because a Float that looks like a
+                // double is actually represented with less precision and will
+                // suffer from widening primitive conversion.
+                sink.putDouble(Double.parseDouble(number.toString()));
             }
+        }
+        else if(isCharSequenceType()) {
+            sink.putUtf8(getObject().toString());
+        }
+        else {
+            Byteable.super.copyCanonicalBytesTo(sink);
         }
     }
 
@@ -331,12 +318,10 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public ByteBuffer getCanonicalBytes() {
-        if(cbytes == null) {
-            cbytes = ByteBuffer.allocate(getCanonicalLength());
-            copyCanonicalBytesTo(ByteSink.to(cbytes));
-            cbytes.flip();
-        }
-        return ByteBuffers.asReadOnlyBuffer(cbytes);
+        ByteBuffer buffer = ByteBuffer.allocate(getCanonicalLength());
+        copyCanonicalBytesTo(buffer);
+        buffer.flip();
+        return buffer;
     }
 
     @Override

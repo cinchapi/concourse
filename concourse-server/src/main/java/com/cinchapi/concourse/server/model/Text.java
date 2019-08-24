@@ -35,19 +35,6 @@ import com.cinchapi.concourse.util.ByteBuffers;
 public final class Text implements Byteable, Comparable<Text> {
 
     /**
-     * Represents an empty text string.
-     */
-    public static final Text EMPTY = Text.wrap("");
-
-    /**
-     * The cache that holds the objects created from the
-     * {@link #wrapCached(String)} method. This is primary used for string keys
-     * since those are expected to be used often.
-     */
-    private static final LazyCache<String, Text> cache = LazyCache
-            .withExpectedSize(5000);
-
-    /**
      * Return the Text encoded in {@code bytes} so long as those bytes adhere
      * to the format specified by the {@link #getBytes()} method. This method
      * assumes that all the bytes in the {@code bytes} belong to the Text. In
@@ -90,20 +77,33 @@ public final class Text implements Byteable, Comparable<Text> {
     }
 
     /**
+     * The cache that holds the objects created from the
+     * {@link #wrapCached(String)} method. This is primary used for string keys
+     * since those are expected to be used often.
+     */
+    private static final LazyCache<String, Text> cache = LazyCache
+            .withExpectedSize(5000);
+
+    /**
+     * Represents an empty text string.
+     */
+    public static final Text EMPTY = Text.wrap("");
+
+    /**
      * Master byte sequence that represents this object. Read-only duplicates
      * are made when returning from {@link #getBytes()}.
      */
     private transient ByteBuffer bytes = null;
 
     /**
-     * A mutex used to synchronized the lazy setting of the byte buffer.
-     */
-    private final Object mutex = new Object();
-
-    /**
      * The wrapped string.
      */
     private final String text;
+
+    /**
+     * A mutex used to synchronized the lazy setting of the byte buffer.
+     */
+    private final Object mutex = new Object();
 
     /**
      * Construct an instance that wraps the {@code text} string.
@@ -128,16 +128,6 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public int compareTo(Text o) {
         return toString().compareTo(o.toString());
-    }
-
-    @Override
-    public void copyTo(ByteSink sink) {
-        if(bytes == null) {
-            sink.putUtf8(text);
-        }
-        else {
-            sink.put(getBytes());
-        }
     }
 
     @Override
@@ -175,6 +165,16 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public String toString() {
         return text;
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        if(bytes == null) {
+            sink.putUtf8(text);
+        }
+        else {
+            sink.put(getBytes());
+        }
     }
 
 }
