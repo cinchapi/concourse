@@ -332,9 +332,10 @@ public final class Value implements Byteable, Comparable<Value> {
     @Override
     public ByteBuffer getCanonicalBytes() {
         if(cbytes == null) {
-            cbytes = ByteBuffer.allocate(getCanonicalLength());
+            ByteBuffer cbytes = ByteBuffer.allocate(getCanonicalLength());
             copyCanonicalBytesTo(ByteSink.to(cbytes));
             cbytes.flip();
+            this.cbytes = cbytes;
         }
         return ByteBuffers.asReadOnlyBuffer(cbytes);
     }
