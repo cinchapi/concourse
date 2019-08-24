@@ -129,6 +129,8 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
      */
     public Set<TObject> selectUnsafe(String key, long record);
 
+    public Set<TObject> gatherUnsafe(String key, long record);
+
     /**
      * Return an {@link AtomicOperation} that can be used to group actions that
      * should all succeed or fail together. Use {@link AtomicOperation#commit()}

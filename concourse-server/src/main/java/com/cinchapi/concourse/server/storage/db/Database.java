@@ -36,7 +36,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
-import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
@@ -81,8 +80,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore
-        implements PermanentStore {
+public final class Database extends BaseStore implements PermanentStore {
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
@@ -444,14 +442,14 @@ public final class Database extends BaseStore
     public Set<TObject> gather(String key, long record) {
         SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
         Set<Value> values = r.gather(PrimaryKey.wrap(record));
-        return LazyTransformSet.of(values, Value::getTObject);
+        return Transformers.transformSet(values, Value::getTObject);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
         SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
         Set<Value> values = r.gather(PrimaryKey.wrap(record), timestamp);
-        return LazyTransformSet.of(values, Value::getTObject);
+        return Transformers.transformSet(values, Value::getTObject);
     }
 
     /**

@@ -538,6 +538,11 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return context;
     }
 
+    public final Set<TObject> gather(String key, long record, long timestamp,
+            Set<TObject> context) {
+        return select(key, record, timestamp, context);
+    }
+
     /**
      * If the implementation supports durable storage, this method guarantees
      * that all the data contained here-within is durably persisted. Otherwise,

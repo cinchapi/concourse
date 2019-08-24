@@ -758,6 +758,17 @@ public final class Engine extends BufferedStore
     }
 
     @Override
+    public Set<TObject> gatherUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public void set(String key, TObject value, long record) {
         Token sharedToken = Token.wrap(record);
         Token writeToken = Token.wrap(key, record);
