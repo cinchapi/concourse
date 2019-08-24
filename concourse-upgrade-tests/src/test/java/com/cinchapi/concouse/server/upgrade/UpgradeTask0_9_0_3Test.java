@@ -30,7 +30,7 @@ import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit test for {@link Upgrade0_9_0_3}
+ * Unit test for {@link UpgradeTask0_9_0_3}
  *
  * @author Jeff Nelson
  */

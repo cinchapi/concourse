@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.storage.db;
 import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -26,22 +25,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -72,8 +71,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 
 /**
  * The {@code Database} is the {@link PermanentStore} for data. The
@@ -265,13 +262,13 @@ public final class Database extends BaseStore
      * An {@link ExecutorService} that handles asynchronous writing tasks in the
      * background.
      */
-    private transient ExecutorService writer;
+    private transient AwaitableExecutorService writer;
 
     /**
      * An {@link ExecutorService} that handles asynchronous reading tasks in the
      * background.
      */
-    private transient ExecutorService reader;
+    private transient AwaitableExecutorService reader;
 
     /**
      * Construct a Database that is backed by the default location which is in
@@ -311,15 +308,13 @@ public final class Database extends BaseStore
             // NOTE: Write locking happens in each individual Block, and
             // furthermore this method is only called from the Buffer, which
             // transports data serially.
-            List<Runnable> tasks = ImmutableList.of(
-                    new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
-                    new BlockWriter(ctb0, write));
+            Runnable[] tasks = Array.containing(new BlockWriter(cpb0, write),
+                    new BlockWriter(csb0, write), new BlockWriter(ctb0, write));
             if(running) {
                 try {
-                    List<Callable<Object>> writes = tasks.stream()
-                            .map(Executors::callable)
-                            .collect(Collectors.toList());
-                    writer.invokeAll(writes);
+                    writer.await((task, error) -> Logger.error(
+                            "Unexpected error when trying to accept the following Write: {}",
+                            write, error), tasks);
                 }
                 catch (InterruptedException e) {
                     Logger.warn(
@@ -336,7 +331,9 @@ public final class Database extends BaseStore
                 // during test cases
                 Logger.warn(
                         "The database is being asked to accept a Write, even though it is not running.");
-                tasks.forEach(task -> task.run());
+                for (Runnable task : tasks) {
+                    task.run();
+                }
             }
         }
         else {
@@ -530,20 +527,23 @@ public final class Database extends BaseStore
             running = true;
             Logger.info("Database configured to store data in {}",
                     backingStore);
-            this.writer = Executors.newCachedThreadPool(ThreadFactories
-                    .namingThreadFactory("database-write-thread"));
-            this.reader = Executors.newCachedThreadPool(ThreadFactories
-                    .namingThreadFactory("Storage Block Loader"));
-            List<Callable<Object>> tasks = ImmutableList.of(
-                    Executors.callable(new BlockLoader<PrimaryBlock>(
-                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb)),
-                    Executors.callable(new BlockLoader<SecondaryBlock>(
-                            SecondaryBlock.class, SECONDARY_BLOCK_DIRECTORY,
-                            csb)),
-                    Executors.callable(new BlockLoader<SearchBlock>(
-                            SearchBlock.class, SEARCH_BLOCK_DIRECTORY, ctb)));
+            this.writer = new AwaitableExecutorService(
+                    Executors.newCachedThreadPool(ThreadFactories
+                            .namingThreadFactory("database-write-thread")));
+            this.reader = new AwaitableExecutorService(
+                    Executors.newCachedThreadPool(ThreadFactories
+                            .namingThreadFactory("Storage Block Loader")));
+            Runnable[] tasks = Array.containing(
+                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
+                            PRIMARY_BLOCK_DIRECTORY, cpb),
+                    new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
+                            SECONDARY_BLOCK_DIRECTORY, csb),
+                    new BlockLoader<SearchBlock>(SearchBlock.class,
+                            SEARCH_BLOCK_DIRECTORY, ctb));
             try {
-                reader.invokeAll(tasks);
+                reader.await((task, error) -> Logger.error(
+                        "Unexpected error when trying to load Blocks: {}",
+                        error), tasks);
             }
             catch (InterruptedException e) {
                 Logger.error("The Database was interrupted while starting...",
@@ -552,8 +552,8 @@ public final class Database extends BaseStore
                 return;
             }
 
-            // CON-83: Get rid of any blocks that aren't "balanced" (e.g. has
-            // primary and secondary) under the assumption that the server
+            // CON-83: Get rid of any block groups that aren't "balanced" (e.g.
+            // has primary and secondary) under the assumption that the server
             // crashed and the corresponding Buffer page still exists. Please
             // note that since we do not sync empty blocks, it is possible
             // that there are some primary and secondary blocks without a
@@ -565,6 +565,28 @@ public final class Database extends BaseStore
             // missing to assume that the server crashed. :-/
             TLists.retainIntersection(cpb, csb);
             ctb.retainAll(cpb);
+
+            // Remove duplicate Blocks from each group. Block duplication can
+            // occur when the server crashes and a Block group is only partially
+            // synced. When the server restarts, it will try to sync the Block
+            // group again, generating duplicate Blocks on disk for the Blocks
+            // that succeeded in syncing before the crash
+            for (List<? extends Block<?, ?, ?>> blocks : ImmutableList.of(cpb,
+                    csb, ctb)) {
+                Set<String> checksums = Sets
+                        .newHashSetWithExpectedSize(blocks.size());
+                Iterator<? extends Block<?, ?, ?>> it = blocks.iterator();
+                while (it.hasNext()) {
+                    Block<?, ?, ?> block = it.next();
+                    if(!checksums.add(block.checksum())) {
+                        it.remove();
+                        Logger.warn(
+                                "{} {} contains duplicate data, so it was not loaded. You can safely delete this file.",
+                                block.getClass().getSimpleName(),
+                                block.getId());
+                    }
+                }
+            }
             triggerSync(false);
         }
     }
@@ -632,8 +654,14 @@ public final class Database extends BaseStore
     }
 
     /**
-     * Return the partial PrimaryRecord identifier by {@code key} in
-     * {@code primaryKey}
+     * Return the potentially partial PrimaryRecord identified by {@code key} in
+     * {@code primaryKey}.
+     * <p>
+     * While the returned {@link PrimaryRecord} may not be
+     * {@link PrimaryRecord#isPartial() partial}, the caller should interact
+     * with it as if it is (e.g. do not perform reads for any other keys besides
+     * {@code key}.
+     * </p>
      * 
      * @param pkey
      * @param key
@@ -642,8 +670,13 @@ public final class Database extends BaseStore
     private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(pkey, key);
+            final Composite composite = Composite.create(pkey, key);
             PrimaryRecord record = cppc.getIfPresent(composite);
+            if(record == null) {
+                // Before loading a partial record, see if the full record is
+                // present in memory.
+                record = cpc.getIfPresent(Composite.create(pkey));
+            }
             if(record == null) {
                 record = Record.createPrimaryRecordPartial(pkey, key);
                 for (PrimaryBlock block : cpb) {
@@ -728,14 +761,14 @@ public final class Database extends BaseStore
             if(doSync) {
                 // TODO we need a transactional file system to ensure that these
                 // blocks are written atomically (all or nothing)
-                List<Runnable> tasks = ImmutableList.of(new BlockSyncer(cpb0),
+                Runnable[] tasks = Array.containing(new BlockSyncer(cpb0),
                         new BlockSyncer(csb0), new BlockSyncer(ctb0));
                 if(running) {
                     try {
-                        List<Callable<Object>> syncs = tasks.stream()
-                                .map(Executors::callable)
-                                .collect(Collectors.toList());
-                        writer.invokeAll(syncs);
+                        writer.await((task, error) -> Logger.error(
+                                "The database is unable to sync all the Blocks with id {} because {}.",
+                                cpb0.getId(), error.getMessage(), error),
+                                tasks);
                     }
                     catch (InterruptedException e) {
                         Logger.warn(
@@ -754,7 +787,9 @@ public final class Database extends BaseStore
                     // is stopped during test cases
                     Logger.warn(
                             "The database is being asked to sync blocks, even though it is not running.");
-                    tasks.forEach(task -> task.run());
+                    for (Runnable task : tasks) {
+                        task.run();
+                    }
                 }
             }
             String id = Long.toString(Time.now());
@@ -802,40 +837,25 @@ public final class Database extends BaseStore
             Path path = Paths.get(backingStore, directory);
             path.toFile().mkdirs();
             SortedMap<File, T> sorted = Maps.newTreeMap(NaturalSorter.INSTANCE);
-            Set<String> checksums = Sets.newHashSet();
             Stream<File> files = FileSystem.ls(path)
                     .filter(file -> file.toString()
                             .endsWith(Block.BLOCK_NAME_EXTENSION))
-                    .map(Path::toFile);
+                    .map(Path::toFile).filter(file -> file.length() > 0);
             files.forEach(file -> {
+                String id = Block.getId(file.getName());
                 try {
-                    String id = Block.getId(file.getName());
-                    String checksum = Files.asByteSource(file)
-                            .hash(Hashing.murmur3_128()).toString();
-                    if(!checksums.contains(checksum)) {
-                        try {
-                            T block = Reflection.newInstance(clazz, id,
-                                    path.toString(), true);
-                            sorted.put(file, block);
-                            checksums.add(checksum);
-                            Logger.info("Loaded {} metadata for {}",
-                                    clazz.getSimpleName(), file.getName());
-                        }
-                        catch (MalformedBlockException e) {
-                            Logger.warn(
-                                    "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
-                                    e.getMessage(), id);
-                        }
-                    }
-                    else {
-                        Logger.warn(
-                                "{} {} contains duplicate data, so "
-                                        + "it was not loaded. You can safely "
-                                        + "delete this file.",
-                                clazz.getSimpleName(), id);
-                    }
+                    T block = Reflection.newInstance(clazz, id, path.toString(),
+                            true);
+                    sorted.put(file, block);
+                    Logger.info("Loaded {} metadata for {}",
+                            clazz.getSimpleName(), file.getName());
                 }
-                catch (IOException e) {
+                catch (MalformedBlockException e) {
+                    Logger.warn(
+                            "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
+                            e.getMessage(), id);
+                }
+                catch (Exception e) {
                     Logger.error(
                             "An error occured while loading {} metadata for {}",
                             clazz.getSimpleName(), file.getName());
