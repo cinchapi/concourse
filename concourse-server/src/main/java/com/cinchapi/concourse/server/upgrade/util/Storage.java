@@ -112,6 +112,13 @@ public class Storage {
         }
 
         /**
+         * Regenerate the BlockIndex for the block.
+         */
+        public void reindex() {
+            Reflection.call(source, "reindex");
+        }
+
+        /**
          * Return the {@link BlockStats}.
          * 
          * @return the stats
@@ -127,6 +134,11 @@ public class Storage {
          */
         public boolean isMutable() {
             return Reflection.get("mutable", source);
+        }
+
+        @Override
+        public String toString() {
+            return source.toString();
         }
     }
 

@@ -35,11 +35,12 @@ import com.cinchapi.concourse.util.TestData;
 public class TransactionAtomicOperationTest extends AtomicOperationTest {
 
     private String directory;
+    private Engine engine;
 
     @Override
     protected Transaction getDestination() {
         directory = TestData.DATA_DIR + File.separator + Time.now();
-        Engine engine = new Engine(directory + File.separator + "buffer",
+        engine = new Engine(directory + File.separator + "buffer",
                 directory + File.separator + "database");
         engine.start(); // Start the engine manually because
                         // AtomicOperation#start does not do it
@@ -48,6 +49,7 @@ public class TransactionAtomicOperationTest extends AtomicOperationTest {
 
     @Override
     protected void cleanup(Store store) {
+        engine.stop();
         FileSystem.deleteDirectory(directory);
     }
 

@@ -1047,6 +1047,9 @@ public final class Engine extends BufferedStore
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
                     Logger.error("Uncaught exception in {}:", t.getName(), e);
+                    Logger.error(
+                            "{} has STOPPED WORKING due to an unexpected exception. Writes will accumulate in the buffer without being transported until the error is resolved",
+                            t.getName());
                 }
 
             });

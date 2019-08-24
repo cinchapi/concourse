@@ -27,7 +27,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,
         RangeTokensTest.class, ReadWriteSharedLockTest.class,
-        BlockingExecutorServiceTest.class })
+        AwaitableExecutorServiceTest.class })
 public class ConcurrencySuite {
 
 }
