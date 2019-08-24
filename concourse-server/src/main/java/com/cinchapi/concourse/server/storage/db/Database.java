@@ -50,7 +50,6 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
-import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -83,7 +82,7 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 public final class Database extends BaseStore
-        implements PermanentStore, Gatherable {
+        implements PermanentStore {
 
     /**
      * Return an {@link Iterator} that will iterate over all of the

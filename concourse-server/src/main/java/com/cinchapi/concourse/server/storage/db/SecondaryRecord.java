@@ -165,7 +165,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 "Cannot gather from a partial Secondary Record.");
         read.lock();
         try {
-            boolean historical = timestamp == Time.NONE;
+            boolean historical = timestamp != Time.NONE;
             Set<Value> keys = Sets.newLinkedHashSet();
             for (Value key : history.keySet()) {
                 Set<PrimaryKey> values = historical ? get(key, timestamp)
