@@ -69,6 +69,12 @@ import com.google.common.collect.Sets;
 public abstract class Limbo extends BaseStore implements Iterable<Write> {
 
     /**
+     * A Predicate that is used to filter out empty sets.
+     */
+    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
+            && !set.isEmpty();
+
+    /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
      * to {@code values}.
      * 
@@ -81,12 +87,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
             TObject... values) {
         return input.getTObject().is(operator, values);
     }
-
-    /**
-     * A Predicate that is used to filter out empty sets.
-     */
-    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
-            && !set.isEmpty();
 
     @Override
     public Map<Long, String> audit(long record) {
@@ -236,16 +236,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return false;
     }
 
-    @Override
-    public Set<Long> getAllRecords() {
-        Set<Long> records = Sets.newHashSet();
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            records.add(write.getRecord().longValue());
-        }
-        return records;
-    }
-
     /**
      * Calculate the description for {@code record} using prior {@code context}
      * as if it were also a part of the Buffer.
@@ -326,6 +316,32 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
             }
         }
         return TMaps.asSortedMap(context);
+    }
+
+    /**
+     * Gather the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using prior {@code context} as if it were also a part
+     * of the Buffer.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param context
+     * @return the values
+     */
+    public final Set<TObject> gather(String key, long record, long timestamp,
+            Set<TObject> context) {
+        return select(key, record, timestamp, context);
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        Set<Long> records = Sets.newHashSet();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            records.add(write.getRecord().longValue());
+        }
+        return records;
     }
 
     /**
@@ -538,11 +554,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return context;
     }
 
-    public final Set<TObject> gather(String key, long record, long timestamp,
-            Set<TObject> context) {
-        return select(key, record, timestamp, context);
-    }
-
     /**
      * If the implementation supports durable storage, this method guarantees
      * that all the data contained here-within is durably persisted. Otherwise,
@@ -681,6 +692,37 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
 
     /**
      * A specialized implementation to possibly verify the existence of
+     * {@code write} using three-valued logic. This routine allows the caller to
+     * get a potentially definitive answer by only consulting this store instead
+     * of having to gather prior context beforehand.
+     * <p>
+     * This method will respond in one of three ways when verifying the
+     * existence of {@code write}:
+     * <ul>
+     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}
+     * appears in this store at least once and the most recent appearance is the
+     * result of an {@link Action#ADD add} operation.</li>
+     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}
+     * appears in the Buffer at least once and the most recent appearance is the
+     * result of a {@link Action#REMOVE remove} operation.</li>
+     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
+     * {@link Write#getRecord()} appears is in the inventory AND the
+     * {@code write} does not appear in the Buffer.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param write the {@link Write} to verify
+     * @param inventory an {@link Inventory} instance to possibly speed up the
+     *            verify process
+     * @return the appropriate {@link TernaryTruth} value that corresponds to
+     *         the Buffer's ability to verify the existence of {@code write}
+     */
+    public final TernaryTruth verifyFast(Write write, Inventory inventory) {
+        return verifyFast(write, Time.NONE, inventory);
+    }
+
+    /**
+     * A specialized implementation to possibly verify the existence of
      * {@code write} at {@code timestamp} using three-valued logic.
      * This routine allows the caller to get a potentially definitive answer by
      * only consulting the Buffer instead of having to gather prior context
@@ -722,37 +764,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         else {
             return TernaryTruth.UNSURE;
         }
-    }
-
-    /**
-     * A specialized implementation to possibly verify the existence of
-     * {@code write} using three-valued logic. This routine allows the caller to
-     * get a potentially definitive answer by only consulting this store instead
-     * of having to gather prior context beforehand.
-     * <p>
-     * This method will respond in one of three ways when verifying the
-     * existence of {@code write}:
-     * <ul>
-     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}
-     * appears in this store at least once and the most recent appearance is the
-     * result of an {@link Action#ADD add} operation.</li>
-     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}
-     * appears in the Buffer at least once and the most recent appearance is the
-     * result of a {@link Action#REMOVE remove} operation.</li>
-     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
-     * {@link Write#getRecord()} appears is in the inventory AND the
-     * {@code write} does not appear in the Buffer.</li>
-     * </ul>
-     * </p>
-     * 
-     * @param write the {@link Write} to verify
-     * @param inventory an {@link Inventory} instance to possibly speed up the
-     *            verify process
-     * @return the appropriate {@link TernaryTruth} value that corresponds to
-     *         the Buffer's ability to verify the existence of {@code write}
-     */
-    public final TernaryTruth verifyFast(Write write, Inventory inventory) {
-        return verifyFast(write, Time.NONE, inventory);
     }
 
     /**
@@ -824,13 +835,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * Return the timestamp for the oldest write available.
-     * 
-     * @return {@code timestamp}
-     */
-    protected abstract long getOldestWriteTimestamp();
-
-    /**
      * Return the {@link Action} associated with the most recent instance of
      * {@code write} at {@code timestamp} in the the store. For example, if
      * {@code timestamp} {@code write} was most recently added, then this method
@@ -861,6 +865,13 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         }
         return action;
     }
+
+    /**
+     * Return the timestamp for the oldest write available.
+     * 
+     * @return {@code timestamp}
+     */
+    protected abstract long getOldestWriteTimestamp();
 
     /**
      * Return the iterator to use in the {@link #search(String, String)} method.
