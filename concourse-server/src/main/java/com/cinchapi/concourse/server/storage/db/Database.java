@@ -440,15 +440,15 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
-        Set<Value> values = r.gather(PrimaryKey.wrap(record));
+        SecondaryRecord sr = getSecondaryRecord(Text.wrapCached(key));
+        Set<Value> values = sr.gather(PrimaryKey.wrap(record));
         return Transformers.transformSet(values, Value::getTObject);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        SecondaryRecord r = getSecondaryRecord(Text.wrapCached(key));
-        Set<Value> values = r.gather(PrimaryKey.wrap(record), timestamp);
+        SecondaryRecord sr = getSecondaryRecord(Text.wrapCached(key));
+        Set<Value> values = sr.gather(PrimaryKey.wrap(record), timestamp);
         return Transformers.transformSet(values, Value::getTObject);
     }
 
