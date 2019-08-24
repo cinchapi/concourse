@@ -37,6 +37,11 @@ import com.google.common.base.Preconditions;
 public final class Position implements Byteable, Comparable<Position> {
 
     /**
+     * The total number of bytes used to store each Position
+     */
+    public static final int SIZE = PrimaryKey.SIZE + 4; // index
+
+    /**
      * Return the Position encoded in {@code bytes} so long as those bytes
      * adhere to the format specified by the {@link #getBytes()} method. This
      * method assumes that all the bytes in the {@code bytes} belong to the
@@ -64,11 +69,6 @@ public final class Position implements Byteable, Comparable<Position> {
     public static Position wrap(PrimaryKey primaryKey, int index) {
         return new Position(primaryKey, index);
     }
-
-    /**
-     * The total number of bytes used to store each Position
-     */
-    public static final int SIZE = PrimaryKey.SIZE + 4; // index
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -117,6 +117,21 @@ public final class Position implements Byteable, Comparable<Position> {
         int comparison;
         return (comparison = primaryKey.compareTo(other.primaryKey)) != 0
                 ? comparison : Integer.compare(index, other.index);
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        // NOTE: Storing the index as an int instead of some size aware
+        // variable length is probably overkill since most indexes will be
+        // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
+        // size indexes means that the size of the entire Position (as an
+        // int) must be stored before the Position for proper
+        // deserialization. By storing the index as an int, the size of each
+        // Position is constant so we won't need to store the overall size
+        // prior to the Position to deserialize it, which is actually more
+        // space efficient.
+        primaryKey.copyTo(sink);
+        sink.putInt(index);
     }
 
     @Override
@@ -177,21 +192,6 @@ public final class Position implements Byteable, Comparable<Position> {
     @Override
     public String toString() {
         return "Position " + index + " in Record " + primaryKey;
-    }
-
-    @Override
-    public void copyTo(ByteSink sink) {
-        // NOTE: Storing the index as an int instead of some size aware
-        // variable length is probably overkill since most indexes will be
-        // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
-        // size indexes means that the size of the entire Position (as an
-        // int) must be stored before the Position for proper
-        // deserialization. By storing the index as an int, the size of each
-        // Position is constant so we won't need to store the overall size
-        // prior to the Position to deserialize it, which is actually more
-        // space efficient.
-        primaryKey.copyTo(sink);
-        sink.putInt(index);
     }
 
 }
