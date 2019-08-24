@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.concurrent;
+package com.cinchapi.concourse.bugrepro;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.cinchapi.concourse.lang.Criteria;
+import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 
 /**
- * 
- * 
+ * Unit tests to repro the conditions in CON-661.
+ *
  * @author Jeff Nelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,
-        RangeTokensTest.class, ReadWriteSharedLockTest.class,
-        AwaitableExecutorServiceTest.class })
-public class ConcurrencySuite {
+public class CON662 extends ConcourseIntegrationTest {
+
+    @Test
+    public void test() {
+        Criteria criteria = Criteria.parse("foo.bar eq 1");
+        client.find(criteria);
+        Assert.assertTrue(true); // lack of Exception means the test passes
+
+    }
 
 }

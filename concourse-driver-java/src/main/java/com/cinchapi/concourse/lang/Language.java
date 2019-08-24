@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.NavigationKeySymbol;
 import com.cinchapi.ccl.grammar.OperatorSymbol;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
@@ -58,7 +59,9 @@ public final class Language {
             return ConjunctionSymbol.valueOf(tsymbol.getSymbol().toUpperCase());
         }
         else if(tsymbol.getType() == TSymbolType.KEY) {
-            return new KeySymbol(tsymbol.getSymbol());
+            String $symbol = tsymbol.getSymbol();
+            return $symbol.contains(".") ? new NavigationKeySymbol($symbol)
+                    : new KeySymbol($symbol);
         }
         else if(tsymbol.getType() == TSymbolType.VALUE) {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
@@ -130,22 +133,22 @@ public final class Language {
      * @return The analogous TSymbol
      */
     public static TSymbol translateToThriftSymbol(Symbol symbol) {
-        if(symbol.getClass() == ConjunctionSymbol.class) {
+        if(symbol instanceof ConjunctionSymbol) {
             return new TSymbol(TSymbolType.CONJUNCTION, symbol.toString());
         }
-        else if(symbol.getClass() == KeySymbol.class) {
+        else if(symbol instanceof KeySymbol) {
             return new TSymbol(TSymbolType.KEY, symbol.toString());
         }
-        else if(symbol.getClass() == ValueSymbol.class) {
+        else if(symbol instanceof ValueSymbol) {
             return new TSymbol(TSymbolType.VALUE, symbol.toString());
         }
-        else if(symbol.getClass() == ParenthesisSymbol.class) {
+        else if(symbol instanceof ParenthesisSymbol) {
             return new TSymbol(TSymbolType.PARENTHESIS, symbol.toString());
         }
-        else if(symbol.getClass() == OperatorSymbol.class) {
+        else if(symbol instanceof OperatorSymbol) {
             return new TSymbol(TSymbolType.OPERATOR, symbol.toString());
         }
-        else if(symbol.getClass() == TimestampSymbol.class) {
+        else if(symbol instanceof TimestampSymbol) {
             return new TSymbol(TSymbolType.TIMESTAMP, symbol.toString());
         }
         else {

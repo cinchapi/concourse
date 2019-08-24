@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
@@ -865,9 +866,9 @@ public class AtomicOperation extends BufferedStore
         }
 
         @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.put((byte) type.ordinal());
-            token.copyTo(buffer);
+        public void copyTo(ByteSink sink) {
+            sink.put((byte) type.ordinal());
+            token.copyTo(sink);
         }
 
         @Override
@@ -877,18 +878,6 @@ public class AtomicOperation extends BufferedStore
                         && type == ((LockDescription) obj).type;
             }
             return false;
-        }
-
-        @Override
-        public ByteBuffer getBytes() {
-            // We do not create a cached copy for the entire class because we'll
-            // only ever getBytes() for a lock description once and that only
-            // happens if the AtomicOperation is not aborted before an attempt
-            // to commit, so its best to not create a copy if we don't have to
-            ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
         }
 
         /**
