@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -181,6 +182,30 @@ public class DatabaseTest extends StoreTest {
             Variables.register("actual_" + i, actual);
             ++i;
         }
+    }
+
+    @Test
+    public void testLoadPrimaryRecordUsesFullRecordIfItMemory() {
+        Database db = (Database) store;
+        String a = "a";
+        String b = "b";
+        TObject value = Convert.javaToThrift(1);
+        long record = 1;
+        db.accept(Write.add(a, value, record));
+        db.accept(Write.add(b, value, record));
+        db.triggerSync();
+        db.stop();
+        db = new Database(db.getBackingStore()); // TODO: cannot stop/start same
+                                                 // Database instance because
+                                                 // state isn't reset...
+        db.start();
+        PrimaryRecord rec = Reflection.call(db, "getPrimaryRecord",
+                PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
+        Assert.assertTrue(rec.isPartial());
+        db.select(record);
+        rec = Reflection.call(db, "getPrimaryRecord", PrimaryKey.wrap(record),
+                Text.wrap(b)); // (authorized)
+        Assert.assertFalse(rec.isPartial());
     }
 
     @Override
