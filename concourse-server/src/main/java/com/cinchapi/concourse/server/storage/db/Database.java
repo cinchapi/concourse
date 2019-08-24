@@ -334,10 +334,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -637,8 +636,14 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the partial PrimaryRecord identifier by {@code key} in
-     * {@code primaryKey}
+     * Return the potentially partial PrimaryRecord identified by {@code key} in
+     * {@code primaryKey}.
+     * <p>
+     * While the returned {@link PrimaryRecord} may not be
+     * {@link PrimaryRecord#isPartial() partial}, the caller should interact
+     * with it as if it is (e.g. do not perform reads for any other keys besides
+     * {@code key}.
+     * </p>
      * 
      * @param pkey
      * @param key
@@ -647,8 +652,13 @@ public final class Database extends BaseStore implements PermanentStore {
     private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(pkey, key);
+            final Composite composite = Composite.create(pkey, key);
             PrimaryRecord record = cppc.getIfPresent(composite);
+            if(record == null) {
+                // Before loading a partial record, see if the full record is
+                // present in memory.
+                record = cpc.getIfPresent(Composite.create(pkey));
+            }
             if(record == null) {
                 record = Record.createPrimaryRecordPartial(pkey, key);
                 for (PrimaryBlock block : cpb) {
@@ -784,8 +794,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>>
-            implements Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>> implements
+            Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
