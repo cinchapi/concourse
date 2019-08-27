@@ -166,7 +166,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         read.lock();
         try {
             boolean historical = timestamp != Time.NONE;
-            Set<Value> keys = Sets.newLinkedHashSet();
+            Set<Value> keys = Sets.newHashSet();
             for (Value key : history.keySet()) {
                 Set<PrimaryKey> values = historical ? get(key, timestamp)
                         : get(key);
