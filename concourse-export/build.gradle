@@ -16,6 +16,8 @@ dependencies {
     compile (group: 'com.cinchapi', name: 'data-transform-api', version: '1.4.0', changing:true) {
         exclude group: 'com.cinchapi', module: 'concourse-driver-java'
     }
+
+    testCompile project(':concourse-ete-test-core')
 }
 
 jar {
