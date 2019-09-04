@@ -986,8 +986,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         String directory = FileSystem.tempDir("concourse-block-reindex");
         try {
             String id = getId();
-            Block<L, K, V> block = Reflection.newInstance(getClass(), directory,
-                    id, false);
+            Block<L, K, V> block = Reflection.newInstance(getClass(), id,
+                    directory, false);
             for (Revision<L, K, V> revision : revisions()) {
                 block.insertUnsafe(revision.getLocator(), revision.getKey(),
                         revision.getValue(), revision.getVersion(),
