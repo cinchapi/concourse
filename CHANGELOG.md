@@ -2,6 +2,7 @@
 
 #### Version 0.10.3 (TBD)
 * Fixed an issue where the `Database` unnecessarily loaded data from disk when performing a read for a `key` in a `record` after a previous read for the entire `record` made the desired data available in memory.
+* Fixed a minor bug that caused the Database to create unnecessary temporary directories when performing a reindex.
 
 #### Version 0.10.2 (August 24, 2019)
 * Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
