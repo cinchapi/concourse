@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.lang;
 
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.NavigationKeySymbol;
+import com.cinchapi.concourse.validate.Keys;
 
 /**
  * The {@link StartState} marks the logical beginning of a new {@link Criteria}.
@@ -71,7 +73,12 @@ public class StartState extends State {
      * @return the builder
      */
     public KeyState key(String key) {
-        criteria.add(new KeySymbol(key));
+        if(Keys.isNavigationKey(key)) {
+            criteria.add(new NavigationKeySymbol(key));
+        }
+        else {
+            criteria.add(new KeySymbol(key));
+        }
         return new KeyState(criteria);
     }
 
