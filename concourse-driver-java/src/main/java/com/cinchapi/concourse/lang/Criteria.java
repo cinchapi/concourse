@@ -62,7 +62,7 @@ public interface Criteria extends Symbol {
             if(e instanceof SyntaxException
                     || e instanceof IllegalStateException
                     || e.getCause() != null && e
-                            .getCause() instanceof com.cinchapi.ccl.v2.generated.ParseException) {
+                            .getCause() instanceof com.cinchapi.ccl.generated.ParseException) {
                 throw new ParseException(
                         new com.cinchapi.concourse.thrift.ParseException(
                                 e.getMessage()));

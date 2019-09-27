@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
-import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.syntax.ConjunctionTree;
@@ -100,7 +100,7 @@ public class Finder implements Visitor<Set<Long>> {
         Verify.that(data.length >= 1);
         Verify.that(data[0] instanceof Store);
         Store store = (Store) data[0];
-        Expression expression = ((Expression) tree.root());
+        ExpressionSymbol expression = ((ExpressionSymbol) tree.root());
         String key = expression.raw().key();
         Operator operator = (Operator) expression.raw().operator();
         if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {

@@ -15,14 +15,12 @@
  */
 package com.cinchapi.concourse.lang;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
-import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.concourse.ParseException;
@@ -67,8 +65,8 @@ public class CriteriaTest {
         criteria = criteria.at(timestamp);
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
+            if(symbol instanceof ExpressionSymbol) {
+                ExpressionSymbol expression = (ExpressionSymbol) symbol;
                 Assert.assertEquals(expression.raw().timestamp(),
                         timestamp.getMicros());
             }
@@ -88,8 +86,8 @@ public class CriteriaTest {
         criteria = criteria.at(timestamp);
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
+            if(symbol instanceof ExpressionSymbol) {
+                ExpressionSymbol expression = (ExpressionSymbol) symbol;
                 Assert.assertEquals(expression.raw().timestamp(),
                         timestamp.getMicros());
             }

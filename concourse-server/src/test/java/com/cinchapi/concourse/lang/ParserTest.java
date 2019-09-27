@@ -26,7 +26,7 @@ import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
-import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
 import com.cinchapi.ccl.grammar.OperatorSymbol;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
@@ -57,7 +57,7 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key(key).operator(operator)
                 .value(value).build();
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
-        Expression exp = (Expression) symbols.get(0);
+        ExpressionSymbol exp = (ExpressionSymbol) symbols.get(0);
         Assert.assertEquals(1, symbols.size());
         Assert.assertEquals(exp.raw().key(), key);
         Assert.assertEquals(exp.raw().operator(), operator);
@@ -76,9 +76,9 @@ public class ParserTest {
                 .value(value0).and().key(key1).operator(operator1).value(value1)
                 .build();
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
-        Expression exp0 = (Expression) symbols.get(0);
+        ExpressionSymbol exp0 = (ExpressionSymbol) symbols.get(0);
         ConjunctionSymbol sym = (ConjunctionSymbol) symbols.get(1);
-        Expression exp1 = (Expression) symbols.get(2);
+        ExpressionSymbol exp1 = (ExpressionSymbol) symbols.get(2);
         Assert.assertEquals(3, symbols.size());
         Assert.assertEquals(exp0.raw().key(), key0);
         Assert.assertEquals(exp0.raw().operator(), operator0);
@@ -101,9 +101,9 @@ public class ParserTest {
                 .value(value0).or().key(key1).operator(operator1).value(value1)
                 .build();
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
-        Expression exp0 = (Expression) symbols.get(0);
+        ExpressionSymbol exp0 = (ExpressionSymbol) symbols.get(0);
         ConjunctionSymbol sym = (ConjunctionSymbol) symbols.get(1);
-        Expression exp1 = (Expression) symbols.get(2);
+        ExpressionSymbol exp1 = (ExpressionSymbol) symbols.get(2);
         Assert.assertEquals(3, symbols.size());
         Assert.assertEquals(exp0.raw().key(), key0);
         Assert.assertEquals(exp0.raw().operator(), operator0);
@@ -139,12 +139,12 @@ public class ParserTest {
                         .value(value2).build())
                 .build();
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
-        Expression exp0 = (Expression) symbols.get(0);
+        ExpressionSymbol exp0 = (ExpressionSymbol) symbols.get(0);
         ConjunctionSymbol sym1 = (ConjunctionSymbol) symbols.get(1);
         ParenthesisSymbol sym2 = (ParenthesisSymbol) symbols.get(2);
-        Expression exp3 = (Expression) symbols.get(3);
+        ExpressionSymbol exp3 = (ExpressionSymbol) symbols.get(3);
         ConjunctionSymbol sym4 = (ConjunctionSymbol) symbols.get(4);
-        Expression exp5 = (Expression) symbols.get(5);
+        ExpressionSymbol exp5 = (ExpressionSymbol) symbols.get(5);
         ParenthesisSymbol sym6 = (ParenthesisSymbol) symbols.get(6);
         Assert.assertEquals(7, symbols.size());
         Assert.assertEquals(exp0.raw().key(), key0);
@@ -171,7 +171,7 @@ public class ParserTest {
         Criteria criteria = Criteria.where().key(key).operator(operator)
                 .value(value).value(value1).build();
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
-        Expression exp = (Expression) symbols.get(0);
+        ExpressionSymbol exp = (ExpressionSymbol) symbols.get(0);
         Assert.assertEquals(1, symbols.size());
         Assert.assertEquals(exp.raw().key(), key);
         Assert.assertEquals(exp.raw().operator(), operator);
@@ -186,13 +186,13 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
         Assert.assertEquals(pfn.size(), 1);
-        Assert.assertEquals(((Expression) Iterables.getOnlyElement(pfn)).key(),
+        Assert.assertEquals(
+                ((ExpressionSymbol) Iterables.getOnlyElement(pfn)).key(),
                 new KeySymbol("foo"));
+        Assert.assertEquals(((ExpressionSymbol) Iterables.getOnlyElement(pfn))
+                .values().get(0), new ValueSymbol("bar"));
         Assert.assertEquals(
-                ((Expression) Iterables.getOnlyElement(pfn)).values().get(0),
-                new ValueSymbol("bar"));
-        Assert.assertEquals(
-                ((Expression) Iterables.getOnlyElement(pfn)).operator(),
+                ((ExpressionSymbol) Iterables.getOnlyElement(pfn)).operator(),
                 new OperatorSymbol(Operator.EQUALS));
     }
 
@@ -214,16 +214,15 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
         Assert.assertEquals(pfn.size(), 1);
-        Assert.assertEquals(((Expression) Iterables.getOnlyElement(pfn)).key(),
+        Assert.assertEquals(
+                ((ExpressionSymbol) Iterables.getOnlyElement(pfn)).key(),
                 new KeySymbol("foo"));
+        Assert.assertEquals(((ExpressionSymbol) Iterables.getOnlyElement(pfn))
+                .values().get(0), new ValueSymbol("bar"));
+        Assert.assertEquals(((ExpressionSymbol) Iterables.getOnlyElement(pfn))
+                .values().get(1), new ValueSymbol("baz"));
         Assert.assertEquals(
-                ((Expression) Iterables.getOnlyElement(pfn)).values().get(0),
-                new ValueSymbol("bar"));
-        Assert.assertEquals(
-                ((Expression) Iterables.getOnlyElement(pfn)).values().get(1),
-                new ValueSymbol("baz"));
-        Assert.assertEquals(
-                ((Expression) Iterables.getOnlyElement(pfn)).operator(),
+                ((ExpressionSymbol) Iterables.getOnlyElement(pfn)).operator(),
                 new OperatorSymbol(Operator.BETWEEN));
     }
 
@@ -249,12 +248,12 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
         Assert.assertEquals(pfn.size(), 3);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.AND);
@@ -279,12 +278,12 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
         Assert.assertEquals(pfn.size(), 3);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
@@ -309,17 +308,17 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
         Assert.assertEquals(pfn.size(), 5);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.AND);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
-                new Expression(new KeySymbol("c"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 3)),
+                ExpressionSymbol.create(new KeySymbol("c"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(3)));
         Assert.assertEquals(Iterables.get(pfn, 4), ConjunctionSymbol.OR);
@@ -346,16 +345,16 @@ public class ParserTest {
                 .build();
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 2)),
-                new Expression(new KeySymbol("c"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 2)),
+                ExpressionSymbol.create(new KeySymbol("c"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(3)));
         Assert.assertEquals(Iterables.get(pfn, 3), ConjunctionSymbol.OR);
@@ -390,21 +389,21 @@ public class ParserTest {
                 .build();
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
-                new Expression(new KeySymbol("c"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 3)),
+                ExpressionSymbol.create(new KeySymbol("c"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(3)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 4)),
-                new Expression(new KeySymbol("d"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 4)),
+                ExpressionSymbol.create(new KeySymbol("d"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(4)));
         Assert.assertEquals(Iterables.get(pfn, 5), ConjunctionSymbol.OR);
@@ -477,21 +476,21 @@ public class ParserTest {
                 .build();
         Queue<PostfixNotationSymbol> pfn = Parsing
                 .toPostfixNotation(criteria.symbols());
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 0)),
-                new Expression(new KeySymbol("a"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 0)),
+                ExpressionSymbol.create(new KeySymbol("a"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(1)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 1)),
-                new Expression(new KeySymbol("b"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 1)),
+                ExpressionSymbol.create(new KeySymbol("b"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 3)),
-                new Expression(new KeySymbol("c"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 3)),
+                ExpressionSymbol.create(new KeySymbol("c"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(3)));
-        Assert.assertEquals(((Expression) Iterables.get(pfn, 4)),
-                new Expression(new KeySymbol("d"),
+        Assert.assertEquals(((ExpressionSymbol) Iterables.get(pfn, 4)),
+                ExpressionSymbol.create(new KeySymbol("d"),
                         new OperatorSymbol(Operator.EQUALS),
                         new ValueSymbol(4)));
         Assert.assertEquals(Iterables.get(pfn, 5), ConjunctionSymbol.OR);
@@ -538,7 +537,7 @@ public class ParserTest {
         String ccl = "name = jeff at \"last christmas\"";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
                                                            // timestamp was
                                                            // parsed
@@ -549,7 +548,7 @@ public class ParserTest {
         String ccl = "name = jeff at \"now\"";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
                                                            // timestamp was
                                                            // parsed
@@ -560,7 +559,7 @@ public class ParserTest {
         String ccl = "name = jeff at \"" + Time.now() + "\"";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
                                                            // timestamp was
                                                            // parsed
@@ -571,7 +570,7 @@ public class ParserTest {
         String ccl = "name = jeff at 3 seconds ago";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
                                                            // timestamp was
                                                            // parsed
@@ -582,7 +581,7 @@ public class ParserTest {
         String ccl = "name = jeff nelson";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertEquals("jeff nelson", expr.values().get(0).value());
     }
 
@@ -591,7 +590,7 @@ public class ParserTest {
         String ccl = "name = jeff nelson on last christmas day";
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertEquals("jeff nelson", expr.values().get(0).value());
         Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
                                                            // timestamp was
@@ -605,7 +604,7 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> symbols = parser.order();
         Assert.assertEquals(3, symbols.size());
         for (int i = 0; i < 2; ++i) {
-            Expression expr = (Expression) symbols.poll();
+            ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
             Assert.assertTrue(
                     expr.values().get(0).value().toString().contains(" "));
         }
@@ -618,7 +617,7 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> symbols = parser.order();
         Assert.assertEquals(3, symbols.size());
         for (int i = 0; i < 2; ++i) {
-            Expression expr = (Expression) symbols.poll();
+            ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
             Assert.assertTrue(
                     expr.values().get(0).value().toString().contains(" "));
             Assert.assertNotEquals(0, expr.raw().timestamp()); // this means a
@@ -634,7 +633,7 @@ public class ParserTest {
         Queue<PostfixNotationSymbol> symbols = parser.order();
         Assert.assertEquals(3, symbols.size());
         for (int i = 0; i < 2; i++) {
-            Expression expr = (Expression) symbols.poll();
+            ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
             Assert.assertTrue(
                     expr.values().get(0).value().toString().contains(" "));
             Assert.assertNotEquals(0, expr.raw().timestamp());
@@ -726,7 +725,7 @@ public class ParserTest {
         Parser parser = Parsers.create(ccl);
         Queue<PostfixNotationSymbol> symbols = parser.order();
         Assert.assertEquals(1, symbols.size());
-        Expression expr = (Expression) symbols.poll();
+        ExpressionSymbol expr = (ExpressionSymbol) symbols.poll();
         Assert.assertEquals("Atlanta (HQ)", expr.raw().values().get(0));
     }
 
