@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.lang;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
