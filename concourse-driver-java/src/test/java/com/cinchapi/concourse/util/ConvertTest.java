@@ -793,6 +793,13 @@ public class ConvertTest {
         });
     }
 
+    @Test
+    public void testConvertBigNumberStringStaysAsString() {
+        String expected = "20191009162729766293175";
+        Object actual = Convert.stringToJava(expected);
+        Assert.assertEquals(expected, actual);
+    }
+
     /**
      * Randomly flip the case of all the characters in {@code string}.
      * 
