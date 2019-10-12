@@ -509,8 +509,13 @@ public final class Convert {
             return timestamp;
         }
         else {
-            return MoreObjects.firstNonNull(AnyStrings.tryParseNumber(value),
-                    value);
+            try {
+                return MoreObjects
+                        .firstNonNull(AnyStrings.tryParseNumber(value), value);
+            }
+            catch (NumberFormatException e) {
+                return value;
+            }
         }
     }
 
