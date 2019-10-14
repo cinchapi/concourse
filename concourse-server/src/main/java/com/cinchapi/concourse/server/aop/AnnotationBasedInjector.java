@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.aop;
 
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.server.ops.ContextGatherer;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 
@@ -53,6 +54,10 @@ public class AnnotationBasedInjector extends AbstractModule {
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyWritePermission.class),
                 new PermissionVerifier(Permission.WRITE));
+
+        // Gather and set the Context for all methods
+        bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
+                Matchers.any(), new ContextGatherer());
 
     }
 
