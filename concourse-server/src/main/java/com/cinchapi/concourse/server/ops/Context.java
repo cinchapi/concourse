@@ -89,7 +89,7 @@ public final class Context {
      * {@link ThreadLocal#set(Object)} method.
      * </p>
      */
-    /* package */static ThreadLocal<Context> current;
+    /* package */static ThreadLocal<Context> current = new ThreadLocal<>();
 
     /**
      * A collection of methods whose output should not be included in the

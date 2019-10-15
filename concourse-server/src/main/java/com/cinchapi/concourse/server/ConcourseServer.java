@@ -65,6 +65,7 @@ import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
+import com.cinchapi.concourse.server.aop.CaptureContext;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyReadPermission;
@@ -6193,6 +6194,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    @CaptureContext
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
