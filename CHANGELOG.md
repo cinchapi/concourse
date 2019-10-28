@@ -5,7 +5,7 @@
 * Fixed a minor bug that caused the Database to create unnecessary temporary directories when performing a reindex.
 * The `Criteria` builder now creates a `NavigationKeySymbol` for navigation keys instead of a `KeySymbol`.
 * Fixed a bug that caused `Convert#stringToJava` to throw an `NumberFormatException` when trying to convert numeric strings that appeared to be numbers outside of Java's representation range. As a result of this fix, those kinds of values will remain as strings.
-* Added a `DelegatingConcourse` wrapper that can be extended by subclasses that provide additional functionality around a subset of Concourse methods.
+* Added a `DelegatingConcourse` wrapper that can be extended by subclasses that provide additional functionality around a subset of Concourse methods. 
 
 #### Version 0.10.2 (August 24, 2019)
 * Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
