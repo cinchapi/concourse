@@ -1680,4 +1680,18 @@ public abstract class DelegatingConcourse extends Concourse {
         concourse.verifyOrSet(key, value, record);
     }
 
+    @Override
+    protected final Concourse copyConnection() {
+        return $copyConnection(concourse);
+    }
+
+    /**
+     * Copy the provided {@code concourse} connection in such a manner that it
+     * conforms to the semantics of this class.
+     * 
+     * @param concourse
+     * @return
+     */
+    protected abstract DelegatingConcourse $copyConnection(Concourse concourse);
+
 }
