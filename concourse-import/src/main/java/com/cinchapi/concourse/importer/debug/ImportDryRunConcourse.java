@@ -158,18 +158,18 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record) {
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start, Timestamp end) {
         throw new UnsupportedOperationException();
     }
@@ -1230,49 +1230,48 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
@@ -1482,12 +1481,12 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record) {
+    public <T> Map<String, Set<T>> select(long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> select(long record, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
