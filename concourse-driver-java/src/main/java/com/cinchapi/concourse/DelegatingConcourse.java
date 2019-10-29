@@ -39,7 +39,7 @@ import com.cinchapi.concourse.thrift.Operator;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public class DelegatingConcourse extends Concourse {
+public abstract class DelegatingConcourse extends Concourse {
 
     /**
      * The instance to which method invocations are routed.
@@ -1678,11 +1678,6 @@ public class DelegatingConcourse extends Concourse {
     @Override
     public void verifyOrSet(String key, Object value, long record) {
         concourse.verifyOrSet(key, value, record);
-    }
-
-    @Override
-    protected Concourse copyConnection() {
-        return concourse.copyConnection();
     }
 
 }
