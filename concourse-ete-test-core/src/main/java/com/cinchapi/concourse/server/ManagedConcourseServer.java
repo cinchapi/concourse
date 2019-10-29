@@ -1062,21 +1062,21 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key,
                 long record) {
             return invoke("chronologize", String.class, long.class).with(key,
                     record);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
                 Timestamp start) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class).with(key, record, start);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
                 Timestamp start, Timestamp end) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class, Timestamp.class).with(key, record, start,
@@ -2313,48 +2313,48 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records) {
             return invoke("select", Collection.class).with(records);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Order order) {
             return invoke("select", Collection.class, Order.class).with(records,
                     order);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Order order, Page page) {
             return invoke("select", Collection.class, Order.class, Page.class)
                     .with(records, order, page);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Page page) {
             return invoke("select", Collection.class, Page.class).with(records,
                     page);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp) {
             return invoke("select", Collection.class, Timestamp.class)
                     .with(records, timestamp);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Order order) {
             return invoke("select", Collection.class, Timestamp.class,
                     Order.class).with(records, timestamp, order);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Order order,
                 Page page) {
             return invoke("select", Collection.class, Timestamp.class,
@@ -2363,7 +2363,7 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Page page) {
             return invoke("select", Collection.class, Timestamp.class,
                     Page.class).with(records, timestamp, page);
@@ -2629,12 +2629,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<String, Set<Object>> select(long record) {
+        public <T> Map<String, Set<T>> select(long record) {
             return invoke("select", long.class).with(record);
         }
 
         @Override
-        public Map<String, Set<Object>> select(long record,
+        public <T> Map<String, Set<T>> select(long record,
                 Timestamp timestamp) {
             return invoke("select", long.class, Timestamp.class).with(record,
                     timestamp);

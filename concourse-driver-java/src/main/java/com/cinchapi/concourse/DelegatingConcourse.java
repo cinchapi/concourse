@@ -131,18 +131,18 @@ public abstract class DelegatingConcourse extends Concourse {
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record) {
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record) {
         return concourse.chronologize(key, record);
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start) {
         return concourse.chronologize(key, record, start);
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start, Timestamp end) {
         return concourse.chronologize(key, record, start, end);
     }
@@ -1173,49 +1173,48 @@ public abstract class DelegatingConcourse extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records) {
         return concourse.select(records);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order) {
         return concourse.select(records, order);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order, Page page) {
         return concourse.select(records, order, page);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Page page) {
         return concourse.select(records, page);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp) {
         return concourse.select(records, timestamp);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order) {
         return concourse.select(records, timestamp, order);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
         return concourse.select(records, timestamp, order, page);
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
         return concourse.select(records, timestamp, page);
     }
@@ -1425,12 +1424,12 @@ public abstract class DelegatingConcourse extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record) {
+    public <T> Map<String, Set<T>> select(long record) {
         return concourse.select(record);
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> select(long record, Timestamp timestamp) {
         return concourse.select(record, timestamp);
     }
 
