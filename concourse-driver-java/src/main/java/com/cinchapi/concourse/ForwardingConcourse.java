@@ -26,7 +26,7 @@ import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 
 /**
- * An extensible {@link Concourse} wrapper that simply delegates method calls to
+ * An extensible {@link Concourse} wrapper that simply forwards method calls to
  * another {@link Concourse} instance.
  * <p>
  * This class is meant to be extended by a subclass that needs to override a
@@ -39,7 +39,7 @@ import com.cinchapi.concourse.thrift.Operator;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public abstract class DelegatingConcourse extends Concourse {
+public abstract class ForwardingConcourse extends Concourse {
 
     /**
      * The instance to which method invocations are routed.
@@ -51,7 +51,7 @@ public abstract class DelegatingConcourse extends Concourse {
      * 
      * @param concourse
      */
-    public DelegatingConcourse(Concourse concourse) {
+    public ForwardingConcourse(Concourse concourse) {
         this.concourse = concourse;
     }
 
@@ -1680,13 +1680,13 @@ public abstract class DelegatingConcourse extends Concourse {
     }
 
     /**
-     * Construct an instance of this {@link DelegatingConcourse} using the
+     * Construct an instance of this {@link ForwardingConcourse} using the
      * provided {@code concourse} connection as the proxied handle.
      * 
      * @param concourse
      * @return an instace of this class
      */
-    protected abstract DelegatingConcourse $this(Concourse concourse);
+    protected abstract ForwardingConcourse $this(Concourse concourse);
 
     @Override
     protected final Concourse copyConnection() {
