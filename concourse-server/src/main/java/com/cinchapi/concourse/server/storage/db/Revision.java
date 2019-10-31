@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.annotate.DoNotInvoke;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.model.Position;
@@ -46,6 +47,12 @@ import com.google.common.base.Preconditions;
 @Immutable
 public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable>
         implements Byteable, Versioned {
+
+    /**
+     * Indicates that a component of the class has variable length and therefore
+     * must encode the size of that component for each instance.
+     */
+    static final int VARIABLE_SIZE = -1;
 
     /**
      * Create a PrimaryRevision for {@code key} as {@code value} in
@@ -95,12 +102,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
             Value value, PrimaryKey record, long version, Action type) {
         return new SecondaryRevision(key, value, record, version, type);
     }
-
-    /**
-     * Indicates that a component of the class has variable length and therefore
-     * must encode the size of that component for each instance.
-     */
-    static final int VARIABLE_SIZE = -1;
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -214,6 +215,36 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     }
 
     /**
+     * Copy a byte sequence that represents this Revision with the following
+     * order:
+     * <ol>
+     * <li><strong>version</strong></li>
+     * <li><strong>locatorSize</strong> -
+     * <em>if {@link #xLocatorSize()} == {@link #VARIABLE_SIZE}</em></li>
+     * <li><strong>locator</strong></li>
+     * <li><strong>keySize</strong> -
+     * <em>if {@link #xKeySize()} == {@link #VARIABLE_SIZE}</em></li>
+     * <li><strong>key</strong></li>
+     * <li><strong>value</strong></li>
+     * 
+     * </ol>
+     */
+    @Override
+    public void copyTo(ByteSink sink) {
+        sink.put((byte) type.ordinal());
+        sink.putLong(version);
+        if(xLocatorSize() == VARIABLE_SIZE) {
+            sink.putInt(locator.size());
+        }
+        locator.copyTo(sink);
+        if(xKeySize() == VARIABLE_SIZE) {
+            sink.putInt(key.size());
+        }
+        key.copyTo(sink);
+        value.copyTo(sink);
+    }
+
+    /**
      * {@inheritDoc}
      * <p>
      * <strong>NOTE: The Revision type is NOT considered when determining
@@ -231,29 +262,10 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         return false;
     }
 
-    /**
-     * Return a byte buffer that represents this Revision with the following
-     * order:
-     * <ol>
-     * <li><strong>version</strong></li>
-     * <li><strong>locatorSize</strong> -
-     * <em>if {@link #xLocatorSize()} == {@link #VARIABLE_SIZE}</em></li>
-     * <li><strong>locator</strong></li>
-     * <li><strong>keySize</strong> -
-     * <em>if {@link #xKeySize()} == {@link #VARIABLE_SIZE}</em></li>
-     * <li><strong>key</strong></li>
-     * <li><strong>value</strong></li>
-     * 
-     * </ol>
-     * 
-     * @return the ByteBuffer representation
-     */
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
+            bytes = Byteable.super.getBytes();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -318,21 +330,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + locator + " AT "
                 + version;
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        buffer.put((byte) type.ordinal());
-        buffer.putLong(version);
-        if(xLocatorSize() == VARIABLE_SIZE) {
-            buffer.putInt(locator.size());
-        }
-        locator.copyTo(buffer);
-        if(xKeySize() == VARIABLE_SIZE) {
-            buffer.putInt(key.size());
-        }
-        key.copyTo(buffer);
-        value.copyTo(buffer);
     }
 
     /**

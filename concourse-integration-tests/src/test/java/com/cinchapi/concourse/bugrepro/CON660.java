@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.concurrent;
+package com.cinchapi.concourse.bugrepro;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 
 /**
- * 
- * 
+ * Unit tests to repro the conditions in CON-660.
+ *
  * @author Jeff Nelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,
-        RangeTokensTest.class, ReadWriteSharedLockTest.class,
-        AwaitableExecutorServiceTest.class })
-public class ConcurrencySuite {
+public class CON660 extends ConcourseIntegrationTest {
+
+    @Test
+    public void testRepro() {
+        client.find("_ = org.internx.model.data.edu.School");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
 
 }

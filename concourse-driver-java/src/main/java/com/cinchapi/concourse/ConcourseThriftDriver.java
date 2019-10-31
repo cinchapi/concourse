@@ -445,23 +445,23 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record) {
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw = core.chronologizeKeyRecord(key,
                     record, creds, transaction, environment);
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw;
@@ -473,19 +473,19 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.chronologizeKeyRecordStart(key, record,
                         start.getMicros(), creds, transaction, environment);
             }
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start, Timestamp end) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw;
@@ -499,12 +499,12 @@ class ConcourseThriftDriver extends Concourse {
                         start.getMicros(), end.getMicros(), creds, transaction,
                         environment);
             }
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
@@ -2741,8 +2741,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecords(
                     Collections.toLongList(records), creds, transaction,
@@ -2752,7 +2751,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsOrder(
@@ -2764,7 +2763,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core
@@ -2777,7 +2776,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsPage(
@@ -2789,7 +2788,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2807,7 +2806,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2828,7 +2827,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2851,7 +2850,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -3445,7 +3444,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record) {
+    public <T> Map<String, Set<T>> select(long record) {
         return execute(() -> {
             Map<String, Set<TObject>> data = core.selectRecord(record, creds,
                     transaction, environment);
@@ -3454,7 +3453,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> select(long record, Timestamp timestamp) {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {

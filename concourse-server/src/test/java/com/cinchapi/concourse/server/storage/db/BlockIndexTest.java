@@ -57,7 +57,7 @@ public class BlockIndexTest extends ConcourseBaseTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCannotModifyBlockIndexAfterSync() {
-        BlockIndex index = BlockIndex.create(file, 1);
+        BlockIndex index = BlockIndex.reserve(file, 1);
         index.putStart(0, TestData.getPosition());
         index.sync();
         index.putEnd(1, TestData.getPosition());
@@ -66,7 +66,7 @@ public class BlockIndexTest extends ConcourseBaseTest {
     @Test
     public void testBlockIndexLoadsLazily() {
         int count = TestData.getScaleCount() * 2;
-        BlockIndex index = BlockIndex.create(file, count);
+        BlockIndex index = BlockIndex.reserve(file, count);
         Assert.assertTrue(index.isLoaded());
         for (int i = 0; i < count; i++) {
             PrimaryKey key = PrimaryKey.wrap(count);
@@ -90,7 +90,7 @@ public class BlockIndexTest extends ConcourseBaseTest {
         // basically check that we can sync to disk and the block index still
         // works fine
         int count = TestData.getScaleCount() * 2;
-        BlockIndex index = BlockIndex.create(file, count);
+        BlockIndex index = BlockIndex.reserve(file, count);
         PrimaryKey key = PrimaryKey.wrap(count);
         index.putStart(count, key);
         index.putEnd(count * 2, key);

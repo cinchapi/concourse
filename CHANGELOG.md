@@ -1,5 +1,25 @@
 ## Changelog
 
+#### Version 0.10.3 (TBD)
+* Fixed an issue where the `Database` unnecessarily loaded data from disk when performing a read for a `key` in a `record` after a previous read for the entire `record` made the desired data available in memory.
+* Fixed a minor bug that caused the Database to create unnecessary temporary directories when performing a reindex.
+* The `Criteria` builder now creates a `NavigationKeySymbol` for navigation keys instead of a `KeySymbol`.
+* Fixed a bug that caused `Convert#stringToJava` to throw an `NumberFormatException` when trying to convert numeric strings that appeared to be numbers outside of Java's representation range. As a result of this fix, those kinds of values will remain as strings.
+* Added a `DelegatingConcourse` wrapper that can be extended by subclasses that provide additional functionality around a subset of Concourse methods.
+
+#### Version 0.10.2 (August 24, 2019)
+* Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
+* Added an option to limit the length of substrings that are indexed for fulltext search. It is rare to add functionality in a patch release, but this improvement was needed to alleviate Concourse deployments that experience `OutOfMemory` exceptions because abnormally large String values are stuck in the Buffer waiting to be indexed. This option is **turned off by default** to maintain consistency with existing Concourse expectations for fulltext indexing. The option can be enabled by specifying a positive integer value for the newly added `max_search_substring_length` preference. When a value is supplied, the Storage Engine won't index any substrings longer than the provided value for any word in a String value.
+* Made internal improvements to the search indexing algorithm to reduce the number of itermediary objects created which should decrease the number of garbage collection cycles that are triggered.
+* Fixed a bug that caused the Engine to fail to accumulate metadata stats for fulltext search indices. This did not have any data correctness or consistency side-effects, but had the potential to make some search-related operations inefficient.
+* Fixed a bug that made it possible for the Database to appear to lose data when starting up after a crash or unexpected shutdown. This happened because the Database ignored data in Block files that erroneously appeared to be duplicates. We've fixed this issue by improving the logic and workflow that the Database uses to test whether Block files contain duplicate data.
+* Fixed a regression introduced in version `0.10.0` that made it possible for the Database to ignore errors that occurred when indexing writes. When indexing errors occur, the Database creates log entries and stops the indexing process, which is the behaviour that existed prior to version `0.10.0`.
+* Fixed a bug that made it possible for fatal indexing errors to occur when at least two writes were written to the same `Buffer` page for the same key with values that have different types (i.e. `Float` vs `Integer`) but are *essentially* equal (i.e. `18.0` vs `18`). In accordance with Concourse's weak typing system, values that are *essentially* the same will be properly indexed and queryable across associated types. This change **requires a reindex of all block files which is automatically done when upgrading from a previous version**.
+* Fixed a bug that causes the `ManagedConcourseServer` in the `concourse-ete-test-core` framework to take longer than necessary to allow connections in `ClientServerTest` cases.
+
+#### Version 0.10.1 (August 6, 2019)
+* Fixed a regression that caused an error when attempting an action with a CCL statement containing an unquoted string value with one or more periods.
+
 #### Version 0.10.0 (August 3, 2019)
 
 ##### BREAKING CHANGES

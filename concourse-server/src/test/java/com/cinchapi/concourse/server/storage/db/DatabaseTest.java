@@ -20,11 +20,13 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -38,6 +40,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -112,6 +115,42 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    public void testSearchIndexMultipleEnvironmentsConcurrently() {
+        List<Database> dbs = Lists.newArrayList();
+        for (int i = 0; i < 10; ++i) {
+            Database db = getStore();
+            db.start();
+            dbs.add(db);
+        }
+        String key = "test";
+        String query = "son i";
+        TObject value = Convert.javaToThrift("Jeff Nelson is the CEO");
+        int count = 100;
+        Set<Long> expected = Sets.newLinkedHashSet();
+        Consumer<Database> func = db -> {
+            for (int i = 0; i < count; ++i) {
+                expected.add((long) i);
+                Write write = Write.add("test", value, i);
+                db.accept(write);
+            }
+        };
+        for (Database db : dbs) {
+            func.accept(db);
+        }
+        for (Database db : dbs) {
+            Set<Long> actual = db.search(key, query);
+            Assert.assertTrue(!actual.isEmpty());
+            Assert.assertEquals(expected, actual);
+        }
+        for (Database db : dbs) {
+            db.stop();
+            if(!current.contentEquals(db.getBackingStore())) {
+                FileSystem.deleteDirectory(db.getBackingStore());
+            }
+        }
+    }
+
+    @Test
     @Ignore
     public void testOnDiskStreamingIterator() {
         Database db = (Database) store;
@@ -143,6 +182,30 @@ public class DatabaseTest extends StoreTest {
             Variables.register("actual_" + i, actual);
             ++i;
         }
+    }
+
+    @Test
+    public void testLoadPrimaryRecordUsesFullRecordIfItMemory() {
+        Database db = (Database) store;
+        String a = "a";
+        String b = "b";
+        TObject value = Convert.javaToThrift(1);
+        long record = 1;
+        db.accept(Write.add(a, value, record));
+        db.accept(Write.add(b, value, record));
+        db.triggerSync();
+        db.stop();
+        db = new Database(db.getBackingStore()); // TODO: cannot stop/start same
+                                                 // Database instance because
+                                                 // state isn't reset...
+        db.start();
+        PrimaryRecord rec = Reflection.call(db, "getPrimaryRecord",
+                PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
+        Assert.assertTrue(rec.isPartial());
+        db.select(record);
+        rec = Reflection.call(db, "getPrimaryRecord", PrimaryKey.wrap(record),
+                Text.wrap(b)); // (authorized)
+        Assert.assertFalse(rec.isPartial());
     }
 
     @Override
