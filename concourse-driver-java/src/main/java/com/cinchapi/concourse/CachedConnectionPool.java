@@ -16,7 +16,6 @@
 package com.cinchapi.concourse;
 
 import java.util.Queue;
-import java.util.concurrent.Callable;
 
 import com.cinchapi.concourse.util.ConcurrentLoadingQueue;
 
@@ -72,15 +71,8 @@ class CachedConnectionPool extends ConnectionPool {
 
     @Override
     protected Queue<Concourse> buildQueue(int size) {
-        return ConcurrentLoadingQueue.create(new Callable<Concourse>() {
-
-            @Override
-            public Concourse call() throws Exception {
-                return createConnection(host, port, username, password,
-                        environment);
-            }
-
-        });
+        return ConcurrentLoadingQueue.create(() -> createConnection(host, port,
+                username, password, environment));
     }
 
     @Override
