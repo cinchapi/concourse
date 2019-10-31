@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -316,6 +317,30 @@ public abstract class ConnectionPool implements AutoCloseable {
     private AtomicBoolean open = new AtomicBoolean(true);
 
     /**
+     * The {@link Supplier} of {@link Concourse} connections.
+     */
+    protected final Supplier<Concourse> supplier;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param supplier
+     * @param poolSize
+     */
+    protected ConnectionPool(Supplier<Concourse> supplier, int poolSize) {
+        this.supplier = supplier;
+        this.available = buildQueue(poolSize);
+        this.leased = Collections
+                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
+        for (int i = 0; i < poolSize; ++i) {
+            available.offer(supplier.get());
+        }
+        // Ensure that the client connections are forced closed when the JVM is
+        // shutdown in case the user does not properly close the pool
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> forceClose()));
+    }
+
+    /**
      * Construct a new instance.
      * 
      * @param host
@@ -324,6 +349,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param password
      * @param poolSize
      */
+    @Deprecated
     protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
         this(host, port, username, password, "", poolSize);
@@ -340,25 +366,11 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param environment
      * @param poolSize
      */
+    @Deprecated
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
-        this.available = buildQueue(poolSize);
-        this.leased = Collections
-                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
-        for (int i = 0; i < poolSize; ++i) {
-            available.offer(createConnection(host, port, username, password,
-                    environment));
-        }
-        // Ensure that the client connections are forced closed when the JVM is
-        // shutdown in case the user does not properly close the pool
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                forceClose();
-            }
-
-        }));
+        this(() -> Concourse.connect(host, port, username, password,
+                environment), poolSize);
     }
 
     @Override
@@ -493,21 +505,6 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the connections cache
      */
     protected abstract Queue<Concourse> buildQueue(int size);
-
-    /**
-     * Create a connection that will be added to the pool.
-     * 
-     * @param host
-     * @param port
-     * @param username
-     * @param password
-     * @param environment
-     * @return the newly created connection
-     */
-    protected Concourse createConnection(String host, int port, String username,
-            String password, String environment) {
-        return Concourse.connect(host, port, username, password, environment);
-    }
 
     /**
      * Force the connection pool to close regardless of whether it is or is not

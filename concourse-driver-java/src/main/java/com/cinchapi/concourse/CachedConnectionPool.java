@@ -28,13 +28,6 @@ import com.cinchapi.concourse.util.ConcurrentLoadingQueue;
  */
 class CachedConnectionPool extends ConnectionPool {
 
-    // Connection Info
-    private final String host;
-    private final int port;
-    private String username;
-    private final String password;
-    private final String environment;
-
     /**
      * Construct a new instance.
      * 
@@ -61,18 +54,13 @@ class CachedConnectionPool extends ConnectionPool {
      */
     protected CachedConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
-        super(host, port, username, password, environment, poolSize);
-        this.host = host;
-        this.port = port;
-        this.username = username;
-        this.password = password;
-        this.environment = environment;
+        super(() -> Concourse.connect(host, port, username, password,
+                environment), poolSize);
     }
 
     @Override
     protected Queue<Concourse> buildQueue(int size) {
-        return ConcurrentLoadingQueue.create(() -> createConnection(host, port,
-                username, password, environment));
+        return ConcurrentLoadingQueue.create(supplier::get);
     }
 
     @Override

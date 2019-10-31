@@ -16,7 +16,6 @@
 package com.cinchapi.concourse;
 
 import java.util.Queue;
-import java.util.concurrent.Callable;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +53,7 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
         }
     }
 
-    class CustomConcourse extends ForwardingConcourse {
+    static class CustomConcourse extends ForwardingConcourse {
 
         /**
          * Construct a new instance.
@@ -72,14 +71,7 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
 
     }
 
-    class CustomConnectionPool extends ConnectionPool {
-
-        // Connection Info
-        private final String host;
-        private final int port;
-        private String username;
-        private final String password;
-        private final String environment;
+    static class CustomConnectionPool extends ConnectionPool {
 
         /**
          * Construct a new instance.
@@ -106,37 +98,18 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
          */
         protected CustomConnectionPool(String host, int port, String username,
                 String password, String environment, int poolSize) {
-            super(host, port, username, password, environment, poolSize);
-            this.host = host;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-            this.environment = environment;
+            super(() -> new CustomConcourse(Concourse.connect(host, port,
+                    username, password, environment)), poolSize);
         }
 
         @Override
         protected Queue<Concourse> buildQueue(int size) {
-            return ConcurrentLoadingQueue.create(new Callable<Concourse>() {
-
-                @Override
-                public Concourse call() throws Exception {
-                    return createConnection(host, port, username, password,
-                            environment);
-                }
-
-            });
+            return ConcurrentLoadingQueue.create(supplier::get);
         }
 
         @Override
         protected Concourse getConnection() {
             return available.poll();
-        }
-
-        @Override
-        protected Concourse createConnection(String host, int port,
-                String username, String password, String environment) {
-            return new CustomConcourse(Concourse.connect(host, port, username,
-                    password, environment));
         }
 
     }
