@@ -60,6 +60,16 @@ public abstract class ConnectionPool implements AutoCloseable {
     // defaults are the desired behaviour
 
     /**
+     * The default connection pool size.
+     */
+    protected static final int DEFAULT_POOL_SIZE = 10;
+
+    /**
+     * The default preferences file to use if none is specified.
+     */
+    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
+
+    /**
      * Return a {@link ConnectionPool} that has no limit on the number of
      * connections it can manage to the Concourse instance described in the
      * {@code concourse_client.prefs} file located in the working directory or
@@ -291,16 +301,6 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * The default connection pool size.
-     */
-    protected static final int DEFAULT_POOL_SIZE = 10;
-
-    /**
-     * The default preferences file to use if none is specified.
-     */
-    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
-
-    /**
      * A FIFO queue of connections that are available to be leased.
      */
     protected final Queue<Concourse> available;
@@ -346,7 +346,7 @@ public abstract class ConnectionPool implements AutoCloseable {
         this.leased = Collections
                 .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
-            available.offer(Concourse.connect(host, port, username, password,
+            available.offer(createConnection(host, port, username, password,
                     environment));
         }
         // Ensure that the client connections are forced closed when the JVM is
@@ -420,35 +420,6 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * Return the {@link Queue} that will hold the connections.
-     * 
-     * @param size
-     * 
-     * @return the connections cache
-     */
-    protected abstract Queue<Concourse> buildQueue(int size);
-
-    /**
-     * Force the connection pool to close regardless of whether it is or is not
-     * in a {@link #isClosable() closable} state.
-     */
-    protected void forceClose() {
-        if(open.compareAndSet(true, false)) {
-            exitConnections(available);
-            exitConnections(leased);
-        }
-    }
-
-    /**
-     * Get a connection from the queue of {@code available} ones. The subclass
-     * should use the correct method depending upon whether this method should
-     * block or not.
-     * 
-     * @return the connection
-     */
-    protected abstract Concourse getConnection();
-
-    /**
      * Exit all the connections managed of the pool that has a
      * {@link #available}.
      */
@@ -513,4 +484,48 @@ public abstract class ConnectionPool implements AutoCloseable {
                             + "was not previously requested from this pool");
         }
     }
+
+    /**
+     * Return the {@link Queue} that will hold the connections.
+     * 
+     * @param size
+     * 
+     * @return the connections cache
+     */
+    protected abstract Queue<Concourse> buildQueue(int size);
+
+    /**
+     * Create a connection that will be added to the pool.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @return the newly created connection
+     */
+    protected Concourse createConnection(String host, int port, String username,
+            String password, String environment) {
+        return Concourse.connect(host, port, username, password, environment);
+    }
+
+    /**
+     * Force the connection pool to close regardless of whether it is or is not
+     * in a {@link #isClosable() closable} state.
+     */
+    protected void forceClose() {
+        if(open.compareAndSet(true, false)) {
+            exitConnections(available);
+            exitConnections(leased);
+        }
+    }
+
+    /**
+     * Get a connection from the queue of {@code available} ones. The subclass
+     * should use the correct method depending upon whether this method should
+     * block or not.
+     * 
+     * @return the connection
+     */
+    protected abstract Concourse getConnection();
 }
