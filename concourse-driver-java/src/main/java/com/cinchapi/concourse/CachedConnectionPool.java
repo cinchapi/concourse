@@ -76,7 +76,7 @@ class CachedConnectionPool extends ConnectionPool {
 
             @Override
             public Concourse call() throws Exception {
-                return Concourse.connect(host, port, username, password,
+                return createConnection(host, port, username, password,
                         environment);
             }
 
