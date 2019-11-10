@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -37,9 +36,7 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.time.Time;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -125,47 +122,17 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
-     * This index is used to efficiently handle historical reads. Given a
-     * revision (e.g key/value pair), and historical timestamp, we can count the
-     * number of times that the value appears <em>beforehand</em> at determine
-     * if the mapping existed or not.
-     */
-    protected final transient HashMap<K, List<CompactRevision<V>>> history = Maps
-            .newHashMap();
-
-    /**
-     * The locator used to identify this Record.
-     */
-    protected final L locator;
-
-    /**
-     * The index is used to efficiently determine the set of values currently
-     * mapped from a key. The subclass should specify the appropriate type of
-     * key sorting via the returned type for {@link #mapType()}.
-     */
-    protected final transient Map<K, Set<V>> present = mapType();
-
-    /**
-     * This set is returned when a key does not map to any values so that the
-     * caller can transparently interact without performing checks or
-     * compromising data consisentcy. This is a member variable (as opposed to
-     * static constant) that is mocked in the constructor because it has a
-     * generic type argument.
-     */
-    private final Set<V> emptyValues = new EmptyValueSet();
-
-    /**
-     * The key used to identify this Record. This value is {@code null} unless
-     * {@link #partial} equals {@code true}.
-     */
-    @Nullable
-    private final K key;
-
-    /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
      */
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+
+    /**
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no read occurs while data is being appended to the
+     * Record.
+     */
+    private final WriteLock write = master.writeLock();
 
     /**
      * A shared lock that permits many readers and no writer. Use this lock to
@@ -175,10 +142,20 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     protected final ReadLock read = master.readLock();
 
     /**
-     * Indicates that this Record is partial and only contains Revisions for a
-     * specific {@link #key}.
+     * The index is used to efficiently determine the set of values currently
+     * mapped from a key. The subclass should specify the appropriate type of
+     * key sorting via the returned type for {@link #mapType()}.
      */
-    private final boolean partial;
+    protected final transient Map<K, Set<V>> present = mapType();
+
+    /**
+     * This index is used to efficiently handle historical reads. Given a
+     * revision (e.g key/value pair), and historical timestamp, we can count the
+     * number of times that the value appears <em>beforehand</em> at determine
+     * if the mapping existed or not.
+     */
+    protected final transient HashMap<K, List<CompactRevision<V>>> history = Maps
+            .newHashMap();
 
     /**
      * The version of the Record's most recently appended {@link Revision}.
@@ -186,11 +163,31 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     private transient long version = 0;
 
     /**
-     * An exclusive lock that permits only one writer and no reader. Use this
-     * lock to ensure that no read occurs while data is being appended to the
-     * Record.
+     * The locator used to identify this Record.
      */
-    private final WriteLock write = master.writeLock();
+    protected final L locator;
+
+    /**
+     * The key used to identify this Record. This value is {@code null} unless
+     * {@link #partial} equals {@code true}.
+     */
+    @Nullable
+    private final K key;
+
+    /**
+     * Indicates that this Record is partial and only contains Revisions for a
+     * specific {@link #key}.
+     */
+    private final boolean partial;
+
+    /**
+     * This set is returned when a key does not map to any values so that the
+     * caller can transparently interact without performing checks or
+     * compromising data consisentcy. This is a member variable (as opposed to
+     * static constant) that is mocked in the constructor because it has a
+     * generic type argument.
+     */
+    private final Set<V> emptyValues = new EmptyValueSet();
 
     /**
      * Construct a new instance.
@@ -412,7 +409,33 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return the set of mapped values for {@code key} at {@code timestamp}.
      */
     protected Set<V> get(K key, long timestamp) {
-        return pull(key, timestamp, revision -> revision.getValue());
+        read.lock();
+        try {
+            Set<V> values = emptyValues;
+            List<CompactRevision<V>> stored = history.get(key);
+            if(stored != null) {
+                values = Sets.newLinkedHashSet();
+                Iterator<CompactRevision<V>> it = stored.iterator();
+                while (it.hasNext()) {
+                    CompactRevision<V> revision = it.next();
+                    if(revision.getVersion() <= timestamp) {
+                        if(revision.getType() == Action.ADD) {
+                            values.add(revision.getValue());
+                        }
+                        else {
+                            values.remove(revision.getValue());
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            return values;
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     /**
@@ -421,60 +444,6 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return the initialized mappings
      */
     protected abstract Map<K, Set<V>> mapType();
-
-    /**
-     * Pull the current revisions for {@code key} and use the
-     * {@code transformer} to convert each one to another value. A {@link Set}
-     * of the converted values is returned.
-     * 
-     * @param key
-     * @param transformer
-     * @return the {@link Set} of pulled and converted values
-     */
-    protected <T> Set<T> pull(K key,
-            Function<CompactRevision<V>, T> transformer) {
-        return pull(key, Time.NONE, transformer);
-    }
-
-    /**
-     * Pull the current revisions for {@code key} at {@code timestamp} and use
-     * the {@code transformer} to convert each one to another value. A
-     * {@link Set} of the converted values is returned.
-     * 
-     * @param key
-     * @param transformer
-     * @return the {@link Set} of pulled and converted values
-     */
-    protected <T> Set<T> pull(K key, long timestamp,
-            Function<CompactRevision<V>, T> transformer) {
-        read.lock();
-        try {
-            Set<T> data = ImmutableSet.of();
-            List<CompactRevision<V>> stored = history.get(key);
-            if(stored != null) {
-                data = Sets.newLinkedHashSet();
-                Iterator<CompactRevision<V>> it = stored.iterator();
-                while (it.hasNext()) {
-                    CompactRevision<V> revision = it.next();
-                    if(revision.getVersion() <= timestamp) {
-                        if(revision.getType() == Action.ADD) {
-                            data.add(transformer.apply(revision));
-                        }
-                        else {
-                            data.remove(transformer.apply(revision));
-                        }
-                    }
-                    else {
-                        break;
-                    }
-                }
-            }
-            return data;
-        }
-        finally {
-            read.unlock();
-        }
-    }
 
     /**
      * Return {@code true} if the action associated with {@code revision}
