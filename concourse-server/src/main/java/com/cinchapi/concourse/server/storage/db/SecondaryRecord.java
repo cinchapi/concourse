@@ -327,8 +327,6 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                         : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
-                        // TODO: need two kinds of gets one that does a regular
-                        // get and another that coalesces...
                         for (PrimaryKey record : historical
                                 ? get(stored, timestamp) : get(stored)) {
                             MultimapViews.put(data, record, stored);
