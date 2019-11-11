@@ -243,6 +243,13 @@ public final class Value implements Byteable, Comparable<Value> {
         return Sorter.INSTANCE.compare(this, other);
     }
 
+    /**
+     * Compare this and the {@code other} {@link Value} while ignoring any
+     * differences in case.
+     * 
+     * @param other
+     * @return the case insensitive comparison value
+     */
     public int compareToIgnoreCase(Value other) {
         return getTObject().compareToIgnoreCase(other.getTObject());
     }
@@ -313,9 +320,16 @@ public final class Value implements Byteable, Comparable<Value> {
         return false;
     }
 
-    public boolean equalsIgnoreCase(Object obj) {
-        if(obj instanceof Value && ((Value) obj).isCharSequenceType()
-                && isCharSequenceType()) {
+    /**
+     * Compares this {@link Value} to another one while ignoring case
+     * considerations.
+     * 
+     * @param obj
+     * @return a boolean that indicates whether {@code obj} is equal to this
+     *         {@link Value}, regardless of case
+     */
+    public boolean equalsIgnoreCase(Value obj) {
+        if(obj.isCharSequenceType() && isCharSequenceType()) {
             return ((Value) obj).toLowerCase().equals(toLowerCase());
         }
         else {
@@ -430,6 +444,15 @@ public final class Value implements Byteable, Comparable<Value> {
         return getObject().toString() + " (" + getType() + ")";
     }
 
+    /**
+     * Convert this {@link Value} to its uppercase form.
+     * <p>
+     * If this {@link Value} isn't a {@link #isCharSequenceType() character
+     * sequence} or can't be uppercased, this {@link Value} is returned.
+     * </p>
+     * 
+     * @return the uppercased {@link Value}
+     */
     public Value toUpperCase() {
         if(isCharSequenceType()) {
             return wrap(
@@ -440,6 +463,15 @@ public final class Value implements Byteable, Comparable<Value> {
         }
     }
 
+    /**
+     * Convert this {@link Value} to its lowercase form.
+     * <p>
+     * If this {@link Value} isn't a {@link #isCharSequenceType() character
+     * sequence} or can't be lowercased, this {@link Value} is returned.
+     * </p>
+     * 
+     * @return the lowercased {@link Value}
+     */
     public Value toLowerCase() {
         if(isCharSequenceType()) {
             return wrap(
