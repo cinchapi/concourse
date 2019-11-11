@@ -22,8 +22,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.thrift.TObject;
@@ -62,7 +60,7 @@ public final class Value implements Byteable, Comparable<Value> {
      * range.
      */
     public static Value NEGATIVE_INFINITY = Value
-            .wrap(Convert.javaToThrift(Long.MIN_VALUE));
+            .wrap(TObject.NEGATIVE_INFINITY);
 
     /**
      * A constant representing the largest possible Value. This shouldn't be
@@ -70,7 +68,7 @@ public final class Value implements Byteable, Comparable<Value> {
      * infinite range.
      */
     public static Value POSITIVE_INFINITY = Value
-            .wrap(Convert.javaToThrift(Long.MAX_VALUE));
+            .wrap(TObject.POSITIVE_INFINITY);
 
     /**
      * The largest integer/long that can be represented by a Double without
@@ -245,6 +243,10 @@ public final class Value implements Byteable, Comparable<Value> {
         return Sorter.INSTANCE.compare(this, other);
     }
 
+    public int compareToIgnoreCase(Value other) {
+        return getTObject().compareToIgnoreCase(other.getTObject());
+    }
+
     @Override
     public void copyCanonicalBytesTo(ByteBuffer buffer) {
         copyCanonicalBytesTo(ByteSink.to(buffer));
@@ -309,6 +311,16 @@ public final class Value implements Byteable, Comparable<Value> {
             }
         }
         return false;
+    }
+
+    public boolean equalsIgnoreCase(Object obj) {
+        if(obj instanceof Value && ((Value) obj).isCharSequenceType()
+                && isCharSequenceType()) {
+            return ((Value) obj).toLowerCase().equals(toLowerCase());
+        }
+        else {
+            return equals(obj);
+        }
     }
 
     /**
@@ -396,8 +408,7 @@ public final class Value implements Byteable, Comparable<Value> {
      * @return {@code true} if the value type is a character sequence
      */
     public boolean isCharSequenceType() {
-        Type type = getType();
-        return type == Type.STRING || type == Type.TAG;
+        return getTObject().isCharSequenceType();
     }
 
     /**
@@ -419,6 +430,26 @@ public final class Value implements Byteable, Comparable<Value> {
         return getObject().toString() + " (" + getType() + ")";
     }
 
+    public Value toUpperCase() {
+        if(isCharSequenceType()) {
+            return wrap(
+                    Convert.javaToThrift(getObject().toString().toUpperCase()));
+        }
+        else {
+            return this;
+        }
+    }
+
+    public Value toLowerCase() {
+        if(isCharSequenceType()) {
+            return wrap(
+                    Convert.javaToThrift(getObject().toString().toLowerCase()));
+        }
+        else {
+            return this;
+        }
+    }
+
     /**
      * A {@link Comparator} that is used to sort Values using weak typing.
      * 
@@ -429,54 +460,8 @@ public final class Value implements Byteable, Comparable<Value> {
 
         @Override
         public int compare(Value v1, Value v2) {
-            if((v1 == POSITIVE_INFINITY && v2 == POSITIVE_INFINITY)
-                    || (v1 == NEGATIVE_INFINITY && v2 == NEGATIVE_INFINITY)) {
-                return 0;
-            }
-            else if(v1 == POSITIVE_INFINITY) {
-                return 1;
-            }
-            else if(v2 == POSITIVE_INFINITY) {
-                return -1;
-            }
-            else if(v1 == NEGATIVE_INFINITY) {
-                return -1;
-            }
-            else if(v2 == NEGATIVE_INFINITY) {
-                return 1;
-            }
-            else {
-                Object o1 = v1.getObject();
-                Object o2 = v2.getObject();
-                if(o1 instanceof Number && o2 instanceof Number
-                        && ((!(o1 instanceof Link) && !(o2 instanceof Link))
-                                || (o1 instanceof Link
-                                        && o2 instanceof Link))) {
-                    return Numbers.compare((Number) o1, (Number) o2);
-                }
-                else if(o1 instanceof Number) {
-                    return -1;
-                }
-                else if(o2 instanceof Number) {
-                    return 1;
-                }
-                else if(o1 instanceof Timestamp && o2 instanceof Timestamp) {
-                    return ((Timestamp) o1).compareTo((Timestamp) o2);
-                }
-                else {
-                    // NOTE: Timestamp's #toString may change depending upon the
-                    // configured formatter so we use the #toString for the
-                    // internal micros for consistency.
-                    String o1s = o1 instanceof Timestamp
-                            ? Long.toString(((Timestamp) o1).getMicros())
-                            : o1.toString();
-                    String o2s = o2 instanceof Timestamp
-                            ? Long.toString(((Timestamp) o2).getMicros())
-                            : o2.toString();
-                    return o1s.compareToIgnoreCase(o2s);
-                }
-            }
-
+            return TObject.comparator().compare(v1.getTObject(),
+                    v2.getTObject());
         }
     }
 
