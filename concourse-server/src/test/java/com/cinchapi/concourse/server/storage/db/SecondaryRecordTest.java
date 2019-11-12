@@ -113,7 +113,6 @@ public class SecondaryRecordTest
         SecondaryRecord index = (SecondaryRecord) record;
         Map<PrimaryKey, Set<Value>> data = index.explore(Operator.REGEX,
                 Value.wrap(Convert.javaToThrift(".*business.*")));
-        System.out.println(data);
         Assert.assertFalse(data.isEmpty());
     }
 }
