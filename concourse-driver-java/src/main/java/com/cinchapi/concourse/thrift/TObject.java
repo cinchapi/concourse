@@ -24,6 +24,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
 import javax.annotation.Nullable;
@@ -61,7 +62,7 @@ public class TObject implements
      * used in normal operations, but should only be used to indicate an
      * infinite range.
      */
-    private static final TObject POSITIVE_INFINITY = Convert
+    public static final TObject POSITIVE_INFINITY = Convert
             .javaToThrift(Long.MAX_VALUE);
 
     /**
@@ -69,8 +70,55 @@ public class TObject implements
      * used in normal operations, but should only be used to indicate an
      * infinite range.
      */
-    private static final TObject NEGATIVE_INFINITY = Convert
+    public static final TObject NEGATIVE_INFINITY = Convert
             .javaToThrift(Long.MIN_VALUE);
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+
+    /**
+     * Represents a null object that can be passed across the wire.
+     */
+    public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
+            Type.NULL);
+    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+            "TObject");
+    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
+
+    /**
+     * The byte for UTF-8 whitespace.
+     */
+    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
+    static {
+        schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
+        schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
+    }
+
+    static {
+        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                _Fields.class);
+        tmpMap.put(_Fields.DATA,
+                new org.apache.thrift.meta_data.FieldMetaData("data",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                Type.class)));
+        metaDataMap = Collections.unmodifiableMap(tmpMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TObject.class, metaDataMap);
+    }
 
     /**
      * Return a {@link Comparator} for {@link TObject} values.
@@ -127,57 +175,17 @@ public class TObject implements
                     String o2s = o2 instanceof Timestamp
                             ? Long.toString(((Timestamp) o2).getMicros())
                             : o2.toString();
-                    return o1s.compareToIgnoreCase(o2s);
+                    // CON-667: Order strings in a manner that causes lowercase
+                    // and uppercase versions of the "same" string to be grouped
+                    // together with uppercase appearing "first"
+                    int c = o1s.compareToIgnoreCase(o2s);
+                    if(c == 0) {
+                        c = o1s.compareTo(o2s);
+                    }
+                    return c;
                 }
             }
         };
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    /**
-     * Represents a null object that can be passed across the wire.
-     */
-    public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
-            Type.NULL);
-
-    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
-            "TObject");
-
-    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
-    /**
-     * The byte for UTF-8 whitespace.
-     */
-    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
-
-    static {
-        schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
-        schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
-    }
-
-    static {
-        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
-                _Fields.class);
-        tmpMap.put(_Fields.DATA,
-                new org.apache.thrift.meta_data.FieldMetaData("data",
-                        org.apache.thrift.TFieldRequirementType.REQUIRED,
-                        new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRING,
-                                true)));
-        tmpMap.put(_Fields.TYPE,
-                new org.apache.thrift.meta_data.FieldMetaData("type",
-                        org.apache.thrift.TFieldRequirementType.REQUIRED,
-                        new org.apache.thrift.meta_data.EnumMetaData(
-                                org.apache.thrift.protocol.TType.ENUM,
-                                Type.class)));
-        metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData
-                .addStructMetaDataMap(TObject.class, metaDataMap);
     }
 
     public ByteBuffer data; // required
@@ -254,6 +262,26 @@ public class TObject implements
     @Override
     public int compareTo(TObject other) {
         return comparator().compare(this, other);
+    }
+
+    /**
+     * Compare this {@link TObject} to the {@code other} one if both are
+     * {@link #isCharSequenceType() character sequence types} where case
+     * matters. Otherwise, simply {@link #compareTo(TObject) compare} the two
+     * {@link TObject}s.
+     * 
+     * @param other
+     * @return an integer that describes the case insensitive relative ordering
+     *         of this {@link TObject} and the {@code other} one
+     */
+    public int compareToIgnoreCase(TObject other) {
+        if(isCharSequenceType() && other.isCharSequenceType()) {
+            return Convert.thriftToJava(this).toString().compareToIgnoreCase(
+                    Convert.thriftToJava(other).toString());
+        }
+        else {
+            return compareTo(other);
+        }
     }
 
     public TObject deepCopy() {
@@ -343,34 +371,7 @@ public class TObject implements
      * @return {@code true} if the comparison is valid
      */
     public boolean is(Operator operator, TObject... values) {
-        TObject v1 = values[0];
-        switch (operator) {
-        case EQUALS:
-            return comparator().compare(this, v1) == 0;
-        case NOT_EQUALS:
-            return comparator().compare(this, v1) != 0;
-        case GREATER_THAN:
-            return comparator().compare(this, v1) > 0;
-        case GREATER_THAN_OR_EQUALS:
-            return comparator().compare(this, v1) >= 0;
-        case LESS_THAN:
-            return comparator().compare(this, v1) < 0;
-        case LESS_THAN_OR_EQUALS:
-            return comparator().compare(this, v1) <= 0;
-        case BETWEEN:
-            Preconditions.checkArgument(values.length > 1);
-            TObject v2 = values[1];
-            return comparator().compare(v1, this) <= 0
-                    && comparator().compare(v2, this) > 0;
-        case REGEX:
-            return Convert.thriftToJava(this).toString()
-                    .matches(Convert.thriftToJava(v1).toString());
-        case NOT_REGEX:
-            return !Convert.thriftToJava(this).toString()
-                    .matches(Convert.thriftToJava(v1).toString());
-        default:
-            throw new UnsupportedOperationException();
-        }
+        return is(comparator()::compare, operator, values);
     }
 
     /**
@@ -400,6 +401,29 @@ public class TObject implements
         else {
             return false;
         }
+    }
+
+    /**
+     * Return {@code true} if the value {@link #getType() type} is a character
+     * sequence.
+     * 
+     * @return {@code true} if the value type is a character sequence
+     */
+    public boolean isCharSequenceType() {
+        Type type = getType();
+        return type == Type.STRING || type == Type.TAG;
+    }
+
+    /**
+     * Return {@code true} of this {@link TObject} satisfies {@code operator} in
+     * relation to the {@code values} regardless of case.
+     * 
+     * @param operator
+     * @param values
+     * @return {@code true} if the comparison is valid
+     */
+    public boolean isIgnoreCase(Operator operator, TObject... values) {
+        return is((t1, t2) -> t1.compareToIgnoreCase(t2), operator, values);
     }
 
     /**
@@ -556,16 +580,45 @@ public class TObject implements
     }
 
     /**
-     * Return the {@link Type} that is used for internal operations.
+     * Return {@code true} of this {@link TObject} satisfies {@code operator} in
+     * relation to the {@code values}.
      * 
-     * @return the internal type
+     * @param comparer a {@link BiFunction} that compares two {@link TObject}s
+     *            and returns an Integer that describes their relative order
+     *            similar to a {@link Comparator}
+     * @param operator
+     * @param values
+     * @return {@code true} if the comparison is valid
      */
-    protected Type getInternalType() { // visible for testing
-        if(type == Type.TAG) {
-            return Type.STRING;
-        }
-        else {
-            return getType();
+    private boolean is(BiFunction<TObject, TObject, Integer> comparer,
+            Operator operator, TObject... values) {
+        TObject v1 = values[0];
+        switch (operator) {
+        case EQUALS:
+            return comparer.apply(this, v1) == 0;
+        case NOT_EQUALS:
+            return comparer.apply(this, v1) != 0;
+        case GREATER_THAN:
+            return comparer.apply(this, v1) > 0;
+        case GREATER_THAN_OR_EQUALS:
+            return comparer.apply(this, v1) >= 0;
+        case LESS_THAN:
+            return comparer.apply(this, v1) < 0;
+        case LESS_THAN_OR_EQUALS:
+            return comparer.apply(this, v1) <= 0;
+        case BETWEEN:
+            Preconditions.checkArgument(values.length > 1);
+            TObject v2 = values[1];
+            return comparer.apply(v1, this) <= 0
+                    && comparer.apply(v2, this) > 0;
+        case REGEX:
+            return Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        case NOT_REGEX:
+            return !Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        default:
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -592,6 +645,20 @@ public class TObject implements
     }
 
     /**
+     * Return the {@link Type} that is used for internal operations.
+     * 
+     * @return the internal type
+     */
+    protected Type getInternalType() { // visible for testing
+        if(type == Type.TAG) {
+            return Type.STRING;
+        }
+        else {
+            return getType();
+        }
+    }
+
+    /**
      * The set of fields this struct contains, along with convenience methods
      * for finding and manipulating them.
      */
@@ -602,6 +669,14 @@ public class TObject implements
          * @see Type
          */
         TYPE((short) 2, "type");
+
+        private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+        static {
+            for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                byName.put(field.getFieldName(), field);
+            }
+        }
 
         /**
          * Find the _Fields constant that matches name, or null if its not
@@ -636,14 +711,6 @@ public class TObject implements
                 throw new IllegalArgumentException(
                         "Field " + fieldId + " doesn't exist!");
             return fields;
-        }
-
-        private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-        static {
-            for (_Fields field : EnumSet.allOf(_Fields.class)) {
-                byName.put(field.getFieldName(), field);
-            }
         }
 
         private final String _fieldName;
