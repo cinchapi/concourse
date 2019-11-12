@@ -279,7 +279,6 @@ public abstract class BufferedStoreTest extends StoreTest {
         insertData(data, 2);
         Assert.assertFalse(store.select("foo", 1).contains(string));
         Assert.assertFalse(store.select("foo", 1).contains(tag));
-
     }
 
     /**

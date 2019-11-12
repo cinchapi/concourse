@@ -41,6 +41,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -419,6 +420,71 @@ public class EngineTest extends BufferedStoreTest {
         read.join();
         write.join();
         Assert.assertTrue(succeeded.get());
+    }
+
+    @Test(timeout = 5000)
+    public void testReproCON_668() throws Exception {
+        add("major", Convert.javaToThrift("Business"), 1);
+        add("major", Convert.javaToThrift("business"), 2);
+        Engine engine = (Engine) store;
+        while (!Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+            add("foo", Convert.javaToThrift(Time.now()), Time.now());
+        }
+        while (Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+            engine.buffer.transport(engine.destination);
+        }
+        remove("major", Convert.javaToThrift("business"), 2);
+        add("major", Convert.javaToThrift("business"), 3);
+        try {
+            store.find("major", Operator.REGEX,
+                    Convert.javaToThrift(".*business.*"));
+        }
+        catch (Exception ex) {}
+        add("major", Convert.javaToThrift("computer science"), 3); // ensure
+                                                                   // there is
+                                                                   // no
+                                                                   // deadlock...
+        Assert.assertEquals(
+                ImmutableSet.of(Convert.javaToThrift("computer science"),
+                        Convert.javaToThrift("business")),
+                store.select("major", 3));
+    }
+
+    @Test
+    public void testReproCON_667() throws Exception {
+        add("major", Convert.javaToThrift("Business"), 1);
+        add("major", Convert.javaToThrift("business"), 2);
+        Engine engine = (Engine) store;
+        while (!Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+            add("foo", Convert.javaToThrift(Time.now()), Time.now());
+        }
+        while (Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+            engine.buffer.transport(engine.destination);
+        }
+        remove("major", Convert.javaToThrift("business"), 2);
+        add("major", Convert.javaToThrift("business"), 3);
+        Exception e = null;
+        try {
+            store.find("major", Operator.REGEX,
+                    Convert.javaToThrift(".*business.*"));
+        }
+        catch (Exception ex) {
+            e = ex;
+        }
+        add("major", Convert.javaToThrift("computer science"), 3); // ensure
+                                                                   // there is
+                                                                   // no
+                                                                   // deadlock...
+        Assert.assertEquals(
+                ImmutableSet.of(Convert.javaToThrift("computer science"),
+                        Convert.javaToThrift("business")),
+                store.select("major", 3));
+
+        if(e != null) {
+            e.printStackTrace();
+            throw e;
+        }
+        Assert.assertNull(e);
     }
 
     // @Test

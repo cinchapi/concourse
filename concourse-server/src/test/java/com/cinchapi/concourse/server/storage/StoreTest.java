@@ -59,6 +59,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -1707,7 +1708,118 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add("time", Convert.javaToThrift(now), 1);
         Assert.assertEquals(now,
                 store.select("time", 1).iterator().next().getJavaFormat());
+    }
 
+    @Test
+    public void testFindCaseInsensitivityEquals() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        Set<Long> actual = store.find("foo", Operator.EQUALS,
+                Convert.javaToThrift("a"));
+        Assert.assertEquals(ImmutableSet.of(1L, 2L), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityNotEquals() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        Set<Long> actual = store.find("foo", Operator.NOT_EQUALS,
+                Convert.javaToThrift("a"));
+        Assert.assertEquals(ImmutableSet.of(), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityGreaterThan() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        Set<Long> actual = store.find("foo", Operator.GREATER_THAN,
+                Convert.javaToThrift("A"));
+        Assert.assertEquals(ImmutableSet.of(3L, 4L), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityGreaterThanOrEquals() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        Set<Long> actual = store.find("foo", Operator.GREATER_THAN_OR_EQUALS,
+                Convert.javaToThrift("A"));
+        Assert.assertEquals(ImmutableSet.of(1L, 2L, 3L, 4L), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityLessThanOrEquals() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        Set<Long> actual = store.find("foo", Operator.LESS_THAN_OR_EQUALS,
+                Convert.javaToThrift("b"));
+        Assert.assertEquals(ImmutableSet.of(1L, 2L, 3L, 4L), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityLessThan() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        Set<Long> actual = store.find("foo", Operator.LESS_THAN,
+                Convert.javaToThrift("b"));
+        Assert.assertEquals(ImmutableSet.of(1L, 2L), actual);
+    }
+
+    @Test
+    public void testFindCaseInsensitivityBetween() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        add("foo", Convert.javaToThrift("C"), 5);
+        add("foo", Convert.javaToThrift("c"), 6);
+        add("foo", Convert.javaToThrift("D"), 7);
+        add("foo", Convert.javaToThrift("d"), 8);
+        Set<Long> actual = store.find("foo", Operator.BETWEEN,
+                Convert.javaToThrift("a"), Convert.javaToThrift("D"));
+        Assert.assertEquals(ImmutableSet.of(1L, 2L, 3L, 4L, 5L, 6L), actual);
+    }
+
+    @Test
+    public void testFindCaseSensitivityRegex() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        add("foo", Convert.javaToThrift("C"), 5);
+        add("foo", Convert.javaToThrift("c"), 6);
+        add("foo", Convert.javaToThrift("D"), 7);
+        add("foo", Convert.javaToThrift("d"), 8);
+        Set<Long> actual = store.find("foo", Operator.REGEX,
+                Convert.javaToThrift(".*a.*"));
+        Assert.assertEquals(ImmutableSet.of(1L), actual);
+        actual = store.find("foo", Operator.REGEX,
+                Convert.javaToThrift(".*A.*"));
+        Assert.assertEquals(ImmutableSet.of(2L), actual);
+    }
+
+    @Test
+    public void testFindCaseSensitivityConsistencyPresentVsHistory() {
+        add("foo", Convert.javaToThrift("a"), 1);
+        add("foo", Convert.javaToThrift("A"), 2);
+        add("foo", Convert.javaToThrift("B"), 3);
+        add("foo", Convert.javaToThrift("b"), 4);
+        add("foo", Convert.javaToThrift("C"), 5);
+        add("foo", Convert.javaToThrift("c"), 6);
+        add("foo", Convert.javaToThrift("D"), 7);
+        add("foo", Convert.javaToThrift("d"), 8);
+        long time = Time.now();
+        Assert.assertEquals(
+                store.find("foo", Operator.EQUALS, Convert.javaToThrift("a")),
+                store.find(time, "foo", Operator.EQUALS,
+                        Convert.javaToThrift("a")));
     }
 
     @Test

@@ -85,7 +85,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     protected static boolean matches(Value input, Operator operator,
             TObject... values) {
-        return input.getTObject().is(operator, values);
+        return input.getTObject().isIgnoreCase(operator, values);
     }
 
     @Override
