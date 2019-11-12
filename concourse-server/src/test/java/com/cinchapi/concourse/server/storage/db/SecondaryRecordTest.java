@@ -99,4 +99,20 @@ public class SecondaryRecordTest
 
         }
     }
+
+    @Test
+    public void testCaseInsensitiveValuesNotLost() {
+        Text locator = Text.wrap("major");
+        record = getRecord(locator);
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("Business Management")),
+                PrimaryKey.wrap(1)));
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("business management")),
+                PrimaryKey.wrap(2)));
+        SecondaryRecord index = (SecondaryRecord) record;
+        Map<PrimaryKey, Set<Value>> data = index.explore(Operator.REGEX,
+                Value.wrap(Convert.javaToThrift(".*business.*")));
+        Assert.assertFalse(data.isEmpty());
+    }
 }

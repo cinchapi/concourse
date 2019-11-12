@@ -24,6 +24,7 @@ import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.grammar.Expression;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.NavigationKeySymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
@@ -113,4 +114,14 @@ public class CriteriaTest {
         System.out.println(criteria);
     }
 
+    @Test
+    public void testParseCclNavigationKey() {
+        String ccl = "children.name = Jeff ";
+        Criteria criteria = Criteria.parse(ccl);
+        Criteria expected = Criteria.where().key("children.name")
+                .operator(Operator.EQUALS).value("Jeff").build();
+        Assert.assertEquals(expected, criteria);
+        Assert.assertTrue(
+                criteria.symbols().get(0) instanceof NavigationKeySymbol);
+    }
 }

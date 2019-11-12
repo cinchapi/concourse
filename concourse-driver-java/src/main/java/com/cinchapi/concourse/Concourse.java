@@ -457,7 +457,7 @@ public abstract class Concourse implements AutoCloseable {
      *         the {@link Set} of values that were stored in the field after
      *         that change
      */
-    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+    public abstract <T> Map<Timestamp, Set<T>> chronologize(String key,
             long record);
 
     /**
@@ -479,7 +479,7 @@ public abstract class Concourse implements AutoCloseable {
      *         the {@link Set} of values that were stored in the field after
      *         that change
      */
-    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+    public abstract <T> Map<Timestamp, Set<T>> chronologize(String key,
             long record, Timestamp start);
 
     /**
@@ -510,7 +510,7 @@ public abstract class Concourse implements AutoCloseable {
      *         the {@link Set} of values that were stored in the field after
      *         that change
      */
-    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+    public abstract <T> Map<Timestamp, Set<T>> chronologize(String key,
             long record, Timestamp start, Timestamp end);
 
     /**
@@ -5164,7 +5164,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating every key in that record to a {@link Set}
      *         containing all the values stored in the respective field
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records);
 
     /**
@@ -5178,7 +5178,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating every key in that record to a {@link Set}
      *         containing all the values stored in the respective field
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Order order);
 
     /**
@@ -5192,7 +5192,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating every key in that record to a {@link Set}
      *         containing all the values stored in the respective field
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Page page);
 
     /**
@@ -5208,7 +5208,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating every key in that record to a {@link Set}
      *         containing all the values stored in the respective field
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Order order, Page page);
 
     /**
@@ -5224,7 +5224,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Map} associating every key in that record to a {@link Set}
      *         containing all the values stored in the respective field
      */
-    public final Map<Long, Map<String, Set<Object>>> select(
+    public final <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Page page, Order order) {
         return select(records, order, page);
     }
@@ -5247,7 +5247,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp} to a {@link Set} containing all the values
      *         stored in the respective field at {@code timestamp}
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Timestamp timestamp);
 
     /**
@@ -5270,7 +5270,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp} to a {@link Set} containing all the values
      *         stored in the respective field at {@code timestamp}
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Timestamp timestamp, Order order);
 
     /**
@@ -5293,7 +5293,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp} to a {@link Set} containing all the values
      *         stored in the respective field at {@code timestamp}
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Timestamp timestamp, Page page);
 
     /**
@@ -5318,7 +5318,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp} to a {@link Set} containing all the values
      *         stored in the respective field at {@code timestamp}
      */
-    public abstract Map<Long, Map<String, Set<Object>>> select(
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Timestamp timestamp, Order order,
             Page page);
 
@@ -5344,7 +5344,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code timestamp} to a {@link Set} containing all the values
      *         stored in the respective field at {@code timestamp}
      */
-    public final Map<Long, Map<String, Set<Object>>> select(
+    public final <T> Map<Long, Map<String, Set<T>>> select(
             Collection<Long> records, Timestamp timestamp, Page page,
             Order order) {
         return select(records, timestamp, order, page);
@@ -6251,7 +6251,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public abstract Map<String, Set<Object>> select(long record);
+    public abstract <T> Map<String, Set<T>> select(long record);
 
     /**
      * Return all the data from {@code record} at {@code timestamp}.
@@ -6269,7 +6269,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field at {@code timestamp}
      */
-    public abstract Map<String, Set<Object>> select(long record,
+    public abstract <T> Map<String, Set<T>> select(long record,
             Timestamp timestamp);
 
     /**
@@ -6280,7 +6280,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field
      */
-    public final Map<String, Set<Object>> select(Long record) {
+    public final <T> Map<String, Set<T>> select(Long record) {
         return select(record.longValue());
     }
 
@@ -6300,7 +6300,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@link Set} containing all the values stored in the respective
      *         field at {@code timestamp}
      */
-    public final Map<String, Set<Object>> select(Long record,
+    public final <T> Map<String, Set<T>> select(Long record,
             Timestamp timestamp) {
         return select(record.longValue(), timestamp);
     }

@@ -1,5 +1,18 @@
 ## Changelog
 
+#### Version 0.10.3 (TBD)
+* Fixed an issue where the `Database` unnecessarily loaded data from disk when performing a read for a `key` in a `record` after a previous read for the entire `record` made the desired data available in memory.
+* Fixed a minor bug that caused the Database to create unnecessary temporary directories when performing a reindex.
+* The `Criteria` builder now creates a `NavigationKeySymbol` for navigation keys instead of a `KeySymbol`.
+* Fixed a bug that caused `Convert#stringToJava` to throw an `NumberFormatException` when trying to convert numeric strings that appeared to be numbers outside of Java's representation range. As a result of this fix, those kinds of values will remain as strings.
+* Added a `ForwardingConcourse` wrapper that can be extended by subclasses that provide additional functionality around a subset of Concourse methods.
+* Fixed a bug that prevent a custom `ConnectionPool` using a custom `Concourse` instance (e.g. one that extends `ForwardingConcourse`) from returning a connection of the correct class. As a result of this change, the `ConnectionPool` constructors that accept explicit Concourse connection parameters have been deprecated in favor of one that takes a `Supplier` of Concourse connections.
+* Fixed a bug that caused `TObject#compareTo` to return logically inconsistent results relative to `TObject#equals`. Previously, comparing `TObjects` with type `STRING` occurred in a case insensitive manner whereas the `equals` evaluation was case sensitive. Now, the `compareTo` method is case sensitive.
+* Added the ability to compare `TObjects` in a case insensitive manner.
+* Fixed a bug that made it possible for storage engine to return inaccurate results for `REGEX` and `NOT_REGEX` queries if matching values had different case formats.
+* Fixed a bug that caused historical queries to incorrectly return logically different results compared to present state queries if matching values had different case formats.
+* Fixed a bug that made it possible for reads within the `Buffer` to cause write lock starvation and resource exhaustion; preventing any further writes from occurring and generating a backlog of reads that never terminated.
+
 #### Version 0.10.2 (August 24, 2019)
 * Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
 * Added an option to limit the length of substrings that are indexed for fulltext search. It is rare to add functionality in a patch release, but this improvement was needed to alleviate Concourse deployments that experience `OutOfMemory` exceptions because abnormally large String values are stuck in the Buffer waiting to be indexed. This option is **turned off by default** to maintain consistency with existing Concourse expectations for fulltext indexing. The option can be enabled by specifying a positive integer value for the newly added `max_search_substring_length` preference. When a value is supplied, the Storage Engine won't index any substrings longer than the provided value for any word in a String value.

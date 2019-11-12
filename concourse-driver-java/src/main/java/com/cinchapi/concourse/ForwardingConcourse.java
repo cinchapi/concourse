@@ -13,1732 +13,1684 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.importer.debug;
+package com.cinchapi.concourse;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.DuplicateEntryException;
-import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.TSets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 
 /**
- * A {@link Concourse} API that holds {@link #insert(String) inserted} data in
- * memory.
+ * An extensible {@link Concourse} wrapper that simply forwards method calls to
+ * another {@link Concourse} instance.
  * <p>
- * This particular API is designed to allow the import framework to perform
- * dry-run data imports.
+ * This class is meant to be extended by a subclass that needs to override a
+ * <strong>subset</strong> of methods to provide additional functionality before
+ * or after the Concourse method execution. For example, an extension of this
+ * class can be used to cache the return value of some Concourse methods and
+ * check that cache before performing a database call.
  * </p>
- * <p>
- * <strong>NOTE:</strong> By default, this class intentionally contains
- * <em>static state.</em>. In order to support multi-threaded imports, this
- * class maintains a global view of data that has been inserted from multiple
- * instances.
- * </p>
- * 
+ *
  * @author Jeff Nelson
  */
-public class ImportDryRunConcourse extends Concourse {
+@SuppressWarnings("deprecation")
+public abstract class ForwardingConcourse extends Concourse {
 
     /**
-     * The imported data across ALL instances.
+     * The instance to which method invocations are routed.
      */
-    private static final List<Multimap<String, Object>> IMPORTED = Lists
-            .newArrayList();
-
-    /**
-     * The list that holds each of the imported records, represented as a
-     * multimap.
-     */
-    private final List<Multimap<String, Object>> imported;
-
-    /**
-     * Construct a new instance.
-     */
-    public ImportDryRunConcourse() {
-        this(false);
-    }
+    private final Concourse concourse;
 
     /**
      * Construct a new instance.
      * 
-     * @param isolated
+     * @param concourse
      */
-    public ImportDryRunConcourse(boolean isolated) {
-        imported = isolated ? Lists.newArrayList() : IMPORTED;
+    public ForwardingConcourse(Concourse concourse) {
+        this.concourse = concourse;
     }
 
     @Override
     public void abort() {
-        throw new UnsupportedOperationException();
+        concourse.abort();
     }
 
     @Override
     public <T> long add(String key, T value) {
-        throw new UnsupportedOperationException();
+        return concourse.add(key, value);
     }
 
     @Override
     public <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.add(key, value, records);
     }
 
     @Override
     public <T> boolean add(String key, T value, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.add(key, value, record);
     }
 
     @Override
     public Map<Timestamp, String> audit(long record) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(record);
     }
 
     @Override
     public Map<Timestamp, String> audit(long record, Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(record, start);
     }
 
     @Override
     public Map<Timestamp, String> audit(long record, Timestamp start,
             Timestamp end) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(record, start, end);
     }
 
     @Override
     public Map<Timestamp, String> audit(String key, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(key, record);
     }
 
     @Override
     public Map<Timestamp, String> audit(String key, long record,
             Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(key, record, start);
     }
 
     @Override
     public Map<Timestamp, String> audit(String key, long record,
             Timestamp start, Timestamp end) {
-        throw new UnsupportedOperationException();
+        return concourse.audit(key, record, start, end);
     }
 
     @Override
     public Map<String, Map<Object, Set<Long>>> browse(Collection<String> keys) {
-        throw new UnsupportedOperationException();
+        return concourse.browse(keys);
     }
 
     @Override
     public Map<String, Map<Object, Set<Long>>> browse(Collection<String> keys,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.browse(keys, timestamp);
     }
 
     @Override
     public Map<Object, Set<Long>> browse(String key) {
-        throw new UnsupportedOperationException();
+        return concourse.browse(key);
     }
 
     @Override
     public Map<Object, Set<Long>> browse(String key, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.browse(key, timestamp);
     }
 
     @Override
     public <T> Map<Timestamp, Set<T>> chronologize(String key, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.chronologize(key, record);
     }
 
     @Override
     public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.chronologize(key, record, start);
     }
 
     @Override
     public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start, Timestamp end) {
-        throw new UnsupportedOperationException();
+        return concourse.chronologize(key, record, start, end);
     }
 
     @Override
     public void clear(Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        concourse.clear(records);
     }
 
     @Override
     public void clear(Collection<String> keys, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        concourse.clear(keys, records);
     }
 
     @Override
     public void clear(Collection<String> keys, long record) {
-        throw new UnsupportedOperationException();
+        concourse.clear(keys, record);
     }
 
     @Override
     public void clear(long record) {
-        throw new UnsupportedOperationException();
+        concourse.clear(record);
     }
 
     @Override
     public void clear(String key, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        concourse.clear(key, records);
     }
 
     @Override
     public void clear(String key, long record) {
-        throw new UnsupportedOperationException();
+        concourse.clear(key, record);
     }
 
     @Override
     public boolean commit() {
-        throw new UnsupportedOperationException();
+        return concourse.commit();
     }
 
     @Override
     public Set<String> describe() {
-        synchronized (imported) {
-            Set<String> keys = Sets.newHashSet();
-            imported.forEach(record -> keys.addAll(record.keySet()));
-            return keys;
-        }
+        return concourse.describe();
     }
 
     @Override
     public Map<Long, Set<String>> describe(Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.describe(records);
     }
 
     @Override
     public Map<Long, Set<String>> describe(Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.describe(records, timestamp);
     }
 
     @Override
     public Set<String> describe(long record) {
-        throw new UnsupportedOperationException();
+        return concourse.describe(record);
     }
 
     @Override
     public Set<String> describe(long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.describe(record, timestamp);
     }
 
     @Override
     public Set<String> describe(Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.describe(timestamp);
     }
 
     @Override
     public <T> Map<String, Map<Diff, Set<T>>> diff(long record,
             Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.diff(record, start);
     }
 
     @Override
     public <T> Map<String, Map<Diff, Set<T>>> diff(long record, Timestamp start,
             Timestamp end) {
-        throw new UnsupportedOperationException();
+        return concourse.diff(record, start, end);
     }
 
     @Override
     public <T> Map<Diff, Set<T>> diff(String key, long record,
             Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.diff(key, record, start);
     }
 
     @Override
     public <T> Map<Diff, Set<T>> diff(String key, long record, Timestamp start,
             Timestamp end) {
-        throw new UnsupportedOperationException();
+        return concourse.diff(key, record, start, end);
     }
 
     @Override
     public <T> Map<T, Map<Diff, Set<Long>>> diff(String key, Timestamp start) {
-        throw new UnsupportedOperationException();
+        return concourse.diff(key, start);
     }
 
     @Override
     public <T> Map<T, Map<Diff, Set<Long>>> diff(String key, Timestamp start,
             Timestamp end) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Dump the data that was inserted as a JSON blob.
-     * 
-     * @return a json dump
-     */
-    public String dump() {
-        StringBuilder sb = new StringBuilder();
-        synchronized (imported) {
-            sb.append("[");
-            for (Multimap<String, Object> map : imported) {
-                sb.append(Convert.mapToJson(map)).append(",");
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            sb.append("]");
-            return sb.toString();
-        }
-
+        return concourse.diff(key, start, end);
     }
 
     @Override
-    public void exit() {}
+    public void exit() {
+        concourse.exit();
+    }
 
     @Override
     public Set<Long> find(Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.find(criteria);
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(criteria, order);
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(criteria, order, page);
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(criteria, page);
     }
 
     @Override
     public Set<Long> find(String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.find(ccl);
     }
 
     @Override
     public Set<Long> find(String key, Object value) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, order);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, order, page);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, page);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, timestamp, order);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, timestamp, order, page);
     }
 
     @Override
     public Set<Long> find(String key, Object value, Timestamp timestamp,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, value, timestamp, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, order);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, order, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, order);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, order,
+                page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Object value2, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, order);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, order, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, order);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, order, page);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, page);
     }
 
     @Override
     public Set<Long> find(String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(ccl, order);
     }
 
     @Override
     public Set<Long> find(String ccl, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(ccl, order, page);
     }
 
     @Override
     public Set<Long> find(String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(ccl, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, order);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, order, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, order);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, order,
+                page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Object value2, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, value2, timestamp, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, order);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, order, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, order);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, order, page);
     }
 
     @Override
     public Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.find(key, operator, value, timestamp, page);
     }
 
     @Override
     public <T> long findOrAdd(String key, T value)
             throws DuplicateEntryException {
-        throw new UnsupportedOperationException();
+        return concourse.findOrAdd(key, value);
     }
 
     @Override
     public long findOrInsert(Criteria criteria, String json)
             throws DuplicateEntryException {
-        throw new UnsupportedOperationException();
+        return concourse.findOrInsert(criteria, json);
     }
 
     @Override
     public long findOrInsert(String ccl, String json)
             throws DuplicateEntryException {
-        throw new UnsupportedOperationException();
+        return concourse.findOrInsert(ccl, json);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, records, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, criteria, timestamp, page);
     }
 
     @Override
     public <T> Map<String, T> get(Collection<String> keys, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, record);
     }
 
     @Override
     public <T> Map<String, T> get(Collection<String> keys, long record,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Collection<String> keys,
             String ccl, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(keys, ccl, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(Criteria criteria,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(criteria, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, order, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Collection<Long> records,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, records, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, Criteria criteria,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, criteria, timestamp, page);
     }
 
     @Override
     public <T> T get(String key, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, record);
     }
 
     @Override
     public <T> T get(String key, long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, T> get(String key, String ccl, Timestamp timestamp,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(key, ccl, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, T>> get(String ccl, Timestamp timestamp,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.get(ccl, timestamp, page);
     }
 
     @Override
     public String getServerEnvironment() {
-        throw new UnsupportedOperationException();
+        return concourse.getServerEnvironment();
     }
 
     @Override
     public String getServerVersion() {
-        throw new UnsupportedOperationException();
+        return concourse.getServerVersion();
     }
 
     @Override
     public Set<Long> insert(String json) {
-        List<Multimap<String, Object>> data = Convert.anyJsonToJava(json);
-        if(!data.isEmpty()) {
-            synchronized (imported) {
-                imported.addAll(data);
-                long start = imported.size() + 1;
-                long end = start + data.size() - 1;
-                return TSets.sequence(start, end);
-            }
-        }
-        else {
-            return Collections.emptySet();
-        }
+        return concourse.insert(json);
     }
 
     @Override
     public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.insert(json, records);
     }
 
     @Override
     public boolean insert(String json, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.insert(json, record);
     }
 
     @Override
     public Set<Long> inventory() {
-        throw new UnsupportedOperationException();
+        return concourse.inventory();
     }
 
     @Override
     public <T> T invokePlugin(String id, String method, Object... args) {
-        throw new UnsupportedOperationException();
+        return concourse.invokePlugin(id, method, args);
     }
 
     @Override
     public String jsonify(Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(records);
     }
 
     @Override
     public String jsonify(Collection<Long> records, boolean identifier) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(records, identifier);
     }
 
     @Override
     public String jsonify(Collection<Long> records, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(records, timestamp);
     }
 
     @Override
     public String jsonify(Collection<Long> records, Timestamp timestamp,
             boolean identifier) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(records, timestamp, identifier);
     }
 
     @Override
     public String jsonify(long record) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(record);
     }
 
     @Override
     public String jsonify(long record, boolean identifier) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(record, identifier);
     }
 
     @Override
     public String jsonify(long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(record, timestamp);
     }
 
     @Override
     public String jsonify(long record, Timestamp timestamp,
             boolean identifier) {
-        throw new UnsupportedOperationException();
+        return concourse.jsonify(record, timestamp, identifier);
     }
 
     @Override
     public Map<Long, Boolean> link(String key, Collection<Long> destinations,
             long source) {
-        throw new UnsupportedOperationException();
+        return concourse.link(key, destinations, source);
     }
 
     @Override
     public boolean link(String key, long destination, long source) {
-        throw new UnsupportedOperationException();
+        return concourse.link(key, destination, source);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, records);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, criteria);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, record);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, ccl);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> navigate(Collection<String> keys,
             String ccl, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(keys, ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, records);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, criteria);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, Criteria criteria,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, record);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, long record,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, ccl);
     }
 
     @Override
     public <T> Map<Long, Set<T>> navigate(String key, String ccl,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.navigate(key, ccl, timestamp);
     }
 
     @Override
     public Map<Long, Boolean> ping(Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.ping(records);
     }
 
     @Override
     public boolean ping(long record) {
-        throw new UnsupportedOperationException();
+        return concourse.ping(record);
     }
 
     @Override
     public <T> void reconcile(String key, long record, Collection<T> values) {
-        throw new UnsupportedOperationException();
+        concourse.reconcile(key, record, values);
     }
 
     @Override
     public <T> Map<Long, Boolean> remove(String key, T value,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.remove(key, value, records);
     }
 
     @Override
     public <T> boolean remove(String key, T value, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.remove(key, value, record);
     }
 
     @Override
     public void revert(Collection<String> keys, Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        concourse.revert(keys, records, timestamp);
     }
 
     @Override
     public void revert(Collection<String> keys, long record,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        concourse.revert(keys, record, timestamp);
     }
 
     @Override
     public void revert(String key, Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        concourse.revert(key, records, timestamp);
     }
 
     @Override
     public void revert(String key, long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        concourse.revert(key, record, timestamp);
     }
 
     @Override
     public Set<Long> search(String key, String query) {
-        throw new UnsupportedOperationException();
+        return concourse.search(key, query);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(records, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, records, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             Criteria criteria, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, criteria, timestamp, page);
     }
 
     @Override
     public <T> Map<String, Set<T>> select(Collection<String> keys,
             long record) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, record);
     }
 
     @Override
     public <T> Map<String, Set<T>> select(Collection<String> keys, long record,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Collection<String> keys,
             String ccl, Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(keys, ccl, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(Criteria criteria,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(criteria, timestamp, page);
     }
 
     @Override
     public <T> Map<String, Set<T>> select(long record) {
-        throw new UnsupportedOperationException();
+        return concourse.select(record);
     }
 
     @Override
     public <T> Map<String, Set<T>> select(long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, order, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Collection<Long> records,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, records, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, order, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, Criteria criteria,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, criteria, timestamp, page);
     }
 
     @Override
     public <T> Set<T> select(String key, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, record);
     }
 
     @Override
     public <T> Set<T> select(String key, long record, Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, record, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl, Order order,
             Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(key, ccl, timestamp, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, timestamp);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Order order) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, timestamp, order);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Order order, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, timestamp, order, page);
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> select(String ccl,
             Timestamp timestamp, Page page) {
-        throw new UnsupportedOperationException();
+        return concourse.select(ccl, timestamp, page);
     }
 
     @Override
     public void set(String key, Object value, Collection<Long> records) {
-        throw new UnsupportedOperationException();
+        concourse.set(key, value, records);
     }
 
     @Override
     public <T> void set(String key, T value, long record) {
-        throw new UnsupportedOperationException();
+        concourse.set(key, value, record);
     }
 
     @Override
     public void stage() throws TransactionException {
-        throw new UnsupportedOperationException();
+        concourse.stage();
     }
 
     @Override
     public Timestamp time() {
-        throw new UnsupportedOperationException();
+        return concourse.time();
     }
 
     @Override
     public Timestamp time(String phrase) {
-        throw new UnsupportedOperationException();
+        return concourse.time(phrase);
     }
 
     @Override
     public boolean unlink(String key, long destination, long source) {
-        throw new UnsupportedOperationException();
+        return concourse.unlink(key, destination, source);
     }
 
     @Override
     public boolean verify(String key, Object value, long record) {
-        throw new UnsupportedOperationException();
+        return concourse.verify(key, value, record);
     }
 
     @Override
     public boolean verify(String key, Object value, long record,
             Timestamp timestamp) {
-        throw new UnsupportedOperationException();
+        return concourse.verify(key, value, record, timestamp);
     }
 
     @Override
     public boolean verifyAndSwap(String key, Object expected, long record,
             Object replacement) {
-        throw new UnsupportedOperationException();
+        return concourse.verifyAndSwap(key, expected, record, replacement);
     }
 
     @Override
     public void verifyOrSet(String key, Object value, long record) {
-        throw new UnsupportedOperationException();
+        concourse.verifyOrSet(key, value, record);
     }
 
+    /**
+     * Construct an instance of this {@link ForwardingConcourse} using the
+     * provided {@code concourse} connection as the proxied handle.
+     * 
+     * @param concourse
+     * @return an instace of this class
+     */
+    protected abstract ForwardingConcourse $this(Concourse concourse);
+
     @Override
-    protected Concourse copyConnection() {
-        return new ImportDryRunConcourse();
+    protected final Concourse copyConnection() {
+        return $this(concourse.copyConnection());
     }
 
 }

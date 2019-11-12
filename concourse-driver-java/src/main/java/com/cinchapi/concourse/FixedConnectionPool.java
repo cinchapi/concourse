@@ -41,7 +41,7 @@ class FixedConnectionPool extends ConnectionPool {
      */
     protected FixedConnectionPool(String host, int port, String username,
             String password, int poolSize) {
-        super(host, port, username, password, poolSize);
+        this(host, port, username, password, "", poolSize);
     }
 
     /**
@@ -56,7 +56,8 @@ class FixedConnectionPool extends ConnectionPool {
      */
     protected FixedConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
-        super(host, port, username, password, environment, poolSize);
+        super(() -> Concourse.connect(host, port, username, password,
+                environment), poolSize);
     }
 
     @Override
