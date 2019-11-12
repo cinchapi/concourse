@@ -12,14 +12,14 @@ The concourse jar is available at [Maven Central](http://search.maven.org/#searc
 	}
 
 	dependencies {
-    	compile 'com.cinchapi:concourse-driver-java:0.10.3+'
+    	compile 'com.cinchapi:concourse-driver-java:0.10.4+'
 	}
 
 If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
 
 	GroupId: com.cinchapi
 	ArtifactId: concourse-driver-java
-	Version: 0.10.3+
+	Version: 0.10.4+
 
 Alternatively, you can [download](http://cinchapi.org/concourse/download-api) the latest jar and manually add it to your project's classpath.
 
