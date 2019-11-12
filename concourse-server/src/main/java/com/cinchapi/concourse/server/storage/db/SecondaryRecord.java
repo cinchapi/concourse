@@ -152,16 +152,17 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      * {@link SecondaryRecord}.
      * </p>
      * 
-     * @param value
+     * @param record
      * @return a {@link Set} containing all the keys that map to the
      *         {@code value}
      */
-    public Set<Value> gather(PrimaryKey value) {
-        return gather(value, Time.NONE);
+    public Set<Value> gather(PrimaryKey record) {
+        return gather(record, Time.NONE);
     }
 
     /**
-     * Return all the keys that mapped to {@code value} at {@code timestamp}.
+     * Return all the keys that mapped to the {@code record} at
+     * {@code timestamp}.
      * <p>
      * In the broader {@link Database} sense, this method can be used to return
      * all the data "values" that were stored within a data "record" under a
@@ -175,11 +176,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      * {@link SecondaryRecord}.
      * </p>
      * 
-     * @param value
+     * @param record
      * @return a {@link Set} containing all the keys that map to the
      *         {@code value}
      */
-    public Set<Value> gather(PrimaryKey value, long timestamp) {
+    public Set<Value> gather(PrimaryKey record, long timestamp) {
         Preconditions.checkState(!isPartial(),
                 "Cannot gather from a partial Secondary Record.");
         read.lock();
@@ -189,7 +190,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             for (Value key : history.keySet()) {
                 Set<PrimaryKey> values = historical ? get(key, timestamp)
                         : get(key);
-                if(values.contains(value)) {
+                if(values.contains(record)) {
                     keys.add(key);
                 }
             }
