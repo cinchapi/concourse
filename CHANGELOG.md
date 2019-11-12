@@ -10,7 +10,7 @@
 * Fixed a bug that caused `TObject#compareTo` to return logically inconsistent results relative to `TObject#equals`. Previously, comparing `TObjects` with type `STRING` occurred in a case insensitive manner whereas the `equals` evaluation was case sensitive. Now, the `compareTo` method is case sensitive.
 * Added the ability to compare `TObjects` in a case insensitive manner.
 * Fixed a bug that made it possible for storage engine to return inaccurate results for `REGEX` and `NOT_REGEX` queries if matching values had different case formats.
-* Fixed a bug that caused historical queries to incorrectly return logically different results that present state queries if matching values had different case formats.
+* Fixed a bug that caused historical queries to incorrectly return logically different results compared to present state queries if matching values had different case formats.
 * Fixed a bug that made it possible for reads within the `Buffer` to cause write lock starvation and resource exhaustion; preventing any further writes from occurring and generating a backlog of reads that never terminated.
 
 #### Version 0.10.2 (August 24, 2019)
