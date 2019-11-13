@@ -977,20 +977,20 @@ public final class Database extends BaseStore implements PermanentStore {
         private CacheState() {/* singleton */}
 
         @Override
-        public boolean has(long record) {
+        public boolean contains(long record) {
             Composite composite = Composite.create(PrimaryKey.wrap(record));
             return cpc.getIfPresent(composite) != null;
         }
 
         @Override
-        public boolean has(String key) {
+        public boolean contains(String key) {
             Composite composite = Composite.create(Text.wrapCached(key));
             return csc.getIfPresent(composite) != null;
         }
 
         @Override
-        public boolean has(String key, long record) {
-            if(has(record)) {
+        public boolean contains(String key, long record) {
+            if(contains(record)) {
                 return true;
             }
             else {

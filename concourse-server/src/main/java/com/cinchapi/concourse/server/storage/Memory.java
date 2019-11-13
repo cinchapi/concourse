@@ -30,7 +30,7 @@ public interface Memory {
      * @param record
      * @return a boolean that indicates if the {@code record} is loaded
      */
-    public boolean has(long record);
+    public boolean contains(long record);
 
     /**
      * Return {@code true} if the {@link Store} has all of its known data for
@@ -41,7 +41,7 @@ public interface Memory {
      * @return a boolean that indicates if the {@code key}/{@code record} is
      *         loaded
      */
-    public boolean has(String key, long record);
+    public boolean contains(String key, long record);
 
     /**
      * Return {@code true} if the {@link Store} has all of its known data for
@@ -50,6 +50,6 @@ public interface Memory {
      * @param key
      * @return a boolean that indicates if the {@code key} is loaded
      */
-    public boolean has(String key);
+    public boolean contains(String key);
 
 }

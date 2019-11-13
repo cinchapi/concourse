@@ -673,21 +673,21 @@ public abstract class BufferedStore extends BaseStore {
         return new Memory() {
 
             @Override
-            public boolean has(long record) {
-                return destination.memory().has(record)
-                        && buffer.memory().has(record);
+            public boolean contains(long record) {
+                return destination.memory().contains(record)
+                        && buffer.memory().contains(record);
             }
 
             @Override
-            public boolean has(String key, long record) {
-                return destination.memory().has(key, record)
-                        && buffer.memory().has(key, record);
+            public boolean contains(String key, long record) {
+                return destination.memory().contains(key, record)
+                        && buffer.memory().contains(key, record);
             }
 
             @Override
-            public boolean has(String key) {
-                return destination.memory().has(key)
-                        && buffer.memory().has(key);
+            public boolean contains(String key) {
+                return destination.memory().contains(key)
+                        && buffer.memory().contains(key);
             }
 
         };

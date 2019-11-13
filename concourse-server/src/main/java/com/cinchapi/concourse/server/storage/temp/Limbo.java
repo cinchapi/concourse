@@ -95,17 +95,17 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     private final Memory memory = new Memory() {
 
         @Override
-        public boolean has(long record) {
+        public boolean contains(long record) {
             return true;
         }
 
         @Override
-        public boolean has(String key) {
+        public boolean contains(String key) {
             return true;
         }
 
         @Override
-        public boolean has(String key, long record) {
+        public boolean contains(String key, long record) {
             return true;
         }
 
