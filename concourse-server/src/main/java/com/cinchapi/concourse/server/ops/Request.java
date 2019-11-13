@@ -45,15 +45,16 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
- * The {@link Context} provides information and all the relevant inputs
- * of a {@link ConcourseServer} operation.
- * 
+ * A {@link Request} describes a {@link ConcourseServer} operation and the
+ * context of the relevant parameters. The {@link Request} object provides
+ * information and all the relevant inputs of the operation.
  * <p>
- * In the vast majority of cases, an operation creates, reads, updates or
- * deletes (CRUD) data. In general, an operation can have any of the following
+ * In the vast majority of cases, an request is used to create, read, update or
+ * delete (CRUD) data. In general, a request can have any of the following
  * aspects:
  * <ul>
- * <li>The <strong>operation</strong> itself</li>
+ * <li>The <strong>operation</strong> that will achieve the goal of the
+ * request</li>
  * <li>A <strong>condition</strong> that specifies the data where the operation
  * should be applied</li>
  * <li>An <strong>order</strong> that describes how to sort data that is
@@ -66,22 +67,22 @@ import com.google.common.collect.Sets;
  * This class returns "relevant" data for the above-mentioned aspects.
  * </p>
  * <p>
- * {@link Context} is stored as a {@link ThreadLocal thread local} variable and
- * should be accessed from the operation's execution thread using
- * {@link #currentContext()}.
+ * {@link Request} is stored as a {@link ThreadLocal thread local} variable
+ * and should be accessed from the operation's execution thread using
+ * {@link #current()}.
  * </p>
  *
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class Context {
+public final class Request {
 
     /**
-     * The {@link Context} that is returned from {@link #currentContext()}.
+     * The {@link Request} that is returned from {@link #current()}.
      * <p>
      * This value is held within a {@link ThreadLocal} so that each distinct
      * operation {@link Thread} sees a different reference. It is assumed that
-     * the current context will be retrieved <strong>before</strong> any
+     * the current operation will be retrieved <strong>before</strong> any
      * subsequent asynchronous or multi-threaded processing.
      * </p>
      * <p>
@@ -89,7 +90,7 @@ public final class Context {
      * {@link ThreadLocal#set(Object)} method.
      * </p>
      */
-    /* package */static ThreadLocal<Context> current = new ThreadLocal<>();
+    /* package */static ThreadLocal<Request> current = new ThreadLocal<>();
 
     /**
      * A collection of methods whose output should not be included in the
@@ -101,18 +102,18 @@ public final class Context {
             .collect(Collectors.toSet());
 
     /**
-     * Return a reference to the current {@link Context}.
+     * Return a reference to the current {@link Request}.
      * 
-     * @return the current {@link Context}
+     * @return the current {@link Request}
      */
     @Nonnull
-    public static Context currentContext() {
-        Context ctx = current.get();
+    public static Request current() {
+        Request ctx = current.get();
         if(ctx != null) {
             return ctx;
         }
         else {
-            throw new IllegalStateException("The current context is null");
+            throw new IllegalStateException("The current operation is null");
         }
     }
 
@@ -170,7 +171,7 @@ public final class Context {
      * @param method
      * @param params
      */
-    Context(Method method, Object... params) {
+    Request(Method method, Object... params) {
         this.method = method;
         this.params = params;
     }
@@ -273,8 +274,8 @@ public final class Context {
     }
 
     /**
-     * Inspect the operation and populate the context variables if they haven't
-     * already been {@link #initialized}.
+     * Inspect the operation and populate the operation variables if they
+     * haven't already been {@link #initialized}.
      */
     private void init() {
         if(!initialized) {

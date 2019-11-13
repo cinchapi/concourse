@@ -64,8 +64,8 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.server.aop.AnnotationBasedInjector;
-import com.cinchapi.concourse.server.aop.CaptureContext;
+import com.cinchapi.concourse.server.aop.ConcourseServerInjector;
+import com.cinchapi.concourse.server.aop.Internal;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyReadPermission;
@@ -209,7 +209,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     public static ConcourseServer create(int port, String bufferStore,
             String dbStore) throws TTransportException {
-        Injector injector = Guice.createInjector(new AnnotationBasedInjector());
+        Injector injector = Guice.createInjector(new ConcourseServerInjector());
         ConcourseServer server = injector.getInstance(ConcourseServer.class);
         server.init(port, bufferStore, dbStore);
         return server;
@@ -6194,7 +6194,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    @CaptureContext
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6988,6 +6987,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      *
      * @return the Engine
      */
+    @Internal
     private Engine getEngine() {
         return getEngine(DEFAULT_ENVIRONMENT);
     }
@@ -6997,6 +6997,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * performing any sanitization on the name. If such an Engine does not
      * exist, create a new one and add it to the collection.
      */
+    @Internal
     private Engine getEngineUnsafe(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
@@ -7017,6 +7018,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * @param env
      * @return the store to use
      */
+    @Internal
     private AtomicSupport getStore(TransactionToken transaction, String env) {
         return transaction != null ? transactions.get(transaction)
                 : getEngine(env);
@@ -7031,6 +7033,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * @param dbStore - the location to store {@link Database} files
      * @throws TTransportException
      */
+    @Internal
     private void init(int port, String bufferStore, String dbStore)
             throws TTransportException {
         Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
@@ -7123,6 +7126,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * @param password
      * @throws SecurityException
      */
+    @Internal
     private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
         if(!users.authenticate(username, password)) {
@@ -7132,11 +7136,13 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
+    @Internal
     protected String getBufferStore() {
         return bufferStore;
     }
 
     @Override
+    @Internal
     protected String getDbStore() {
         return dbStore;
     }
@@ -7148,6 +7154,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * @param env
      * @return the Engine
      */
+    @Internal
     protected Engine getEngine(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
@@ -7158,11 +7165,13 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
+    @Internal
     protected PluginManager plugins() {
         return pluginManager;
     }
 
     @Override
+    @Internal
     protected UserService users() {
         return users;
     }

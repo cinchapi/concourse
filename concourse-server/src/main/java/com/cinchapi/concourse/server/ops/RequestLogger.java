@@ -19,16 +19,16 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 /**
- * Intercepts ConcourseServer method invocations to set the {@link Context}.
+ * Intercepts ConcourseServer method invocations to set the {@link Request}.
  *
  * @author Jeff Nelson
  */
-public class ContextCapturer implements MethodInterceptor {
+public class RequestLogger implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Context.current.set(
-                new Context(invocation.getMethod(), invocation.getArguments()));
+        Request.current.set(new Request(invocation.getMethod(),
+                invocation.getArguments()));
         return invocation.proceed();
     }
 

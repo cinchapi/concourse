@@ -56,10 +56,10 @@ public interface Gatherable extends Store {
      * {@code timestamp}.
      * <p>
      * This method is slightly similar to {@link #select(String, long, long)}.
-     * All the
-     * values that would be returned from the {@link #select(String, long)
-     * select} method are returned here, but the order of the values returned
-     * from this method are not necessarily in insertion order.
+     * All the values that would be returned from the
+     * {@link #select(String, long) select} method are returned here, but the
+     * order of the values returned from this method are not necessarily in
+     * insertion order.
      * </p>
      * <p>
      * This performance of this method for a single gather is not likely to be

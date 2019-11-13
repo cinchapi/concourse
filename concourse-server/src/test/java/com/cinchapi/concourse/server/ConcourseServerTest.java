@@ -15,16 +15,22 @@
  */
 package com.cinchapi.concourse.server;
 
+import java.nio.ByteBuffer;
+
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.ops.Request;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
 
 /**
@@ -86,6 +92,49 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     public void testFindEnvKeepsUnderScore() {
         String env = "$_%&test_@envir==--onment*_*";
         Assert.assertEquals("_test_environment_", Environments.sanitize(env));
+    }
+
+    @Test
+    public void testContextIsCaptured() throws TException {
+        server = ConcourseServer.create();
+        try {
+            try {
+                Request.current();
+                Assert.fail();
+            }
+            catch (IllegalStateException e) {
+                Assert.assertTrue(true);
+            }
+            AccessToken creds = server.login(
+                    ByteBuffer.wrap("admin".getBytes()),
+                    ByteBuffer.wrap("admin".getBytes()));
+            server.addKeyValue("name", Convert.javaToThrift("jeff"), creds,
+                    null, "");
+            Assert.assertEquals("add", Request.current().operation());
+            server.browseKey("name", creds, null, "");
+            Assert.assertEquals("browse", Request.current().operation());
+        }
+        finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testContextIsIgnored() throws TException {
+        server = ConcourseServer.create();
+        try {
+            server.getDbStore();
+            try {
+                Request.current();
+                Assert.fail();
+            }
+            catch (IllegalStateException e) {
+                Assert.assertTrue(true);
+            }
+        }
+        finally {
+            server.stop();
+        }
     }
 
 }

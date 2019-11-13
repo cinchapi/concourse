@@ -17,7 +17,7 @@ package com.cinchapi.concourse.server.aop;
 
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
-import com.cinchapi.concourse.server.ops.ContextCapturer;
+import com.cinchapi.concourse.server.ops.RequestLogger;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 
@@ -25,7 +25,7 @@ import com.google.inject.matcher.Matchers;
  * A {@link com.google.inject.Module Module} that configures AOP
  * interceptors and injectors that handle Thrift specific needs.
  */
-public class AnnotationBasedInjector extends AbstractModule {
+public class ConcourseServerInjector extends AbstractModule {
 
     @Override
     protected void configure() {
@@ -57,8 +57,8 @@ public class AnnotationBasedInjector extends AbstractModule {
 
         // Gather and set the Context for operation methods
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                Matchers.annotatedWith(CaptureContext.class),
-                new ContextCapturer());
+                Matchers.not(Matchers.annotatedWith(Internal.class)),
+                new RequestLogger());
 
     }
 
