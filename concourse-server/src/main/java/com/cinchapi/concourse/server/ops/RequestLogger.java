@@ -27,8 +27,8 @@ public class RequestLogger implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Request.current.set(new Request(invocation.getMethod(),
-                invocation.getArguments()));
+        Request.current.set(
+                new Request(invocation.getMethod(), invocation.getArguments()));
         return invocation.proceed();
     }
 

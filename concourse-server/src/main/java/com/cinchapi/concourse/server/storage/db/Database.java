@@ -50,8 +50,8 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
-import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.Memory;
+import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -167,6 +167,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
         };
     }
+
     /**
      * Return a cache for records of type {@code T}.
      * 
@@ -176,6 +177,7 @@ public final class Database extends BaseStore implements PermanentStore {
         return CacheBuilder.newBuilder().maximumSize(100000).softValues()
                 .build();
     }
+
     /**
      * Return the Block identified by {@code id} if it exists in {@code list},
      * otherwise {@code null}.
@@ -338,9 +340,10 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
+            Logger.warn(
+                    "The Engine refused to accept {} because "
+                            + "it appears that the data was already transported. "
+                            + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -481,7 +484,8 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Memory memory() {
-        Verify.that(running, "Cannot return the memory of a stopped Database instance");
+        Verify.that(running,
+                "Cannot return the memory of a stopped Database instance");
         return memory;
     }
 
@@ -821,8 +825,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>> implements
-            Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>>
+            implements Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
@@ -874,7 +878,7 @@ public final class Database extends BaseStore implements PermanentStore {
             blocks.addAll(sorted.values());
         }
     }
-    
+
     /**
      * A runnable that will sync a block to disk.
      * 
