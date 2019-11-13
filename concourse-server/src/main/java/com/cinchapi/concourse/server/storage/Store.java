@@ -316,6 +316,13 @@ public interface Store {
     public void start();
 
     /**
+     * Return the {@link Memory} of this {@link Store}.
+     * 
+     * @return the {@link Store} {@link Memory state}
+     */
+    public Memory memory();
+
+    /**
      * Stop the service.
      */
     public void stop();

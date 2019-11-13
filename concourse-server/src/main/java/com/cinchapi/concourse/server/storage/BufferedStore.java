@@ -667,4 +667,30 @@ public abstract class BufferedStore extends BaseStore {
             }
         }
     }
+
+    @Override
+    public Memory memory() {
+        return new Memory() {
+
+            @Override
+            public boolean has(long record) {
+                return destination.memory().has(record)
+                        && buffer.memory().has(record);
+            }
+
+            @Override
+            public boolean has(String key, long record) {
+                return destination.memory().has(key, record)
+                        && buffer.memory().has(key, record);
+            }
+
+            @Override
+            public boolean has(String key) {
+                return destination.memory().has(key)
+                        && buffer.memory().has(key);
+            }
+
+        };
+    }
+
 }

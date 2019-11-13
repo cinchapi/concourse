@@ -16,11 +16,12 @@
 package com.cinchapi.concourse.server.storage;
 
 /**
- *
+ * {@link Memory} provides insight into the internal mechanics of a
+ * {@link Store}.
  *
  * @author Jeff Nelson
  */
-public interface StoreState {
+public interface Memory {
 
     /**
      * Return {@code true} if the {@link Store} has all of its known data for
@@ -29,7 +30,7 @@ public interface StoreState {
      * @param record
      * @return a boolean that indicates if the {@code record} is loaded
      */
-    public boolean hasLoaded(long record);
+    public boolean has(long record);
 
     /**
      * Return {@code true} if the {@link Store} has all of its known data for
@@ -40,7 +41,7 @@ public interface StoreState {
      * @return a boolean that indicates if the {@code key}/{@code record} is
      *         loaded
      */
-    public boolean hasLoaded(String key, long record);
+    public boolean has(String key, long record);
 
     /**
      * Return {@code true} if the {@link Store} has all of its known data for
@@ -49,6 +50,6 @@ public interface StoreState {
      * @param key
      * @return a boolean that indicates if the {@code key} is loaded
      */
-    public boolean hasLoaded(String key);
+    public boolean has(String key);
 
 }

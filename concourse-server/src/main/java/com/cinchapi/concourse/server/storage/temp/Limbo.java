@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -87,6 +88,28 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
             TObject... values) {
         return input.getTObject().isIgnoreCase(operator, values);
     }
+
+    /**
+     * Constant {@link Memory} that is always returned by a {@link Limbo} store.
+     */
+    private final Memory memory = new Memory() {
+
+        @Override
+        public boolean has(long record) {
+            return true;
+        }
+
+        @Override
+        public boolean has(String key) {
+            return true;
+        }
+
+        @Override
+        public boolean has(String key, long record) {
+            return true;
+        }
+
+    };
 
     @Override
     public Map<Long, String> audit(long record) {
@@ -397,6 +420,11 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     @Override
     public abstract Iterator<Write> iterator();
+
+    @Override
+    public Memory memory() {
+        return memory;
+    }
 
     @Override
     public Set<Long> search(String key, String query) {

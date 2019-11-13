@@ -35,6 +35,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.Array;
+import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -50,6 +51,7 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -81,6 +83,23 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 public final class Database extends BaseStore implements PermanentStore {
+
+    /*
+     * BLOCK DIRECTORIES
+     * -----------------
+     * Each Block type is stored in its own directory so that we can reduce the
+     * number of files in a single directory. It is important to note that the
+     * filename extensions for files are the same across directories (i.e. 'blk'
+     * for block, 'fltr' for bloom filter and 'indx' for index). Furthermore,
+     * blocks that are synced at the same time all have the same block id.
+     * Therefore, the only way to distinguish blocks of different types from one
+     * another is by the directory in which they are stored.
+     */
+    private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
+
+    private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
+
+    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
@@ -148,7 +167,6 @@ public final class Database extends BaseStore implements PermanentStore {
 
         };
     }
-
     /**
      * Return a cache for records of type {@code T}.
      * 
@@ -158,7 +176,6 @@ public final class Database extends BaseStore implements PermanentStore {
         return CacheBuilder.newBuilder().maximumSize(100000).softValues()
                 .build();
     }
-
     /**
      * Return the Block identified by {@code id} if it exists in {@code list},
      * otherwise {@code null}.
@@ -179,21 +196,6 @@ public final class Database extends BaseStore implements PermanentStore {
         }
         return null;
     }
-
-    /*
-     * BLOCK DIRECTORIES
-     * -----------------
-     * Each Block type is stored in its own directory so that we can reduce the
-     * number of files in a single directory. It is important to note that the
-     * filename extensions for files are the same across directories (i.e. 'blk'
-     * for block, 'fltr' for bloom filter and 'indx' for index). Furthermore,
-     * blocks that are synced at the same time all have the same block id.
-     * Therefore, the only way to distinguish blocks of different types from one
-     * another is by the directory in which they are stored.
-     */
-    private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-    private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
-    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -267,6 +269,8 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     private transient AwaitableExecutorService reader;
 
+    private CacheState memory;
+
     /**
      * Construct a Database that is backed by the default location which is in
      * {@link GlobalState#DATABASE_DIRECTORY}.
@@ -334,10 +338,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -477,6 +480,12 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
+    public Memory memory() {
+        Verify.that(running, "Cannot return the memory of a stopped Database instance");
+        return memory;
+    }
+
+    @Override
     public Set<Long> search(String key, String query) {
         return Transformers
                 .transformSet(
@@ -586,6 +595,8 @@ public final class Database extends BaseStore implements PermanentStore {
             }
             triggerSync(false);
         }
+        memory = new CacheState();
+
     }
 
     @Override
@@ -594,6 +605,7 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             reader.shutdown();
             writer.shutdown();
+            memory = null;
         }
     }
 
@@ -809,8 +821,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * @author Jeff Nelson
      * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>>
-            implements Runnable {
+    private final class BlockLoader<T extends Block<?, ?, ?>> implements
+            Runnable {
 
         private final List<T> blocks;
         private final Class<T> clazz;
@@ -862,7 +874,7 @@ public final class Database extends BaseStore implements PermanentStore {
             blocks.addAll(sorted.values());
         }
     }
-
+    
     /**
      * A runnable that will sync a block to disk.
      * 
@@ -954,4 +966,40 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
     }
+
+    /**
+     * View into the {@link Memory} of the {@link Database}.
+     *
+     * @author Jeff Nelson
+     */
+    private class CacheState implements Memory {
+
+        private CacheState() {/* singleton */}
+
+        @Override
+        public boolean has(long record) {
+            Composite composite = Composite.create(PrimaryKey.wrap(record));
+            return cpc.getIfPresent(composite) != null;
+        }
+
+        @Override
+        public boolean has(String key) {
+            Composite composite = Composite.create(Text.wrapCached(key));
+            return csc.getIfPresent(composite) != null;
+        }
+
+        @Override
+        public boolean has(String key, long record) {
+            if(has(record)) {
+                return true;
+            }
+            else {
+                Composite composite = Composite.create(PrimaryKey.wrap(record),
+                        Text.wrapCached(key));
+                return cppc.getIfPresent(composite) != null;
+            }
+        }
+
+    }
+
 }
