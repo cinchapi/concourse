@@ -28,10 +28,6 @@ import com.cinchapi.concourse.server.storage.Store;
  */
 public class Strategy {
 
-    public enum Source {
-        RECORD, FIELD, INDEX
-    }
-
     /**
      * The {@link Request} being serviced.
      */
@@ -52,7 +48,7 @@ public class Strategy {
         this.request = request;
         this.store = store;
     }
-    
+
     /**
      * Return the {@link Source} that this {@link Strategy} recommends for
      * looking up the {@code key} in {@code record}.
@@ -91,13 +87,22 @@ public class Strategy {
             source = Source.INDEX;
         }
         else if(request.operationKeys().size() < request.operationRecords()
-                .size()) { // TODO: calibrate
+                .size()) { // TODO: calibrate?
             source = Source.INDEX;
         }
         else {
             source = Source.FIELD;
         }
         return source;
+    }
+
+    /**
+     * The various structures where a data lookup can be performed.
+     *
+     * @author Jeff Nelson
+     */
+    public enum Source {
+        RECORD, FIELD, INDEX
     }
 
 }
