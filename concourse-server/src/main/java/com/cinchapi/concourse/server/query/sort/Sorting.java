@@ -21,9 +21,7 @@ import java.util.Set;
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.lang.sort.NoOrder;
 import com.cinchapi.concourse.lang.sort.Order;
-import com.cinchapi.concourse.server.ops.Request;
-import com.cinchapi.concourse.server.ops.Strategy;
-import com.cinchapi.concourse.server.storage.Gatherable;
+import com.cinchapi.concourse.server.ops.Stores;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
@@ -84,37 +82,11 @@ public final class Sorting {
     }
 
     /**
-     * A {@link StoreSorter} that sets a {@link Strategy} for sorting.
-     *
-     * @author Jeff Nelson
-     */
-    private static abstract class StrategicStoreSorter<T>
-            extends StoreSorter<T> {
-
-        /**
-         * A {@link Strategy} to aid efficient sorting.
-         */
-        protected final Strategy strategy;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param order
-         * @param store
-         */
-        protected StrategicStoreSorter(Order order, Store store) {
-            super(order, store);
-            this.strategy = new Strategy(Request.current(), store);
-        }
-
-    }
-
-    /**
      * A {@link StoreSorter} for scalar values.
      *
      * @author Jeff Nelson
      */
-    private static class ByValueSorter extends StrategicStoreSorter<TObject> {
+    private static class ByValueSorter extends StoreSorter<TObject> {
 
         /**
          * Construct a new instance.
@@ -133,28 +105,13 @@ public final class Sorting {
 
         @Override
         protected TObject lookup(String key, long record) {
-            Set<TObject> values;
-            if(strategy.shouldGather(key, record)) {
-                values = ((Gatherable) store).gather(key, record);
-                System.out.println("Using Gather");
-            }
-            else {
-                values = store.select(key, record);
-            }
-            return Iterables.getLast(values);
+            return Iterables.getLast(Stores.select(store, key, record));
         }
 
         @Override
         protected TObject lookup(String key, long record, long timestamp) {
-            Set<TObject> values;
-            if(strategy.shouldGather(key, record)) {
-                values = ((Gatherable) store).gather(key, record, timestamp);
-                System.out.println("Using Gather");
-            }
-            else {
-                values = store.select(key, record, timestamp);
-            }
-            return Iterables.getLast(values);
+            return Iterables
+                    .getLast(Stores.select(store, key, record, timestamp));
         }
 
     }
@@ -164,8 +121,7 @@ public final class Sorting {
      *
      * @author Jeff Nelson
      */
-    private static class ByValuesSorter
-            extends StrategicStoreSorter<Set<TObject>> {
+    private static class ByValuesSorter extends StoreSorter<Set<TObject>> {
 
         /**
          * Construct a new instance.
@@ -184,28 +140,12 @@ public final class Sorting {
 
         @Override
         protected Set<TObject> lookup(String key, long record) {
-            Set<TObject> values;
-            if(strategy.shouldGather(key, record)) {
-                values = ((Gatherable) store).gather(key, record);
-                System.out.println("Using Gather");
-            }
-            else {
-                values = store.select(key, record);
-            }
-            return values;
+            return Stores.select(store, key, record);
         }
 
         @Override
         protected Set<TObject> lookup(String key, long record, long timestamp) {
-            Set<TObject> values;
-            if(strategy.shouldGather(key, record)) {
-                values = ((Gatherable) store).gather(key, record, timestamp);
-                System.out.println("Using Gather");
-            }
-            else {
-                values = store.select(key, record, timestamp);
-            }
-            return values;
+            return Stores.select(store, key, record, timestamp);
         }
 
     }

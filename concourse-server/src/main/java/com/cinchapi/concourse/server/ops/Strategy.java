@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.ops;
 
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.storage.Gatherable;
+import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
 
 /**
@@ -26,6 +27,10 @@ import com.cinchapi.concourse.server.storage.Store;
  * @author Jeff Nelson
  */
 public class Strategy {
+
+    public enum Source {
+        RECORD, FIELD, INDEX
+    }
 
     /**
      * The {@link Request} being serviced.
@@ -47,39 +52,52 @@ public class Strategy {
         this.request = request;
         this.store = store;
     }
-
+    
     /**
-     * Return {@code true} if it is recommended that the
-     * {@link Gatherable#gather(String, long) gather} method be used instead of
-     * the {@link Store#select(String, long) select} method to fetch values for
-     * {@code key} across {@code records} in service of the
-     * {@link #operation()}.
-     * <p>
-     * If the {@link #store} is not {@link Gatherable}, this method returns
-     * {@ocode false}.
-     * </p>
+     * Return the {@link Source} that this {@link Strategy} recommends for
+     * looking up the {@code key} in {@code record}.
      * 
      * @param key
-     * @param records
-     * @return a boolean that indicates whether values should be retrieved by
-     *         gathering instead of selecting
+     * @param record
+     * @return the {@link Source} to use for looking up {@code key} in
+     *         {@code record}
      */
-    public boolean shouldGather(String key, long... records) {
-        if(store instanceof Gatherable) {
-            // TODO: get store state
-            if(request.conditionKeys().contains(key)) {
-                // TODO: what if short circuiting happens?
-                // This would be true if the secondary record was consulted...
-                return true;
-            }
-            else {
-                return false;
-            }
+    public Source source(String key, long record) {
+        Memory memory = store.memory();
+        Source source;
+        if(memory.contains(key, record)) {
+            source = Source.FIELD;
+        }
+        else if(memory.contains(record)) {
+            source = Source.RECORD;
+        }
+        else if(request.operationKeys().isEmpty()) {
+            // The entire record is involved in the operation, so force the full
+            // PrimaryRecord to be loaded.
+            source = Source.RECORD;
+        }
+        else if(request.operationKeys().size() >= request.operationRecords()
+                .size()) {
+            source = Source.RECORD;
+        }
+        else if(!(store instanceof Gatherable)) {
+            source = Source.FIELD;
+        }
+        // NOTE: the following conditions can only occur for a Gatherable store
+        else if(memory.contains(key)) {
+            source = Source.INDEX;
+        }
+        else if(request.conditionKeys().contains(key)) {
+            source = Source.INDEX;
+        }
+        else if(request.operationKeys().size() < request.operationRecords()
+                .size()) { // TODO: calibrate
+            source = Source.INDEX;
         }
         else {
-            return false;
+            source = Source.FIELD;
         }
-
+        return source;
     }
 
 }
