@@ -19,6 +19,7 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
+import com.cinchapi.concourse.util.Logger;
 
 /**
  * A {@link Strategy} is a guided plan for interacting with a {@link Store} to
@@ -59,41 +60,42 @@ public class Strategy {
      *         {@code record}
      */
     public Source source(String key, long record) {
-        Memory memory = store.memory();
-        Source source;
-        if(memory.contains(key, record)) {
-            source = Source.FIELD;
-        }
-        else if(memory.contains(record)) {
-            source = Source.RECORD;
-        }
-        else if(request.operationKeys().isEmpty()) {
-            // The entire record is involved in the operation, so force the full
-            // PrimaryRecord to be loaded.
-            source = Source.RECORD;
-        }
-        else if(request.operationKeys().size() >= request.operationRecords()
-                .size()) {
-            source = Source.RECORD;
-        }
-        else if(!(store instanceof Gatherable)) {
-            source = Source.FIELD;
-        }
-        // NOTE: the following conditions can only occur for a Gatherable store
-        else if(memory.contains(key)) {
-            source = Source.INDEX;
-        }
-        else if(request.conditionKeys().contains(key)) {
-            source = Source.INDEX;
-        }
-        else if(request.operationKeys().size() < request.operationRecords()
-                .size()) { // TODO: calibrate?
-            source = Source.INDEX;
-        }
-        else {
-            source = Source.FIELD;
-        }
-        return source;
+//        Memory memory = store.memory();
+//        Source source;
+//        if(memory.contains(key, record)) {
+//            source = Source.FIELD;
+//        }
+//        else if(memory.contains(record)) {
+//            source = Source.RECORD;
+//        }
+//        else if(request.operationKeys().isEmpty()
+//                && !request.operation().startsWith("find")) {
+//            // The entire record is involved in the operation, so force the full
+//            // PrimaryRecord to be loaded.
+//            source = Source.RECORD;
+//        }
+//        else if(request.operationKeys().size() >= request.operationRecords()
+//                .size()) {
+//            source = Source.RECORD;
+//        }
+//        else if(!(store instanceof Gatherable)) {
+//            source = Source.FIELD;
+//        }
+//        // NOTE: the following conditions can only occur for a Gatherable store
+//        else if(memory.contains(key)) {
+//            source = Source.INDEX;
+//        }
+//        else if(request.conditionKeys().contains(key)) {
+//            source = Source.INDEX;
+//        }
+//        else if(request.operationKeys().size() < request.operationRecords()
+//                .size()) { // TODO: calibrate?
+//            source = Source.INDEX;
+//        }
+//        else {
+//            source = Source.FIELD;
+//        }
+        return Source.INDEX;
     }
 
     /**

@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import java.lang.ref.SoftReference;
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.collect.CoalescableTreeMap;
+import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -40,6 +43,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -138,6 +142,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         return explore(false, 0, operator, values).keySet();
     }
 
+    @Override
+    public void onAppend(Revision<Text, Value, PrimaryKey> revision) {
+        gatherCache.clear();
+    }
+
     /**
      * Return all the keys that map to {@code value}.
      * <p>
@@ -157,7 +166,19 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      *         {@code value}
      */
     public Set<Value> gather(PrimaryKey record) {
-        return gather(record, Time.NONE);
+        read.lock();
+        try {
+            Map<PrimaryKey, Set<Value>> cache = gatherCache.get();
+            if(cache != null) {
+                return cache.getOrDefault(record, ImmutableSet.of());
+            }
+            else {
+                return gather(record, Time.NONE);
+            }
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     /**
@@ -187,11 +208,27 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         try {
             boolean historical = timestamp != Time.NONE;
             Set<Value> keys = Sets.newHashSet();
-            for (Value key : history.keySet()) {
-                Set<PrimaryKey> values = historical ? get(key, timestamp)
-                        : get(key);
+            Set<Entry<Value, Set<PrimaryKey>>> entries = historical
+                    ? LazyTransformSet.of(history.keySet(),
+                            key -> new AbstractMap.SimpleImmutableEntry<>(key,
+                                    get(key, timestamp)))
+                    : present.entrySet();
+            if(!historical) {
+                gatherCache = new SoftReference<>(Maps.newHashMap());
+            }
+            for (Entry<Value, Set<PrimaryKey>> entry : entries) {
+                Value key = entry.getKey();
+                Set<PrimaryKey> values = entry.getValue();
                 if(values.contains(record)) {
                     keys.add(key);
+                }
+                for (PrimaryKey value : values) {
+                    if(value.equals(record)) {
+                        keys.add(key);
+                    }
+                    if(!historical) {
+                        MultimapViews.put(gatherCache.get(), value, key);
+                    }
                 }
             }
             return keys;
@@ -289,8 +326,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             Value value = values[0];
             if(operator == Operator.EQUALS) {
                 for (Entry<Value, Set<PrimaryKey>> entry : (historical
-                        ? coalesce(value, timestamp) : coalesce(value))
-                                .entrySet()) {
+                        ? coalesce(value, timestamp)
+                        : coalesce(value)).entrySet()) {
                     Value stored = entry.getKey();
                     for (PrimaryKey record : entry.getValue()) {
                         MultimapViews.put(data, record, stored);
@@ -302,7 +339,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                         : present.keySet()) {
                     if(!value.equalsIgnoreCase(stored)) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -315,7 +353,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .tailSet(value, false)) {
                     if(!historical || stored.compareToIgnoreCase(value) > 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -328,7 +367,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .tailSet(value, true)) {
                     if(!historical || stored.compareToIgnoreCase(value) >= 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -341,7 +381,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .headSet(value, false)) {
                     if(!historical || stored.compareToIgnoreCase(value) < 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -354,7 +395,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                 .headSet(value, true)) {
                     if(!historical || stored.compareToIgnoreCase(value) <= 0) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -371,7 +413,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || (stored.compareTo(value) >= 0
                             && stored.compareTo(value2) < 0)) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -384,7 +427,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -397,7 +441,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(!m.matches()) {
                         for (PrimaryKey record : historical
-                                ? get(stored, timestamp) : get(stored)) {
+                                ? get(stored, timestamp)
+                                : get(stored)) {
                             MultimapViews.put(data, record, stored);
                         }
                     }
@@ -422,5 +467,8 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
     protected Map<Value, Set<PrimaryKey>> mapType() {
         return new CoalescableTreeMap<>();
     }
+
+    private transient SoftReference<Map<PrimaryKey, Set<Value>>> gatherCache = new SoftReference<>(
+            null);
 
 }
