@@ -73,19 +73,21 @@ public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
         double avg = benchmark.run(10) / 10;
         record("read", avg);
     }
-    
+
     @Test
-    public void testSortStrategyPerformanceConditionKey() throws InterruptedException {
+    public void testSortStrategyPerformanceConditionKey()
+            throws InterruptedException {
         int count = 20000;
         List<Integer> counts = Lists.newArrayList();
-        for(int i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i) {
             counts.add(i);
         }
         Collections.shuffle(counts);
         counts.forEach(c -> {
-            client.insert(ImmutableMap.of("name", c, "count", c, "foo", "c", "b", c));
+            client.insert(
+                    ImmutableMap.of("name", c, "count", c, "foo", "c", "b", c));
         });
-        while(server.hasWritesToTransport()) {
+        while (server.hasWritesToTransport()) {
             Thread.sleep(1000);
             continue;
         }
@@ -96,8 +98,9 @@ public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
 
             @Override
             public void action() {
-                client.find(Criteria.where().key("count")
-                        .operator(Operator.GREATER_THAN).value(672),
+                client.find(
+                        Criteria.where().key("count")
+                                .operator(Operator.GREATER_THAN).value(672),
                         Order.by("count"));
             }
 

@@ -136,8 +136,7 @@ public final class Stores {
             Operator operator, TObject... values) {
         if(Keys.isNavigationKey(key)) {
             Map<TObject, Set<Long>> index = timestamp == Time.NONE
-                    ? browse(store, key)
-                    : browse(store, key, timestamp);
+                    ? browse(store, key) : browse(store, key, timestamp);
             OperationParameters args = com.cinchapi.concourse.server.storage.Stores
                     .operationalize(operator, values);
             Set<Long> records = index.entrySet().stream()
