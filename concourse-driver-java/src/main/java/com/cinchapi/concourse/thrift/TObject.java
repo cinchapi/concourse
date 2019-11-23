@@ -135,7 +135,7 @@ public class TObject implements
      * @param values
      * @return the aliased parameters
      */
-    public static Alias alias(Operator operator, TObject... values) {
+    public static Aliases alias(Operator operator, TObject... values) {
         // Transform the operator to its functional alias, given the
         // transformations that will be made to the value(s).
         Operator original = operator;
@@ -184,7 +184,7 @@ public class TObject implements
             ovalues[i] = value;
         }
 
-        return new Alias(operator, ovalues);
+        return new Aliases(operator, ovalues);
     }
 
     // isset id assignments
@@ -668,9 +668,9 @@ public class TObject implements
      */
     private boolean is(BiFunction<TObject, TObject, Integer> comparer,
             Operator operator, TObject... values) {
-        Alias alias = alias(operator, values);
-        values = alias.values();
-        operator = alias.operator();
+        Aliases aliases = alias(operator, values);
+        values = aliases.values();
+        operator = aliases.operator();
         TObject v1 = values[0];
         switch (operator) {
         case EQUALS:
@@ -802,7 +802,7 @@ public class TObject implements
      * @author Jeff Nelson
      */
     @Immutable
-    public static final class Alias {
+    public static final class Aliases {
 
         private final Operator operator;
         private final TObject[] values;
@@ -811,7 +811,7 @@ public class TObject implements
          * @param operator
          * @param values
          */
-        private Alias(Operator operator, TObject[] values) {
+        private Aliases(Operator operator, TObject[] values) {
             this.operator = operator;
             this.values = values;
         }

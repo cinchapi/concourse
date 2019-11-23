@@ -20,7 +20,7 @@ import java.util.Set;
 
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.TObject.Alias;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 
 /**
  * The {@link Store} that provides basic functionality to all of its children.
@@ -42,15 +42,15 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(long timestamp, String key,
             Operator operator, TObject... values) {
-        Alias alias = TObject.alias(operator, values);
-        return doExplore(timestamp, key, alias.operator(), alias.values());
+        Aliases aliases = TObject.alias(operator, values);
+        return doExplore(timestamp, key, aliases.operator(), aliases.values());
     }
 
     @Override
     public final Map<Long, Set<TObject>> explore(String key, Operator operator,
             TObject... values) {
-        Alias alias = TObject.alias(operator, values);
-        return doExplore(key, alias.operator(), alias.values());
+        Aliases aliases = TObject.alias(operator, values);
+        return doExplore(key, aliases.operator(), aliases.values());
     }
 
     @Override
