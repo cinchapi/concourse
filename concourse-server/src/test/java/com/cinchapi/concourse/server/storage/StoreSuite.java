@@ -32,7 +32,7 @@ import com.cinchapi.concourse.server.storage.temp.QueueTest;
 @SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
         EngineAtomicOperationTest.class, DatabaseTest.class,
         TransactionTest.class, TransactionAtomicOperationTest.class,
-        StoresTest.class, TransactionGarbageCollectionTest.class })
+        TransactionGarbageCollectionTest.class })
 public class StoreSuite {
 
 }
