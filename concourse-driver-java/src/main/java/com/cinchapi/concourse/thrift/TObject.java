@@ -28,6 +28,7 @@ import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
@@ -42,6 +43,7 @@ import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.RegexPatterns;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
@@ -56,69 +58,6 @@ public class TObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<TObject> {
-
-    /**
-     * A constant representing the largest possible TObject. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    public static final TObject POSITIVE_INFINITY = Convert
-            .javaToThrift(Long.MAX_VALUE);
-
-    /**
-     * A constant representing the smallest possible TObject. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    public static final TObject NEGATIVE_INFINITY = Convert
-            .javaToThrift(Long.MIN_VALUE);
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-
-    /**
-     * Represents a null object that can be passed across the wire.
-     */
-    public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
-            Type.NULL);
-    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
-            "TObject");
-    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
-
-    /**
-     * The byte for UTF-8 whitespace.
-     */
-    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
-    static {
-        schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
-        schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
-    }
-
-    static {
-        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
-                _Fields.class);
-        tmpMap.put(_Fields.DATA,
-                new org.apache.thrift.meta_data.FieldMetaData("data",
-                        org.apache.thrift.TFieldRequirementType.REQUIRED,
-                        new org.apache.thrift.meta_data.FieldValueMetaData(
-                                org.apache.thrift.protocol.TType.STRING,
-                                true)));
-        tmpMap.put(_Fields.TYPE,
-                new org.apache.thrift.meta_data.FieldMetaData("type",
-                        org.apache.thrift.TFieldRequirementType.REQUIRED,
-                        new org.apache.thrift.meta_data.EnumMetaData(
-                                org.apache.thrift.protocol.TType.ENUM,
-                                Type.class)));
-        metaDataMap = Collections.unmodifiableMap(tmpMap);
-        org.apache.thrift.meta_data.FieldMetaData
-                .addStructMetaDataMap(TObject.class, metaDataMap);
-    }
 
     /**
      * Return a {@link Comparator} for {@link TObject} values.
@@ -186,6 +125,129 @@ public class TObject implements
                 }
             }
         };
+    }
+
+    /**
+     * Perform any necessary aliasing on the {@code values} and {@code operator}
+     * based on the combination of the two
+     * 
+     * @param operator
+     * @param values
+     * @return the aliased parameters
+     */
+    public static Aliases alias(Operator operator, TObject... values) {
+        // Transform the operator to its functional alias, given the
+        // transformations that will be made to the value(s).
+        Operator original = operator;
+        switch (operator) {
+        case LIKE:
+            operator = Operator.REGEX;
+            break;
+        case NOT_LIKE:
+            operator = Operator.NOT_REGEX;
+            break;
+        case LINKS_TO:
+            operator = Operator.EQUALS;
+            break;
+        default:
+            break;
+        }
+
+        // Transform the values based on the original operator, if necessary.
+        TObject[] ovalues = new TObject[values.length];
+        for (int i = 0; i < ovalues.length; ++i) {
+            TObject value = values[i];
+            try {
+                switch (original) {
+                case REGEX:
+                case NOT_REGEX:
+                case LIKE:
+                case NOT_LIKE:
+                    value = Convert.javaToThrift(
+                            ((String) Convert.thriftToJava(value)).replaceAll(
+                                    RegexPatterns.PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
+                                    ".*").replaceAll(
+                                            RegexPatterns.PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                            "%"));
+                    break;
+                case LINKS_TO:
+                    value = Convert.javaToThrift(
+                            Link.to(((Number) Convert.thriftToJava(value))
+                                    .longValue()));
+                    break;
+                default:
+                    break;
+                }
+
+            }
+            catch (ClassCastException e) {/* ignore */}
+            ovalues[i] = value;
+        }
+
+        return new Aliases(operator, ovalues);
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+
+    /**
+     * A constant representing the smallest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static final TObject NEGATIVE_INFINITY = Convert
+            .javaToThrift(Long.MIN_VALUE);
+    /**
+     * Represents a null object that can be passed across the wire.
+     */
+    public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
+            Type.NULL);
+
+    /**
+     * A constant representing the largest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static final TObject POSITIVE_INFINITY = Convert
+            .javaToThrift(Long.MAX_VALUE);
+
+    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+            "TObject");
+    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
+
+    /**
+     * The byte for UTF-8 whitespace.
+     */
+    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
+
+    static {
+        schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
+        schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
+    }
+
+    static {
+        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                _Fields.class);
+        tmpMap.put(_Fields.DATA,
+                new org.apache.thrift.meta_data.FieldMetaData("data",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRING,
+                                true)));
+        tmpMap.put(_Fields.TYPE,
+                new org.apache.thrift.meta_data.FieldMetaData("type",
+                        org.apache.thrift.TFieldRequirementType.REQUIRED,
+                        new org.apache.thrift.meta_data.EnumMetaData(
+                                org.apache.thrift.protocol.TType.ENUM,
+                                Type.class)));
+        metaDataMap = Collections.unmodifiableMap(tmpMap);
+        org.apache.thrift.meta_data.FieldMetaData
+                .addStructMetaDataMap(TObject.class, metaDataMap);
     }
 
     public ByteBuffer data; // required
@@ -580,6 +642,20 @@ public class TObject implements
     }
 
     /**
+     * Return the {@link Type} that is used for internal operations.
+     * 
+     * @return the internal type
+     */
+    protected Type getInternalType() { // visible for testing
+        if(type == Type.TAG) {
+            return Type.STRING;
+        }
+        else {
+            return getType();
+        }
+    }
+
+    /**
      * Return {@code true} of this {@link TObject} satisfies {@code operator} in
      * relation to the {@code values}.
      * 
@@ -592,6 +668,9 @@ public class TObject implements
      */
     private boolean is(BiFunction<TObject, TObject, Integer> comparer,
             Operator operator, TObject... values) {
+        Aliases aliases = alias(operator, values);
+        values = aliases.values();
+        operator = aliases.operator();
         TObject v1 = values[0];
         switch (operator) {
         case EQUALS:
@@ -645,20 +724,6 @@ public class TObject implements
     }
 
     /**
-     * Return the {@link Type} that is used for internal operations.
-     * 
-     * @return the internal type
-     */
-    protected Type getInternalType() { // visible for testing
-        if(type == Type.TAG) {
-            return Type.STRING;
-        }
-        else {
-            return getType();
-        }
-    }
-
-    /**
      * The set of fields this struct contains, along with convenience methods
      * for finding and manipulating them.
      */
@@ -669,14 +734,6 @@ public class TObject implements
          * @see Type
          */
         TYPE((short) 2, "type");
-
-        private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-        static {
-            for (_Fields field : EnumSet.allOf(_Fields.class)) {
-                byName.put(field.getFieldName(), field);
-            }
-        }
 
         /**
          * Find the _Fields constant that matches name, or null if its not
@@ -713,6 +770,14 @@ public class TObject implements
             return fields;
         }
 
+        private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+        static {
+            for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                byName.put(field.getFieldName(), field);
+            }
+        }
+
         private final String _fieldName;
         private final short _thriftId;
 
@@ -727,6 +792,46 @@ public class TObject implements
 
         public short getThriftFieldId() {
             return _thriftId;
+        }
+    }
+
+    /**
+     * A container class that holds operational parameters based on conversions
+     * in the {@link #alias(Operator, TObject[])} method.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public static final class Aliases {
+
+        private final Operator operator;
+        private final TObject[] values;
+
+        /**
+         * @param operator
+         * @param values
+         */
+        private Aliases(Operator operator, TObject[] values) {
+            this.operator = operator;
+            this.values = values;
+        }
+
+        /**
+         * Return the {@link #operator}.
+         * 
+         * @return the operator
+         */
+        public Operator operator() {
+            return operator;
+        }
+
+        /**
+         * Return the {@link #values}.
+         * 
+         * @return the values
+         */
+        public TObject[] values() {
+            return values;
         }
     }
 
