@@ -54,6 +54,20 @@ public class Token implements Byteable {
     }
 
     /**
+     * Return a {@link Token} that wraps the specified {@code key} and can be
+     * exchanged for a {@link SharedReadWriteLock} that provides more flexible
+     * concurrency controls.
+     * 
+     * @param object
+     * @return the {@link Token}
+     */
+    public static Token shareable(long object) {
+        Token token = wrap(object);
+        token.upgrade();
+        return token;
+    }
+
+    /**
      * Return a {@link Token} that wraps the specified {@code objects}.
      * 
      * @param objects
