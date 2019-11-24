@@ -240,8 +240,14 @@ public final class Stores {
             }
         }
         else {
-            Strategy strategy = new Strategy(Request.current(), store);
-            Source source = strategy.source(key, record);
+            Source source;
+            if(Request.isSet()) {
+                Strategy strategy = new Strategy(Request.current(), store);
+                source = strategy.source(key, record);
+            }
+            else {
+                source = Source.FIELD;
+            }         
             Set<TObject> values;
             if(source == Source.RECORD) {
                 // @formatter:off

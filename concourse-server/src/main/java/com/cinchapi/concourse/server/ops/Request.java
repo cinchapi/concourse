@@ -105,6 +105,8 @@ public final class Request {
      * Return a reference to the current {@link Request}.
      * 
      * @return the current {@link Request}
+     * @throws IllegalStateException if the {@link Request} {@link #isSet has
+     *             not been set}
      */
     @Nonnull
     public static Request current() {
@@ -115,6 +117,16 @@ public final class Request {
         else {
             throw new IllegalStateException("The current operation is null");
         }
+    }
+
+    /**
+     * Return a {@code boolean} that indicates whether the current
+     * {@link Request} has been set or not.
+     * 
+     * @return whether the {@link #current()} {@link Request} has been set
+     */
+    public static boolean isSet() {
+        return current.get() != null;
     }
 
     /**
