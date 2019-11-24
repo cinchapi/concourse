@@ -16,7 +16,6 @@
 package com.cinchapi.concourse;
 
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -330,8 +329,7 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(Supplier<Concourse> supplier, int poolSize) {
         this.supplier = supplier;
         this.available = buildQueue(poolSize);
-        this.leased = Collections
-                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
+        this.leased = Sets.newConcurrentHashSet();
         for (int i = 0; i < poolSize; ++i) {
             available.offer(supplier.get());
         }
@@ -414,8 +412,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     public void release(Concourse connection) {
         verifyOpenState();
         verifyValidOrigin(connection);
-        available.offer(connection);
         leased.remove(connection);
+        available.offer(connection);
     }
 
     /**
