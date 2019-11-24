@@ -195,6 +195,9 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            // CON-669: Must get a shareable write lock for the entire record to
+            // prevent conflicts with any wide reads
+            writes2Lock.add(Token.shareable(record));
         }
         writes2Lock.add(rangeToken);
         return super.add(key, value, record, true, true, false);
@@ -382,6 +385,9 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            // CON-669: Must get a shareable write lock for the entire record to
+            // prevent conflicts with any wide reads
+            writes2Lock.add(Token.shareable(record));
         }
         writes2Lock.add(rangeToken);
         return super.remove(key, value, record, true, true, false);
@@ -409,6 +415,9 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            // CON-669: Must get a shareable write lock for the entire record to
+            // prevent conflicts with any wide reads
+            writes2Lock.add(Token.shareable(record));
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record, false);
