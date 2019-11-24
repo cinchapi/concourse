@@ -58,8 +58,8 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
-public class AtomicOperation extends BufferedStore
-        implements VersionChangeListener {
+public class AtomicOperation extends BufferedStore implements
+        VersionChangeListener {
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in
@@ -195,9 +195,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            // CON-669: Must get a shareable write lock for the entire record to
-            // prevent conflicts with any wide reads
-            writes2Lock.add(Token.shareable(record));
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.add(key, value, record, true, true, false);
@@ -385,9 +386,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            // CON-669: Must get a shareable write lock for the entire record to
-            // prevent conflicts with any wide reads
-            writes2Lock.add(Token.shareable(record));
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.remove(key, value, record, true, true, false);
@@ -415,9 +417,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            // CON-669: Must get a shareable write lock for the entire record to
-            // prevent conflicts with any wide reads
-            writes2Lock.add(Token.shareable(record));
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record, false);
