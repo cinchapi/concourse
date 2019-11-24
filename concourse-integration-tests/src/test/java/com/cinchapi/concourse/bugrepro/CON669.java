@@ -34,40 +34,73 @@ import com.cinchapi.concourse.time.Time;
 public class CON669 extends ConcourseIntegrationTest {
 
     @Test
-    public void testConsistencyOfWideReadsWithConcurrentWrites() {
+    public void testConsistencyOfWideReadsWithConcurrentWrites()
+            throws Exception {
         int threads = 10;
         ConnectionPool connections = ConnectionPool.newCachedConnectionPool(
                 SERVER_HOST, SERVER_PORT, "admin", "admin");
-        client.set("count", 1L, 1);
-        AtomicBoolean done = new AtomicBoolean(false);
-        Thread reader = new Thread(() -> {
-            while (!done.get()) {
-                Concourse con = connections.request();
-                try {
-                    Assert.assertFalse(con.select(1).get("count").isEmpty());
-                }
-                finally {
-                    connections.release(con);
-                }
-            }
-        });
-        reader.start();
-        for (int i = 0; i < threads; ++i) {
-            Thread t = new Thread(() -> {
-                Concourse con = connections.request();
-                try {
-                    long expected = (long) con.select(1).get("count").iterator()
-                            .next();
-                    con.verifyAndSwap("count", expected, 1, Time.now());
-                }
-                finally {
-                    connections.release(con);
+        try {
+            client.set("count", 1L, 1);
+            AtomicBoolean done = new AtomicBoolean(false);
+            AtomicBoolean passed = new AtomicBoolean(true);
+            Thread reader = new Thread(() -> {
+                while (!done.get()) {
+                    Concourse con = connections.request();
+                    try {
+                        Assert.assertFalse(
+                                con.select(1).get("count").isEmpty());
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        passed.set(false);
+                    }
+                    finally {
+                        connections.release(con);
+                    }
                 }
             });
-            t.start();
+            reader.start();
+            for (int i = 0; i < threads; ++i) {
+                Thread t = new Thread(() -> {
+                    Concourse con = connections.request();
+                    try {
+                        long expected = (long) con.select(1).get("count")
+                                .iterator().next();
+                        con.verifyAndSwap("count", expected, 1, Time.now());
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                        passed.set(false);
+                    }
+                    finally {
+                        connections.release(con);
+                    }
+                });
+                t.start();
+            }
+            Threads.sleep(3000);
+            done.set(true);
+            Assert.assertFalse(passed.get());
         }
-        Threads.sleep(3000);
-        done.set(true);
+        finally {
+            connections.close();
+        }
+    }
+
+    @Test
+    public void testConcurrentAtomicWritesToDifferentKeysInRecord() {
+        Concourse client2 = Concourse.copyExistingConnection(client);
+        try {
+            client.stage();
+            client.add("a", "a", 1);
+            client2.stage();
+            client2.add("b", "b", 1);
+            Assert.assertTrue(client.commit());
+            Assert.assertTrue(client2.commit());
+        }
+        finally {
+            client2.exit();
+        }
     }
 
 }
