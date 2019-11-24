@@ -247,7 +247,7 @@ public final class Stores {
             }
             else {
                 source = Source.FIELD;
-            }         
+            }
             Set<TObject> values;
             if(source == Source.RECORD) {
                 // @formatter:off
