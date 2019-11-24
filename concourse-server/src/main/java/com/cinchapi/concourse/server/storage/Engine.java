@@ -376,7 +376,7 @@ public final class Engine extends BufferedStore
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        Token sharedToken = Token.wrap(record);
+        Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
@@ -436,7 +436,7 @@ public final class Engine extends BufferedStore
     @Override
     public Map<Long, String> audit(long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(record);
+        Lock read = lockService.getReadLock(Token.shareable(record));
         read.lock();
         try {
             return super.audit(record);
@@ -652,7 +652,7 @@ public final class Engine extends BufferedStore
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        Token sharedToken = Token.wrap(record);
+        Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
@@ -699,7 +699,7 @@ public final class Engine extends BufferedStore
     @Override
     public Map<String, Set<TObject>> select(long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(record);
+        Lock read = lockService.getReadLock(Token.shareable(record));
         read.lock();
         try {
             return super.select(record);
@@ -795,7 +795,7 @@ public final class Engine extends BufferedStore
 
     @Override
     public void set(String key, TObject value, long record) {
-        Token sharedToken = Token.wrap(record);
+        Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
