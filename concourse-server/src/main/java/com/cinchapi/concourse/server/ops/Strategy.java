@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.server.ops;
 
 import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.server.storage.Gatherable;
+import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
 
 /**
@@ -57,43 +59,46 @@ public class Strategy {
      *         {@code record}
      */
     public Source source(String key, long record) {
-        // Memory memory = store.memory();
-        // Source source;
-        // if(memory.contains(key, record)) {
-        // source = Source.FIELD;
-        // }
-        // else if(memory.contains(record)) {
-        // source = Source.RECORD;
-        // }
-        // else if(request.operationKeys().isEmpty()
-        // && !request.operation().startsWith("find")) {
-        // // The entire record is involved in the operation, so force the full
-        // // PrimaryRecord to be loaded.
-        // source = Source.RECORD;
-        // }
-        // else if(request.operationKeys().size() >= request.operationRecords()
-        // .size()) {
-        // source = Source.RECORD;
-        // }
-        // else if(!(store instanceof Gatherable)) {
-        // source = Source.FIELD;
-        // }
-        // // NOTE: the following conditions can only occur for a Gatherable
-        // store
-        // else if(memory.contains(key)) {
-        // source = Source.INDEX;
-        // }
-        // else if(request.conditionKeys().contains(key)) {
-        // source = Source.INDEX;
-        // }
-        // else if(request.operationKeys().size() < request.operationRecords()
-        // .size()) { // TODO: calibrate?
-        // source = Source.INDEX;
-        // }
-        // else {
-        // source = Source.FIELD;
-        // }
-        return Source.INDEX;
+        // TODO: this should take into account the fact that using the entire
+        // Record as the Source will cause a wide lock and prevent other
+        // writers. Furthermore, prefer the index over the entire record where
+        // possible since Gather is fast now.
+        Memory memory = store.memory();
+        Source source;
+        if(memory.contains(key, record)) {
+            source = Source.FIELD;
+        }
+        else if(memory.contains(record)) {
+            source = Source.RECORD;
+        }
+        else if(request.operationKeys().isEmpty()
+                && !request.operation().startsWith("find")) {
+            // The entire record is involved in the operation, so force the full
+            // PrimaryRecord to be loaded.
+            source = Source.RECORD;
+        }
+        else if(request.operationKeys().size() >= request.operationRecords()
+                .size()) {
+            source = Source.RECORD;
+        }
+        else if(!(store instanceof Gatherable)) {
+            source = Source.FIELD;
+        }
+        // NOTE: the following conditions can only occur for a Gatherable store
+        else if(memory.contains(key)) {
+            source = Source.INDEX;
+        }
+        else if(request.conditionKeys().contains(key)) {
+            source = Source.INDEX;
+        }
+        else if(request.operationKeys().size() < request.operationRecords()
+                .size()) { // TODO: calibrate?
+            source = Source.INDEX;
+        }
+        else {
+            source = Source.FIELD;
+        }
+        return source;
     }
 
     /**

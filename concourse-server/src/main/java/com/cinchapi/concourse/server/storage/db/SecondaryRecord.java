@@ -73,6 +73,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     .equalsIgnoreCase(v2.getObject().toString());
 
     /**
+     * A {@link Cube} that supports efficient {@link #gather(PrimaryKey)
+     * gathering}.
+     */
+    private final transient Cube cube = new Cube();
+
+    /**
      * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
      * {@link Record#createSecondaryRecordPartial(Text, Value)} instead.
      * 
@@ -142,11 +148,6 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         return explore(false, 0, operator, values).keySet();
     }
 
-    @Override
-    public void onAppend(Revision<Text, Value, PrimaryKey> revision) {
-        gatherCache.clear();
-    }
-
     /**
      * Return all the keys that map to {@code value}.
      * <p>
@@ -168,13 +169,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
     public Set<Value> gather(PrimaryKey record) {
         read.lock();
         try {
-            Map<PrimaryKey, Set<Value>> cache = gatherCache.get();
-            if(cache != null) {
-                return cache.getOrDefault(record, ImmutableSet.of());
-            }
-            else {
-                return gather(record, Time.NONE);
-            }
+            return gather(record, Time.NONE);
         }
         finally {
             read.unlock();
@@ -206,37 +201,51 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                 "Cannot gather from a partial Secondary Record.");
         read.lock();
         try {
-            boolean historical = timestamp != Time.NONE;
-            Set<Value> keys = Sets.newHashSet();
-            Set<Entry<Value, Set<PrimaryKey>>> entries = historical
-                    ? LazyTransformSet
-                            .of(history.keySet(),
-                                    key -> new AbstractMap.SimpleImmutableEntry<>(
-                                            key, get(key, timestamp)))
-                    : present.entrySet();
-            if(!historical) {
-                gatherCache = new SoftReference<>(Maps.newHashMap());
-            }
-            for (Entry<Value, Set<PrimaryKey>> entry : entries) {
-                Value key = entry.getKey();
-                Set<PrimaryKey> values = entry.getValue();
-                if(values.contains(record)) {
-                    keys.add(key);
-                }
-                for (PrimaryKey value : values) {
-                    if(value.equals(record)) {
+            Map<PrimaryKey, Set<Value>> slice = cube.slice(timestamp);
+            if(slice == null) {
+                Set<Value> keys = Sets.newHashSet();
+                Set<Entry<Value, Set<PrimaryKey>>> entries = timestamp != Time.NONE
+                        ? LazyTransformSet.of(history.keySet(),
+                                key -> new AbstractMap.SimpleImmutableEntry<>(
+                                        key, get(key, timestamp)))
+                        : present.entrySet();
+                for (Entry<Value, Set<PrimaryKey>> entry : entries) {
+                    Value key = entry.getKey();
+                    Set<PrimaryKey> values = entry.getValue();
+                    if(values.contains(record)) {
                         keys.add(key);
                     }
-                    if(!historical) {
-                        MultimapViews.put(gatherCache.get(), value, key);
+                    for (PrimaryKey value : values) {
+                        if(value.equals(record)) {
+                            keys.add(key);
+                        }
+                        cube.put(value, key, timestamp);
                     }
                 }
+                return keys;
             }
-            return keys;
+            else {
+                return slice.getOrDefault(record, ImmutableSet.of());
+            }
         }
         finally {
             read.unlock();
         }
+    }
+
+    @Override
+    protected Map<Value, List<CompactRevision<PrimaryKey>>> historyMapType() {
+        return new CoalescableTreeMap<>();
+    }
+
+    @Override
+    protected Map<Value, Set<PrimaryKey>> mapType() {
+        return new CoalescableTreeMap<>();
+    }
+
+    @Override
+    protected void onAppend(Revision<Text, Value, PrimaryKey> revision) {
+        cube.clear();
     }
 
     /**
@@ -451,17 +460,70 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         }
     }
 
-    @Override
-    protected Map<Value, List<CompactRevision<PrimaryKey>>> historyMapType() {
-        return new CoalescableTreeMap<>();
-    }
+    /**
+     * A {@link Cube} maps a {@link PrimaryKey value} to the set of {@link Value
+     * keys} that contain it at a specific timestamp. A {@link Cube} is used to
+     * facilitate efficient {@link #gather(PrimaryKey) gathering} of keys that
+     * contain values.
+     * <p>
+     * The {@link #slice(long)} method can be used to get a partition of the
+     * cube that contains a view of the gatherable data at a specific timestamp.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    private static class Cube {
 
-    @Override
-    protected Map<Value, Set<PrimaryKey>> mapType() {
-        return new CoalescableTreeMap<>();
-    }
+        // NOTE: At the moment, slicing is only supported for the present data.
+        // In the future, we may extend the Cube to hold slices for hot
+        // historical timestamps.
 
-    private transient SoftReference<Map<PrimaryKey, Set<Value>>> gatherCache = new SoftReference<>(
-            null);
+        /**
+         * The slice of present data.
+         */
+        private transient SoftReference<Map<PrimaryKey, Set<Value>>> slice = new SoftReference<>(
+                null);
+
+        /**
+         * Remove all the data in the cube.
+         */
+        public void clear() {
+            slice.clear();
+        }
+
+        /**
+         * Add the {@code value} in {@code record} at {@code timestamp} to the
+         * cube.
+         * 
+         * @param record
+         * @param value
+         * @param timestamp
+         */
+        public void put(PrimaryKey record, Value value, long timestamp) {
+            if(timestamp == Time.NONE) {
+                if(slice.get() == null) {
+                    slice = new SoftReference<>(Maps.newHashMap());
+                }
+                MultimapViews.put(slice.get(), record, value);
+            }
+        }
+
+        /**
+         * Return the cubed data at {@code timestamp}.
+         * 
+         * @param timestamp
+         * @return the cubed data, if it exists, otherwise {@code null}.
+         */
+        @Nullable
+        public Map<PrimaryKey, Set<Value>> slice(long timestamp) {
+            if(timestamp == Time.NONE) {
+                return slice.get();
+            }
+            else {
+                return null;
+            }
+        }
+
+    }
 
 }

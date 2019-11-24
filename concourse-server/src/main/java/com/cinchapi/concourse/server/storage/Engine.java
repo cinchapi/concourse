@@ -736,6 +736,31 @@ public final class Engine extends BufferedStore
     }
 
     @Override
+    public Set<TObject> gather(String key, long record) {
+        transportLock.readLock().lock();
+        Lock range = lockService.getReadLock(key, record);
+        range.lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            range.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public Set<TObject> select(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {

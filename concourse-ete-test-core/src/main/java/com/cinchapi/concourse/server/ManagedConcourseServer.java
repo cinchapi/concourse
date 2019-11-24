@@ -1091,11 +1091,6 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public void cancel() {
-            invoke("cancel", String.class).with();
-        }
-
-        @Override
         public <T> Map<Timestamp, Set<T>> chronologize(String key,
                 long record) {
             return invoke("chronologize", String.class, long.class).with(key,
