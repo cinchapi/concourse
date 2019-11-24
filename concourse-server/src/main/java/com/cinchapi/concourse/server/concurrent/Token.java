@@ -62,10 +62,7 @@ public class Token implements Byteable {
      * @return the {@link Token}
      */
     public static Token shareable(long object) {
-        ByteBuffer buf = ByteBuffer.allocate(8);
-        buf.putLong(object);
-        buf.flip();
-        Token token = new Token(buf);
+        Token token = wrap(object);
         token.upgrade();
         return token;
     }
