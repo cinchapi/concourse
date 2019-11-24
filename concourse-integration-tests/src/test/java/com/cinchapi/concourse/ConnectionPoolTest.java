@@ -25,7 +25,6 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;
-import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -166,7 +165,6 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
                     Concourse connection = connections.request();
                     try {
                         connection.add("name", "jeff");
-                        Random.tinySleep();
                     }
                     finally {
                         try {
@@ -182,7 +180,7 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
             t.start();
             threads.add(t);
         }
-        Threads.sleep(5000);
+        Threads.sleep(1000);
         done.set(true);
         Assert.assertTrue(passed.get());
         threads.forEach(t -> {
