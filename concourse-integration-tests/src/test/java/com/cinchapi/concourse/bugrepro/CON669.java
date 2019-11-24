@@ -62,18 +62,20 @@ public class CON669 extends ConcourseIntegrationTest {
             reader.start();
             for (int i = 0; i < threads; ++i) {
                 Thread t = new Thread(() -> {
-                    Concourse con = connections.request();
-                    try {
-                        long expected = (long) con.select(1).get("count")
-                                .iterator().next();
-                        con.verifyAndSwap("count", expected, 1, Time.now());
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                        passed.set(false);
-                    }
-                    finally {
-                        connections.release(con);
+                    while (!done.get()) {
+                        Concourse con = connections.request();
+                        try {
+                            long expected = (long) con.select(1).get("count")
+                                    .iterator().next();
+                            con.verifyAndSwap("count", expected, 1, Time.now());
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                            passed.set(false);
+                        }
+                        finally {
+                            connections.release(con);
+                        }
                     }
                 });
                 t.start();
@@ -83,7 +85,14 @@ public class CON669 extends ConcourseIntegrationTest {
             Assert.assertTrue(passed.get());
         }
         finally {
-            connections.close();
+            while (!connections.isClosed()) {
+                try {
+                    connections.close();
+                }
+                catch (IllegalStateException e) {
+                    Threads.sleep(100);
+                }
+            }
         }
     }
 
