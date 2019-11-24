@@ -80,7 +80,7 @@ public class CON669 extends ConcourseIntegrationTest {
             }
             Threads.sleep(3000);
             done.set(true);
-            Assert.assertFalse(passed.get());
+            Assert.assertTrue(passed.get());
         }
         finally {
             connections.close();
