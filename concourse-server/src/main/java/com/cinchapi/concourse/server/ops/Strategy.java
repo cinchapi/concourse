@@ -59,17 +59,10 @@ public class Strategy {
      *         {@code record}
      */
     public Source source(String key, long record) {
-        // TODO: this should take into account the fact that using the entire
-        // Record as the Source will cause a wide lock and prevent other
-        // writers. Furthermore, prefer the index over the entire record where
-        // possible since Gather is fast now.
         Memory memory = store.memory();
         Source source;
         if(memory.contains(key, record)) {
             source = Source.FIELD;
-        }
-        else if(memory.contains(record)) {
-            source = Source.RECORD;
         }
         else if(request.operationKeys().isEmpty()
                 && !request.operation().startsWith("find")) {
@@ -77,12 +70,15 @@ public class Strategy {
             // PrimaryRecord to be loaded.
             source = Source.RECORD;
         }
-        else if(request.operationKeys().size() >= request.operationRecords()
-                .size()) {
+        else if(request.operationKeys().isEmpty()
+                && request.operationRecords().isEmpty()
+                && request.operationKeys().size() >= request.operationRecords()
+                        .size()) {
+            // TODO: calibrate...may want the Field for this...
             source = Source.RECORD;
         }
         else if(!(store instanceof Gatherable)) {
-            source = Source.FIELD;
+            source = memory.contains(record) ? Source.RECORD : Source.FIELD;
         }
         // NOTE: the following conditions can only occur for a Gatherable store
         else if(memory.contains(key)) {
@@ -94,6 +90,9 @@ public class Strategy {
         else if(request.operationKeys().size() < request.operationRecords()
                 .size()) { // TODO: calibrate?
             source = Source.INDEX;
+        }
+        else if(memory.contains(record)) {
+            source = Source.RECORD;
         }
         else {
             source = Source.FIELD;
