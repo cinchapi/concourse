@@ -937,7 +937,6 @@ public abstract class ForwardingConcourse extends Concourse {
         return concourse.get(ccl, timestamp, page);
     }
 
-
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records) {
@@ -1031,20 +1030,18 @@ public abstract class ForwardingConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
-            Criteria criteria, Timestamp timestamp, Order order,
-            Page page) {
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return concourse.grab(keys, criteria, timestamp, order, page);
     }
 
     @Override
-    public <T> Map<String, Set<T>> grab(Collection<String> keys,
-            long record) {
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record) {
         return concourse.grab(keys, record);
     }
 
     @Override
-    public <T> Map<String, Set<T>> grab(Collection<String> keys,
-            long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record,
+            Timestamp timestamp) {
         return concourse.grab(keys, record, timestamp);
     }
 
@@ -1149,20 +1146,18 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order) {
         return concourse.grab(ccl, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Page page) {
         return concourse.grab(ccl, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order,
+            Page page) {
         return concourse.grab(ccl, order, page);
     }
 
@@ -1216,49 +1211,50 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria) {
         return concourse.grab(key, criteria);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Order order) {
         return concourse.grab(key, criteria, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Page page) {
         return concourse.grab(key, criteria, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Order order, Page page) {
         return concourse.grab(key, criteria, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp) {
         return concourse.grab(key, criteria, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Order order) {
         return concourse.grab(key, criteria, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Page page) {
         return concourse.grab(key, criteria, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return concourse.grab(key, criteria, timestamp, order, page);
     }
 
@@ -2035,158 +2031,146 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records) {
         return concourse.gather(records);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Order order) {
         return concourse.gather(records, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Page page) {
         return concourse.gather(records, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Order order, Page page) {
         return concourse.gather(records, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp) {
         return concourse.gather(records, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Order order) {
         return concourse.gather(records, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Page page) {
         return concourse.gather(records, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<Long> records, Timestamp timestamp, Order order,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
         return concourse.gather(records, timestamp, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records) {
         return concourse.gather(keys, records);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Order order) {
         return concourse.gather(keys, records, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Page page) {
         return concourse.gather(keys, records, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records, Order order,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
         return concourse.gather(keys, records, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp) {
         return concourse.gather(keys, records, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
         return concourse.gather(keys, records, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
         return concourse.gather(keys, records, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Collection<Long> records,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
         return concourse.gather(keys, records, timestamp, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria) {
         return concourse.gather(keys, criteria);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Order order) {
         return concourse.gather(keys, criteria, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Page page) {
         return concourse.gather(keys, criteria, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Order order,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
         return concourse.gather(keys, criteria, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp) {
         return concourse.gather(keys, criteria, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Timestamp timestamp,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
         return concourse.gather(keys, criteria, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Timestamp timestamp,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
         return concourse.gather(keys, criteria, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, Criteria criteria, Timestamp timestamp,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return concourse.gather(keys, criteria, timestamp, order, page);
     }
 
@@ -2197,108 +2181,103 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<String, Set<T>> gather(Collection<String> keys,
-            long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> gather(Collection<String> keys, long record,
+            Timestamp timestamp) {
         return concourse.gather(keys, record, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl) {
         return concourse.gather(keys, ccl);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Order order) {
         return concourse.gather(keys, ccl, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Page page) {
         return concourse.gather(keys, ccl, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Order order, Page page) {
         return concourse.gather(keys, ccl, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp) {
         return concourse.gather(keys, ccl, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Timestamp timestamp,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
         return concourse.gather(keys, ccl, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Timestamp timestamp,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
         return concourse.gather(keys, ccl, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Collection<String> keys, String ccl, Timestamp timestamp,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
         return concourse.gather(keys, ccl, timestamp, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria) {
         return concourse.gather(criteria);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Order order) {
         return concourse.gather(criteria, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Page page) {
         return concourse.gather(criteria, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Order order, Page page) {
         return concourse.gather(criteria, order, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp) {
         return concourse.gather(criteria, timestamp);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Order order) {
         return concourse.gather(criteria, timestamp, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Page page) {
         return concourse.gather(criteria, timestamp, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(
-            Criteria criteria, Timestamp timestamp, Order order,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
         return concourse.gather(criteria, timestamp, order, page);
     }
 
@@ -2308,8 +2287,7 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> gather(long record,
-            Timestamp timestamp) {
+    public Map<String, Set<Object>> gather(long record, Timestamp timestamp) {
         return concourse.gather(record, timestamp);
     }
 
@@ -2319,20 +2297,18 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Order order) {
         return concourse.gather(ccl, order);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Page page) {
         return concourse.gather(ccl, page);
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Order order,
+            Page page) {
         return concourse.gather(ccl, order, page);
     }
 
@@ -2429,8 +2405,7 @@ public abstract class ForwardingConcourse extends Concourse {
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(String key,
-            Criteria criteria, Timestamp timestamp, Order order,
-            Page page) {
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return concourse.gather(key, criteria, timestamp, order, page);
     }
 

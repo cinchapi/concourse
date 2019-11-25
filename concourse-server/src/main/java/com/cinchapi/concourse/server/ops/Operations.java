@@ -657,7 +657,7 @@ public final class Operations {
                 TObject tobject = Iterables
                         .getLast(Stores.select(store, key, record, timestamp));
 
-                if (tobject.type == Type.LINK) {
+                if(tobject.type == Type.LINK) {
                     Link link = (Link) Convert.thriftToJava(tobject);
                     Set<String> linkKeys = store.describe(link.longValue());
 
@@ -707,8 +707,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        grabRecordsOptionalAtomic(records, timestamp, result, streamer, consumer,
-                atomic);
+        grabRecordsOptionalAtomic(records, timestamp, result, streamer,
+                consumer, atomic);
     }
 
     /**
@@ -760,8 +760,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        grabKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
-                consumer, atomic);
+        grabKeysRecordsOptionalAtomic(keys, records, timestamp, result,
+                streamer, consumer, atomic);
     }
 
     /**
@@ -781,8 +781,8 @@ public final class Operations {
             Collection<String> keys, Collection<Long> records, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        grabKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
-                consumer, atomic);
+        grabKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
+                streamer, consumer, atomic);
     }
 
     /**
@@ -813,19 +813,19 @@ public final class Operations {
             for (String key : keys) {
                 try {
                     TObject tobject = Iterables.getLast(
-                            Stores.select(store, key, record, timestamp), TObject.NULL);
+                            Stores.select(store, key, record, timestamp),
+                            TObject.NULL);
 
-                    if (tobject.type == Type.LINK) {
+                    if(tobject.type == Type.LINK) {
                         Link link = (Link) Convert.thriftToJava(tobject);
                         Set<String> linkKeys = store.describe(link.longValue());
 
                         for (String linkKey : linkKeys) {
                             try {
                                 Set<TObject> union = entry.get(linkKey);
-                                if (union != null) {
+                                if(union != null) {
                                     union.addAll(Stores.select(store, linkKey,
-                                            link.longValue(),
-                                            timestamp));
+                                            link.longValue(), timestamp));
 
                                     entry.put(linkKey, union);
                                 }
@@ -841,7 +841,8 @@ public final class Operations {
                             }
                         }
                         if(!entry.isEmpty()) {
-                            TMaps.putResultDatasetOptimized(result, record, entry);
+                            TMaps.putResultDatasetOptimized(result, record,
+                                    entry);
                         }
 
                     }
@@ -876,8 +877,8 @@ public final class Operations {
             Set<Long> records, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        grabRecordsOptionalAtomic(records, Time.NONE, result, streamer, consumer,
-                atomic);
+        grabRecordsOptionalAtomic(records, Time.NONE, result, streamer,
+                consumer, atomic);
     }
 
     /**
@@ -900,7 +901,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        for (long record : streamer != null ? streamer.apply(records) : records) {
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
             Set<String> keys = store.describe(record);
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
@@ -916,10 +918,9 @@ public final class Operations {
                         for (String linkKey : linkKeys) {
                             try {
                                 Set<TObject> union = entry.get(linkKey);
-                                if (union != null) {
+                                if(union != null) {
                                     union.addAll(Stores.select(store, linkKey,
-                                            link.longValue(),
-                                            timestamp));
+                                            link.longValue(), timestamp));
 
                                     entry.put(linkKey, union);
                                 }
@@ -962,7 +963,8 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<String, Set<TObject>>> void grabKeysRecordAtomic(
-            Collection<String> keys, long record, M result, AtomicOperation atomic) {
+            Collection<String> keys, long record, M result,
+            AtomicOperation atomic) {
         grabKeysRecordOptionalAtomic(keys, record, Time.NONE, result, atomic);
     }
 
@@ -1001,8 +1003,8 @@ public final class Operations {
                                 result.put(linkKey, union);
                             }
                             else {
-                                result.put(linkKey, Stores.select(store, linkKey,
-                                        link.longValue(), timestamp));
+                                result.put(linkKey, Stores.select(store,
+                                        linkKey, link.longValue(), timestamp));
                             }
                         }
                         catch (NoSuchElementException e) {
@@ -1669,8 +1671,8 @@ public final class Operations {
             String key, Collection<Long> records, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        gatherKeyRecordsOptionalAtomic(key, records, Time.NONE, result, streamer,
-                consumer, atomic);
+        gatherKeyRecordsOptionalAtomic(key, records, Time.NONE, result,
+                streamer, consumer, atomic);
     }
 
     /**
@@ -1697,10 +1699,10 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             try {
-                Set<TObject> tobjects = Stores.select(store, key, record, timestamp);
-                Map<String, Set<TObject>> entry =  Maps.newConcurrentMap();
-                for(TObject tobject : tobjects)
-                {
+                Set<TObject> tobjects = Stores.select(store, key, record,
+                        timestamp);
+                Map<String, Set<TObject>> entry = Maps.newConcurrentMap();
+                for (TObject tobject : tobjects) {
                     if(tobject.type == Type.LINK) {
                         Link link = (Link) Convert.thriftToJava(tobject);
                         Set<String> linkKeys = store.describe(link.longValue());
@@ -1709,10 +1711,8 @@ public final class Operations {
                             try {
                                 Set<TObject> union = entry.get(linkKey);
                                 if(union != null) {
-                                    union.addAll(
-                                            Stores.select(store, linkKey,
-                                                    link.longValue(),
-                                                    timestamp));
+                                    union.addAll(Stores.select(store, linkKey,
+                                            link.longValue(), timestamp));
 
                                     entry.put(linkKey, union);
                                 }
@@ -1766,8 +1766,8 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
         Set<Long> records = ast.accept(Finder.instance(), atomic);
-        grabKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
-                consumer, atomic);
+        grabKeysRecordsOptionalAtomic(keys, records, timestamp, result,
+                streamer, consumer, atomic);
     }
 
     /**
@@ -1787,8 +1787,8 @@ public final class Operations {
             Collection<String> keys, Collection<Long> records, M result,
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        gatherKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
-                consumer, atomic);
+        gatherKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
+                streamer, consumer, atomic);
     }
 
     /**
@@ -1812,27 +1812,28 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        for (long record : streamer != null ? streamer.apply(records) : records) {
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    Set<TObject> tobjects = Stores
-                            .select(store, key, record, timestamp);
+                    Set<TObject> tobjects = Stores.select(store, key, record,
+                            timestamp);
 
                     for (TObject tobject : tobjects) {
                         if(tobject.type == Type.LINK) {
                             Link link = (Link) Convert.thriftToJava(tobject);
-                            Set<String> linkKeys = store.describe(link.longValue());
+                            Set<String> linkKeys = store
+                                    .describe(link.longValue());
 
                             for (String linkKey : linkKeys) {
                                 try {
                                     Set<TObject> union = entry.get(linkKey);
                                     if(union != null) {
-                                        union.addAll(
-                                                Stores.select(store, linkKey,
-                                                        link.longValue(),
-                                                        timestamp));
+                                        union.addAll(Stores.select(store,
+                                                linkKey, link.longValue(),
+                                                timestamp));
 
                                         entry.put(linkKey, union);
                                     }
@@ -1908,33 +1909,37 @@ public final class Operations {
             @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
             @Nullable Consumer<M> consumer, Store store) {
         result.clear();
-        for (long record : streamer != null ? streamer.apply(records) : records) {
+        for (long record : streamer != null ? streamer.apply(records)
+                : records) {
             Set<String> keys = store.describe(record);
             Map<String, Set<TObject>> entry = TMaps
                     .newLinkedHashMapWithCapacity(keys.size());
             for (String key : keys) {
                 try {
-                    Set<TObject> tobjects = Stores.select(store, key, record, timestamp);
+                    Set<TObject> tobjects = Stores.select(store, key, record,
+                            timestamp);
 
-                    for(TObject tobject : tobjects) {
+                    for (TObject tobject : tobjects) {
                         if(tobject.type == Type.LINK) {
                             Link link = (Link) Convert.thriftToJava(tobject);
-                            Set<String> linkKeys = store.describe(link.longValue());
+                            Set<String> linkKeys = store
+                                    .describe(link.longValue());
 
                             for (String linkKey : linkKeys) {
                                 try {
                                     Set<TObject> union = entry.get(linkKey);
                                     if(union != null) {
-                                        union.addAll(
-                                                Stores.select(store, linkKey,
-                                                        link.longValue(), timestamp));
+                                        union.addAll(Stores.select(store,
+                                                linkKey, link.longValue(),
+                                                timestamp));
 
                                         entry.put(linkKey, union);
                                     }
                                     else {
                                         entry.put(linkKey,
                                                 Stores.select(store, linkKey,
-                                                        link.longValue(), timestamp));
+                                                        link.longValue(),
+                                                        timestamp));
                                     }
                                 }
                                 catch (NoSuchElementException e) {
@@ -1970,7 +1975,8 @@ public final class Operations {
      * @param atomic the store from which data is retrieved
      */
     public static <M extends Map<String, Set<TObject>>> void gatherKeysRecordAtomic(
-            Collection<String> keys, long record, M result, AtomicOperation atomic) {
+            Collection<String> keys, long record, M result,
+            AtomicOperation atomic) {
         grabKeysRecordOptionalAtomic(keys, record, Time.NONE, result, atomic);
     }
 
@@ -1990,22 +1996,21 @@ public final class Operations {
         result.clear();
         for (String key : keys) {
             try {
-                Set<TObject> tobjects = Stores.select(store, key, record, timestamp);
+                Set<TObject> tobjects = Stores.select(store, key, record,
+                        timestamp);
 
                 for (TObject tobject : tobjects) {
                     if(tobject.type == Type.LINK) {
                         Link link = (Link) Convert.thriftToJava(tobject);
-                        Set<String> linkKeys = store
-                                .describe(link.longValue(), timestamp);
+                        Set<String> linkKeys = store.describe(link.longValue(),
+                                timestamp);
 
                         for (String linkKey : linkKeys) {
                             try {
                                 Set<TObject> union = result.get(linkKey);
                                 if(union != null) {
-                                    union.addAll(
-                                            Stores.select(store, linkKey,
-                                                    link.longValue(),
-                                                    timestamp));
+                                    union.addAll(Stores.select(store, linkKey,
+                                            link.longValue(), timestamp));
 
                                     result.put(linkKey, union);
                                 }

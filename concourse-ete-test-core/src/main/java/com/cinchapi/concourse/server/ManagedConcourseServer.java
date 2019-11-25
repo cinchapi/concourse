@@ -2097,8 +2097,8 @@ public class ManagedConcourseServer {
         @Override
         public <T> Map<Long, Map<String, T>> grab(Criteria criteria,
                 Timestamp timestamp) {
-            return invoke("grab", Criteria.class, Timestamp.class).with(criteria,
-                    timestamp);
+            return invoke("grab", Criteria.class, Timestamp.class)
+                    .with(criteria, timestamp);
         }
 
         @Override

@@ -2245,9 +2245,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecords(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysRecords(Collections.toList(keys),
+                            Collections.toLongList(records), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2256,10 +2257,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsOrder(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(order),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysRecordsOrder(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2268,10 +2270,12 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsOrderPage(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(order), JavaThriftBridge.convert(page),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysRecordsOrderPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2280,10 +2284,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsPage(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysRecordsPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2313,13 +2318,15 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysRecordsTimestrOrder(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTimestrOrder(
+                        Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
             }
             else {
-                data = navigate.grabKeysRecordsTimeOrder(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTimeOrder(
+                        Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
@@ -2360,13 +2367,15 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysRecordsTimestrPage(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTimestrPage(
+                        Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
             else {
-                data = navigate.grabKeysRecordsTimePage(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTimePage(
+                        Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -2379,10 +2388,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteria(
-                    Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria), creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCriteria(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria), creds,
+                            transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2391,11 +2400,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaOrder(
-                    Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCriteriaOrder(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2404,12 +2413,12 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaOrderPage(
-                    Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCriteriaOrderPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2418,11 +2427,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaPage(
-                    Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCriteriaPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2433,7 +2442,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCriteriaTimestr(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimestr(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
@@ -2452,13 +2462,15 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCriteriaTimestrOrder(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimestrOrder(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), JavaThriftBridge.convert(order),
                         creds, transaction, environment);
             }
             else {
-                data = navigate.grabKeysCriteriaTimeOrder(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimeOrder(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), JavaThriftBridge.convert(order),
                         creds, transaction, environment);
@@ -2473,14 +2485,16 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCriteriaTimestrOrderPage(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimestrOrderPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
             else {
-                data = navigate.grabKeysCriteriaTimeOrderPage(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimeOrderPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
@@ -2496,13 +2510,15 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCriteriaTimestrPage(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimestrPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), JavaThriftBridge.convert(page),
                         creds, transaction, environment);
             }
             else {
-                data = navigate.grabKeysCriteriaTimePage(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimePage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), JavaThriftBridge.convert(page),
                         creds, transaction, environment);
@@ -2534,8 +2550,9 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             else {
-                data = navigate.grabKeysRecordTime(Collections.toList(keys), record,
-                        timestamp.getMicros(), creds, transaction, environment);
+                data = navigate.grabKeysRecordTime(Collections.toList(keys),
+                        record, timestamp.getMicros(), creds, transaction,
+                        environment);
             }
             return DataRow.multiValued(data);
         });
@@ -2556,10 +2573,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclOrder(
-                    Collections.toList(keys), ccl,
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCclOrder(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2568,11 +2585,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclOrderPage(
-                    Collections.toList(keys), ccl,
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCclOrderPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2581,10 +2598,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclPage(
-                    Collections.toList(keys), ccl,
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeysCclPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2595,8 +2612,9 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCclTimestr(Collections.toList(keys), ccl,
-                        timestamp.toString(), creds, transaction, environment);
+                data = navigate.grabKeysCclTimestr(Collections.toList(keys),
+                        ccl, timestamp.toString(), creds, transaction,
+                        environment);
             }
             else {
                 data = navigate.grabKeysCclTime(Collections.toList(keys), ccl,
@@ -2656,8 +2674,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeysCclTimestrPage(
-                        Collections.toList(keys), ccl, timestamp.toString(),
+                data = navigate.grabKeysCclTimestrPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -2682,36 +2700,41 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaOrder(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabCriteriaOrder(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Order order,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabCriteriaOrderPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaOrderPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-            return DataTable.multiValued(data);
-        });
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Page page) {
-        return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabCriteriaPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2803,8 +2826,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCcl(ccl, creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCcl(ccl,
+                    creds, transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2812,8 +2835,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclOrder(ccl,
-                    JavaThriftBridge.convert(order), creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclOrder(
+                    ccl, JavaThriftBridge.convert(order), creds, transaction,
                     environment);
             return DataTable.multiValued(data);
         });
@@ -2823,10 +2846,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclOrderPage(
-                    ccl, JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabCclOrderPage(ccl, JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -2834,8 +2857,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclPage(ccl,
-                    JavaThriftBridge.convert(page), creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclPage(
+                    ccl, JavaThriftBridge.convert(page), creds, transaction,
                     environment);
             return DataTable.multiValued(data);
         });
@@ -2843,10 +2866,11 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecords(key,
-                    Collections.toLongList(records), creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecords(
+                    key, Collections.toLongList(records), creds, transaction,
                     environment);
             return DataTable.multiValued(data);
         });
@@ -2854,46 +2878,49 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsOrder(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyRecordsOrder(key, Collections.toLongList(records),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsOrderPage(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyRecordsOrderPage(key,
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsPage(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyRecordsPage(key, Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -2912,8 +2939,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -2934,8 +2961,9 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -2958,8 +2986,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Collection<Long> records, Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -2980,57 +3008,64 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteria(key,
-                    Language.translateToThriftCriteria(criteria), creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCriteria(key,
+                            Language.translateToThriftCriteria(criteria), creds,
+                            transaction, environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaOrder(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCriteriaOrder(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Order order,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaOrderPage(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCriteriaOrderPage(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaPage(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCriteriaPage(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3049,8 +3084,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3071,8 +3106,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3095,8 +3130,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key,
+            Criteria criteria, Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3119,16 +3154,16 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<String, Set<T>> grab(String key, long record) {
         return execute(() -> {
-            Map<String, Set<TObject>> data = navigate.grabKeyRecord(
-                    key, record, creds, transaction,
-                    environment);
+            Map<String, Set<TObject>> data = navigate.grabKeyRecord(key, record,
+                    creds, transaction, environment);
             return DataRow.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, Set<T>> grab(String key, long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> grab(String key, long record,
+            Timestamp timestamp) {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
@@ -3147,7 +3182,45 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCcl(key, ccl, creds,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCcl(key,
+                    ccl, creds, transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCclOrder(key, ccl, JavaThriftBridge.convert(order),
+                            creds, transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .grabKeyCclOrderPage(key, ccl,
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclPage(
+                    key, ccl, JavaThriftBridge.convert(page), creds,
                     transaction, environment);
             return DataTable.multiValued(data);
         });
@@ -3155,47 +3228,13 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Order order) {
-        return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclOrder(key, ccl,
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
-            return DataTable.multiValued(data);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Order order,
-            Page page) {
-        return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclOrderPage(key, ccl,
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-            return DataTable.multiValued(data);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Page page) {
-        return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclPage(key, ccl,
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-            return DataTable.multiValued(data);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabKeyCclTimestr(key, ccl, timestamp.toString(),
-                        creds, transaction, environment);
+                data = navigate.grabKeyCclTimestr(key, ccl,
+                        timestamp.toString(), creds, transaction, environment);
             }
             else {
                 data = navigate.grabKeyCclTime(key, ccl, timestamp.getMicros(),
@@ -3207,8 +3246,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3227,8 +3266,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3249,8 +3288,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3268,7 +3307,8 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -3284,32 +3324,32 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.grabCclTimestrOrder(ccl, timestamp.toString(),
-                        JavaThriftBridge.convert(order), creds,
-                        transaction, environment);
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
             else {
                 data = navigate.grabCclTimeOrder(ccl, timestamp.getMicros(),
-                        JavaThriftBridge.convert(order), creds,
-                        transaction, environment);
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.grabCclTimestrOrderPage(ccl, timestamp.toString(),
-                        JavaThriftBridge.convert(order),
+                data = navigate.grabCclTimestrOrderPage(ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -3324,19 +3364,19 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.grabCclTimestrPage(ccl, timestamp.toString(),
-                        JavaThriftBridge.convert(page), creds,
-                        transaction, environment);
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
             }
             else {
                 data = navigate.grabCclTimePage(ccl, timestamp.getMicros(),
-                        JavaThriftBridge.convert(page), creds,
-                        transaction, environment);
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
             }
             return DataTable.multiValued(data);
         });
@@ -5106,10 +5146,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
             Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherRecordsOrder(
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherRecordsOrder(Collections.toLongList(records),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5131,10 +5171,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherRecordsPage(
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherRecordsPage(Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5150,8 +5190,9 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             else {
-                data = navigate.gatherRecordsTime(Collections.toLongList(records),
-                        timestamp.getMicros(), creds, transaction, environment);
+                data = navigate.gatherRecordsTime(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -5226,9 +5267,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecords(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysRecords(Collections.toList(keys),
+                            Collections.toLongList(records), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5237,10 +5279,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsOrder(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysRecordsOrder(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5249,11 +5292,12 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsOrderPage(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysRecordsOrderPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5262,10 +5306,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsPage(
-                    Collections.toList(keys), Collections.toLongList(records),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysRecordsPage(Collections.toList(keys),
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5276,7 +5321,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysRecordsTimestr(Collections.toList(keys),
+                data = navigate.gatherKeysRecordsTimestr(
+                        Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
@@ -5365,10 +5411,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data =
-                    navigate.gatherKeysCriteria(Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria), creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCriteria(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria), creds,
+                            transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5377,11 +5423,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data =
-                    navigate.gatherKeysCriteriaOrder(Collections.toList(keys),
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCriteriaOrder(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5390,8 +5436,8 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data =
-                    navigate.gatherKeysCriteriaOrderPage(Collections.toList(keys),
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCriteriaOrderPage(Collections.toList(keys),
                             Language.translateToThriftCriteria(criteria),
                             JavaThriftBridge.convert(order),
                             JavaThriftBridge.convert(page), creds, transaction,
@@ -5400,13 +5446,12 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data =
-                    navigate.gatherKeysCriteriaPage(Collections.toList(keys),
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCriteriaPage(Collections.toList(keys),
                             Language.translateToThriftCriteria(criteria),
                             JavaThriftBridge.convert(page), creds, transaction,
                             environment);
@@ -5439,18 +5484,18 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCriteriaTimestrOrder(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimestrOrder(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(order), creds, transaction,
-                        environment);
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
             else {
-                data = core.selectKeysCriteriaTimeOrder(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimeOrder(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(order), creds, transaction,
-                        environment);
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -5462,18 +5507,18 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCriteriaTimestrOrderPage(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimestrOrderPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(order),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
             else {
-                data = core.selectKeysCriteriaTimeOrderPage(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimeOrderPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(order),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -5487,18 +5532,17 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = core.selectKeysCriteriaTimestrPage(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimestrPage(
+                        Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             else {
                 data = core.selectKeysCriteriaTimePage(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -5521,9 +5565,9 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysRecordTimestr(Collections.toList(keys),
-                        record, timestamp.toString(), creds, transaction,
-                        environment);
+                data = navigate.gatherKeysRecordTimestr(
+                        Collections.toList(keys), record, timestamp.toString(),
+                        creds, transaction, environment);
             }
             else {
                 data = navigate.gatherKeysRecordTime(Collections.toList(keys),
@@ -5549,10 +5593,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclOrder(
-                    Collections.toList(keys), ccl,
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCclOrder(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5561,11 +5605,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclOrderPage(
-                    Collections.toList(keys), ccl,
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCclOrderPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5574,10 +5618,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclPage(
-                    Collections.toList(keys),
-                    ccl, JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeysCclPage(Collections.toList(keys), ccl,
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5588,8 +5632,9 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysCclTimestr(Collections.toList(keys), ccl,
-                        timestamp.toString(), creds, transaction, environment);
+                data = navigate.gatherKeysCclTimestr(Collections.toList(keys),
+                        ccl, timestamp.toString(), creds, transaction,
+                        environment);
             }
             else {
                 data = navigate.gatherKeysCclTime(Collections.toList(keys), ccl,
@@ -5605,8 +5650,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysCclTimestrOrder(Collections.toList(keys),
-                        ccl, timestamp.toString(),
+                data = navigate.gatherKeysCclTimestrOrder(
+                        Collections.toList(keys), ccl, timestamp.toString(),
                         JavaThriftBridge.convert(order), creds, transaction,
                         environment);
             }
@@ -5626,15 +5671,15 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysCclTimestrOrderPage(Collections.toList(keys),
-                        ccl, timestamp.toString(),
+                data = navigate.gatherKeysCclTimestrOrderPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
                         JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
             else {
-                data = navigate.gatherKeysCclTimeOrderPage(Collections.toList(keys),
-                        ccl, timestamp.getMicros(),
+                data = navigate.gatherKeysCclTimeOrderPage(
+                        Collections.toList(keys), ccl, timestamp.getMicros(),
                         JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
@@ -5643,15 +5688,14 @@ class ConcourseThriftDriver extends Concourse {
         });
     }
 
-
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeysCclTimestrPage(Collections.toList(keys),
-                        ccl, timestamp.toString(),
+                data = navigate.gatherKeysCclTimestrPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -5664,7 +5708,6 @@ class ConcourseThriftDriver extends Concourse {
             return DataTable.multiValued(data);
         });
     }
-
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria) {
@@ -5680,10 +5723,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
             Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaOrder(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherCriteriaOrder(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5692,11 +5736,12 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
             Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaOrderPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherCriteriaOrderPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5705,10 +5750,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherCriteriaPage(
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5800,8 +5846,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<String, Set<T>> gather(long record) {
         return execute(() -> {
-            Map<String, Set<TObject>> data = navigate.gatherRecord(record, creds,
-                    transaction, environment);
+            Map<String, Set<TObject>> data = navigate.gatherRecord(record,
+                    creds, transaction, environment);
             Map<String, Set<Object>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Key", "Values");
             return DataRow.multiValued(data);
@@ -5813,8 +5859,8 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherRecordTimestr(record, timestamp.toString(),
-                        creds, transaction, environment);
+                data = navigate.gatherRecordTimestr(record,
+                        timestamp.toString(), creds, transaction, environment);
             }
             else {
                 data = navigate.gatherRecordTime(record, timestamp.getMicros(),
@@ -5847,10 +5893,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Order order,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCclOrderPage(
-                    ccl, JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherCclOrderPage(ccl, JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
@@ -5866,55 +5912,57 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecords(key,
-                    Collections.toLongList(records), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyRecords(key, Collections.toLongList(records),
+                            creds, transaction, environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsOrder(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyRecordsOrder(key, Collections.toLongList(records),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsOrderPage(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyRecordsOrderPage(key,
+                            Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsPage(key,
-                    Collections.toLongList(records),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyRecordsPage(key, Collections.toLongList(records),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -5932,8 +5980,8 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -5953,8 +6001,9 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -5976,8 +6025,8 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -5997,55 +6046,60 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteria(key,
-                    Language.translateToThriftCriteria(criteria), creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCriteria(key,
+                            Language.translateToThriftCriteria(criteria), creds,
+                            transaction, environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaOrder(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCriteriaOrder(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Order order, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaOrderPage(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCriteriaOrderPage(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaPage(key,
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCriteriaPage(key,
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
@@ -6063,46 +6117,42 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Timestamp timestamp, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.gatherKeyCriteriaTimestrOrder(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(order), creds, transaction,
-                        environment);
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
             else {
                 data = navigate.gatherKeyCriteriaTimeOrder(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(order), creds, transaction,
-                        environment);
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Timestamp timestamp, Order order, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.gatherKeyCriteriaTimestrOrderPage(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(order),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
             else {
                 data = navigate.gatherKeyCriteriaTimeOrderPage(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(order),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
                         JavaThriftBridge.convert(page), creds, transaction,
                         environment);
             }
@@ -6111,23 +6161,21 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
-            Timestamp timestamp, Page page) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Criteria criteria, Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.gatherKeyCriteriaTimestrPage(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.toString(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             else {
                 data = navigate.gatherKeyCriteriaTimePage(key,
                         Language.translateToThriftCriteria(criteria),
-                        timestamp.getMicros(),
-                        JavaThriftBridge.convert(page), creds, transaction,
-                        environment);
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -6136,14 +6184,15 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<String, Set<T>> gather(String key, long record) {
         return execute(() -> {
-            Map<String, Set<TObject>> data = navigate.gatherKeyRecord(key, record, creds,
-                    transaction, environment);
+            Map<String, Set<TObject>> data = navigate.gatherKeyRecord(key,
+                    record, creds, transaction, environment);
             return DataRow.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<String, Set<T>> gather(String key, long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> gather(String key, long record,
+            Timestamp timestamp) {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
@@ -6161,40 +6210,44 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCcl(key, ccl, creds,
-                    transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCcl(key, ccl, creds, transaction, environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Order order) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Order order) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclOrder(key, ccl,
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCclOrder(key, ccl,
+                            JavaThriftBridge.convert(order), creds, transaction,
+                            environment);
             return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Order order,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCclOrderPage(key, ccl,
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
             Page page) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclOrderPage(key, ccl,
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-            return DataTable.multiValued(data);
-        });
-    }
-
-    @Override
-    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Page page) {
-        return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclPage(key, ccl,
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherKeyCclPage(key, ccl, JavaThriftBridge.convert(page),
+                            creds, transaction, environment);
             return DataTable.multiValued(data);
         });
     }
@@ -6205,12 +6258,12 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                data = navigate.gatherKeyCclTimestr(key, ccl, timestamp.toString(),
-                        creds, transaction, environment);
+                data = navigate.gatherKeyCclTimestr(key, ccl,
+                        timestamp.toString(), creds, transaction, environment);
             }
             else {
-                data = navigate.gatherKeyCclTime(key, ccl, timestamp.getMicros(),
-                        creds, transaction, environment);
+                data = navigate.gatherKeyCclTime(key, ccl,
+                        timestamp.getMicros(), creds, transaction, environment);
             }
             return DataTable.multiValued(data);
         });
@@ -6249,7 +6302,8 @@ class ConcourseThriftDriver extends Concourse {
             else {
                 data = navigate.gatherKeyCclTimeOrderPage(key, ccl,
                         timestamp.getMicros(), JavaThriftBridge.convert(order),
-                        JavaThriftBridge.convert(page), creds, transaction, environment);
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
             }
             return DataTable.multiValued(data);
         });
@@ -6281,8 +6335,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
                 data = navigate.gatherCclTimestr(ccl, timestamp.toString(),
-                        creds,
-                        transaction, environment);
+                        creds, transaction, environment);
             }
             else {
                 data = navigate.gatherCclTime(ccl, timestamp.getMicros(), creds,
@@ -6350,6 +6403,7 @@ class ConcourseThriftDriver extends Concourse {
             return DataTable.multiValued(data);
         });
     }
+
     @Override
     public void set(String key, Object value, Collection<Long> records) {
         execute(() -> {

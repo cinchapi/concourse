@@ -37,8 +37,6 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import com.cinchapi.concourse.thrift.JavaThriftBridge;
-import com.cinchapi.concourse.util.Navigation;
 import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
@@ -3622,8 +3620,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabCcl(String ccl, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabCcl(String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabCclOrder(ccl, NO_ORDER, creds, transaction, environment);
     }
@@ -3632,9 +3630,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabCclOrder(String ccl, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabCclOrder(String ccl,
+            TOrder order, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
@@ -3671,8 +3669,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> grabCclPage(String ccl,
             TPage page, AccessToken creds, TransactionToken transaction,
-            String environment)
-            throws TException {
+            String environment) throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
@@ -3725,7 +3722,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             throw new ParseException(e.getMessage());
         }
     }
-
 
     @Override
     @ThrowsClientExceptions
@@ -3783,9 +3779,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabCclTimestrOrderPage(String ccl,
-            String timestamp, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabCclTimestrOrderPage(
+            String ccl, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabCclTimeOrderPage(ccl, NaturalLanguage.parseMicros(timestamp),
                 order, page, creds, transaction, environment);
@@ -3797,8 +3793,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return grabCclTimePage(ccl, NaturalLanguage.parseMicros(timestamp), page,
-                creds, transaction, environment);
+        return grabCclTimePage(ccl, NaturalLanguage.parseMicros(timestamp),
+                page, creds, transaction, environment);
     }
 
     @Override
@@ -3814,16 +3810,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabCriteriaOrder(TCriteria criteria,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabCriteriaOrder(
+            TCriteria criteria, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.grabAstAtomic(ast, Time.NONE, result,
-                        null,
+                atomic -> Operations.grabAstAtomic(ast, Time.NONE, result, null,
                         $result -> $result.sort(
                                 Sorting.byValues(Orders.from(order), atomic)),
                         atomic));
@@ -3844,9 +3840,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabCriteriaPage(TCriteria criteria,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabCriteriaPage(
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -3860,9 +3857,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabCriteriaTime(TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabCriteriaTime(
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabCriteriaTimeOrder(criteria, timestamp, NO_ORDER, creds,
                 transaction, environment);
     }
@@ -3924,8 +3922,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return grabCriteriaTime(criteria, NaturalLanguage.parseMicros(timestamp),
-                creds, transaction, environment);
+        return grabCriteriaTime(criteria,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -3963,9 +3962,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCcl(String key, String ccl,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCcl(String key,
+            String ccl, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return grabKeyCclOrder(key, ccl, NO_ORDER, creds, transaction,
                 environment);
     }
@@ -3974,17 +3973,18 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclOrder(String key, String ccl,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclOrder(String key,
+            String ccl, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.grabKeyAstAtomic(key, ast,
-                            Time.NONE, result, null,
+                    atomic -> Operations.grabKeyAstAtomic(key, ast, Time.NONE,
+                            result, null,
                             $result -> $result.sort(Sorting
                                     .byValues(Orders.from(order), atomic)),
                             atomic));
@@ -3997,8 +3997,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclOrderPage(String key, String ccl,
-            TOrder order, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclOrderPage(String key,
+            String ccl, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(grabKeyCclOrder(key, ccl, order, creds,
@@ -4009,8 +4009,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclPage(String key, String ccl, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclPage(String key,
+            String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         try {
             Parser parser = Parsers.create(ccl);
@@ -4031,9 +4032,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTime(String key, String ccl,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTime(String key,
+            String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
                 transaction, environment);
     }
@@ -4042,8 +4044,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimeOrder(String key, String ccl,
-            long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimeOrder(String key,
+            String ccl, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         try {
@@ -4052,8 +4054,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.grabKeyAstAtomic(key, ast,
-                            timestamp, result, null,
+                    atomic -> Operations.grabKeyAstAtomic(key, ast, timestamp,
+                            result, null,
                             $result -> $result.sort(Sorting.byValues(
                                     Orders.from(order), atomic), timestamp),
                             atomic));
@@ -4066,9 +4068,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimeOrderPage(String key, String ccl,
-            long timestamp, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimeOrderPage(
+            String key, String ccl, long timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(grabKeyCclTimeOrder(key, ccl, timestamp, order,
                 creds, transaction, environment), Pages.from(page));
@@ -4078,8 +4080,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimePage(String key, String ccl,
-            long timestamp, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimePage(String key,
+            String ccl, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         try {
@@ -4101,18 +4103,19 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestr(String key, String ccl,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestr(String key,
+            String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeyCclTime(key, ccl, NaturalLanguage.parseMicros(timestamp),
                 creds, transaction, environment);
     }
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrOrder(String key, String ccl,
-            String timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrOrder(
+            String key, String ccl, String timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCclTimeOrder(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), order, creds,
@@ -4121,9 +4124,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrOrderPage(String key, String ccl,
-            String timestamp, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrOrderPage(
+            String key, String ccl, String timestamp, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCclTimeOrderPage(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), order, page, creds,
@@ -4132,9 +4135,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrPage(String key, String ccl,
-            String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCclTimestrPage(
+            String key, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCclTimePage(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
@@ -4143,9 +4146,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteria(String key, TCriteria criteria,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteria(String key,
+            TCriteria criteria, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return grabKeyCriteriaOrder(key, criteria, NO_ORDER, creds, transaction,
                 environment);
     }
@@ -4173,9 +4176,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaOrderPage(String key,
-            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaOrderPage(
+            String key, TCriteria criteria, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(grabKeyCriteriaOrder(key, criteria, order, creds,
                 transaction, environment), Pages.from(page));
@@ -4185,9 +4188,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaPage(String key, TCriteria criteria,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaPage(String key,
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
@@ -4202,9 +4206,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTime(String key, TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTime(String key,
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeyCriteriaTimeOrder(key, criteria, timestamp, NO_ORDER,
                 creds, transaction, environment);
     }
@@ -4213,9 +4218,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimeOrder(String key,
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimeOrder(
+            String key, TCriteria criteria, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
@@ -4233,21 +4238,24 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimeOrderPage(String key,
-            TCriteria criteria, long timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(grabKeyCriteriaTimeOrder(key, criteria, timestamp,
-                order, creds, transaction, environment), Pages.from(page));
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimeOrderPage(
+            String key, TCriteria criteria, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return Paging
+                .paginate(
+                        grabKeyCriteriaTimeOrder(key, criteria, timestamp,
+                                order, creds, transaction, environment),
+                        Pages.from(page));
     }
 
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimePage(String key,
-            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimePage(
+            String key, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
@@ -4263,8 +4271,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestr(String key,
-            TCriteria criteria, String timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestr(
+            String key, TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCriteriaTime(key, criteria,
@@ -4274,8 +4282,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrOrder(String key,
-            TCriteria criteria, String timestamp, TOrder order,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrOrder(
+            String key, TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCriteriaTimeOrder(key, criteria,
@@ -4285,10 +4293,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrOrderPage(String key,
-            TCriteria criteria, String timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrOrderPage(
+            String key, TCriteria criteria, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return grabKeyCriteriaTimeOrderPage(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), order, page, creds,
                 transaction, environment);
@@ -4296,9 +4304,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrPage(String key,
-            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyCriteriaTimestrPage(
+            String key, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyCriteriaTimePage(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
@@ -4307,9 +4315,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecords(String key, List<Long> records,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecords(String key,
+            List<Long> records, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return grabKeyRecordsOrder(key, records, NO_ORDER, creds, transaction,
                 environment);
     }
@@ -4318,16 +4326,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsOrder(String key, List<Long> records,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsOrder(String key,
+            List<Long> records, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.grabKeyRecordsAtomic(key, records,
-                        result, null,
-                        $result -> $result.sort(
+                atomic -> Operations.grabKeyRecordsAtomic(key, records, result,
+                        null, $result -> $result.sort(
                                 Sorting.byValues(Orders.from(order), atomic)),
                         atomic));
         return result;
@@ -4335,9 +4343,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsOrderPage(String key,
-            List<Long> records, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsOrderPage(
+            String key, List<Long> records, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(grabKeyRecordsOrder(key, records, order, creds,
                 transaction, environment), Pages.from(page));
@@ -4347,25 +4355,26 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsPage(String key, List<Long> records,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsPage(String key,
+            List<Long> records, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
         AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.grabKeyRecordsAtomic(key, records,
-                        result, $records -> Paging.paginate($records,
-                                Pages.from(page)),
+                atomic -> Operations.grabKeyRecordsAtomic(key, records, result,
+                        $records -> Paging.paginate($records, Pages.from(page)),
                         null, atomic));
         return result;
     }
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTime(String key, List<Long> records,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeyRecordsTimeOrder(key, records, timestamp, NO_ORDER, creds,
                 transaction, environment);
     }
@@ -4374,15 +4383,15 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimeOrder(String key,
-            List<Long> records, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimeOrder(
+            String key, List<Long> records, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        Operations.grabKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, null,
+        Operations.grabKeyRecordsOptionalAtomic(key, records, timestamp, result,
+                null,
                 $result -> $result.sort(
                         Sorting.byValues(Orders.from(order), store), timestamp),
                 store);
@@ -4391,10 +4400,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimeOrderPage(String key,
-            List<Long> records, long timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimeOrderPage(
+            String key, List<Long> records, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return Paging.paginate(grabKeyRecordsTimeOrder(key, records, timestamp,
                 order, creds, transaction, environment), Pages.from(page));
     }
@@ -4403,23 +4412,23 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimePage(String key,
-            List<Long> records, long timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimePage(
+            String key, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
                 records.size());
-        Operations.grabKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
+        Operations.grabKeyRecordsOptionalAtomic(key, records, timestamp, result,
+                $records -> Paging.paginate($records, Pages.from(page)), null,
+                store);
         return result;
     }
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestr(String key,
-            List<Long> records, String timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestr(
+            String key, List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return grabKeyRecordsTimestrOrder(key, records, timestamp, NO_ORDER,
@@ -4428,8 +4437,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrOrder(String key,
-            List<Long> records, String timestamp, TOrder order,
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrOrder(
+            String key, List<Long> records, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyRecordsTimeOrder(key, records,
@@ -4439,10 +4448,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrOrderPage(String key,
-            List<Long> records, String timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrOrderPage(
+            String key, List<Long> records, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return grabKeyRecordsTimeOrderPage(key, records,
                 NaturalLanguage.parseMicros(timestamp), order, page, creds,
                 transaction, environment);
@@ -4450,9 +4459,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrPage(String key,
-            List<Long> records, String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeyRecordsTimestrPage(
+            String key, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeyRecordsTimePage(key, records,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
@@ -4470,7 +4479,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 getStore(transaction, environment).select(key, record),
                 TObject.NULL);
 
-        if (tobject.type == Type.LINK) {
+        if(tobject.type == Type.LINK) {
             Link link = (Link) Convert.thriftToJava(tobject);
             return getStore(transaction, environment).select(link.longValue());
         }
@@ -4481,25 +4490,26 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<String, Set<TObject>> grabKeyRecordTime(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        TObject tobject = Iterables.getLast(
-                getStore(transaction, environment).select(key, record, timestamp),
-                TObject.NULL);
+    public Map<String, Set<TObject>> grabKeyRecordTime(String key, long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        TObject tobject = Iterables.getLast(getStore(transaction, environment)
+                .select(key, record, timestamp), TObject.NULL);
 
-        if (tobject.type == Type.LINK) {
+        if(tobject.type == Type.LINK) {
             Link link = (Link) Convert.thriftToJava(tobject);
-            return getStore(transaction, environment).select(link.longValue(), timestamp);
+            return getStore(transaction, environment).select(link.longValue(),
+                    timestamp);
         }
         return null;
     }
 
     @Override
     @ThrowsClientExceptions
-    public Map<String, Set<TObject>> grabKeyRecordTimestr(String key, long record,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<String, Set<TObject>> grabKeyRecordTimestr(String key,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeyRecordTime(key, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -4518,8 +4528,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCclOrder(List<String> keys,
-            String ccl, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCclOrder(
+            List<String> keys, String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         try {
@@ -4528,8 +4538,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.grabKeysAstAtomic(keys, ast,
-                            Time.NONE, result, null,
+                    atomic -> Operations.grabKeysAstAtomic(keys, ast, Time.NONE,
+                            result, null,
                             $result -> $result.sort(Sorting
                                     .byValues(Orders.from(order), atomic)),
                             atomic));
@@ -4554,8 +4564,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCclPage(List<String> keys,
-            String ccl, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCclPage(
+            List<String> keys, String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         try {
@@ -4577,8 +4587,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTime(List<String> keys,
-            String ccl, long timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTime(
+            List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return grabKeysCclTimeOrder(keys, ccl, timestamp, NO_ORDER, creds,
@@ -4599,8 +4609,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.grabKeysAstAtomic(keys, ast,
-                            timestamp, result, null,
+                    atomic -> Operations.grabKeysAstAtomic(keys, ast, timestamp,
+                            result, null,
                             $result -> $result.sort(Sorting.byValues(
                                     Orders.from(order), atomic), timestamp),
                             atomic));
@@ -4625,9 +4635,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTimePage(List<String> keys,
-            String ccl, long timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTimePage(
+            List<String> keys, String ccl, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
             Parser parser = Parsers.create(ccl);
@@ -4648,12 +4658,13 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTimestr(List<String> keys,
-            String ccl, String timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCclTimestr(
+            List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return grabKeysCclTime(keys, ccl, NaturalLanguage.parseMicros(timestamp),
-                creds, transaction, environment);
+        return grabKeysCclTime(keys, ccl,
+                NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
     }
 
     @Override
@@ -4691,9 +4702,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeysCriteria(List<String> keys,
-            TCriteria criteria, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeysCriteria(
+            List<String> keys, TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeysCriteriaOrder(keys, criteria, NO_ORDER, creds,
                 transaction, environment);
     }
@@ -4864,16 +4876,17 @@ public class ConcourseServer extends BaseConcourseServer implements
     @VerifyAccessToken
     @VerifyReadPermission
     @Nullable
-    public Map<String, Set<TObject>> grabKeysRecord(List<String> keys, long record,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<String, Set<TObject>> grabKeysRecord(List<String> keys,
+            long record, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) ->
-            Operations.grabKeysRecordOptionalAtomic(keys, record, Time.NONE,
-                    result, getStore(transaction, environment)));
+        AtomicOperations.executeWithRetry(store,
+                (atomic) -> Operations.grabKeysRecordOptionalAtomic(keys,
+                        record, Time.NONE, result,
+                        getStore(transaction, environment)));
 
-        if (!result.isEmpty()) {
+        if(!result.isEmpty()) {
             return result;
         }
         return null;
@@ -4881,9 +4894,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeysRecords(List<String> keys,
-            List<Long> records, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> grabKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return grabKeysRecordsOrder(keys, records, NO_ORDER, creds, transaction,
                 environment);
     }
@@ -4922,9 +4936,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> grabKeysRecordsPage(List<String> keys,
-            List<Long> records, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeysRecordsPage(
+            List<String> keys, List<Long> records, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
@@ -4939,9 +4953,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> grabKeysRecordsTime(List<String> keys,
-            List<Long> records, long timestamp, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> grabKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return grabKeysRecordsTimeOrder(keys, records, timestamp, NO_ORDER,
                 creds, transaction, environment);
@@ -4972,8 +4986,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(grabKeysRecordsTimeOrder(keys, records, timestamp,
-                order, creds, transaction, environment), Pages.from(page));
+        return Paging
+                .paginate(
+                        grabKeysRecordsTimeOrder(keys, records, timestamp,
+                                order, creds, transaction, environment),
+                        Pages.from(page));
     }
 
     @Override
@@ -5048,9 +5065,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         Map<String, Set<TObject>> result = Maps.newHashMap();
-        Operations.grabKeysRecordOptionalAtomic(keys, record, timestamp,
-                result, getStore(transaction, environment));
-        if (!result.isEmpty()) {
+        Operations.grabKeysRecordOptionalAtomic(keys, record, timestamp, result,
+                getStore(transaction, environment));
+        if(!result.isEmpty()) {
             return result;
         }
         return null;
@@ -8374,9 +8391,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCcl(String key, String ccl,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCcl(String key,
+            String ccl, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return gatherKeyCclOrder(key, ccl, NO_ORDER, creds, transaction,
                 environment);
     }
@@ -8385,17 +8402,18 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclOrder(String key, String ccl,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclOrder(String key,
+            String ccl, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.gatherKeyAstAtomic(key, ast,
-                            Time.NONE, result, null,
+                    atomic -> Operations.gatherKeyAstAtomic(key, ast, Time.NONE,
+                            result, null,
                             $result -> $result.sort(Sorting
                                     .byValues(Orders.from(order), atomic)),
                             atomic));
@@ -8408,8 +8426,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclOrderPage(String key, String ccl,
-            TOrder order, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclOrderPage(
+            String key, String ccl, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(gatherKeyCclOrder(key, ccl, order, creds,
@@ -8420,9 +8438,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclPage(String key, String ccl,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclPage(String key,
+            String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         try {
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
@@ -8442,9 +8461,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTime(String key, String ccl,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTime(String key,
+            String ccl, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return gatherKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
                 transaction, environment);
     }
@@ -8453,9 +8473,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimeOrder(String key, String ccl,
-            long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimeOrder(
+            String key, String ccl, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
             Parser parser = Parsers.create(ccl);
@@ -8463,8 +8483,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.gatherKeyAstAtomic(key, ast,
-                            timestamp, result, null,
+                    atomic -> Operations.gatherKeyAstAtomic(key, ast, timestamp,
+                            result, null,
                             $result -> $result.sort(Sorting.byValues(
                                     Orders.from(order), atomic), timestamp),
                             atomic));
@@ -8477,8 +8497,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimeOrderPage(String key,
-            String ccl, long timestamp, TOrder order, TPage page,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimeOrderPage(
+            String key, String ccl, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(gatherKeyCclTimeOrder(key, ccl, timestamp, order,
@@ -8489,8 +8509,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimePage(String key, String ccl,
-            long timestamp, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimePage(String key,
+            String ccl, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         try {
@@ -8512,9 +8532,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestr(String key, String ccl,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestr(String key,
+            String ccl, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return gatherKeyCclTime(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -8522,9 +8543,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrOrder(String key,
-            String ccl, String timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrOrder(
+            String key, String ccl, String timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCclTimeOrder(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), order, creds,
@@ -8533,8 +8554,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrOrderPage(String key,
-            String ccl, String timestamp, TOrder order, TPage page,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrOrderPage(
+            String key, String ccl, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCclTimeOrderPage(key, ccl,
@@ -8544,9 +8565,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrPage(String key,
-            String ccl, String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCclTimestrPage(
+            String key, String ccl, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCclTimePage(key, ccl,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
@@ -8566,8 +8587,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaOrder(String key,
-            TCriteria criteria, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaOrder(
+            String key, TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
@@ -8585,9 +8606,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaOrderPage(String key,
-            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaOrderPage(
+            String key, TCriteria criteria, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(gatherKeyCriteriaOrder(key, criteria, order,
                 creds, transaction, environment), Pages.from(page));
@@ -8597,8 +8618,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaPage(String key,
-            TCriteria criteria, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaPage(
+            String key, TCriteria criteria, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
@@ -8615,8 +8636,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTime(String key,
-            TCriteria criteria, long timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTime(
+            String key, TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCriteriaTimeOrder(key, criteria, timestamp, NO_ORDER,
@@ -8627,9 +8648,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimeOrder(String key,
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimeOrder(
+            String key, TCriteria criteria, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
@@ -8647,10 +8668,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimeOrderPage(String key,
-            TCriteria criteria, long timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimeOrderPage(
+            String key, TCriteria criteria, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return Paging
                 .paginate(
                         gatherKeyCriteriaTimeOrder(key, criteria, timestamp,
@@ -8662,9 +8683,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimePage(String key,
-            TCriteria criteria, long timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimePage(
+            String key, TCriteria criteria, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
@@ -8680,8 +8701,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestr(String key,
-            TCriteria criteria, String timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestr(
+            String key, TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCriteriaTime(key, criteria,
@@ -8691,8 +8712,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrOrder(String key,
-            TCriteria criteria, String timestamp, TOrder order,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrOrder(
+            String key, TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCriteriaTimeOrder(key, criteria,
@@ -8702,10 +8723,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrOrderPage(String key,
-            TCriteria criteria, String timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrOrderPage(
+            String key, TCriteria criteria, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return gatherKeyCriteriaTimeOrderPage(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), order, page, creds,
                 transaction, environment);
@@ -8713,14 +8734,15 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrPage(String key,
-            TCriteria criteria, String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyCriteriaTimestrPage(
+            String key, TCriteria criteria, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyCriteriaTimePage(key, criteria,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
                 transaction, environment);
     }
+
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -8729,10 +8751,11 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<String, Set<TObject>> gatherKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Set<TObject> tobjects = getStore(transaction, environment).select(key, record);
+        Set<TObject> tobjects = getStore(transaction, environment).select(key,
+                record);
         Map<String, Set<TObject>> result = Maps.newHashMap();
-        for(TObject tobject : tobjects) {
-            if (tobject.type == Type.LINK) {
+        for (TObject tobject : tobjects) {
+            if(tobject.type == Type.LINK) {
                 Link link = (Link) Convert.thriftToJava(tobject);
                 Set<String> linkKeys = getStore(transaction, environment)
                         .describe(link.longValue());
@@ -8740,16 +8763,16 @@ public class ConcourseServer extends BaseConcourseServer implements
                 for (String linkKey : linkKeys) {
                     try {
                         Set<TObject> union = result.get(linkKey);
-                        if (union != null) {
+                        if(union != null) {
                             union.addAll(getStore(transaction, environment)
                                     .select(linkKey, link.longValue()));
 
                             result.put(linkKey, union);
                         }
                         else {
-                            result.put(linkKey, getStore(transaction,
-                                    environment).select(linkKey,
-                                    link.longValue()));
+                            result.put(linkKey,
+                                    getStore(transaction, environment)
+                                            .select(linkKey, link.longValue()));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -8758,7 +8781,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 }
 
             }
-            if (!result.isEmpty()) {
+            if(!result.isEmpty()) {
                 return result;
             }
         }
@@ -8778,8 +8801,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsOrder(String key,
-            List<Long> records, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsOrder(
+            String key, List<Long> records, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
@@ -8796,9 +8819,9 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsOrderPage(String key,
-            List<Long> records, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsOrderPage(
+            String key, List<Long> records, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return Paging.paginate(gatherKeyRecordsOrder(key, records, order, creds,
                 transaction, environment), Pages.from(page));
@@ -8837,9 +8860,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimeOrder(String key,
-            List<Long> records, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimeOrder(
+            String key, List<Long> records, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
@@ -8854,10 +8877,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimeOrderPage(String key,
-            List<Long> records, long timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimeOrderPage(
+            String key, List<Long> records, long timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return Paging
                 .paginate(
                         gatherKeyRecordsTimeOrder(key, records, timestamp,
@@ -8869,9 +8892,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimePage(String key,
-            List<Long> records, long timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimePage(
+            String key, List<Long> records, long timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
@@ -8884,8 +8907,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestr(String key,
-            List<Long> records, String timestamp, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestr(
+            String key, List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyRecordsTime(key, records,
@@ -8895,8 +8918,8 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrOrder(String key,
-            List<Long> records, String timestamp, TOrder order,
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrOrder(
+            String key, List<Long> records, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyRecordsTimeOrder(key, records,
@@ -8906,10 +8929,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrOrderPage(String key,
-            List<Long> records, String timestamp, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrOrderPage(
+            String key, List<Long> records, String timestamp, TOrder order,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
         return gatherKeyRecordsTimeOrderPage(key, records,
                 NaturalLanguage.parseMicros(timestamp), order, page, creds,
                 transaction, environment);
@@ -8917,27 +8940,28 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrPage(String key,
-            List<Long> records, String timestamp, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
+    public Map<Long, Map<String, Set<TObject>>> gatherKeyRecordsTimestrPage(
+            String key, List<Long> records, String timestamp, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         return gatherKeyRecordsTimePage(key, records,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
                 transaction, environment);
     }
 
-
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<String, Set<TObject>> gatherKeyRecordTime(String key, long record,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        Set<TObject> tobjects = getStore(transaction, environment).select(key, record, timestamp);
+    public Map<String, Set<TObject>> gatherKeyRecordTime(String key,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Set<TObject> tobjects = getStore(transaction, environment).select(key,
+                record, timestamp);
         Map<String, Set<TObject>> result = Maps.newHashMap();
-        for(TObject tobject : tobjects) {
-            if (tobject.type == Type.LINK) {
+        for (TObject tobject : tobjects) {
+            if(tobject.type == Type.LINK) {
                 Link link = (Link) Convert.thriftToJava(tobject);
                 Set<String> linkKeys = getStore(transaction, environment)
                         .describe(link.longValue(), timestamp);
@@ -8945,16 +8969,18 @@ public class ConcourseServer extends BaseConcourseServer implements
                 for (String linkKey : linkKeys) {
                     try {
                         Set<TObject> union = result.get(linkKey);
-                        if (union != null) {
+                        if(union != null) {
                             union.addAll(getStore(transaction, environment)
-                                    .select(linkKey, link.longValue(), timestamp));
+                                    .select(linkKey, link.longValue(),
+                                            timestamp));
 
                             result.put(linkKey, union);
                         }
                         else {
-                            result.put(linkKey, getStore(transaction,
-                                    environment).select(linkKey,
-                                    link.longValue(), timestamp));
+                            result.put(linkKey,
+                                    getStore(transaction, environment).select(
+                                            linkKey, link.longValue(),
+                                            timestamp));
                         }
                     }
                     catch (NoSuchElementException e) {
@@ -8963,7 +8989,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 }
 
             }
-            if (!result.isEmpty()) {
+            if(!result.isEmpty()) {
                 return result;
             }
         }
@@ -8972,9 +8998,10 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @ThrowsClientExceptions
-    public Map<String, Set<TObject>> gatherKeyRecordTimestr(String key, long record,
-            String timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
+    public Map<String, Set<TObject>> gatherKeyRecordTimestr(String key,
+            long record, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
         return gatherKeyRecordTime(key, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
                 environment);
@@ -9358,11 +9385,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
         Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) ->
-                Operations.gatherKeysRecordOptionalAtomic(keys, record, Time.NONE,
-                        result, getStore(transaction, environment)));
+        AtomicOperations.executeWithRetry(store,
+                (atomic) -> Operations.gatherKeysRecordOptionalAtomic(keys,
+                        record, Time.NONE, result,
+                        getStore(transaction, environment)));
 
-        if (!result.isEmpty()) {
+        if(!result.isEmpty()) {
             return result;
         }
         return null;
@@ -9535,6 +9563,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 NaturalLanguage.parseMicros(timestamp), page, creds,
                 transaction, environment);
     }
+
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -9571,10 +9600,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        
+
         return Operations.traverseKeysRecordOptionalAtomic(
-                        store.describe(record), record,
-                        Timestamp.now().getMicros(), store);
+                store.describe(record), record, Timestamp.now().getMicros(),
+                store);
     }
 
     @Override
@@ -9732,8 +9761,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     @Override
     @ThrowsClientExceptions
     public Map<Long, Map<String, Set<TObject>>> gatherRecordsTimestrPage(
-            List<Long> records, String timestamp, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
+            List<Long> records, String timestamp, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
             throws TException {
         return gatherRecordsTimePage(records,
                 NaturalLanguage.parseMicros(timestamp), page, creds,
