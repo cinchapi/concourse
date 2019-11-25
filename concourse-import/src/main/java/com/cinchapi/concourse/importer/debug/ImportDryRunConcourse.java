@@ -984,112 +984,385 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records) {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria) {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public <T> Map<String, T> grab(Collection<String> keys, long record) {
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<String, T> grab(Collection<String> keys, long record,
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> T grab(String key, long record) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> T grab(String key, long record, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, T> grab(String key, String ccl, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> grab(String key, long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(String ccl, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> grab(String key, long record, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl,
+            Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1776,21 +2049,66 @@ public class ImportDryRunConcourse extends Concourse {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public Map<Long, Map<String, Set<Object>>> gather(
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
             Collection<Long> records) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public Map<Long, Map<String, Set<Object>>> gather(Collection<Long> records,
-            Timestamp timestamp) {
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records, Order order,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1800,15 +2118,67 @@ public class ImportDryRunConcourse extends Concourse {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria) {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Order order,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, Criteria criteria, Timestamp timestamp,
+            Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1830,9 +2200,42 @@ public class ImportDryRunConcourse extends Concourse {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Timestamp timestamp,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Timestamp timestamp,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Collection<String> keys, String ccl, Timestamp timestamp,
+            Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1841,9 +2244,39 @@ public class ImportDryRunConcourse extends Concourse {
         throw new UnsupportedOperationException();
     }
 
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
@@ -1862,52 +2295,173 @@ public class ImportDryRunConcourse extends Concourse {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records) {
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria) {
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
             Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public <T> Set<T> gather(String key, long record) {
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Set<T> gather(String key, long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> gather(String key, long record) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, String ccl) {
+    public <T> Map<String, Set<T>> gather(String key, long record, Timestamp timestamp) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, String ccl,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Order order, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
             Timestamp timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Order order) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Order order, Page page) {
         throw new UnsupportedOperationException();
     }
 

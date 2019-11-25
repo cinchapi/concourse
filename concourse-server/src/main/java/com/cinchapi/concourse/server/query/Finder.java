@@ -61,12 +61,6 @@ public class Finder implements Visitor<Set<Long>> {
     private Finder() {/* singleton */}
 
     @Override
-    public Set<Long> visit(AbstractSyntaxTree abstractSyntaxTree,
-            Object... objects) {
-        return null;
-    }
-
-    @Override
     public Set<Long> visit(ConjunctionTree tree, Object... data) {
         if(tree.root() == ConjunctionSymbol.AND) {
             Set<Long> a;

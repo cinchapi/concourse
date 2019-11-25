@@ -2242,409 +2242,1103 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw = client.grabKeysRecords(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecords(
                     Collections.toList(keys), Collections.toLongList(records),
                     creds, transaction, environment);
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsOrder(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    creds, transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsOrderPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), JavaThriftBridge.convert(page),
+                    creds, transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysRecordsPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeysRecordsTimestr(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTimestr(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.grabKeysRecordsTime(Collections.toList(keys),
+                data = navigate.grabKeysRecordsTime(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysRecordsTimestrOrder(Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysRecordsTimeOrder(Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysRecordsTimestrOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysRecordsTimeOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysRecordsTimestrPage(Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysRecordsTimePage(Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw = client.grabKeysCriteria(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteria(
                     Collections.toList(keys),
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaOrder(
+                    Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaOrderPage(
+                    Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCriteriaPage(
+                    Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeysCriteriaTimestr(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTimestr(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.grabKeysCriteriaTime(Collections.toList(keys),
+                data = navigate.grabKeysCriteriaTime(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCriteriaTimestrOrder(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.grabKeysCriteriaTimeOrder(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCriteriaTimestrOrderPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysCriteriaTimeOrderPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCriteriaTimestrPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.grabKeysCriteriaTimePage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, T> grab(Collection<String> keys, long record) {
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record) {
         return execute(() -> {
-            Map<String, TObject> raw = client.grabKeysRecord(
+            Map<String, Set<TObject>> data = navigate.grabKeysRecord(
                     Collections.toList(keys), record, creds, transaction,
                     environment);
-            Map<String, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Value");
-            for (Entry<String, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataRow.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<String, T> grab(Collection<String> keys, long record,
+    public <T> Map<String, Set<T>> grab(Collection<String> keys, long record,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<String, TObject> raw;
+            Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeysRecordTimestr(Collections.toList(keys),
+                data = navigate.grabKeysRecordTimestr(Collections.toList(keys),
                         record, timestamp.toString(), creds, transaction,
                         environment);
             }
             else {
-                raw = client.grabKeysRecordTime(Collections.toList(keys), record,
+                data = navigate.grabKeysRecordTime(Collections.toList(keys), record,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<String, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Value");
-            for (Entry<String, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataRow.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw = client.grabKeysCcl(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCcl(
                     Collections.toList(keys), ccl, creds, transaction,
                     environment);
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Collection<String> keys,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclOrder(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclOrderPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeysCclPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
             String ccl, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeysCclTimestr(Collections.toList(keys), ccl,
+                data = navigate.grabKeysCclTimestr(Collections.toList(keys), ccl,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.grabKeysCclTime(Collections.toList(keys), ccl,
+                data = navigate.grabKeysCclTime(Collections.toList(keys), ccl,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw = client.grabCriteria(
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCclTimestrOrder(
+                        Collections.toList(keys), ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysCclTimeOrder(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCclTimestrOrderPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysCclTimeOrderPage(
+                        Collections.toList(keys), ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeysCclTimestrPage(
+                        Collections.toList(keys), ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeysCclTimePage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteria(
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaOrder(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaOrderPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabCriteriaTimestr(
+                data = navigate.grabCriteriaTimestr(
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.grabCriteriaTime(
+                data = navigate.grabCriteriaTime(
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw = client.grabCcl(ccl, creds,
-                    transaction, environment);
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCriteriaTimestrOrder(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.grabCriteriaTimeOrder(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCriteriaTimestrOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabCriteriaTimeOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(Criteria criteria,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCriteriaTimestrPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.grabCriteriaTimePage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCcl(ccl, creds,
+                    transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclOrder(ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclOrderPage(
+                    ccl, JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabCclPage(ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records) {
         return execute(() -> {
-            Map<Long, TObject> raw = client.grabKeyRecords(key,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecords(key,
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsOrder(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsOrderPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyRecordsPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, TObject> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeyRecordsTimestr(key,
+                data = navigate.grabKeyRecordsTimestr(key,
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.grabKeyRecordsTime(key,
+                data = navigate.grabKeyRecordsTime(key,
                         Collections.toLongList(records), timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            Map<Long, TObject> raw = client.grabKeyCriteria(key,
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyRecordsTimestrOrder(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeyRecordsTimeOrder(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyRecordsTimestrOrderPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeyRecordsTimeOrderPage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Collection<Long> records,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyRecordsTimestrPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeyRecordsTimePage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteria(key,
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaOrder(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaOrderPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page),
+                    creds, transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCriteriaPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, TObject> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeyCriteriaTimestr(key,
+                data = navigate.grabKeyCriteriaTimestr(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.grabKeyCriteriaTime(key,
+                data = navigate.grabKeyCriteriaTime(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T grab(String key, long record) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            TObject raw = client.grabKeyRecord(key, record, creds, transaction,
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCriteriaTimestrOrder(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.grabKeyCriteriaTimeOrder(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCriteriaTimestrOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeyCriteriaTimeOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCriteriaTimestrPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.grabKeyCriteriaTimePage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<String, Set<T>> grab(String key, long record) {
+        return execute(() -> {
+            Map<String, Set<TObject>> data = navigate.grabKeyRecord(
+                    key, record, creds, transaction,
                     environment);
-            return raw == TObject.NULL ? null : (T) Convert.thriftToJava(raw);
+            return DataRow.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T grab(String key, long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> grab(String key, long record, Timestamp timestamp) {
         return execute(() -> {
-            TObject raw;
+            Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeyRecordTimestr(key, record,
+                data = navigate.grabKeyRecordTimestr(key, record,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.grabKeyRecordTime(key, record,
+                data = navigate.grabKeyRecordTime(key, record,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            return raw == TObject.NULL ? null : (T) Convert.thriftToJava(raw);
+            return DataRow.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl) {
         return execute(() -> {
-            Map<Long, TObject> raw = client.grabKeyCcl(key, ccl, creds,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCcl(key, ccl, creds,
                     transaction, environment);
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Map<Long, T> grab(String key, String ccl, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Order order) {
         return execute(() -> {
-            Map<Long, TObject> raw;
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclOrder(key, ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclOrderPage(key, ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.grabKeyCclPage(key, ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabKeyCclTimestr(key, ccl, timestamp.toString(),
+                data = navigate.grabKeyCclTimestr(key, ccl, timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.grabKeyCclTime(key, ccl, timestamp.getMicros(),
+                data = navigate.grabKeyCclTime(key, ccl, timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, T> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, TObject> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        (T) Convert.thriftToJava(entry.getValue()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCclTimestrOrder(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.grabKeyCclTimeOrder(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCclTimestrOrderPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabKeyCclTimeOrderPage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String key, String ccl, Timestamp timestamp,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabKeyCclTimestrPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.grabKeyCclTimePage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Map<String, T>> grab(String ccl, Timestamp timestamp) {
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.grabCclTimestr(ccl, timestamp.toString(), creds,
+                data = navigate.grabCclTimestr(ccl, timestamp.toString(), creds,
                         transaction, environment);
             }
             else {
-                raw = client.grabCclTime(ccl, timestamp.getMicros(), creds,
+                data = navigate.grabCclTime(ccl, timestamp.getMicros(), creds,
                         transaction, environment);
             }
-            Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapValues(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCclTimestrOrder(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds,
+                        transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.grabCclTimeOrder(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds,
+                        transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCclTimestrOrderPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.grabCclTimeOrderPage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> grab(String ccl, Timestamp timestamp,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.grabCclTimestrPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds,
+                        transaction, environment);
+            }
+            else {
+                data = navigate.grabCclTimePage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds,
+                        transaction, environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4399,49 +5093,132 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> gather(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client.gatherRecords(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherRecords(
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.thriftToJava()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> gather(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherRecordsOrder(
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate
+                    .gatherRecordsOrderPage(Collections.toLongList(records),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherRecordsPage(
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherRecordsTimestr(
+                data = navigate.gatherRecordsTimestr(
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.gatherRecordsTime(Collections.toLongList(records),
+                data = navigate.gatherRecordsTime(Collections.toLongList(records),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.thriftToJava()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherRecordsTimestrOrder(
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
-            return pretty;
+            else {
+                data = navigate.gatherRecordsTimeOrder(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherRecordsTimestrOrderPage(
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherRecordsTimeOrderPage(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<Long> records,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherRecordsTimestrPage(
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherRecordsTimePage(
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4449,19 +5226,47 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client.gatherKeysRecords(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecords(
                     Collections.toList(keys), Collections.toLongList(records),
                     creds, transaction, environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsOrder(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsOrderPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysRecordsPage(
+                    Collections.toList(keys), Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4469,27 +5274,90 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Collection<Long> records, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeysRecordsTimestr(Collections.toList(keys),
+                data = navigate.gatherKeysRecordsTimestr(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeysRecordsTime(Collections.toList(keys),
+                data = navigate.gatherKeysRecordsTime(Collections.toList(keys),
                         Collections.toLongList(records), timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysRecordsTimestrOrder(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
-            return pretty;
+            else {
+                data = navigate.gatherKeysRecordsTimeOrder(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysRecordsTimestrOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeysRecordsTimeOrderPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysRecordsTimestrPage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeysRecordsTimePage(
+                        Collections.toList(keys),
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4497,20 +5365,52 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client
-                    .gatherKeysCriteria(Collections.toList(keys),
-                            Language.translateToThriftCriteria(criteria), creds,
-                            transaction, environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            Map<Long, Map<String, Set<TObject>>> data =
+                    navigate.gatherKeysCriteria(Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria), creds,
+                    transaction, environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data =
+                    navigate.gatherKeysCriteriaOrder(Collections.toList(keys),
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data =
+                    navigate.gatherKeysCriteriaOrderPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(order),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data =
+                    navigate.gatherKeysCriteriaPage(Collections.toList(keys),
+                            Language.translateToThriftCriteria(criteria),
+                            JavaThriftBridge.convert(page), creds, transaction,
+                            environment);
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4518,27 +5418,89 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             Criteria criteria, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeysCriteriaTimestr(Collections.toList(keys),
+                data = core.selectKeysCriteriaTimestr(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeysCriteriaTime(Collections.toList(keys),
+                data = core.selectKeysCriteriaTime(Collections.toList(keys),
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = core.selectKeysCriteriaTimestrOrder(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
             }
-            return pretty;
+            else {
+                data = core.selectKeysCriteriaTimeOrder(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = core.selectKeysCriteriaTimestrOrderPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = core.selectKeysCriteriaTimeOrderPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            Criteria criteria, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = core.selectKeysCriteriaTimestrPage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = core.selectKeysCriteriaTimePage(Collections.toList(keys),
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4546,17 +5508,10 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<String, Set<T>> gather(Collection<String> keys,
             long record) {
         return execute(() -> {
-            Map<String, Set<TObject>> raw = client.gatherKeysRecord(
+            Map<String, Set<TObject>> data = navigate.gatherKeysRecord(
                     Collections.toList(keys), record, creds, transaction,
                     environment);
-            Map<String, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
-            for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataRow.multiValued(data);
         });
     }
 
@@ -4564,25 +5519,18 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<String, Set<T>> gather(Collection<String> keys, long record,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<String, Set<TObject>> raw;
+            Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeysRecordTimestr(Collections.toList(keys),
+                data = navigate.gatherKeysRecordTimestr(Collections.toList(keys),
                         record, timestamp.toString(), creds, transaction,
                         environment);
             }
             else {
-                raw = client.gatherKeysRecordTime(Collections.toList(keys),
+                data = navigate.gatherKeysRecordTime(Collections.toList(keys),
                         record, timestamp.getMicros(), creds, transaction,
                         environment);
             }
-            Map<String, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
-            for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataRow.multiValued(data);
         });
     }
 
@@ -4590,19 +5538,47 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client.gatherKeysCcl(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCcl(
                     Collections.toList(keys), ccl, creds, transaction,
                     environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclOrder(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclOrderPage(
+                    Collections.toList(keys), ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeysCclPage(
+                    Collections.toList(keys),
+                    ccl, JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4610,44 +5586,130 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
             String ccl, Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeysCclTimestr(Collections.toList(keys), ccl,
+                data = navigate.gatherKeysCclTimestr(Collections.toList(keys), ccl,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeysCclTime(Collections.toList(keys), ccl,
+                data = navigate.gatherKeysCclTime(Collections.toList(keys), ccl,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysCclTimestrOrder(Collections.toList(keys),
+                        ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeysCclTimeOrder(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysCclTimestrOrderPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeysCclTimeOrderPage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Collection<String> keys,
+            String ccl, Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeysCclTimestrPage(Collections.toList(keys),
+                        ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeysCclTimePage(Collections.toList(keys),
+                        ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+
+    @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client.gatherCriteria(
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteria(
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaOrder(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaOrderPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCriteriaPage(
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4655,235 +5717,560 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherCriteriaTimestr(
+                data = navigate.gatherCriteriaTimestr(
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.gatherCriteriaTime(
+                data = navigate.gatherCriteriaTime(
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public Map<String, Set<Object>> gather(long record) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            Map<String, Set<TObject>> raw = client.gatherRecord(record, creds,
-                    transaction, environment);
-            Map<String, Set<Object>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
-            for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(), Transformers.transformSetLazily(
-                        entry.getValue(), Conversions.thriftToJava()));
-            }
-            return pretty;
-        });
-    }
-
-    @Override
-    public Map<String, Set<Object>> gather(long record, Timestamp timestamp) {
-        return execute(() -> {
-            Map<String, Set<TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherRecordTimestr(record, timestamp.toString(),
+                data = navigate.gatherCriteriaTimestrOrder(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
                         creds, transaction, environment);
             }
             else {
-                raw = client.gatherRecordTime(record, timestamp.getMicros(),
+                data = navigate.gatherCriteriaTimeOrder(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
                         creds, transaction, environment);
             }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherCriteriaTimestrOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherCriteriaTimeOrderPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(Criteria criteria,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherCriteriaTimestrPage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.gatherCriteriaTimePage(
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(long record) {
+        return execute(() -> {
+            Map<String, Set<TObject>> data = navigate.gatherRecord(record, creds,
+                    transaction, environment);
             Map<String, Set<Object>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("Key", "Values");
-            for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(), Transformers.transformSetLazily(
-                        entry.getValue(), Conversions.thriftToJava()));
+            return DataRow.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(long record, Timestamp timestamp) {
+        return execute(() -> {
+            Map<String, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherRecordTimestr(record, timestamp.toString(),
+                        creds, transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.gatherRecordTime(record, timestamp.getMicros(),
+                        creds, transaction, environment);
+            }
+            return DataRow.multiValued(data);
         });
     }
 
     @Override
     public <T> Map<Long, Map<String, Set<T>>> gather(String ccl) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw = client.gatherCcl(ccl,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCcl(ccl,
                     creds, transaction, environment);
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Order order) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.gatherKeyRecords(key,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCclOrder(
+                    ccl, JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCclOrderPage(
+                    ccl, JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherCclPage(
+                    ccl, JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecords(key,
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsOrder(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsOrderPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyRecordsPage(key,
+                    Collections.toLongList(records),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeyRecordsTimestr(key,
+                data = navigate.gatherKeyRecordsTimestr(key,
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeyRecordsTime(key,
+                data = navigate.gatherKeyRecordsTime(key,
                         Collections.toLongList(records), timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.gatherKeyCriteria(key,
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyRecordsTimestrOrder(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyRecordsTimeOrder(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyRecordsTimestrOrderPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyRecordsTimeOrderPage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Collection<Long> records,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyRecordsTimestrPage(key,
+                        Collections.toLongList(records), timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyRecordsTimePage(key,
+                        Collections.toLongList(records), timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteria(key,
                     Language.translateToThriftCriteria(criteria), creds,
                     transaction, environment);
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, Criteria criteria,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaOrder(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaOrderPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCriteriaPage(key,
+                    Language.translateToThriftCriteria(criteria),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeyCriteriaTimestr(key,
+                data = navigate.gatherKeyCriteriaTimestr(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeyCriteriaTime(key,
+                data = navigate.gatherKeyCriteriaTime(key,
                         Language.translateToThriftCriteria(criteria),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Set<T> gather(String key, long record) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Order order) {
         return execute(() -> {
-            Set<TObject> values = client.gatherKeyRecord(key, record, creds,
-                    transaction, environment);
-            return Transformers.transformSetLazily(values,
-                    Conversions.<T> thriftToJavaCasted());
-        });
-    }
-
-    @Override
-    public <T> Set<T> gather(String key, long record, Timestamp timestamp) {
-        return execute(() -> {
-            Set<TObject> values;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                values = client.gatherKeyRecordTimestr(key, record,
+                data = navigate.gatherKeyCriteriaTimestrOrder(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyCriteriaTimeOrder(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyCriteriaTimestrOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyCriteriaTimeOrderPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, Criteria criteria,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyCriteriaTimestrPage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyCriteriaTimePage(key,
+                        Language.translateToThriftCriteria(criteria),
+                        timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(String key, long record) {
+        return execute(() -> {
+            Map<String, Set<TObject>> data = navigate.gatherKeyRecord(key, record, creds,
+                    transaction, environment);
+            return DataRow.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<String, Set<T>> gather(String key, long record, Timestamp timestamp) {
+        return execute(() -> {
+            Map<String, Set<TObject>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyRecordTimestr(key, record,
                         timestamp.toString(), creds, transaction, environment);
             }
             else {
-                values = client.gatherKeyRecordTime(key, record,
+                data = navigate.gatherKeyRecordTime(key, record,
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            return Transformers.transformSetLazily(values,
-                    Conversions.<T> thriftToJavaCasted());
+            return DataRow.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, String ccl) {
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw = client.gatherKeyCcl(key, ccl, creds,
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCcl(key, ccl, creds,
                     transaction, environment);
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
     @Override
-    public <T> Map<Long, Set<T>> gather(String key, String ccl,
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclOrder(key, ccl,
+                    JavaThriftBridge.convert(order), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Order order,
+            Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclOrderPage(key, ccl,
+                    JavaThriftBridge.convert(order),
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data = navigate.gatherKeyCclPage(key, ccl,
+                    JavaThriftBridge.convert(page), creds, transaction,
+                    environment);
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<TObject>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherKeyCclTimestr(key, ccl, timestamp.toString(),
+                data = navigate.gatherKeyCclTimestr(key, ccl, timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = client.gatherKeyCclTime(key, ccl, timestamp.getMicros(),
+                data = navigate.gatherKeyCclTime(key, ccl, timestamp.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.<T> thriftToJavaCasted()));
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyCclTimestrOrder(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
             }
-            return pretty;
+            else {
+                data = navigate.gatherKeyCclTimeOrder(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyCclTimestrOrderPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherKeyCclTimeOrderPage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String key, String ccl,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherKeyCclTimestrPage(key, ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            else {
+                data = navigate.gatherKeyCclTimePage(key, ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(page),
+                        creds, transaction, environment);
+            }
+            return DataTable.multiValued(data);
         });
     }
 
@@ -4891,28 +6278,78 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<TObject>>> raw;
+            Map<Long, Map<String, Set<TObject>>> data;
             if(timestamp.isString()) {
-                raw = client.gatherCclTimestr(ccl, timestamp.toString(), creds,
+                data = navigate.gatherCclTimestr(ccl, timestamp.toString(),
+                        creds,
                         transaction, environment);
             }
             else {
-                raw = client.gatherCclTime(ccl, timestamp.getMicros(), creds,
+                data = navigate.gatherCclTime(ccl, timestamp.getMicros(), creds,
                         transaction, environment);
             }
-            Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (Entry<Long, Map<String, Set<TObject>>> entry : raw
-                    .entrySet()) {
-                pretty.put(entry.getKey(),
-                        Transformers.transformMapSet(entry.getValue(),
-                                Conversions.<String> none(),
-                                Conversions.<T> thriftToJavaCasted()));
-            }
-            return pretty;
+            return DataTable.multiValued(data);
         });
     }
 
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Order order) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherCclTimestrOrder(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherCclTimeOrder(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(order), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Order order, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherCclTimestrOrderPage(ccl,
+                        timestamp.toString(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherCclTimeOrderPage(ccl,
+                        timestamp.getMicros(), JavaThriftBridge.convert(order),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
+
+    @Override
+    public <T> Map<Long, Map<String, Set<T>>> gather(String ccl,
+            Timestamp timestamp, Page page) {
+        return execute(() -> {
+            Map<Long, Map<String, Set<TObject>>> data;
+            if(timestamp.isString()) {
+                data = navigate.gatherCclTimestrPage(ccl, timestamp.toString(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            else {
+                data = navigate.gatherCclTimePage(ccl, timestamp.getMicros(),
+                        JavaThriftBridge.convert(page), creds, transaction,
+                        environment);
+            }
+            return DataTable.multiValued(data);
+        });
+    }
     @Override
     public void set(String key, Object value, Collection<Long> records) {
         execute(() -> {
