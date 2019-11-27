@@ -271,6 +271,14 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         }
     }
 
+    /**
+     * Return all the key/value mappings of keys that match {@code key} at
+     * {@code timestamp} in a case insensitive manner.
+     * 
+     * @param key
+     * @param timestamp
+     * @return the matching entries
+     */
     private Map<Value, Set<PrimaryKey>> coalesce(Value key, long timestamp) {
         read.lock();
         try {
