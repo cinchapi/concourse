@@ -370,11 +370,6 @@ public final class Engine extends BufferedStore
     }
 
     @Override
-    public Set<Long> getAllRecords() {
-        return inventory.getAll();
-    }
-
-    @Override
     public boolean add(String key, TObject value, long record) {
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
@@ -590,6 +585,47 @@ public final class Engine extends BufferedStore
         return ((Database) destination).dump(id);
     }
 
+    @Override
+    public Set<TObject> gather(String key, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> gatherUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        return inventory.getAll();
+    }
+
     /**
      * Public interface for the {@link Database#getDumpList()} method.
      * 
@@ -736,31 +772,6 @@ public final class Engine extends BufferedStore
     }
 
     @Override
-    public Set<TObject> gather(String key, long record) {
-        transportLock.readLock().lock();
-        Lock range = lockService.getReadLock(key, record);
-        range.lock();
-        try {
-            return super.gather(key, record);
-        }
-        finally {
-            range.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<TObject> gather(String key, long record, long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return super.gather(key, record, timestamp);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Set<TObject> select(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
@@ -776,17 +787,6 @@ public final class Engine extends BufferedStore
         transportLock.readLock().lock();
         try {
             return super.select(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<TObject> gatherUnsafe(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.gather(key, record);
         }
         finally {
             transportLock.readLock().unlock();
