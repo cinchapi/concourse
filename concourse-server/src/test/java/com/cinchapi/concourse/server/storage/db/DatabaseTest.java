@@ -220,7 +220,7 @@ public class DatabaseTest extends StoreTest {
             records.add(Time.now());
         }
         List<String> keys = Lists.newArrayList();
-        for (int i = 0; i < TestData.getScaleCount() * 100; ++i) {
+        for (int i = 0; i < TestData.getScaleCount() * 10; ++i) {
             keys.add(Random.getSimpleString());
         }
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
@@ -232,7 +232,7 @@ public class DatabaseTest extends StoreTest {
                 remove(key, value, record);
             }
         }
-        Database $store = new Database(store.getBackingStore());
+        Database $store = store;
         Benchmark select = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -259,9 +259,9 @@ public class DatabaseTest extends StoreTest {
         };
         double selectTime = select.run(1);
         double gatherTime = gather.run(1);
-        Assert.assertTrue(gatherTime <= selectTime);
         System.out.println("Select took " + selectTime + " ms and gather took "
                 + gatherTime + " ms");
+        Assert.assertTrue(gatherTime <= selectTime);      
     }
 
     @Override
