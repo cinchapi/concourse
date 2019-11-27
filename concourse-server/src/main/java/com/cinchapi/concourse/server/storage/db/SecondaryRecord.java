@@ -272,7 +272,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
     }
 
     /**
-     * Return all the key/value mappings of keys that match {@code key} at
+     * Return all the key/value mappings of keys that matched {@code key} at
      * {@code timestamp} in a case insensitive manner.
      * 
      * @param key
