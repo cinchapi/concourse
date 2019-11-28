@@ -413,7 +413,7 @@ public final class Request {
             else if(conditionKeys == null) {
                 conditionKeys = ImmutableSet.of();
             }
-
+            initialized = true;
         }
     }
 
