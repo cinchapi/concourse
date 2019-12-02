@@ -104,6 +104,7 @@ import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.PermissionException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
@@ -1309,6 +1310,17 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         return countKeyTime(key, NaturalLanguage.parseMicros(timestamp), creds,
                 transaction, environment);
+    }
+
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<String>> inspect(AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        return pluginManager.describePlugins();
     }
 
     @Override
@@ -7223,5 +7235,4 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
 
     }
-
 }

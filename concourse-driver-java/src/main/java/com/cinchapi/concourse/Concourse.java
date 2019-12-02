@@ -595,6 +595,13 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean commit();
 
     /**
+     * Return a list of enabled Concourse plugins.
+     * 
+     * @return a {@link Set} of enabled plugins.
+     */
+    public abstract Map<String, Set<String>> inspect();
+
+    /**
      * Return all of the keys in the database.
      * 
      * @return a {@link Set} of keys in the database

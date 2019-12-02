@@ -18,6 +18,7 @@ dependencies {
     testCompile project(':concourse-driver-java')
     testCompile project(':concourse-ete-test-core')
     testCompile project(':concourse-import')
+    testCompile project(':concourse-plugin-core')
 
     testCompile 'junit:junit:4.11'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'

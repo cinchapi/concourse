@@ -210,6 +210,11 @@ public class ImportDryRunConcourse extends Concourse {
     }
 
     @Override
+    public Map<String, Set<String>> inspect() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<String> describe() {
         synchronized (imported) {
             Set<String> keys = Sets.newHashSet();

@@ -1122,6 +1122,11 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Map<String, Set<String>> inspect() {
+            return invoke("inspect").with();
+        }
+
+        @Override
         public Set<String> describe() {
             return invoke("describe").with();
         }

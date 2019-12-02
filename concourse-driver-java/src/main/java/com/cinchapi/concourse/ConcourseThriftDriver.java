@@ -574,6 +574,13 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
+    public Map<String, Set<String>> inspect() {
+        return execute(() -> {
+            return core.inspect(creds, transaction, environment);
+        });
+    }
+
+    @Override
     public Set<String> describe() {
         return execute(() -> {
             return core.describe(creds, transaction, environment);
