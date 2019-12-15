@@ -31,7 +31,7 @@ import com.cinchapi.concourse.thrift.Operator;
  * @author Jeff Nelson
  */
 public class CON670 extends ConcourseIntegrationTest {
-    
+
     @Test
     public void repro() {
         client.add("name", "jeffrey o");
@@ -39,12 +39,13 @@ public class CON670 extends ConcourseIntegrationTest {
         client.add("name", "jeff n");
         client.add("name", "jeffe c");
         client.add("name", "jefferson nel");
-        Criteria condition = Criteria.where().key("name").operator(Operator.LIKE).value("%jeff%");              
+        Criteria condition = Criteria.where().key("name")
+                .operator(Operator.LIKE).value("%jeff%");
         Set<Long> a = client.find(condition);
         Set<Long> b = client.select(condition).keySet();
         Iterator<Long> ait = a.iterator();
         Iterator<Long> bit = b.iterator();
-        while(ait.hasNext()) {
+        while (ait.hasNext()) {
             long anext = ait.next();
             long bnext = bit.next();
             Assert.assertEquals(anext, bnext);
