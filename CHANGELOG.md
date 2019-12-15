@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.10.4 (TBD)
+#### Version 0.10.4 (December 15, 2019)
 * Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
 * Fixed a bug that made it possible for a `ConnectionPool` to refuse to accept the `release` of a previously issued `Concourse` connection due to a race condition.
 * Fixed a bug that made it possible for Concourse to violate ACID consistency when performing a concurrent write to a key/record alongside a wide read in the same record.
