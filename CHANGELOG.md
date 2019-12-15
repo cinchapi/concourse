@@ -2,6 +2,9 @@
 
 #### Version 0.10.4 (TBD)
 * Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
+* Fixed a bug that made it possible for a `ConnectionPool` to refuse to accept the `release` of a previously issued `Concourse` connection due to a race condition.
+* Fixed a bug that made it possible for Concourse to violate ACID consistency when performing a concurrent write to a key/record alongside a wide read in the same record.
+* Fixed a bug that caused inconsistencies in the intrinsic order of the result set records from a `find` operation vs a `select` or `get` operation.
 
 #### Version 0.10.3 (November 12, 2019)
 * Fixed an issue where the `Database` unnecessarily loaded data from disk when performing a read for a `key` in a `record` after a previous read for the entire `record` made the desired data available in memory.
