@@ -15,13 +15,13 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.AbstractMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 
@@ -81,11 +81,22 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
      * @return a sortable view of the {@link #delegate}
      */
     private Map<Long, Map<String, V>> sortable() {
-        return delegate.stream().map(record -> {
-            Long key = record;
-            Map<String, V> value = ImmutableMap.of();
-            return new SimpleImmutableEntry<>(key, value);
-        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        return new AbstractMap<Long, Map<String, V>>() {
+
+            Set<Entry<Long, Map<String, V>>> entrySet = null;
+
+            @Override
+            public Set<Entry<Long, Map<String, V>>> entrySet() {
+                if(entrySet == null) {
+                    entrySet = LazyTransformSet.of(delegate, record -> {
+                        return new SimpleImmutableEntry<>(record,
+                                ImmutableMap.of());
+                    });
+                }
+                return entrySet;
+            }
+
+        };
     }
 
     @Override
