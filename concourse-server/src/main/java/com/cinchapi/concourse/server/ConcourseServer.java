@@ -22,11 +22,13 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -104,6 +106,7 @@ import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.PermissionException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
@@ -6614,6 +6617,27 @@ public class ConcourseServer extends BaseConcourseServer implements
         return token;
     }
 
+    @Override
+    @ThrowsClientExceptions
+    @PluginRestricted
+    @VerifyAccessToken
+    public void undo(long changes, String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws SecurityException, TransactionException, PermissionException,
+            TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Iterator<Entry<Long, String>> it = new TreeMap<Long, String>(
+                store.audit(key, record)).descendingMap().entrySet().iterator();
+        AtomicOperations.executeWithRetry(store, (atomic) -> {
+            int index = 1;
+            while (index <= changes && it.hasNext()) {
+                Operations.revertAtomic(key, record, it.next().getKey(),
+                        atomic);
+                index++;
+            }
+        });
+    }
+
     /**
      * Start the server.
      *
@@ -7223,5 +7247,4 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
 
     }
-
 }

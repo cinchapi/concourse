@@ -1741,4 +1741,9 @@ public class ImportDryRunConcourse extends Concourse {
         return new ImportDryRunConcourse();
     }
 
+    @Override
+    public void undo(long changes, String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
 }

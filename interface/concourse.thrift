@@ -1193,6 +1193,39 @@ service ConcourseService {
     2: exceptions.TransactionException ex2,
     3: exceptions.PermissionException ex3
   );
+  
+  /**
+   * Undo a previous action done via command line.
+   * 
+   * @param changes The amount of revisions to revert back.
+   * @param key The target key being undone.
+   * @param record The target record id.
+   * @param creds the {@link shared.AccessToken} that is used to authenticate
+   *                the user on behalf of whom the client is connected
+   * @param transaction the {@link shared.TransactionToken} that the
+   *                      server uses to find the current transaction for the
+   *                      client (optional)
+   * @param environment the environment to which the client is connected
+   * @return the {@link Set} of keys in the database
+   * @throws exceptions.SecurityException if the {@code creds} don't
+   *         represent a valid session
+   * @throws exceptions.TransactionException if the client was in a
+   *         transaction and an error occurred that caused the transaction
+   *         to end itself
+   */
+  void undo(
+    1: i64 changes,
+    2: string key,
+    3: i64 record,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.TransactionException ex2,
+    3: exceptions.PermissionException ex3
+  );
 
   /**
    * List all the keys in the database.

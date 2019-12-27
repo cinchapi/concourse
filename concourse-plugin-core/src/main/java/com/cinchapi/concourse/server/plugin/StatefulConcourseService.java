@@ -1621,6 +1621,10 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public void undo(long changes, String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
     public Set<String> describe() {
         throw new UnsupportedOperationException();
     }
