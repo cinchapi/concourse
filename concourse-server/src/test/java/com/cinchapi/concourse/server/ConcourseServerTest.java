@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server;
 
 import java.nio.ByteBuffer;
-
+import java.util.List;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -32,6 +32,7 @@ import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.server.ConcourseServer}.
@@ -95,24 +96,40 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testContextIsCaptured() throws TException {
+    public void testContextIsCaptured()
+            throws TException, InterruptedException {
         server = ConcourseServer.create();
+        server.run();
         try {
-            try {
-                Request.current();
-                Assert.fail();
-            }
-            catch (IllegalStateException e) {
-                Assert.assertTrue(true);
-            }
-            AccessToken creds = server.login(
-                    ByteBuffer.wrap("admin".getBytes()),
-                    ByteBuffer.wrap("admin".getBytes()));
-            server.addKeyValue("name", Convert.javaToThrift("jeff"), creds,
-                    null, "");
-            Assert.assertEquals("add", Request.current().operation());
-            server.browseKey("name", creds, null, "");
-            Assert.assertEquals("browse", Request.current().operation());
+            List<Object> actuals = Lists.newArrayList();
+            Thread t = new Thread(() -> {
+                try {
+                    Request.current();
+                    actuals.add(false);
+                }
+                catch (IllegalStateException e) {
+                    actuals.add(true);
+                }
+                try {
+                    AccessToken creds = server.login(
+                            ByteBuffer.wrap("admin".getBytes()),
+                            ByteBuffer.wrap("admin".getBytes()));
+                    server.addKeyValue("name", Convert.javaToThrift("jeff"),
+                            creds, null, "");
+                    actuals.add(Request.current().operation());
+                    server.browseKey("name", creds, null, "");
+                    actuals.add(Request.current().operation());
+                }
+                catch (TException e) {
+                    e.printStackTrace();
+                }
+            });
+            t.start();
+            t.join();
+            Assert.assertTrue((boolean) actuals.get(0));
+            Assert.assertEquals("add", actuals.get(1));
+            Assert.assertEquals("browse", actuals.get(2));
+
         }
         finally {
             server.stop();
@@ -120,17 +137,25 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testContextIsIgnored() throws TException {
+    public void testContextIsIgnored() throws TException, InterruptedException {
         server = ConcourseServer.create();
+        server.run();
         try {
-            server.getDbStore();
-            try {
-                Request.current();
-                Assert.fail();
-            }
-            catch (IllegalStateException e) {
-                Assert.assertTrue(true);
-            }
+            List<Object> actuals = Lists.newArrayList();
+            Thread t = new Thread(() -> {
+                server.getDbStore();
+                try {
+                    Request.current();
+                    actuals.add(false);
+                }
+                catch (IllegalStateException e) {
+                    actuals.add(true);
+                }
+            });
+            t.start();
+            t.join();
+            Assert.assertTrue((boolean) actuals.get(0));
+
         }
         finally {
             server.stop();
