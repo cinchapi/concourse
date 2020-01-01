@@ -994,14 +994,9 @@ public final class Database extends BaseStore implements PermanentStore {
 
         @Override
         public boolean contains(String key, long record) {
-            if(contains(record)) {
-                return true;
-            }
-            else {
-                Composite composite = Composite.create(PrimaryKey.wrap(record),
-                        Text.wrapCached(key));
-                return cppc.getIfPresent(composite) != null;
-            }
+            Composite composite = Composite.create(PrimaryKey.wrap(record),
+                    Text.wrapCached(key));
+            return cppc.getIfPresent(composite) != null || contains(record);
         }
 
     }
