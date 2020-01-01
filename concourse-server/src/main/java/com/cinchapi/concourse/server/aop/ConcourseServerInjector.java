@@ -55,7 +55,7 @@ public class ConcourseServerInjector extends AbstractModule {
                 Matchers.annotatedWith(VerifyWritePermission.class),
                 new PermissionVerifier(Permission.WRITE));
 
-        // Gather and set the Context for operation methods
+        // Log the current Request and bind it to the current thread
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.not(Matchers.annotatedWith(Internal.class)),
                 new RequestLogger());
