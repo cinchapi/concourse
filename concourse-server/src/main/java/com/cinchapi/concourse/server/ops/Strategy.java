@@ -66,11 +66,12 @@ public class Strategy {
      */
     public Source source(String key, long record) {
         Memory memory = store.memory();
+        // TODO: The notion of a "wide" operation should be extended to case
+        // when the majority (or significant number) of, but not all keys are
+        // involved with an operation.
         boolean isWideOperation = request.operationKeys().isEmpty()
                 && !request.operation().startsWith("find");
         boolean isConditionKey = request.conditionKeys().contains(key);
-        boolean isOperationKey = isWideOperation
-                || request.operationKeys().contains(key);
         boolean isOrderKey = request.orderKeys().contains(key);
         Source source;
         if(isWideOperation) {
@@ -78,20 +79,15 @@ public class Strategy {
             // PrimaryRecord to be loaded.
             source = Source.RECORD;
         }
-        else if(request.conditionKeys().contains(key)
+        else if((isConditionKey || isOrderKey)
                 && request.operationRecords().size() != 1 && gatherable) {
             // The SecondaryRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record
             source = Source.INDEX;
         }
         else {
-            source = Source.FIELD;
-        }
-
-        if(source == Source.INDEX && !gatherable) {
             source = memory.contains(record) ? Source.RECORD : Source.FIELD;
         }
-
         return source;
     }
 
