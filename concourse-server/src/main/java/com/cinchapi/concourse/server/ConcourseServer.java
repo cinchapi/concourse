@@ -67,7 +67,7 @@ import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
 import com.cinchapi.concourse.server.aop.ConcourseServerAdvisor;
 import com.cinchapi.concourse.server.aop.Internal;
-import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
+import com.cinchapi.concourse.server.aop.TranslateClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyReadPermission;
 import com.cinchapi.concourse.server.aop.VerifyWritePermission;
@@ -437,7 +437,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     private UserService users;
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @PluginRestricted
     @VerifyAccessToken
     public void abort(AccessToken creds, TransactionToken transaction,
@@ -446,7 +446,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public long addKeyValue(String key, TObject value, AccessToken creds,
@@ -462,7 +462,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public boolean addKeyValueRecord(String key, TObject value, long record,
@@ -479,7 +479,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public Map<Long, Boolean> addKeyValueRecords(String key, TObject value,
@@ -496,7 +496,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, String> auditKeyRecord(String key, long record,
@@ -506,7 +506,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -515,7 +515,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
@@ -540,7 +540,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditKeyRecordStartstr(String key, long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -550,7 +550,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -562,7 +562,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -570,7 +570,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditRecordStart(long record, long start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -579,7 +579,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, String> auditRecordStartEnd(long record, long start,
@@ -603,7 +603,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditRecordStartstr(long record, String start,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -612,7 +612,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, String> auditRecordStartstrEndstr(long record,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -623,7 +623,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKey(String key, AccessToken creds,
@@ -638,7 +638,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyCcl(String key, String ccl, AccessToken creds,
@@ -662,7 +662,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyCclTime(String key, String ccl, long timestamp,
@@ -686,7 +686,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject averageKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -696,7 +696,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyCriteria(String key, TCriteria criteria,
@@ -716,7 +716,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyCriteriaTime(String key, TCriteria criteria,
@@ -735,7 +735,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject averageKeyCriteriaTimestr(String key, TCriteria criteria,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -745,7 +745,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyRecord(String key, long record, AccessToken creds,
@@ -761,7 +761,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyRecords(String key, List<Long> records,
@@ -777,7 +777,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyRecordsTime(String key, List<Long> records,
@@ -793,7 +793,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject averageKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -803,7 +803,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyRecordTime(String key, long record, long timestamp,
@@ -819,7 +819,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject averageKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -829,7 +829,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject averageKeyTime(String key, long timestamp, AccessToken creds,
@@ -844,7 +844,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject averageKeyTimestr(String key, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -853,7 +853,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
@@ -863,7 +863,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Map<TObject, Set<Long>>> browseKeys(List<String> keys,
@@ -880,7 +880,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Map<TObject, Set<Long>>> browseKeysTime(
@@ -897,7 +897,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Map<TObject, Set<Long>>> browseKeysTimestr(
             List<String> keys, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -907,7 +907,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
@@ -918,7 +918,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<TObject, Set<Long>> browseKeyTimestr(String key,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -927,7 +927,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> chronologizeKeyRecord(String key,
@@ -938,7 +938,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
@@ -950,7 +950,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
@@ -962,7 +962,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstr(String key,
@@ -975,7 +975,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> chronologizeKeyRecordStartstrEndstr(
@@ -989,7 +989,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearKeyRecord(String key, long record, AccessToken creds,
@@ -1002,7 +1002,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearKeyRecords(String key, List<Long> records,
@@ -1017,7 +1017,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearKeysRecord(List<String> keys, long record,
@@ -1032,7 +1032,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearKeysRecords(List<String> keys, List<Long> records,
@@ -1049,7 +1049,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearRecord(long record, AccessToken creds,
@@ -1062,7 +1062,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void clearRecords(List<Long> records, AccessToken creds,
@@ -1077,7 +1077,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @PluginRestricted
     @VerifyAccessToken
     public boolean commit(AccessToken creds, TransactionToken transaction,
@@ -1086,7 +1086,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKey(String key, AccessToken creds,
@@ -1101,7 +1101,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyCcl(String key, String ccl, AccessToken creds,
@@ -1125,7 +1125,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyCclTime(String key, String ccl, long timestamp,
@@ -1149,7 +1149,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long countKeyCclTimestr(String key, String ccl, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1158,7 +1158,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyCriteria(String key, TCriteria criteria,
@@ -1177,7 +1177,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyCriteriaTime(String key, TCriteria criteria,
@@ -1196,7 +1196,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long countKeyCriteriaTimestr(String key, TCriteria criteria,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1206,7 +1206,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyRecord(String key, long record, AccessToken creds,
@@ -1222,7 +1222,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyRecords(String key, List<Long> records,
@@ -1238,7 +1238,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyRecordsTime(String key, List<Long> records,
@@ -1254,7 +1254,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long countKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1264,7 +1264,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyRecordTime(String key, long record, long timestamp,
@@ -1280,7 +1280,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long countKeyRecordTimestr(String key, long record, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1290,7 +1290,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long countKeyTime(String key, long timestamp, AccessToken creds,
@@ -1305,7 +1305,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long countKeyTimestr(String key, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -1314,7 +1314,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<String> describe(AccessToken creds, TransactionToken transaction,
@@ -1331,7 +1331,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<String> describeRecord(long record, AccessToken creds,
@@ -1341,7 +1341,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<String>> describeRecords(List<Long> records,
@@ -1358,7 +1358,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
@@ -1374,7 +1374,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<String>> describeRecordsTimestr(List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1384,7 +1384,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<String> describeRecordTime(long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1392,7 +1392,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<String> describeRecordTimestr(long record, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1402,7 +1402,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<String> describeTime(long timestamp, AccessToken creds,
@@ -1420,7 +1420,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<String> describeTimestr(String timestamp, AccessToken creds,
@@ -1431,7 +1431,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1440,7 +1440,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
@@ -1478,7 +1478,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstr(String key,
             long record, String start, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1489,7 +1489,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Diff, Set<TObject>> diffKeyRecordStartstrEndstr(String key,
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1501,7 +1501,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1510,7 +1510,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
@@ -1576,7 +1576,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstr(String key,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1585,7 +1585,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartstrEndstr(String key,
             String start, String end, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1596,7 +1596,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStart(long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1605,7 +1605,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartEnd(long record,
@@ -1670,7 +1670,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstr(long record,
             String start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1679,7 +1679,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartstrEndstr(
             long record, String start, String end, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1690,7 +1690,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -1698,7 +1698,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> findCclOrder(String ccl, TOrder order, AccessToken creds,
@@ -1723,7 +1723,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCclOrderPage(String ccl, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1733,7 +1733,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -1742,7 +1742,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -1751,7 +1751,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
@@ -1771,7 +1771,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCriteriaOrderPage(TCriteria criteria, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -1780,7 +1780,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findCriteriaPage(TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -1790,7 +1790,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValues(String key, String operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1800,7 +1800,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesOrder(String key, String operator,
             List<TObject> values, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1811,7 +1811,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesOrderPage(String key,
             String operator, List<TObject> values, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1824,7 +1824,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesPage(String key, String operator,
             List<TObject> values, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1834,7 +1834,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTime(String key, String operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1845,7 +1845,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimeOrder(String key,
             String operator, List<TObject> values, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1856,7 +1856,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimeOrderPage(String key,
             String operator, List<TObject> values, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -1868,7 +1868,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimePage(String key,
             String operator, List<TObject> values, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1881,7 +1881,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimestr(String key,
             String operator, List<TObject> values, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1892,7 +1892,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimestrOrder(String key,
             String operator, List<TObject> values, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -1903,7 +1903,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimestrOrderPage(String key,
             String operator, List<TObject> values, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -1916,7 +1916,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorstrValuesTimestrPage(String key,
             String operator, List<TObject> values, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1928,7 +1928,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValues(String key, Operator operator,
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1938,7 +1938,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesOrder(String key, Operator operator,
@@ -1954,7 +1954,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesOrderPage(String key,
             Operator operator, List<TObject> values, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -1964,7 +1964,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
             List<TObject> values, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1974,7 +1974,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -1984,7 +1984,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesTimeOrder(String key,
@@ -2002,7 +2002,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimeOrderPage(String key,
             Operator operator, List<TObject> values, long timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -2015,7 +2015,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimePage(String key,
             Operator operator, List<TObject> values, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2025,7 +2025,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimestr(String key, Operator operator,
             List<TObject> values, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2036,7 +2036,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimestrOrder(String key,
             Operator operator, List<TObject> values, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -2047,7 +2047,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimestrOrderPage(String key,
             Operator operator, List<TObject> values, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -2060,7 +2060,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimestrPage(String key,
             Operator operator, List<TObject> values, String timestamp,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -2073,7 +2073,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long findOrAddKeyValue(String key, TObject value, AccessToken creds,
@@ -2100,7 +2100,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public long findOrInsertCclJson(String ccl, String json, AccessToken creds,
@@ -2134,7 +2134,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public long findOrInsertCriteriaJson(TCriteria criteria, String json,
@@ -2160,7 +2160,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -2168,7 +2168,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclOrder(String ccl, TOrder order,
@@ -2193,7 +2193,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclOrderPage(String ccl,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2204,7 +2204,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
@@ -2229,7 +2229,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2238,7 +2238,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTimeOrder(String ccl,
@@ -2265,7 +2265,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimeOrderPage(String ccl,
             long timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2275,7 +2275,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTimePage(String ccl,
@@ -2301,7 +2301,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2310,7 +2310,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimestrOrder(String ccl,
             String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2320,7 +2320,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimestrOrderPage(String ccl,
             String timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2330,7 +2330,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCclTimestrPage(String ccl,
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2340,7 +2340,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2349,7 +2349,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaOrder(TCriteria criteria,
@@ -2369,7 +2369,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaOrderPage(
             TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2379,7 +2379,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
@@ -2398,7 +2398,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2407,7 +2407,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaTimeOrder(
@@ -2430,7 +2430,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimeOrderPage(
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2440,7 +2440,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaTimePage(
@@ -2460,7 +2460,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2470,7 +2470,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestrOrder(
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2481,7 +2481,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestrOrderPage(
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2492,7 +2492,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getCriteriaTimestrPage(
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2503,7 +2503,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2512,7 +2512,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCclOrder(String key, String ccl,
@@ -2538,7 +2538,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclOrderPage(String key, String ccl,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2548,7 +2548,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
@@ -2573,7 +2573,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2582,7 +2582,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
@@ -2610,7 +2610,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimeOrderPage(String key, String ccl,
             long timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2620,7 +2620,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCclTimePage(String key, String ccl,
@@ -2646,7 +2646,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2655,7 +2655,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimestrOrder(String key, String ccl,
             String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2666,7 +2666,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimestrOrderPage(String key, String ccl,
             String timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2677,7 +2677,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimestrPage(String key, String ccl,
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2688,7 +2688,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2697,7 +2697,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaOrder(String key,
@@ -2719,7 +2719,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaOrderPage(String key,
             TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2729,7 +2729,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
@@ -2749,7 +2749,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2758,7 +2758,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
@@ -2781,7 +2781,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimeOrderPage(String key,
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2791,7 +2791,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaTimePage(String key,
@@ -2812,7 +2812,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2823,7 +2823,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimestrOrder(String key,
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2834,7 +2834,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimestrOrderPage(String key,
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2845,7 +2845,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimestrPage(String key,
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2856,7 +2856,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject getKeyRecord(String key, long record, AccessToken creds,
@@ -2868,7 +2868,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2877,7 +2877,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsOrder(String key, List<Long> records,
@@ -2895,7 +2895,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsOrderPage(String key,
             List<Long> records, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2905,7 +2905,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
@@ -2922,7 +2922,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -2931,7 +2931,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTimeOrder(String key,
@@ -2950,7 +2950,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTimeOrderPage(String key,
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2960,7 +2960,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTimePage(String key,
@@ -2977,7 +2977,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -2987,7 +2987,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTimestrOrder(String key,
             List<Long> records, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -2998,7 +2998,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTimestrOrderPage(String key,
             List<Long> records, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3009,7 +3009,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyRecordsTimestrPage(String key,
             List<Long> records, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3020,7 +3020,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject getKeyRecordTime(String key, long record, long timestamp,
@@ -3032,7 +3032,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject getKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3042,7 +3042,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCcl(List<String> keys,
             String ccl, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3051,7 +3051,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclOrder(List<String> keys,
@@ -3078,7 +3078,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclOrderPage(
             List<String> keys, String ccl, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3088,7 +3088,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
@@ -3114,7 +3114,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTime(List<String> keys,
             String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3124,7 +3124,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclTimeOrder(
@@ -3152,7 +3152,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimeOrderPage(
             List<String> keys, String ccl, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -3162,7 +3162,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclTimePage(List<String> keys,
@@ -3188,7 +3188,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestr(List<String> keys,
             String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3198,7 +3198,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestrOrder(
             List<String> keys, String ccl, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3209,7 +3209,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestrOrderPage(
             List<String> keys, String ccl, String timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -3220,7 +3220,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimestrPage(
             List<String> keys, String ccl, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3231,7 +3231,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteria(List<String> keys,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3240,7 +3240,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaOrder(
@@ -3262,7 +3262,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaOrderPage(
             List<String> keys, TCriteria criteria, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3272,7 +3272,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
@@ -3293,7 +3293,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3303,7 +3303,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrder(
@@ -3326,7 +3326,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrderPage(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -3339,7 +3339,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimePage(
@@ -3360,7 +3360,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3371,7 +3371,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrOrder(
             List<String> keys, TCriteria criteria, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -3382,7 +3382,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrOrderPage(
             List<String> keys, TCriteria criteria, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -3394,7 +3394,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimestrPage(
             List<String> keys, TCriteria criteria, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3405,7 +3405,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, TObject> getKeysRecord(List<String> keys, long record,
@@ -3428,7 +3428,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3437,7 +3437,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsOrder(
@@ -3456,7 +3456,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsOrderPage(
             List<String> keys, List<Long> records, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3466,7 +3466,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
@@ -3484,7 +3484,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTime(List<String> keys,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3494,7 +3494,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrder(
@@ -3513,7 +3513,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrderPage(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -3523,7 +3523,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsTimePage(
@@ -3540,7 +3540,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3551,7 +3551,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestrOrder(
             List<String> keys, List<Long> records, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -3562,7 +3562,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestrOrderPage(
             List<String> keys, List<Long> records, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -3574,7 +3574,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimestrPage(
             List<String> keys, List<Long> records, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -3585,7 +3585,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, TObject> getKeysRecordTime(List<String> keys,
@@ -3608,7 +3608,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, TObject> getKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -3619,7 +3619,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public String getServerEnvironment(AccessToken creds,
@@ -3635,7 +3635,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public Set<Long> insertJson(String json, AccessToken creds,
@@ -3683,7 +3683,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public boolean insertJsonRecord(String json, long record, AccessToken creds,
@@ -3707,7 +3707,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public Map<Long, Boolean> insertJsonRecords(String json, List<Long> records,
@@ -3737,7 +3737,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> inventory(AccessToken creds, TransactionToken transaction,
@@ -3773,7 +3773,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public ComplexTObject invokePlugin(String id, String method,
@@ -3786,7 +3786,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public String jsonifyRecords(List<Long> records, boolean identifier,
@@ -3801,7 +3801,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public String jsonifyRecordsTime(List<Long> records, long timestamp,
@@ -3812,7 +3812,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public String jsonifyRecordsTimestr(List<Long> records, String timestamp,
             boolean identifier, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3848,14 +3848,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @PluginRestricted
     public void logout(AccessToken creds) throws TException {
         logout(creds, null);
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @PluginRestricted
     @VerifyAccessToken
     public void logout(AccessToken creds, String environment)
@@ -3864,7 +3864,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKey(String key, AccessToken creds,
@@ -3880,7 +3880,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyCcl(String key, String ccl, AccessToken creds,
@@ -3904,7 +3904,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyCclTime(String key, String ccl, long timestamp,
@@ -3928,7 +3928,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject maxKeyCclTimestr(String key, String ccl, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -3937,7 +3937,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyCriteria(String key, TCriteria criteria,
@@ -3956,7 +3956,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyCriteriaTime(String key, TCriteria criteria,
@@ -3975,7 +3975,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject maxKeyCriteriaTimestr(String key, TCriteria criteria,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -3985,7 +3985,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyRecord(String key, long record, AccessToken creds,
@@ -4001,7 +4001,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyRecords(String key, List<Long> records,
@@ -4017,7 +4017,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyRecordsTime(String key, List<Long> records,
@@ -4033,7 +4033,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject maxKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4043,7 +4043,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyRecordTime(String key, long record, long timestamp,
@@ -4059,7 +4059,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject maxKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4069,7 +4069,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject maxKeyTime(String key, long timestamp, AccessToken creds,
@@ -4085,7 +4085,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject maxKeyTimestr(String key, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4094,7 +4094,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKey(String key, AccessToken creds,
@@ -4110,7 +4110,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyCcl(String key, String ccl, AccessToken creds,
@@ -4134,7 +4134,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyCclTime(String key, String ccl, long timestamp,
@@ -4158,7 +4158,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject minKeyCclTimestr(String key, String ccl, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4167,7 +4167,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyCriteria(String key, TCriteria criteria,
@@ -4186,7 +4186,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyCriteriaTime(String key, TCriteria criteria,
@@ -4205,7 +4205,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject minKeyCriteriaTimestr(String key, TCriteria criteria,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4215,7 +4215,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyRecord(String key, long record, AccessToken creds,
@@ -4231,7 +4231,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyRecords(String key, List<Long> records,
@@ -4247,7 +4247,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyRecordsTime(String key, List<Long> records,
@@ -4263,7 +4263,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject minKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4273,7 +4273,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyRecordTime(String key, long record, long timestamp,
@@ -4289,7 +4289,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject minKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4300,7 +4300,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject minKeyTime(String key, long timestamp, AccessToken creds,
@@ -4316,7 +4316,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject minKeyTimestr(String key, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4325,7 +4325,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4336,7 +4336,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4362,7 +4362,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
@@ -4373,7 +4373,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCriteria(String key,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
@@ -4384,7 +4384,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4406,7 +4406,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
@@ -4418,7 +4418,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -4428,7 +4428,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
@@ -4439,7 +4439,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4458,7 +4458,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
@@ -4471,7 +4471,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4490,7 +4490,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Set<TObject>> navigateKeyRecordTimestr(String key,
             long record, String timestamp, AccessToken creds,
@@ -4502,7 +4502,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCcl(
             List<String> keys, String ccl, AccessToken creds,
@@ -4514,7 +4514,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4541,7 +4541,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
@@ -4553,7 +4553,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
@@ -4565,7 +4565,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4592,7 +4592,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
@@ -4604,7 +4604,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecord(
             List<String> keys, long record, AccessToken creds,
@@ -4615,7 +4615,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
@@ -4627,7 +4627,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4646,7 +4646,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
@@ -4659,7 +4659,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @SuppressWarnings("deprecation")
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     @Deprecated
@@ -4678,7 +4678,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @Deprecated
     public Map<Long, Map<String, Set<TObject>>> navigateKeysRecordTimestr(
             List<String> keys, long record, String timestamp, AccessToken creds,
@@ -4701,7 +4701,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public boolean pingRecord(long record, AccessToken creds,
@@ -4711,7 +4711,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Boolean> pingRecords(List<Long> records, AccessToken creds,
@@ -4728,7 +4728,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void reconcileKeyRecordValues(String key, long record,
@@ -4750,7 +4750,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public boolean removeKeyValueRecord(String key, TObject value, long record,
@@ -4767,7 +4767,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public Map<Long, Boolean> removeKeyValueRecords(String key, TObject value,
@@ -4784,7 +4784,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void revertKeyRecordsTime(String key, List<Long> records,
@@ -4799,7 +4799,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public void revertKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4809,7 +4809,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void revertKeyRecordTime(String key, long record, long timestamp,
@@ -4822,7 +4822,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public void revertKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4831,7 +4831,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void revertKeysRecordsTime(List<String> keys, List<Long> records,
@@ -4848,7 +4848,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public void revertKeysRecordsTimestr(List<String> keys, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4858,7 +4858,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void revertKeysRecordTime(List<String> keys, long record,
@@ -4873,7 +4873,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public void revertKeysRecordTimestr(List<String> keys, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4883,7 +4883,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<Long> search(String key, String query, AccessToken creds,
@@ -4892,7 +4892,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -4900,7 +4900,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclOrder(String ccl,
@@ -4924,7 +4924,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclOrderPage(String ccl,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -4937,7 +4937,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
@@ -4961,7 +4961,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -4970,7 +4970,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrder(String ccl,
@@ -4995,7 +4995,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrderPage(
             String ccl, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5009,7 +5009,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclTimePage(String ccl,
@@ -5034,7 +5034,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestr(String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5043,7 +5043,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestrOrder(
             String ccl, String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5053,7 +5053,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestrOrderPage(
             String ccl, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5064,7 +5064,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCclTimestrPage(String ccl,
             String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5074,7 +5074,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteria(
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5083,7 +5083,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrder(
@@ -5104,7 +5104,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrderPage(
             TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5118,7 +5118,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
@@ -5137,7 +5137,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTime(
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5147,7 +5147,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrder(
@@ -5169,7 +5169,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrderPage(
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5183,7 +5183,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimePage(
@@ -5202,7 +5202,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestr(
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5213,7 +5213,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrOrder(
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5224,7 +5224,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrOrderPage(
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5235,7 +5235,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimestrPage(
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5246,7 +5246,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -5255,7 +5255,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclOrder(String key, String ccl,
@@ -5281,7 +5281,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclOrderPage(String key, String ccl,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5291,7 +5291,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
@@ -5316,7 +5316,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5325,7 +5325,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclTimeOrder(String key, String ccl,
@@ -5352,7 +5352,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimeOrderPage(String key,
             String ccl, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5362,7 +5362,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclTimePage(String key, String ccl,
@@ -5388,7 +5388,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestr(String key, String ccl,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5398,7 +5398,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestrOrder(String key,
             String ccl, String timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5409,7 +5409,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestrOrderPage(String key,
             String ccl, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5420,7 +5420,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCclTimestrPage(String key,
             String ccl, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5431,7 +5431,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteria(String key,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5440,7 +5440,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCriteriaOrder(String key,
@@ -5462,7 +5462,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaOrderPage(String key,
             TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5472,7 +5472,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCriteriaPage(String key,
@@ -5493,7 +5493,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTime(String key,
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5503,7 +5503,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrder(String key,
@@ -5526,7 +5526,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrderPage(String key,
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5539,7 +5539,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCriteriaTimePage(String key,
@@ -5560,7 +5560,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestr(String key,
             TCriteria criteria, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5571,7 +5571,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestrOrder(String key,
             TCriteria criteria, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5582,7 +5582,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestrOrderPage(String key,
             TCriteria criteria, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5593,7 +5593,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimestrPage(String key,
             TCriteria criteria, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5604,7 +5604,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<TObject> selectKeyRecord(String key, long record,
@@ -5614,7 +5614,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5623,7 +5623,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsOrder(String key,
@@ -5643,7 +5643,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsOrderPage(String key,
             List<Long> records, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5653,7 +5653,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsPage(String key,
@@ -5672,7 +5672,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTime(String key,
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5682,7 +5682,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsTimeOrder(String key,
@@ -5701,7 +5701,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimeOrderPage(String key,
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5714,7 +5714,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsTimePage(String key,
@@ -5731,7 +5731,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestr(String key,
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5742,7 +5742,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestrOrder(String key,
             List<Long> records, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5753,7 +5753,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestrOrderPage(String key,
             List<Long> records, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5764,7 +5764,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimestrPage(String key,
             List<Long> records, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5775,7 +5775,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Set<TObject> selectKeyRecordTime(String key, long record,
@@ -5786,7 +5786,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Set<TObject> selectKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5796,7 +5796,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(List<String> keys,
             String ccl, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -5805,7 +5805,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrder(
@@ -5831,7 +5831,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrderPage(
             List<String> keys, String ccl, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5845,7 +5845,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
@@ -5870,7 +5870,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTime(
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5880,7 +5880,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrder(
@@ -5906,7 +5906,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrderPage(
             List<String> keys, String ccl, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -5920,7 +5920,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimePage(
@@ -5945,7 +5945,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestr(
             List<String> keys, String ccl, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5956,7 +5956,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrOrder(
             List<String> keys, String ccl, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5967,7 +5967,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrOrderPage(
             List<String> keys, String ccl, String timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -5978,7 +5978,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimestrPage(
             List<String> keys, String ccl, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -5989,7 +5989,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteria(
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -5999,7 +5999,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrder(
@@ -6020,7 +6020,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
             List<String> keys, TCriteria criteria, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6034,7 +6034,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
@@ -6054,7 +6054,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTime(
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6064,7 +6064,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrder(
@@ -6086,7 +6086,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrderPage(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -6100,7 +6100,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimePage(
@@ -6120,7 +6120,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestr(
             List<String> keys, TCriteria criteria, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6131,7 +6131,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrder(
             List<String> keys, TCriteria criteria, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -6142,7 +6142,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrOrderPage(
             List<String> keys, TCriteria criteria, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -6154,7 +6154,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimestrPage(
             List<String> keys, TCriteria criteria, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6165,7 +6165,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Set<TObject>> selectKeysRecord(List<String> keys,
@@ -6182,7 +6182,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecords(
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6192,7 +6192,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
@@ -6212,7 +6212,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrderPage(
             List<String> keys, List<Long> records, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6226,7 +6226,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsPage(
@@ -6245,7 +6245,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTime(
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6255,7 +6255,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrder(
@@ -6274,7 +6274,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrderPage(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
@@ -6288,7 +6288,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimePage(
@@ -6305,7 +6305,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestr(
             List<String> keys, List<Long> records, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6316,7 +6316,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrOrder(
             List<String> keys, List<Long> records, String timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
@@ -6327,7 +6327,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrOrderPage(
             List<String> keys, List<Long> records, String timestamp,
             TOrder order, TPage page, AccessToken creds,
@@ -6339,7 +6339,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimestrPage(
             List<String> keys, List<Long> records, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6350,7 +6350,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Set<TObject>> selectKeysRecordTime(List<String> keys,
@@ -6367,7 +6367,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Set<TObject>> selectKeysRecordTimestr(List<String> keys,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6378,7 +6378,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Set<TObject>> selectRecord(long record,
@@ -6388,7 +6388,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecords(
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -6397,7 +6397,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsOrder(
@@ -6416,7 +6416,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsOrderPage(
             List<Long> records, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6430,7 +6430,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsPage(
@@ -6448,7 +6448,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTime(
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6458,7 +6458,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrder(
@@ -6476,7 +6476,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrderPage(
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6490,7 +6490,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimePage(
@@ -6507,7 +6507,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestr(
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6518,7 +6518,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrOrder(
             List<Long> records, String timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6529,7 +6529,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrOrderPage(
             List<Long> records, String timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
@@ -6540,7 +6540,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimestrPage(
             List<Long> records, String timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6551,7 +6551,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Set<TObject>> selectRecordTime(long record,
@@ -6561,7 +6561,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public Map<String, Set<TObject>> selectRecordTimestr(long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -6570,7 +6570,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public long setKeyValue(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
@@ -6578,7 +6578,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void setKeyValueRecord(String key, TObject value, long record,
@@ -6589,7 +6589,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void setKeyValueRecords(String key, TObject value,
@@ -6604,7 +6604,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @PluginRestricted
     @VerifyAccessToken
     public TransactionToken stage(AccessToken creds, String env)
@@ -6670,7 +6670,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKey(String key, AccessToken creds,
@@ -6685,7 +6685,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
@@ -6709,7 +6709,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyCclTime(String key, String ccl, long timestamp,
@@ -6733,7 +6733,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject sumKeyCclTimestr(String key, String ccl, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -6742,7 +6742,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyCriteria(String key, TCriteria criteria,
@@ -6761,7 +6761,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
@@ -6780,7 +6780,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject sumKeyCriteriaTimestr(String key, TCriteria criteria,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -6790,7 +6790,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyRecord(String key, long record, AccessToken creds,
@@ -6806,7 +6806,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyRecords(String key, List<Long> records,
@@ -6822,7 +6822,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyRecordsTime(String key, List<Long> records,
@@ -6838,7 +6838,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject sumKeyRecordsTimestr(String key, List<Long> records,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -6848,7 +6848,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyRecordTime(String key, long record, long timestamp,
@@ -6864,7 +6864,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject sumKeyRecordTimestr(String key, long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
@@ -6874,7 +6874,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public TObject sumKeyTime(String key, long timestamp, AccessToken creds,
@@ -6889,7 +6889,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public TObject sumKeyTimestr(String key, String timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -6898,7 +6898,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long time(AccessToken creds, TransactionToken token,
@@ -6907,7 +6907,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public long timePhrase(String phrase, AccessToken creds,
@@ -6921,7 +6921,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public boolean verifyAndSwap(String key, TObject expected, long record,
@@ -6944,7 +6944,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public boolean verifyKeyValueRecord(String key, TObject value, long record,
@@ -6954,7 +6954,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public boolean verifyKeyValueRecordTime(String key, TObject value,
@@ -6966,7 +6966,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     public boolean verifyKeyValueRecordTimestr(String key, TObject value,
             long record, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
@@ -6977,7 +6977,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     @Override
-    @ThrowsClientExceptions
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyWritePermission
     public void verifyOrSet(String key, TObject value, long record,

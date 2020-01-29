@@ -20,13 +20,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.cinchapi.concourse.server.ConcourseServer;
+import com.cinchapi.concourse.thrift.ManagementException;
 
 /**
- * Indicates that a {@link ConcourseServer server} method propagates certain
- * Java exceptions to the client using analogous ones in the
- * {@code com.cinchapi.concourse.thrift} package.
+ * Indicates that a method propagates exceptions to the client as a
+ * {@link ManagementException}..
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ThrowsClientExceptions {}
+public @interface TranslateManagementExceptions {}

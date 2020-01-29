@@ -42,13 +42,13 @@ public class ConcourseServerAdvisor extends AbstractModule {
         // Intercept client exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                Matchers.annotatedWith(ThrowsClientExceptions.class),
+                Matchers.annotatedWith(TranslateClientExceptions.class),
                 new ClientExceptionTranslationAdvice());
 
         // Intercept management exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
-                Matchers.annotatedWith(ThrowsManagementExceptions.class),
+                Matchers.annotatedWith(TranslateManagementExceptions.class),
                 new ManagementExceptionTranslationAdvice());
 
         // Enforce access restrictions on method invocations.
