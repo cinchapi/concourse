@@ -29,7 +29,7 @@ import com.cinchapi.concourse.thrift.TransactionToken;
  *
  * @author Jeff Nelson
  */
-public class AccessTokenVerifier implements MethodInterceptor {
+public class AccessTokenVerificationAdvice implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {

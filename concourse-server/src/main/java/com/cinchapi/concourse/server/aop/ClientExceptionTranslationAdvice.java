@@ -36,7 +36,7 @@ import com.google.gson.JsonParseException;
  * method, but catches specific exceptions and translates them to the
  * appropriate Thrift counterparts.
  */
-public class ClientExceptionTranslator implements MethodInterceptor {
+public class ClientExceptionTranslationAdvice implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {

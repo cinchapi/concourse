@@ -65,7 +65,7 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.server.aop.ConcourseServerInjector;
+import com.cinchapi.concourse.server.aop.ConcourseServerAdvisor;
 import com.cinchapi.concourse.server.aop.Internal;
 import com.cinchapi.concourse.server.aop.ThrowsClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
@@ -210,7 +210,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     public static ConcourseServer create(int port, String bufferStore,
             String dbStore) throws TTransportException {
-        Injector injector = Guice.createInjector(new ConcourseServerInjector());
+        Injector injector = Guice.createInjector(new ConcourseServerAdvisor());
         ConcourseServer server = injector.getInstance(ConcourseServer.class);
         server.init(port, bufferStore, dbStore);
         return server;

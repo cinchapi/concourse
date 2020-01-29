@@ -23,7 +23,7 @@ import org.aopalliance.intercept.MethodInvocation;
  *
  * @author Jeff Nelson
  */
-public class RequestLogger implements MethodInterceptor {
+public class RequestLoggingAdvice implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {

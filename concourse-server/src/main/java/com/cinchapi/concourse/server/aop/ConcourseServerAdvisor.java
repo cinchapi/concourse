@@ -17,15 +17,25 @@ package com.cinchapi.concourse.server.aop;
 
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
-import com.cinchapi.concourse.server.ops.RequestLogger;
+import com.cinchapi.concourse.server.ops.RequestLoggingAdvice;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 
 /**
+ * The {@link ConcourseServerAdvisor} is an implementation of an aspect-oriented
+ * programming concept (https://en.wikipedia.org/wiki/Advice_(programming)) that
+ * allows for common functionality to be injected into methods without modifying
+ * those methods.
+ * <p>
+ * This advisor, binds {@link MethodInterceptor interceptors} to methods to
+ * {@link ConcourseServer} to inject functionality, logging, exception handling,
+ * etc.
+ * </p>
+ * 
  * A {@link com.google.inject.Module Module} that configures AOP
  * interceptors and injectors that handle Thrift specific needs.
  */
-public class ConcourseServerInjector extends AbstractModule {
+public class ConcourseServerAdvisor extends AbstractModule {
 
     @Override
     protected void configure() {
@@ -33,32 +43,32 @@ public class ConcourseServerInjector extends AbstractModule {
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(ThrowsClientExceptions.class),
-                new ClientExceptionTranslator());
+                new ClientExceptionTranslationAdvice());
 
         // Intercept management exceptions and re-throw them in a thrift
         // friendly manner
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(ThrowsManagementExceptions.class),
-                new ManagementExceptionTranslator());
+                new ManagementExceptionTranslationAdvice());
 
         // Enforce access restrictions on method invocations.
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyAccessToken.class),
-                new AccessTokenVerifier());
+                new AccessTokenVerificationAdvice());
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyAdminRole.class),
-                new AdminRoleVerifier());
+                new AdminRoleVerificiationAdvice());
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyReadPermission.class),
-                new PermissionVerifier(Permission.READ));
+                new PermissionVerificationAdvice(Permission.READ));
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.annotatedWith(VerifyWritePermission.class),
-                new PermissionVerifier(Permission.WRITE));
+                new PermissionVerificationAdvice(Permission.WRITE));
 
         // Log the current Request and bind it to the current thread
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.not(Matchers.annotatedWith(Internal.class)),
-                new RequestLogger());
+                new RequestLoggingAdvice());
 
     }
 
