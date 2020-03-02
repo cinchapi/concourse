@@ -17,12 +17,10 @@ package com.cinchapi.concourse.export;
 
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.common.collect.Sequences;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 /**
  * An {@link Exporter} for delimited lines (e.g. CSV).
@@ -30,29 +28,6 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 final class DelimitedLinesExporter<V> extends Exporter<V> {
-
-    /**
-     * Return the ideal string representation for {@code value}.
-     * <p>
-     * If {@code value} is a {@link Sequences#isSequence(Object) sequence}, this
-     * method will return each item in the sequence as a comma separated string.
-     * </p>
-     * 
-     * @param value
-     * @return the ideal string representation for {@code value}
-     */
-    private static String stringify(Object value) {
-        if(value == null) {
-            return "null";
-        }
-        if(Sequences.isSequence(value)) {
-            return AnyStrings.join(',', Sequences.stream(value).toArray());
-        }
-        else {
-            return value.toString();
-        }
-
-    }
 
     /**
      * The delimiter to use.
@@ -67,6 +42,18 @@ final class DelimitedLinesExporter<V> extends Exporter<V> {
      */
     protected DelimitedLinesExporter(OutputStream output, char delimiter) {
         super(output);
+        this.delimiter = delimiter;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param output
+     * @param toStringFunction
+     */
+    protected DelimitedLinesExporter(OutputStream output,
+            Function<V, String> toStringFunction, char delimiter) {
+        super(output, toStringFunction);
         this.delimiter = delimiter;
     }
 
@@ -89,12 +76,7 @@ final class DelimitedLinesExporter<V> extends Exporter<V> {
      */
     @Override
     public void export(Iterable<Map<String, V>> data) {
-        Set<String> headers = Sets.newLinkedHashSet();
-        for (Map<String, V> item : data) {
-            for (String key : item.keySet()) {
-                headers.add(key);
-            }
-        }
+        Iterable<String> headers = getHeaders(data);
         print(headers, delimiter);
         for (Map<String, V> item : data) {
             output.println();
@@ -113,13 +95,20 @@ final class DelimitedLinesExporter<V> extends Exporter<V> {
      * @param delimiter
      * @param output
      */
+    @SuppressWarnings("unchecked")
     private void print(Iterable<?> values, char delimiter) {
         boolean prependComma = false;
         for (Object value : values) {
             if(prependComma) {
                 output.print(',');
             }
-            String $value = stringify(value);
+            String $value;
+            try {
+                $value = toStringFunction.apply((V) value);
+            }
+            catch (ClassCastException e) {
+                $value = value.toString();
+            }
             output.print(
                     AnyStrings.ensureWithinQuotesIfNeeded($value, delimiter));
             prependComma = true;

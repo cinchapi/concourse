@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.export.excel.ExcelExporter;
 
 /**
  * Factory methods that return various {@link Exporter Exporters}.
@@ -75,7 +76,29 @@ public final class Exporters {
      * @return the {@link Exporter}
      */
     public static <V> Exporter<V> csv(OutputStream stream) {
-        return new DelimitedLinesExporter<V>(stream, ',');
+        return new DelimitedLinesExporter<>(stream, ',');
+    }
+
+    /**
+     * Return the {@link WorkbookExporter} that outputs in Excel format to the
+     * {@code file}.
+     * 
+     * @param file
+     * @return the {@link WorkbookExporter}
+     */
+    public static <V> WorkbookExporter<V> excel(Path file) {
+        return excel(openFileOutputStreamQuietly(file));
+    }
+
+    /**
+     * Return the {@link WorkbookExporter} that outputs in Excel format to the
+     * {@code stream}.
+     * 
+     * @param file
+     * @return the {@link WorkbookExporter}
+     */
+    public static <V> WorkbookExporter<V> excel(OutputStream stream) {
+        return new ExcelExporter<>(stream);
     }
 
 }
