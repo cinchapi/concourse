@@ -40,7 +40,7 @@ public class CrossVersionStrategyLookupPerformanceTest
         extends CrossVersionTest {
 
     @Test
-    public void testFindSortKeyAndConditionKey() throws InterruptedException {
+    public void testFindSortKeyAndConditionKey() {
         init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
@@ -54,11 +54,11 @@ public class CrossVersionStrategyLookupPerformanceTest
 
         };
         double avg = benchmark.run(1);
-        record("strategy", avg);
+        record("testFindSortKeyAndConditionKey", avg);
     }
 
     @Test
-    public void testSelectSortKeyAndConditionKey() throws InterruptedException {
+    public void testSelectSortKeyAndConditionKey() {
         init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
@@ -72,7 +72,54 @@ public class CrossVersionStrategyLookupPerformanceTest
 
         };
         double avg = benchmark.run(1);
-        record("strategy", avg);
+        record("testSelectSortKeyAndConditionKey", avg);
+    }
+
+    @Test
+    public void testSelectManyKeysSortKey() {
+        init();
+        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                client.select(Lists.newArrayList("count", "foo", "c"),
+                        client.inventory(), Order.by("count"));
+            }
+
+        };
+        double avg = benchmark.run(1);
+        record("testSelectManyKeysSortKey", avg);
+    }
+
+    @Test
+    public void testSelectAllKeysSortKey() {
+        init();
+        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                client.select(client.inventory(), Order.by("count"));
+            }
+
+        };
+        double avg = benchmark.run(1);
+        record("testSelectAllKeysSortKey", avg);
+    }
+
+    @Test
+    public void testSelectDiffKeyFromSortKey() {
+        init();
+        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                client.select(Lists.newArrayList("name", "c"),
+                        client.inventory(), Order.by("count"));
+            }
+
+        };
+        double avg = benchmark.run(1);
+        record("testSelectDiffKeyFromSortKey", avg);
     }
 
     /**

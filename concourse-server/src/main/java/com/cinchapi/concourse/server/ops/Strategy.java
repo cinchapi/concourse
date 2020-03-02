@@ -74,19 +74,26 @@ public class Strategy {
         boolean isConditionKey = request.conditionKeys().contains(key);
         boolean isOrderKey = request.orderKeys().contains(key);
         Source source;
-        if(isWideOperation) {
-            // The entire record is involved in the operation, so force the full
-            // PrimaryRecord to be loaded.
-            source = Source.RECORD;
-        }
-        else if((isConditionKey || isOrderKey)
+        if((isConditionKey || isOrderKey)
                 && request.operationRecords().size() != 1 && gatherable) {
             // The SecondaryRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record
             source = Source.INDEX;
         }
+        else if(isWideOperation) {
+            // The entire record is involved in the operation, so force the full
+            // PrimaryRecord to be loaded.
+            source = Source.RECORD;
+        }
+        else if(memory.contains(record)) {
+            source = Source.RECORD;
+        }
+        else if(memory.contains(key, record)) {
+            source = Source.FIELD;
+        }
         else {
-            source = memory.contains(record) ? Source.RECORD : Source.FIELD;
+            source = request.operationKeys().size() > 1 ? Source.RECORD
+                    : Source.FIELD;
         }
         return source;
     }
