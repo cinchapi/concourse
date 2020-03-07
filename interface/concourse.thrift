@@ -25,6 +25,10 @@ include "complex.thrift"
 # utils/compile-thrift-java.sh
 namespace java com.cinchapi.concourse.thrift
 
+# To generate Node.js source code run:
+# utils/compile—thrift-node-js.sh
+namespace js concourse.thrift
+
 # To generate python source code run:
 # utils/compile—thrift-python.sh
 namespace py concourse.thriftapi
@@ -51,7 +55,7 @@ namespace rb concourse.thrift
 #
 # As much as possible, try to preserve backward compatibility so that
 # Concourse Server can always talk to older drivers.
-const string VERSION = "1.0.0"
+const string VERSION = "0.10.0"
 
 # This value is passed over the wire to represent a null value, usually
 # for get/select methods where a key/record has no data.

@@ -828,25 +828,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<Long> find(Criteria criteria);
 
     /**
-     * Return the set of records that satisfy the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for {@link #find(Criteria)}. The only
-     * difference is that this method takes a in-process {@link Criteria}
-     * building sequence for convenience.
-     * </p>
-     * 
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired records
-     * @return the records that match the {@code criteria}
-     */
-    public abstract Set<Long> find(Object criteria); // this method exists in
-                                                     // case the caller
-                                                     // forgets
-                                                     // to called #build() on
-                                                     // the CriteriaBuilder
-
-    /**
      * Return the set of records that satisfy the {@code ccl} filter.
      * 
      * @param ccl a well-formed criteria expressed using the Concourse Criteria
@@ -1445,59 +1426,6 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
-     * For each of the {@code keys} in every record that matches the
-     * {@code criteria}, return the stored value that was most recently
-     * added.
-     * <p>
-     * This method is syntactic sugar for {@link #get(Collection, Criteria)}.
-     * The only difference is that this method takes a in-process
-     * {@link Criteria} building sequence for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} to the freshest
-     *         value in the field
-     */
-    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria);
-
-    /**
-     * For each of the {@code keys} in every record that matches the
-     * {@code criteria}, return the stored value that was most recently
-     * added at {@code timestamp}.
-     * <p>
-     * This method is syntactic sugar for
-     * {@link #get(Collection, Criteria, Timestamp)}. The only difference is
-     * that this method takes a in-process {@link Criteria} building sequence
-     * for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} to the freshest
-     *         value in the field at {@code timestamp}
-     */
-    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
-            Object criteria, Timestamp timestamp);
-
-    /**
      * For each of the {@code keys} in every record that matches the {@code ccl}
      * filter, return the stored value that was most recently added.
      * 
@@ -1565,43 +1493,6 @@ public abstract class Concourse implements AutoCloseable {
      *         value in the field at {@code timestamp}
      */
     public abstract <T> Map<Long, Map<String, T>> get(Criteria criteria,
-            Timestamp timestamp);
-
-    /**
-     * For every key in every record that matches the {@code criteria}, return
-     * the stored value that was most recently added.
-     * 
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the record's keys to the freshest
-     *         value in the field
-     */
-    public abstract <T> Map<Long, Map<String, T>> get(Object criteria);
-
-    /**
-     * For every key in every record that matches the {@code criteria}, return
-     * the stored value that was most recently added at {@code timestamp}.
-     * 
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the record's keys to the freshest
-     *         value in the field at {@code timestamp}
-     */
-    public abstract <T> Map<Long, Map<String, T>> get(Object criteria,
             Timestamp timestamp);
 
     /**
@@ -1746,55 +1637,6 @@ public abstract class Concourse implements AutoCloseable {
     public final <T> T get(String key, Long record, Timestamp timestamp) {
         return get(key, record.longValue(), timestamp);
     }
-
-    /**
-     * For every record that matches the {@code criteria}, return the stored
-     * value in the {@code key} field that was most recently added.
-     * <p>
-     * This method is syntactic sugar for {@link #get(String, Criteria)}. The
-     * only difference is that this method takes a in-process {@link Criteria}
-     * building sequence for convenience.
-     * </p>
-     * 
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the record's keys to the freshest
-     *         value in the field
-     */
-    public abstract <T> Map<Long, T> get(String key, Object criteria);
-
-    /**
-     * For every record that matches the {@code criteria}, return the
-     * stored value in the {@code key} field that was most recently added at
-     * {@code timestamp}.
-     * <p>
-     * This method is syntactic sugar for
-     * {@link #get(String, Criteria, Timestamp)}. The only difference is that
-     * this method takes a in-process {@link Criteria} building sequence for
-     * convenience.
-     * </p>
-     * 
-     * @param key the field name
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to the
-     *         freshest value in the {@code key} field
-     */
-    public abstract <T> Map<Long, T> get(String key, Object criteria,
-            Timestamp timestamp);
 
     /**
      * For every record that matches the {@code ccl} filter, return the
@@ -2443,68 +2285,6 @@ public abstract class Concourse implements AutoCloseable {
      * return the data contained at each of the destinations.
      * 
      * @param keys a collection of navigation keys
-     * @param criteria a {@link Criteria} that contains a well-formed filter for
-     *            the desired records
-     * @return a {@link Map} associating each of the destination {@code records}
-     *         to another {@link Map} associating each of the destination
-     *         {@code keys} to a {@link Set} containing all the values stored in
-     *         the respective fields
-     * @see <a href=
-     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
-     */
-    public final <T> Map<Long, Map<String, Set<T>>> navigate(
-            Collection<String> keys, Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return navigate(keys, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the navigate method");
-        }
-    }
-
-    /**
-     * Traverse the document-graph at {@code timestamp} along each of the
-     * navigation {@code keys}, starting at each of the records that matched the
-     * {@code criteria} and return the data contained at each of the
-     * destinations at {@code timestamp}.
-     * 
-     * @param keys a collection of navigation keys
-     * @param criteria a {@link Criteria} that contains a well-formed filter for
-     *            the desired records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the destination {@code records}
-     *         to another {@link Map} associating each of the destination
-     *         {@code keys} to a {@link Set} containing all the values stored in
-     *         the respective fields at {@code timestamp}
-     * @see <a href=
-     *      "https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key">https://docs.cinchapi.com/concourse/guide/glossary/#navigation-key</a>
-     */
-    public final <T> Map<Long, Map<String, Set<T>>> navigate(
-            Collection<String> keys, Object criteria, Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return navigate(keys, ((BuildableState) criteria).build(),
-                    timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the navigate method");
-        }
-    }
-
-    /**
-     * Traverse the document-graph along each of the navigation {@code keys},
-     * starting at each of the records that match the {@code criteria} and
-     * return the data contained at each of the destinations.
-     * 
-     * @param keys a collection of navigation keys
      * @param criteria a well-formed criteria expressed using the Concourse
      *            Criteria
      *            Language
@@ -2703,68 +2483,6 @@ public abstract class Concourse implements AutoCloseable {
     public final <T> Map<Long, Set<T>> navigate(String key, Long record,
             Timestamp timestamp) {
         return navigate(key, record.longValue(), timestamp);
-    }
-
-    /**
-     * Return all the values stored for {@code key} in every record that
-     * matches the {@link Criteria} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
-     * 
-     * @param key the field name
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
-     * @return a {@link Map} associating each of the the matching records to a
-     *         {@link Set} containing all the values stored in the respective
-     *         field
-     */
-    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria) {
-        if(criteria instanceof BuildableState) {
-            return navigate(key, ((BuildableState) criteria).build());
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the navigate method");
-        }
-    }
-
-    /**
-     * Return all the values stored for {@code key} in every record that
-     * matches the {@link Criteria} filter. Navigates through the key splited
-     * with dot(.) operator.
-     * <p>
-     * Iterates only if the key has a link as value which
-     * points to another record.
-     * </p>
-     * 
-     * @param key the field name
-     * @param ccl a well-formed criteria expressed using the Concourse Criteria
-     *            Language
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the the matching records to a
-     *         {@link Set} containing all the values stored in the respective
-     *         field
-     */
-    public final <T> Map<Long, Set<T>> navigate(String key, Object criteria,
-            Timestamp timestamp) {
-        if(criteria instanceof BuildableState) {
-            return navigate(key, ((BuildableState) criteria).build(),
-                    timestamp);
-        }
-        else {
-            throw new IllegalArgumentException(criteria
-                    + " is not a valid argument for the navigate method");
-        }
     }
 
     /**
@@ -3115,59 +2833,6 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Return all the values stored for each of the {@code keys} in every record
-     * that matches the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for {@link #select(Collection, Criteria)}.
-     * The only difference is that this method takes a in-process
-     * {@link Criteria} building sequence for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
-     */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(
-            Collection<String> keys, Object criteria);
-
-    /**
-     * Return all the values stored for each of the {@code keys} at
-     * {@code timestamp} in every record that matches the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for
-     * {@link #select(Collection, Criteria, Timestamp)}. The only difference is
-     * that this method takes a in-process {@link Criteria} building sequence
-     * for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field at {@code timestamp}
-     */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(
-            Collection<String> keys, Object criteria, Timestamp timestamp);
-
-    /**
-     * Return all the values stored for each of the {@code keys} in every record
      * that matches the {@code ccl} filter.
      * 
      * @param keys a collection of field names
@@ -3302,56 +2967,6 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp) {
         return select(record.longValue(), timestamp);
     }
-
-    /**
-     * Return all the data from every record that matches {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for {@link #select(Criteria)}. The only
-     * difference is that this method takes a in-process {@link Criteria}
-     * building sequence for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field
-     */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria);
-
-    /**
-     * Return all the data at {@code timestamp} from every record that
-     * matches the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for {@link #select(Criteria, Timestamp)}.
-     * The only difference is that this method takes a in-process
-     * {@link Criteria} building sequence for convenience.
-     * </p>
-     * 
-     * @param keys a collection of field names
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to another
-     *         {@link Map} associating each of the {@code keys} in that record
-     *         to a {@link Set} containing all the values stored in the
-     *         respective field at {@code timestamp}
-     */
-    public abstract <T> Map<Long, Map<String, Set<T>>> select(Object criteria,
-            Timestamp timestamp);
 
     /**
      * Return all the data from every record that matches {@code ccl} filter.
@@ -3495,56 +3110,6 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp) {
         return select(key, record.longValue(), timestamp);
     }
-
-    /**
-     * Return all the values stored for {@code key} in every record that
-     * matches the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for {@link #select(String, Criteria)}. The
-     * only difference is that this method takes a in-process {@link Criteria}
-     * building sequence for convenience.
-     * </p>
-     * 
-     * @param key the field name
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @return a {@link Map} associating each of the matching records to a
-     *         {@link Set} containing all the values stored in the respective
-     *         field
-     */
-    public abstract <T> Map<Long, Set<T>> select(String key, Object criteria);
-
-    /**
-     * Return all the values stored for {@code key} at {@code timestamp} in
-     * every record that matches the {@code criteria}.
-     * <p>
-     * This method is syntactic sugar for
-     * {@link #select(String, Criteria, Timestamp)}. The only difference is that
-     * this method takes a in-process {@link Criteria} building sequence for
-     * convenience.
-     * </p>
-     * 
-     * @param key the field name
-     * @param criteria an in-process {@link Criteria} building sequence that
-     *            contains an {@link BuildableState#build() unfinalized},
-     *            but well-formed filter for the desired
-     *            records
-     * @param timestamp a {@link Timestamp} that represents the historical
-     *            instant to use in the lookup – created from either a
-     *            {@link Timestamp#fromString(String) natural language
-     *            description} of a point in time (i.e. two weeks ago), OR
-     *            the {@link Timestamp#fromMicros(long) number
-     *            of microseconds} since the Unix epoch, OR
-     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
-     *            DateTime} object
-     * @return a {@link Map} associating each of the matching records to a
-     *         {@link Set} containing all the values stored in the respective
-     *         field at {@code timestamp}
-     */
-    public abstract <T> Map<Long, Set<T>> select(String key, Object criteria,
-            Timestamp timestamp);
 
     /**
      * Return all the values stored for {@code key} in every record that

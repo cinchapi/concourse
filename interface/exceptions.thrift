@@ -23,6 +23,10 @@
 # thrift -out concourse-driver-java/src/main/java -gen java interface/exceptions.thrift
 namespace java com.cinchapi.concourse.thrift
 
+# To generate Node.js source code run:
+# thrift --gen js:es6,node -out concourse-driver-node-js/src -recurse interface/exceptions.thrift
+namespace js concourse.thrift.exceptions
+
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py interface/exceptions.thrift
 namespace py concourse.thriftapi.exceptions
@@ -106,7 +110,7 @@ exception ManagementException {
 }
 
 /**
- * Thrown when a user attempts an operation for which she has insufficient 
+ * Thrown when a user attempts an operation for which she has insufficient
  * permission.
  */
 exception PermissionException {

@@ -25,11 +25,12 @@ import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.grammar.ValueSymbol;
+import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TSymbol;
 import com.cinchapi.concourse.thrift.TSymbolType;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -38,6 +39,13 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 public final class Language {
+
+    /**
+     * The character that indicates a String should be treated as a
+     * {@link com.cinchapi.concourse.Tag}.
+     */
+    private static final char TAG_MARKER = Reflection.getStatic("TAG_MARKER",
+            Convert.class); // (authorized)
 
     /**
      * Translate the {@link TSymbol} to its Java analog.
@@ -55,12 +63,13 @@ public final class Language {
         else if(tsymbol.getType() == TSymbolType.VALUE) {
             Object symbol = Convert.stringToJava(tsymbol.getSymbol());
             if(symbol instanceof String && !symbol.equals(tsymbol.getSymbol())
-                    && Strings.isWithinQuotes(tsymbol.getSymbol())) {
+                    && AnyStrings.isWithinQuotes(tsymbol.getSymbol(),
+                            TAG_MARKER)) {
                 // CON-634: This is an obscure corner case where the surrounding
                 // quotes on the original tsymbol were necessary to escape a
                 // keyword, but got dropped because of the logic in
                 // Convert#stringToJava
-                symbol = Strings.ensureWithinQuotes(symbol.toString());
+                symbol = AnyStrings.ensureWithinQuotes(symbol.toString());
             }
             return new ValueSymbol(symbol);
         }
@@ -94,7 +103,7 @@ public final class Language {
      */
     public static TCriteria translateToThriftCriteria(Criteria criteria) {
         List<TSymbol> symbols = Lists.newArrayList();
-        for (Symbol symbol : criteria.getSymbols()) {
+        for (Symbol symbol : criteria.symbols()) {
             symbols.add(translateToThriftSymbol(symbol));
         }
         return new TCriteria(symbols);
@@ -107,7 +116,7 @@ public final class Language {
      * @return the analogous Java {@link Criteria}
      */
     public static Criteria translateFromThriftCriteria(TCriteria tcriteria) {
-        Criteria criteria = new Criteria();
+        BuiltCriteria criteria = new BuiltCriteria();
         for (TSymbol tsymbol : tcriteria.getSymbols()) {
             criteria.add(translateFromThriftSymbol(tsymbol));
         }

@@ -1,0 +1,45 @@
+{
+  "author": "Jonathan Barronville <jonathan@cinchapi.com> (https://cinchapi.com)",
+  "bugs": "https://github.com/cinchapi/concourse/issues",
+  "dependencies": {
+    "bluebird": "^3.5.5",
+    "bn.js": "^4.11.8",
+    "java-properties": "^1.0.1",
+    "lodash": "^4.17.11",
+    "luxon": "^1.16.0",
+    "node-int64": "^0.4.0",
+    "thrift": "^0.12.0"
+  },
+  "description": "The Node.js driver for the Concourse database system.",
+  "devDependencies": {
+    "@creditkarma/thrift-parser": "^1.2.0",
+    "ast-types": "^0.13.1",
+    "recast": "^0.18.1",
+    "yargs": "^13.2.4"
+  },
+  "directories": {
+    "lib": "./src"
+  },
+  "engines": {
+    "node": ">=6.5.0"
+  },
+  "homepage": "http://concoursedb.com",
+  "keywords": [
+    "analytics",
+    "cinchapi",
+    "concourse",
+    "database",
+    "nosql"
+  ],
+  "license": "Apache-2.0",
+  "main": "./src/index.js",
+  "name": "@cinchapi/concourse-driver",
+  "private": true,
+  "repository": {
+    "directory": "concourse-driver-node-js",
+    "type": "git",
+    "url": "https://github.com/cinchapi/concourse.git"
+  },
+  "scripts": {},
+  "version": "0.1.0"
+}

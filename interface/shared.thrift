@@ -21,6 +21,10 @@
 # thrift -out concourse-driver-java/src/main/java -gen java interface/shared.thrift
 namespace java com.cinchapi.concourse.thrift
 
+# To generate Node.js source code run:
+# thrift --gen js:es6,node -out concourse-driver-node-js/src -recurse interface/shared.thrift
+namespace js concourse.thrift.shared
+
 # To generate python source code run:
 # thrift -out concourse-driver-python -gen py interface/shared.thrift
 namespace py concourse.thriftapi.shared

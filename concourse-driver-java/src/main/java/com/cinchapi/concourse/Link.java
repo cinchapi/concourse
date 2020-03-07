@@ -17,10 +17,10 @@ package com.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Strings;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
@@ -118,7 +118,7 @@ public final class Link extends Number implements Comparable<Link> {
      *         resolvable link instruction}
      */
     public static String toWhere(Criteria criteria) {
-        return toWhere(criteria.getCclString());
+        return toWhere(criteria.ccl());
     }
 
     /**
@@ -141,7 +141,7 @@ public final class Link extends Number implements Comparable<Link> {
      */
     public static String toWhere(Object criteria) {
         Preconditions.checkArgument(criteria instanceof BuildableState,
-                Strings.format("{} is not a valid criteria", criteria));
+                AnyStrings.format("{} is not a valid criteria", criteria));
         return toWhere(((BuildableState) criteria).build());
     }
 
