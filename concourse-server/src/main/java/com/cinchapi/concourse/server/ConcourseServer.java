@@ -105,6 +105,7 @@ import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.ParseException;
+import com.cinchapi.concourse.thrift.PermissionException;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TObject;
@@ -6928,6 +6929,25 @@ public class ConcourseServer extends BaseConcourseServer implements
         return AtomicOperations.supplyWithRetry(store, atomic -> Operations
                 .traceRecordsAtomic(records, Time.NONE, atomic));
 
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> traceRecordsTime(
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordsAtomic(records, timestamp, atomic));
+    }
+
+    @Override
+    public Map<String, Set<Long>> traceRecordTime(long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordAtomic(record, timestamp, atomic));
     }
 
     @Override
