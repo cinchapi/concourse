@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -90,6 +91,24 @@ public class OperationsTest {
                     ImmutableSet.of(1L, 4L), Convert.javaToThrift("D"),
                     ImmutableSet.of(1L, 4L), Convert.javaToThrift("E"),
                     ImmutableSet.of(1L, 4L)), data);
+        }
+        finally {
+            store.stop();
+        }
+    }
+
+    @Test
+    public void testTraceRecordAtomic() {
+        AtomicSupport store = getStore();
+        try {
+            setupGraph(store);
+            AtomicOperation atomic = store.startAtomicOperation();
+            Map<String, Set<Long>> incoming = Operations.traceRecordAtomic(2,
+                    Time.NONE, atomic);
+            Assert.assertEquals(
+                    ImmutableMap.of("foo", ImmutableSet.of(1L, 4L), "bar",
+                            ImmutableSet.of(3L), "baz", ImmutableSet.of(3L)),
+                    incoming);
         }
         finally {
             store.stop();
