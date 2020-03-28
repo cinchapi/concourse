@@ -6905,14 +6905,6 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.cinchapi.concourse.thrift.ConcourseTraceService.Iface#traceRecord(
-     * long, com.cinchapi.concourse.thrift.AccessToken,
-     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
-     */
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -6920,18 +6912,11 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<String, Set<Long>> traceRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        // TODO Auto-generated method stub
-        return null;
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordAtomic(record, Time.NONE, atomic));
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.cinchapi.concourse.thrift.ConcourseTraceService.Iface#traceRecords(
-     * java.util.List, com.cinchapi.concourse.thrift.AccessToken,
-     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
-     */
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -6939,8 +6924,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        // TODO Auto-generated method stub
-        return null;
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordsAtomic(records, Time.NONE, atomic));
+
     }
 
     @Override
