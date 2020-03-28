@@ -99,6 +99,7 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseCalculateService;
 import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
+import com.cinchapi.concourse.thrift.ConcourseTraceService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
@@ -139,8 +140,9 @@ import com.google.inject.Injector;
  */
 public class ConcourseServer extends BaseConcourseServer implements
         ConcourseService.Iface,
+        ConcourseCalculateService.Iface,
         ConcourseNavigateService.Iface,
-        ConcourseCalculateService.Iface {
+        ConcourseTraceService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -149,31 +151,6 @@ public class ConcourseServer extends BaseConcourseServer implements
      * doing so will cause the interception to silently fail. See
      * https://github.com/google/guice/wiki/AOP#limitations for more details.
      */
-
-    /**
-     * Contains the credentials used by the {@link #users}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
-     * The minimum heap size required to run Concourse Server.
-     */
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-    /**
-     * A placeholder to signfiy that no {@link Order} should be imposed on a
-     * result set.
-     */
-    private static final TOrder NO_ORDER = null;
-
-    /**
-     * The number of worker threads that Concourse Server uses.
-     */
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -372,6 +349,31 @@ public class ConcourseServer extends BaseConcourseServer implements
     private static boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
     }
+
+    /**
+     * Contains the credentials used by the {@link #users}. This file is
+     * typically located in the root of the server installation.
+     */
+    private static final String ACCESS_FILE = ".access";
+
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    /**
+     * A placeholder to signfiy that no {@link Order} should be imposed on a
+     * result set.
+     */
+    private static final TOrder NO_ORDER = null;
+
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
 
     /**
      * The base location where the indexed buffer pages are stored.
@@ -6903,6 +6905,44 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseTraceService.Iface#traceRecord(
+     * long, com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<Long>> traceRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.cinchapi.concourse.thrift.ConcourseTraceService.Iface#traceRecords(
+     * java.util.List, com.cinchapi.concourse.thrift.AccessToken,
+     * com.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    @ThrowsClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     @ThrowsClientExceptions
     @VerifyAccessToken
@@ -6978,6 +7018,42 @@ public class ConcourseServer extends BaseConcourseServer implements
                 atomic.add(key, value, record);
             }
         });
+    }
+
+    @Override
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    protected String getDbStore() {
+        return dbStore;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
+     *
+     * @param env
+     * @return the Engine
+     */
+    protected Engine getEngine(String env) {
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    @Override
+    protected PluginManager plugins() {
+        return pluginManager;
+    }
+
+    @Override
+    protected UserService users() {
+        return users;
     }
 
     /**
@@ -7127,42 +7203,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
-    }
-
-    @Override
-    protected String getBufferStore() {
-        return bufferStore;
-    }
-
-    @Override
-    protected String getDbStore() {
-        return dbStore;
-    }
-
-    /**
-     * Return the {@link Engine} that is associated with {@code env}. If such an
-     * Engine does not exist, create a new one and add it to the collection.
-     *
-     * @param env
-     * @return the Engine
-     */
-    protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
-    }
-
-    @Override
-    protected PluginManager plugins() {
-        return pluginManager;
-    }
-
-    @Override
-    protected UserService users() {
-        return users;
     }
 
     /**

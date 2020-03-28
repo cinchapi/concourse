@@ -3590,4 +3590,12 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public Map<String, Set<Long>> traceRecord(long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
 }
