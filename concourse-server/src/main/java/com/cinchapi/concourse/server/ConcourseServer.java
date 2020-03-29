@@ -99,7 +99,6 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseCalculateService;
 import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
-import com.cinchapi.concourse.thrift.ConcourseTraceService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.DuplicateEntryException;
 import com.cinchapi.concourse.thrift.ManagementException;
@@ -141,8 +140,7 @@ import com.google.inject.Injector;
 public class ConcourseServer extends BaseConcourseServer implements
         ConcourseService.Iface,
         ConcourseCalculateService.Iface,
-        ConcourseNavigateService.Iface,
-        ConcourseTraceService.Iface {
+        ConcourseNavigateService.Iface {
 
     /*
      * IMPORTANT NOTICE
