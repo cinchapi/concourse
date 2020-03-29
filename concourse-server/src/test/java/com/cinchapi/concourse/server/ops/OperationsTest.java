@@ -31,6 +31,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -108,6 +109,35 @@ public class OperationsTest {
             Assert.assertEquals(
                     ImmutableMap.of("foo", ImmutableSet.of(1L, 4L), "bar",
                             ImmutableSet.of(3L), "baz", ImmutableSet.of(3L)),
+                    incoming);
+        }
+        finally {
+            store.stop();
+        }
+    }
+
+    @Test
+    public void testTraceRecordsAtomic() {
+        AtomicSupport store = getStore();
+        try {
+            setupGraph(store);
+            AtomicOperation atomic = store.startAtomicOperation();
+            Map<Long, Map<String, Set<Long>>> incoming = Operations
+                    .traceRecordsAtomic(ImmutableList.of(1L, 2L, 3L), Time.NONE,
+                            atomic);
+            Assert.assertEquals(
+                    ImmutableMap.of(2L,
+                            ImmutableMap.of("foo", ImmutableSet.of(1L, 4L),
+                                    "bar", ImmutableSet.of(3L), "baz",
+                                    ImmutableSet.of(3L)),
+                            1L,
+                            ImmutableMap.of("bar", ImmutableSet.of(2L),
+                                    "baz", ImmutableSet.of(3L), "foo",
+                                    ImmutableSet.of(4L)),
+                            3L,
+                            ImmutableMap.of("baz", ImmutableSet.of(1L, 4L),
+                                    "foo", ImmutableSet.of(2L), "bar",
+                                    ImmutableSet.of(4L))),
                     incoming);
         }
         finally {
