@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +56,7 @@ import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.ConcourseCalculateService;
 import com.cinchapi.concourse.thrift.ConcourseNavigateService;
 import com.cinchapi.concourse.thrift.ConcourseService;
+import com.cinchapi.concourse.thrift.ConcourseTraceService;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.Operator;
@@ -69,7 +71,6 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -114,9 +115,14 @@ class ConcourseThriftDriver extends Concourse {
     private final ConcourseNavigateService.Client navigate;
 
     /**
-     * The thrift client that actually handles calcuation RPC communication.
+     * The thrift client that actually handles aggregation RPC communication.
      */
     private final ConcourseCalculateService.Client calculate;
+
+    /**
+     * The thrift client that actually handles trace RPC communication.
+     */
+    private final ConcourseTraceService.Client trace;
 
     /**
      * A container with all the thrift clients.
@@ -228,7 +234,14 @@ class ConcourseThriftDriver extends Concourse {
                     new TMultiplexedProtocol(protocol, "calculate"));
             this.navigate = new ConcourseNavigateService.Client(
                     new TMultiplexedProtocol(protocol, "navigate"));
-            this.clients = ImmutableSet.of(core, calculate, navigate);
+            this.trace = new ConcourseTraceService.Client(
+                    new TMultiplexedProtocol(protocol, "trace"));
+            this.clients = Sets.newLinkedHashSet();
+            for (Field field : Reflection.getAllDeclaredFields(this)) {
+                if(TServiceClient.class.isAssignableFrom(field.getType())) {
+                    clients.add(Reflection.get(field.getName(), this));
+                }
+            }
             authenticate();
             Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
@@ -4032,6 +4045,32 @@ class ConcourseThriftDriver extends Concourse {
             return Timestamp.fromMicros(
                     core.timePhrase(phrase, creds, transaction, environment));
         });
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record) {
+        return execute(() -> trace.traceRecord(record, creds, transaction,
+                environment));
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+        return execute(() -> trace.traceRecordTime(record,
+                timestamp.getMicros(), creds, transaction, environment));
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records) {
+        return execute(() -> trace.traceRecords(Collections.toLongList(records),
+                creds, transaction, environment));
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
+            Timestamp timestamp) {
+        return execute(() -> trace.traceRecordsTime(
+                Collections.toLongList(records), timestamp.getMicros(), creds,
+                transaction, environment));
     }
 
     @Override
