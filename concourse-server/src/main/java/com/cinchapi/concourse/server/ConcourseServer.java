@@ -141,8 +141,8 @@ import com.google.inject.Injector;
  */
 public class ConcourseServer extends BaseConcourseServer implements
         ConcourseService.Iface,
-        ConcourseNavigateService.Iface,
-        ConcourseCalculateService.Iface {
+        ConcourseCalculateService.Iface,
+        ConcourseNavigateService.Iface {
 
     /*
      * IMPORTANT NOTICE
@@ -453,12 +453,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> record = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            record.set(Time.now());
-            Operations.addIfEmptyAtomic(key, value, record.get(), atomic);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            long record = Time.now();
+            Operations.addIfEmptyAtomic(key, value, record, atomic);
+            return record;
         });
-        return record.get();
     }
 
     @Override
@@ -630,11 +629,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyAtomic(key, Time.NONE, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -648,13 +646,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> average = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                average.set(Operations.avgKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic));
+                Number average = Operations.avgKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+                return Convert.javaToThrift(average);
             });
-            return Convert.javaToThrift(average.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -672,13 +669,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> average = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                average.set(Operations.avgKeyRecordsAtomic(key, records,
-                        timestamp, atomic));
+                Number average = Operations.avgKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+                return Convert.javaToThrift(average);
             });
-            return Convert.javaToThrift(average.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -705,14 +701,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            average.set(Operations.avgKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
-
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -725,13 +719,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            average.set(Operations.avgKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    timestamp, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -752,12 +745,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyRecordAtomic(key, record, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyRecordAtomic(key, record,
+                    Time.NONE, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -768,12 +760,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -784,12 +775,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    timestamp, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -810,12 +800,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyRecordAtomic(key, record, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyRecordAtomic(key, record,
+                    timestamp, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -836,11 +825,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> average = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            average.set(Operations.avgKeyAtomic(key, timestamp, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number average = Operations.avgKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(average);
         });
-        return Convert.javaToThrift(average.get());
     }
 
     @Override
@@ -1093,11 +1081,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyAtomic(key, Time.NONE, atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.countKeyAtomic(key, Time.NONE, atomic));
     }
 
     @Override
@@ -1111,13 +1096,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Long> count = new AtomicReference<>(0L);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                count.set(Operations.countKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic));
+                return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
+                        atomic);
             });
-            return count.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -1135,13 +1118,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Long> count = new AtomicReference<>(0L);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                count.set(Operations.countKeyRecordsAtomic(key, records,
-                        timestamp, atomic));
+                return Operations.countKeyRecordsAtomic(key, records, timestamp,
+                        atomic);
             });
-            return count.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -1167,13 +1148,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            count.set(Operations.countKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+            return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
         });
-        return count.get();
     }
 
     @Override
@@ -1186,13 +1165,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            count.set(Operations.countKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+            return Operations.countKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
         });
-        return count.get();
     }
 
     @Override
@@ -1213,12 +1190,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyRecordAtomic(key, record, Time.NONE,
-                    atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .countKeyRecordAtomic(key, record, Time.NONE, atomic));
     }
 
     @Override
@@ -1229,12 +1202,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .countKeyRecordsAtomic(key, records, Time.NONE, atomic));
     }
 
     @Override
@@ -1245,12 +1214,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .countKeyRecordsAtomic(key, records, timestamp, atomic));
     }
 
     @Override
@@ -1271,12 +1236,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyRecordAtomic(key, record, timestamp,
-                    atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .countKeyRecordAtomic(key, record, timestamp, atomic));
     }
 
     @Override
@@ -1297,11 +1258,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Long> count = new AtomicReference<>(0L);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            count.set(Operations.countKeyAtomic(key, timestamp, atomic));
-        });
-        return count.get();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.countKeyAtomic(key, timestamp, atomic));
     }
 
     @Override
@@ -1708,14 +1666,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Set<Long>> results = new AtomicReference<>(null);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 SortableSet<Set<TObject>> records = SortableSet
                         .of(ast.accept(Finder.instance(), atomic));
                 records.sort(Sorting.byValues(Orders.from(order), store));
-                results.set(records);
+                return records;
             });
-            return results.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -1760,14 +1716,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Set<Long>> results = new AtomicReference<>(null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             SortableSet<Set<TObject>> records = SortableSet
                     .of(ast.accept(Finder.instance(), atomic));
             records.sort(Sorting.byValues(Orders.from(order), store));
-            results.set(records);
+            return records;
         });
-        return results.get();
     }
 
     @Override
@@ -3792,12 +3746,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     public String jsonifyRecords(List<Long> records, boolean identifier,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AtomicReference<String> json = new AtomicReference<>("");
         AtomicSupport store = getStore(transaction, environment);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            json.set(Operations.jsonify(records, 0L, identifier, atomic));
-        });
-        return json.get();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.jsonify(records, 0L, identifier, atomic));
     }
 
     @Override
@@ -3871,12 +3822,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<TObject> max = new AtomicReference<>(null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key);
-            max.set(Iterables.getLast(data.keySet(), max.get()));
+            return Iterables.getLast(data.keySet(), null);
         });
-        return max.get();
     }
 
     @Override
@@ -3890,13 +3839,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> max = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                max.set(Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic));
+                Number max = Operations.maxKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+                return Convert.javaToThrift(max);
             });
-            return Convert.javaToThrift(max.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -3914,13 +3862,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> max = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                max.set(Operations.maxKeyRecordsAtomic(key, records, timestamp,
-                        atomic));
+                Number max = Operations.maxKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+                return Convert.javaToThrift(max);
             });
-            return Convert.javaToThrift(max.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -3946,13 +3893,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            max.set(Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -3965,13 +3911,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            max.set(Operations.maxKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+            Number max = Operations.maxKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -3992,12 +3937,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            max.set(Operations.maxKeyRecordAtomic(key, record, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number max = Operations.maxKeyRecordAtomic(key, record, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -4008,12 +3952,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            max.set(Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -4024,12 +3967,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            max.set(Operations.maxKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number max = Operations.maxKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -4050,12 +3992,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> max = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            max.set(Operations.maxKeyRecordAtomic(key, record, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number max = Operations.maxKeyRecordAtomic(key, record, timestamp,
+                    atomic);
+            return Convert.javaToThrift(max);
         });
-        return Convert.javaToThrift(max.get());
     }
 
     @Override
@@ -4076,12 +4017,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<TObject> max = new AtomicReference<>();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            max.set(Iterables.getLast(data.keySet(), max.get()));
+            return Iterables.getLast(data.keySet(), null);
         });
-        return max.get();
     }
 
     @Override
@@ -4101,12 +4040,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<TObject> min = new AtomicReference<>();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key);
-            min.set(Iterables.getFirst(data.keySet(), min.get()));
+            return Iterables.getFirst(data.keySet(), null);
         });
-        return min.get();
     }
 
     @Override
@@ -4120,13 +4057,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> min = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                min.set(Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic));
+                Number min = Operations.minKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+                return Convert.javaToThrift(min);
             });
-            return Convert.javaToThrift(min.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4144,13 +4080,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> min = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                min.set(Operations.minKeyRecordsAtomic(key, records, timestamp,
-                        atomic));
+                Number min = Operations.minKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+                return Convert.javaToThrift(min);
             });
-            return Convert.javaToThrift(min.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4176,13 +4111,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            min.set(Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4195,13 +4129,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            min.set(Operations.minKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+            Number min = Operations.minKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4222,12 +4155,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            min.set(Operations.minKeyRecordAtomic(key, record, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number min = Operations.minKeyRecordAtomic(key, record, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4238,12 +4170,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            min.set(Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4254,12 +4185,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            min.set(Operations.minKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number min = Operations.minKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4280,12 +4210,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> min = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            min.set(Operations.minKeyRecordAtomic(key, record, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number min = Operations.minKeyRecordAtomic(key, record, timestamp,
+                    atomic);
+            return Convert.javaToThrift(min);
         });
-        return Convert.javaToThrift(min.get());
     }
 
     @Override
@@ -4307,12 +4236,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<TObject> min = new AtomicReference<>(null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            min.set(Iterables.getFirst(data.keySet(), min.get()));
+            return Iterables.getFirst(data.keySet(), null);
         });
-        return min.get();
     }
 
     @Override
@@ -4347,14 +4274,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
-                    null);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                result.set(Operations.navigateKeyRecordsAtomic(key, records,
-                        timestamp, atomic));
+                return Operations.navigateKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
             });
-            return result.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4395,14 +4319,11 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
-                null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            result.set(Operations.navigateKeyRecordsAtomic(key, records,
-                    timestamp, atomic));
+            return Operations.navigateKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
         });
-        return result.get();
     }
 
     @Override
@@ -4448,13 +4369,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
-                null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeyRecordsAtomic(key,
-                    Sets.newLinkedHashSet(records), timestamp, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            return Operations.navigateKeyRecordsAtomic(key,
+                    Sets.newLinkedHashSet(records), timestamp, atomic);
         });
-        return result.get();
     }
 
     @Override
@@ -4480,13 +4398,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Map<Long, Set<TObject>>> result = new AtomicReference<>(
-                null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeyRecordAtomic(key, record,
-                    timestamp, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            return Operations.navigateKeyRecordAtomic(key, record, timestamp,
+                    atomic);
         });
-        return result.get();
     }
 
     @Override
@@ -4526,14 +4441,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
-                    null);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                result.set(Operations.navigateKeysRecordsAtomic(keys, records,
-                        timestamp, atomic));
+                return Operations.navigateKeysRecordsAtomic(keys, records,
+                        timestamp, atomic);
             });
-            return result.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4577,14 +4489,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(criteria);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
-                    null);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                result.set(Operations.navigateKeysRecordsAtomic(keys, records,
-                        timestamp, atomic));
+                return Operations.navigateKeysRecordsAtomic(keys, records,
+                        timestamp, atomic);
             });
-            return result.get();
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -4636,13 +4545,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
-                null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeysRecordsAtomic(keys,
-                    Sets.newLinkedHashSet(records), timestamp, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            return Operations.navigateKeysRecordsAtomic(keys,
+                    Sets.newLinkedHashSet(records), timestamp, atomic);
         });
-        return result.get();
     }
 
     @Override
@@ -4668,13 +4574,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Map<Long, Map<String, Set<TObject>>>> result = new AtomicReference<>(
-                null);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            result.set(Operations.navigateKeysRecordAtomic(keys, record,
-                    timestamp, atomic));
-        });
-        return result.get();
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .navigateKeysRecordAtomic(keys, record, timestamp, atomic));
     }
 
     @Override
@@ -6662,11 +6563,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyAtomic(key, Time.NONE, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6680,13 +6580,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> sum = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                sum.set(Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic));
+                Number sum = Operations.sumKeyRecordsAtomic(key, records,
+                        Time.NONE, atomic);
+                return Convert.javaToThrift(sum);
             });
-            return Convert.javaToThrift(sum.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -6704,13 +6603,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             Parser parser = Parsers.create(ccl);
             AbstractSyntaxTree ast = parser.parse();
             AtomicSupport store = getStore(transaction, environment);
-            AtomicReference<Number> sum = new AtomicReference<>(0);
-            AtomicOperations.executeWithRetry(store, (atomic) -> {
+            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
-                sum.set(Operations.sumKeyRecordsAtomic(key, records, timestamp,
-                        atomic));
+                Number sum = Operations.sumKeyRecordsAtomic(key, records,
+                        timestamp, atomic);
+                return Convert.javaToThrift(sum);
             });
-            return Convert.javaToThrift(sum.get());
         }
         catch (Exception e) {
             throw new ParseException(e.getMessage());
@@ -6736,13 +6634,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            sum.set(Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6755,13 +6652,12 @@ public class ConcourseServer extends BaseConcourseServer implements
         Parser parser = Parsers.create(criteria);
         AbstractSyntaxTree ast = parser.parse();
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            sum.set(Operations.sumKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6782,12 +6678,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyRecordAtomic(key, record, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyRecordAtomic(key, record, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6798,12 +6693,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6814,12 +6708,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyRecordsAtomic(key, records, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6840,12 +6733,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyRecordAtomic(key, record, timestamp,
-                    atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyRecordAtomic(key, record, timestamp,
+                    atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6866,11 +6758,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws SecurityException, TransactionException, TException {
         AtomicSupport store = getStore(transaction, environment);
-        AtomicReference<Number> sum = new AtomicReference<>(0);
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            sum.set(Operations.sumKeyAtomic(key, timestamp, atomic));
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Number sum = Operations.sumKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(sum);
         });
-        return Convert.javaToThrift(sum.get());
     }
 
     @Override
@@ -6903,6 +6794,56 @@ public class ConcourseServer extends BaseConcourseServer implements
         catch (Exception e) {
             throw new ParseException(e.getMessage());
         }
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<Long>> traceRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordAtomic(record, Time.NONE, atomic));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordsAtomic(records, Time.NONE, atomic));
+
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, Map<String, Set<Long>>> traceRecordsTime(
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordsAtomic(records, timestamp, atomic));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<String, Set<Long>> traceRecordTime(long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .traceRecordAtomic(record, timestamp, atomic));
     }
 
     @Override

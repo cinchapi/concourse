@@ -1643,6 +1643,27 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
+    public Map<String, Set<Long>> trace(long record) {
+        return concourse.trace(record);
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+        return concourse.trace(record, timestamp);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records) {
+        return concourse.trace(records);
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
+            Timestamp timestamp) {
+        return concourse.trace(records, timestamp);
+    }
+
+    @Override
     public Timestamp time() {
         return concourse.time();
     }

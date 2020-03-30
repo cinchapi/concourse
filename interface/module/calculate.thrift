@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Interface definition for the Concourse Server Navigate API.
+# Interface definition for the Concourse Server Aggregation API.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 include "../data.thrift"
