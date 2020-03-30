@@ -6968,7 +6968,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      * {@link #start() Start} the server as a daemon.
      */
     @Internal
-    void run() {
+    void spawn() {
         new Thread(() -> {
             try {
                 start();

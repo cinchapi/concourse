@@ -100,7 +100,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     public void testContextIsCaptured()
             throws TException, InterruptedException {
         server = ConcourseServer.create();
-        server.run();
+        server.spawn();
         try {
             List<Object> actuals = Lists.newArrayList();
             Thread t = new Thread(() -> {
@@ -140,7 +140,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     @Test
     public void testContextIsIgnored() throws TException, InterruptedException {
         server = ConcourseServer.create();
-        server.run();
+        server.spawn();
         try {
             List<Object> actuals = Lists.newArrayList();
             Thread t = new Thread(() -> {
