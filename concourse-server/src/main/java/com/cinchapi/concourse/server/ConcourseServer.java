@@ -153,31 +153,6 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
 
     /**
-     * Contains the credentials used by the {@link #users}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
-     * The minimum heap size required to run Concourse Server.
-     */
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-    /**
-     * A placeholder to signfiy that no {@link Order} should be imposed on a
-     * result set.
-     */
-    private static final TOrder NO_ORDER = null;
-
-    /**
-     * The number of worker threads that Concourse Server uses.
-     */
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
-
-    /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
      * {@code concourse.prefs} file.
@@ -374,6 +349,31 @@ public class ConcourseServer extends BaseConcourseServer implements
     private static boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
     }
+
+    /**
+     * Contains the credentials used by the {@link #users}. This file is
+     * typically located in the root of the server installation.
+     */
+    private static final String ACCESS_FILE = ".access";
+
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    /**
+     * A placeholder to signfiy that no {@link Order} should be imposed on a
+     * result set.
+     */
+    private static final TOrder NO_ORDER = null;
+
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
 
     /**
      * The base location where the indexed buffer pages are stored.
@@ -6638,21 +6638,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
-     * {@link #start() Start} the server as a daemon.
-     */
-    @Internal
-    void run() {
-        new Thread(() -> {
-            try {
-                start();
-            }
-            catch (TTransportException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
-            }
-        }).start();
-    }
-
-    /**
      * Stop the server.
      */
     @PluginRestricted
@@ -6997,6 +6982,62 @@ public class ConcourseServer extends BaseConcourseServer implements
         });
     }
 
+    @Override
+    @Internal
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    @Internal
+    protected String getDbStore() {
+        return dbStore;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
+     *
+     * @param env
+     * @return the Engine
+     */
+    @Internal
+    protected Engine getEngine(String env) {
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    @Override
+    @Internal
+    protected PluginManager plugins() {
+        return pluginManager;
+    }
+
+    @Override
+    @Internal
+    protected UserService users() {
+        return users;
+    }
+
+    /**
+     * {@link #start() Start} the server as a daemon.
+     */
+    @Internal
+    void run() {
+        new Thread(() -> {
+            try {
+                start();
+            }
+            catch (TTransportException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }).start();
+    }
+
     /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
@@ -7149,47 +7190,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
-    }
-
-    @Override
-    @Internal
-    protected String getBufferStore() {
-        return bufferStore;
-    }
-
-    @Override
-    @Internal
-    protected String getDbStore() {
-        return dbStore;
-    }
-
-    /**
-     * Return the {@link Engine} that is associated with {@code env}. If such an
-     * Engine does not exist, create a new one and add it to the collection.
-     *
-     * @param env
-     * @return the Engine
-     */
-    @Internal
-    protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
-    }
-
-    @Override
-    @Internal
-    protected PluginManager plugins() {
-        return pluginManager;
-    }
-
-    @Override
-    @Internal
-    protected UserService users() {
-        return users;
     }
 
     /**
