@@ -241,8 +241,8 @@ public final class Stores {
         }
         else {
             Source source;
-            if(Request.isSet()) {
-                Strategy strategy = new Strategy(Request.current(), store);
+            if(Command.isSet()) {
+                Strategy strategy = new Strategy(Command.current(), store);
                 source = strategy.source(key, record);
             }
             else {

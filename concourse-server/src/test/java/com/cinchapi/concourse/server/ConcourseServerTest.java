@@ -28,7 +28,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.ops.Request;
+import com.cinchapi.concourse.server.ops.Command;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.util.Convert;
@@ -97,7 +97,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testContextIsCaptured()
+    public void testCommandIsIntrospected()
             throws TException, InterruptedException {
         server = ConcourseServer.create();
         server.spawn();
@@ -105,7 +105,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
             List<Object> actuals = Lists.newArrayList();
             Thread t = new Thread(() -> {
                 try {
-                    Request.current();
+                    Command.current();
                     actuals.add(false);
                 }
                 catch (IllegalStateException e) {
@@ -117,9 +117,9 @@ public class ConcourseServerTest extends ConcourseBaseTest {
                             ByteBuffer.wrap("admin".getBytes()));
                     server.addKeyValue("name", Convert.javaToThrift("jeff"),
                             creds, null, "");
-                    actuals.add(Request.current().operation());
+                    actuals.add(Command.current().operation());
                     server.browseKey("name", creds, null, "");
-                    actuals.add(Request.current().operation());
+                    actuals.add(Command.current().operation());
                 }
                 catch (TException e) {
                     e.printStackTrace();
@@ -138,7 +138,8 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testContextIsIgnored() throws TException, InterruptedException {
+    public void testCommandIsNotIntrospected()
+            throws TException, InterruptedException {
         server = ConcourseServer.create();
         server.spawn();
         try {
@@ -146,7 +147,7 @@ public class ConcourseServerTest extends ConcourseBaseTest {
             Thread t = new Thread(() -> {
                 server.getDbStore();
                 try {
-                    Request.current();
+                    Command.current();
                     actuals.add(false);
                 }
                 catch (IllegalStateException e) {

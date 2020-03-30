@@ -17,7 +17,7 @@ package com.cinchapi.concourse.server.aop;
 
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.server.ConcourseServer;
-import com.cinchapi.concourse.server.ops.RequestLoggingAdvice;
+import com.cinchapi.concourse.server.ops.CommandIntrospectionAdvice;
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
 
@@ -68,7 +68,7 @@ public class ConcourseServerAdvisor extends AbstractModule {
         // Log the current Request and bind it to the current thread
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.not(Matchers.annotatedWith(Internal.class)),
-                new RequestLoggingAdvice());
+                new CommandIntrospectionAdvice());
 
     }
 

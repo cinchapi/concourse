@@ -22,16 +22,16 @@ import com.cinchapi.concourse.server.storage.Store;
 
 /**
  * A {@link Strategy} is a guided plan for interacting with a {@link Store} to
- * service a {@link ConcourseServer} {@link Request}.
+ * service a {@link ConcourseServer} {@link Command}.
  *
  * @author Jeff Nelson
  */
 public class Strategy {
 
     /**
-     * The {@link Request} being serviced.
+     * The {@link Command} being serviced.
      */
-    private final Request request;
+    private final Command request;
 
     /**
      * The {@link Store} that will handle the request.
@@ -49,7 +49,7 @@ public class Strategy {
      * @param request
      * @param store
      */
-    public Strategy(Request request, Store store) {
+    public Strategy(Command request, Store store) {
         this.request = request;
         this.store = store;
         this.gatherable = store instanceof Gatherable;

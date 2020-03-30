@@ -45,16 +45,16 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link Request} describes a {@link ConcourseServer} operation and the
- * context of the relevant parameters. The {@link Request} object provides
+ * A {@link Command} describes a {@link ConcourseServer} operation and the
+ * context of the relevant parameters. The {@link Command} object provides
  * information and all the relevant inputs of the operation.
  * <p>
- * In the vast majority of cases, an request is used to create, read, update or
- * delete (CRUD) data. In general, a request can have any of the following
+ * In the vast majority of cases, a command is used to create, read, update or
+ * delete (CRUD) data. In general, a command can have any of the following
  * aspects:
  * <ul>
  * <li>The <strong>operation</strong> that will achieve the goal of the
- * request</li>
+ * command</li>
  * <li>A <strong>condition</strong> that specifies the data where the operation
  * should be applied</li>
  * <li>An <strong>order</strong> that describes how to sort data that is
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  * This class returns "relevant" data for the above-mentioned aspects.
  * </p>
  * <p>
- * {@link Request} is stored as a {@link ThreadLocal thread local} variable
+ * {@link Command} is stored as a {@link ThreadLocal thread local} variable
  * and should be accessed from the operation's execution thread using
  * {@link #current()}.
  * </p>
@@ -75,10 +75,10 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class Request {
+public final class Command {
 
     /**
-     * The {@link Request} that is returned from {@link #current()}.
+     * The {@link Command} that is returned from {@link #current()}.
      * <p>
      * This value is held within a {@link ThreadLocal} so that each distinct
      * operation {@link Thread} sees a different reference. It is assumed that
@@ -90,7 +90,7 @@ public final class Request {
      * {@link ThreadLocal#set(Object)} method.
      * </p>
      */
-    /* package */static ThreadLocal<Request> current = new ThreadLocal<>();
+    /* package */static ThreadLocal<Command> current = new ThreadLocal<>();
 
     /**
      * A collection of methods whose output should not be included in the
@@ -102,15 +102,15 @@ public final class Request {
             .collect(Collectors.toSet());
 
     /**
-     * Return a reference to the current {@link Request}.
+     * Return a reference to the current {@link Command}.
      * 
-     * @return the current {@link Request}
-     * @throws IllegalStateException if the {@link Request} {@link #isSet has
+     * @return the current {@link Command}
+     * @throws IllegalStateException if the {@link Command} {@link #isSet has
      *             not been set}
      */
     @Nonnull
-    public static Request current() {
-        Request ctx = current.get();
+    public static Command current() {
+        Command ctx = current.get();
         if(ctx != null) {
             return ctx;
         }
@@ -121,9 +121,9 @@ public final class Request {
 
     /**
      * Return a {@code boolean} that indicates whether the current
-     * {@link Request} has been set or not.
+     * {@link Command} has been set or not.
      * 
-     * @return whether the {@link #current()} {@link Request} has been set
+     * @return whether the {@link #current()} {@link Command} has been set
      */
     public static boolean isSet() {
         return current.get() != null;
@@ -158,7 +158,7 @@ public final class Request {
     private Parser parser;
 
     /**
-     * The type of operation that was requested.
+     * The type of operation that was commanded.
      */
     private String operation;
 
@@ -183,7 +183,7 @@ public final class Request {
      * @param method
      * @param params
      */
-    Request(Method method, Object... params) {
+    Command(Method method, Object... params) {
         this.method = method;
         this.params = params;
     }
@@ -200,7 +200,7 @@ public final class Request {
     }
 
     /**
-     * Return the type of operation that was requested. This is not the same as
+     * Return the type of operation that was commanded. This is not the same as
      * the invoked server method, but rather the user-facing method that is
      * typically overloaded on the client side.
      * 

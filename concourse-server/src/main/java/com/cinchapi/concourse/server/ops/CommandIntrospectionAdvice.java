@@ -19,16 +19,16 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 /**
- * Intercepts ConcourseServer method invocations to set the {@link Request}.
+ * Intercepts ConcourseServer method invocations to set the {@link Command}.
  *
  * @author Jeff Nelson
  */
-public class RequestLoggingAdvice implements MethodInterceptor {
+public class CommandIntrospectionAdvice implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        Request.current.set(
-                new Request(invocation.getMethod(), invocation.getArguments()));
+        Command.current.set(
+                new Command(invocation.getMethod(), invocation.getArguments()));
         return invocation.proceed();
     }
 
