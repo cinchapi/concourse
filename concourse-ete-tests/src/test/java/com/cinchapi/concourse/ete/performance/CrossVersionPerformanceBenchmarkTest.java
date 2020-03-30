@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.9.6", "0.10.1", "0.10.2", "latest" })
+@Versions({ "0.9.6", "0.10.4", "latest" })
 public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
 
     @Test

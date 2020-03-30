@@ -48,6 +48,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
 import com.cinchapi.concourse.util.DataServices;
+import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Parsers;
@@ -1267,6 +1268,72 @@ public final class Operations {
                     Calculations.sumKeyRecord());
         }
         return sum;
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to trace all incoming
+     * links to {@code record} at {@code timestamp}.
+     *
+     * @param record
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each relevant key to the records where the key is
+     *         stored as a link to {@code record}.
+     */
+    public static Map<String, Set<Long>> traceRecordAtomic(long record,
+            long timestamp, AtomicOperation atomic) {
+        Map<String, Set<Long>> incoming = Maps.newLinkedHashMap();
+        for (long source : atomic.getAllRecords()) {
+            if(record != source) {
+                Map<String, Set<TObject>> data = timestamp == Time.NONE
+                        ? atomic.select(source)
+                        : atomic.select(source, timestamp);
+                data.forEach((key, values) -> {
+                    boolean isSource = values.stream()
+                            .filter(value -> value.getType() == Type.LINK)
+                            .map(Convert::thriftToJava).map(Link.class::cast)
+                            .map(Link::longValue)
+                            .filter(destination -> destination == record)
+                            .limit(1).count() > 0;
+                    if(isSource) {
+                        MultimapViews.put(incoming, key, source);
+                    }
+                });
+            }
+        }
+        return incoming;
+    }
+
+    /**
+     * Join the {@link AtomicOperation atomic} operation to trace all incoming
+     * links for each of the {@code records} at {@code timestamp}.
+     * 
+     * @param records
+     * @param timestamp
+     * @param atomic
+     * @return a mapping from each of the {@code records} to a mapping from each
+     *         relevant key to the records where the key is stored as a link to
+     *         {@code record}.
+     */
+    public static Map<Long, Map<String, Set<Long>>> traceRecordsAtomic(
+            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+        Map<Long, Map<String, Set<Long>>> incomings = Maps.newLinkedHashMap();
+        for (long source : atomic.getAllRecords()) {
+            Map<String, Set<TObject>> data = timestamp == Time.NONE
+                    ? atomic.select(source) : atomic.select(source, timestamp);
+            data.forEach((key, values) -> {
+                values.stream().filter(value -> value.getType() == Type.LINK)
+                        .map(Convert::thriftToJava).map(Link.class::cast)
+                        .map(Link::longValue).filter(records::contains)
+                        .forEach(destination -> {
+                            Map<String, Set<Long>> incoming = incomings
+                                    .computeIfAbsent(destination,
+                                            ignore -> Maps.newLinkedHashMap());
+                            MultimapViews.put(incoming, key, source);
+                        });
+            });
+        }
+        return incomings;
     }
 
     /**

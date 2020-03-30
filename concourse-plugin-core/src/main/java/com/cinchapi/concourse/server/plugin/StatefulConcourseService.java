@@ -3145,6 +3145,23 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public Map<String, Set<Long>> traceRecord(long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<String, Set<Long>> traceRecordTime(long record, long timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Long>>> traceRecordsTime(
+            List<Long> records, long timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
     public Object sumKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
