@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7265,6 +7265,106 @@ public abstract class Concourse implements AutoCloseable {
             throw e;
         }
     }
+
+    /**
+     * Locate and return all the incoming {@link Link links} to {@code record}.
+     * <p>
+     * The data is returned as a {@link Map mapping} from a key to all the
+     * records where that key is stored as a {@link Link#to(long)} the
+     * {@code record}.
+     * </p>
+     * 
+     * @param record
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record}
+     */
+    public abstract Map<String, Set<Long>> trace(long record);
+
+    /**
+     * Locate and return all the incoming {@link Link links} to {@code record}.
+     * <p>
+     * The data is returned as a {@link Map mapping} from a key to all the
+     * records where that key is stored as a {@link Link#to(long)} the
+     * {@code record}.
+     * </p>
+     * 
+     * @param record
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record}
+     */
+    public final Map<String, Set<Long>> trace(Long record) {
+        return trace(record.longValue());
+    }
+
+    /**
+     * Locate and return all the incoming {@link Link links} to {@code record}
+     * at {@code timestamp}.
+     * <p>
+     * The data is returned as a {@link Map mapping} from a key to all the
+     * records where that key was stored as a {@link Link#to(long)} the
+     * {@code record} at {@code timestamp}.
+     * </p>
+     * 
+     * @param record
+     * @param timestamp
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record} at {@code timestamp}
+     */
+    public abstract Map<String, Set<Long>> trace(long record,
+            Timestamp timestamp);
+
+    /**
+     * Locate and return all the incoming {@link Link links} to {@code record}
+     * at {@code timestamp}.
+     * <p>
+     * The data is returned as a {@link Map mapping} from a key to all the
+     * records where that key was stored as a {@link Link#to(long)} the
+     * {@code record} at {@code timestamp}.
+     * </p>
+     * 
+     * @param record
+     * @param timestamp
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record} at {@code timestamp}
+     */
+    public final Map<String, Set<Long>> trace(Long record,
+            Timestamp timestamp) {
+        return trace(record.longValue(), timestamp);
+    }
+
+    /**
+     * Locate and return all the incoming {@link Link links} to each of the
+     * {@code records}.
+     * <p>
+     * The data is returned as a {@link Map mapping} each of the {@code records}
+     * to another {@link Map mapping} from a key to all the records where that
+     * key was stored as a {@link Link#to(long)} the {@code record} at
+     * {@code timestamp}.
+     * </p>
+     * 
+     * @param records
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record}
+     */
+    public abstract Map<Long, Map<String, Set<Long>>> trace(
+            Collection<Long> records);
+
+    /**
+     * Locate and return all the incoming {@link Link links} to each of the
+     * {@code records}.
+     * <p>
+     * The data is returned as a {@link Map mapping} each of the {@code records}
+     * to another {@link Map mapping} from a key to all the records where that
+     * key was stored as a {@link Link#to(long)} the {@code record} at
+     * {@code timestamp}.
+     * </p>
+     * 
+     * @param records
+     * @return a mapping from key to all the records where the key is stored as
+     *         a {@link Link} to the {@code record} at {@code timestamp}
+     */
+    public abstract Map<Long, Map<String, Set<Long>>> trace(
+            Collection<Long> records, Timestamp timestamp);
 
     /**
      * Return a {@link Timestamp} that represents the current instant according

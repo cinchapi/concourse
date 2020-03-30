@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.server.storage.Stores.OperationParameters;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
@@ -135,10 +134,8 @@ public final class Stores {
         if(Keys.isNavigationKey(key)) {
             Map<TObject, Set<Long>> index = timestamp == Time.NONE
                     ? browse(store, key) : browse(store, key, timestamp);
-            OperationParameters args = com.cinchapi.concourse.server.storage.Stores
-                    .operationalize(operator, values);
             Set<Long> records = index.entrySet().stream()
-                    .filter(e -> e.getKey().is(args.operator(), args.values()))
+                    .filter(e -> e.getKey().is(operator, values))
                     .map(e -> e.getValue()).flatMap(Set::stream)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             return records;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,5 +98,21 @@ public class SecondaryRecordTest
             }
 
         }
+    }
+
+    @Test
+    public void testCaseInsensitiveValuesNotLost() {
+        Text locator = Text.wrap("major");
+        record = getRecord(locator);
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("Business Management")),
+                PrimaryKey.wrap(1)));
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("business management")),
+                PrimaryKey.wrap(2)));
+        SecondaryRecord index = (SecondaryRecord) record;
+        Map<PrimaryKey, Set<Value>> data = index.explore(Operator.REGEX,
+                Value.wrap(Convert.javaToThrift(".*business.*")));
+        Assert.assertFalse(data.isEmpty());
     }
 }

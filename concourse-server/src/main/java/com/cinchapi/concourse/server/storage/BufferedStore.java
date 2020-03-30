@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
@@ -27,6 +28,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TSets;
+import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.Sets;
 
 /**
@@ -59,6 +61,24 @@ public abstract class BufferedStore extends BaseStore {
     // Buffered historical reads do not merely delegate to their timestamp
     // accepting counterparts because we expect the #destination to use
     // different code paths for present vs historical reads unlike Limbo.
+
+    /**
+     * Perform validation on the {@code key} and {@code value} and throw an
+     * exception if necessary.
+     * 
+     * @param key
+     * @param value
+     */
+    private static void validate(String key, TObject value) { // CON-21
+        if(!Keys.isWritable(key)) {
+            throw new IllegalArgumentException(
+                    AnyStrings.joinWithSpace(key, "is not a valid key"));
+        }
+        else if(value.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Cannot use a blank value for " + key);
+        }
+    }
 
     /**
      * The {@code buffer} is the place where data is initially stored. The
@@ -220,7 +240,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        Stores.validateWriteData(key, value);
+        validate(key, value);
         Set<TObject> values = select(key, record);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */
@@ -276,7 +296,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
             boolean doVerify, boolean lockOnVerify) {
-        Stores.validateWriteData(key, value);
+        validate(key, value);
         Write write = Write.add(key, value, record);
         if(!doVerify || !verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
@@ -495,7 +515,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean remove(String key, TObject value, long record,
             boolean sync, boolean doVerify, boolean lockOnVerify) {
-        Stores.validateWriteData(key, value);
+        validate(key, value);
         Write write = Write.remove(key, value, record);
         if(!doVerify || verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
@@ -543,7 +563,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected void set(String key, TObject value, long record,
             boolean lockOnRead) {
-        Stores.validateWriteData(key, value);
+        validate(key, value);
         Set<TObject> values = select(key, record, lockOnRead);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */
@@ -631,4 +651,5 @@ public abstract class BufferedStore extends BaseStore {
             }
         }
     }
+
 }

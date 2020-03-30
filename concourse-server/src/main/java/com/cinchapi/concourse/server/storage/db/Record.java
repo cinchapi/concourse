@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.storage.db;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -154,8 +153,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * number of times that the value appears <em>beforehand</em> at determine
      * if the mapping existed or not.
      */
-    protected final transient HashMap<K, List<CompactRevision<V>>> history = Maps
-            .newHashMap();
+    protected final transient Map<K, List<CompactRevision<V>>> history = historyMapType();
 
     /**
      * The version of the Record's most recently appended {@link Revision}.
@@ -444,6 +442,15 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return the initialized mappings
      */
     protected abstract Map<K, Set<V>> mapType();
+
+    /**
+     * Initialize the appropriate data structure for the {@link #history}.
+     * 
+     * @return the initialized mappings
+     */
+    protected Map<K, List<CompactRevision<V>>> historyMapType() {
+        return Maps.newHashMap();
+    }
 
     /**
      * Return {@code true} if the action associated with {@code revision}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     protected static boolean matches(Value input, Operator operator,
             TObject... values) {
-        return input.getTObject().is(operator, values);
+        return input.getTObject().isIgnoreCase(operator, values);
     }
 
     /**

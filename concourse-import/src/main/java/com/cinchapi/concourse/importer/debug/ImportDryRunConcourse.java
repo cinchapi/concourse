@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Set;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
+import com.cinchapi.concourse.NoOpConcourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.TransactionException;
 import com.cinchapi.concourse.lang.Criteria;
@@ -52,7 +53,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public class ImportDryRunConcourse extends Concourse {
+public class ImportDryRunConcourse extends NoOpConcourse {
 
     /**
      * The imported data across ALL instances.

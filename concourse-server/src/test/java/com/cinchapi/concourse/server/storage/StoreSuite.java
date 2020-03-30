@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import com.cinchapi.concourse.server.storage.temp.QueueTest;
 @SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
         EngineAtomicOperationTest.class, DatabaseTest.class,
         TransactionTest.class, TransactionAtomicOperationTest.class,
-        StoresTest.class, TransactionGarbageCollectionTest.class })
+        TransactionGarbageCollectionTest.class })
 public class StoreSuite {
 
 }
