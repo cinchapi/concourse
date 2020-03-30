@@ -67,7 +67,7 @@ public abstract class WorkbookExporter<V> extends Exporter<V> {
      */
     public final void exportAll(Iterable<Iterable<Map<String, V>>> data) {
         Map<String, Iterable<Map<String, V>>> $data = Maps.newLinkedHashMap();
-        int index = 0;
+        int index = 1;
         for (Iterable<Map<String, V>> sheet : data) {
             $data.put("Sheet " + index, sheet);
         }
