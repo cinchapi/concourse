@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ class ConcourseThriftDriver extends Concourse {
     private final ConcourseNavigateService.Client navigate;
 
     /**
-     * The thrift client that actually handles calcuation RPC communication.
+     * The thrift client that actually handles aggregation RPC communication.
      */
     private final ConcourseCalculateService.Client calculate;
 
@@ -263,10 +263,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> long add(String key, T value) {
-        return execute(() -> {
-            return core.addKeyValue(key, Convert.javaToThrift(value), creds,
-                    transaction, environment);
-        });
+        return execute(() -> core.addKeyValue(key, Convert.javaToThrift(value),
+                creds, transaction, environment));
     }
 
     @Override
@@ -288,10 +286,9 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> boolean add(String key, T value, long record) {
-        return execute(() -> {
-            return core.addKeyValueRecord(key, Convert.javaToThrift(value),
-                    record, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.addKeyValueRecord(key, Convert.javaToThrift(value),
+                        record, creds, transaction, environment));
     }
 
     @Override
@@ -445,23 +442,23 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record) {
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw = core.chronologizeKeyRecord(key,
                     record, creds, transaction, environment);
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw;
@@ -473,19 +470,19 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.chronologizeKeyRecordStart(key, record,
                         start.getMicros(), creds, transaction, environment);
             }
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
     }
 
     @Override
-    public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+    public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
             Timestamp start, Timestamp end) {
         return execute(() -> {
             Map<Long, Set<TObject>> raw;
@@ -499,12 +496,12 @@ class ConcourseThriftDriver extends Concourse {
                         start.getMicros(), end.getMicros(), creds, transaction,
                         environment);
             }
-            Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+            Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
                     .newPrettyLinkedHashMap("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
-                                Conversions.thriftToJava()));
+                                Conversions.thriftToJavaCasted()));
             }
             return pretty;
         });
@@ -575,9 +572,7 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Set<String> describe() {
-        return execute(() -> {
-            return core.describe(creds, transaction, environment);
-        });
+        return execute(() -> core.describe(creds, transaction, environment));
     }
 
     @Override
@@ -620,11 +615,8 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Set<String> describe(long record) {
-        return execute(() -> {
-            Set<String> result = core.describeRecord(record, creds, transaction,
-                    environment);
-            return result;
-        });
+        return execute(() -> core.describeRecord(record, creds, transaction,
+                environment));
     }
 
     @Override
@@ -831,49 +823,39 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Set<Long> find(Criteria criteria) {
-        return execute(() -> {
-            return core.findCriteria(
-                    Language.translateToThriftCriteria(criteria), creds,
-                    transaction, environment);
-        });
+        return execute(() -> core.findCriteria(
+                Language.translateToThriftCriteria(criteria), creds,
+                transaction, environment));
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Order order) {
-        return execute(() -> {
-            return core.findCriteriaOrder(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order), creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.findCriteriaOrder(
+                Language.translateToThriftCriteria(criteria),
+                JavaThriftBridge.convert(order), creds, transaction,
+                environment));
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Order order, Page page) {
-        return execute(() -> {
-            return core.findCriteriaOrderPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.findCriteriaOrderPage(
+                Language.translateToThriftCriteria(criteria),
+                JavaThriftBridge.convert(order), JavaThriftBridge.convert(page),
+                creds, transaction, environment));
     }
 
     @Override
     public Set<Long> find(Criteria criteria, Page page) {
-        return execute(() -> {
-            return core.findCriteriaPage(
-                    Language.translateToThriftCriteria(criteria),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.findCriteriaPage(
+                Language.translateToThriftCriteria(criteria),
+                JavaThriftBridge.convert(page), creds, transaction,
+                environment));
     }
 
     @Override
     public Set<Long> find(String ccl) {
-        return execute(() -> {
-            return core.findCcl(ccl, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.findCcl(ccl, creds, transaction, environment));
     }
 
     @Override
@@ -1017,27 +999,23 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Set<Long> find(String ccl, Order order) {
-        return execute(() -> {
-            return core.findCclOrder(ccl, JavaThriftBridge.convert(order),
-                    creds, transaction, environment);
-        });
+        return execute(
+                () -> core.findCclOrder(ccl, JavaThriftBridge.convert(order),
+                        creds, transaction, environment));
     }
 
     @Override
     public Set<Long> find(String ccl, Order order, Page page) {
-        return execute(() -> {
-            return core.findCclOrderPage(ccl, JavaThriftBridge.convert(order),
-                    JavaThriftBridge.convert(page), creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.findCclOrderPage(ccl,
+                JavaThriftBridge.convert(order), JavaThriftBridge.convert(page),
+                creds, transaction, environment));
     }
 
     @Override
     public Set<Long> find(String ccl, Page page) {
-        return execute(() -> {
-            return core.findCclPage(ccl, JavaThriftBridge.convert(page), creds,
-                    transaction, environment);
-        });
+        return execute(
+                () -> core.findCclPage(ccl, JavaThriftBridge.convert(page),
+                        creds, transaction, environment));
     }
 
     @Override
@@ -1139,29 +1117,23 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public <T> long findOrAdd(String key, T value)
             throws DuplicateEntryException {
-        return execute(() -> {
-            return core.findOrAddKeyValue(key, Convert.javaToThrift(value),
-                    creds, transaction, environment);
-        });
+        return execute(() -> core.findOrAddKeyValue(key,
+                Convert.javaToThrift(value), creds, transaction, environment));
     }
 
     @Override
     public long findOrInsert(Criteria criteria, String json)
             throws DuplicateEntryException {
-        return execute(() -> {
-            return core.findOrInsertCriteriaJson(
-                    Language.translateToThriftCriteria(criteria), json, creds,
-                    transaction, environment);
-        });
+        return execute(() -> core.findOrInsertCriteriaJson(
+                Language.translateToThriftCriteria(criteria), json, creds,
+                transaction, environment));
     }
 
     @Override
     public long findOrInsert(String ccl, String json)
             throws DuplicateEntryException {
-        return execute(() -> {
-            return core.findOrInsertCclJson(ccl, json, creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.findOrInsertCclJson(ccl, json, creds,
+                transaction, environment));
     }
 
     @Override
@@ -2243,46 +2215,37 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public String getServerEnvironment() {
-        return execute(() -> {
-            return core.getServerEnvironment(creds, transaction, environment);
-        });
+        return execute(() -> core.getServerEnvironment(creds, transaction,
+                environment));
     }
 
     @Override
     public String getServerVersion() {
-        return execute(() -> {
-            return core.getServerVersion();
-        });
+        return execute(() -> core.getServerVersion());
     }
 
     @Override
     public Set<Long> insert(String json) {
-        return execute(() -> {
-            return core.insertJson(json, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.insertJson(json, creds, transaction, environment));
     }
 
     @Override
     public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-        return execute(() -> {
-            return core.insertJsonRecords(json, Collections.toLongList(records),
-                    creds, transaction, environment);
-        });
+        return execute(() -> core.insertJsonRecords(json,
+                Collections.toLongList(records), creds, transaction,
+                environment));
     }
 
     @Override
     public boolean insert(String json, long record) {
-        return execute(() -> {
-            return core.insertJsonRecord(json, record, creds, transaction,
-                    environment);
-        });
+        return execute(() -> core.insertJsonRecord(json, record, creds,
+                transaction, environment));
     }
 
     @Override
     public Set<Long> inventory() {
-        return execute(() -> {
-            return core.inventory(creds, transaction, environment);
-        });
+        return execute(() -> core.inventory(creds, transaction, environment));
     }
 
     @Override
@@ -2306,10 +2269,9 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public String jsonify(Collection<Long> records, boolean includeId) {
-        return execute(() -> {
-            return core.jsonifyRecords(Collections.toLongList(records),
-                    includeId, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.jsonifyRecords(Collections.toLongList(records),
+                        includeId, creds, transaction, environment));
     }
 
     @Override
@@ -2615,17 +2577,14 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Map<Long, Boolean> ping(Collection<Long> records) {
-        return execute(() -> {
-            return core.pingRecords(Collections.toLongList(records), creds,
-                    transaction, environment);
-        });
+        return execute(() -> core.pingRecords(Collections.toLongList(records),
+                creds, transaction, environment));
     }
 
     @Override
     public boolean ping(long record) {
-        return execute(() -> {
-            return core.pingRecord(record, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.pingRecord(record, creds, transaction, environment));
     }
 
     @Override
@@ -2661,10 +2620,9 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public <T> boolean remove(String key, T value, long record) {
-        return execute(() -> {
-            return core.removeKeyValueRecord(key, Convert.javaToThrift(value),
-                    record, creds, transaction, environment);
-        });
+        return execute(() -> core.removeKeyValueRecord(key,
+                Convert.javaToThrift(value), record, creds, transaction,
+                environment));
     }
 
     @Override
@@ -2735,14 +2693,12 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Set<Long> search(String key, String query) {
-        return execute(() -> {
-            return core.search(key, query, creds, transaction, environment);
-        });
+        return execute(
+                () -> core.search(key, query, creds, transaction, environment));
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(
-            Collection<Long> records) {
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecords(
                     Collections.toLongList(records), creds, transaction,
@@ -2752,7 +2708,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsOrder(
@@ -2764,7 +2720,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core
@@ -2777,7 +2733,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data = core.selectRecordsPage(
@@ -2789,7 +2745,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2807,7 +2763,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2828,7 +2784,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Order order, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -2851,7 +2807,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<Long, Map<String, Set<Object>>> select(Collection<Long> records,
+    public <T> Map<Long, Map<String, Set<T>>> select(Collection<Long> records,
             Timestamp timestamp, Page page) {
         return execute(() -> {
             Map<Long, Map<String, Set<TObject>>> data;
@@ -3445,7 +3401,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record) {
+    public <T> Map<String, Set<T>> select(long record) {
         return execute(() -> {
             Map<String, Set<TObject>> data = core.selectRecord(record, creds,
                     transaction, environment);
@@ -3454,7 +3410,7 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Object>> select(long record, Timestamp timestamp) {
+    public <T> Map<String, Set<T>> select(long record, Timestamp timestamp) {
         return execute(() -> {
             Map<String, Set<TObject>> data;
             if(timestamp.isString()) {
@@ -4021,18 +3977,40 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Timestamp time() {
-        return execute(() -> {
-            return Timestamp
-                    .fromMicros(core.time(creds, transaction, environment));
-        });
+        return execute(() -> Timestamp
+                .fromMicros(core.time(creds, transaction, environment)));
     }
 
     @Override
     public Timestamp time(String phrase) {
-        return execute(() -> {
-            return Timestamp.fromMicros(
-                    core.timePhrase(phrase, creds, transaction, environment));
-        });
+        return execute(() -> Timestamp.fromMicros(
+                core.timePhrase(phrase, creds, transaction, environment)));
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record) {
+        return execute(() -> core.traceRecord(record, creds, transaction,
+                environment));
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+        return execute(() -> core.traceRecordTime(record, timestamp.getMicros(),
+                creds, transaction, environment));
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records) {
+        return execute(() -> core.traceRecords(Collections.toLongList(records),
+                creds, transaction, environment));
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
+            Timestamp timestamp) {
+        return execute(() -> core.traceRecordsTime(
+                Collections.toLongList(records), timestamp.getMicros(), creds,
+                transaction, environment));
     }
 
     @Override
@@ -4048,10 +4026,9 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public boolean verify(String key, Object value, long record) {
-        return execute(() -> {
-            return core.verifyKeyValueRecord(key, Convert.javaToThrift(value),
-                    record, creds, transaction, environment);
-        });
+        return execute(() -> core.verifyKeyValueRecord(key,
+                Convert.javaToThrift(value), record, creds, transaction,
+                environment));
     }
 
     @Override

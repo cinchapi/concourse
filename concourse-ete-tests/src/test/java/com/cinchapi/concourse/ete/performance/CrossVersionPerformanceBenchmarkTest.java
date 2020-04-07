@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.9.6", "0.10.1", "0.10.2", "latest" })
+@Versions({ "0.9.6", "0.10.4", "latest" })
 public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.server.storage.Stores.OperationParameters;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 
 /**
  * The {@link Store} that provides basic functionality to all of its children.
@@ -42,15 +42,15 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(long timestamp, String key,
             Operator operator, TObject... values) {
-        OperationParameters args = Stores.operationalize(operator, values);
-        return doExplore(timestamp, key, args.operator(), args.values());
+        Aliases aliases = TObject.alias(operator, values);
+        return doExplore(timestamp, key, aliases.operator(), aliases.values());
     }
 
     @Override
     public final Map<Long, Set<TObject>> explore(String key, Operator operator,
             TObject... values) {
-        OperationParameters args = Stores.operationalize(operator, values);
-        return doExplore(key, args.operator(), args.values());
+        Aliases aliases = TObject.alias(operator, values);
+        return doExplore(key, aliases.operator(), aliases.values());
     }
 
     @Override

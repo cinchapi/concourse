@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Cinchapi Inc.
+# Copyright (c) 2013-2020 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -6458,6 +6458,56 @@ service ConcourseService {
     3: exceptions.ParseException ex3,
     4: exceptions.PermissionException ex4
   );
+
+  map<string, set<i64>> traceRecord(
+      1: i64 record,
+      2: shared.AccessToken creds,
+      3: shared.TransactionToken transaction,
+      4: string environment
+    )
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.PermissionException ex3
+    );
+
+    map<string, set<i64>> traceRecordTime(
+      1: i64 record,
+      2: i64 timestamp,
+      3: shared.AccessToken creds,
+      4: shared.TransactionToken transaction,
+      5: string environment
+    )
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.PermissionException ex3
+    );
+
+    map<i64, map<string, set<i64>>> traceRecords(
+      1: list<i64> records,
+      2: shared.AccessToken creds,
+      3: shared.TransactionToken transaction,
+      4: string environment
+    )
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.PermissionException ex3
+    );
+
+    map<i64, map<string, set<i64>>> traceRecordsTime(
+      1: list<i64> records,
+      2: i64 timestamp,
+      3: shared.AccessToken creds,
+      4: shared.TransactionToken transaction,
+      5: string environment
+    )
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.PermissionException ex3
+    );
 
   complex.ComplexTObject invokeManagement(
     2: string method,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,20 @@ public class Token implements Byteable {
      */
     public static Token fromByteBuffer(ByteBuffer bytes) {
         return new Token(bytes);
+    }
+
+    /**
+     * Return a {@link Token} that wraps the specified {@code key} and can be
+     * exchanged for a {@link SharedReadWriteLock} that provides more flexible
+     * concurrency controls.
+     * 
+     * @param object
+     * @return the {@link Token}
+     */
+    public static Token shareable(long object) {
+        Token token = wrap(object);
+        token.upgrade();
+        return token;
     }
 
     /**

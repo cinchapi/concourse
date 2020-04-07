@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -509,8 +509,13 @@ public final class Convert {
             return timestamp;
         }
         else {
-            return MoreObjects.firstNonNull(AnyStrings.tryParseNumber(value),
-                    value);
+            try {
+                return MoreObjects
+                        .firstNonNull(AnyStrings.tryParseNumber(value), value);
+            }
+            catch (NumberFormatException e) {
+                return value;
+            }
         }
     }
 

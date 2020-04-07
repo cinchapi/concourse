@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import com.cinchapi.concourse.server.storage.AtomicSupport;
  */
 public final class AtomicOperations {
 
-    private AtomicOperations() {/* no-init */}
-
     /**
      * Run the {@link AtomicRoutine} within an {@link AtomicOperation} from the
      * provided {@code store} and continue to retry execution of the routine
@@ -40,16 +38,38 @@ public final class AtomicOperations {
      */
     public static void executeWithRetry(AtomicSupport store,
             AtomicRoutine routine) {
+        supplyWithRetry(store, atomic -> {
+            routine.run(atomic);
+            return null;
+        });
+    }
+
+    /**
+     * Run the {@link AtomicSupplier} within an {@link AtomicOperation} from the
+     * provided {@code store} and continue to retry execution of the supplier
+     * until it terminates without failure and a value can be returned.
+     * 
+     * @param store the {@link AtomicSupport} store from which the
+     *            {@link AtomicOperation} is started
+     * @param supplier the {@link AtomicSupplier} to run until it succeeds
+     * @return the return value
+     */
+    public static <T> T supplyWithRetry(AtomicSupport store,
+            AtomicSupplier<T> supplier) {
         AtomicOperation atomic = null;
+        T value = null;
         while (atomic == null || !atomic.commit()) {
             atomic = store.startAtomicOperation();
             try {
-                routine.run(atomic);
+                value = supplier.supply(atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
             }
         }
+        return value;
     }
+
+    private AtomicOperations() {/* no-init */}
 
 }

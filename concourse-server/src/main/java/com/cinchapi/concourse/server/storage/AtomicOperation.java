@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,6 +195,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.add(key, value, record, true, true, false);
@@ -382,6 +386,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.remove(key, value, record, true, true, false);
@@ -409,6 +417,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record, false);

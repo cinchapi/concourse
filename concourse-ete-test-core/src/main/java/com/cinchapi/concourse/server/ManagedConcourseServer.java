@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,31 +91,6 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public class ManagedConcourseServer {
-
-    private static final String BIN = "bin";
-
-    // ---relative paths
-    private static final String CONF = "conf";
-
-    /**
-     * The default location where the the test server is installed if a
-     * particular location is not specified.
-     */
-    private static final String DEFAULT_INSTALL_HOME = System
-            .getProperty("user.home") + File.separator + ".concourse-testing";
-
-    // ---logger
-    private static final Logger log = LoggerFactory
-            .getLogger(ManagedConcourseServer.class);
-
-    // ---random
-    private static final Random RAND = new Random();
-
-    /**
-     * The filename of the binary installer from which the test server will be
-     * created.
-     */
-    private static final String TARGET_BINARY_NAME = "concourse-server.bin";
 
     /**
      * Return an {@link ManagedConcourseServer} that controls an instance
@@ -344,6 +319,31 @@ public class ManagedConcourseServer {
         }
     }
 
+    private static final String BIN = "bin";
+
+    // ---relative paths
+    private static final String CONF = "conf";
+
+    /**
+     * The default location where the the test server is installed if a
+     * particular location is not specified.
+     */
+    private static final String DEFAULT_INSTALL_HOME = System
+            .getProperty("user.home") + File.separator + ".concourse-testing";
+
+    // ---logger
+    private static final Logger log = LoggerFactory
+            .getLogger(ManagedConcourseServer.class);
+
+    // ---random
+    private static final Random RAND = new Random();
+
+    /**
+     * The filename of the binary installer from which the test server will be
+     * created.
+     */
+    private static final String TARGET_BINARY_NAME = "concourse-server.bin";
+
     /**
      * A flag that determines how the concourse_client.prefs file should be
      * handled when this server is {@link #destroy() destroyed}. Generally,
@@ -351,6 +351,12 @@ public class ManagedConcourseServer {
      * {@link #syncDefaultClientConnectionInfo()} was called by the client.
      */
     private ClientPrefsCleanupAction clientPrefsCleanupAction = ClientPrefsCleanupAction.NONE;
+
+    /**
+     * The file whose existence determines whether or not this server should be
+     * destroyed on exit.
+     */
+    private final Path destroyOnExitFlag;
 
     /**
      * The server application install directory;
@@ -367,12 +373,6 @@ public class ManagedConcourseServer {
      * The handler for the server's preferences.
      */
     private final ConcourseServerPreferences prefs;
-
-    /**
-     * The file whose existence determines whether or not this server should be
-     * destroyed on exit.
-     */
-    private final Path destroyOnExitFlag;
 
     /**
      * Construct a new instance.
@@ -1062,21 +1062,21 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key,
                 long record) {
             return invoke("chronologize", String.class, long.class).with(key,
                     record);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
                 Timestamp start) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class).with(key, record, start);
         }
 
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(String key, long record,
+        public <T> Map<Timestamp, Set<T>> chronologize(String key, long record,
                 Timestamp start, Timestamp end) {
             return invoke("chronologize", String.class, long.class,
                     Timestamp.class, Timestamp.class).with(key, record, start,
@@ -2313,48 +2313,48 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records) {
             return invoke("select", Collection.class).with(records);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Order order) {
             return invoke("select", Collection.class, Order.class).with(records,
                     order);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Order order, Page page) {
             return invoke("select", Collection.class, Order.class, Page.class)
                     .with(records, order, page);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Page page) {
             return invoke("select", Collection.class, Page.class).with(records,
                     page);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp) {
             return invoke("select", Collection.class, Timestamp.class)
                     .with(records, timestamp);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Order order) {
             return invoke("select", Collection.class, Timestamp.class,
                     Order.class).with(records, timestamp, order);
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Order order,
                 Page page) {
             return invoke("select", Collection.class, Timestamp.class,
@@ -2363,7 +2363,7 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Long, Map<String, Set<Object>>> select(
+        public <T> Map<Long, Map<String, Set<T>>> select(
                 Collection<Long> records, Timestamp timestamp, Page page) {
             return invoke("select", Collection.class, Timestamp.class,
                     Page.class).with(records, timestamp, page);
@@ -2629,12 +2629,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<String, Set<Object>> select(long record) {
+        public <T> Map<String, Set<T>> select(long record) {
             return invoke("select", long.class).with(record);
         }
 
         @Override
-        public Map<String, Set<Object>> select(long record,
+        public <T> Map<String, Set<T>> select(long record,
                 Timestamp timestamp) {
             return invoke("select", long.class, Timestamp.class).with(record,
                     timestamp);
@@ -2903,6 +2903,30 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Map<Long, Map<String, Set<Long>>> trace(
+                Collection<Long> records) {
+            return invoke("trace", Collection.class).with(records);
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
+                Timestamp timestamp) {
+            return invoke("trace", Collection.class, Timestamp.class)
+                    .with(records, timestamp);
+        }
+
+        @Override
+        public Map<String, Set<Long>> trace(long record) {
+            return invoke("trace", long.class).with(record);
+        }
+
+        @Override
+        public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+            return invoke("trace", long.class, Timestamp.class).with(record,
+                    timestamp);
+        }
+
+        @Override
         public boolean unlink(String key, long destination, long source) {
             return invoke("unlink", String.class, long.class, long.class)
                     .with(key, destination, source);
@@ -2933,6 +2957,11 @@ public class ManagedConcourseServer {
         public void verifyOrSet(String key, Object value, long record) {
             invoke("verifyOrSet", String.class, Object.class, long.class)
                     .with(key, value, record);
+        }
+
+        @Override
+        protected Concourse copyConnection() {
+            throw new UnsupportedOperationException();
         }
 
         /**
@@ -2979,11 +3008,6 @@ public class ManagedConcourseServer {
             catch (Exception e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
             }
-        }
-
-        @Override
-        protected Concourse copyConnection() {
-            throw new UnsupportedOperationException();
         }
 
         /**

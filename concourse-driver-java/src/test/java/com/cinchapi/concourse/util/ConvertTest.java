@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -791,6 +791,13 @@ public class ConvertTest {
             }
             Assert.assertEquals(expected, actual);
         });
+    }
+
+    @Test
+    public void testConvertBigNumberStringStaysAsString() {
+        String expected = "20191009162729766293175";
+        Object actual = Convert.stringToJava(expected);
+        Assert.assertEquals(expected, actual);
     }
 
     /**
