@@ -21,6 +21,7 @@ import java.util.Set;
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.lang.sort.NoOrder;
 import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.server.ops.Stores;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.Iterables;
@@ -104,12 +105,12 @@ public final class Sorting {
 
         @Override
         protected TObject lookup(String key, long record) {
-            return Iterables.getLast(store.select(key, record));
+            return Iterables.getLast(Stores.select(store, key, record));
         }
 
         @Override
         protected TObject lookup(String key, long record, long timestamp) {
-            return Iterables.getLast(store.select(key, record, timestamp));
+            return Iterables.getLast(Stores.select(store, key, record, timestamp));
         }
 
     }
@@ -138,12 +139,12 @@ public final class Sorting {
 
         @Override
         protected Set<TObject> lookup(String key, long record) {
-            return store.select(key, record);
+            return Stores.select(store, key, record);
         }
 
         @Override
         protected Set<TObject> lookup(String key, long record, long timestamp) {
-            return store.select(key, record, timestamp);
+            return Stores.select(store, key, record, timestamp);
         }
 
     }
