@@ -110,7 +110,8 @@ public final class Sorting {
 
         @Override
         protected TObject lookup(String key, long record, long timestamp) {
-            return Iterables.getLast(Stores.select(store, key, record, timestamp));
+            return Iterables
+                    .getLast(Stores.select(store, key, record, timestamp));
         }
 
     }
