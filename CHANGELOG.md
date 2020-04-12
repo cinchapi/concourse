@@ -1,5 +1,11 @@
 ## Changelog
 
+#### Version 0.11.0 (TBD)
+* Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
+
+#### Version 0.10.5 (TBD)
+* Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
+
 #### Version 0.10.4 (December 15, 2019)
 * Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
 * Fixed a bug that made it possible for a `ConnectionPool` to refuse to accept the `release` of a previously issued `Concourse` connection due to a race condition.
