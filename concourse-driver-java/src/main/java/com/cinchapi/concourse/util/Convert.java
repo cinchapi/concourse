@@ -37,6 +37,7 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.Point;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.PackagePrivate;
@@ -246,6 +247,12 @@ public final class Convert {
                     throw new UnsupportedOperationException(
                             "Cannot convert string based Timestamp to a TObject");
                 }
+            }
+            else if(object instanceof Point) {
+                bytes = ByteBuffer.allocate(16);
+                bytes.putFloat(((Point) object).getX());
+                bytes.putFloat(((Point) object).getY());
+                type = Type.POINT;
             }
             else {
                 bytes = ByteBuffer.wrap(
