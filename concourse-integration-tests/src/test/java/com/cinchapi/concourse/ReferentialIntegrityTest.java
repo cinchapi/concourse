@@ -82,7 +82,7 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
             Assert.fail();
         }
         catch (InvalidArgumentException e) {
-            Assert.assertEquals(Link.to(2) , client.get("foo", 1));
+            Assert.assertEquals(Link.to(2), client.get("foo", 1));
         }
     }
 
