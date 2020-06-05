@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
@@ -32,8 +33,6 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.Sets;
-
-import com.cinchapi.concourse.Link;
 
 /**
  * A {@link BufferedStore} holds data in {@link Limbo} buffer before
