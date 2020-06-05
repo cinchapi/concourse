@@ -23,9 +23,6 @@ package com.cinchapi.concourse.server.storage;
  */
 class ReferentialIntegrityException extends RuntimeException {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1921936211007486710L;
 
     /**
