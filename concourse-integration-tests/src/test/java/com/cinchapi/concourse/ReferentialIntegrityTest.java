@@ -15,10 +15,13 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Unit tests to verify referential integrity
@@ -36,10 +39,26 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
     public void testCanAddNonCircularLinks() {
         Assert.assertTrue(client.link("foo", 2, 1));
     }
-    
+
     @Test
     public void testCannotManuallyAddCircularLinks() {
         Assert.assertFalse(client.add("foo", Link.to(1), 1));
+    }
+
+    @Test
+    public void testCannotManuallyAddCircularLinksManyRecords() {
+        Map<Long, Boolean> result = client.add("foo", Link.to(1),
+                ImmutableSet.of(1L, 2L));
+        Assert.assertTrue(result.get(2L));
+        Assert.assertFalse(result.get(1L));
+    }
+
+    @Test
+    public void testCannotAddCircularLinksManyRecords() {
+        Map<Long, Boolean> result = client.link("foo", ImmutableSet.of(1L, 2L),
+                1);
+        Assert.assertTrue(result.get(2L));
+        Assert.assertFalse(result.get(1L));
     }
 
 }
