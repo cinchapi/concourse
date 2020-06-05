@@ -55,7 +55,6 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
-import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableSet;
@@ -111,7 +110,6 @@ import com.cinchapi.concourse.thrift.TOrder;
 import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
@@ -336,19 +334,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
-     * Return {@code true} if adding {@code link} to {@code record} is valid.
-     * This method is used to enforce referential integrity (i.e. record cannot
-     * link to itself) before the data makes it way to the Engine.
-     *
-     * @param link
-     * @param record
-     * @return {@code true} if the link is valid
-     */
-    private static boolean isValidLink(Link link, long record) {
-        return link.longValue() != record;
-    }
-
-    /**
      * Contains the credentials used by the {@link #users}. This file is
      * typically located in the root of the server installation.
      */
@@ -465,14 +450,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean addKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment)).add(key,
-                    value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).add(key,
+                value, record);
     }
 
     @Override
@@ -2134,7 +2113,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.getAstAtomic(ast, Time.NONE, result,
-                            null, $result -> $result.sort(Sorting
+                            null,
+                            $result -> $result.sort(Sorting
                                     .byValue(Orders.from(order), atomic)),
                             atomic));
             return result;
@@ -2169,8 +2149,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(ast,
-                            Time.NONE, result, records -> Paging
+                    atomic -> Operations.getAstAtomic(
+                            ast, Time.NONE, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -2205,7 +2185,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.getAstAtomic(ast, timestamp, result,
-                            null, $result -> $result.sort(
+                            null,
+                            $result -> $result.sort(
                                     Sorting.byValue(Orders.from(order), atomic),
                                     timestamp),
                             atomic));
@@ -2241,8 +2222,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(ast,
-                            timestamp, result, records -> Paging
+                    atomic -> Operations.getAstAtomic(
+                            ast, timestamp, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -2513,8 +2494,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(key, ast,
-                            Time.NONE, result, records -> Paging
+                    atomic -> Operations.getKeyAstAtomic(
+                            key, ast, Time.NONE, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -2586,8 +2567,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(key, ast,
-                            timestamp, result, records -> Paging
+                    atomic -> Operations.getKeyAstAtomic(
+                            key, ast, timestamp, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -2694,8 +2675,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -2757,8 +2738,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeyAstAtomic(key, ast, timestamp,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -2840,7 +2821,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeyRecordsAtomic(key, records, result,
-                        null, $result -> $result.sort(
+                        null,
+                        $result -> $result.sort(
                                 Sorting.byValue(Orders.from(order), atomic)),
                         atomic));
         return result;
@@ -3054,8 +3036,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(keys, ast,
-                            Time.NONE, result, records -> Paging
+                    atomic -> Operations.getKeysAstAtomic(
+                            keys, ast, Time.NONE, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -3128,8 +3110,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(keys, ast,
-                            timestamp, result, records -> Paging
+                    atomic -> Operations.getKeysAstAtomic(
+                            keys, ast, timestamp, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -3238,8 +3220,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 .singleValued(Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -3305,8 +3287,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 .singleValued(Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeysAstAtomic(keys, ast, timestamp,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -3401,7 +3383,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 .singleValued(Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.getKeysRecordsAtomic(keys, records, result,
-                        null, $result -> $result.sort(
+                        null,
+                        $result -> $result.sort(
                                 Sorting.byValue(Orders.from(order), atomic)),
                         atomic));
         return result;
@@ -4655,14 +4638,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean removeKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment))
-                    .remove(key, value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).remove(key,
+                value, record);
     }
 
     @Override
@@ -4812,7 +4789,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.selectAstAtomic(ast, Time.NONE, result,
-                            null, $result -> $result.sort(Sorting
+                            null,
+                            $result -> $result.sort(Sorting
                                     .byValues(Orders.from(order), atomic)),
                             atomic));
             return result;
@@ -4848,8 +4826,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(ast,
-                            Time.NONE, result, records -> Paging
+                    atomic -> Operations.selectAstAtomic(
+                            ast, Time.NONE, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -4883,7 +4861,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
                     atomic -> Operations.selectAstAtomic(ast, timestamp, result,
-                            null, $result -> $result.sort(Sorting.byValues(
+                            null,
+                            $result -> $result.sort(Sorting.byValues(
                                     Orders.from(order), atomic), timestamp),
                             atomic));
             return result;
@@ -4921,8 +4900,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(ast,
-                            timestamp, result, records -> Paging
+                    atomic -> Operations.selectAstAtomic(
+                            ast, timestamp, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -5203,8 +5182,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(key, ast,
-                            Time.NONE, result, records -> Paging
+                    atomic -> Operations.selectKeyAstAtomic(
+                            key, ast, Time.NONE, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -5275,8 +5254,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
             AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(key, ast,
-                            timestamp, result, records -> Paging
+                    atomic -> Operations.selectKeyAstAtomic(
+                            key, ast, timestamp, result, records -> Paging
                                     .paginate(records, Pages.from(page)),
                             null, atomic));
             return result;
@@ -5385,8 +5364,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeyAstAtomic(key, ast, Time.NONE,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -5452,8 +5431,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 Maps.newLinkedHashMap());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeyAstAtomic(key, ast, timestamp,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -5564,8 +5543,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 TMaps.newLinkedHashMapWithCapacity(records.size()));
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeyRecordsAtomic(key, records,
-                        result, $records -> Paging.paginate($records,
-                                Pages.from(page)),
+                        result,
+                        $records -> Paging.paginate($records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -5946,8 +5925,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeysAstAtomic(keys, ast, Time.NONE,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -6012,8 +5991,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeysAstAtomic(keys, ast, timestamp,
-                        result, records -> Paging.paginate(records,
-                                Pages.from(page)),
+                        result,
+                        records -> Paging.paginate(records, Pages.from(page)),
                         null, atomic));
         return result;
     }
@@ -6137,8 +6116,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                 records.size());
         AtomicOperations.executeWithRetry(store,
                 atomic -> Operations.selectKeysRecordsAtomic(keys, records,
-                        result, $records -> Paging.paginate($records,
-                                Pages.from(page)),
+                        result,
+                        $records -> Paging.paginate($records, Pages.from(page)),
                         null, atomic));
         return result;
     }

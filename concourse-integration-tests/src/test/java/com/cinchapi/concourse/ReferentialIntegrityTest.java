@@ -61,4 +61,17 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
         Assert.assertFalse(result.get(1L));
     }
 
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotManuallySetCircularLink() {
+        client.set("foo", Link.to(1), 1);
+        Assert.assertNull(client.get("foo", 1));
+    }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotManuallySetCircularLinkMany() {
+        client.set("foo", Link.to(1), ImmutableSet.of(1L, 2L));
+        Assert.assertNotNull(client.get("foo", 2));
+        Assert.assertNull(client.get("foo", 1));
+    }
+
 }
