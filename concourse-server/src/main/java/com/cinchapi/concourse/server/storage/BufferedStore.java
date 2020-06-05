@@ -66,13 +66,14 @@ public abstract class BufferedStore extends BaseStore {
     // different code paths for present vs historical reads unlike Limbo.
 
     /**
-     * Perform validation on the {@code key} and {@code value} and throw an
-     * exception if necessary.
+     * Perform validation on a write that touches {@code key} as {@code value}
+     * in {@code record} and throw an exception if necessary.
      * 
      * @param key
      * @param value
      */
-    private static void validate(String key, TObject value, long record) { // CON-21
+    private static void ensureWriteIntegrity(String key, TObject value,
+            long record) { // CON-21
         if(!Keys.isWritable(key)) {
             throw new IllegalArgumentException(
                     AnyStrings.joinWithSpace(key, "is not a valid key"));
@@ -83,7 +84,7 @@ public abstract class BufferedStore extends BaseStore {
         }
         else if(value.getType() == Type.LINK
                 && ((Link) Convert.thriftToJava(value)).longValue() == record) {
-            throw new ReferentialIntegrityException(
+            throw new ReferentialIntegrityViolation(
                     "A record cannot link to itself");
         }
     }
@@ -249,14 +250,14 @@ public abstract class BufferedStore extends BaseStore {
      */
     public void set(String key, TObject value, long record) {
         try {
-            validate(key, value, record);
+            ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record);
             for (TObject val : values) {
                 buffer.insert(Write.remove(key, val, record)); /* Authorized */
             }
             buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        catch (ReferentialIntegrityException e) {
+        catch (ReferentialIntegrityViolation e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -310,14 +311,14 @@ public abstract class BufferedStore extends BaseStore {
     protected boolean add(String key, TObject value, long record, boolean sync,
             boolean doVerify, boolean lockOnVerify) {
         try {
-            validate(key, value, record);
+            ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
             if(!doVerify || !verify(write, lockOnVerify)) {
                 return buffer.insert(write, sync); /* Authorized */
             }
             return false;
         }
-        catch (ReferentialIntegrityException e) {
+        catch (ReferentialIntegrityViolation e) {
             return false;
         }
     }
@@ -534,14 +535,14 @@ public abstract class BufferedStore extends BaseStore {
     protected boolean remove(String key, TObject value, long record,
             boolean sync, boolean doVerify, boolean lockOnVerify) {
         try {
-            validate(key, value, record);
+            ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
             if(!doVerify || verify(write, lockOnVerify)) {
                 return buffer.insert(write, sync); /* Authorized */
             }
             return false;
         }
-        catch (ReferentialIntegrityException e) {
+        catch (ReferentialIntegrityViolation e) {
             return false;
         }
     }
@@ -587,14 +588,14 @@ public abstract class BufferedStore extends BaseStore {
     protected void set(String key, TObject value, long record,
             boolean lockOnRead) {
         try {
-            validate(key, value, record);
+            ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record, lockOnRead);
             for (TObject val : values) {
                 buffer.insert(Write.remove(key, val, record)); /* Authorized */
             }
             buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        catch (ReferentialIntegrityException e) {
+        catch (ReferentialIntegrityViolation e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
