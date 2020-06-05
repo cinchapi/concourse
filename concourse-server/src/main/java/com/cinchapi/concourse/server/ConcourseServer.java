@@ -55,7 +55,6 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
-import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableSet;
@@ -111,7 +110,6 @@ import com.cinchapi.concourse.thrift.TOrder;
 import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
@@ -149,31 +147,6 @@ public class ConcourseServer extends BaseConcourseServer implements
      * doing so will cause the interception to silently fail. See
      * https://github.com/google/guice/wiki/AOP#limitations for more details.
      */
-
-    /**
-     * Contains the credentials used by the {@link #users}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
-     * The minimum heap size required to run Concourse Server.
-     */
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-    /**
-     * A placeholder to signfiy that no {@link Order} should be imposed on a
-     * result set.
-     */
-    private static final TOrder NO_ORDER = null;
-
-    /**
-     * The number of worker threads that Concourse Server uses.
-     */
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
 
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
@@ -361,17 +334,29 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
-     * Return {@code true} if adding {@code link} to {@code record} is valid.
-     * This method is used to enforce referential integrity (i.e. record cannot
-     * link to itself) before the data makes it way to the Engine.
-     *
-     * @param link
-     * @param record
-     * @return {@code true} if the link is valid
+     * Contains the credentials used by the {@link #users}. This file is
+     * typically located in the root of the server installation.
      */
-    private static boolean isValidLink(Link link, long record) {
-        return link.longValue() != record;
-    }
+    private static final String ACCESS_FILE = ".access";
+
+    /**
+     * The minimum heap size required to run Concourse Server.
+     */
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    /**
+     * A placeholder to signfiy that no {@link Order} should be imposed on a
+     * result set.
+     */
+    private static final TOrder NO_ORDER = null;
+
+    /**
+     * The number of worker threads that Concourse Server uses.
+     */
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
 
     /**
      * The base location where the indexed buffer pages are stored.
@@ -466,14 +451,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean addKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment)).add(key,
-                    value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).add(key,
+                value, record);
     }
 
     @Override
@@ -4754,14 +4733,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean removeKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment))
-                    .remove(key, value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).remove(key,
+                value, record);
     }
 
     @Override
@@ -6980,6 +6953,42 @@ public class ConcourseServer extends BaseConcourseServer implements
         });
     }
 
+    @Override
+    protected String getBufferStore() {
+        return bufferStore;
+    }
+
+    @Override
+    protected String getDbStore() {
+        return dbStore;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
+     *
+     * @param env
+     * @return the Engine
+     */
+    protected Engine getEngine(String env) {
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    @Override
+    protected PluginManager plugins() {
+        return pluginManager;
+    }
+
+    @Override
+    protected UserService users() {
+        return users;
+    }
+
     /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
@@ -7127,42 +7136,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
-    }
-
-    @Override
-    protected String getBufferStore() {
-        return bufferStore;
-    }
-
-    @Override
-    protected String getDbStore() {
-        return dbStore;
-    }
-
-    /**
-     * Return the {@link Engine} that is associated with {@code env}. If such an
-     * Engine does not exist, create a new one and add it to the collection.
-     *
-     * @param env
-     * @return the Engine
-     */
-    protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
-    }
-
-    @Override
-    protected PluginManager plugins() {
-        return pluginManager;
-    }
-
-    @Override
-    protected UserService users() {
-        return users;
     }
 
     /**
