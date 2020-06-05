@@ -99,21 +99,6 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     /**
-     * The thrift protocol.
-     */
-    private final TProtocol protocol;
-
-    /**
-     * The Thrift client that actually handles core RPC communication.
-     */
-    private final ConcourseService.Client core;
-
-    /**
-     * The Thrift client that actually handles navigate RPC communication.
-     */
-    private final ConcourseNavigateService.Client navigate;
-
-    /**
      * The thrift client that actually handles aggregation RPC communication.
      */
     private final ConcourseCalculateService.Client calculate;
@@ -122,6 +107,11 @@ class ConcourseThriftDriver extends Concourse {
      * A container with all the thrift clients.
      */
     private final Set<TServiceClient> clients;
+
+    /**
+     * The Thrift client that actually handles core RPC communication.
+     */
+    private final ConcourseService.Client core;
 
     /**
      * The client keeps a copy of its {@link AccessToken} and passes it to
@@ -142,6 +132,11 @@ class ConcourseThriftDriver extends Concourse {
     private final String host;
 
     /**
+     * The Thrift client that actually handles navigate RPC communication.
+     */
+    private final ConcourseNavigateService.Client navigate;
+
+    /**
      * An encrypted copy of the password passed to the constructor.
      */
     private final ByteBuffer password;
@@ -150,6 +145,11 @@ class ConcourseThriftDriver extends Concourse {
      * The port of the connection.
      */
     private final int port;
+
+    /**
+     * The thrift protocol.
+     */
+    private final TProtocol protocol;
 
     /**
      * Whenever the client starts a Transaction, it keeps a
@@ -568,6 +568,20 @@ class ConcourseThriftDriver extends Concourse {
             return token != null ? core.commit(creds, token, environment)
                     : false;
         });
+    }
+
+    @Override
+    public boolean consolidate(long first, long second, long... remaining) {
+        /*
+         * TODO: implement me
+         * 1. add thift definition
+         * 2. add server side implementation
+         * 
+         * Server side implementation requires the #trace method to get all
+         * incoming links and replace them using verifyAndSwap. On server-side,
+         * method should return false if any part of the routine returns false
+         */
+        return false;
     }
 
     @Override
@@ -3988,15 +4002,9 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Long>> trace(long record) {
-        return execute(() -> core.traceRecord(record, creds, transaction,
-                environment));
-    }
-
-    @Override
-    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
-        return execute(() -> core.traceRecordTime(record, timestamp.getMicros(),
-                creds, transaction, environment));
+    public String toString() {
+        return "Connected to " + host + ":" + port + " as "
+                + new String(ClientSecurity.decrypt(username).array());
     }
 
     @Override
@@ -4014,9 +4022,15 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
-    public String toString() {
-        return "Connected to " + host + ":" + port + " as "
-                + new String(ClientSecurity.decrypt(username).array());
+    public Map<String, Set<Long>> trace(long record) {
+        return execute(() -> core.traceRecord(record, creds, transaction,
+                environment));
+    }
+
+    @Override
+    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+        return execute(() -> core.traceRecordTime(record, timestamp.getMicros(),
+                creds, transaction, environment));
     }
 
     @Override
@@ -4065,6 +4079,102 @@ class ConcourseThriftDriver extends Concourse {
                     transaction, environment);
             return null;
         });
+    }
+
+    @Override
+    protected Concourse copyConnection() {
+        return new ConcourseThriftDriver(host, port,
+                ByteBuffers.getString(ClientSecurity.decrypt(username)),
+                ByteBuffers.getString(ClientSecurity.decrypt(password)),
+                environment);
+    }
+
+    /**
+     * Return the thrift calculate RPC client.
+     * 
+     * @return the {@link #calculate client}
+     */
+    ConcourseCalculateService.Client $calculate() {
+        return calculate;
+    }
+
+    /**
+     * Return the thrift RPC client.
+     * 
+     * @return the {@link ConcourseService#Client}
+     */
+    ConcourseService.Client $core() {
+        return core;
+    }
+
+    /**
+     * Return the current {@link AccessToken}
+     * 
+     * @return the creds
+     */
+    AccessToken creds() {
+        return creds;
+    }
+
+    /**
+     * Return the environment to which the driver is connected.
+     * 
+     * @return the environment
+     */
+    String environment() {
+        return environment;
+    }
+
+    /**
+     * Execute the task defined in {@code callable}. This method contains
+     * retry logic to handle cases when {@code creds} expires and must be
+     * updated.
+     * 
+     * @param callable
+     * @return the task result
+     */
+    <T> T execute(Callable<T> callable) {
+        try {
+            return callable.call();
+        }
+        catch (SecurityException e) {
+            authenticate();
+            return execute(callable);
+        }
+        catch (com.cinchapi.concourse.thrift.TransactionException e) {
+            throw new TransactionException();
+        }
+        catch (com.cinchapi.concourse.thrift.DuplicateEntryException e) {
+            throw new DuplicateEntryException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.InvalidArgumentException e) {
+            throw new InvalidArgumentException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.InvalidOperationException e) {
+            throw new UnsupportedOperationException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.ParseException e) {
+            throw new ParseException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.PermissionException e) {
+            throw new PermissionException(e);
+        }
+        catch (com.cinchapi.concourse.thrift.ManagementException e) {
+            throw new ManagementException(e);
+        }
+        catch (Exception e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return the current {@link TransactionToken}.
+     * 
+     * @return the transaction token
+     */
+    @Nullable
+    TransactionToken transaction() {
+        return transaction;
     }
 
     /**
@@ -4370,102 +4480,6 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
         });
-    }
-
-    @Override
-    protected Concourse copyConnection() {
-        return new ConcourseThriftDriver(host, port,
-                ByteBuffers.getString(ClientSecurity.decrypt(username)),
-                ByteBuffers.getString(ClientSecurity.decrypt(password)),
-                environment);
-    }
-
-    /**
-     * Return the thrift calculate RPC client.
-     * 
-     * @return the {@link #calculate client}
-     */
-    ConcourseCalculateService.Client $calculate() {
-        return calculate;
-    }
-
-    /**
-     * Return the thrift RPC client.
-     * 
-     * @return the {@link ConcourseService#Client}
-     */
-    ConcourseService.Client $core() {
-        return core;
-    }
-
-    /**
-     * Return the current {@link AccessToken}
-     * 
-     * @return the creds
-     */
-    AccessToken creds() {
-        return creds;
-    }
-
-    /**
-     * Return the environment to which the driver is connected.
-     * 
-     * @return the environment
-     */
-    String environment() {
-        return environment;
-    }
-
-    /**
-     * Execute the task defined in {@code callable}. This method contains
-     * retry logic to handle cases when {@code creds} expires and must be
-     * updated.
-     * 
-     * @param callable
-     * @return the task result
-     */
-    <T> T execute(Callable<T> callable) {
-        try {
-            return callable.call();
-        }
-        catch (SecurityException e) {
-            authenticate();
-            return execute(callable);
-        }
-        catch (com.cinchapi.concourse.thrift.TransactionException e) {
-            throw new TransactionException();
-        }
-        catch (com.cinchapi.concourse.thrift.DuplicateEntryException e) {
-            throw new DuplicateEntryException(e);
-        }
-        catch (com.cinchapi.concourse.thrift.InvalidArgumentException e) {
-            throw new InvalidArgumentException(e);
-        }
-        catch (com.cinchapi.concourse.thrift.InvalidOperationException e) {
-            throw new UnsupportedOperationException(e);
-        }
-        catch (com.cinchapi.concourse.thrift.ParseException e) {
-            throw new ParseException(e);
-        }
-        catch (com.cinchapi.concourse.thrift.PermissionException e) {
-            throw new PermissionException(e);
-        }
-        catch (com.cinchapi.concourse.thrift.ManagementException e) {
-            throw new ManagementException(e);
-        }
-        catch (Exception e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
-
-    /**
-     * Return the current {@link TransactionToken}.
-     * 
-     * @return the transaction token
-     */
-    @Nullable
-    TransactionToken transaction() {
-        return transaction;
     }
 
 }
