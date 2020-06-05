@@ -6,6 +6,7 @@
 #### Version 0.10.5 (TBD)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
 * Upgraded CCL version to `2.6.3` in order to fix a parsing bug that occurred when creating a `Criteria` containing a String or String-like value with a whitespace or equal sign (e.g. `=`) character.
+* Fixed a bug that made it possible to store invalid links (e.g. a link from a record to itself) when atomically adding or setting data in multiple records at once.
 
 #### Version 0.10.4 (December 15, 2019)
 * Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
