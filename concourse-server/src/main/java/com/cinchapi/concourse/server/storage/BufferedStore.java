@@ -84,7 +84,7 @@ public abstract class BufferedStore extends BaseStore {
         }
         else if(value.getType() == Type.LINK
                 && ((Link) Convert.thriftToJava(value)).longValue() == record) {
-            throw new ReferentialIntegrityViolation(
+            throw new ReferentialIntegrityException(
                     "A record cannot link to itself");
         }
     }
@@ -257,7 +257,7 @@ public abstract class BufferedStore extends BaseStore {
             }
             buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        catch (ReferentialIntegrityViolation e) {
+        catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -318,7 +318,7 @@ public abstract class BufferedStore extends BaseStore {
             }
             return false;
         }
-        catch (ReferentialIntegrityViolation e) {
+        catch (ReferentialIntegrityException e) {
             return false;
         }
     }
@@ -542,7 +542,7 @@ public abstract class BufferedStore extends BaseStore {
             }
             return false;
         }
-        catch (ReferentialIntegrityViolation e) {
+        catch (ReferentialIntegrityException e) {
             return false;
         }
     }
@@ -595,7 +595,7 @@ public abstract class BufferedStore extends BaseStore {
             }
             buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        catch (ReferentialIntegrityViolation e) {
+        catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
