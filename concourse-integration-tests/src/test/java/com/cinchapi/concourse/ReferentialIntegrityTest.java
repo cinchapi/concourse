@@ -74,4 +74,16 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
         Assert.assertNull(client.get("foo", 1));
     }
 
+    @Test
+    public void testTryingToSetCircularLinkHasNoEffect() {
+        client.add("foo", Link.to(2), 1);
+        try {
+            client.set("foo", Link.to(2), 2);
+            Assert.fail();
+        }
+        catch (InvalidArgumentException e) {
+            Assert.assertEquals(Link.to(2) , client.get("foo", 1));
+        }
+    }
+
 }
