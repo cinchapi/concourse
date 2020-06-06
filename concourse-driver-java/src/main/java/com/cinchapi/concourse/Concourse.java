@@ -619,8 +619,8 @@ public abstract class Concourse implements AutoCloseable {
      *         intermittent state changes, but may fail if consolidating
      *         the data would result in integrity constraints being violated
      *         (e.g. a circular link being created because the {@code first}
-     *         record links to one of the
-     *         {@code second} or {@code remaining} records links)
+     *         record links to one of the {@code second} or {@code remaining}
+     *         records)
      */
     public abstract boolean consolidate(long first, long second,
             long... remaining);
