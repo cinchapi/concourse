@@ -572,16 +572,15 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public boolean consolidate(long first, long second, long... remaining) {
-        /*
-         * TODO: implement me
-         * 1. add thift definition
-         * 2. add server side implementation
-         * 
-         * Server side implementation requires the #trace method to get all
-         * incoming links and replace them using verifyAndSwap. On server-side,
-         * method should return false if any part of the routine returns false
-         */
-        return false;
+        List<Long> records = Lists
+                .newArrayListWithExpectedSize(remaining.length + 2);
+        records.add(first);
+        records.add(second);
+        for (long record : remaining) {
+            records.add(record);
+        }
+        return execute(() -> core.consolidateRecords(records, creds,
+                transaction, environment));
     }
 
     @Override
