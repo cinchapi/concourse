@@ -1151,6 +1151,12 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public boolean consolidate(long first, long second, long... remaining) {
+            return invoke("consolidate", long.class, long.class, long[].class)
+                    .with(first, second, remaining);
+        }
+
+        @Override
         public Set<String> describe() {
             return invoke("describe").with();
         };
@@ -1158,7 +1164,7 @@ public class ManagedConcourseServer {
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
             return invoke("describe", Collection.class).with(records);
-        };
+        }
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,

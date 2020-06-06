@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -113,7 +114,6 @@ import com.cinchapi.concourse.thrift.TOrder;
 import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
@@ -338,19 +338,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
-     * Return {@code true} if adding {@code link} to {@code record} is valid.
-     * This method is used to enforce referential integrity (i.e. record cannot
-     * link to itself) before the data makes it way to the Engine.
-     *
-     * @param link
-     * @param record
-     * @return {@code true} if the link is valid
-     */
-    private static boolean isValidLink(Link link, long record) {
-        return link.longValue() != record;
-    }
-
-    /**
      * Contains the credentials used by the {@link #users}. This file is
      * typically located in the root of the server installation.
      */
@@ -467,14 +454,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean addKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment)).add(key,
-                    value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).add(key,
+                value, record);
     }
 
     @Override
@@ -1071,6 +1052,71 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         return transactions.remove(transaction).commit();
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyWritePermission
+    public boolean consolidateRecords(List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Set<Long> $records = Sets.newLinkedHashSet(records);
+        if($records.size() >= 2) {
+            AtomicSupport store = getStore(transaction, environment);
+            AtomicOperation atomic = store.startAtomicOperation();
+            try {
+                Iterator<Long> it = $records.iterator();
+                long destination = it.next();
+                while (it.hasNext()) {
+                    // 1. Copy all data from the #source to the #destination
+                    long source = it.next();
+                    Map<String, Set<TObject>> data = store.select(source);
+                    for (Entry<String, Set<TObject>> entry : data.entrySet()) {
+                        String key = entry.getKey();
+                        for (TObject value : entry.getValue()) {
+                            if(!atomic.verify(key, value, destination)
+                                    && !atomic.add(key, value, destination)) {
+                                return false;
+                            }
+                        }
+                    }
+                    // 2. Replace all incoming links to #source with links to
+                    // #destination
+                    Map<String, Set<Long>> incoming = Operations
+                            .traceRecordAtomic(source, Time.NONE, atomic);
+                    for (Entry<String, Set<Long>> entry : incoming.entrySet()) {
+                        String key = entry.getKey();
+                        for (long record : entry.getValue()) {
+                            if(!atomic.remove(key,
+                                    Convert.javaToThrift(Link.to(source)),
+                                    record)) {
+                                return false;
+                            }
+                            if(!atomic.add(key,
+                                    Convert.javaToThrift(Link.to(destination)),
+                                    record)) {
+                                return false;
+                            }
+                        }
+                    }
+                    // 3. Clear the #source
+                    Operations.clearRecordAtomic(source, atomic);
+                }
+                return atomic.commit();
+            }
+            catch (TransactionStateException e) {
+                throw new TransactionException();
+            }
+            catch (AtomicStateException e) {
+                return false;
+            }
+        }
+        else {
+            // Consolidating fewer than 2 records has no logical effect, so
+            // don't return a truthy value.
+            return false;
+        }
     }
 
     @Override
@@ -4657,14 +4703,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public boolean removeKeyValueRecord(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, environment))
-                    .remove(key, value, record);
-        }
-        else {
-            return false;
-        }
+        return ((BufferedStore) getStore(transaction, environment)).remove(key,
+                value, record);
     }
 
     @Override
