@@ -1112,7 +1112,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
         else {
             // Consolidating fewer than 2 records has no logical effect, so
-            // don't truthy value.
+            // don't return a truthy value.
             return false;
         }
     }
