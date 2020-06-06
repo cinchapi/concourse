@@ -183,6 +183,11 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
+    public boolean consolidate(long first, long second, long... remaining) {
+        return concourse.consolidate(first, second, remaining);
+    }
+
+    @Override
     public Set<String> describe() {
         return concourse.describe();
     }
@@ -1643,13 +1648,13 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public Map<String, Set<Long>> trace(long record) {
-        return concourse.trace(record);
+    public Timestamp time() {
+        return concourse.time();
     }
 
     @Override
-    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
-        return concourse.trace(record, timestamp);
+    public Timestamp time(String phrase) {
+        return concourse.time(phrase);
     }
 
     @Override
@@ -1664,13 +1669,13 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
-    public Timestamp time() {
-        return concourse.time();
+    public Map<String, Set<Long>> trace(long record) {
+        return concourse.trace(record);
     }
 
     @Override
-    public Timestamp time(String phrase) {
-        return concourse.time(phrase);
+    public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
+        return concourse.trace(record, timestamp);
     }
 
     @Override

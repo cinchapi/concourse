@@ -2,6 +2,7 @@
 
 #### Version 0.11.0 (TBD)
 * Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
+* Added `consolidate` functionality to atomically combine data from one or more records into another record. The records from which data is merged are cleared and all references to those cleared records are replaced with the consolidated record on the document-graph.
 
 #### Version 0.10.5 (TBD)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.

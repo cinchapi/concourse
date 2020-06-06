@@ -3162,6 +3162,10 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
+    public boolean consolidateRecords(List<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
     public Object sumKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
