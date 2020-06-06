@@ -595,6 +595,35 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean commit();
 
     /**
+     * 1) Atomically merge data from the {@code second} record into the
+     * {@code first}, 2) {@link #clear(long) clear} the {@code second} record
+     * and 3) replace any outgoing links to it with links to the {@code first}
+     * record.
+     * <p>
+     * This method effectively combines the data between the {@code first},
+     * and {@code second} records within the {@code first} one in an additive
+     * manner and replaces all references to the {@code second} record with a
+     * reference to the {@code first} across the document-graph.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> This method consolidates the present state of the
+     * records. Each of the input record's history is unaffected.
+     * </p>
+     * 
+     * @param first
+     * @param second
+     * @return a boolean that indicates whether the operation is successful;
+     *         this method will generally succeed if there are no relevant
+     *         intermittent state changes, but may fail if consolidating
+     *         the data would result in integrity constraints being violated
+     *         (e.g. a circular link being created because the {@code first}
+     *         record links to the {@code second} one)
+     */
+    public final boolean consolidate(long first, long second) {
+        return consolidate(first, second, new long[0]);
+    }
+
+    /**
      * 1) Atomically merge data from the {@code second} and {@code remaining}
      * records into the {@code first}, 2) {@link #clear(long) clear} each of
      * the {@code second} and {@code remaining} records and 3) replace any
