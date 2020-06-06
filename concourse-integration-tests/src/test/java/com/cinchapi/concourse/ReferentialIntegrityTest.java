@@ -46,11 +46,6 @@ public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testCannotManuallyAddCircularLinks() {
-        Assert.assertFalse(client.add("foo", Link.to(1), 1));
-    }
-
-    @Test
     public void testCannotManuallyAddCircularLinksManyRecords() {
         Map<Long, Boolean> result = client.add("foo", Link.to(1),
                 ImmutableSet.of(1L, 2L));
