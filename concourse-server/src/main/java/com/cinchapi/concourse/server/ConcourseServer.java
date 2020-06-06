@@ -1082,7 +1082,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                     // 2. Replace all incoming links to #source with links to
                     // #destination
                     Map<String, Set<Long>> incoming = Operations
-                            .traceRecordAtomic(destination, Time.NONE, atomic);
+                            .traceRecordAtomic(source, Time.NONE, atomic);
                     for (Entry<String, Set<Long>> entry : incoming.entrySet()) {
                         String key = entry.getKey();
                         for (long record : entry.getValue()) {

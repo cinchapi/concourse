@@ -50,4 +50,34 @@ public class ConsolidateTest extends ConcourseIntegrationTest {
                 ad);
     }
 
+    @Test
+    public void testCannotConsolidateTwoRecordsIfWouldCreateSelfLink() {
+        Map<String, Object> a = ImmutableMap.of("name", "a", "active", true,
+                "age", 100, "foo", "foo");
+        Map<String, Object> b = ImmutableMap.of("name", "b", "active", true,
+                "age", 200, "bar", "bar");
+        long ar = client.insert(a);
+        long br = client.insert(b);
+        client.link("friend", ar, br);
+        Timestamp timestamp = Timestamp.now();
+        Assert.assertFalse(client.consolidate(ar, br));
+        Assert.assertEquals(client.select(ar, timestamp), client.select(ar));
+        Assert.assertEquals(client.select(br, timestamp), client.select(br));
+    }
+
+    @Test
+    public void testCannotConsolidateTwoRecordsIfWouldCreateSelfLink2() {
+        Map<String, Object> a = ImmutableMap.of("name", "a", "active", true,
+                "age", 100, "foo", "foo");
+        Map<String, Object> b = ImmutableMap.of("name", "b", "active", true,
+                "age", 200, "bar", "bar");
+        long ar = client.insert(a);
+        long br = client.insert(b);
+        client.link("friend", br, ar);
+        Timestamp timestamp = Timestamp.now();
+        Assert.assertFalse(client.consolidate(ar, br));
+        Assert.assertEquals(client.select(ar, timestamp), client.select(ar));
+        Assert.assertEquals(client.select(br, timestamp), client.select(br));
+    }
+
 }
