@@ -1130,12 +1130,12 @@ public class ManagedConcourseServer {
         @Override
         public Set<String> describe() {
             return invoke("describe").with();
-        };
+        }
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
             return invoke("describe", Collection.class).with(records);
-        };
+        }
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
