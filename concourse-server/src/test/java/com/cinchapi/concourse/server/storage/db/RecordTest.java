@@ -261,16 +261,16 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         Assert.assertTrue(record.describe().isEmpty());
         Assert.assertFalse(record.isEmpty());
     }
-    
+
     @Test
     public void testCardinality() {
         L locator = getLocator();
         Record<L, K, V> record = getRecord(locator);
         Set<K> keys = Sets.newHashSet();
-        for(int i = 0; i < TestData.getScaleCount(); ++i) {
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
             K key = getKey();
             V value = getValue();
-            Revision<L,K,V> revision = getRevision(locator, key, value);
+            Revision<L, K, V> revision = getRevision(locator, key, value);
             record.append(revision);
             keys.add(key);
         }
