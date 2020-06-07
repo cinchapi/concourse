@@ -31,7 +31,7 @@ public class Strategy {
     /**
      * The {@link Command} being serviced.
      */
-    private final Command request;
+    private final Command command;
 
     /**
      * The {@link Store} that will handle the request.
@@ -46,11 +46,11 @@ public class Strategy {
     /**
      * Construct a new instance.
      * 
-     * @param request
+     * @param command
      * @param store
      */
-    public Strategy(Command request, Store store) {
-        this.request = request;
+    public Strategy(Command command, Store store) {
+        this.command = command;
         this.store = store;
         this.gatherable = store instanceof Gatherable;
     }
@@ -69,13 +69,13 @@ public class Strategy {
         // TODO: The notion of a "wide" operation should be extended to case
         // when the majority (or significant number) of, but not all keys are
         // involved with an operation.
-        boolean isWideOperation = request.operationKeys().isEmpty()
-                && !request.operation().startsWith("find");
-        boolean isConditionKey = request.conditionKeys().contains(key);
-        boolean isOrderKey = request.orderKeys().contains(key);
+        boolean isWideOperation = command.operationKeys().isEmpty()
+                && !command.operation().startsWith("find");
+        boolean isConditionKey = command.conditionKeys().contains(key);
+        boolean isOrderKey = command.orderKeys().contains(key);
         Source source;
         if((isConditionKey || isOrderKey)
-                && request.operationRecords().size() != 1 && gatherable) {
+                && command.operationRecords().size() != 1 && gatherable) {
             // The SecondaryRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record
             source = Source.INDEX;
@@ -92,7 +92,7 @@ public class Strategy {
             source = Source.FIELD;
         }
         else {
-            source = request.operationKeys().size() > 1 ? Source.RECORD
+            source = command.operationKeys().size() > 1 ? Source.RECORD
                     : Source.FIELD;
         }
         return source;
