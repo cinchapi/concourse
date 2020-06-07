@@ -65,7 +65,7 @@ public class ConcourseServerAdvisor extends AbstractModule {
                 Matchers.annotatedWith(VerifyWritePermission.class),
                 new PermissionVerificationAdvice(Permission.WRITE));
 
-        // Log the current Request and bind it to the current thread
+        // Introspect the current Command and bind it to the current thread
         bindInterceptor(Matchers.subclassesOf(ConcourseServer.class),
                 Matchers.not(Matchers.annotatedWith(Internal.class)),
                 new CommandIntrospectionAdvice());
