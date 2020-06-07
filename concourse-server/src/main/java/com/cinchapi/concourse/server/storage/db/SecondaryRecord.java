@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import java.lang.ref.SoftReference;
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.collect.CoalescableTreeMap;
+import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -36,9 +39,11 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -66,6 +71,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
     private static BiPredicate<Value, Value> CASE_INSENSITIVE_COALESCER = (v1,
             v2) -> v1.getObject().toString()
                     .equalsIgnoreCase(v2.getObject().toString());
+
+    /**
+     * A {@link Cube} that supports efficient {@link #gather(PrimaryKey)
+     * gathering}.
+     */
+    private final transient Cube cube = new Cube();
 
     /**
      * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
@@ -135,6 +146,106 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      */
     public Set<PrimaryKey> find(Operator operator, Value... values) {
         return explore(false, 0, operator, values).keySet();
+    }
+
+    /**
+     * Return all the keys that map to {@code value}.
+     * <p>
+     * In the broader {@link Database} sense, this method can be used to return
+     * all the data "values" that are stored within a data "record" under a data
+     * "key" that is equivalent to this {@link SecondaryRecord
+     * SecondaryRecord's} locator (similar to {@link Database#select(long)}).
+     * </p>
+     * <p>
+     * NOTE: The order of the items in the returned {@link Set} are not
+     * necessarily reflective of the order in which they were inserted into the
+     * {@link SecondaryRecord}.
+     * </p>
+     * 
+     * @param record
+     * @return a {@link Set} containing all the keys that map to the
+     *         {@code value}
+     */
+    public Set<Value> gather(PrimaryKey record) {
+        read.lock();
+        try {
+            return gather(record, Time.NONE);
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return all the keys that mapped to the {@code record} at
+     * {@code timestamp}.
+     * <p>
+     * In the broader {@link Database} sense, this method can be used to return
+     * all the data "values" that were stored within a data "record" under a
+     * data "key" that is equivalent to this {@link SecondaryRecord
+     * SecondaryRecord's} locator at {@code timestamp} (similar to
+     * {@link Database#select(long, long)}).
+     * </p>
+     * <p>
+     * NOTE: The order of the items in the returned {@link Set} are not
+     * necessarily reflective of the order in which they were inserted into the
+     * {@link SecondaryRecord}.
+     * </p>
+     * 
+     * @param record
+     * @return a {@link Set} containing all the keys that map to the
+     *         {@code value}
+     */
+    public Set<Value> gather(PrimaryKey record, long timestamp) {
+        Preconditions.checkState(!isPartial(),
+                "Cannot gather from a partial Secondary Record.");
+        read.lock();
+        try {
+            Map<PrimaryKey, Set<Value>> slice = cube.slice(timestamp);
+            if(slice == null) {
+                Set<Value> values = Sets.newHashSet();
+                Set<Entry<Value, Set<PrimaryKey>>> entries = timestamp != Time.NONE
+                        ? LazyTransformSet.of(history.keySet(),
+                                key -> new AbstractMap.SimpleImmutableEntry<>(
+                                        key, get(key, timestamp)))
+                        : present.entrySet();
+                for (Entry<Value, Set<PrimaryKey>> entry : entries) {
+                    Value value = entry.getKey();
+                    Set<PrimaryKey> records = entry.getValue();
+                    if(records.contains(record)) {
+                        values.add(value);
+                    }
+                    for (PrimaryKey $record : records) {
+                        if($record.equals(record)) {
+                            values.add(value);
+                        }
+                        cube.put($record, value, timestamp);
+                    }
+                }
+                return values;
+            }
+            else {
+                return slice.getOrDefault(record, ImmutableSet.of());
+            }
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    @Override
+    protected Map<Value, List<CompactRevision<PrimaryKey>>> historyMapType() {
+        return new CoalescableTreeMap<>();
+    }
+
+    @Override
+    protected Map<Value, Set<PrimaryKey>> mapType() {
+        return new CoalescableTreeMap<>();
+    }
+
+    @Override
+    protected void onAppend(Revision<Text, Value, PrimaryKey> revision) {
+        cube.clear();
     }
 
     /**
@@ -357,14 +468,70 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
         }
     }
 
-    @Override
-    protected Map<Value, List<CompactRevision<PrimaryKey>>> historyMapType() {
-        return new CoalescableTreeMap<>();
-    }
+    /**
+     * A {@link Cube} maps a {@link PrimaryKey value} to the set of {@link Value
+     * keys} that contain it at a specific timestamp. A {@link Cube} is used to
+     * facilitate efficient {@link #gather(PrimaryKey) gathering} of keys that
+     * contain values.
+     * <p>
+     * The {@link #slice(long)} method can be used to get a partition of the
+     * cube that contains a view of the gatherable data at a specific timestamp.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    private static class Cube {
 
-    @Override
-    protected Map<Value, Set<PrimaryKey>> mapType() {
-        return new CoalescableTreeMap<>();
+        // NOTE: At the moment, slicing is only supported for the present data.
+        // In the future, we may extend the Cube to hold slices for hot
+        // historical timestamps.
+
+        /**
+         * The slice of present data.
+         */
+        private transient SoftReference<Map<PrimaryKey, Set<Value>>> slice = new SoftReference<>(
+                null);
+
+        /**
+         * Remove all the data in the cube.
+         */
+        public void clear() {
+            slice.clear();
+        }
+
+        /**
+         * Add the {@code value} in {@code record} at {@code timestamp} to the
+         * cube.
+         * 
+         * @param record
+         * @param value
+         * @param timestamp
+         */
+        public void put(PrimaryKey record, Value value, long timestamp) {
+            if(timestamp == Time.NONE) {
+                if(slice.get() == null) {
+                    slice = new SoftReference<>(Maps.newHashMap());
+                }
+                MultimapViews.put(slice.get(), record, value);
+            }
+        }
+
+        /**
+         * Return the cubed data at {@code timestamp}.
+         * 
+         * @param timestamp
+         * @return the cubed data, if it exists, otherwise {@code null}.
+         */
+        @Nullable
+        public Map<PrimaryKey, Set<Value>> slice(long timestamp) {
+            if(timestamp == Time.NONE) {
+                return slice.get();
+            }
+            else {
+                return null;
+            }
+        }
+
     }
 
 }

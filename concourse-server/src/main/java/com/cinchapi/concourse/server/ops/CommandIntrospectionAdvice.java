@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.aop;
+package com.cinchapi.concourse.server.ops;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import com.cinchapi.concourse.server.ConcourseServer;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 
 /**
- * Indicates that a {@link ConcourseServer server} method propagates certain
- * Java exceptions to the client using analogous ones in the
- * {@code com.cinchapi.concourse.thrift} package.
+ * Intercepts ConcourseServer method invocations to set the {@link Command}.
+ *
+ * @author Jeff Nelson
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ThrowsClientExceptions {}
+public class CommandIntrospectionAdvice implements MethodInterceptor {
+
+    @Override
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        Command.current.set(
+                new Command(invocation.getMethod(), invocation.getArguments()));
+        return invocation.proceed();
+    }
+
+}

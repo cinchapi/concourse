@@ -24,7 +24,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
  * 
  * @author Jeff Nelson
  */
-public interface PermanentStore extends Store {
+public interface PermanentStore extends Store, Gatherable {
 
     /**
      * Process and store {@code write}.

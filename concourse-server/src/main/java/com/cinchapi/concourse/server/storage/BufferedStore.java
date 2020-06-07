@@ -184,8 +184,44 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
+    public Set<TObject> gather(String key, long record) {
+        return gather(key, record, false);
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        Set<TObject> context = destination.gather(key, record, timestamp);
+        return buffer.gather(key, record, timestamp, context);
+    }
+
+    @Override
     public Set<Long> getAllRecords() {
         return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
+    }
+
+    @Override
+    public Memory memory() {
+        return new Memory() {
+
+            @Override
+            public boolean contains(long record) {
+                return destination.memory().contains(record)
+                        && buffer.memory().contains(record);
+            }
+
+            @Override
+            public boolean contains(String key) {
+                return destination.memory().contains(key)
+                        && buffer.memory().contains(key);
+            }
+
+            @Override
+            public boolean contains(String key, long record) {
+                return destination.memory().contains(key, record)
+                        && buffer.memory().contains(key, record);
+            }
+
+        };
     }
 
     /**
@@ -498,6 +534,31 @@ public abstract class BufferedStore extends BaseStore {
             context = destination.explore(key, operator, values);
         }
         return buffer.explore(context, Time.now(), key, operator, values);
+    }
+
+    /**
+     * Gather {@code key} from {@code record} either using safe or unsafe
+     * methods.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link #describe(long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param lock
+     * @return a possibly empty Set of values
+     */
+    protected Set<TObject> gather(String key, long record, boolean lock) {
+        Set<TObject> context;
+        if(!lock && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).gatherUnsafe(key, record);
+        }
+        else {
+            context = destination.gather(key, record);
+        }
+        return buffer.gather(key, record, Time.now(), context);
     }
 
     /**

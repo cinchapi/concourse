@@ -29,7 +29,7 @@ import com.cinchapi.concourse.thrift.AccessToken;
  *
  * @author Jeff Nelson
  */
-public class AdminRoleVerifier implements MethodInterceptor {
+public class AdminRoleVerificiationAdvice implements MethodInterceptor {
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {

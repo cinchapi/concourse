@@ -28,4 +28,4 @@ import com.cinchapi.concourse.thrift.ManagementException;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ThrowsManagementExceptions {}
+public @interface TranslateManagementExceptions {}

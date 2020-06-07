@@ -21,8 +21,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.cinchapi.concourse.server.ops.Strategy.Source;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
+import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -238,8 +240,40 @@ public final class Stores {
             }
         }
         else {
-            return timestamp == Time.NONE ? store.select(key, record)
-                    : store.select(key, record, timestamp);
+            Source source;
+            if(Command.isSet()) {
+                Strategy strategy = new Strategy(Command.current(), store);
+                source = strategy.source(key, record);
+            }
+            else {
+                source = Source.FIELD;
+            }
+            Set<TObject> values;
+            if(source == Source.RECORD) {
+                // @formatter:off
+                Map<String, Set<TObject>> data = timestamp == Time.NONE
+                        ? store.select(record)
+                        : store.select(record, timestamp);
+                values = data.getOrDefault(key, ImmutableSet.of());
+                // @formatter:on
+            }
+            else if(source == Source.FIELD) {
+                // @formatter:off
+                values = timestamp == Time.NONE 
+                        ? store.select(key, record)
+                        : store.select(key, record, timestamp);
+                // @formatter:on
+            }
+            else { // source == Source.INDEX
+                Gatherable $store = (Gatherable) store;
+                // @formatter:off
+                values = timestamp == Time.NONE 
+                        ? $store.gather(key, record)
+                        : $store.gather(key, record, timestamp);
+                // @formatter:on
+            }
+            return values;
+
         }
     }
 

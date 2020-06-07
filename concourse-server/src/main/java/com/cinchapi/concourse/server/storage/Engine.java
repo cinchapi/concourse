@@ -370,11 +370,6 @@ public final class Engine extends BufferedStore
     }
 
     @Override
-    public Set<Long> getAllRecords() {
-        return inventory.getAll();
-    }
-
-    @Override
     public boolean add(String key, TObject value, long record) {
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
@@ -588,6 +583,47 @@ public final class Engine extends BufferedStore
             return ((Buffer) buffer).dump();
         }
         return ((Database) destination).dump(id);
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> gatherUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.gather(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Long> getAllRecords() {
+        return inventory.getAll();
     }
 
     /**

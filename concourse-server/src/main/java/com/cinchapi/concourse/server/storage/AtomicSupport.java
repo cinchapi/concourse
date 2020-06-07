@@ -115,6 +115,23 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
             Operator operator, TObject... values);
 
     /**
+     * Gather {@code key} from {@code record}.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link describe(long)}. This method
+     * is ONLY appropriate to call from the methods of {@link #AtomicOperation}
+     * class because in this case intermediate read {@link #Lock} is not
+     * required.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return {@code Set}
+     */
+    public Set<TObject> gatherUnsafe(String key, long record);
+
+    /**
      * Fetch {@code key} from {@code record}.
      * This method returns the values currently mapped from {@code key} in
      * {@code record}. The returned Set is nonempty if and only if {@code key}

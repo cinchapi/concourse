@@ -30,7 +30,7 @@ import com.cinchapi.concourse.thrift.PermissionException;
  *
  * @author Jeff Nelson
  */
-public class PermissionVerifier implements MethodInterceptor {
+public class PermissionVerificationAdvice implements MethodInterceptor {
 
     /**
      * The permission to check for.
@@ -42,7 +42,7 @@ public class PermissionVerifier implements MethodInterceptor {
      * 
      * @param permission
      */
-    public PermissionVerifier(Permission permission) {
+    public PermissionVerificationAdvice(Permission permission) {
         this.permission = permission;
     }
 
