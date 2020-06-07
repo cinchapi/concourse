@@ -285,12 +285,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
-     * Return the number of unique keys in this {@link Record}.
+     * Return the number of unique keys in this {@link Record}'s history.
      * 
      * @return the {@link Record} cardinality
      */
     public int cardinality() {
-        return history.size(); // TODO: unit test
+        return history.size();
     }
 
     @Override
