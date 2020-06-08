@@ -49,7 +49,7 @@ public interface Criteria extends Symbol {
      * {@code ccl} statement.
      * 
      * @param ccl the CCL statement to parse
-     * @return an equivalanet {@link Criteria} object
+     * @return an equivalent {@link Criteria} object
      */
     public static Criteria parse(String ccl) {
         Parser parser = Parsers.create(ccl);
