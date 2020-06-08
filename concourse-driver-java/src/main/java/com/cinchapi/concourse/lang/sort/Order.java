@@ -15,7 +15,10 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
@@ -57,7 +60,21 @@ public interface Order {
      * {@link OrderComponent components} containing each key, an optional
      * {@link Timestamp} and the the corresponding direction ordinal (e.g. 1 for
      * ASC and -1 for DESC) in the constructed {@link Order}.
+     * 
+     * @return a sequential list of all the {@link OrderComponent}s that form
+     *         this {@link Order}.
      */
     public List<OrderComponent> spec();
+
+    /**
+     * Return all the keys that are referenced by this {@link Order}.
+     * 
+     * @return a {@link Set} of all the keys that are referenced by this
+     *         {@link Order}
+     */
+    public default Set<String> keys() {
+        return spec().stream().map(OrderComponent::key)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 
 }

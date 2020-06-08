@@ -27,7 +27,7 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
  * 
  * @author Jeff Nelson
  */
-public abstract class BaseStore implements Store {
+public abstract class BaseStore implements Store, Gatherable {
 
     @Override
     public final Set<String> describe(long record) {

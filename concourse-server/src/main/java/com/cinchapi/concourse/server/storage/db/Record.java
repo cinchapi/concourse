@@ -273,13 +273,24 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // Update metadata
             version = Math.max(version, revision.getVersion());
 
+            // Run post-append hook
+            onAppend(revision);
+
             // Make revision eligible for GC
             revision = null;
-
         }
         finally {
             write.unlock();
         }
+    }
+
+    /**
+     * Return the number of unique keys in this {@link Record}'s history.
+     * 
+     * @return the {@link Record} cardinality
+     */
+    public int cardinality() {
+        return history.size();
     }
 
     @Override
@@ -336,6 +347,21 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     public String toString() {
         return getClass().getSimpleName() + " " + (partial ? key + " IN " : "")
                 + locator;
+    }
+
+    /**
+     * Return {@code true} if the action associated with {@code revision}
+     * offsets the last action for an equal revision.
+     * 
+     * @param revision
+     * @return {@code true} if the revision if offset.
+     */
+    private boolean isOffset(Revision<L, K, V> revision) {
+        boolean contained = get(revision.getKey())
+                .contains(revision.getValue());
+        return ((revision.getType() == Action.ADD && !contained)
+                || (revision.getType() == Action.REMOVE && contained)) ? true
+                        : false;
     }
 
     /**
@@ -437,13 +463,6 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
-     * Initialize the appropriate data structure for the {@link #present}.
-     * 
-     * @return the initialized mappings
-     */
-    protected abstract Map<K, Set<V>> mapType();
-
-    /**
      * Initialize the appropriate data structure for the {@link #history}.
      * 
      * @return the initialized mappings
@@ -453,19 +472,17 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
-     * Return {@code true} if the action associated with {@code revision}
-     * offsets the last action for an equal revision.
+     * Initialize the appropriate data structure for the {@link #present}.
      * 
-     * @param revision
-     * @return {@code true} if the revision if offset.
+     * @return the initialized mappings
      */
-    private boolean isOffset(Revision<L, K, V> revision) {
-        boolean contained = get(revision.getKey())
-                .contains(revision.getValue());
-        return ((revision.getType() == Action.ADD && !contained)
-                || (revision.getType() == Action.REMOVE && contained)) ? true
-                        : false;
-    }
+    protected abstract Map<K, Set<V>> mapType();
+
+    /**
+     * Logic that the subclass can run after the {@code revision} is
+     * {@link #append(Revision) appended}.
+     */
+    protected void onAppend(Revision<L, K, V> revision) {/* no-op */}
 
     /**
      * An empty Set of type V that cannot be modified, but won't throw

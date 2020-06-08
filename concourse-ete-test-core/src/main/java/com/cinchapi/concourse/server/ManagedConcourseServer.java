@@ -627,6 +627,35 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Return {@code true} if the default environment has writes that in its
+     * buffer that are transportable to its database.
+     * 
+     * @return {@code true} if there are writes to transport in the default
+     *         environment
+     */
+    public boolean hasWritesToTransport() {
+        return hasWritesToTransport(prefs.getDefaultEnvironment());
+    }
+
+    /**
+     * Return {@code true} if the {@code environment} has writes that in its
+     * buffer that are transportable to its database.
+     * 
+     * @return {@code true} if there are writes to transport in the
+     *         {@code environment}
+     */
+    public boolean hasWritesToTransport(String environment) {
+        Path path = getBufferDirectory().resolve(environment);
+        try {
+            return Files.list(path).filter(p -> p.toString().endsWith(".buf"))
+                    .count() > 1;
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
      * Install the plugin(s) contained in the {@code bundle} on this
      * {@link ManagedConcourseServer}.
      * 
@@ -1122,21 +1151,27 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public boolean consolidate(long first, long second, long... remaining) {
+            return invoke("consolidate", long.class, long.class, long[].class)
+                    .with(first, second, remaining);
+        }
+
+        @Override
         public Set<String> describe() {
             return invoke("describe").with();
-        }
+        };
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
             return invoke("describe", Collection.class).with(records);
-        };
+        }
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
                 Timestamp timestamp) {
             return invoke("describe", Collection.class, Timestamp.class)
                     .with(records, timestamp);
-        };
+        }
 
         @Override
         public Set<String> describe(long record) {

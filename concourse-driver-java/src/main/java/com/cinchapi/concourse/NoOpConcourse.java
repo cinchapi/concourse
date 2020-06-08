@@ -162,6 +162,11 @@ public class NoOpConcourse extends Concourse {
     }
 
     @Override
+    public boolean consolidate(long first, long second, long... remaining) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<String> describe() {
         throw new UnsupportedOperationException();
     }

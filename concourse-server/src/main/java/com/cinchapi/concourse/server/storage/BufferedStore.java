@@ -20,13 +20,16 @@ import java.util.Set;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.Sets;
@@ -63,13 +66,14 @@ public abstract class BufferedStore extends BaseStore {
     // different code paths for present vs historical reads unlike Limbo.
 
     /**
-     * Perform validation on the {@code key} and {@code value} and throw an
-     * exception if necessary.
+     * Perform validation on a write that touches {@code key} as {@code value}
+     * in {@code record} and throw an exception if necessary.
      * 
      * @param key
      * @param value
      */
-    private static void validate(String key, TObject value) { // CON-21
+    private static void ensureWriteIntegrity(String key, TObject value,
+            long record) { // CON-21
         if(!Keys.isWritable(key)) {
             throw new IllegalArgumentException(
                     AnyStrings.joinWithSpace(key, "is not a valid key"));
@@ -77,6 +81,11 @@ public abstract class BufferedStore extends BaseStore {
         else if(value.isBlank()) {
             throw new IllegalArgumentException(
                     "Cannot use a blank value for " + key);
+        }
+        else if(value.getType() == Type.LINK
+                && ((Link) Convert.thriftToJava(value)).longValue() == record) {
+            throw new ReferentialIntegrityException(
+                    "A record cannot link to itself");
         }
     }
 
@@ -175,8 +184,44 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
+    public Set<TObject> gather(String key, long record) {
+        return gather(key, record, false);
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record, long timestamp) {
+        Set<TObject> context = destination.gather(key, record, timestamp);
+        return buffer.gather(key, record, timestamp, context);
+    }
+
+    @Override
     public Set<Long> getAllRecords() {
         return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
+    }
+
+    @Override
+    public Memory memory() {
+        return new Memory() {
+
+            @Override
+            public boolean contains(long record) {
+                return destination.memory().contains(record)
+                        && buffer.memory().contains(record);
+            }
+
+            @Override
+            public boolean contains(String key) {
+                return destination.memory().contains(key)
+                        && buffer.memory().contains(key);
+            }
+
+            @Override
+            public boolean contains(String key, long record) {
+                return destination.memory().contains(key, record)
+                        && buffer.memory().contains(key, record);
+            }
+
+        };
     }
 
     /**
@@ -240,12 +285,17 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        validate(key, value);
-        Set<TObject> values = select(key, record);
-        for (TObject val : values) {
-            buffer.insert(Write.remove(key, val, record)); /* Authorized */
+        try {
+            ensureWriteIntegrity(key, value, record);
+            Set<TObject> values = select(key, record);
+            for (TObject val : values) {
+                buffer.insert(Write.remove(key, val, record)); /* Authorized */
+            }
+            buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        buffer.insert(Write.add(key, value, record)); /* Authorized */
+        catch (ReferentialIntegrityException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     @Override
@@ -296,12 +346,17 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
             boolean doVerify, boolean lockOnVerify) {
-        validate(key, value);
-        Write write = Write.add(key, value, record);
-        if(!doVerify || !verify(write, lockOnVerify)) {
-            return buffer.insert(write, sync); /* Authorized */
+        try {
+            ensureWriteIntegrity(key, value, record);
+            Write write = Write.add(key, value, record);
+            if(!doVerify || !verify(write, lockOnVerify)) {
+                return buffer.insert(write, sync); /* Authorized */
+            }
+            return false;
         }
-        return false;
+        catch (ReferentialIntegrityException e) {
+            return false;
+        }
     }
 
     /**
@@ -482,6 +537,31 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
+     * Gather {@code key} from {@code record} either using safe or unsafe
+     * methods.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link #describe(long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param lock
+     * @return a possibly empty Set of values
+     */
+    protected Set<TObject> gather(String key, long record, boolean lock) {
+        Set<TObject> context;
+        if(!lock && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).gatherUnsafe(key, record);
+        }
+        else {
+            context = destination.gather(key, record);
+        }
+        return buffer.gather(key, record, Time.now(), context);
+    }
+
+    /**
      * Remove {@code key} as {@code value} from {@code record} with the
      * directive to {@code sync} the data or not. Depending upon the
      * implementation of the {@link #buffer}, a sync may guarantee that the data
@@ -515,12 +595,17 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean remove(String key, TObject value, long record,
             boolean sync, boolean doVerify, boolean lockOnVerify) {
-        validate(key, value);
-        Write write = Write.remove(key, value, record);
-        if(!doVerify || verify(write, lockOnVerify)) {
-            return buffer.insert(write, sync); /* Authorized */
+        try {
+            ensureWriteIntegrity(key, value, record);
+            Write write = Write.remove(key, value, record);
+            if(!doVerify || verify(write, lockOnVerify)) {
+                return buffer.insert(write, sync); /* Authorized */
+            }
+            return false;
         }
-        return false;
+        catch (ReferentialIntegrityException e) {
+            return false;
+        }
     }
 
     /**
@@ -563,12 +648,17 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected void set(String key, TObject value, long record,
             boolean lockOnRead) {
-        validate(key, value);
-        Set<TObject> values = select(key, record, lockOnRead);
-        for (TObject val : values) {
-            buffer.insert(Write.remove(key, val, record)); /* Authorized */
+        try {
+            ensureWriteIntegrity(key, value, record);
+            Set<TObject> values = select(key, record, lockOnRead);
+            for (TObject val : values) {
+                buffer.insert(Write.remove(key, val, record)); /* Authorized */
+            }
+            buffer.insert(Write.add(key, value, record)); /* Authorized */
         }
-        buffer.insert(Write.add(key, value, record)); /* Authorized */
+        catch (ReferentialIntegrityException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     /**

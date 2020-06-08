@@ -23,7 +23,7 @@ import org.apache.thrift.TException;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
 import com.cinchapi.concourse.security.UserService;
-import com.cinchapi.concourse.server.aop.ThrowsManagementExceptions;
+import com.cinchapi.concourse.server.aop.TranslateManagementExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyAdminRole;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -59,7 +59,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     @ClientInvokable
@@ -71,7 +71,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void deleteUser(ByteBuffer username, AccessToken creds)
@@ -81,7 +81,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void disableUser(ByteBuffer username, AccessToken creds)
@@ -92,7 +92,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public String dump(String id, String environment, AccessToken creds)
@@ -102,7 +102,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void enableUser(ByteBuffer username, AccessToken creds)
@@ -113,7 +113,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public String getDumpList(String environment, AccessToken creds)
@@ -123,7 +123,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     @ClientInvokable
@@ -136,7 +136,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public boolean hasUser(ByteBuffer username, AccessToken creds)
@@ -146,7 +146,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void installPluginBundle(String file, AccessToken creds)
@@ -156,7 +156,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public String listAllEnvironments(AccessToken creds) throws TException {
@@ -167,7 +167,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public String listAllUserSessions(AccessToken creds) throws TException {
@@ -177,7 +177,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public String listPluginBundles(AccessToken creds) throws TException {
@@ -186,7 +186,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void revoke(ByteBuffer username, String environment,
@@ -196,7 +196,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public Map<Long, Map<String, String>> runningPluginsInfo(AccessToken creds)
@@ -206,7 +206,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void setUserPassword(ByteBuffer username, ByteBuffer password,
@@ -217,7 +217,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void setUserRole(ByteBuffer username, String role, AccessToken creds)
@@ -227,7 +227,7 @@ public abstract class BaseConcourseServer
 
     @Override
     @PluginRestricted
-    @ThrowsManagementExceptions
+    @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
     public void uninstallPluginBundle(String name, AccessToken creds)

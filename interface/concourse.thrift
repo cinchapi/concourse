@@ -6509,6 +6509,18 @@ service ConcourseService {
       3: exceptions.PermissionException ex3
     );
 
+    bool consolidateRecords(
+      1: list<i64> records
+      2: shared.AccessToken creds,
+      3: shared.TransactionToken transaction,
+      4: string environment
+    )
+    throws (
+      1: exceptions.SecurityException ex,
+      2: exceptions.TransactionException ex2,
+      3: exceptions.PermissionException ex3
+    );
+
   complex.ComplexTObject invokeManagement(
     2: string method,
     3: list<complex.ComplexTObject> params,
