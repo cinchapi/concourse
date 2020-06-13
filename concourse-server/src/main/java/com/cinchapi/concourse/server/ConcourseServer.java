@@ -49,7 +49,6 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
@@ -62,6 +61,8 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.data.sort.SortableColumn;
 import com.cinchapi.concourse.data.sort.SortableSet;
 import com.cinchapi.concourse.data.sort.SortableTable;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
+import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.security.Permission;
 import com.cinchapi.concourse.security.Role;
@@ -118,7 +119,6 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
@@ -423,6 +423,11 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     private UserService users;
 
+    /**
+     * Reference to the {@link ConcourseCompiler}.
+     */
+    private final ConcourseCompiler compiler = ConcourseCompiler.get();
+
     @Override
     @TranslateClientExceptions
     @PluginRestricted
@@ -624,8 +629,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -647,8 +651,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -679,8 +682,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject averageKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -697,8 +699,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject averageKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -1139,8 +1140,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -1161,8 +1161,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -1191,8 +1190,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public long countKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -1208,8 +1206,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public long countKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -1709,8 +1706,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 SortableSet<Set<TObject>> records = SortableSet
@@ -1759,8 +1755,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             SortableSet<Set<TObject>> records = SortableSet
@@ -2112,16 +2107,15 @@ public class ConcourseServer extends BaseConcourseServer implements
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             records.clear();
-            Parser parser;
+            AbstractSyntaxTree ast;
             if(objects.size() == 1) {
                 // CON-321: Support local resolution when the data blob is a
                 // single object
-                parser = Parsers.create(ccl, objects.get(0));
+                ast = compiler.parse(ccl, objects.get(0));
             }
             else {
-                parser = Parsers.create(ccl);
+                ast = compiler.parse(ccl);
             }
-            AbstractSyntaxTree ast = parser.parse();
             Operations.findOrInsertAtomic(records, objects, ast, atomic);
         });
         if(records.size() == 1) {
@@ -2142,8 +2136,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         List<Multimap<String, Object>> objects = Lists
                 .newArrayList(Convert.jsonToJava(json));
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         Set<Long> records = Sets.newLinkedHashSet();
         AtomicOperations.executeWithRetry(store, (atomic) -> {
@@ -2155,7 +2148,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         }
         else {
             throw new DuplicateEntryException(AnyStrings.joinWithSpace("Found",
-                    records.size(), "records that match", parser));
+                    records.size(), "records that match",
+                    Language.translateFromThriftCriteria(criteria).ccl()));
         }
     }
 
@@ -2175,8 +2169,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -2211,8 +2204,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -2246,8 +2238,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -2283,8 +2274,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -2355,8 +2345,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getCriteriaOrder(TCriteria criteria,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -2385,8 +2374,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -2414,8 +2402,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -2447,8 +2434,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -2519,8 +2505,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
@@ -2555,8 +2540,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
@@ -2590,8 +2574,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
@@ -2628,8 +2611,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<TObject> result = SortableColumn.singleValued(key,
                     Maps.newLinkedHashMap());
@@ -2704,8 +2686,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
@@ -2735,8 +2716,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
@@ -2765,8 +2745,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
@@ -2798,8 +2777,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<TObject> result = SortableColumn.singleValued(key,
                 Maps.newLinkedHashMap());
@@ -3059,8 +3037,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -3096,8 +3073,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -3132,8 +3108,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -3170,8 +3145,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<TObject> result = SortableTable
                     .singleValued(Maps.newLinkedHashMap());
@@ -3247,8 +3221,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -3279,8 +3252,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -3310,8 +3282,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -3346,8 +3317,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<TObject> result = SortableTable
                 .singleValued(Maps.newLinkedHashMap());
@@ -3882,8 +3852,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -3905,8 +3874,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -3936,8 +3904,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject maxKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -3954,8 +3921,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject maxKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4100,8 +4066,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4123,8 +4088,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4154,8 +4118,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject minKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4172,8 +4135,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject minKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4317,8 +4279,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4362,8 +4323,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4484,8 +4444,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4532,8 +4491,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(criteria);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(criteria);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -4848,8 +4806,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -4885,8 +4842,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -4919,8 +4875,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -4958,8 +4913,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -5031,8 +4985,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -5066,8 +5019,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -5095,8 +5047,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations
@@ -5131,8 +5082,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -5203,8 +5153,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
@@ -5239,8 +5188,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
@@ -5274,8 +5222,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
@@ -5311,8 +5258,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableColumn<Set<TObject>> result = SortableColumn
                     .multiValued(key, Maps.newLinkedHashMap());
@@ -5388,8 +5334,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 Maps.newLinkedHashMap());
@@ -5420,8 +5365,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 Maps.newLinkedHashMap());
@@ -5451,8 +5395,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 Maps.newLinkedHashMap());
@@ -5487,8 +5430,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
                 Maps.newLinkedHashMap());
@@ -5754,8 +5696,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -5794,8 +5735,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -5829,8 +5769,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -5869,8 +5808,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             SortableTable<Set<TObject>> result = emptySortableResultDataset();
             AtomicOperations.executeWithRetry(store,
@@ -5947,8 +5885,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -5982,8 +5919,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -6012,8 +5948,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations
@@ -6048,8 +5983,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         SortableTable<Set<TObject>> result = emptySortableResultDataset();
         AtomicOperations.executeWithRetry(store,
@@ -6617,8 +6551,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -6640,8 +6573,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         try {
-            Parser parser = Parsers.create(ccl);
-            AbstractSyntaxTree ast = parser.parse();
+            AbstractSyntaxTree ast = compiler.parse(ccl);
             AtomicSupport store = getStore(transaction, environment);
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -6671,8 +6603,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject sumKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
@@ -6689,8 +6620,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject sumKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        Parser parser = Parsers.create(criteria);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);

@@ -20,12 +20,11 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.Parsers;
 import com.google.common.collect.Sets;
 
 /**
@@ -49,8 +48,7 @@ public class FinderTest {
                 Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff";
-        Parser parser = Parsers.create(ccl);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl);
         Finder visitor = Finder.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L), result);
@@ -70,8 +68,7 @@ public class FinderTest {
                 Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff and company = Cinchapi";
-        Parser parser = Parsers.create(ccl);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl);
         Finder visitor = Finder.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L), result);
@@ -91,8 +88,7 @@ public class FinderTest {
                 Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "name = jeff or age < 75";
-        Parser parser = Parsers.create(ccl);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl);
         Finder visitor = Finder.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(1L, 2L, 3L), result);
@@ -112,8 +108,7 @@ public class FinderTest {
                 Write.add("company", Convert.javaToThrift("ARMN Inc."), 3));
         store.insert(Write.add("age", Convert.javaToThrift(50), 3));
         String ccl = "(name = jeff or company = Cinchapi) and age = 70";
-        Parser parser = Parsers.create(ccl);
-        AbstractSyntaxTree ast = parser.parse();
+        AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl);
         Finder visitor = Finder.instance();
         Set<Long> result = ast.accept(visitor, store);
         Assert.assertEquals(Sets.newHashSet(), result);

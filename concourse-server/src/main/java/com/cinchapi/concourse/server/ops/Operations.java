@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
@@ -51,7 +51,6 @@ import com.cinchapi.concourse.util.DataServices;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
-import com.cinchapi.concourse.util.Parsers;
 import com.cinchapi.concourse.util.TMaps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -655,8 +654,8 @@ public final class Operations {
         for (DeferredWrite write : deferred) {
             if(write.getValue() instanceof ResolvableLink) {
                 ResolvableLink rlink = (ResolvableLink) write.getValue();
-                Parser parser = Parsers.create(rlink.getCcl());
-                AbstractSyntaxTree ast = parser.parse();
+                AbstractSyntaxTree ast = ConcourseCompiler.get()
+                        .parse(rlink.getCcl());
                 Set<Long> targets = ast.accept(Finder.instance(), atomic);
                 for (long target : targets) {
                     if(target == write.getRecord()) {

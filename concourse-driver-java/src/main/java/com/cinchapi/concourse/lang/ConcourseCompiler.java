@@ -15,31 +15,65 @@
  */
 package com.cinchapi.concourse.lang;
 
-import com.cinchapi.ccl.Compiler;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.util.Convert;
+import com.google.common.collect.Multimap;
 
 /**
- * A {@link Compiler} for Concourse.
+ * A {@link ConcourseCompiler} for Concourse.
  *
  * @author Jeff Nelson
  */
-public final class ConcourseCompiler {
+public final class ConcourseCompiler extends com.cinchapi.ccl.Compiler {
 
     /**
-     * Singleton instance of {@link Compiler}.
+     * The delegate that does the work.
      */
-    private static Compiler SINGLETON = Compiler.create(Convert::stringToJava,
-            Convert::stringToOperator);
+    private com.cinchapi.ccl.Compiler delegate;
 
     /**
-     * Return a {@link Compiler}.
+     * Singleton instance of {@link ConcourseCompiler}.
+     */
+    private static ConcourseCompiler SINGLETON = new ConcourseCompiler();
+
+    /**
+     * Return a {@link ConcourseCompiler}.
      * 
-     * @return a {@link Compiler}
+     * @return a {@link ConcourseCompiler}
      */
-    public static Compiler get() {
+    public static ConcourseCompiler get() {
         return SINGLETON;
     }
 
-    private ConcourseCompiler() {/* no-init */}
+    private ConcourseCompiler() {
+        super(Convert::stringToJava, Convert::stringToOperator);
+        this.delegate = ConcourseCompiler.create(Convert::stringToJava,
+                Convert::stringToOperator);
+    }
+
+    @Override
+    public AbstractSyntaxTree parse(String ccl, Multimap<String, Object> data) {
+        return delegate.parse(ccl, data);
+    }
+
+    public AbstractSyntaxTree parse(TCriteria criteria) {
+        return parse(Language.translateFromThriftCriteria(criteria).ccl());
+    }
+
+    public AbstractSyntaxTree parse(TCriteria criteria,
+            Multimap<String, Object> data) {
+        return parse(Language.translateFromThriftCriteria(criteria).ccl(),
+                data);
+    }
+
+    public AbstractSyntaxTree parse(Criteria criteria,
+            Multimap<String, Object> data) {
+        return parse(criteria.ccl(), data);
+    }
+
+    public AbstractSyntaxTree parse(Criteria criteria) {
+        return parse(criteria.ccl());
+    }
 
 }

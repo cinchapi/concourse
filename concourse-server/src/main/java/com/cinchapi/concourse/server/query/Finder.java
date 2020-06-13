@@ -18,15 +18,13 @@ package com.cinchapi.concourse.server.query;
 import java.util.Collections;
 import java.util.Set;
 
-import com.cinchapi.ccl.grammar.CommandSymbol;
+import com.cinchapi.ccl.ConditionTreeVisitor;
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
 import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
-import com.cinchapi.ccl.syntax.CommandTree;
 import com.cinchapi.ccl.syntax.ConjunctionTree;
 import com.cinchapi.ccl.syntax.ExpressionTree;
-import com.cinchapi.ccl.syntax.PageTree;
 import com.cinchapi.ccl.syntax.Visitor;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.Verify;
@@ -45,7 +43,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public class Finder implements Visitor<Set<Long>> {
+public class Finder extends ConditionTreeVisitor<Set<Long>> {
 
     /**
      * The singleton instance.
@@ -138,22 +136,6 @@ public class Finder implements Visitor<Set<Long>> {
             return results;
         }
 
-    }
-
-    @Override
-    public Set<Long> visit(CommandTree tree, Object... data) {
-        if(tree.root() == CommandSymbol.FIND && tree.conditionTree() != null) {
-            return visit(tree.conditionTree(), data);
-        }
-        else {
-            throw new UnsupportedOperationException(
-                    "Cannot visit for command " + tree.root());
-        }
-    }
-
-    @Override
-    public Set<Long> visit(PageTree tree, Object... data) {
-        throw new UnsupportedOperationException("Cannot visit PageTree");
     }
 
 }
