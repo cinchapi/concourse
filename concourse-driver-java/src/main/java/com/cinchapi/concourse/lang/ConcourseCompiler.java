@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.lang;
 
+import com.cinchapi.ccl.Compiler;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.util.Convert;
@@ -25,17 +26,7 @@ import com.google.common.collect.Multimap;
  *
  * @author Jeff Nelson
  */
-public final class ConcourseCompiler extends com.cinchapi.ccl.Compiler {
-
-    /**
-     * The delegate that does the work.
-     */
-    private com.cinchapi.ccl.Compiler delegate;
-
-    /**
-     * Singleton instance of {@link ConcourseCompiler}.
-     */
-    private static ConcourseCompiler SINGLETON = new ConcourseCompiler();
+public final class ConcourseCompiler extends Compiler {
 
     /**
      * Return a {@link ConcourseCompiler}.
@@ -46,10 +37,45 @@ public final class ConcourseCompiler extends com.cinchapi.ccl.Compiler {
         return SINGLETON;
     }
 
+    /**
+     * Singleton instance of {@link ConcourseCompiler}.
+     */
+    private static ConcourseCompiler SINGLETON = new ConcourseCompiler();
+
+    /**
+     * The delegate that does the work.
+     */
+    private Compiler delegate;
+
+    /**
+     * Construct a new instance.
+     */
     private ConcourseCompiler() {
         super(Convert::stringToJava, Convert::stringToOperator);
         this.delegate = ConcourseCompiler.create(Convert::stringToJava,
                 Convert::stringToOperator);
+    }
+
+    /**
+     * {@link #parse(String) Parse} the {@code criteria}.
+     * 
+     * @param criteria
+     * @return an {@link AbstractSyntaxTree} representing the {@code criteria}
+     */
+    public final AbstractSyntaxTree parse(Criteria criteria) {
+        return parse(criteria.ccl());
+    }
+
+    /**
+     * {@link #parse(String) Parse} the {@code criteria} and bind the local
+     * {@code data}.
+     * 
+     * @param criteria
+     * @return an {@link AbstractSyntaxTree} representing the {@code criteria}
+     */
+    public final AbstractSyntaxTree parse(Criteria criteria,
+            Multimap<String, Object> data) {
+        return parse(criteria.ccl(), data);
     }
 
     @Override
@@ -57,23 +83,27 @@ public final class ConcourseCompiler extends com.cinchapi.ccl.Compiler {
         return delegate.parse(ccl, data);
     }
 
-    public AbstractSyntaxTree parse(TCriteria criteria) {
+    /**
+     * {@link #parse(String) Parse} the {@code criteria}.
+     * 
+     * @param criteria
+     * @return an {@link AbstractSyntaxTree} representing the {@code criteria}
+     */
+    public final AbstractSyntaxTree parse(TCriteria criteria) {
         return parse(Language.translateFromThriftCriteria(criteria).ccl());
     }
 
-    public AbstractSyntaxTree parse(TCriteria criteria,
+    /**
+     * {@link #parse(String) Parse} the {@code criteria} and bind the local
+     * {@code data}.
+     * 
+     * @param criteria
+     * @return an {@link AbstractSyntaxTree} representing the {@code criteria}
+     */
+    public final AbstractSyntaxTree parse(TCriteria criteria,
             Multimap<String, Object> data) {
         return parse(Language.translateFromThriftCriteria(criteria).ccl(),
                 data);
-    }
-
-    public AbstractSyntaxTree parse(Criteria criteria,
-            Multimap<String, Object> data) {
-        return parse(criteria.ccl(), data);
-    }
-
-    public AbstractSyntaxTree parse(Criteria criteria) {
-        return parse(criteria.ccl());
     }
 
 }
