@@ -100,10 +100,10 @@ public class CriteriaTest {
         String ccl = "name = jeff AND (company = Cinchapi at 12345 or company = Blavity)";
         Criteria criteria = Criteria.parse(ccl);
         Assert.assertEquals(
-                Parsing.groupExpressions(
-                        ConcourseCompiler.get().tokenize(ConcourseCompiler.get().parse(ccl))),
                 Parsing.groupExpressions(ConcourseCompiler.get()
-                        .tokenize(ConcourseCompiler.get().parse(criteria.ccl()))));
+                        .tokenize(ConcourseCompiler.get().parse(ccl))),
+                Parsing.groupExpressions(ConcourseCompiler.get().tokenize(
+                        ConcourseCompiler.get().parse(criteria.ccl()))));
     }
 
     @Test(expected = ParseException.class)
