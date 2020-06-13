@@ -20,7 +20,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
 import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
@@ -29,7 +28,6 @@ import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.Parsers;
 
 /**
  * Unit tests for the {@link com.cinchapi.concourse.lang.Criteria} building
@@ -101,10 +99,11 @@ public class CriteriaTest {
     public void testParseCcl() {
         String ccl = "name = jeff AND (company = Cinchapi at 12345 or company = Blavity)";
         Criteria criteria = Criteria.parse(ccl);
-        Parser parser1 = Parsers.create(ccl);
-        Parser parser2 = Parsers.create(criteria.ccl());
-        Assert.assertEquals(Parsing.groupExpressions(parser1.tokenize()),
-                Parsing.groupExpressions(parser2.tokenize()));
+        Assert.assertEquals(
+                Parsing.groupExpressions(
+                        ConcourseCompiler.get().tokenize(ConcourseCompiler.get().parse(ccl))),
+                Parsing.groupExpressions(ConcourseCompiler.get()
+                        .tokenize(ConcourseCompiler.get().parse(criteria.ccl()))));
     }
 
     @Test(expected = ParseException.class)

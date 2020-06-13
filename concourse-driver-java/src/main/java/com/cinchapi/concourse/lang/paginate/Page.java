@@ -31,7 +31,7 @@ import javax.annotation.concurrent.Immutable;
  * @author Jeff Nelson
  */
 @Immutable
-public final class Page implements com.cinchapi.ccl.type.Page {
+public final class Page {
 
     /**
      * The default number of items to include on a Page.
@@ -146,7 +146,13 @@ public final class Page implements com.cinchapi.ccl.type.Page {
         return Objects.hash(limit(), skip());
     }
 
-    @Override
+    /**
+     * Return the maximum number of items on the page. The number of items
+     * returned may be less than this value if there are fewer than
+     * {@link #limit() limit} items remaining in the data set.
+     * 
+     * @return the limit
+     */
     public int limit() {
         return limit;
     }
@@ -164,7 +170,12 @@ public final class Page implements com.cinchapi.ccl.type.Page {
         return new Page(offset + limit, limit);
     }
 
-    @Override
+    /**
+     * Return the number of items to "skip" (inclusive) before adding items to
+     * the page.
+     * 
+     * @return the offset
+     */
     public int offset() {
         return offset;
     }

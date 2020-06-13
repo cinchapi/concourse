@@ -17,13 +17,12 @@ package com.cinchapi.concourse.lang;
 
 import java.util.List;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.SyntaxException;
 import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.util.Parsers;
 import com.google.common.collect.Lists;
 
 /**
@@ -52,10 +51,11 @@ public interface Criteria extends Symbol {
      * @return an equivalent {@link Criteria} object
      */
     public static Criteria parse(String ccl) {
-        Parser parser = Parsers.create(ccl);
-        BuiltCriteria criteria = new BuiltCriteria();
         try {
-            criteria.symbols = Lists.newArrayList(parser.tokenize());
+            AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl);
+            BuiltCriteria criteria = new BuiltCriteria();
+            criteria.symbols = Lists
+                    .newArrayList(ConcourseCompiler.get().tokenize(ast));
             return criteria;
         }
         catch (Exception e) {
