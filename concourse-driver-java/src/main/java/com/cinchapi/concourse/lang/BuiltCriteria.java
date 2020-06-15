@@ -19,15 +19,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
-import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
-import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.util.Parsers;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -68,13 +66,14 @@ public class BuiltCriteria implements Criteria {
      * @return this {@link Criteria} pinned to {@code timestamp}
      */
     public Criteria at(Timestamp timestamp) {
-        Parser parser = Parsers.create(ccl());
-        List<Symbol> symbols = Parsing.groupExpressions(parser.tokenize());
+        AbstractSyntaxTree ast = ConcourseCompiler.get().parse(ccl());
+        List<Symbol> symbols = Parsing
+                .groupExpressions(ConcourseCompiler.get().tokenize(ast));
         TimestampSymbol ts = new TimestampSymbol(timestamp.getMicros());
         symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
-                Reflection.set("timestamp", ts, expression); // (authorized)
+            if(symbol instanceof ExpressionSymbol) {
+                ExpressionSymbol expression = (ExpressionSymbol) symbol;
+                expression.timestamp(ts);
             }
         });
         BuiltCriteria criteria = new BuiltCriteria();
