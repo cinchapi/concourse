@@ -26,9 +26,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import com.cinchapi.ccl.Parser;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.ccl.syntax.ConditionTree;
 import com.cinchapi.common.collect.Association;
 import com.cinchapi.common.describe.Empty;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
 import com.cinchapi.concourse.lang.sort.Order;
@@ -36,7 +38,6 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TOrder;
-import com.cinchapi.concourse.util.Parsers;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -152,10 +153,10 @@ public final class Command {
     private Order order;
 
     /**
-     * A {@link Parser} for any provided CCL condition.
+     * A {@link ConditionTree} for any provided CCL condition.
      */
     @Nullable
-    private Parser parser;
+    private ConditionTree conditionTree;
 
     /**
      * The type of operation that was commanded.
@@ -254,15 +255,15 @@ public final class Command {
     }
 
     /**
-     * Return the {@link Parser} for any {@link Criteria} or {@link CCL}
-     * condition that was included with the operation.
+     * Return the {@link AbstractSyntaxTree} for {@link Criteria} or {@code CCL}
+     * condition that was included with the command.
      * 
-     * @return the {@link Parser} for the condition
+     * @return the {@link AbstractSyntaxTree} for the condition
      */
     @Nullable
-    public Parser parser() {
+    public ConditionTree conditionAbstractSyntaxTree() {
         init();
-        return parser;
+        return conditionTree;
     }
 
     @Override
@@ -355,16 +356,18 @@ public final class Command {
             // Parser
             if(args.containsKey("ccl")) {
                 String ccl = args.fetch("ccl");
-                parser = Parsers.create(ccl);
+                conditionTree = (ConditionTree) ConcourseCompiler.get()
+                        .parse(ccl);
             }
             else if(args.containsKey("criteria")) {
                 TCriteria tcriteria = args.fetch("criteria");
                 Criteria criteria = Language
                         .translateFromThriftCriteria(tcriteria);
-                parser = Parsers.create(criteria);
+                conditionTree = (ConditionTree) ConcourseCompiler.get()
+                        .parse(criteria.ccl());
             }
             else {
-                parser = null;
+                conditionTree = null;
             }
 
             // operationKeys
@@ -404,8 +407,9 @@ public final class Command {
 
             // NOTE: #conditionKeys can be set manually for some special case
             // methods above.
-            if(conditionKeys == null && parser != null) {
-                conditionKeys = parser.analyze().keys();
+            if(conditionKeys == null && conditionTree != null) {
+                conditionKeys = ConcourseCompiler.get().analyze(conditionTree)
+                        .keys();
             }
             else if(function.startsWith("findKey")) {
                 conditionKeys = ImmutableSet.of((String) params[0]);

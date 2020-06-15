@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.KeyTokenSymbol;
 import com.cinchapi.ccl.grammar.NavigationKeySymbol;
 import com.cinchapi.ccl.grammar.OperatorSymbol;
 import com.cinchapi.ccl.grammar.ParenthesisSymbol;
@@ -60,6 +61,7 @@ public final class Language {
         }
         else if(tsymbol.getType() == TSymbolType.KEY) {
             String $symbol = tsymbol.getSymbol();
+            // TODO: need to check for function keys...
             return $symbol.contains(".") ? new NavigationKeySymbol($symbol)
                     : new KeySymbol($symbol);
         }
@@ -136,7 +138,7 @@ public final class Language {
         if(symbol instanceof ConjunctionSymbol) {
             return new TSymbol(TSymbolType.CONJUNCTION, symbol.toString());
         }
-        else if(symbol instanceof KeySymbol) {
+        else if(symbol instanceof KeyTokenSymbol) {
             return new TSymbol(TSymbolType.KEY, symbol.toString());
         }
         else if(symbol instanceof ValueSymbol) {

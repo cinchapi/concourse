@@ -19,6 +19,9 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.ccl.grammar.PageSymbol;
+import com.cinchapi.ccl.syntax.PageTree;
+
 /**
  * A {@link Page} contains a subset of data. The data on a {@link Page} is
  * determined by applying an {@link #offset() offset} and {@link #limit() limit}
@@ -34,22 +37,24 @@ import javax.annotation.concurrent.Immutable;
 public final class Page {
 
     /**
-     * The default number of items to include on a Page.
-     */
-    static final int DEFAULT_LIMIT = 20;
-
-    /**
-     * The default number of items to skip before adding items to a Page.
-     */
-    static final int DEFAULT_OFFSET = 0;
-
-    /**
      * Return the first {@link Page}
      * 
      * @return the first {@link Page}
      */
     public static Page first() {
         return new Page(DEFAULT_OFFSET, DEFAULT_LIMIT);
+    }
+
+    /**
+     * Return a {@link Page} based on the parsed statement that produced the
+     * {@link PageTree}.
+     * 
+     * @param tree
+     * @return the associated {@link Page}
+     */
+    public static Page from(PageTree tree) {
+        PageSymbol symbol = (PageSymbol) tree.root();
+        return sized(symbol.size()).go(symbol.number());
     }
 
     /**
@@ -85,14 +90,24 @@ public final class Page {
     }
 
     /**
-     * The page offset.
+     * The default number of items to include on a Page.
      */
-    private final int offset;
+    static final int DEFAULT_LIMIT = 20;
+
+    /**
+     * The default number of items to skip before adding items to a Page.
+     */
+    static final int DEFAULT_OFFSET = 0;
 
     /**
      * The page limit
      */
     private final int limit;
+
+    /**
+     * The page offset.
+     */
+    private final int offset;
 
     /**
      * Construct a new instance.

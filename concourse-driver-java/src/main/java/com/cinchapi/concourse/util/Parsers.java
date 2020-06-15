@@ -26,7 +26,9 @@ import com.google.common.collect.Multimap;
  * Utilities for {@link Parser}s.
  *
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.concourse.lang.ConcourseCompiler} instead
  */
+@Deprecated
 public final class Parsers {
 
     /**
