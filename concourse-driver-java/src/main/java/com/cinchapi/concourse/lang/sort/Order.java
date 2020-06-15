@@ -70,8 +70,7 @@ public interface Order {
                                 Timestamp.fromMicros(
                                         symbol.timestamp().timestamp()),
                                 symbol.direction() == DirectionSymbol.ASCENDING
-                                        ? Direction.ASCENDING
-                                        : Direction.DESCENDING))
+                                        ? Direction.ASCENDING : Direction.DESCENDING))
                         .collect(Collectors.toList());
             }
 

@@ -19,8 +19,8 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.ccl.syntax.PageTree;
 import com.cinchapi.ccl.grammar.PageSymbol;
+import com.cinchapi.ccl.syntax.PageTree;
 
 /**
  * A {@link Page} contains a subset of data. The data on a {@link Page} is
