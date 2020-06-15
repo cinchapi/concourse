@@ -20,7 +20,7 @@
 . "`dirname "$0"`/.env"
 
 # Specify the fully qualified name of the java CLI class to run.
-CLI="com.cinchapi.concourse.exporter.cli.ExportCli"
+CLI="com.cinchapi.concourse.export.cli.ExportCli"
 
 # run the program
 exec $JAVACMD -classpath "$CLASSPATH" com.cinchapi.concourse.cli.CommandLineInterfaceRunner $CLI "$@"
