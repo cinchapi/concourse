@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.cinchapi.ccl.grammar.DirectionSymbol;
+import com.cinchapi.ccl.grammar.OrderSymbol;
+import com.cinchapi.ccl.syntax.OrderTree;
+import com.cinchapi.concourse.Timestamp;
+
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
  * time, objects of this class can exist in one of two modes: {@code building}
@@ -37,6 +42,43 @@ import java.util.stream.Collectors;
 public interface Order {
 
     /**
+     * Start building a new {@link Order}.
+     *
+     * @return the Order builder
+     */
+    public static OrderByState by(String key) {
+        BuiltOrder order = new BuiltOrder();
+        return new OrderByState(order, key, Direction.$default());
+    }
+
+    /**
+     * Return an {@link Order} based on the parsed statement that produced the
+     * {@link OrderTree}.
+     * 
+     * @param tree
+     * @return the associated {@link Order}
+     */
+    public static Order from(OrderTree tree) {
+        return new Order() {
+
+            @Override
+            public List<OrderComponent> spec() {
+                // TODO: this does not work if the order key is a function
+                return ((OrderSymbol) tree.root()).components().stream()
+                        .map(symbol -> new OrderComponent(
+                                (String) symbol.key().key(),
+                                Timestamp.fromMicros(
+                                        symbol.timestamp().timestamp()),
+                                symbol.direction() == DirectionSymbol.ASCENDING
+                                        ? Direction.ASCENDING
+                                        : Direction.DESCENDING))
+                        .collect(Collectors.toList());
+            }
+
+        };
+    }
+
+    /**
      * Return an {@link Order} that specifies no order.
      * 
      * @return a no-op {@link Order}
@@ -46,13 +88,14 @@ public interface Order {
     }
 
     /**
-     * Start building a new {@link Order}.
-     *
-     * @return the Order builder
+     * Return all the keys that are referenced by this {@link Order}.
+     * 
+     * @return a {@link Set} of all the keys that are referenced by this
+     *         {@link Order}
      */
-    public static OrderByState by(String key) {
-        BuiltOrder order = new BuiltOrder();
-        return new OrderByState(order, key, Direction.$default());
+    public default Set<String> keys() {
+        return spec().stream().map(OrderComponent::key)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -65,16 +108,5 @@ public interface Order {
      *         this {@link Order}.
      */
     public List<OrderComponent> spec();
-
-    /**
-     * Return all the keys that are referenced by this {@link Order}.
-     * 
-     * @return a {@link Set} of all the keys that are referenced by this
-     *         {@link Order}
-     */
-    public default Set<String> keys() {
-        return spec().stream().map(OrderComponent::key)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
 
 }
