@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import com.beust.jcommander.Parameter;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.ccl.syntax.OrderTree;
+import com.cinchapi.ccl.syntax.PageTree;
 import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.describe.Empty;
@@ -35,6 +38,7 @@ import com.cinchapi.concourse.cli.CommandLineInterface;
 import com.cinchapi.concourse.cli.Options;
 import com.cinchapi.concourse.export.Exporter;
 import com.cinchapi.concourse.export.Exporters;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.google.common.collect.ImmutableSet;
@@ -61,10 +65,10 @@ public final class ExportCli extends CommandLineInterface {
     protected Path file = null;
 
     /**
-     * The criteria that determines which records to export.
+     * The condition that determines which records to export.
      */
     @Nullable
-    protected String ccl = null;
+    protected String condition = null;
 
     /**
      * The order of the exported data.
@@ -132,19 +136,92 @@ public final class ExportCli extends CommandLineInterface {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
-        // TODO: depends on common parser for Order, Page
+        // order
+        if(!Empty.ness().describes(opts.order)) {
+            try {
+                AbstractSyntaxTree ast = ConcourseCompiler.get()
+                        .parse(opts.order);
+                OrderTree tree = (OrderTree) ast;
+                order = Order.from(tree);
+            }
+            catch (Exception e) {
+                throw new IllegalArgumentException(
+                        "Invalid order CCL statement");
+            }
+        }
+
+        // page
+        String $page = "";
+        if(!Empty.ness().describes(opts.page)) {
+            $page += "PAGE " + opts.page + " ";
+        }
+        if(!Empty.ness().describes(opts.size)) {
+            $page += "SIZE " + opts.size;
+        }
+        if(!Empty.ness().describes($page)) {
+            try {
+                AbstractSyntaxTree ast = ConcourseCompiler.get().parse($page);
+                PageTree tree = (PageTree) ast;
+                page = Page.from(tree);
+            }
+            catch (Exception e) {
+                throw new IllegalArgumentException(
+                        "Invalid page or size argument");
+            }
+        }
+
         excludeRecordId = opts.excludeRecordId;
+        condition = opts.condition;
 
     }
 
     @Override
     protected void doTask() {
         Map<Long, Map<String, Set<Object>>> data;
-        if(!Empty.ness().describes(ccl) && !Empty.ness().describes(keys)) {
-            data = concourse.select(keys, ccl);
+        if(!Empty.ness().describes(records) && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, records, order, page);
         }
-        else if(!Empty.ness().describes(ccl)) {
-            data = concourse.select(ccl);
+        else if(!Empty.ness().describes(records)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)) {
+            data = concourse.select(keys, records, order);
+        }
+        else if(!Empty.ness().describes(records)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, records, page);
+        }
+        else if(!Empty.ness().describes(records)
+                && !Empty.ness().describes(keys)) {
+            data = concourse.select(keys, records);
+        }
+        else if(!Empty.ness().describes(records)) {
+            data = concourse.select(records);
+        }
+        else if(!Empty.ness().describes(condition)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, condition, order, page);
+        }
+        else if(!Empty.ness().describes(condition)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)) {
+            data = concourse.select(keys, condition, order);
+        }
+        else if(!Empty.ness().describes(condition)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, condition, page);
+        }
+        else if(!Empty.ness().describes(condition)
+                && !Empty.ness().describes(keys)) {
+            data = concourse.select(keys, condition);
+        }
+        else if(!Empty.ness().describes(condition)) {
+            data = concourse.select(condition);
         }
         else {
             data = concourse.select(concourse.inventory());
@@ -174,12 +251,24 @@ public final class ExportCli extends CommandLineInterface {
                 "--records" }, description = "Comma separated list of records to export", variableArity = true)
         public List<String> records = Lists.newArrayList();
 
-        @Parameter(names = { "-c",
-                "-ccl" }, description = "Criteria statement (in CCL) that describes how to find the records to export")
-        public String ccl = null;
+        @Parameter(names = { "--condition",
+                "--where" }, description = "CCL condition statement that describes how to find the records to export")
+        public String condition = null;
+
+        @Parameter(names = { "-o",
+                "--order" }, description = "CCL order statement that describes how to sort the exported data")
+        public String order = null;
+
+        @Parameter(names = {
+                "--page" }, description = "The data page to export (default: export all data)")
+        public Integer page = null;
+
+        @Parameter(names = {
+                "--size" }, description = "The maximum number of records to export (default: export all data)")
+        public Integer size = null;
 
         @Parameter(names = { "-f",
-                "--file" }, description = "File to export data to.")
+                "--file" }, description = "File to which the data should be exported.")
         public String file = null;
 
         @Parameter(names = "--exclude-record-id", description = "Flag to not display the primary key when exporting.")
