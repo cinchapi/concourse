@@ -15,13 +15,23 @@
  */
 package com.cinchapi.concourse.export.cli;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.concourse.importer.CsvImporter;
+import com.cinchapi.concourse.importer.Importer;
+import com.cinchapi.concourse.lang.sort.Sort;
 import com.cinchapi.concourse.test.ClientServerTest;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Resources;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -30,6 +40,19 @@ import com.google.common.collect.ImmutableSet;
  * @author Jeff Nelson
  */
 public class ExportCliTest extends ClientServerTest {
+
+    /**
+     * File where data is exported during a test
+     */
+    String output;
+
+    @Override
+    public void beforeEachTest() {
+        String file = Resources.getAbsolutePath("/college.csv");
+        Importer importer = new CsvImporter(client);
+        importer.importFile(file);
+        output = FileOps.tempFile();
+    }
 
     /**
      * Transform the {@code args} into a complete set arguments to use in a CLI
@@ -47,6 +70,8 @@ public class ExportCliTest extends ClientServerTest {
         ab.add("admin");
         ab.add("--port");
         ab.add(String.valueOf(server.getClientPort()));
+        ab.add("--file");
+        ab.add(output);
         ab.add(args);
         return ab.build();
     }
@@ -59,6 +84,37 @@ public class ExportCliTest extends ClientServerTest {
         Assert.assertEquals(
                 ImmutableSet.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L),
                 cli.records);
+    }
+
+    @Test
+    public void testExportOrder() {
+        String[] args = generateCliArgs("--select undergraduate_population --order undergraduate_population");
+        ExportCli cli = new ExportCli(args);
+        cli.run();
+        Collection<Object> expected = client.get("undergraduate_population", client.inventory(), Sort.by("undergraduate_population")).values();
+        List<Integer> actual = $output().stream().skip(1).map(line -> line.split("\\,")[0]).map(Integer::parseInt).collect(Collectors.toList());
+        Iterator<Object> eit = expected.iterator();
+        Iterator<Integer> ait = actual.iterator();
+        while(eit.hasNext()) {
+            Assert.assertEquals(eit.next(), ait.next());
+        }
+    }
+    
+    @Test
+    public void testExportSize() {
+        String[] args = generateCliArgs("--select undergraduate_population --size 10");
+        ExportCli cli = new ExportCli(args);
+        cli.run();
+        Assert.assertEquals(11, $output().size()); // size includes the header
+    }
+
+    /**
+     * Return the exported output.
+     * 
+     * @return the exported output
+     */
+    private List<String> $output() {
+        return FileOps.readLines(output);
     }
 
     @Override

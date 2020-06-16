@@ -138,6 +138,9 @@ public final class ExportCli extends CommandLineInterface {
 
         // order
         if(!Empty.ness().describes(opts.order)) {
+            if(!opts.order.toLowerCase().startsWith("order by")) {
+                opts.order = "ORDER BY " + opts.order;
+            }
             try {
                 AbstractSyntaxTree ast = ConcourseCompiler.get()
                         .parse(opts.order);
@@ -172,7 +175,6 @@ public final class ExportCli extends CommandLineInterface {
 
         excludeRecordId = opts.excludeRecordId;
         condition = opts.condition;
-
     }
 
     @Override
@@ -223,11 +225,33 @@ public final class ExportCli extends CommandLineInterface {
         else if(!Empty.ness().describes(condition)) {
             data = concourse.select(condition);
         }
+        else if(!Empty.ness().describes(keys) && !Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, concourse.inventory(), order, page);
+        }
+        else if(!Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)) {
+            data = concourse.select(keys, concourse.inventory(), order);
+        }
+        else if(!Empty.ness().describes(keys)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, concourse.inventory(), page);
+        }
+        else if(!Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(concourse.inventory(), order, page);
+        }
+        else if(!Empty.ness().describes(order)) {
+            data = concourse.select(concourse.inventory(), order);
+        }
+        else if(!Empty.ness().describes(page)) {
+            data = concourse.select(concourse.inventory(), page);
+        }
         else {
             data = concourse.select(concourse.inventory());
         }
         Exporter<Set<Object>> exporter = file != null ? Exporters.csv(file)
-                : Exporters.csv();
+                : Exporters.csv(); //TODO: add support for workbooks?
         if(!excludeRecordId) {
             data.forEach((id, object) -> {
                 object.put("id", ImmutableSet.of(id));
@@ -274,8 +298,8 @@ public final class ExportCli extends CommandLineInterface {
         @Parameter(names = "--exclude-record-id", description = "Flag to not display the primary key when exporting.")
         public boolean excludeRecordId = false;
 
-        @Parameter(names = { "-k",
-                "--keys" }, description = "Comma separated list of keys to select from each record. By default, all of a record's keys are selected", variableArity = true)
+        @Parameter(names = { "-k", "--keys",
+                "--select" }, description = "Comma separated list of keys to select from each record. By default, all of a record's keys are selected", variableArity = true)
         public List<String> keys = Lists.newArrayList();
     }
 
