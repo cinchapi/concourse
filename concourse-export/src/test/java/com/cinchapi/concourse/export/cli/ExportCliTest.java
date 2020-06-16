@@ -88,21 +88,27 @@ public class ExportCliTest extends ClientServerTest {
 
     @Test
     public void testExportOrder() {
-        String[] args = generateCliArgs("--select undergraduate_population --order undergraduate_population");
+        String[] args = generateCliArgs(
+                "--select undergraduate_population --order undergraduate_population");
         ExportCli cli = new ExportCli(args);
         cli.run();
-        Collection<Object> expected = client.get("undergraduate_population", client.inventory(), Sort.by("undergraduate_population")).values();
-        List<Integer> actual = $output().stream().skip(1).map(line -> line.split("\\,")[0]).map(Integer::parseInt).collect(Collectors.toList());
+        Collection<Object> expected = client.get("undergraduate_population",
+                client.inventory(), Sort.by("undergraduate_population"))
+                .values();
+        List<Integer> actual = $output().stream().skip(1)
+                .map(line -> line.split("\\,")[0]).map(Integer::parseInt)
+                .collect(Collectors.toList());
         Iterator<Object> eit = expected.iterator();
         Iterator<Integer> ait = actual.iterator();
-        while(eit.hasNext()) {
+        while (eit.hasNext()) {
             Assert.assertEquals(eit.next(), ait.next());
         }
     }
-    
+
     @Test
     public void testExportSize() {
-        String[] args = generateCliArgs("--select undergraduate_population --size 10");
+        String[] args = generateCliArgs(
+                "--select undergraduate_population --size 10");
         ExportCli cli = new ExportCli(args);
         cli.run();
         Assert.assertEquals(11, $output().size()); // size includes the header

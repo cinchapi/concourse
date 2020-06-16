@@ -251,7 +251,7 @@ public final class ExportCli extends CommandLineInterface {
             data = concourse.select(concourse.inventory());
         }
         Exporter<Set<Object>> exporter = file != null ? Exporters.csv(file)
-                : Exporters.csv(); //TODO: add support for workbooks?
+                : Exporters.csv(); // TODO: add support for workbooks?
         if(!excludeRecordId) {
             data.forEach((id, object) -> {
                 object.put("id", ImmutableSet.of(id));
