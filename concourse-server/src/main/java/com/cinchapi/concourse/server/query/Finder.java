@@ -39,7 +39,7 @@ import com.google.common.collect.Sets;
 
 /**
  * An {@link AbstractSyntaxTree} {@link Visitor} that evaluates the represented
- * query and returns a result set.
+ * condition and returns a result set.
  * 
  * @author Jeff Nelson
  */
