@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.type.function.IndexFunction;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -797,6 +798,20 @@ public class ConvertTest {
     public void testConvertBigNumberStringStaysAsString() {
         String expected = "20191009162729766293175";
         Object actual = Convert.stringToJava(expected);
+        Assert.assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testConvertIndexFunction() {
+        IndexFunction expected = new IndexFunction("average", "age");
+        Object actual = Convert.stringToJava("average(age)");
+        Assert.assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testDontConvertQuotedIndexFunction() {
+        String expected = "average(age)";
+        Object actual = Convert.stringToJava("'average(age)'");
         Assert.assertEquals(expected, actual);
     }
 

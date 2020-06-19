@@ -32,6 +32,9 @@ import javax.annotation.concurrent.Immutable;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import com.cinchapi.ccl.grammar.FunctionValueSymbol;
+import com.cinchapi.ccl.syntax.FunctionTree;
+import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
@@ -41,6 +44,7 @@ import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.annotate.UtilityClass;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
@@ -447,6 +451,9 @@ public final class Convert {
      * non double number depending upon whether it is a standard integer (e.g.
      * less than {@value java.lang.Integer#MAX_VALUE}), a long, or a floating
      * point decimal</li>
+     * <li><strong>Function</strong> - the value is converted to a
+     * {@link Function} if is not quoted and can be parsed as such by the
+     * {@link ConcourseCompiler}.</li>
      * </ul>
      * </p>
      * 
@@ -509,6 +516,21 @@ public final class Convert {
             return timestamp;
         }
         else {
+            if(last == ')') {
+                // It is possible that the string is a FunctionValue, so use the
+                // Compiler to try to parse it as such. Please note that this
+                // method intentionally does not attempt to convert to an
+                // ImplictKeyRecordFunction (e.g. key | function) because those
+                // cannot server as a evaluation value
+                try {
+                    FunctionTree tree = (FunctionTree) ConcourseCompiler.get()
+                            .parse(value);
+                    FunctionValueSymbol symbol = (FunctionValueSymbol) tree
+                            .root();
+                    return symbol.function();
+                }
+                catch (Exception e) {/* ignore */}
+            }
             try {
                 return MoreObjects
                         .firstNonNull(AnyStrings.tryParseNumber(value), value);
@@ -516,6 +538,7 @@ public final class Convert {
             catch (NumberFormatException e) {
                 return value;
             }
+
         }
     }
 
