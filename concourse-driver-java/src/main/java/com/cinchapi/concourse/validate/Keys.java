@@ -17,6 +17,16 @@ package com.cinchapi.concourse.validate;
 
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
+import com.cinchapi.ccl.grammar.FunctionKeySymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.ccl.syntax.FunctionTree;
+import com.cinchapi.ccl.type.Function;
+import com.cinchapi.ccl.type.function.ImplicitKeyRecordFunction;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
+
 /**
  * Utility functions for data keys.
  *
@@ -40,6 +50,28 @@ public final class Keys {
      */
     public static boolean isWritable(String key) {
         return key.length() > 0 && KEY_VALIDATION_REGEX.matcher(key).matches();
+    }
+
+    public static boolean isFunctionKey(String key) {
+        return tryParseFunction(key) != null;
+    }
+
+    @Nullable
+    public static ImplicitKeyRecordFunction tryParseFunction(String key) {
+        if(key.indexOf("|") > 0) {
+            AbstractSyntaxTree ast = ConcourseCompiler.get().parse(key);
+            if(ast instanceof FunctionTree) {
+                Symbol symbol = ast.root();
+                if(symbol instanceof FunctionKeySymbol) {
+                    Function function = ((FunctionKeySymbol) symbol).function();
+                    if(function instanceof ImplicitKeyRecordFunction) {
+                        return (ImplicitKeyRecordFunction) function;
+                    }
+                }
+            }
+
+        }
+        return null;
     }
 
     /**

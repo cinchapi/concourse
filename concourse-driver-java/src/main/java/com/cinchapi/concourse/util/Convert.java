@@ -33,11 +33,19 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.cinchapi.ccl.grammar.FunctionValueSymbol;
+import com.cinchapi.ccl.grammar.Symbol;
+import com.cinchapi.ccl.syntax.ConditionTree;
 import com.cinchapi.ccl.syntax.FunctionTree;
 import com.cinchapi.ccl.type.Function;
+import com.cinchapi.ccl.type.function.IndexFunction;
+import com.cinchapi.ccl.type.function.KeyConditionFunction;
+import com.cinchapi.ccl.type.function.KeyRecordsFunction;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Enums;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
@@ -249,6 +257,69 @@ public final class Convert {
                 catch (IllegalStateException e) {
                     throw new UnsupportedOperationException(
                             "Cannot convert string based Timestamp to a TObject");
+                }
+            }
+            else if(object instanceof Function) {
+                type = Type.FUNCTION;
+                Function function = (Function) object;
+                byte[] nameBytes = function.operation()
+                        .getBytes(StandardCharsets.UTF_8);
+                byte[] keyBytes = function.key()
+                        .getBytes(StandardCharsets.UTF_8);
+                if(function instanceof IndexFunction) {
+                    /*
+                     * Schema:
+                     * | type (1) | nameLength (4) | name (nameLength) | key |
+                     */
+                    bytes = ByteBuffer.allocate(
+                            1 + 4 + nameBytes.length + keyBytes.length);
+                    bytes.put((byte) FunctionType.INDEX.ordinal());
+                    bytes.putInt(nameBytes.length);
+                    bytes.put(nameBytes);
+                    bytes.put(keyBytes);
+                }
+                else if(function instanceof KeyRecordsFunction) {
+                    /*
+                     * Schema:
+                     * | type (1) | nameLength (4) | name (nameLength) |
+                     * keyLength (4) | key (keyLength) | records (8 each) |
+                     */
+                    KeyRecordsFunction func = (KeyRecordsFunction) function;
+                    bytes = ByteBuffer.allocate(1 + 4 + nameBytes.length + 4
+                            + keyBytes.length + 8 * func.source().size());
+                    bytes.put((byte) FunctionType.KEY_RECORDS.ordinal());
+                    bytes.putInt(nameBytes.length);
+                    bytes.put(nameBytes);
+                    bytes.putInt(keyBytes.length);
+                    bytes.put(keyBytes);
+                    for (long record : func.source()) {
+                        bytes.putLong(record);
+                    }
+                }
+                else if(function instanceof KeyConditionFunction) {
+                    /*
+                     * Schema:
+                     * | type (1) | nameLength (4) | name (nameLength) |
+                     * keyLength (4) | key (keyLength) | condition |
+                     */
+                    KeyConditionFunction func = (KeyConditionFunction) function;
+                    String condition = ConcourseCompiler.get()
+                            .tokenize(func.source()).stream()
+                            .map(Symbol::toString)
+                            .collect(Collectors.joining(" "));
+                    bytes = ByteBuffer.allocate(1 + 4 + nameBytes.length + 4
+                            + keyBytes.length + condition.length());
+                    bytes.put((byte) FunctionType.KEY_CONDITION.ordinal());
+                    bytes.putInt(nameBytes.length);
+                    bytes.put(nameBytes);
+                    bytes.putInt(keyBytes.length);
+                    bytes.put(keyBytes);
+                    bytes.put(condition.getBytes(StandardCharsets.UTF_8));
+                }
+                else {
+                    throw new UnsupportedOperationException(
+                            "Cannot convert the following function to a TObject: "
+                                    + function);
                 }
             }
             else {
@@ -657,21 +728,82 @@ public final class Convert {
                 java = buffer.getLong();
                 break;
             case TAG:
-                java = ByteBuffers.getString(buffer);
+                java = ByteBuffers.getUtf8String(buffer);
                 break;
             case TIMESTAMP:
                 java = Timestamp.fromMicros(buffer.getLong());
+                break;
+            case FUNCTION:
+                FunctionType type = Enums.parseIgnoreCase(FunctionType.class,
+                        buffer.get());
+                int nameLength = buffer.getInt();
+                String name = ByteBuffers
+                        .getUtf8String(ByteBuffers.get(buffer, nameLength));
+                int keyLength;
+                String key;
+                switch (type) {
+                case INDEX:
+                    key = ByteBuffers.getUtf8String(buffer);
+                    java = new IndexFunction(name, key);
+                    break;
+                case KEY_RECORDS:
+                    keyLength = buffer.getInt();
+                    key = ByteBuffers
+                            .getUtf8String(ByteBuffers.get(buffer, keyLength));
+                    ArrayBuilder<Long> ab = ArrayBuilder.builder();
+                    while (buffer.hasRemaining()) {
+                        long record = buffer.getLong();
+                        ab.add(record);
+                    }
+                    java = new KeyRecordsFunction(name, key, ab.build());
+                    break;
+                case KEY_CONDITION:
+                    keyLength = buffer.getInt();
+                    key = ByteBuffers
+                            .getUtf8String(ByteBuffers.get(buffer, keyLength));
+                    String condition = ByteBuffers.getUtf8String(buffer);
+                    ConditionTree tree = (ConditionTree) ConcourseCompiler.get()
+                            .parse(condition);
+                    java = new KeyConditionFunction(name, key, tree);
+                    break;
+                }
                 break;
             case NULL:
                 java = null;
                 break;
             default:
-                java = ByteBuffers.getString(buffer);
+                java = ByteBuffers.getUtf8String(buffer);
                 break;
             }
             buffer.rewind();
         }
         return java;
+    }
+
+    /**
+     * If {@code value} is a string that represents a function value, convert it
+     * to a {@link Function}. If {@code value} is an escaped string that could
+     * be interpreted as a function value, unescape it and return it. Otherwise,
+     * return the original value.
+     * 
+     * @param value
+     * @return the converted function value, an unescaped version of the
+     *         original {@code value} or the original {@code value}
+     */
+    public static Object toFunctionOrUnescapedValueIfPossible(Object value) {
+        if(value instanceof String) {
+            Object $value = stringToJava((String) value);
+            if($value instanceof Function) {
+                value = $value;
+            }
+            else if($value instanceof String) {
+                // It is possible that #stringToJava converted the original
+                // value to a more optimized string (e.g. dropping quotes that
+                // were used for escaping) so use the new string value
+                value = $value;
+            }
+        }
+        return value;
     }
 
     /**
@@ -919,6 +1051,10 @@ public final class Convert {
                     this.getClass().getSimpleName(), ccl);
         }
 
+    }
+
+    private enum FunctionType {
+        INDEX, KEY_RECORDS, KEY_CONDITION
     }
 
 }

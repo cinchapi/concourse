@@ -15,23 +15,34 @@
  */
 package com.cinchapi.concourse.server.ops;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.cinchapi.ccl.type.Function;
+import com.cinchapi.ccl.type.function.IndexFunction;
+import com.cinchapi.ccl.type.function.KeyConditionFunction;
+import com.cinchapi.ccl.type.function.KeyRecordsFunction;
+import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.ops.Strategy.Source;
+import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * A collection of "smart" operations that delegate to functionality in a
@@ -133,6 +144,42 @@ public final class Stores {
      */
     public static Set<Long> find(Store store, long timestamp, String key,
             Operator operator, TObject... values) {
+        for (int i = 0; i < values.length; ++i) {
+            TObject value = values[i];
+            if(value.getType() == Type.FUNCTION) {
+                if(store instanceof AtomicOperation) {
+                    Function function = (Function) Convert.thriftToJava(value);
+                    String method = function.operation();
+                    ArrayBuilder<Object> args = ArrayBuilder.builder();
+                    method += "Key";
+                    args.add(function.key());
+                    if(function instanceof KeyRecordsFunction
+                            || function instanceof KeyConditionFunction) {
+                        method += "Records";
+                        Collection<Long> records = function instanceof KeyRecordsFunction
+                                ? ((KeyRecordsFunction) function).source()
+                                : Finder.instance()
+                                        .visit(((KeyConditionFunction) function)
+                                                .source(), store);
+                        args.add(records);
+                    }
+                    else if(!(function instanceof IndexFunction)) {
+                        throw new IllegalStateException(
+                                "Invalid function value");
+                    }
+                    method += "Atomic";
+                    AtomicOperation atomic = (AtomicOperation) store;
+                    args.add(timestamp); // TODO: should CCL function values
+                                         // take a timestamp?
+                    args.add(atomic);
+                    values[i] = Convert.javaToThrift(Reflection.callStatic(
+                            Operations.class, method, args.build()));
+                }
+                else {
+                    throw new InsufficientAtomicityException();
+                }
+            }
+        }
         if(Keys.isNavigationKey(key)) {
             Map<TObject, Set<Long>> index = timestamp == Time.NONE
                     ? browse(store, key) : browse(store, key, timestamp);
@@ -141,6 +188,25 @@ public final class Stores {
                     .map(e -> e.getValue()).flatMap(Set::stream)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             return records;
+        }
+        else if(Keys.isFunctionKey(key)) {
+            if(store instanceof AtomicOperation) {
+                Set<Long> records = Sets.newLinkedHashSet();
+                for (long record : store.getAllRecords()) {
+                    Set<TObject> aggregate = select(store, key, record,
+                            timestamp);
+                    for (TObject tobject : aggregate) {
+                        if(tobject.is(operator, values)) {
+                            records.add(record);
+                            break;
+                        }
+                    }
+                }
+                return records;
+            }
+            else {
+                throw new InsufficientAtomicityException();
+            }
         }
         else {
             return timestamp == Time.NONE ? store.find(key, operator, values)
@@ -218,6 +284,7 @@ public final class Stores {
      */
     public static Set<TObject> select(Store store, String key, long record,
             long timestamp) {
+        Function evalFunc;
         if(Keys.isNavigationKey(key)) {
             if(store instanceof AtomicOperation || timestamp != Time.NONE) {
                 return Operations.traverseKeyRecordOptionalAtomic(key, record,
@@ -237,6 +304,17 @@ public final class Stores {
             else {
                 throw new UnsupportedOperationException(
                         "Cannot fetch the current values of a navigation key using a Store that does not support atomic operations");
+            }
+        }
+        else if((evalFunc = Keys.tryParseFunction(key)) != null) {
+            if(store instanceof AtomicOperation) {
+                String method = evalFunc.operation() + "KeyRecordAtomic";
+                return ImmutableSet.of(Convert.javaToThrift(
+                        Reflection.callStatic(Operations.class, method,
+                                evalFunc.key(), record, timestamp, store)));
+            }
+            else {
+                throw new InsufficientAtomicityException();
             }
         }
         else {

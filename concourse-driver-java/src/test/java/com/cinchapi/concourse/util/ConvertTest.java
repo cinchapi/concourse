@@ -29,11 +29,15 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.syntax.ConditionTree;
 import com.cinchapi.ccl.type.function.IndexFunction;
+import com.cinchapi.ccl.type.function.KeyConditionFunction;
+import com.cinchapi.ccl.type.function.KeyRecordsFunction;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert.ResolvableLink;
@@ -800,18 +804,49 @@ public class ConvertTest {
         Object actual = Convert.stringToJava(expected);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
-    public void testConvertIndexFunction() {
+    public void testConvertStringToIndexFunction() {
         IndexFunction expected = new IndexFunction("average", "age");
         Object actual = Convert.stringToJava("average(age)");
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testDontConvertQuotedIndexFunction() {
         String expected = "average(age)";
         Object actual = Convert.stringToJava("'average(age)'");
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testConvertIndexFunctionToThriftRoundTrip() {
+        IndexFunction expected = new IndexFunction("average", "age");
+        IndexFunction actual = (IndexFunction) Convert
+                .thriftToJava(Convert.javaToThrift(expected));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testConvertKeyConditionFunctionToThriftRoundTrip() {
+        KeyConditionFunction expected = new KeyConditionFunction("average",
+                "age", (ConditionTree) ConcourseCompiler.get().parse(
+                        "name = jeff or (age > 30 and (email like '%gmail.com%' or employed = true) or foo = bar)"));
+        KeyConditionFunction actual = (KeyConditionFunction) Convert
+                .thriftToJava(Convert.javaToThrift(expected));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testConvertKeyRecordsFunctionToThriftRoundTrip() {
+        List<String> records = Lists.newArrayList();
+        for (int i = 0; i < Random.getScaleCount(); ++i) {
+            records.add(Integer.toString(i));
+        }
+        KeyRecordsFunction expected = new KeyRecordsFunction("average", "age",
+                records);
+        KeyRecordsFunction actual = (KeyRecordsFunction) Convert
+                .thriftToJava(Convert.javaToThrift(expected));
         Assert.assertEquals(expected, actual);
     }
 
