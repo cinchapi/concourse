@@ -18,12 +18,8 @@ package com.cinchapi.concourse.thrift;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.cinchapi.ccl.grammar.FunctionTokenSymbol;
-import com.cinchapi.ccl.syntax.FunctionTree;
-import com.cinchapi.ccl.type.function.ExplicitBinaryFunction;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Direction;
 import com.cinchapi.concourse.lang.sort.Order;
@@ -107,28 +103,6 @@ public final class JavaThriftBridge {
 
             };
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <S> ExplicitBinaryFunction<S> tryParseAsFunction(
-            TObject tobject) {
-        if(tobject.getType() == Type.STRING) {
-            String object = (String) Convert.thriftToJava(tobject);
-            char[] chars = object.toCharArray();
-            if(chars[chars.length - 1] == ')') {
-                try {
-                    FunctionTree tree = (FunctionTree) ConcourseCompiler.get()
-                            .parse(object);
-                    FunctionTokenSymbol symbol = (FunctionTokenSymbol) tree
-                            .root();
-                    return (ExplicitBinaryFunction<S>) symbol.function();
-                }
-                catch (Exception e) {
-                    /* ignore and assume that the TObject isn't a function */
-                }
-            }
-        }
-        return null;
     }
 
     /**
