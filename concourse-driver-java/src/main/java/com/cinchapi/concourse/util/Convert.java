@@ -592,7 +592,7 @@ public final class Convert {
                 // Compiler to try to parse it as such. Please note that this
                 // method intentionally does not attempt to convert to an
                 // ImplictKeyRecordFunction (e.g. key | function) because those
-                // cannot server as a evaluation value
+                // cannot serve as a evaluation value
                 try {
                     FunctionTree tree = (FunctionTree) ConcourseCompiler.get()
                             .parse(value);

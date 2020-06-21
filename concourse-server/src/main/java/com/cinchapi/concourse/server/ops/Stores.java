@@ -28,6 +28,7 @@ import com.cinchapi.ccl.type.function.KeyConditionFunction;
 import com.cinchapi.ccl.type.function.KeyRecordsFunction;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.ops.Strategy.Source;
 import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
@@ -149,7 +150,7 @@ public final class Stores {
             if(value.getType() == Type.FUNCTION) {
                 if(store instanceof AtomicOperation) {
                     Function function = (Function) Convert.thriftToJava(value);
-                    String method = function.operation();
+                    String method = Calculations.alias(function.operation());
                     ArrayBuilder<Object> args = ArrayBuilder.builder();
                     method += "Key";
                     args.add(function.key());
@@ -308,7 +309,8 @@ public final class Stores {
         }
         else if((evalFunc = Keys.tryParseFunction(key)) != null) {
             if(store instanceof AtomicOperation) {
-                String method = evalFunc.operation() + "KeyRecordAtomic";
+                String method = Calculations.alias(evalFunc.operation())
+                        + "KeyRecordAtomic";
                 return ImmutableSet.of(Convert.javaToThrift(
                         Reflection.callStatic(Operations.class, method,
                                 evalFunc.key(), record, timestamp, store)));

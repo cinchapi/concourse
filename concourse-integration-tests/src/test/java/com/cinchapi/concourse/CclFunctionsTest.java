@@ -128,10 +128,10 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         setupDatabaseKey(client);
         Number avgAge = client.calculate().average("age");
         Set<Long> expected = client.find("age > " + avgAge);
-        Set<Long> actual = client.find("age > avg(age)");
+        Set<Long> actual = client.find("age > average(age)");
         Assert.assertEquals(expected, actual);
         expected = client.find("age < " + avgAge);
-        actual = client.find("age < avg(age)");
+        actual = client.find("age < average(age)");
         Assert.assertEquals(expected, actual);
     }
 

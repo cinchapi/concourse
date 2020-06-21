@@ -26,6 +26,22 @@ import com.cinchapi.concourse.util.Numbers;
 public final class Calculations {
 
     /**
+     * Return the appropriate alias for the {@code function}, if it exists.
+     * 
+     * @param function
+     * @return the {@code function} alias or the {@code function} if it does not
+     *         have one
+     */
+    public static String alias(String function) {
+        if(function.toLowerCase().equals("average")) {
+            return "avg";
+        }
+        else {
+            return function;
+        }
+    }
+
+    /**
      * Check if {@code value} can be included in a calculation.
      * 
      * @param value
