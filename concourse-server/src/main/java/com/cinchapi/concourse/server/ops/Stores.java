@@ -26,6 +26,7 @@ import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.type.function.IndexFunction;
 import com.cinchapi.ccl.type.function.KeyConditionFunction;
 import com.cinchapi.ccl.type.function.KeyRecordsFunction;
+import com.cinchapi.ccl.type.function.TemporalFunction;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.calculate.Calculations;
@@ -170,8 +171,7 @@ public final class Stores {
                     }
                     method += "Atomic";
                     AtomicOperation atomic = (AtomicOperation) store;
-                    args.add(timestamp); // TODO: should CCL function values
-                                         // take a timestamp?
+                    args.add(((TemporalFunction) function).timestamp());
                     args.add(atomic);
                     values[i] = Convert.javaToThrift(Reflection.callStatic(
                             Operations.class, method, args.build()));
