@@ -1053,6 +1053,11 @@ public final class Convert {
 
     }
 
+    /**
+     * An enum that describes the possible function value types.
+     *
+     * @author Jeff Nelson
+     */
     private enum FunctionType {
         INDEX, KEY_RECORDS, KEY_CONDITION
     }

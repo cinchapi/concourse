@@ -35,12 +35,25 @@ import com.cinchapi.concourse.lang.ConcourseCompiler;
 public final class Keys {
 
     /**
-     * A pre-compiled regex pattern that is used to validate that each key is
-     * non-empty, alphanumeric with no special characters other than underscore
-     * (_).
+     * Return {@code true} if {@code key} is a function key.
+     * 
+     * @param key
+     * @return {@code true} if the provided {@code key} is a function key
      */
-    private static final Pattern KEY_VALIDATION_REGEX = Pattern
-            .compile("^[a-zA-Z0-9_]+$");
+    public static boolean isFunctionKey(String key) {
+        return tryParseFunction(key) != null;
+    }
+
+    /**
+     * Return {@code true} if {@code key} is a navigation key.
+     * 
+     * @param key
+     * @return {@code true} if the provided {@code key} is a valid navigation
+     *         key
+     */
+    public static boolean isNavigationKey(String key) {
+        return key.indexOf('.') > 0;
+    }
 
     /**
      * Return {@code true} of the {@code key} is a valid data key for writing.
@@ -52,10 +65,13 @@ public final class Keys {
         return key.length() > 0 && KEY_VALIDATION_REGEX.matcher(key).matches();
     }
 
-    public static boolean isFunctionKey(String key) {
-        return tryParseFunction(key) != null;
-    }
-
+    /**
+     * If possible, parse the {@link Function} that is expressed by the
+     * {@code key}.
+     * 
+     * @param key
+     * @return the parsed {@link Function}, if possible, otherwise {@code null}
+     */
     @Nullable
     public static ImplicitKeyRecordFunction tryParseFunction(String key) {
         if(key.indexOf("|") > 0) {
@@ -75,15 +91,12 @@ public final class Keys {
     }
 
     /**
-     * Return {@code true} if {@code key} is a navigation key.
-     * 
-     * @param key
-     * @return {@code true} if the provided {@code key} is a valid navigation
-     *         key
+     * A pre-compiled regex pattern that is used to validate that each key is
+     * non-empty, alphanumeric with no special characters other than underscore
+     * (_).
      */
-    public static boolean isNavigationKey(String key) {
-        return key.indexOf('.') > 0;
-    }
+    private static final Pattern KEY_VALIDATION_REGEX = Pattern
+            .compile("^[a-zA-Z0-9_]+$");
 
     private Keys() {/* no-init */}
 }
