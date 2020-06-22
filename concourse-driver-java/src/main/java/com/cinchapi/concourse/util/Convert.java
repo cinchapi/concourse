@@ -68,6 +68,7 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import com.cinchapi.ccl.type.function.TemporalFunction;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -269,11 +270,13 @@ public final class Convert {
                 if(function instanceof IndexFunction) {
                     /*
                      * Schema:
-                     * | type (1) | nameLength (4) | name (nameLength) | key |
+                     * | type (1) | timestamp(8) | nameLength (4) | name
+                     * (nameLength) | key |
                      */
                     bytes = ByteBuffer.allocate(
-                            1 + 4 + nameBytes.length + keyBytes.length);
+                            1 + 8 + 4 + nameBytes.length + keyBytes.length);
                     bytes.put((byte) FunctionType.INDEX.ordinal());
+                    bytes.putLong(((TemporalFunction) function).timestamp());
                     bytes.putInt(nameBytes.length);
                     bytes.put(nameBytes);
                     bytes.put(keyBytes);
@@ -281,13 +284,15 @@ public final class Convert {
                 else if(function instanceof KeyRecordsFunction) {
                     /*
                      * Schema:
-                     * | type (1) | nameLength (4) | name (nameLength) |
-                     * keyLength (4) | key (keyLength) | records (8 each) |
+                     * | type (1) | timestamp(8) | nameLength (4) | name
+                     * (nameLength) | keyLength (4) | key (keyLength) | records
+                     * (8 each) |
                      */
                     KeyRecordsFunction func = (KeyRecordsFunction) function;
-                    bytes = ByteBuffer.allocate(1 + 4 + nameBytes.length + 4
+                    bytes = ByteBuffer.allocate(1 + 8 + 4 + nameBytes.length + 4
                             + keyBytes.length + 8 * func.source().size());
                     bytes.put((byte) FunctionType.KEY_RECORDS.ordinal());
+                    bytes.putLong(((TemporalFunction) function).timestamp());
                     bytes.putInt(nameBytes.length);
                     bytes.put(nameBytes);
                     bytes.putInt(keyBytes.length);
@@ -299,17 +304,19 @@ public final class Convert {
                 else if(function instanceof KeyConditionFunction) {
                     /*
                      * Schema:
-                     * | type (1) | nameLength (4) | name (nameLength) |
-                     * keyLength (4) | key (keyLength) | condition |
+                     * | type (1) | timestamp(8) | nameLength (4) | name
+                     * (nameLength) | keyLength (4) | key (keyLength) |
+                     * condition |
                      */
                     KeyConditionFunction func = (KeyConditionFunction) function;
                     String condition = ConcourseCompiler.get()
                             .tokenize(func.source()).stream()
                             .map(Symbol::toString)
                             .collect(Collectors.joining(" "));
-                    bytes = ByteBuffer.allocate(1 + 4 + nameBytes.length + 4
+                    bytes = ByteBuffer.allocate(1 + 9 + 4 + nameBytes.length + 4
                             + keyBytes.length + condition.length());
                     bytes.put((byte) FunctionType.KEY_CONDITION.ordinal());
+                    bytes.putLong(((TemporalFunction) function).timestamp());
                     bytes.putInt(nameBytes.length);
                     bytes.put(nameBytes);
                     bytes.putInt(keyBytes.length);
@@ -736,6 +743,7 @@ public final class Convert {
             case FUNCTION:
                 FunctionType type = Enums.parseIgnoreCase(FunctionType.class,
                         buffer.get());
+                long timestamp = buffer.getLong();
                 int nameLength = buffer.getInt();
                 String name = ByteBuffers
                         .getUtf8String(ByteBuffers.get(buffer, nameLength));
@@ -744,7 +752,7 @@ public final class Convert {
                 switch (type) {
                 case INDEX:
                     key = ByteBuffers.getUtf8String(buffer);
-                    java = new IndexFunction(name, key);
+                    java = new IndexFunction(name, key, timestamp);
                     break;
                 case KEY_RECORDS:
                     keyLength = buffer.getInt();
@@ -755,7 +763,8 @@ public final class Convert {
                         long record = buffer.getLong();
                         ab.add(record);
                     }
-                    java = new KeyRecordsFunction(name, key, ab.build());
+                    java = new KeyRecordsFunction(timestamp, name, key,
+                            ab.build());
                     break;
                 case KEY_CONDITION:
                     keyLength = buffer.getInt();
@@ -764,7 +773,7 @@ public final class Convert {
                     String condition = ByteBuffers.getUtf8String(buffer);
                     ConditionTree tree = (ConditionTree) ConcourseCompiler.get()
                             .parse(condition);
-                    java = new KeyConditionFunction(name, key, tree);
+                    java = new KeyConditionFunction(name, key, tree, timestamp);
                     break;
                 }
                 break;
