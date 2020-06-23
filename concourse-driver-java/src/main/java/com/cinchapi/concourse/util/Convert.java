@@ -40,6 +40,7 @@ import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.type.function.IndexFunction;
 import com.cinchapi.ccl.type.function.KeyConditionFunction;
 import com.cinchapi.ccl.type.function.KeyRecordsFunction;
+import com.cinchapi.ccl.type.function.TemporalFunction;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
@@ -68,7 +69,6 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import com.cinchapi.ccl.type.function.TemporalFunction;
 
 /**
  * A collection of functions to convert objects. The public API defined in

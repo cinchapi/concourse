@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -154,7 +153,7 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
                     "Cannot perform a calculation on a non-numeric value"));
         }
     }
-    
+
     @Test
     public void testFindCclIndexFunctionWithTimestampEvaluationValue() {
         setupDatabaseKey(client);
@@ -162,19 +161,20 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         client.add("age", 15);
         Number avgAge = client.calculate().average("age", timestamp);
         Set<Long> expected = client.find("age > " + avgAge);
-        Set<Long> actual = client.find("age > average(age, at "+timestamp.getMicros()+")");
+        Set<Long> actual = client
+                .find("age > average(age, at " + timestamp.getMicros() + ")");
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testFindCclKeyRecordsFunctionEvaluationValue() {
         setupDatabaseKey(client);
         Number sum = client.calculate().sum("age", 1);
-        Set<Long> expected = client.find("age < "+sum);
+        Set<Long> expected = client.find("age < " + sum);
         Set<Long> actual = client.find("age < sum(age, 1)");
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testGetFunctionKey() {
         setupDatabaseKey(client);
@@ -182,7 +182,7 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         Object actual = client.get("age | sum", 1);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testGetFunctionKeyWithTimestamp() {
         setupDatabaseKey(client);
@@ -192,7 +192,7 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         Object actual = client.get("age | sum", 1, timestamp);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testSelectFunctionKey() {
         setupDatabaseKey(client);
@@ -200,7 +200,7 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         Set<Object> actual = client.select("age | sum", 1);
         Assert.assertEquals(expected, actual.iterator().next());
     }
-    
+
     @Test
     public void testSelectFunctionKeyWithTimestamp() {
         setupDatabaseKey(client);
