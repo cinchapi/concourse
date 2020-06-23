@@ -149,41 +149,36 @@ public final class Stores {
         for (int i = 0; i < values.length; ++i) {
             TObject value = values[i];
             if(value.getType() == Type.FUNCTION) {
-                if(store instanceof AtomicOperation) {
-                    Function function = (Function) Convert.thriftToJava(value);
-                    String method = Calculations.alias(function.operation());
-                    ArrayBuilder<Object> args = ArrayBuilder.builder();
-                    method += "Key";
-                    args.add(function.key());
-                    if(function instanceof KeyRecordsFunction
-                            || function instanceof KeyConditionFunction) {
-                        method += "Records";
-                        Collection<Long> records = function instanceof KeyRecordsFunction
-                                ? ((KeyRecordsFunction) function).source()
-                                : Finder.instance()
-                                        .visit(((KeyConditionFunction) function)
-                                                .source(), store);
-                        args.add(records);
-                    }
-                    else if(!(function instanceof IndexFunction)) {
-                        throw new IllegalStateException(
-                                "Invalid function value");
-                    }
-                    method += "Atomic";
-                    AtomicOperation atomic = (AtomicOperation) store;
-                    args.add(((TemporalFunction) function).timestamp());
-                    args.add(atomic);
-                    values[i] = Convert.javaToThrift(Reflection.callStatic(
-                            Operations.class, method, args.build()));
+                Function function = (Function) Convert.thriftToJava(value);
+                TemporalFunction func = (TemporalFunction) function;
+                String method = Calculations.alias(function.operation());
+                ArrayBuilder<Object> args = ArrayBuilder.builder();
+                method += "Key";
+                args.add(function.key());
+                if(function instanceof KeyRecordsFunction
+                        || function instanceof KeyConditionFunction) {
+                    method += "Records";
+                    Collection<Long> records = function instanceof KeyRecordsFunction
+                            ? ((KeyRecordsFunction) function).source()
+                            : Finder.instance().visit(
+                                    ((KeyConditionFunction) function).source(),
+                                    store);
+                    args.add(records);
                 }
-                else {
-                    throw new InsufficientAtomicityException();
+                else if(!(function instanceof IndexFunction)) {
+                    throw new IllegalStateException("Invalid function value");
                 }
+                method += "Atomic";
+                args.add(func.timestamp());
+                args.add(store);
+                values[i] = Convert.javaToThrift(Reflection
+                        .callStatic(Operations.class, method, args.build()));
             }
         }
         if(Keys.isNavigationKey(key)) {
             Map<TObject, Set<Long>> index = timestamp == Time.NONE
-                    ? browse(store, key) : browse(store, key, timestamp);
+                    ? browse(store, key)
+                    : browse(store, key, timestamp);
             Set<Long> records = index.entrySet().stream()
                     .filter(e -> e.getKey().is(operator, values))
                     .map(e -> e.getValue()).flatMap(Set::stream)
@@ -191,23 +186,17 @@ public final class Stores {
             return records;
         }
         else if(Keys.isFunctionKey(key)) {
-            if(store instanceof AtomicOperation) {
-                Set<Long> records = Sets.newLinkedHashSet();
-                for (long record : store.getAllRecords()) {
-                    Set<TObject> aggregate = select(store, key, record,
-                            timestamp);
-                    for (TObject tobject : aggregate) {
-                        if(tobject.is(operator, values)) {
-                            records.add(record);
-                            break;
-                        }
+            Set<Long> records = Sets.newLinkedHashSet();
+            for (long record : store.getAllRecords()) {
+                Set<TObject> aggregate = select(store, key, record, timestamp);
+                for (TObject tobject : aggregate) {
+                    if(tobject.is(operator, values)) {
+                        records.add(record);
+                        break;
                     }
                 }
-                return records;
             }
-            else {
-                throw new InsufficientAtomicityException();
-            }
+            return records;
         }
         else {
             return timestamp == Time.NONE ? store.find(key, operator, values)
@@ -308,16 +297,11 @@ public final class Stores {
             }
         }
         else if((evalFunc = Keys.tryParseFunction(key)) != null) {
-            if(store instanceof AtomicOperation) {
-                String method = Calculations.alias(evalFunc.operation())
-                        + "KeyRecordAtomic";
-                return ImmutableSet.of(Convert.javaToThrift(
-                        Reflection.callStatic(Operations.class, method,
-                                evalFunc.key(), record, timestamp, store)));
-            }
-            else {
-                throw new InsufficientAtomicityException();
-            }
+            String method = Calculations.alias(evalFunc.operation())
+                    + "KeyRecordAtomic";
+            return ImmutableSet.of(
+                    Convert.javaToThrift(Reflection.callStatic(Operations.class,
+                            method, evalFunc.key(), record, timestamp, store)));
         }
         else {
             Source source;

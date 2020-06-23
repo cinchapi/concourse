@@ -96,18 +96,18 @@ public final class Operations {
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values
+     * Use the provided {@code store} to atomically add each of the values
      * stored across {@code key} at {@code timestamp} to the running
      * {@code sum}.
      * 
      * @param key the field name
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
+     * @param store the {@link Store} to use
      * @return the new running sum
      */
-    public static Number avgKeyAtomic(String key, long timestamp,
-            AtomicOperation atomic) {
-        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
+    public static Number avgKeyAtomic(String key, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
         Number avg = 0;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
@@ -125,19 +125,20 @@ public final class Operations {
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values in
+     * Use the provided {@code store} to atomically add each of the values in
      * {@code key}/{@code record} at {@code timestamp} to the running
      * {@code sum}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
+     * @param store the {@link Store} to use
      * @return the new running sum
      */
     public static Number avgKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
-        Set<TObject> values = Stores.select(atomic, key, record, timestamp);
+            long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Set<TObject> values = Stores.select(store, key, record, timestamp);
         Number sum = 0;
         for (TObject value : values) {
             Object object = Convert.thriftToJava(value);
@@ -149,22 +150,23 @@ public final class Operations {
     }
 
     /**
-     * Use the provided {@code atomic} operation to add each of the values
-     * stored for the
-     * {@code key} in each of the {@code records} at {@code timestamp}.
+     * Use the provided {@code store} to atomically add each of the values
+     * stored for the {@code key} in each of the {@code records} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to use
+     * @param store the {@link Store} to use
      * @return the new running sum
      */
     public static Number avgKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+            Collection<Long> records, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
         int count = 0;
         Number avg = 0;
         for (long record : records) {
-            Set<TObject> values = Stores.select(atomic, key, record, timestamp);
+            Set<TObject> values = Stores.select(store, key, record, timestamp);
             for (TObject value : values) {
                 Object object = Convert.thriftToJava(value);
                 Calculations.checkCalculatable(object);
@@ -202,7 +204,8 @@ public final class Operations {
             }
             $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
-                    ? store.browse(start) : store.browse(start, timestamp);
+                    ? store.browse(start)
+                    : store.browse(start, timestamp);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
             root.entrySet().stream()
                     .filter(e -> e.getKey().getType() == Type.LINK)
@@ -260,54 +263,52 @@ public final class Operations {
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the count
-     * across the {@code key} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the count across the
+     * {@code key} at {@code timestamp}.
      * 
      * @param key the field name
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the count
      */
-    public static long countKeyAtomic(String key, long timestamp,
-            AtomicOperation atomic) {
-        return calculateKeyAtomic(key, timestamp, 0, atomic,
+    public static long countKeyAtomic(String key, long timestamp, Store store) {
+        return calculateKeyAtomic(key, timestamp, 0, store,
                 Calculations.countKey()).longValue();
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the count
-     * of all the values stored for {@code key} in {@code record} at
-     * {@code timestamp}.
+     * Use the {@code store} to atomically compute the count of all the values
+     * stored for {@code key} in {@code record} at {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the count
      */
     public static long countKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
-        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+            long timestamp, Store store) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, store,
                 Calculations.countKeyRecord()).longValue();
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the count
-     * of all the values stored for {@code key} in each of the
-     * {@code records} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the count of all the values
+     * stored for {@code key} in each of the {@code records} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param records the record ids
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the count
      */
     public static long countKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+            Collection<Long> records, long timestamp, Store store) {
         long count = 0;
         for (long record : records) {
             count = calculateKeyRecordAtomic(key, record, timestamp, count,
-                    atomic, Calculations.countKeyRecord()).longValue();
+                    store, Calculations.countKeyRecord()).longValue();
         }
         return count;
     }
@@ -594,8 +595,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, TObject> data = (timestamp == Time.NONE
-                    ? store.select(record) : store.select(record, timestamp))
-                            .entrySet().stream()
+                    ? store.select(record)
+                    : store.select(record, timestamp)).entrySet().stream()
                             .filter(e -> !e.getValue().isEmpty())
                             .collect(Collectors.toMap(Entry::getKey,
                                     e -> Iterables.getLast(e.getValue())));
@@ -697,7 +698,8 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -709,76 +711,74 @@ public final class Operations {
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the max
-     * across all the values stored for {@code key} in {@code record} at
-     * {@code timestamp}.
+     * Use the {@code store} to atomically compute the max across all the values
+     * stored for {@code key} in {@code record} at {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the max
      */
     public static Number maxKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
+            long timestamp, Store store) {
         return calculateKeyRecordAtomic(key, record, timestamp, Long.MIN_VALUE,
-                atomic, Calculations.maxKeyRecord());
+                store, Calculations.maxKeyRecord());
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the max
-     * across all the values stored for {@code key} in each of the
-     * {@code records} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the max across all the values
+     * stored for {@code key} in each of the {@code records} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param records the record ids
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the max
      */
     public static Number maxKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+            Collection<Long> records, long timestamp, Store store) {
         Number max = Long.MIN_VALUE;
         for (long record : records) {
-            max = calculateKeyRecordAtomic(key, record, timestamp, max, atomic,
+            max = calculateKeyRecordAtomic(key, record, timestamp, max, store,
                     Calculations.maxKeyRecord());
         }
         return max;
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the min
-     * across all the values stored for {@code key} in {@code record} at
-     * {@code timestamp}.
+     * Use the {@code store} to atomically compute the min across all the values
+     * stored for {@code key} in {@code record} at {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the min
      */
     public static Number minKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
+            long timestamp, Store store) {
         return calculateKeyRecordAtomic(key, record, timestamp, Long.MAX_VALUE,
-                atomic, Calculations.minKeyRecord());
+                store, Calculations.minKeyRecord());
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the min
-     * across all the values stored for {@code key} in each of the
-     * {@code records} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the min across all the values
+     * stored for {@code key} in each of the {@code records} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param records the record ids
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the min
      */
     public static Number minKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+            Collection<Long> records, long timestamp, Store store) {
         Number min = Long.MAX_VALUE;
         for (long record : records) {
-            min = calculateKeyRecordAtomic(key, record, timestamp, min, atomic,
+            min = calculateKeyRecordAtomic(key, record, timestamp, min, store,
                     Calculations.minKeyRecord());
         }
         return min;
@@ -1208,7 +1208,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, Set<TObject>> data = timestamp == Time.NONE
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             TMaps.putResultDatasetOptimized(result, record, data);
         } ;
         if(consumer != null) {
@@ -1217,53 +1218,51 @@ public final class Operations {
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across the {@code key} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the sum across the
+     * {@code key} at {@code timestamp}.
      * 
      * @param key the field name
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the sum
      */
-    public static Number sumKeyAtomic(String key, long timestamp,
-            AtomicOperation atomic) {
-        return calculateKeyAtomic(key, timestamp, 0, atomic,
+    public static Number sumKeyAtomic(String key, long timestamp, Store store) {
+        return calculateKeyAtomic(key, timestamp, 0, store,
                 Calculations.sumKey());
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across all the values stored for {@code key} in {@code record} at
-     * {@code timestamp}.
+     * Use the {@code store} to atomically compute the sum across all the values
+     * stored for {@code key} in {@code record} at {@code timestamp}.
      * 
      * @param key the field name
      * @param record the record id
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the sum
      */
     public static Number sumKeyRecordAtomic(String key, long record,
-            long timestamp, AtomicOperation atomic) {
-        return calculateKeyRecordAtomic(key, record, timestamp, 0, atomic,
+            long timestamp, Store store) {
+        return calculateKeyRecordAtomic(key, record, timestamp, 0, store,
                 Calculations.sumKeyRecord());
     }
 
     /**
-     * Join the {@link AtomicOperation atomic} operation to compute the sum
-     * across all the values stored for {@code key} in each of the
-     * {@code records} at {@code timestamp}.
+     * Use the {@code store} to atomically compute the sum across all the values
+     * stored for {@code key} in each of the {@code records} at
+     * {@code timestamp}.
      * 
      * @param key the field name
      * @param records the record ids
      * @param timestamp the selection timestamp
-     * @param atomic the {@link AtomicOperation} to join
+     * @param store the {@link Store} to use
      * @return the sum
      */
     public static Number sumKeyRecordsAtomic(String key,
-            Collection<Long> records, long timestamp, AtomicOperation atomic) {
+            Collection<Long> records, long timestamp, Store store) {
         Number sum = 0;
         for (long record : records) {
-            sum = calculateKeyRecordAtomic(key, record, timestamp, sum, atomic,
+            sum = calculateKeyRecordAtomic(key, record, timestamp, sum, store,
                     Calculations.sumKeyRecord());
         }
         return sum;
@@ -1319,7 +1318,8 @@ public final class Operations {
         Map<Long, Map<String, Set<Long>>> incomings = Maps.newLinkedHashMap();
         for (long source : atomic.getAllRecords()) {
             Map<String, Set<TObject>> data = timestamp == Time.NONE
-                    ? atomic.select(source) : atomic.select(source, timestamp);
+                    ? atomic.select(source)
+                    : atomic.select(source, timestamp);
             data.forEach((key, values) -> {
                 values.stream().filter(value -> value.getType() == Type.LINK)
                         .map(Convert::thriftToJava).map(Link.class::cast)
@@ -1463,13 +1463,14 @@ public final class Operations {
      * @param key the field name
      * @param timestamp the selection timestamp
      * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
+     * @param store the {@link AtomicOperation} to use
      * @param calculation the calculation logic
      * @return the result after applying the {@code calculation}
      */
     private static Number calculateKeyAtomic(String key, long timestamp,
-            Number result, AtomicOperation atomic, KeyCalculation calculation) {
-        Map<TObject, Set<Long>> data = Stores.browse(atomic, key, timestamp);
+            Number result, Store store, KeyCalculation calculation) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
             Set<Long> records = entry.getValue();
@@ -1489,20 +1490,37 @@ public final class Operations {
      * @param record the record id
      * @param timestamp the selection timestamp
      * @param result the running result
-     * @param atomic the {@link AtomicOperation} to use
+     * @param store the {@link AtomicOperation} to use
      * @param calculation the calculation logic
      * @return the result after applying the {@code calculation}
      */
     private static Number calculateKeyRecordAtomic(String key, long record,
-            long timestamp, Number result, AtomicOperation atomic,
+            long timestamp, Number result, Store store,
             KeyRecordCalculation calculation) {
-        Set<TObject> values = Stores.select(atomic, key, record, timestamp);
+        checkAtomicity(store, timestamp);
+        Set<TObject> values = Stores.select(store, key, record, timestamp);
         for (TObject tobject : values) {
             Object value = Convert.thriftToJava(tobject);
             Calculations.checkCalculatable(value);
             result = calculation.calculate(result, (Number) value);
         }
         return result;
+    }
+
+    /**
+     * Check to see if the {code store} provides the appropriate level of
+     * atomicity to process an operation at {@code timestamp}. If it does not,
+     * throw and {@link InsufficientAtomicityException}.
+     * 
+     * @param store
+     * @param timestamp
+     * @throws InsufficientAtomicityException
+     */
+    private static void checkAtomicity(Store store, long timestamp)
+            throws InsufficientAtomicityException {
+        if(timestamp == Time.NONE && !(store instanceof AtomicOperation)) {
+            throw new InsufficientAtomicityException();
+        }
     }
 
     private Operations() {/* no-op */}
