@@ -232,5 +232,13 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         client.insert(
                 ImmutableMap.of("foo", new IndexFunction("average", "age")));
     }
+    
+    @Test
+    public void testCanWriteFunctionThatLooksLikeString() {
+        String expected = "average(age)";
+        long record = client.add("foo", expected);
+        String actual = client.get("foo", record);
+        Assert.assertEquals(expected, actual);
+    }
 
 }
