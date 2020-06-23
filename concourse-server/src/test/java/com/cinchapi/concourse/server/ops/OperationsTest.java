@@ -144,6 +144,21 @@ public class OperationsTest {
             store.stop();
         }
     }
+    
+    @Test(expected = InsufficientAtomicityException.class)
+    public void testAtomicityIsEnforcedWhenNoTimestamp() {
+        AtomicSupport store = getStore();
+        setupGraph(store);
+        Operations.countKeyAtomic("foo", Time.NONE, store);
+    }
+    
+    @Test
+    public void testAtomicityIsNotEnforcedWithTimestamp() {
+        AtomicSupport store = getStore();
+        setupGraph(store);
+        Operations.countKeyAtomic("foo", Time.now(), store);
+        Assert.assertTrue(true);
+    }
 
     /**
      * Return an {@link AtomicSupport} {@link Store} that can be used in unit
