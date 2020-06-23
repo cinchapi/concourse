@@ -143,7 +143,8 @@ public final class Convert {
      */
     private static Set<Class<?>> CLASSES_WITH_ENCODED_STRING_REPR = Sets
             .newHashSet(Link.class, Tag.class, ResolvableLink.class,
-                    Timestamp.class);
+                    Timestamp.class, IndexFunction.class,
+                    KeyConditionFunction.class, KeyRecordsFunction.class);
 
     /**
      * A {@link Pattern} that can be used to determine whether a string matches
@@ -530,7 +531,7 @@ public final class Convert {
      * less than {@value java.lang.Integer#MAX_VALUE}), a long, or a floating
      * point decimal</li>
      * <li><strong>Function</strong> - the value is converted to a
-     * {@link Function} if is not quoted and can be parsed as such by the
+     * {@link Function} if it is not quoted and can be parsed as such by the
      * {@link ConcourseCompiler}.</li>
      * </ul>
      * </p>

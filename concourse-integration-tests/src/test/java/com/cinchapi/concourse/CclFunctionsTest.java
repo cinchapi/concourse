@@ -21,6 +21,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.ccl.type.function.IndexFunction;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.ImmutableMap;
@@ -210,4 +211,26 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         Set<Object> actual = client.select("age | sum", 1, timestamp);
         Assert.assertEquals(expected, actual.iterator().next());
     }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotWriteFunctionAdd() {
+        client.add("foo", new IndexFunction("average", "age"));
+    }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotWriteFunctionRemove() {
+        client.remove("foo", new IndexFunction("average", "age"), 1);
+    }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotWriteFunctionSet() {
+        client.set("foo", new IndexFunction("average", "age"), 1);
+    }
+
+    @Test(expected = InvalidArgumentException.class)
+    public void testCannotWriteFunctionInsert() {
+        client.insert(
+                ImmutableMap.of("foo", new IndexFunction("average", "age")));
+    }
+
 }

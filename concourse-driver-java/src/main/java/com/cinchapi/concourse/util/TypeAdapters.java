@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.cinchapi.ccl.type.Function;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
@@ -258,6 +259,39 @@ public class TypeAdapters {
                             TypeAdapter delegate = gson.getDelegateAdapter(
                                     skipPast, TypeToken.get(java.getClass()));
                             delegate.write(out, java);
+                        }
+
+                    };
+                }
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
+                }
+                return adapter;
+            }
+
+        };
+    }
+
+    public static TypeAdapterFactory functionFactory(boolean nullSafe) {
+        return new TypeAdapterFactory() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
+                Class<? super T> clazz = type.getRawType();
+                if(Function.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Function>() {
+
+                        @Override
+                        public Function read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Function value)
+                                throws IOException {
+                            out.value(value.toString());
                         }
 
                     };
