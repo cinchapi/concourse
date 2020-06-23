@@ -264,7 +264,7 @@ public class TypeAdapters {
 
         };
     }
-    
+
     /**
      * Return a {@link TypeAdapterFactory} that contains the preferred JSON
      * de/serialization rules for {@link TObject TObjects}.

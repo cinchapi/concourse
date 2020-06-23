@@ -232,7 +232,7 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         client.insert(
                 ImmutableMap.of("foo", new IndexFunction("average", "age")));
     }
-    
+
     @Test
     public void testCanWriteFunctionThatLooksLikeString() {
         String expected = "average(age)";
