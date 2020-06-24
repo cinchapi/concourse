@@ -9,6 +9,7 @@
 	* selection/operation key,
 	* evaluation key (within a `Condition`)
 	* evaluation value (wthin a `Conditon`)
+	
 A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
  
 #### Version 0.10.5 (TBD)
