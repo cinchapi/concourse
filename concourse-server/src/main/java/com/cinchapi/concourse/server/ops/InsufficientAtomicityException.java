@@ -23,9 +23,6 @@ package com.cinchapi.concourse.server.ops;
  */
 public class InsufficientAtomicityException extends RuntimeException {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -4595915465382269760L;
 
 }

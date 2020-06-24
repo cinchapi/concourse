@@ -205,7 +205,7 @@ public final class Stores {
 
     /**
      * Find the records that contain values that are stored for {@code key} and
-     * satisify {@code operator} in relation to the specified {@code values}.
+     * satisfy {@code operator} in relation to the specified {@code values}.
      * <p>
      * If the {@code key} is primitive, the store lookup is usually a simple
      * {@link Store#find(String, Operator, TObject[]) find}. However, if the key

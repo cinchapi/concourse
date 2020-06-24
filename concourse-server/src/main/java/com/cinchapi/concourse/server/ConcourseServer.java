@@ -1945,17 +1945,17 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
+        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
+            SortableSet<Set<TObject>> $records = SortableSet
+                    .of(Stores.find($store, key, operator, tValues));
+            $records.sort(Sorting.byValues(Orders.from(order), store));
+            return $records;
+        };
         SortableSet<Set<TObject>> records = null;
-        boolean requiresAtomicity = false;
+        boolean isAtomic = order != NO_ORDER;
         while (records == null) {
             try {
-                Function<Store, SortableSet<Set<TObject>>> function = $store -> {
-                    SortableSet<Set<TObject>> $records = SortableSet
-                            .of(Stores.find($store, key, operator, tValues));
-                    $records.sort(Sorting.byValues(Orders.from(order), store));
-                    return $records;
-                };
-                if(requiresAtomicity) {
+                if(isAtomic) {
                     records = AtomicOperations
                             .<SortableSet<Set<TObject>>> supplyWithRetry(store,
                                     atomic -> function.apply(atomic));
@@ -1965,7 +1965,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 }
             }
             catch (InsufficientAtomicityException e) {
-                requiresAtomicity = true;
+                isAtomic = true;
             }
         }
         return records;
@@ -2011,11 +2011,31 @@ public class ConcourseServer extends BaseConcourseServer implements
             String environment) throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        SortableSet<Set<TObject>> records = SortableSet
-                .of(Stores.find(store, timestamp, key, operator, tValues));
-        // NOTE: The #timestamp is not considered when sorting because it is a
-        // component of criteria evaluation and no data is being selected.
-        records.sort(Sorting.byValues(Orders.from(order), store));
+        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
+            SortableSet<Set<TObject>> $records = SortableSet
+                    .of(Stores.find($store, timestamp, key, operator, tValues));
+            // NOTE: The #timestamp is not considered when sorting because it is
+            // a component of criteria evaluation and no data is being selected.
+            $records.sort(Sorting.byValues(Orders.from(order), store));
+            return $records;
+        };
+        SortableSet<Set<TObject>> records = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (records == null) {
+            try {
+                if(isAtomic) {
+                    records = AtomicOperations
+                            .<SortableSet<Set<TObject>>> supplyWithRetry(store,
+                                    atomic -> function.apply(atomic));
+                }
+                else {
+                    records = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return records;
     }
 
