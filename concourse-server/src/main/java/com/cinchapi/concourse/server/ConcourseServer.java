@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -79,6 +80,7 @@ import com.cinchapi.concourse.server.jmx.ManagedOperation;
 import com.cinchapi.concourse.server.management.ClientInvokable;
 import com.cinchapi.concourse.server.management.ConcourseManagementService;
 import com.cinchapi.concourse.server.ops.AtomicOperations;
+import com.cinchapi.concourse.server.ops.InsufficientAtomicityException;
 import com.cinchapi.concourse.server.ops.Operations;
 import com.cinchapi.concourse.server.ops.Stores;
 import com.cinchapi.concourse.server.plugin.PluginManager;
@@ -94,6 +96,7 @@ import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.BufferedStore;
 import com.cinchapi.concourse.server.storage.Engine;
+import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
 import com.cinchapi.concourse.server.upgrade.UpgradeTasks;
@@ -1942,9 +1945,29 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        SortableSet<Set<TObject>> records = SortableSet
-                .of(Stores.find(store, key, operator, tValues));
-        records.sort(Sorting.byValues(Orders.from(order), store));
+        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
+            SortableSet<Set<TObject>> $records = SortableSet
+                    .of(Stores.find($store, key, operator, tValues));
+            $records.sort(Sorting.byValues(Orders.from(order), store));
+            return $records;
+        };
+        SortableSet<Set<TObject>> records = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (records == null) {
+            try {
+                if(isAtomic) {
+                    records = AtomicOperations
+                            .<SortableSet<Set<TObject>>> supplyWithRetry(store,
+                                    atomic -> function.apply(atomic));
+                }
+                else {
+                    records = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return records;
     }
 
@@ -1988,11 +2011,31 @@ public class ConcourseServer extends BaseConcourseServer implements
             String environment) throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        SortableSet<Set<TObject>> records = SortableSet
-                .of(Stores.find(store, timestamp, key, operator, tValues));
-        // NOTE: The #timestamp is not considered when sorting because it is a
-        // component of criteria evaluation and no data is being selected.
-        records.sort(Sorting.byValues(Orders.from(order), store));
+        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
+            SortableSet<Set<TObject>> $records = SortableSet
+                    .of(Stores.find($store, timestamp, key, operator, tValues));
+            // NOTE: The #timestamp is not considered when sorting because it is
+            // a component of criteria evaluation and no data is being selected.
+            $records.sort(Sorting.byValues(Orders.from(order), store));
+            return $records;
+        };
+        SortableSet<Set<TObject>> records = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (records == null) {
+            try {
+                if(isAtomic) {
+                    records = AtomicOperations
+                            .<SortableSet<Set<TObject>>> supplyWithRetry(store,
+                                    atomic -> function.apply(atomic));
+                }
+                else {
+                    records = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return records;
     }
 
@@ -2840,9 +2883,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject getKeyRecord(String key, long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Iterables.getLast(
-                Stores.select(getStore(transaction, environment), key, record),
-                TObject.NULL);
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, TObject> function = $store -> Iterables
+                .getLast(Stores.select($store, key, record), TObject.NULL);
+        try {
+            return function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            return AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
     }
 
     @Override
@@ -5493,7 +5543,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<TObject> selectKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Stores.select(getStore(transaction, environment), key, record);
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, Set<TObject>> function = $store -> Stores.select($store,
+                key, record);
+        try {
+            return function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            return AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
     }
 
     @Override

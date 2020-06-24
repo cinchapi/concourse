@@ -82,6 +82,10 @@ public abstract class BufferedStore extends BaseStore {
             throw new IllegalArgumentException(
                     "Cannot use a blank value for " + key);
         }
+        else if(value.getType() == Type.FUNCTION) {
+            throw new IllegalArgumentException(
+                    "Cannot use a function for " + key);
+        }
         else if(value.getType() == Type.LINK
                 && ((Link) Convert.thriftToJava(value)).longValue() == record) {
             throw new ReferentialIntegrityException(
