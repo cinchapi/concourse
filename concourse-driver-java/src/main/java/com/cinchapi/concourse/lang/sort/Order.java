@@ -29,10 +29,9 @@ import com.cinchapi.concourse.Timestamp;
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
  * time, objects of this class can exist in one of two modes: {@code building}
- * or {@code built}. When an Order is
- * {@code built}, it is guaranteed to represent a fully and well formed sort
- * order that can be processed. On the other hand, when a Order is
- * {@code building} it is in an incomplete state.
+ * or {@code built}. When an Order is {@code built}, it is guaranteed to
+ * represent a fully and well formed sort order that can be processed. On the
+ * other hand, when a Order is {@code building} it is in an incomplete state.
  * <p>
  * This class is the public interface to Order construction. It is meant to
  * be used in a chained manner, where the caller initially calls

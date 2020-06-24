@@ -52,6 +52,7 @@ public class DataServices {
                     TypeAdapters.primitiveTypesFactory(true))
             .registerTypeAdapterFactory(TypeAdapters.tObjectFactory(true))
             .registerTypeAdapterFactory(TypeAdapters.collectionFactory(true))
+            .registerTypeAdapterFactory(TypeAdapters.functionFactory(true))
             .disableHtmlEscaping().create();
 
     /**

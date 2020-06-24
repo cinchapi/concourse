@@ -4218,6 +4218,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(Order order, Page page, final String key,
             final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4251,6 +4252,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(Order order, final String key,
             final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4281,6 +4283,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(Page page, final String key,
             final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4310,6 +4313,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(final String key, final Object operator,
             final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4348,6 +4352,7 @@ class ConcourseThriftDriver extends Concourse {
             Page page, final String key, final Object operator,
             final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4388,6 +4393,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(final Timestamp timestamp, Order order,
             final String key, final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4428,6 +4434,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(final Timestamp timestamp, Page page,
             final String key, final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {
@@ -4466,6 +4473,7 @@ class ConcourseThriftDriver extends Concourse {
     private Set<Long> executeFind(final Timestamp timestamp, final String key,
             final Object operator, final Object... values) {
         final List<TObject> tValues = Arrays.stream(values)
+                .map(Convert::toFunctionOrUnescapedValueIfPossible)
                 .map(Convert::javaToThrift).collect(Collectors.toList());
         return execute(() -> {
             if(operator instanceof Operator) {

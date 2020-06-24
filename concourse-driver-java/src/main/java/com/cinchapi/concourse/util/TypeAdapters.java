@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.cinchapi.ccl.type.Function;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
@@ -97,6 +98,56 @@ public class TypeAdapters {
                                 item = value;
                             }
                             delegate.write(out, item);
+                        }
+
+                    };
+                }
+                if(adapter != null && nullSafe) {
+                    adapter = adapter.nullSafe();
+                }
+                return adapter;
+            }
+
+        };
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link Function Functions}.
+     * 
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory functionFactory() {
+        return functionFactory(false);
+    }
+
+    /**
+     * Return a {@link TypeAdapterFactory} that contains the preferred JSON
+     * de/serialization rules for {@link Function Functions}.
+     * 
+     * @param nullSafe
+     * @return the type adapter factory
+     */
+    public static TypeAdapterFactory functionFactory(boolean nullSafe) {
+        return new TypeAdapterFactory() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+                TypeAdapter<T> adapter = null;
+                Class<? super T> clazz = type.getRawType();
+                if(Function.class.isAssignableFrom(clazz)) {
+                    adapter = (TypeAdapter<T>) new TypeAdapter<Function>() {
+
+                        @Override
+                        public Function read(JsonReader in) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public void write(JsonWriter out, Function value)
+                                throws IOException {
+                            out.value(value.toString());
                         }
 
                     };
