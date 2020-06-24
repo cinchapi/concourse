@@ -22,17 +22,18 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.ccl.type.function.IndexFunction;
+import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Tests to check the functionality of function features.
  *
  * @author Jeff Nelson
  */
-@SuppressWarnings("unused")
 public class CclFunctionsTest extends ConcourseIntegrationTest {
 
     /**
@@ -108,6 +109,40 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testFindEvaluationKeyOperatorIndexFunctionEvaluationValue() {
+        setupDatabaseKey(client);
+        Number avgAge = client.calculate().average("age");
+        Set<Long> actual = client.find("age | avg", Operator.GREATER_THAN,
+                "avg(age)");
+        Set<Long> expected = Sets.newLinkedHashSet();
+        for (long record : client.inventory()) {
+            if(client.calculate().average("age", record).intValue() > avgAge
+                    .intValue()) {
+                expected.add(record);
+            }
+        }
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFindCriteriaEvaluationKeyIndexFunctionObjectEvaluationValue() {
+        setupDatabaseKey(client);
+        Number avgAge = client.calculate().average("age");
+        Set<Long> actual = client.find(Criteria.where().key("age | avg")
+                .operator(Operator.GREATER_THAN)
+                .value(new IndexFunction("avg", "age")));
+        Set<Long> expected = Sets.newLinkedHashSet();
+        for (long record : client.inventory()) {
+            if(client.calculate().average("age", record).intValue() > avgAge
+                    .intValue()) {
+                expected.add(record);
+            }
+        }
+        Assert.assertEquals(expected, actual);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
     public void testFindKeyOperatorIndexFunctionEvaluationValue() {
         setupDatabaseKey(client);
         Number avgAge = client.calculate().average("age");
@@ -118,11 +153,51 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testFindKeyOperatorIndexFunctionObjectEvaluationValue() {
+        setupDatabaseKey(client);
+        Number avgAge = client.calculate().average("age");
+        Set<Long> expected = client.find("age", Operator.GREATER_THAN, avgAge);
+        Set<Long> actual = client.find("age", Operator.GREATER_THAN,
+                new IndexFunction("avg", "age"));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFindCriteriaIndexFunctionEvaluationValue() {
+        setupDatabaseKey(client);
+        Number avgAge = client.calculate().average("age");
+        Set<Long> expected = client.find("age", Operator.GREATER_THAN, avgAge);
+        Set<Long> actual = client.find(Criteria.where().key("age")
+                .operator(Operator.GREATER_THAN).value("avg(age)"));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFindCriteriaIndexFunctionObjectEvaluationValue() {
+        setupDatabaseKey(client);
+        Number avgAge = client.calculate().average("age");
+        Set<Long> expected = client.find("age", Operator.GREATER_THAN, avgAge);
+        Set<Long> actual = client.find(
+                Criteria.where().key("age").operator(Operator.GREATER_THAN)
+                        .value(new IndexFunction("avg", "age")));
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
     public void testFindKeyOperatorEscapedIndexFunctionEvaluationValue() {
         setupDatabaseKey(client);
         long record = client.add("age", "avg(age)");
         Assert.assertEquals(ImmutableSet.of(record),
                 client.find("age", Operator.EQUALS, "'avg(age)'"));
+    }
+
+    @Test
+    public void testFindCriteriaEscapedIndexFunctionEvaluationValue() {
+        setupDatabaseKey(client);
+        long record = client.add("age", "avg(age)");
+        Set<Long> actual = client.find(Criteria.where().key("age")
+                .operator(Operator.EQUALS).value("\"avg(age)\""));
+        Assert.assertEquals(ImmutableSet.of(record), actual);
     }
 
     @Test
