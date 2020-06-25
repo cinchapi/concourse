@@ -18,6 +18,7 @@ package com.cinchapi.concourse.export.cli;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -26,6 +27,8 @@ import org.junit.Test;
 import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.QuoteAwareStringSplitter;
+import com.cinchapi.common.base.SplitOption;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Importer;
 import com.cinchapi.concourse.lang.sort.Sort;
@@ -62,7 +65,10 @@ public class ExportCliTest extends ClientServerTest {
      * @return the CLI args
      */
     private String[] generateCliArgs(String... args) {
-        args = AnyObjects.split(args, ' ').toArray(Array.containing());
+        args = AnyObjects
+                .split(args, v -> new QuoteAwareStringSplitter(v, ' ',
+                        SplitOption.TRIM_WHITESPACE, SplitOption.DROP_QUOTES))
+                .toArray(Array.containing());
         ArrayBuilder<String> ab = ArrayBuilder.builder();
         ab.add("--username");
         ab.add("admin");
@@ -112,6 +118,20 @@ public class ExportCliTest extends ClientServerTest {
         ExportCli cli = new ExportCli(args);
         cli.run();
         Assert.assertEquals(11, $output().size()); // size includes the header
+    }
+
+    @Test
+    public void testExportWhere() {
+        String[] args = generateCliArgs(
+                "--where \"percent_undergrad_asian > 50\"");
+        ExportCli cli = new ExportCli(args);
+        cli.run();
+        Map<Long, Object> data = client.get("ipeds_id",
+                "percent_undergrad_asian > 50");
+        String output = FileOps.read(this.output);
+        data.forEach((record, ipedsId) -> {
+            Assert.assertTrue(output.contains(ipedsId.toString()));
+        });
     }
 
     /**
