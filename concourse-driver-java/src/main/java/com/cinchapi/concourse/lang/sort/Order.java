@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import com.cinchapi.ccl.grammar.DirectionSymbol;
 import com.cinchapi.ccl.grammar.OrderSymbol;
+import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.syntax.OrderTree;
 import com.cinchapi.concourse.Timestamp;
 
@@ -66,10 +67,13 @@ public interface Order {
                 return ((OrderSymbol) tree.root()).components().stream()
                         .map(symbol -> new OrderComponent(
                                 (String) symbol.key().key(),
-                                Timestamp.fromMicros(
-                                        symbol.timestamp().timestamp()),
+                                symbol.timestamp() != TimestampSymbol.PRESENT
+                                        ? Timestamp.fromMicros(
+                                                symbol.timestamp().timestamp())
+                                        : null,
                                 symbol.direction() == DirectionSymbol.ASCENDING
-                                        ? Direction.ASCENDING : Direction.DESCENDING))
+                                        ? Direction.ASCENDING
+                                        : Direction.DESCENDING))
                         .collect(Collectors.toList());
             }
 
