@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,25 @@
  */
 package com.cinchapi.concourse.server;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.ops.Command;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
+import com.cinchapi.concourse.thrift.AccessToken;
+import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link com.cinchapi.concourse.server.ConcourseServer}.
@@ -86,6 +94,74 @@ public class ConcourseServerTest extends ConcourseBaseTest {
     public void testFindEnvKeepsUnderScore() {
         String env = "$_%&test_@envir==--onment*_*";
         Assert.assertEquals("_test_environment_", Environments.sanitize(env));
+    }
+
+    @Test
+    public void testCommandIsIntrospected()
+            throws TException, InterruptedException {
+        server = ConcourseServer.create();
+        server.spawn();
+        try {
+            List<Object> actuals = Lists.newArrayList();
+            Thread t = new Thread(() -> {
+                try {
+                    Command.current();
+                    actuals.add(false);
+                }
+                catch (IllegalStateException e) {
+                    actuals.add(true);
+                }
+                try {
+                    AccessToken creds = server.login(
+                            ByteBuffer.wrap("admin".getBytes()),
+                            ByteBuffer.wrap("admin".getBytes()));
+                    server.addKeyValue("name", Convert.javaToThrift("jeff"),
+                            creds, null, "");
+                    actuals.add(Command.current().operation());
+                    server.browseKey("name", creds, null, "");
+                    actuals.add(Command.current().operation());
+                }
+                catch (TException e) {
+                    e.printStackTrace();
+                }
+            });
+            t.start();
+            t.join();
+            Assert.assertTrue((boolean) actuals.get(0));
+            Assert.assertEquals("add", actuals.get(1));
+            Assert.assertEquals("browse", actuals.get(2));
+
+        }
+        finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testCommandIsNotIntrospected()
+            throws TException, InterruptedException {
+        server = ConcourseServer.create();
+        server.spawn();
+        try {
+            List<Object> actuals = Lists.newArrayList();
+            Thread t = new Thread(() -> {
+                server.getDbStore();
+                try {
+                    Command.current();
+                    actuals.add(false);
+                }
+                catch (IllegalStateException e) {
+                    actuals.add(true);
+                }
+            });
+            t.start();
+            t.join();
+            Assert.assertTrue((boolean) actuals.get(0));
+
+        }
+        finally {
+            server.stop();
+        }
     }
 
 }

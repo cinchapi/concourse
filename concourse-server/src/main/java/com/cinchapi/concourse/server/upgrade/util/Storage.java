@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,13 @@ public class Storage {
         }
 
         /**
+         * Regenerate the BlockIndex for the block.
+         */
+        public void reindex() {
+            Reflection.call(source, "reindex");
+        }
+
+        /**
          * Return the {@link BlockStats}.
          * 
          * @return the stats
@@ -127,6 +134,11 @@ public class Storage {
          */
         public boolean isMutable() {
             return Reflection.get("mutable", source);
+        }
+
+        @Override
+        public String toString() {
+            return source.toString();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,13 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
+import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -191,6 +193,144 @@ public class ValueTest extends ByteableTest {
         tobject.cacheServerWrapper("fake");
         Value value = Value.wrap(tobject);
         Assert.assertEquals(value, tobject.getServerWrapper());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesIntFloat() {
+        Value a = Value.wrap(Convert.javaToThrift(18));
+        Value b = Value.wrap(Convert.javaToThrift(18.0f));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesIntDouble() {
+        Value a = Value.wrap(Convert.javaToThrift(18));
+        Value b = Value.wrap(Convert.javaToThrift(18.0d));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesLongFloat() {
+        Value a = Value.wrap(Convert.javaToThrift(18l));
+        Value b = Value.wrap(Convert.javaToThrift(18.0f));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesLongDouble() {
+        Value a = Value.wrap(Convert.javaToThrift(18l));
+        Value b = Value.wrap(Convert.javaToThrift(18.0d));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesIntLong() {
+        Value a = Value.wrap(Convert.javaToThrift(18));
+        Value b = Value.wrap(Convert.javaToThrift(18l));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCrossTypeCanonicalBytesFloatDouble() {
+        Value a = Value.wrap(Convert.javaToThrift(18.0f));
+        Value b = Value.wrap(Convert.javaToThrift(18.0d));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+        Assert.assertNotEquals(a.getBytes(), b.getBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseLongDouble() {
+        Value a = Value.wrap(Convert.javaToThrift(Long.MAX_VALUE));
+        Value b = Value.wrap(Convert.javaToThrift(Double.MAX_VALUE));
+        Assert.assertNotEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseIntLong() {
+        Value a = Value.wrap(Convert.javaToThrift(Long.MAX_VALUE));
+        Value b = Value.wrap(Convert.javaToThrift(Integer.MAX_VALUE + 1));
+        Assert.assertNotEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleDouble() {
+        Value a = Value.wrap(Convert.javaToThrift(Double.MAX_VALUE));
+        Value b = Value.wrap(Convert.javaToThrift(Double.MIN_VALUE));
+        Assert.assertNotEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleFloat() {
+        Value a = Value.wrap(Convert.javaToThrift(18.123));
+        Value b = Value.wrap(Convert.javaToThrift(18.123f));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong() {
+        double ad = Value.MAX_DOUBLE_REPRESENTED_INTEGER;
+        long bd = (long) Value.MAX_DOUBLE_REPRESENTED_INTEGER;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong2() {
+        double ad = Value.MAX_DOUBLE_REPRESENTED_INTEGER - 1;
+        long bd = (long) Value.MAX_DOUBLE_REPRESENTED_INTEGER - 1;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong3() {
+        double ad = Value.MAX_DOUBLE_REPRESENTED_INTEGER + 1;
+        long bd = (long) Value.MAX_DOUBLE_REPRESENTED_INTEGER + 1;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertNotEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong4() {
+        double ad = Value.MIN_DOUBLE_REPRESENTED_INTEGER;
+        long bd = (long) Value.MIN_DOUBLE_REPRESENTED_INTEGER;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong5() {
+        double ad = Value.MIN_DOUBLE_REPRESENTED_INTEGER - 1;
+        long bd = (long) Value.MIN_DOUBLE_REPRESENTED_INTEGER - 1;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertNotEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesCornerCaseDoubleLong6() {
+        double ad = Value.MIN_DOUBLE_REPRESENTED_INTEGER + 1;
+        long bd = (long) Value.MIN_DOUBLE_REPRESENTED_INTEGER + 1;
+        Value a = Value.wrap(Convert.javaToThrift((ad)));
+        Value b = Value.wrap(Convert.javaToThrift(bd));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
+    }
+
+    @Test
+    public void getCanonicalBytesTagString() {
+        String s = Random.getString();
+        Value a = Value.wrap(Convert.javaToThrift((Tag.create(s))));
+        Value b = Value.wrap(Convert.javaToThrift(s));
+        Assert.assertEquals(a.getCanonicalBytes(), b.getCanonicalBytes());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ import com.google.common.collect.Multimap;
  * Utilities for {@link Parser}s.
  *
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.concourse.lang.ConcourseCompiler} instead
  */
+@Deprecated
 public final class Parsers {
 
     /**

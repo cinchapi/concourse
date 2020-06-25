@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.Restricted;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -243,7 +244,7 @@ public class LegacyAccessManager {
         }
 
         @Override
-        public void copyTo(ByteBuffer buffer) {
+        public void copyTo(ByteSink buffer) {
             buffer.put(ByteBuffers.decodeFromHex(password));
             buffer.put(ByteBuffers.decodeFromHex(salt));
             buffer.put(ByteBuffers.decodeFromHex(username));

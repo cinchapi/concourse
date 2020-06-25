@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,6 +135,18 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     }
 
     @Test
+    public void testMightContainLocatorKeyValueReproB() {
+        doTestMightContainLocatorKeyValue(
+                Text.wrap(
+                        "7yubgpf x0 q1cj  52oiau do0034jq pj 02igw3w fbd5d2kw 5 1vwdbjoy4o6i4fgd"),
+                Value.wrap(Convert.javaToThrift(
+                        "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t")),
+                Text.wrap(
+                        "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t"),
+                PrimaryKey.wrap(5481930143744767354L), 0);
+    }
+
+    @Test
     public void testReproCON_4() {
         // TODO file this in jira
         Text key = Variables.register("key", Text.wrap("strings"));
@@ -206,6 +218,20 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
                                               // dump output which contains the
                                               // block id
 
+    }
+
+    @Test
+    @Ignore
+    @Override
+    public void testCannotGetChecksumOfMutableBlock() {
+        // Ignore because SearchBlock uses a different insert flow.
+    }
+
+    @Test
+    @Ignore
+    @Override
+    public void testChecksumSameAfterSyncAndWhenLoaded() {
+        // Ignore because SearchBlock uses a different insert flow.
     }
 
     @Test

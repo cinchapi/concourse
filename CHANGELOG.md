@@ -1,6 +1,52 @@
 ## Changelog
 
-#### Version 0.10.0 (TBD)
+#### Version 0.11.0 (TBD)
+* We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
+* Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
+* Added `consolidate` functionality to atomically combine data from one or more records into another record. The records from which data is merged are cleared and all references to those cleared records are replaced with the consolidated record on the document-graph.
+* Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
+* Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
+* Added the `concourse-export` framework which provides the `Exporter` construct for building tools that print data to an OutputStream in accordance with Concourse's multi-valued data format (e.g. a key mapped to multiple values will have those values printed as a delimited list). The `Exporters` utility class contains built-in exporters for exporting within CSV and Microsoft Excel formats.
+* Added an `export` CLI that uses the `concourse-export` framework to export data from Concourse in CSV format to STDOUT or a file.
+ 
+#### Version 0.10.5 (TBD)
+* Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
+* Upgraded CCL version to `2.6.3` in order to fix a parsing bug that occurred when creating a `Criteria` containing a String or String-like value with a whitespace or equal sign (e.g. `=`) character.
+* Fixed a bug that made it possible to store circular links (e.g. a link from a record to itself) when atomically adding or setting data in multiple records at once.
+
+#### Version 0.10.4 (December 15, 2019)
+* Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
+* Fixed a bug that made it possible for a `ConnectionPool` to refuse to accept the `release` of a previously issued `Concourse` connection due to a race condition.
+* Fixed a bug that made it possible for Concourse to violate ACID consistency when performing a concurrent write to a key/record alongside a wide read in the same record.
+* Fixed a bug that caused inconsistencies in the intrinsic order of the result set records from a `find` operation vs a `select` or `get` operation.
+
+#### Version 0.10.3 (November 12, 2019)
+* Fixed an issue where the `Database` unnecessarily loaded data from disk when performing a read for a `key` in a `record` after a previous read for the entire `record` made the desired data available in memory.
+* Fixed a minor bug that caused the Database to create unnecessary temporary directories when performing a reindex.
+* The `Criteria` builder now creates a `NavigationKeySymbol` for navigation keys instead of a `KeySymbol`.
+* Fixed a bug that caused `Convert#stringToJava` to throw an `NumberFormatException` when trying to convert numeric strings that appeared to be numbers outside of Java's representation range. As a result of this fix, those kinds of values will remain as strings.
+* Added a `ForwardingConcourse` wrapper that can be extended by subclasses that provide additional functionality around a subset of Concourse methods.
+* Fixed a bug that prevent a custom `ConnectionPool` using a custom `Concourse` instance (e.g. one that extends `ForwardingConcourse`) from returning a connection of the correct class. As a result of this change, the `ConnectionPool` constructors that accept explicit Concourse connection parameters have been deprecated in favor of one that takes a `Supplier` of Concourse connections.
+* Fixed a bug that caused `TObject#compareTo` to return logically inconsistent results relative to `TObject#equals`. Previously, comparing `TObjects` with type `STRING` occurred in a case insensitive manner whereas the `equals` evaluation was case sensitive. Now, the `compareTo` method is case sensitive.
+* Added the ability to compare `TObjects` in a case insensitive manner.
+* Fixed a bug that made it possible for storage engine to return inaccurate results for `REGEX` and `NOT_REGEX` queries if matching values had different case formats.
+* Fixed a bug that caused historical queries to incorrectly return logically different results compared to present state queries if matching values had different case formats.
+* Fixed a bug that made it possible for reads within the `Buffer` to cause write lock starvation and resource exhaustion; preventing any further writes from occurring and generating a backlog of reads that never terminated.
+
+#### Version 0.10.2 (August 24, 2019)
+* Fixed a bug that caused an error to be thrown when creating a `Criteria` containing a navigation key using the `Criteria#parse` factory.
+* Added an option to limit the length of substrings that are indexed for fulltext search. It is rare to add functionality in a patch release, but this improvement was needed to alleviate Concourse deployments that experience `OutOfMemory` exceptions because abnormally large String values are stuck in the Buffer waiting to be indexed. This option is **turned off by default** to maintain consistency with existing Concourse expectations for fulltext indexing. The option can be enabled by specifying a positive integer value for the newly added `max_search_substring_length` preference. When a value is supplied, the Storage Engine won't index any substrings longer than the provided value for any word in a String value.
+* Made internal improvements to the search indexing algorithm to reduce the number of itermediary objects created which should decrease the number of garbage collection cycles that are triggered.
+* Fixed a bug that caused the Engine to fail to accumulate metadata stats for fulltext search indices. This did not have any data correctness or consistency side-effects, but had the potential to make some search-related operations inefficient.
+* Fixed a bug that made it possible for the Database to appear to lose data when starting up after a crash or unexpected shutdown. This happened because the Database ignored data in Block files that erroneously appeared to be duplicates. We've fixed this issue by improving the logic and workflow that the Database uses to test whether Block files contain duplicate data.
+* Fixed a regression introduced in version `0.10.0` that made it possible for the Database to ignore errors that occurred when indexing writes. When indexing errors occur, the Database creates log entries and stops the indexing process, which is the behaviour that existed prior to version `0.10.0`.
+* Fixed a bug that made it possible for fatal indexing errors to occur when at least two writes were written to the same `Buffer` page for the same key with values that have different types (i.e. `Float` vs `Integer`) but are *essentially* equal (i.e. `18.0` vs `18`). In accordance with Concourse's weak typing system, values that are *essentially* the same will be properly indexed and queryable across associated types. This change **requires a reindex of all block files which is automatically done when upgrading from a previous version**.
+* Fixed a bug that causes the `ManagedConcourseServer` in the `concourse-ete-test-core` framework to take longer than necessary to allow connections in `ClientServerTest` cases.
+
+#### Version 0.10.1 (August 6, 2019)
+* Fixed a regression that caused an error when attempting an action with a CCL statement containing an unquoted string value with one or more periods.
+
+#### Version 0.10.0 (August 3, 2019)
 
 ##### BREAKING CHANGES
 There is only **PARTIAL COMPATIBILITY** between 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,6 +113,23 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
      */
     public Map<Long, Set<TObject>> doExploreUnsafe(String key,
             Operator operator, TObject... values);
+
+    /**
+     * Gather {@code key} from {@code record}.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link describe(long)}. This method
+     * is ONLY appropriate to call from the methods of {@link #AtomicOperation}
+     * class because in this case intermediate read {@link #Lock} is not
+     * required.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return {@code Set}
+     */
+    public Set<TObject> gatherUnsafe(String key, long record);
 
     /**
      * Fetch {@code key} from {@code record}.

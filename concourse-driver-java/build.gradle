@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ dependencies {
     compile 'org.slf4j:log4j-over-slf4j:1.7.5'
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
     compile 'com.google.code.gson:gson:2.5'
-    compile group: 'com.cinchapi', name: 'ccl', version:'2.6.1'
+    compile group: 'com.cinchapi', name: 'ccl', version:'3.1.0'
 
     testCompile project(':concourse-unit-test-core')
     testCompile 'com.github.marschall:memoryfilesystem:0.9.0'

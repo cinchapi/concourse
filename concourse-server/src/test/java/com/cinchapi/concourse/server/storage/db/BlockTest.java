@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,11 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
@@ -45,6 +47,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
     protected Block<L, K, V> block;
     protected String directory;
+    private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
 
     @Rule
     public TestWatcher watcher = new TestWatcher() {
@@ -53,12 +56,15 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         protected void starting(Description description) {
             directory = TestData.DATA_DIR + File.separator + Time.now();
             block = getMutableBlock(directory);
+            // Don't allow dev preferences to interfere with unit test logic...
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = -1;
         }
 
         @Override
         protected void finished(Description description) {
             block = null;
             FileSystem.deleteDirectory(directory);
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = pref;
         }
 
         @Override
@@ -228,6 +234,55 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
                 (long) block.stats().get(Attribute.MAX_REVISION_VERSION));
         Assert.assertEquals(version0,
                 (long) block.stats().get(Attribute.MIN_REVISION_VERSION));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testCannotGetChecksumOfMutableBlock() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        block.checksum();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testChecksumSameAfterSyncAndWhenLoaded() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        block.sync();
+        String expected = block.checksum();
+        block = Reflection.newInstance(block.getClass(), block.getId(),
+                directory, true);
+        String actual = block.checksum();
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testReindex() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insertUnsafe(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        block.sync();
+        BlockIndex aindex = Reflection.get("index", block); // (authorized)
+        BloomFilter afilter = Reflection.get("filter", block); // (authorized)
+        block.reindex();
+        BlockIndex bindex = Reflection.get("index", block); // (authorized)
+        BloomFilter bfilter = Reflection.get("filter", block); // (authorized)
+        Assert.assertNotSame(aindex, bindex);
+        Assert.assertEquals(aindex, bindex);
+        Assert.assertNotSame(afilter, bfilter);
+        Assert.assertEquals(afilter, bfilter);
+        // TODO: check stats
     }
 
     protected abstract L getLocator();

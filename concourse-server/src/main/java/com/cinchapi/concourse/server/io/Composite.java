@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,30 +36,30 @@ import com.google.common.hash.Hashing;
 public final class Composite implements Byteable {
 
     /**
-     * Return a Composite for the list of {@code byteables}.
+     * Return a Composite for the list of {@code objects}.
      * 
-     * @param byteables
+     * @param objects
      * @return the Composite
      */
-    public static Composite create(Byteable... byteables) {
-        return new Composite(byteables);
+    public static Composite create(Compositable... objects) {
+        return new Composite(objects);
     }
 
     /**
-     * Create a Composite for the list of {@code byteables} with support for
+     * Create a Composite for the list of {@code objects} with support for
      * caching. Cached Composites are not guaranteed to perfectly match up with
-     * the list of byteables (because hash collisions can occur) so it is only
+     * the list of objects (because hash collisions can occur) so it is only
      * advisable to use this method of creation when precision is not a
      * requirement.
      * 
-     * @param byteables
+     * @param objects
      * @return the Composite
      */
-    public static Composite createCached(Byteable... byteables) {
-        int hashCode = Arrays.hashCode(byteables);
+    public static Composite createCached(Compositable... objects) {
+        int hashCode = Arrays.hashCode(objects);
         Composite composite = CACHE.get(hashCode);
         if(composite == null) {
-            composite = create(byteables);
+            composite = create(objects);
             CACHE.put(hashCode, composite);
         }
         return composite;
@@ -86,6 +86,9 @@ public final class Composite implements Byteable {
      */
     private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
+    /**
+     * All the bytes that make up the {@link Composite}.
+     */
     private final ByteBuffer bytes;
 
     /**
@@ -105,28 +108,28 @@ public final class Composite implements Byteable {
     /**
      * Construct a new instance.
      * 
-     * @param byteables
+     * @param objects
      */
-    private Composite(Byteable... byteables) {
-        if(byteables.length == 1) {
-            bytes = byteables[0].getBytes();
+    private Composite(Compositable... objects) {
+        if(objects.length == 1) {
+            bytes = objects[0].getCanonicalBytes();
         }
         else {
             int size = 0;
-            for (Byteable byteable : byteables) {
-                size += byteable.size();
+            for (Compositable object : objects) {
+                size += object.getCanonicalLength();
             }
             bytes = ByteBuffer.allocate(size);
-            for (Byteable byteable : byteables) {
-                byteable.copyTo(bytes);
+            for (Compositable object : objects) {
+                object.copyCanonicalBytesTo(ByteSink.to(bytes));
             }
             bytes.rewind();
         }
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    public void copyTo(ByteSink sink) {
+        ByteSinks.copyAndRewindSource(bytes, sink);
     }
 
     @Override
@@ -153,11 +156,10 @@ public final class Composite implements Byteable {
         return bytes.capacity();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public String toString() {
-        return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
-                .toString();
+        return Hashing.murmur3_128()
+                .hashBytes(ByteBuffers.toByteArray(getBytes())).toString();
     }
 
 }
