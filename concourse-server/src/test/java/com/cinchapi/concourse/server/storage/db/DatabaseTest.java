@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,15 @@ import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.profile.Benchmark;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -37,7 +41,9 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -112,6 +118,42 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    public void testSearchIndexMultipleEnvironmentsConcurrently() {
+        List<Database> dbs = Lists.newArrayList();
+        for (int i = 0; i < 10; ++i) {
+            Database db = getStore();
+            db.start();
+            dbs.add(db);
+        }
+        String key = "test";
+        String query = "son i";
+        TObject value = Convert.javaToThrift("Jeff Nelson is the CEO");
+        int count = 100;
+        Set<Long> expected = Sets.newLinkedHashSet();
+        Consumer<Database> func = db -> {
+            for (int i = 0; i < count; ++i) {
+                expected.add((long) i);
+                Write write = Write.add("test", value, i);
+                db.accept(write);
+            }
+        };
+        for (Database db : dbs) {
+            func.accept(db);
+        }
+        for (Database db : dbs) {
+            Set<Long> actual = db.search(key, query);
+            Assert.assertTrue(!actual.isEmpty());
+            Assert.assertEquals(expected, actual);
+        }
+        for (Database db : dbs) {
+            db.stop();
+            if(!current.contentEquals(db.getBackingStore())) {
+                FileSystem.deleteDirectory(db.getBackingStore());
+            }
+        }
+    }
+
+    @Test
     @Ignore
     public void testOnDiskStreamingIterator() {
         Database db = (Database) store;
@@ -143,6 +185,83 @@ public class DatabaseTest extends StoreTest {
             Variables.register("actual_" + i, actual);
             ++i;
         }
+    }
+
+    @Test
+    public void testLoadPrimaryRecordUsesFullRecordIfItMemory() {
+        Database db = (Database) store;
+        String a = "a";
+        String b = "b";
+        TObject value = Convert.javaToThrift(1);
+        long record = 1;
+        db.accept(Write.add(a, value, record));
+        db.accept(Write.add(b, value, record));
+        db.triggerSync();
+        db.stop();
+        db = new Database(db.getBackingStore()); // TODO: cannot stop/start same
+                                                 // Database instance because
+                                                 // state isn't reset...
+        db.start();
+        PrimaryRecord rec = Reflection.call(db, "getPrimaryRecord",
+                PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
+        Assert.assertTrue(rec.isPartial());
+        db.select(record);
+        rec = Reflection.call(db, "getPrimaryRecord", PrimaryKey.wrap(record),
+                Text.wrap(b)); // (authorized)
+        Assert.assertFalse(rec.isPartial());
+    }
+
+    @Test
+    public void testGatherVsSelectBenchmark() {
+        java.util.Random rand = new java.util.Random();
+        Database store = (Database) this.store;
+        List<Long> records = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 100; ++i) {
+            records.add(Time.now());
+        }
+        List<String> keys = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 10; ++i) {
+            keys.add(Random.getSimpleString());
+        }
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            String key = keys.get(rand.nextInt(keys.size()));
+            long record = records.get(rand.nextInt(records.size()));
+            TObject value = Convert.javaToThrift(Random.getObject());
+            add(key, value, record);
+            if(rand.nextInt() % 6 == 0) {
+                remove(key, value, record);
+            }
+        }
+        Database $store = store;
+        Benchmark select = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                for (long record : records) {
+                    for (String key : keys) {
+                        $store.select(key, record);
+                    }
+                }
+            }
+
+        };
+        Benchmark gather = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                for (long record : records) {
+                    for (String key : keys) {
+                        $store.gather(key, record);
+                    }
+                }
+            }
+
+        };
+        double selectTime = select.run(1);
+        double gatherTime = gather.run(1);
+        System.out.println("Select took " + selectTime + " ms and gather took "
+                + gatherTime + " ms");
+        Assert.assertTrue(gatherTime <= selectTime);
     }
 
     @Override

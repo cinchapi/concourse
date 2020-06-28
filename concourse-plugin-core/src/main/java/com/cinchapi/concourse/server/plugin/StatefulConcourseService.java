@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3142,6 +3142,27 @@ abstract class StatefulConcourseService {
     }
 
     public long timePhrase(String phrase) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<String, Set<Long>> traceRecord(long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<String, Set<Long>> traceRecordTime(long record, long timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Long>>> traceRecords(List<Long> records) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, Map<String, Set<Long>>> traceRecordsTime(
+            List<Long> records, long timestamp) {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean consolidateRecords(List<Long> records) {
         throw new UnsupportedOperationException();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,6 +260,21 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         record.append(getRevision(locator, key, value));
         Assert.assertTrue(record.describe().isEmpty());
         Assert.assertFalse(record.isEmpty());
+    }
+
+    @Test
+    public void testCardinality() {
+        L locator = getLocator();
+        Record<L, K, V> record = getRecord(locator);
+        Set<K> keys = Sets.newHashSet();
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            K key = getKey();
+            V value = getValue();
+            Revision<L, K, V> revision = getRevision(locator, key, value);
+            record.append(revision);
+            keys.add(key);
+        }
+        Assert.assertEquals(keys.size(), record.cardinality());
     }
 
     protected abstract K getKey();

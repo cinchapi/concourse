@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -32,6 +33,19 @@ import com.cinchapi.concourse.util.ByteBuffers;
  */
 @Immutable
 public final class Text implements Byteable, Comparable<Text> {
+
+    /**
+     * Represents an empty text string.
+     */
+    public static final Text EMPTY = Text.wrap("");
+
+    /**
+     * The cache that holds the objects created from the
+     * {@link #wrapCached(String)} method. This is primary used for string keys
+     * since those are expected to be used often.
+     */
+    private static final LazyCache<String, Text> cache = LazyCache
+            .withExpectedSize(5000);
 
     /**
      * Return the Text encoded in {@code bytes} so long as those bytes adhere
@@ -76,33 +90,20 @@ public final class Text implements Byteable, Comparable<Text> {
     }
 
     /**
-     * The cache that holds the objects created from the
-     * {@link #wrapCached(String)} method. This is primary used for string keys
-     * since those are expected to be used often.
-     */
-    private static final LazyCache<String, Text> cache = LazyCache
-            .withExpectedSize(5000);
-
-    /**
-     * Represents an empty text string.
-     */
-    public static final Text EMPTY = Text.wrap("");
-
-    /**
      * Master byte sequence that represents this object. Read-only duplicates
      * are made when returning from {@link #getBytes()}.
      */
     private transient ByteBuffer bytes = null;
 
     /**
-     * The wrapped string.
-     */
-    private final String text;
-
-    /**
      * A mutex used to synchronized the lazy setting of the byte buffer.
      */
     private final Object mutex = new Object();
+
+    /**
+     * The wrapped string.
+     */
+    private final String text;
 
     /**
      * Construct an instance that wraps the {@code text} string.
@@ -127,6 +128,16 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public int compareTo(Text o) {
         return toString().compareTo(o.toString());
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        if(bytes == null) {
+            sink.putUtf8(text);
+        }
+        else {
+            sink.put(getBytes());
+        }
     }
 
     @Override
@@ -164,16 +175,6 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public String toString() {
         return text;
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        if(bytes == null) {
-            ByteBuffers.putString(text, buffer);
-        }
-        else {
-            buffer.put(getBytes());
-        }
     }
 
 }

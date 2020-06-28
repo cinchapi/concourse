@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import java.nio.ByteBuffer;
  * @see Byteables
  * @author Jeff Nelson
  */
-public interface Byteable {
+public interface Byteable extends Compositable {
 
     /**
      * Copy the byte sequence that represents this object to the {@code buffer}.
@@ -57,9 +57,9 @@ public interface Byteable {
      * representation, be sure to reset the position after copying data to the
      * buffer.
      * <p>
-     * This method is primary intended for pass-through gathering where data
-     * from multiple Byteables can be copied to a single bytebuffer without
-     * doing any unnecessary intermediate copying. So, if the binary
+     * This method is primarily intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single {@link ByteBuffer}
+     * without doing any unnecessary intermediate copying. So, if the binary
      * representation for this object depends on that of another Byteable, then
      * the implementation of this method should gather those bytes using the
      * {@link #copyTo(ByteBuffer)} method for the other Byteable.
@@ -73,14 +73,44 @@ public interface Byteable {
      * 
      * @param buffer
      */
-    public void copyTo(ByteBuffer buffer);
+    public default void copyTo(ByteBuffer buffer) {
+        copyTo(ByteSink.to(buffer));
+    }
+
+    /**
+     * Copy the byte sequence that represents this object to the {@code sink}.
+     * This method should be idempotent, so if the object caches its byte
+     * representation, be sure to reset the position after copying data to the
+     * buffer.
+     * <p>
+     * This method is primarily intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single {@link ByteSink}
+     * without doing any unnecessary intermediate copying. So, if the binary
+     * representation for this object depends on that of another Byteable, then
+     * the implementation of this method should gather those bytes using the
+     * {@link #copyTo(ByteSink)} method for the other Byteable.
+     * </p>
+     * 
+     * @param sink
+     */
+    public void copyTo(ByteSink sink);
 
     /**
      * Returns a byte sequence that represents this object.
      * 
      * @return the byte sequence.
      */
-    public ByteBuffer getBytes();
+    public default ByteBuffer getBytes() {
+        ByteBuffer bytes = ByteBuffer.allocate(size());
+        copyTo(ByteSink.to(bytes));
+        bytes.rewind();
+        return bytes;
+    }
+
+    @Override
+    public default ByteBuffer getCanonicalBytes() {
+        return getBytes();
+    }
 
     /**
      * Returns the total number of bytes used to represent this object.
@@ -93,5 +123,20 @@ public interface Byteable {
      * @return the number of bytes.
      */
     public int size();
+
+    @Override
+    public default void copyCanonicalBytesTo(ByteBuffer buffer) {
+        copyTo(buffer);
+    }
+
+    @Override
+    public default void copyCanonicalBytesTo(ByteSink sink) {
+        copyTo(sink);
+    }
+
+    @Override
+    public default int getCanonicalLength() {
+        return size();
+    }
 
 }

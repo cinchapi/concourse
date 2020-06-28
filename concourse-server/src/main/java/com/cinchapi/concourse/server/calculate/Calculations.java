@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,22 @@ import com.cinchapi.concourse.util.Numbers;
  * @author Jeff Nelson
  */
 public final class Calculations {
+
+    /**
+     * Return the appropriate alias for the {@code function}, if it exists.
+     * 
+     * @param function
+     * @return the {@code function} alias or the {@code function} if it does not
+     *         have one
+     */
+    public static String alias(String function) {
+        if(function.toLowerCase().equals("average")) {
+            return "avg";
+        }
+        else {
+            return function;
+        }
+    }
 
     /**
      * Check if {@code value} can be included in a calculation.

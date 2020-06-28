@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
@@ -41,6 +43,7 @@ import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.RegexPatterns;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
@@ -55,22 +58,6 @@ public class TObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<TObject> {
-
-    /**
-     * A constant representing the largest possible TObject. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    private static final TObject POSITIVE_INFINITY = Convert
-            .javaToThrift(Long.MAX_VALUE);
-
-    /**
-     * A constant representing the smallest possible TObject. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    private static final TObject NEGATIVE_INFINITY = Convert
-            .javaToThrift(Long.MIN_VALUE);
 
     /**
      * Return a {@link Comparator} for {@link TObject} values.
@@ -127,29 +114,112 @@ public class TObject implements
                     String o2s = o2 instanceof Timestamp
                             ? Long.toString(((Timestamp) o2).getMicros())
                             : o2.toString();
-                    return o1s.compareToIgnoreCase(o2s);
+                    // CON-667: Order strings in a manner that causes lowercase
+                    // and uppercase versions of the "same" string to be grouped
+                    // together with uppercase appearing "first"
+                    int c = o1s.compareToIgnoreCase(o2s);
+                    if(c == 0) {
+                        c = o1s.compareTo(o2s);
+                    }
+                    return c;
                 }
             }
         };
     }
 
+    /**
+     * Perform any necessary aliasing on the {@code values} and {@code operator}
+     * based on the combination of the two
+     * 
+     * @param operator
+     * @param values
+     * @return the aliased parameters
+     */
+    public static Aliases alias(Operator operator, TObject... values) {
+        // Transform the operator to its functional alias, given the
+        // transformations that will be made to the value(s).
+        Operator original = operator;
+        switch (operator) {
+        case LIKE:
+            operator = Operator.REGEX;
+            break;
+        case NOT_LIKE:
+            operator = Operator.NOT_REGEX;
+            break;
+        case LINKS_TO:
+            operator = Operator.EQUALS;
+            break;
+        default:
+            break;
+        }
+
+        // Transform the values based on the original operator, if necessary.
+        TObject[] ovalues = new TObject[values.length];
+        for (int i = 0; i < ovalues.length; ++i) {
+            TObject value = values[i];
+            try {
+                switch (original) {
+                case REGEX:
+                case NOT_REGEX:
+                case LIKE:
+                case NOT_LIKE:
+                    value = Convert.javaToThrift(
+                            ((String) Convert.thriftToJava(value)).replaceAll(
+                                    RegexPatterns.PERCENT_SIGN_WITHOUT_ESCAPE_CHAR,
+                                    ".*").replaceAll(
+                                            RegexPatterns.PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                            "%"));
+                    break;
+                case LINKS_TO:
+                    value = Convert.javaToThrift(
+                            Link.to(((Number) Convert.thriftToJava(value))
+                                    .longValue()));
+                    break;
+                default:
+                    break;
+                }
+
+            }
+            catch (ClassCastException e) {/* ignore */}
+            ovalues[i] = value;
+        }
+
+        return new Aliases(operator, ovalues);
+    }
+
     // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+
+    /**
+     * A constant representing the smallest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static final TObject NEGATIVE_INFINITY = Convert
+            .javaToThrift(Long.MIN_VALUE);
     /**
      * Represents a null object that can be passed across the wire.
      */
     public static final TObject NULL = new TObject(ByteBuffer.allocate(1),
             Type.NULL);
 
+    /**
+     * A constant representing the largest possible TObject. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static final TObject POSITIVE_INFINITY = Convert
+            .javaToThrift(Long.MAX_VALUE);
+
     private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
             "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
-
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
             "TObject");
-
     private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
             "type", org.apache.thrift.protocol.TType.I32, (short) 2);
+
     /**
      * The byte for UTF-8 whitespace.
      */
@@ -256,6 +326,26 @@ public class TObject implements
         return comparator().compare(this, other);
     }
 
+    /**
+     * Compare this {@link TObject} to the {@code other} one if both are
+     * {@link #isCharSequenceType() character sequence types} where case
+     * matters. Otherwise, simply {@link #compareTo(TObject) compare} the two
+     * {@link TObject}s.
+     * 
+     * @param other
+     * @return an integer that describes the case insensitive relative ordering
+     *         of this {@link TObject} and the {@code other} one
+     */
+    public int compareToIgnoreCase(TObject other) {
+        if(isCharSequenceType() && other.isCharSequenceType()) {
+            return Convert.thriftToJava(this).toString().compareToIgnoreCase(
+                    Convert.thriftToJava(other).toString());
+        }
+        else {
+            return compareTo(other);
+        }
+    }
+
     public TObject deepCopy() {
         return new TObject(this);
     }
@@ -343,34 +433,7 @@ public class TObject implements
      * @return {@code true} if the comparison is valid
      */
     public boolean is(Operator operator, TObject... values) {
-        TObject v1 = values[0];
-        switch (operator) {
-        case EQUALS:
-            return comparator().compare(this, v1) == 0;
-        case NOT_EQUALS:
-            return comparator().compare(this, v1) != 0;
-        case GREATER_THAN:
-            return comparator().compare(this, v1) > 0;
-        case GREATER_THAN_OR_EQUALS:
-            return comparator().compare(this, v1) >= 0;
-        case LESS_THAN:
-            return comparator().compare(this, v1) < 0;
-        case LESS_THAN_OR_EQUALS:
-            return comparator().compare(this, v1) <= 0;
-        case BETWEEN:
-            Preconditions.checkArgument(values.length > 1);
-            TObject v2 = values[1];
-            return comparator().compare(v1, this) <= 0
-                    && comparator().compare(v2, this) > 0;
-        case REGEX:
-            return Convert.thriftToJava(this).toString()
-                    .matches(Convert.thriftToJava(v1).toString());
-        case NOT_REGEX:
-            return !Convert.thriftToJava(this).toString()
-                    .matches(Convert.thriftToJava(v1).toString());
-        default:
-            throw new UnsupportedOperationException();
-        }
+        return is(comparator()::compare, operator, values);
     }
 
     /**
@@ -400,6 +463,29 @@ public class TObject implements
         else {
             return false;
         }
+    }
+
+    /**
+     * Return {@code true} if the value {@link #getType() type} is a character
+     * sequence.
+     * 
+     * @return {@code true} if the value type is a character sequence
+     */
+    public boolean isCharSequenceType() {
+        Type type = getType();
+        return type == Type.STRING || type == Type.TAG;
+    }
+
+    /**
+     * Return {@code true} of this {@link TObject} satisfies {@code operator} in
+     * relation to the {@code values} regardless of case.
+     * 
+     * @param operator
+     * @param values
+     * @return {@code true} if the comparison is valid
+     */
+    public boolean isIgnoreCase(Operator operator, TObject... values) {
+        return is((t1, t2) -> t1.compareToIgnoreCase(t2), operator, values);
     }
 
     /**
@@ -569,6 +655,52 @@ public class TObject implements
         }
     }
 
+    /**
+     * Return {@code true} of this {@link TObject} satisfies {@code operator} in
+     * relation to the {@code values}.
+     * 
+     * @param comparer a {@link BiFunction} that compares two {@link TObject}s
+     *            and returns an Integer that describes their relative order
+     *            similar to a {@link Comparator}
+     * @param operator
+     * @param values
+     * @return {@code true} if the comparison is valid
+     */
+    private boolean is(BiFunction<TObject, TObject, Integer> comparer,
+            Operator operator, TObject... values) {
+        Aliases aliases = alias(operator, values);
+        values = aliases.values();
+        operator = aliases.operator();
+        TObject v1 = values[0];
+        switch (operator) {
+        case EQUALS:
+            return comparer.apply(this, v1) == 0;
+        case NOT_EQUALS:
+            return comparer.apply(this, v1) != 0;
+        case GREATER_THAN:
+            return comparer.apply(this, v1) > 0;
+        case GREATER_THAN_OR_EQUALS:
+            return comparer.apply(this, v1) >= 0;
+        case LESS_THAN:
+            return comparer.apply(this, v1) < 0;
+        case LESS_THAN_OR_EQUALS:
+            return comparer.apply(this, v1) <= 0;
+        case BETWEEN:
+            Preconditions.checkArgument(values.length > 1);
+            TObject v2 = values[1];
+            return comparer.apply(v1, this) <= 0
+                    && comparer.apply(v2, this) > 0;
+        case REGEX:
+            return Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        case NOT_REGEX:
+            return !Convert.thriftToJava(this).toString()
+                    .matches(Convert.thriftToJava(v1).toString());
+        default:
+            throw new UnsupportedOperationException();
+        }
+    }
+
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
         try {
@@ -660,6 +792,46 @@ public class TObject implements
 
         public short getThriftFieldId() {
             return _thriftId;
+        }
+    }
+
+    /**
+     * A container class that holds operational parameters based on conversions
+     * in the {@link #alias(Operator, TObject[])} method.
+     * 
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public static final class Aliases {
+
+        private final Operator operator;
+        private final TObject[] values;
+
+        /**
+         * @param operator
+         * @param values
+         */
+        private Aliases(Operator operator, TObject[] values) {
+            this.operator = operator;
+            this.values = values;
+        }
+
+        /**
+         * Return the {@link #operator}.
+         * 
+         * @return the operator
+         */
+        public Operator operator() {
+            return operator;
+        }
+
+        /**
+         * Return the {@link #values}.
+         * 
+         * @return the values
+         */
+        public TObject[] values() {
+            return values;
         }
     }
 

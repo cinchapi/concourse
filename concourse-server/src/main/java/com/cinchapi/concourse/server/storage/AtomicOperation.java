@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
@@ -65,6 +66,11 @@ public class AtomicOperation extends BufferedStore
     // place.
 
     /**
+     * The initial capacity
+     */
+    protected static final int INITIAL_CAPACITY = 10;
+
+    /**
      * Start a new AtomicOperation that will commit to {@code store}.
      * <p>
      * Always use the {@link AtomicSupport#startAtomicOperation()} method over
@@ -78,11 +84,6 @@ public class AtomicOperation extends BufferedStore
     protected static AtomicOperation start(AtomicSupport store) {
         return new AtomicOperation(store);
     }
-
-    /**
-     * The initial capacity
-     */
-    protected static final int INITIAL_CAPACITY = 10;
 
     /**
      * The {@link RangeToken range read tokens} that represent any queries in
@@ -194,6 +195,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.add(key, value, record, true, true, false);
@@ -220,39 +225,6 @@ public class AtomicOperation extends BufferedStore
     }
 
     @Override
-    public boolean contains(long record) {
-        checkState();
-        Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
-        reads2Lock.add(token);
-        wideReads.put(record, token);
-        return super.contains(record);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record)
-            throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
-        reads2Lock.add(token);
-        wideReads.put(record, token);
-        return super.browse(record, true);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp)
-            throws AtomicStateException {
-        if(timestamp > Time.now()) {
-            return select(record);
-        }
-        else {
-            checkState();
-            return super.select(record, timestamp);
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key)
             throws AtomicStateException {
         checkState();
@@ -276,6 +248,24 @@ public class AtomicOperation extends BufferedStore
         else {
             checkState();
             return super.browse(key, timestamp);
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologize(String key, long record,
+            long start, long end) throws AtomicStateException {
+        checkState();
+        long now = Time.now();
+        if(start > now || end > now) {
+            // Must perform a locking read to prevent a non-repeatable read if
+            // writes occur between the present and the future timestamp(s)
+            Token token = Token.wrap(key, record);
+            source.addVersionChangeListener(token, this);
+            reads2Lock.add(token);
+            return super.chronologize(key, record, start, end, true);
+        }
+        else {
+            return super.chronologize(key, record, start, end);
         }
     }
 
@@ -320,42 +310,34 @@ public class AtomicOperation extends BufferedStore
     }
 
     @Override
-    public Set<TObject> select(String key, long record)
+    public boolean contains(long record) {
+        checkState();
+        Token token = Token.wrap(record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        wideReads.put(record, token);
+        return super.contains(record);
+    }
+
+    @Override
+    public Set<TObject> gather(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.select(key, record, true);
+        return super.gather(key, record, true);
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
-            long start, long end) throws AtomicStateException {
-        checkState();
-        long now = Time.now();
-        if(start > now || end > now) {
-            // Must perform a locking read to prevent a non-repeatable read if
-            // writes occur between the present and the future timestamp(s)
-            Token token = Token.wrap(key, record);
-            source.addVersionChangeListener(token, this);
-            reads2Lock.add(token);
-            return super.chronologize(key, record, start, end, true);
-        }
-        else {
-            return super.chronologize(key, record, start, end);
-        }
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record, long timestamp)
+    public Set<TObject> gather(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
-            return select(key, record);
+            return gather(key, record);
         }
         else {
             checkState();
-            return super.select(key, record, timestamp);
+            return super.gather(key, record, timestamp);
         }
     }
 
@@ -381,6 +363,10 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         return super.remove(key, value, record, true, true, false);
@@ -391,6 +377,51 @@ public class AtomicOperation extends BufferedStore
             throws AtomicStateException {
         checkState();
         return super.search(key, query);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        wideReads.put(record, token);
+        return super.browse(record, true);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp)
+            throws AtomicStateException {
+        if(timestamp > Time.now()) {
+            return select(record);
+        }
+        else {
+            checkState();
+            return super.select(record, timestamp);
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(key, record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        return super.select(key, record, true);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp)
+            throws AtomicStateException {
+        if(timestamp > Time.now()) {
+            return select(key, record);
+        }
+        else {
+            checkState();
+            return super.select(key, record, timestamp);
+        }
     }
 
     @Override
@@ -408,10 +439,20 @@ public class AtomicOperation extends BufferedStore
         else {
             source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record, false);
     }
+
+    @Override
+    public final void start() {}
+
+    @Override
+    public final void stop() {}
 
     /**
      * Register interest in {@code record} so that this AtomicOperation can
@@ -426,12 +467,6 @@ public class AtomicOperation extends BufferedStore
         reads2Lock.add(token);
         wideReads.put(record, token);
     }
-
-    @Override
-    public final void start() {}
-
-    @Override
-    public final void stop() {}
 
     @Override
     public boolean verify(String key, TObject value, long record)
@@ -865,9 +900,9 @@ public class AtomicOperation extends BufferedStore
         }
 
         @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.put((byte) type.ordinal());
-            token.copyTo(buffer);
+        public void copyTo(ByteSink sink) {
+            sink.put((byte) type.ordinal());
+            token.copyTo(sink);
         }
 
         @Override
@@ -877,18 +912,6 @@ public class AtomicOperation extends BufferedStore
                         && type == ((LockDescription) obj).type;
             }
             return false;
-        }
-
-        @Override
-        public ByteBuffer getBytes() {
-            // We do not create a cached copy for the entire class because we'll
-            // only ever getBytes() for a lock description once and that only
-            // happens if the AtomicOperation is not aborted before an attempt
-            // to commit, so its best to not create a copy if we don't have to
-            ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
         }
 
         /**

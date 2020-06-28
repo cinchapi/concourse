@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 package com.cinchapi.concourse;
 
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -58,6 +58,16 @@ public abstract class ConnectionPool implements AutoCloseable {
 
     // NOTE: This class does not define #hashCode or #equals because the
     // defaults are the desired behaviour
+
+    /**
+     * The default connection pool size.
+     */
+    protected static final int DEFAULT_POOL_SIZE = 10;
+
+    /**
+     * The default preferences file to use if none is specified.
+     */
+    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
 
     /**
      * Return a {@link ConnectionPool} that has no limit on the number of
@@ -291,16 +301,6 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * The default connection pool size.
-     */
-    protected static final int DEFAULT_POOL_SIZE = 10;
-
-    /**
-     * The default preferences file to use if none is specified.
-     */
-    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
-
-    /**
      * A FIFO queue of connections that are available to be leased.
      */
     protected final Queue<Concourse> available;
@@ -316,6 +316,29 @@ public abstract class ConnectionPool implements AutoCloseable {
     private AtomicBoolean open = new AtomicBoolean(true);
 
     /**
+     * The {@link Supplier} of {@link Concourse} connections.
+     */
+    protected final Supplier<Concourse> supplier;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param supplier
+     * @param poolSize
+     */
+    protected ConnectionPool(Supplier<Concourse> supplier, int poolSize) {
+        this.supplier = supplier;
+        this.available = buildQueue(poolSize);
+        this.leased = Sets.newConcurrentHashSet();
+        for (int i = 0; i < poolSize; ++i) {
+            available.offer(supplier.get());
+        }
+        // Ensure that the client connections are forced closed when the JVM is
+        // shutdown in case the user does not properly close the pool
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> forceClose()));
+    }
+
+    /**
      * Construct a new instance.
      * 
      * @param host
@@ -324,6 +347,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param password
      * @param poolSize
      */
+    @Deprecated
     protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
         this(host, port, username, password, "", poolSize);
@@ -340,25 +364,11 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param environment
      * @param poolSize
      */
+    @Deprecated
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
-        this.available = buildQueue(poolSize);
-        this.leased = Collections
-                .newSetFromMap(Maps.<Concourse, Boolean> newConcurrentMap());
-        for (int i = 0; i < poolSize; ++i) {
-            available.offer(Concourse.connect(host, port, username, password,
-                    environment));
-        }
-        // Ensure that the client connections are forced closed when the JVM is
-        // shutdown in case the user does not properly close the pool
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                forceClose();
-            }
-
-        }));
+        this(() -> Concourse.connect(host, port, username, password,
+                environment), poolSize);
     }
 
     @Override
@@ -402,8 +412,8 @@ public abstract class ConnectionPool implements AutoCloseable {
     public void release(Concourse connection) {
         verifyOpenState();
         verifyValidOrigin(connection);
-        available.offer(connection);
         leased.remove(connection);
+        available.offer(connection);
     }
 
     /**
@@ -418,35 +428,6 @@ public abstract class ConnectionPool implements AutoCloseable {
         leased.add(connection);
         return connection;
     }
-
-    /**
-     * Return the {@link Queue} that will hold the connections.
-     * 
-     * @param size
-     * 
-     * @return the connections cache
-     */
-    protected abstract Queue<Concourse> buildQueue(int size);
-
-    /**
-     * Force the connection pool to close regardless of whether it is or is not
-     * in a {@link #isClosable() closable} state.
-     */
-    protected void forceClose() {
-        if(open.compareAndSet(true, false)) {
-            exitConnections(available);
-            exitConnections(leased);
-        }
-    }
-
-    /**
-     * Get a connection from the queue of {@code available} ones. The subclass
-     * should use the correct method depending upon whether this method should
-     * block or not.
-     * 
-     * @return the connection
-     */
-    protected abstract Concourse getConnection();
 
     /**
      * Exit all the connections managed of the pool that has a
@@ -513,4 +494,33 @@ public abstract class ConnectionPool implements AutoCloseable {
                             + "was not previously requested from this pool");
         }
     }
+
+    /**
+     * Return the {@link Queue} that will hold the connections.
+     * 
+     * @param size
+     * 
+     * @return the connections cache
+     */
+    protected abstract Queue<Concourse> buildQueue(int size);
+
+    /**
+     * Force the connection pool to close regardless of whether it is or is not
+     * in a {@link #isClosable() closable} state.
+     */
+    protected void forceClose() {
+        if(open.compareAndSet(true, false)) {
+            exitConnections(available);
+            exitConnections(leased);
+        }
+    }
+
+    /**
+     * Get a connection from the queue of {@code available} ones. The subclass
+     * should use the correct method depending upon whether this method should
+     * block or not.
+     * 
+     * @return the connection
+     */
+    protected abstract Concourse getConnection();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
- plugins {
-   id "com.jfrog.bintray" version "1.7"
- }
-
 dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-plugin-core')
     compile project(':concourse-shell')
     compile project(':concourse-cli')
     compile project(':concourse-import')
+    compile project(':concourse-export')
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     compile ('org.reflections:reflections:0.9.9-RC2'){

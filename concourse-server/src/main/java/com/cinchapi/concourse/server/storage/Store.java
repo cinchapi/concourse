@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,6 +314,13 @@ public interface Store {
      * Start the service.
      */
     public void start();
+
+    /**
+     * Return the {@link Memory} of this {@link Store}.
+     * 
+     * @return the {@link Store} {@link Memory state}
+     */
+    public Memory memory();
 
     /**
      * Stop the service.

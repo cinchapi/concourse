@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,12 +187,6 @@ public final class Transaction extends AtomicOperation
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
-            long start, long end) {
-        return chronologize(key, record, start, end);
-    }
-
-    @Override
     public Map<String, Set<TObject>> browseUnsafe(long record) {
         return select(record);
     }
@@ -203,14 +197,20 @@ public final class Transaction extends AtomicOperation
     }
 
     @Override
+    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+            long start, long end) {
+        return chronologize(key, record, start, end);
+    }
+
+    @Override
     public Map<Long, Set<TObject>> doExploreUnsafe(String key,
             Operator operator, TObject... values) {
         return doExplore(key, operator, values);
     }
 
     @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
-        return select(key, record);
+    public Set<TObject> gatherUnsafe(String key, long record) {
+        return gather(key, record);
     }
 
     @Override
@@ -247,6 +247,11 @@ public final class Transaction extends AtomicOperation
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {}
+
+    @Override
+    public Set<TObject> selectUnsafe(String key, long record) {
+        return select(key, record);
+    }
 
     @Override
     public AtomicOperation startAtomicOperation() {

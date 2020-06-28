@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.cinchapi.concourse.server.concurrent;
 import java.nio.ByteBuffer;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.concourse.server.io.ByteSink;
+import com.cinchapi.concourse.server.io.ByteSinks;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
 import com.cinchapi.concourse.util.ByteBuffers;
@@ -32,6 +34,12 @@ import com.google.common.io.BaseEncoding;
 public class Token implements Byteable {
 
     /**
+     * The cache of string tokens that represent record keys.
+     */
+    private static final LazyCache<String, Token> cache = LazyCache
+            .withExpectedSize(5000);
+
+    /**
      * Return the Token encoded in {@code bytes} so long as those bytes adhere
      * to the format specified by the {@link #getBytes()} method. This method
      * assumes that all the bytes in the {@code bytes} belong to the Token. In
@@ -43,6 +51,20 @@ public class Token implements Byteable {
      */
     public static Token fromByteBuffer(ByteBuffer bytes) {
         return new Token(bytes);
+    }
+
+    /**
+     * Return a {@link Token} that wraps the specified {@code key} and can be
+     * exchanged for a {@link SharedReadWriteLock} that provides more flexible
+     * concurrency controls.
+     * 
+     * @param object
+     * @return the {@link Token}
+     */
+    public static Token shareable(long object) {
+        Token token = wrap(object);
+        token.upgrade();
+        return token;
     }
 
     /**
@@ -76,12 +98,6 @@ public class Token implements Byteable {
     }
 
     /**
-     * The cache of string tokens that represent record keys.
-     */
-    private static final LazyCache<String, Token> cache = LazyCache
-            .withExpectedSize(5000);
-
-    /**
      * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
@@ -103,6 +119,11 @@ public class Token implements Byteable {
     }
 
     @Override
+    public void copyTo(ByteSink sink) {
+        ByteSinks.copyAndRewindSource(bytes, sink);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof Token) {
             return getBytes().equals(((Token) obj).getBytes());
@@ -120,13 +141,6 @@ public class Token implements Byteable {
         return getBytes().hashCode();
     }
 
-    /**
-     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
-     */
-    public void upgrade() {
-        this.cardinality += 1;
-    }
-
     @Override
     public int size() {
         return bytes.capacity();
@@ -138,9 +152,11 @@ public class Token implements Byteable {
                 .toLowerCase();
     }
 
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    /**
+     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
+     */
+    public void upgrade() {
+        this.cardinality += 1;
     }
 
 }

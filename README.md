@@ -173,8 +173,8 @@ where
 * bug fixes or miscellaneous changes bumps the patch.
 
 ##### Additional Resources
-* [Installation](https://docs.cinchapi.com/concourse/guide/installation/)
-* [Introduction](https://docs.cinchapi.com/concourse/guide/introduction/)
+* [Installation](https://docs.cinchapi.com/concourse/installation)
+* [Introduction](https://docs.cinchapi.com/concourse/introduction)
 * [API](concourse-driver-java/README.md)
 * [Developer Setup](http://wiki.cinchapi.com/display/OSS/Concourse+Developer+Setup)
 
@@ -193,6 +193,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2019 Cinchapi Inc.
+Copyright © 2013-2020 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

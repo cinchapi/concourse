@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
@@ -33,6 +34,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -42,11 +44,14 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.annotate.Restricted;
+import com.cinchapi.concourse.collect.CloseableIterator;
+import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.concurrent.ConcourseExecutors;
+import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
@@ -99,15 +104,9 @@ import com.google.common.collect.Sets;
 public final class Buffer extends Limbo implements InventoryTracker {
 
     /**
-     * Assuming {@code location} is a valid bufferStore, return an
-     * {@link Iterator} to traverse the writes in the Buffer directly from disk
-     * without loading the entire Buffer into memory.
-     * 
-     * @return the iterator
+     * The average number of bytes used to store an arbitrary Write.
      */
-    public static Iterator<Write> onDiskIterator(String location) {
-        return new OnDiskIterator(location);
-    }
+    private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
 
     // NOTE: The Buffer does not ever lock itself because its delegates
     // concurrency control to each individual page. Furthermore, since each
@@ -115,11 +114,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
     // equal to #currentPage. The Buffer does grab the transport readLock for
     // most methods so that we don't end up in situations where a transport
     // happens while we're trying to read.
-
-    /**
-     * The average number of bytes used to store an arbitrary Write.
-     */
-    private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
 
     /**
      * A global {@link ExecutorService} to asynchronously record all the
@@ -151,6 +145,18 @@ public final class Buffer extends Limbo implements InventoryTracker {
      */
     private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE
             / 10;
+
+    /**
+     * Assuming {@code location} is a valid bufferStore, return an
+     * {@link Iterator} to traverse the writes in the Buffer directly from disk
+     * without loading the entire Buffer into memory.
+     * 
+     * @return the iterator
+     */
+    public static Iterator<Write> onDiskIterator(String location) {
+        return new OnDiskIterator(location);
+    }
+
     /**
      * The multiplier that is used when increasing the rate of transport.
      */
@@ -179,14 +185,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
     /**
      * A runnable that flushes the inventory to disk.
      */
-    private Runnable inventorySync = new Runnable() {
-
-        @Override
-        public void run() {
-            inventory.sync();
-        }
-
-    };
+    private Runnable inventorySync = () -> inventory.sync();
 
     /**
      * The number of verifies initiated.
@@ -297,19 +296,17 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * A runnable instance that flushes the content the current buffer page to
      * disk.
      */
-    private Runnable pageSync = new Runnable() {
-
-        @Override
-        public void run() {
-            currentPage.content.force();
-        }
-
-    };
+    private Runnable pageSync = () -> currentPage.content.force();
 
     /**
      * A flag to indicate if the Buffer is running or not.
      */
     private boolean running = false;
+
+    /**
+     * Executor service that is responsible for {@link #sync() syncing} data.
+     */
+    private AwaitableExecutorService syncer;
 
     /**
      * The structure lock ensures that only a single thread can modify the
@@ -393,44 +390,61 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public Map<Long, String> audit(long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(record, Time.NONE); it.hasNext();) {
-            Write write = it.next();
-            audit.put(write.getVersion(), write.toString());
+        Iterator<Write> it = iterator(record, Time.NONE);
+        try {
+            Map<Long, String> audit = Maps.newTreeMap();
+            while (it.hasNext()) {
+                Write write = it.next();
+                audit.put(write.getVersion(), write.toString());
+            }
+            return audit;
         }
-        return audit;
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(key, record, Time.NONE); it
-                .hasNext();) {
-            Write write = it.next();
-            audit.put(write.getVersion(), write.toString());
+        Iterator<Write> it = iterator(key, record, Time.NONE);
+        try {
+            Map<Long, String> audit = Maps.newTreeMap();
+            while (it.hasNext()) {
+                Write write = it.next();
+                audit.put(write.getVersion(), write.toString());
+            }
+            return audit;
         }
-        return audit;
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        for (Iterator<Write> it = iterator(key, timestamp); it.hasNext();) {
-            Write write = it.next();
-            Set<Long> records = context.get(write.getValue().getTObject());
-            if(records == null) {
-                records = Sets.newLinkedHashSet();
-                context.put(write.getValue().getTObject(), records);
+        Iterator<Write> it = iterator(key, timestamp);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                Set<Long> records = context.get(write.getValue().getTObject());
+                if(records == null) {
+                    records = Sets.newLinkedHashSet();
+                    context.put(write.getValue().getTObject(), records);
+                }
+                if(write.getType() == Action.ADD) {
+                    records.add(write.getRecord().longValue());
+                }
+                else {
+                    records.remove(write.getRecord().longValue());
+                }
             }
-            if(write.getType() == Action.ADD) {
-                records.add(write.getRecord().longValue());
-            }
-            else {
-                records.remove(write.getRecord().longValue());
-            }
+            return Maps.newTreeMap(Maps.filterValues(
+                    (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
         }
-        return Maps.newTreeMap(Maps.filterValues(
-                (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
@@ -443,28 +457,34 @@ public final class Buffer extends Limbo implements InventoryTracker {
             // snapshot know to the database
             context.remove(Time.NONE);
         }
-        for (Iterator<Write> it = iterator(key, record, end - 1); it
-                .hasNext();) {
-            Write write = it.next();
-            long timestamp = write.getVersion();
-            Text writtenKey = write.getKey();
-            long writtenRecordId = write.getRecord().longValue();
-            Action action = write.getType();
-            if(writtenKey.toString().equals(key) && writtenRecordId == record) {
-                snapshot = Sets.newLinkedHashSet(snapshot);
-                Value newValue = write.getValue();
-                if(action == Action.ADD) {
-                    snapshot.add(newValue.getTObject());
-                }
-                else if(action == Action.REMOVE) {
-                    snapshot.remove(newValue.getTObject());
-                }
-                if(timestamp >= start && !snapshot.isEmpty()) {
-                    context.put(timestamp, snapshot);
+        Iterator<Write> it = iterator(key, record, end - 1);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                long timestamp = write.getVersion();
+                Text writtenKey = write.getKey();
+                long writtenRecordId = write.getRecord().longValue();
+                Action action = write.getType();
+                if(writtenKey.toString().equals(key)
+                        && writtenRecordId == record) {
+                    snapshot = Sets.newLinkedHashSet(snapshot);
+                    Value newValue = write.getValue();
+                    if(action == Action.ADD) {
+                        snapshot.add(newValue.getTObject());
+                    }
+                    else if(action == Action.REMOVE) {
+                        snapshot.remove(newValue.getTObject());
+                    }
+                    if(timestamp >= start && !snapshot.isEmpty()) {
+                        context.put(timestamp, snapshot);
+                    }
                 }
             }
+            return context;
         }
-        return context;
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
@@ -475,23 +495,31 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
-            Write write = it.next();
-            Set<TObject> values;
-            values = context.get(write.getKey().toString());
-            if(values == null) {
-                values = Sets.newHashSet();
-                context.put(write.getKey().toString(), values);
+        Iterator<Write> it = iterator(record, timestamp);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                Set<TObject> values;
+                values = context.get(write.getKey().toString());
+                if(values == null) {
+                    values = Sets.newHashSet();
+                    context.put(write.getKey().toString(), values);
+                }
+                if(write.getType() == Action.ADD) {
+                    values.add(write.getValue().getTObject());
+                }
+                else {
+                    values.remove(write.getValue().getTObject());
+                }
             }
-            if(write.getType() == Action.ADD) {
-                values.add(write.getValue().getTObject());
-            }
-            else {
-                values.remove(write.getValue().getTObject());
-            }
+            return Maps
+                    .newLinkedHashMap(
+                            Maps.filterValues(context, emptySetFilter))
+                    .keySet();
         }
-        return Maps.newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
-                .keySet();
+        finally {
+            Iterators.close(it);
+        }
     }
 
     /**
@@ -511,21 +539,27 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
-        for (Iterator<Write> it = iterator(key, timestamp); it.hasNext();) {
-            Write write = it.next();
-            long record = write.getRecord().longValue();
-            if(matches(write.getValue(), operator, values)) {
-                if(write.getType() == Action.ADD) {
-                    MultimapViews.put(context, record,
-                            write.getValue().getTObject());
-                }
-                else {
-                    MultimapViews.remove(context, record,
-                            write.getValue().getTObject());
+        Iterator<Write> it = iterator(key, timestamp);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                long record = write.getRecord().longValue();
+                if(matches(write.getValue(), operator, values)) {
+                    if(write.getType() == Action.ADD) {
+                        MultimapViews.put(context, record,
+                                write.getValue().getTObject());
+                    }
+                    else {
+                        MultimapViews.remove(context, record,
+                                write.getValue().getTObject());
+                    }
                 }
             }
+            return TMaps.asSortedMap(context);
         }
-        return TMaps.asSortedMap(context);
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
@@ -586,106 +620,65 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Be sure to call {@link Iterators#close(Iterator)} within a finally block
+     * to ensure that lock starvation does not occur.
+     * </p>
+     */
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Time.NONE);
     }
 
-    /**
-     * Return an iterator over all writes in the buffer that occurred no later
-     * than {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the iterator
-     */
-    public Iterator<Write> iterator(long timestamp) {
-        return new AllSeekingIterator(timestamp);
-    }
-
-    /**
-     * Return an iterator over all writes in the buffer with the specified
-     * {@code record} component and that occurred no later than
-     * {@code timestamp}.
-     * 
-     * @param record
-     * @param timestamp
-     * @return the iterator
-     */
-    public Iterator<Write> iterator(long record, long timestamp) {
-        return new RecordSeekingIterator(record, timestamp);
-    }
-
-    /**
-     * Return an iterator over all writes in the buffer with the specified
-     * {@code key} component and that occurred no later than {@code timestamp}.
-     * 
-     * @param key
-     * @param timestamp
-     * @return the iterator
-     */
-    public Iterator<Write> iterator(String key, long timestamp) {
-        return new KeySeekingIterator(key, timestamp);
-    }
-
-    /**
-     * Return an iterator over all writes in the buffer with the specified
-     * {@code key} and {@code record} components and that occurred no later than
-     * {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the iterator
-     */
-    public Iterator<Write> iterator(String key, long record, long timestamp) {
-        return new KeyInRecordSeekingIterator(key, record, timestamp);
-    }
-
-    /**
-     * Return an iterator over all writes in the buffer that equal the input
-     * {@code write} and that occurred no later than {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the iterator
-     */
-    public Iterator<Write> iterator(Write write, long timestamp) {
-        return new WriteSeekingIterator(write, timestamp);
-    }
-
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
-            Write write = it.next();
-            Set<TObject> values;
-            values = context.get(write.getKey().toString());
-            if(values == null) {
-                values = Sets.newLinkedHashSet();
-                context.put(write.getKey().toString(), values);
+        Iterator<Write> it = iterator(record, timestamp);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                Set<TObject> values;
+                values = context.get(write.getKey().toString());
+                if(values == null) {
+                    values = Sets.newLinkedHashSet();
+                    context.put(write.getKey().toString(), values);
+                }
+                if(write.getType() == Action.ADD) {
+                    values.add(write.getValue().getTObject());
+                }
+                else {
+                    values.remove(write.getValue().getTObject());
+                }
             }
-            if(write.getType() == Action.ADD) {
-                values.add(write.getValue().getTObject());
-            }
-            else {
-                values.remove(write.getValue().getTObject());
-            }
+            return Maps.newTreeMap(Maps.filterValues(
+                    (SortedMap<String, Set<TObject>>) context, emptySetFilter));
         }
-        return Maps.newTreeMap(Maps.filterValues(
-                (SortedMap<String, Set<TObject>>) context, emptySetFilter));
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        for (Iterator<Write> it = iterator(key, record, timestamp); it
-                .hasNext();) {
-            Write write = it.next();
-            if(write.getType() == Action.ADD) {
-                context.add(write.getValue().getTObject());
+        Iterator<Write> it = iterator(key, record, timestamp);
+        try {
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getType() == Action.ADD) {
+                    context.add(write.getValue().getTObject());
+                }
+                else {
+                    context.remove(write.getValue().getTObject());
+                }
             }
-            else {
-                context.remove(write.getValue().getTObject());
-            }
+            return context;
         }
-        return context;
+        finally {
+            Iterators.close(it);
+        }
     }
 
     /**
@@ -737,6 +730,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
         if(!running) {
             running = true;
             Logger.info("Buffer configured to store data in {}", directory);
+            syncer = new AwaitableExecutorService(
+                    Executors.newCachedThreadPool(ThreadFactories
+                            .namingThreadFactory(threadNamePrefix + "-%d")));
             SortedMap<File, Page> pageSorter = Maps
                     .newTreeMap(NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
@@ -765,12 +761,26 @@ public final class Buffer extends Limbo implements InventoryTracker {
                                            // threads to terminate
             }
         }
+        syncer.shutdown();
     }
 
     @Override
     public void sync() {
-        ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-                pageSync, inventorySync);
+        try {
+            syncer.await(pageSync, inventorySync);
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        catch (RejectedExecutionException e) {
+            // This should not happen in normal situations but may occur if the
+            // Buffer was prematurely stopped during a unit test.
+            Logger.warn("The {} Buffer fsync executor service is "
+                    + "rejecting tasks, so changes to the Buffer and "
+                    + "Inventory were made serially", environment);
+            pageSync.run();
+            inventorySync.run();
+        }
     }
 
     /**
@@ -819,11 +829,17 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
         numVerifyRequests.incrementAndGet();
-        for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
-            it.next();
-            exists ^= true; // toggle boolean
+        Iterator<Write> it = iterator(write, timestamp);
+        try {
+            while (it.hasNext()) {
+                it.next();
+                exists ^= true; // toggle boolean
+            }
+            return exists;
         }
-        return exists;
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
@@ -846,48 +862,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 catch (InterruptedException e) {/* ignore */}
             }
         }
-    }
-
-    /**
-     * Return {@code true} if the Buffer has more than 1 page and the first page
-     * has at least one element that can be transported. If this method returns
-     * {@code false} it means that the first page is the only page or that the
-     * Buffer would need to trigger a Database sync and remove the first page in
-     * order to transport.
-     * 
-     * @return {@code true} if the Buffer can transport a Write.
-     */
-    @VisibleForTesting
-    protected boolean canTransport() { // visible for testing
-        return pages.size() > 1 && pages.get(0).hasNext();
-    }
-
-    @Nullable
-    @Override
-    protected Action getLastWriteAction(Write write, long timestamp) {
-        // TODO: use ReverseSeekingIterator to optimize this
-        Iterator<Write> it = iterator(write, timestamp);
-        Action action = null;
-        while (it.hasNext()) {
-            action = it.next().getType();
-        }
-        return action;
-    }
-
-    @Override
-    protected long getOldestWriteTimestamp() {
-        return pages.get(0).getOldestWriteTimestamp();
-    }
-
-    @Override
-    protected Iterator<Write> getSearchIterator(String key) {
-        return iterator(key, Time.NONE);
-    }
-
-    @Override
-    protected boolean isPossibleSearchMatch(String key, Write write,
-            Value value) {
-        return value.getType() == Type.STRING;
     }
 
     /**
@@ -954,6 +928,113 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     /**
+     * Return {@code true} if the Buffer has more than 1 page and the first page
+     * has at least one element that can be transported. If this method returns
+     * {@code false} it means that the first page is the only page or that the
+     * Buffer would need to trigger a Database sync and remove the first page in
+     * order to transport.
+     * 
+     * @return {@code true} if the Buffer can transport a Write.
+     */
+    @VisibleForTesting
+    protected boolean canTransport() { // visible for testing
+        return pages.size() > 1 && pages.get(0).hasNext();
+    }
+
+    @Nullable
+    @Override
+    protected Action getLastWriteAction(Write write, long timestamp) {
+        // TODO: use ReverseSeekingIterator to optimize this
+        Iterator<Write> it = iterator(write, timestamp);
+        try {
+            Action action = null;
+            while (it.hasNext()) {
+                action = it.next().getType();
+            }
+            return action;
+        }
+        finally {
+            Iterators.close(it);
+        }
+    }
+
+    @Override
+    protected long getOldestWriteTimestamp() {
+        return pages.get(0).getOldestWriteTimestamp();
+    }
+
+    @Override
+    protected Iterator<Write> getSearchIterator(String key) {
+        return iterator(key, Time.NONE);
+    }
+
+    @Override
+    protected boolean isPossibleSearchMatch(String key, Write write,
+            Value value) {
+        return value.getType() == Type.STRING;
+    }
+
+    /**
+     * Return an iterator over all writes in the buffer that occurred no later
+     * than {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the iterator
+     */
+    protected Iterator<Write> iterator(long timestamp) {
+        return new AllSeekingIterator(timestamp);
+    }
+
+    /**
+     * Return an iterator over all writes in the buffer with the specified
+     * {@code record} component and that occurred no later than
+     * {@code timestamp}.
+     * 
+     * @param record
+     * @param timestamp
+     * @return the iterator
+     */
+    protected Iterator<Write> iterator(long record, long timestamp) {
+        return new RecordSeekingIterator(record, timestamp);
+    }
+
+    /**
+     * Return an iterator over all writes in the buffer with the specified
+     * {@code key} component and that occurred no later than {@code timestamp}.
+     * 
+     * @param key
+     * @param timestamp
+     * @return the iterator
+     */
+    protected Iterator<Write> iterator(String key, long timestamp) {
+        return new KeySeekingIterator(key, timestamp);
+    }
+
+    /**
+     * Return an iterator over all writes in the buffer with the specified
+     * {@code key} and {@code record} components and that occurred no later than
+     * {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the iterator
+     */
+    protected Iterator<Write> iterator(String key, long record,
+            long timestamp) {
+        return new KeyInRecordSeekingIterator(key, record, timestamp);
+    }
+
+    /**
+     * Return an iterator over all writes in the buffer that equal the input
+     * {@code write} and that occurred no later than {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the iterator
+     */
+    protected Iterator<Write> iterator(Write write, long timestamp) {
+        return new WriteSeekingIterator(write, timestamp);
+    }
+
+    /**
      * A {@link SeekingIterator} for all the writes in the buffer.
      * 
      * @author Jeff Nelson
@@ -978,6 +1059,14 @@ public final class Buffer extends Limbo implements InventoryTracker {
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
             return true;
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            // TODO: Replace with Cleaner in Java 9+
+            // (https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html)
+            super.finalize();
+            close();
         }
 
     }
@@ -1553,39 +1642,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         /**
-         * Dump the contents of this page.
-         * 
-         * @return the dump string
-         */
-        protected String dump() {
-            long stamp = Locks.stampLockReadIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Dump for " + getClass().getSimpleName() + " "
-                        + filename);
-                sb.append("\n");
-                sb.append("------");
-                sb.append("\n");
-                for (Write write : writes) {
-                    if(write == null) {
-                        break;
-                    }
-                    else {
-                        sb.append(write);
-                        sb.append("\n");
-                    }
-                }
-                sb.append("\n");
-                return sb.toString();
-            }
-            finally {
-                Locks.stampUnlockReadIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
-        }
-
-        /**
          * Do the work to actually index and append {@code write} (while
          * optionally performing a {@code sync} WITHOUT grabbing any locks
          * (hence this method being UNSAFE) for unauthorized usage.
@@ -1673,6 +1729,39 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private int slotify(int... hashCodes) {
             return Math.abs(Integers.avg(hashCodes) % sizeUpperBound);
         }
+
+        /**
+         * Dump the contents of this page.
+         * 
+         * @return the dump string
+         */
+        protected String dump() {
+            long stamp = Locks.stampLockReadIfCondition(accessLock,
+                    this == currentPage);
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Dump for " + getClass().getSimpleName() + " "
+                        + filename);
+                sb.append("\n");
+                sb.append("------");
+                sb.append("\n");
+                for (Write write : writes) {
+                    if(write == null) {
+                        break;
+                    }
+                    else {
+                        sb.append(write);
+                        sb.append("\n");
+                    }
+                }
+                sb.append("\n");
+                return sb.toString();
+            }
+            finally {
+                Locks.stampUnlockReadIfCondition(accessLock, stamp,
+                        this == currentPage);
+            }
+        }
     }
 
     /**
@@ -1725,7 +1814,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * 
      * @author Jeff Nelson
      */
-    private abstract class SeekingIterator implements Iterator<Write> {
+    private abstract class SeekingIterator
+            implements Iterator<Write>, CloseableIterator<Write> {
 
         /**
          * A flag that indicates whether we should not perform a timestamp check
@@ -1775,6 +1865,12 @@ public final class Buffer extends Limbo implements InventoryTracker {
         private Iterator<Write> writeIterator = null;
 
         /**
+         * A flag that determines whether this iterator is
+         * {@link #grabLocks(Page) holding any locks}.
+         */
+        private boolean isHoldingLocks = false;
+
+        /**
          * Construct a new instance.
          * 
          * @param timestamp
@@ -1794,6 +1890,13 @@ public final class Buffer extends Limbo implements InventoryTracker {
         }
 
         @Override
+        public void close() throws IOException {
+            if(isHoldingLocks) {
+                releaseLocks();
+            }
+        }
+
+        @Override
         public boolean hasNext() {
             return next != null;
         }
@@ -1809,35 +1912,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
         public void remove() {
             throw new UnsupportedOperationException();
         }
-
-        /**
-         * Each subclass should call this method after constructing the initial
-         * state to turn to the first page and get the first write.
-         */
-        protected void init() {
-            if(useable) {
-                flip(true);
-                this.next = advance();
-            }
-        }
-
-        /**
-         * Return {@code true} if {@code write} is relevant to what this
-         * iterator is seeking.
-         * 
-         * @param write
-         * @return {@code true} if the write is relevant
-         */
-        protected abstract boolean isRelevantWrite(Write write);
-
-        /**
-         * Call the appropriate function to determine if the {@code page} might
-         * contain the kinds of writes that this iterator is seeking.
-         * 
-         * @param page
-         * @return {@code true} if the page can possibly contain relevant data
-         */
-        protected abstract boolean pageMightContainRelevantWrites(Page page);
 
         /**
          * Advance to the next write that this iterator should return, if it
@@ -1915,6 +1989,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
             myAccessStamp = Locks.stampLockReadIfCondition(
                     myCurrentPage.accessLock, myCurrentPage == currentPage);
             myCurrentPage.transportLock.readLock().lock();
+            isHoldingLocks = true;
         }
 
         /**
@@ -1925,8 +2000,38 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 Locks.stampUnlockReadIfCondition(myCurrentPage.accessLock,
                         myAccessStamp, myCurrentPage == currentPage);
                 myCurrentPage.transportLock.readLock().unlock();
+                isHoldingLocks = false;
             }
         }
+
+        /**
+         * Each subclass should call this method after constructing the initial
+         * state to turn to the first page and get the first write.
+         */
+        protected void init() {
+            if(useable) {
+                flip(true);
+                this.next = advance();
+            }
+        }
+
+        /**
+         * Return {@code true} if {@code write} is relevant to what this
+         * iterator is seeking.
+         * 
+         * @param write
+         * @return {@code true} if the write is relevant
+         */
+        protected abstract boolean isRelevantWrite(Write write);
+
+        /**
+         * Call the appropriate function to determine if the {@code page} might
+         * contain the kinds of writes that this iterator is seeking.
+         * 
+         * @param page
+         * @return {@code true} if the page can possibly contain relevant data
+         */
+        protected abstract boolean pageMightContainRelevantWrites(Page page);
 
     }
 

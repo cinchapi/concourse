@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.theories.Theory;
 
+import com.cinchapi.ccl.type.function.IndexFunction;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -279,7 +280,12 @@ public abstract class BufferedStoreTest extends StoreTest {
         insertData(data, 2);
         Assert.assertFalse(store.select("foo", 1).contains(string));
         Assert.assertFalse(store.select("foo", 1).contains(tag));
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testCannotWriteFunction() {
+        add("foo", Convert.javaToThrift(new IndexFunction("average", "age")),
+                1);
     }
 
     /**

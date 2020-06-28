@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,16 +38,18 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.validate.BiCheck;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.io.Checksums;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
@@ -99,50 +101,6 @@ import com.google.common.collect.TreeMultiset;
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         implements Byteable, Syncable, Iterable<Revision<L, K, V>> {
-
-    /**
-     * Return a new PrimaryBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the PrimaryBlock
-     */
-    public static PrimaryBlock createPrimaryBlock(String id, String directory) {
-        return new PrimaryBlock(id, directory, false);
-    }
-
-    /**
-     * Return a new SearchBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the SearchBlock
-     */
-    public static SearchBlock createSearchBlock(String id, String directory) {
-        return new SearchBlock(id, directory, false);
-    }
-
-    /**
-     * Return a new SecondaryBlock that will be stored in {@code directory}.
-     * 
-     * @param id
-     * @param directory
-     * @return the SecondaryBlock
-     */
-    public static SecondaryBlock createSecondaryBlock(String id,
-            String directory) {
-        return new SecondaryBlock(id, directory, false);
-    }
-
-    /**
-     * Return the block id from the name of the block file.
-     * 
-     * @param filename
-     * @return the block id
-     */
-    public static String getId(String filename) {
-        return FileSystem.getSimpleName(filename);
-    }
 
     /**
      * The expected number of Block insertions. This number is used to size the
@@ -198,9 +156,70 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
+     * Return a new PrimaryBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the PrimaryBlock
+     */
+    public static PrimaryBlock createPrimaryBlock(String id, String directory) {
+        return new PrimaryBlock(id, directory, false);
+    }
+
+    /**
+     * Return a new SearchBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the SearchBlock
+     */
+    public static SearchBlock createSearchBlock(String id, String directory) {
+        return new SearchBlock(id, directory, false);
+    }
+
+    /**
+     * Return a new SecondaryBlock that will be stored in {@code directory}.
+     * 
+     * @param id
+     * @param directory
+     * @return the SecondaryBlock
+     */
+    public static SecondaryBlock createSecondaryBlock(String id,
+            String directory) {
+        return new SecondaryBlock(id, directory, false);
+    }
+
+    /**
+     * Return the block id from the name of the block file.
+     * 
+     * @param filename
+     * @return the block id
+     */
+    public static String getId(String filename) {
+        return FileSystem.getSimpleName(filename);
+    }
+
+    /**
+     * A checksum of the entire {@link Block Block's} content to help check for
+     * duplicates.
+     * <p>
+     * The value of this variable is always {@code null} for a {@link #mutable}
+     * block. When the block is {@link #sync() synced} or loaded from disk, the
+     * value is generated using the content of the underlying file.
+     * </p>
+     */
+    @Nullable
+    private String checksum = null;
+
+    /**
      * The location of the block file.
      */
     private final String file;
+
+    /**
+     * A {@link Path} object for {@link #file}.
+     */
+    private final Path $file;
 
     /**
      * A fixed size filter that is used to test whether elements are contained
@@ -223,11 +242,28 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     /**
      * The index to determine which bytes in the block pertain to a locator or
-     * locator/key pair.
+     * locator/key pair. The value of this variable is {@code null} until
+     * {@link #copyTo(ByteSink)} is called.
      */
-    private final BlockIndex index; // Since the index is only used for
-                                    // immutable blocks, it is only populated
-                                    // during the call to #getBytes()
+    @Nullable
+    private BlockIndex index; // Since the index is only used for immutable
+                              // blocks, it is only populated during the call to
+                              // #serialize()
+
+    /**
+     * Path to the {@link #index} file.
+     */
+    private final Path $index;
+
+    /**
+     * Path to the {@link #stats} file.
+     */
+    private final Path $stats;
+
+    /**
+     * Path to the {@link #filter} file.
+     */
+    private final Path $filter;
 
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
@@ -269,7 +305,14 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     /**
      * Returned from the {@link #stats()} method.
      */
-    private final BlockStats stats;
+    private BlockStats stats;
+
+    /**
+     * A running count of the number of {@link #revisions} that have been
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
+     * a {@link #mutable} {@link Block}.
+     */
+    private AtomicInteger revisionCount = new AtomicInteger(0);
 
     /**
      * A hint that this Block uses the
@@ -315,9 +358,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         FileSystem.mkdirs(directory);
         this.id = id;
         this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
-        Path $stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
-        Path $filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
-        Path $index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
+        this.$file = Paths.get(file);
+        this.$stats = Paths.get(directory, id + STATS_NAME_EXTENSION);
+        this.$filter = Paths.get(directory, id + FILTER_NAME_EXTENSION);
+        this.$index = Paths.get(directory, id + INDEX_NAME_EXTENSION);
         this.stats = new BlockStats($stats);
         if(diskLoad) {
             String[] missing = ImmutableList.of($stats, $filter, $index)
@@ -338,13 +382,15 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
             this.index = BlockIndex.open($index);
             this.revisions = null;
+            this.checksum = Checksums.generate($file);
         }
         else {
             this.mutable = true;
             this.size = 0;
             this.revisions = createBackingStore(Sorter.INSTANCE);
-            this.filter = BloomFilter.create($filter, EXPECTED_INSERTIONS);
-            this.index = BlockIndex.create($index, EXPECTED_INSERTIONS);
+            this.filter = BloomFilter.reserve($filter, EXPECTED_INSERTIONS);
+            this.index = null;
+            this.checksum = null;
             stats.put(Attribute.SCHEMA_VERSION, SCHEMA_VERSION);
         }
         this.softRevisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
@@ -352,62 +398,28 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         this.ignoreEmptySync = this instanceof SearchBlock;
     }
 
+    /**
+     * Return a checksum of the {@link Block Block's} content if and only if
+     * this {@link Block} is NOT {@link #mutable}.
+     * 
+     * @return a checksum of the Block's content
+     * @throws IllegalStateException if the Block is mutable
+     */
+    public final String checksum() {
+        if(!mutable) {
+            return checksum;
+        }
+        else {
+            throw new IllegalStateException(
+                    "Cannot return the checksum of a mutable Block");
+        }
+    }
+
     @Override
-    public void copyTo(ByteBuffer buffer) {
+    public void copyTo(ByteSink sink) {
         Locks.lockIfCondition(read, mutable);
         try {
-            L locator = null;
-            K key = null;
-            int position = 0;
-            boolean populated = false;
-            for (Revision<L, K, V> revision : revisions) {
-                populated = true;
-                buffer.putInt(revision.size());
-                revision.copyTo(buffer);
-                position = buffer.position() - revision.size() - 4;
-                /*
-                 * States that trigger this condition to be true:
-                 * 1. This is the first locator we've seen
-                 * 2. This locator is different than the last one we've seen
-                 */
-                if(locator == null || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator());
-                    if(locator != null) {
-                        // There was a locator before us (we are not the first!)
-                        // and we need to record the end index.
-                        index.putEnd(position - 1, locator);
-                    }
-                }
-                /*
-                 * NOTE: IF key == null, then it must be the case that locator
-                 * == null since they are set at the same time. Therefore we do
-                 * not need to explicitly check for that condition below
-                 * 
-                 * States that trigger this condition to be true:
-                 * 1. This is the first key we've seen
-                 * 2. This key is different than the last one we've seen
-                 * (regardless of whether the locator is different or the same!)
-                 * 3. This key is the same as the last one we've seen, but the
-                 * locator is different.
-                 */
-                if(key == null || !key.equals(revision.getKey())
-                        || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator(),
-                            revision.getKey());
-                    if(key != null) {
-                        // There was a locator, key before us (we are not the
-                        // first!) and we need to record the end index.
-                        index.putEnd(position - 1, locator, key);
-                    }
-                }
-                locator = revision.getLocator();
-                key = revision.getKey();
-            }
-            if(populated) {
-                position = buffer.position() - 1;
-                index.putEnd(position, locator);
-                index.putEnd(position, locator, key);
-            }
+            index = serialize(sink);
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
@@ -430,10 +442,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public ByteBuffer getBytes() {
         read.lock();
         try {
-            ByteBuffer bytes = ByteBuffer.allocate(sizeImpl());
-            copyTo(bytes);
-            bytes.rewind();
-            return bytes;
+            return Byteable.super.getBytes();
         }
         finally {
             read.unlock();
@@ -469,32 +478,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             Action type) throws IllegalStateException {
         Locks.lockIfCondition(write, mutable);
         try {
-            Preconditions.checkState(mutable,
-                    "Cannot modify a block that is not mutable");
-            Revision<L, K, V> revision = makeRevision(locator, key, value,
-                    version, type);
-            revisions.add(revision);
-            filter.put(revision.getLocator());
-            filter.put(revision.getLocator(), revision.getKey());
-            filter.put(revision.getLocator(), revision.getKey(),
-                    revision.getValue()); // NOTE: The entire revision is added
-                                          // to the filter so that we can
-                                          // quickly verify that a revision
-                                          // DOES NOT exist using
-                                          // #mightContain(L,K,V) without
-                                          // seeking
-            size += revision.size() + 4;
-
-            // CON-587: Set the min/max version of this Block because it cannot
-            // be assumed that revisions are inserted in monotonically
-            // increasing order of version.
-            if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
-                    MAX_REVISION_VERSION_CHECK) || revisions.size() < 2) {
-                stats.putIf(Attribute.MIN_REVISION_VERSION, version,
-                        MIN_REVISION_VERSION_CHECK);
-            }
-
-            return revision;
+            return insertUnsafe(locator, key, value, version, type);
         }
         finally {
             Locks.unlockIfCondition(write, mutable);
@@ -602,6 +586,15 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Return the {@link Stats} for this {@link Block}
+     * 
+     * @return the stats metadata
+     */
+    public BlockStats stats() {
+        return stats;
+    }
+
+    /**
      * Flush the content to disk in a block file, sync the stats, filter and
      * index and finally make the Block immutable.
      */
@@ -612,15 +605,18 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             if(mutable && sizeImpl() > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
-                channel.write(getBytes());
+                ByteBuffer bytes = getBytes();
+                channel.write(bytes);
                 channel.force(true);
-                filter.sync();
-                index.sync();
+                filter.sync($filter);
+                index.sync($index);
                 stats.sync();
                 FileSystem.closeFileChannel(channel);
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
                 filter.disableThreadSafety();
+                bytes.rewind();
+                this.checksum = Checksums.generate(bytes);
             }
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
@@ -640,18 +636,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         }
     }
 
-    /**
-     * Return the {@link Stats} for this {@link Block}
-     * 
-     * @return the stats metadata
-     */
-    public BlockStats stats() {
-        return stats;
-    }
-
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + id;
+    }
+
+    /**
+     * Increment the {@link #size()} of this {@link Block} by {@code delta} in a
+     * manner that accounts for whether the {@link Block} is {@link #concurrent}
+     * or not.
+     * 
+     * @param delta
+     */
+    private void incrementSizeBy(int delta) {
+        if(concurrent) {
+            atomicSize.addAndGet(delta);
+        }
+        else {
+            size += delta;
+        }
     }
 
     /**
@@ -673,7 +676,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             String backup = target + ".bak";
             FileSystem.copyBytes(target, backup);
             FileSystem.deleteFile(target);
-            filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
+            filter = BloomFilter.reserve(target, EXPECTED_INSERTIONS);
             MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
@@ -699,46 +702,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
-     * Return an {@link Iterable} over this Block's {@link Revision revisions},
-     * streamed from disk.
+     * Return an {@link Iterable} over this Block's {@link Revision revisions}.
      * <p>
-     * <strong>NOTE:</strong> This method should be used with caution and only
-     * as a last resort. There are likely more efficient ways to iterate over
-     * this Block's revisions (e.g. checking to see if the Block is still
-     * mutable OR has its revisions loaded in memory via the
-     * {@link #softRevisions} collection). This method should only be used when
-     * the caller intentionally wants to iterate over the revisions by streaming
-     * them entirely from disk.
+     * Unless the {@link Block} is {@link #mutable} and has its
+     * {@link #revisions} in memory, this method will stream the data directly
+     * from disk in an efficient manner.
      * </p>
      * 
      * @return an iterable over the revisions
      */
     private Iterable<Revision<L, K, V>> revisions() {
-        ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                FileSystem.getFileSize(file));
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-        return new Iterable<Revision<L, K, V>>() {
-
-            @Override
-            public Iterator<Revision<L, K, V>> iterator() {
-                return new AdHocIterator<Revision<L, K, V>>() {
-
-                    @Override
-                    protected Revision<L, K, V> findNext() {
-                        if(it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables
-                                    .read(it.next(), xRevisionClass());
-                            return revision;
-                        }
-                        else {
-                            return null;
-                        }
-                    }
-
-                };
-            }
-
-        };
+        if(mutable && revisions != null) {
+            return revisions;
+        }
+        else if(mutable && softRevisions.get() != null) {
+            return softRevisions.get();
+        }
+        else {
+            return () -> iterator();
+        }
     }
 
     /**
@@ -804,6 +786,69 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * Write this {@link Block Block's} data to the {@code sink}
+     * 
+     * @param sink
+     * @return
+     */
+    private BlockIndex serialize(ByteSink sink) {
+        BlockIndex index = BlockIndex.create(revisionCount.get());
+        L locator = null;
+        K key = null;
+        int position = 0;
+        boolean populated = false;
+        for (Revision<L, K, V> revision : revisions) {
+            populated = true;
+            sink.putInt(revision.size());
+            revision.copyTo(sink);
+            position = sink.position() - revision.size() - 4;
+            /*
+             * States that trigger this condition to be true:
+             * 1. This is the first locator we've seen
+             * 2. This locator is different than the last one we've seen
+             */
+            if(locator == null || !locator.equals(revision.getLocator())) {
+                index.putStart(position, revision.getLocator());
+                if(locator != null) {
+                    // There was a locator before us (we are not the first!)
+                    // and we need to record the end index.
+                    index.putEnd(position - 1, locator);
+                }
+            }
+            /*
+             * NOTE: IF key == null, then it must be the case that locator
+             * == null since they are set at the same time. Therefore we do
+             * not need to explicitly check for that condition below
+             * 
+             * States that trigger this condition to be true:
+             * 1. This is the first key we've seen
+             * 2. This key is different than the last one we've seen
+             * (regardless of whether the locator is different or the same!)
+             * 3. This key is the same as the last one we've seen, but the
+             * locator is different.
+             */
+            if(key == null || !key.equals(revision.getKey())
+                    || !locator.equals(revision.getLocator())) {
+                index.putStart(position, revision.getLocator(),
+                        revision.getKey());
+                if(key != null) {
+                    // There was a locator, key before us (we are not the
+                    // first!) and we need to record the end index.
+                    index.putEnd(position - 1, locator, key);
+                }
+            }
+            locator = revision.getLocator();
+            key = revision.getKey();
+        }
+        if(populated) {
+            position = sink.position() - 1;
+            index.putEnd(position, locator);
+            index.putEnd(position, locator, key);
+        }
+        return index;
+    }
+
+    /**
      * Internal implementation to return size of this Block without grabbing any
      * locks.
      * 
@@ -849,17 +894,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             sb.append("\n");
             sb.append("------");
             sb.append("\n");
-            if(mutable) {
-                for (Revision<L, K, V> revision : revisions) {
-                    sb.append(revision);
-                    sb.append("\n");
-                }
-            }
-            else {
-                revisions().forEach(revision -> {
-                    sb.append(revision);
-                    sb.append("\n");
-                });
+            for (Revision<L, K, V> revision : revisions()) {
+                sb.append(revision);
+                sb.append("\n");
             }
             sb.append("\n");
             return sb.toString();
@@ -869,6 +906,19 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         }
     }
 
+    /**
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)} without
+     * locking. Only call this method directly if the {@link Block} is
+     * {@link #concurrent}.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @param version
+     * @param type
+     * @return the inserted {@link Revision}
+     * @throws IllegalStateException
+     */
     protected Revision<L, K, V> insertUnsafe(L locator, K key, V value,
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(mutable,
@@ -876,6 +926,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
+        revisionCount.incrementAndGet();
         filter.put(revision.getLocator());
         filter.put(revision.getLocator(), revision.getKey());
         filter.put(revision.getLocator(), revision.getKey(),
@@ -885,9 +936,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                                       // DOES NOT exist using
                                       // #mightContain(L,K,V) without
                                       // seeking
-        atomicSize.addAndGet(revision.size() + 4);
+        incrementSizeBy(revision.size() + 4);
+        // CON-587: Set the min/max version of this Block because it cannot
+        // be assumed that revisions are inserted in monotonically
+        // increasing order of version.
+        if(!stats.putIf(Attribute.MAX_REVISION_VERSION, version,
+                MAX_REVISION_VERSION_CHECK) || revisionCount.get() < 2) {
+            stats.putIf(Attribute.MIN_REVISION_VERSION, version,
+                    MIN_REVISION_VERSION_CHECK);
+        }
         return revision;
-
     }
 
     /**
@@ -903,6 +961,51 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value,
             long version, Action type);
+
+    /**
+     * Regenerate the {@link Block Block's} metadata.
+     * <p>
+     * Reindexing does <strong>not</strong> modify the {@link #revisions} in the
+     * {@link Block}. Instead, the {@link #revisions} are used to recreate the
+     * associated metadata (i.e. filter, index, etc).
+     * </p>
+     * <p>
+     * Reindexing is useful for cases when parts of the metadata have become
+     * corrupted beyond normal {@link #repair(RuntimeException)}.
+     * </p>
+     * <p>
+     * <strong>CAUTION:</strong>Reindexing is a disruptive operation that is
+     * <strong>not</strong> thread safe. If the {@link Database} must support
+     * live reindexing, it should block access to this {@link Block} when it is
+     * performing this job.
+     * </p>
+     */
+    @SuppressWarnings("unchecked")
+    protected void reindex() {
+        Preconditions.checkState(!mutable, "Cannot reindex a mutable Block");
+        String directory = FileSystem.tempDir("concourse-block-reindex");
+        try {
+            String id = getId();
+            Block<L, K, V> block = Reflection.newInstance(getClass(), id,
+                    directory, false);
+            for (Revision<L, K, V> revision : revisions()) {
+                block.insertUnsafe(revision.getLocator(), revision.getKey(),
+                        revision.getValue(), revision.getVersion(),
+                        revision.getType());
+            }
+            BlockIndex index = block.serialize(ByteSink.toDevNull());
+            index.sync($index);
+            this.index = index;
+
+            block.filter.sync($filter);
+            this.filter = block.filter;
+
+            block = null;
+        }
+        finally {
+            FileSystem.deleteDirectory(directory);
+        }
+    }
 
     /**
      * Return the class of the {@code revision} type.

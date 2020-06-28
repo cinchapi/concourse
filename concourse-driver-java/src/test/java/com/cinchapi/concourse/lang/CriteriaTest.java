@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.ccl.Parser;
 import com.cinchapi.ccl.Parsing;
-import com.cinchapi.ccl.grammar.Expression;
+import com.cinchapi.ccl.grammar.ExpressionSymbol;
 import com.cinchapi.ccl.grammar.KeySymbol;
+import com.cinchapi.ccl.grammar.NavigationKeySymbol;
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.concourse.ParseException;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.Parsers;
 
 /**
  * Unit tests for the {@link com.cinchapi.concourse.lang.Criteria} building
@@ -67,8 +66,8 @@ public class CriteriaTest {
         criteria = criteria.at(timestamp);
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
+            if(symbol instanceof ExpressionSymbol) {
+                ExpressionSymbol expression = (ExpressionSymbol) symbol;
                 Assert.assertEquals(expression.raw().timestamp(),
                         timestamp.getMicros());
             }
@@ -88,8 +87,8 @@ public class CriteriaTest {
         criteria = criteria.at(timestamp);
         List<Symbol> symbols = Parsing.groupExpressions(criteria.symbols());
         symbols.forEach((symbol) -> {
-            if(symbol instanceof Expression) {
-                Expression expression = (Expression) symbol;
+            if(symbol instanceof ExpressionSymbol) {
+                ExpressionSymbol expression = (ExpressionSymbol) symbol;
                 Assert.assertEquals(expression.raw().timestamp(),
                         timestamp.getMicros());
             }
@@ -100,10 +99,11 @@ public class CriteriaTest {
     public void testParseCcl() {
         String ccl = "name = jeff AND (company = Cinchapi at 12345 or company = Blavity)";
         Criteria criteria = Criteria.parse(ccl);
-        Parser parser1 = Parsers.create(ccl);
-        Parser parser2 = Parsers.create(criteria.ccl());
-        Assert.assertEquals(Parsing.groupExpressions(parser1.tokenize()),
-                Parsing.groupExpressions(parser2.tokenize()));
+        Assert.assertEquals(
+                Parsing.groupExpressions(ConcourseCompiler.get()
+                        .tokenize(ConcourseCompiler.get().parse(ccl))),
+                Parsing.groupExpressions(ConcourseCompiler.get().tokenize(
+                        ConcourseCompiler.get().parse(criteria.ccl()))));
     }
 
     @Test(expected = ParseException.class)
@@ -113,4 +113,14 @@ public class CriteriaTest {
         System.out.println(criteria);
     }
 
+    @Test
+    public void testParseCclNavigationKey() {
+        String ccl = "children.name = Jeff ";
+        Criteria criteria = Criteria.parse(ccl);
+        Criteria expected = Criteria.where().key("children.name")
+                .operator(Operator.EQUALS).value("Jeff").build();
+        Assert.assertEquals(expected, criteria);
+        Assert.assertTrue(
+                criteria.symbols().get(0) instanceof NavigationKeySymbol);
+    }
 }

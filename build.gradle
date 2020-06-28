@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2020 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ buildscript {
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
         classpath "com.diffplug.spotless:spotless-plugin-gradle:3.6.0"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
     }
 }
 
@@ -69,6 +70,8 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'com.diffplug.gradle.spotless'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven-publish'
 
     repositories {
         mavenCentral()
@@ -82,6 +85,7 @@ subprojects {
         maven {
             url  'http://cinchapi.bintray.com/maven-snapshots'
         }
+        jcenter()
     }
 
     configurations {
@@ -109,7 +113,7 @@ subprojects {
         compile 'joda-time:joda-time:2.2'
         compile 'org.apache.thrift:libthrift:0.12.0'
         compile 'commons-configuration:commons-configuration:1.9'
-        compile group: 'com.cinchapi', name: 'accent4j', version: '1.6.0', changing:true
+        compile group: 'com.cinchapi', name: 'accent4j', version: '1.9.0', changing:true
         compile 'com.cinchapi:lib-config:1.5.1'
         
         testCompile 'junit:junit:4.11'
@@ -180,11 +184,56 @@ subprojects {
     ext.title = "Concourse" // The project's vanity title
     ext.description = "Default" // A short description about the project
     afterEvaluate { project ->
-        if(ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
+        if (ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
                                 // to Maven
             def mavenTitle = ext.title
             def mavenDescription = ext.description
 
+            publishing {
+                publications {
+                    BintrayPublication(MavenPublication) {
+                        from components.java
+                        artifact sourcesJar
+                        artifact javadocJar
+                        groupId group
+                        artifactId project.name
+                        version mavenVersion
+                        // Edit the generated POM to set the dependency version
+                        // for any Cinchapi projects to be the version that is
+                        // configured in the project's POM (X.Y.Z[-SNAPSHOT])
+                        // instead of the fully qualified version used when
+                        // labeling the jar distributed with the server
+                        // (X.Y.Z.B[-SNAPSHOT]).
+                        pom.withXml {
+                            asNode().dependencies.first().each {
+                                def groupId = it.get("groupId").first().value().first()
+                                def artifactId = it.get("artifactId").first().value().first()
+                                if(groupId.equals("com.cinchapi") && artifactId.startsWith("concourse") && !artifactId.equals("concourse-plugin-bundle-generator")) {
+                                    it.get("version").first().value = mavenVersion
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            bintray {
+                user = System.getenv('BINTRAY_USER')
+                key = System.getenv('BINTRAY_KEY')
+                publications = ['BintrayPublication']
+                pkg {
+                    repo = mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'maven' : 'maven-snapshots'
+                    name = project.name
+                    publish = true
+                    userOrg = 'cinchapi'
+                    override = true
+                    version {
+                        name = mavenVersion
+                        released = new Date()
+                    }
+                }
+            }
+            
             uploadArchives {
                 repositories {
                     mavenDeployer {
