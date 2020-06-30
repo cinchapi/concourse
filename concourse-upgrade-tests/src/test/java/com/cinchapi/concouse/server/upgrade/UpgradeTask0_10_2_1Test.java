@@ -53,9 +53,9 @@ public class UpgradeTask0_10_2_1Test extends UpgradeTest {
         String env = "default";
         cpb = server.getDatabaseDirectory().resolve(env).resolve("cpb")
                 .toString();
-        csb = server.getDatabaseDirectory().resolve(env).resolve("cpb")
+        csb = server.getDatabaseDirectory().resolve(env).resolve("csb")
                 .toString();
-        ctb = server.getDatabaseDirectory().resolve(env).resolve("cpb")
+        ctb = server.getDatabaseDirectory().resolve(env).resolve("ctb")
                 .toString();
         client.add("payRangeMax", 18, 1);
         while (checksums.isEmpty()) {

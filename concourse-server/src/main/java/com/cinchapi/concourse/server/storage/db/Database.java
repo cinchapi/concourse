@@ -17,27 +17,28 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.*;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.common.base.Array;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
@@ -52,6 +53,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.db.Segment.Receipt;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -59,17 +61,12 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.NaturalSorter;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
-import com.cinchapi.concourse.util.TLists;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -83,23 +80,6 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 public final class Database extends BaseStore implements PermanentStore {
-
-    /*
-     * BLOCK DIRECTORIES
-     * -----------------
-     * Each Block type is stored in its own directory so that we can reduce the
-     * number of files in a single directory. It is important to note that the
-     * filename extensions for files are the same across directories (i.e. 'blk'
-     * for block, 'fltr' for bloom filter and 'indx' for index). Furthermore,
-     * blocks that are synced at the same time all have the same block id.
-     * Therefore, the only way to distinguish blocks of different types from one
-     * another is by the directory in which they are stored.
-     */
-    private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-
-    private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
-
-    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
@@ -116,7 +96,7 @@ public final class Database extends BaseStore implements PermanentStore {
         return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
 
             private final String backingStore = FileSystem.makePath(dbStore,
-                    PRIMARY_BLOCK_DIRECTORY);
+                    Segment.PRIMARY_BLOCK_DIRECTORY);
             private final Iterator<String> fileIt = FileSystem
                     .fileOnlyIterator(backingStore);
             private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
@@ -179,25 +159,40 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the Block identified by {@code id} if it exists in {@code list},
-     * otherwise {@code null}.
+     * Return the {@link Segment} identified by {@code id} if it exists within
+     * the collection of {@code segments}. If it doesn't return {@code null}.
      * 
-     * @param list
+     * @param segments
      * @param id
-     * @return the Block identified by {@code id} or {@code null}
+     * @return the {@link Segment} identified by {@code id} or {@code null}
      */
     @Nullable
-    private static <T extends Block<?, ?, ?>> T findBlock(List<T> list,
+    private static Segment findSegment(Collection<Segment> segments,
             String id) {
-        // TODO: use binary search, since the ids of the list are sorted...this
-        // may require making Blocks comparable by id
-        for (T block : list) {
-            if(block.getId().equals(id)) {
-                return block;
+        for (Segment segment : segments) {
+            if(segment.id().equals(id)) {
+                return segment;
             }
         }
         return null;
     }
+
+    /*
+     * BLOCK COLLECTIONS
+     * -----------------
+     * We maintain a view-collection to all the blocks, in chronological order
+     * for backwards compatibility of upgrade tasks.
+     */
+    // @formatter:off
+    protected final transient List<PrimaryBlock> cpb = new BlockView<>(
+            seg -> seg.primary());
+
+    protected final transient List<SecondaryBlock> csb = new BlockView<>(
+            seg -> seg.secondary());
+
+    protected final transient List<SearchBlock> ctb = new BlockView<>(
+            seg -> seg.search());
+    // @formatter:on
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -214,27 +209,6 @@ public final class Database extends BaseStore implements PermanentStore {
      * The location where the Database stores data.
      */
     private final transient String backingStore;
-
-    /*
-     * BLOCK COLLECTIONS
-     * -----------------
-     * We maintain a collection to all the blocks, in chronological order, so
-     * that we can seek for the necessary revisions to populate a requested
-     * record.
-     */
-    private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-
-    /*
-     * CURRENT BLOCK POINTERS
-     * ----------------------
-     * We hold direct references to the current blocks. These pointers change
-     * whenever the database triggers a sync operation.
-     */
-    private transient PrimaryBlock cpb0;
-    private transient SecondaryBlock csb0;
-    private transient SearchBlock ctb0;
 
     /*
      * RECORD CACHES
@@ -255,15 +229,9 @@ public final class Database extends BaseStore implements PermanentStore {
     private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
-     * A flag to indicate if the Buffer is running or not.
+     * A live view into the {@link Database Database's} memory.
      */
-    private transient boolean running = false;
-
-    /**
-     * An {@link ExecutorService} that handles asynchronous writing tasks in the
-     * background.
-     */
-    private transient AwaitableExecutorService writer;
+    private CacheState memory;
 
     /**
      * An {@link ExecutorService} that handles asynchronous reading tasks in the
@@ -271,7 +239,31 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     private transient AwaitableExecutorService reader;
 
-    private CacheState memory;
+    /**
+     * A flag to indicate if the Buffer is running or not.
+     */
+    private transient boolean running = false;
+
+    /**
+     * CURRENT SEGMENT POINTER
+     * ----------------------
+     * We hold direct references to the current Segment. This pointer changes
+     * whenever the database triggers a sync operation.
+     */
+    private transient Segment seg0;
+    /**
+     * SEGMENT COLLECTION
+     * -----------------
+     * We maintain a collection of all the segments, in chronological order, so
+     * that we can seek for the necessary revisions and populate a requested
+     * record.
+     */
+    private final transient SortedSet<Segment> segments = Sets.newTreeSet();
+    /**
+     * An {@link ExecutorService} that handles asynchronous writing tasks in the
+     * background.
+     */
+    private transient AwaitableExecutorService writer;
 
     /**
      * Construct a Database that is backed by the default location which is in
@@ -308,16 +300,29 @@ public final class Database extends BaseStore implements PermanentStore {
             acceptable = true;
         }
         if(acceptable) {
-            // NOTE: Write locking happens in each individual Block, and
-            // furthermore this method is only called from the Buffer, which
-            // transports data serially.
-            Runnable[] tasks = Array.containing(new BlockWriter(cpb0, write),
-                    new BlockWriter(csb0, write), new BlockWriter(ctb0, write));
+            // NOTE: This approach is thread safe because write locking happens
+            // in each of #seg0's individual Blocks, and furthermore this method
+            // is only called from the Buffer, which transports data serially.
             if(running) {
                 try {
-                    writer.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to accept the following Write: {}",
-                            write, error), tasks);
+                    Receipt receipt = seg0.transfer(write, writer);
+
+                    // Updated cached records
+                    PrimaryRecord cpr = cpc
+                            .getIfPresent(Composite.create(write.getRecord()));
+                    PrimaryRecord cppr = cppc.getIfPresent(Composite
+                            .create(write.getRecord(), write.getKey()));
+                    SecondaryRecord csr = csc
+                            .getIfPresent(Composite.create(write.getKey()));
+                    if(cpr != null) {
+                        cpr.append(receipt.primaryRevision());
+                    }
+                    if(cppr != null) {
+                        cppr.append(receipt.primaryRevision());
+                    }
+                    if(csr != null) {
+                        csr.append(receipt.secondaryRevision());
+                    }
                 }
                 catch (InterruptedException e) {
                     Logger.warn(
@@ -334,9 +339,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 // during test cases
                 Logger.warn(
                         "The database is being asked to accept a Write, even though it is not running.");
-                for (Runnable task : tasks) {
-                    task.run();
-                }
+                seg0.transfer(write);
             }
         }
         else {
@@ -430,16 +433,14 @@ public final class Database extends BaseStore implements PermanentStore {
      * @return the block dumps.
      */
     public String dump(String id) {
-        PrimaryBlock _cpb = findBlock(cpb, id);
-        SecondaryBlock _csb = findBlock(csb, id);
-        SearchBlock _ctb = findBlock(ctb, id);
-        Preconditions.checkArgument(_cpb != null && _csb != null,
+        Segment segment = findSegment(segments, id);
+        Preconditions.checkArgument(segment != null,
                 "Insufficient number of blocks identified by %s", id);
         StringBuilder sb = new StringBuilder();
-        sb.append(_cpb.dump());
-        sb.append(_csb.dump());
-        if(_ctb != null) {
-            sb.append(_ctb.dump());
+        sb.append(segment.primary().dump());
+        sb.append(segment.secondary().dump());
+        if(segment.search() != null) {
+            sb.append(segment.search().dump());
         }
         return sb.toString();
     }
@@ -475,11 +476,7 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     @ManagedOperation
     public List<String> getDumpList() {
-        List<String> ids = Lists.newArrayList();
-        for (PrimaryBlock block : cpb) {
-            ids.add(block.getId());
-        }
-        return ids;
+        return segments.stream().map(Segment::id).collect(Collectors.toList());
     }
 
     @Override
@@ -530,7 +527,6 @@ public final class Database extends BaseStore implements PermanentStore {
                         .fetch(key0, timestamp), Value::getTObject);
     }
 
-    @SuppressWarnings("unlikely-arg-type")
     @Override
     public void start() {
         if(!running) {
@@ -543,63 +539,77 @@ public final class Database extends BaseStore implements PermanentStore {
             this.reader = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
                             .namingThreadFactory("Storage Block Loader")));
-            Runnable[] tasks = Array.containing(
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
-                    new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
-                            SECONDARY_BLOCK_DIRECTORY, csb),
-                    new BlockLoader<SearchBlock>(SearchBlock.class,
-                            SEARCH_BLOCK_DIRECTORY, ctb));
-            try {
-                reader.await((task, error) -> Logger.error(
-                        "Unexpected error when trying to load Blocks: {}",
-                        error), tasks);
-            }
-            catch (InterruptedException e) {
-                Logger.error("The Database was interrupted while starting...",
-                        e);
-                Thread.currentThread().interrupt();
-                return;
+            segments.clear();
+            Path directory = Paths.get(backingStore);
+            ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
+            Path cpb = Paths.get(backingStore)
+                    .resolve(Segment.PRIMARY_BLOCK_DIRECTORY);
+            FileSystem.mkdirs(cpb.toString());
+            FileSystem.ls(cpb)
+                    .filter(file -> file.toString()
+                            .endsWith(Block.BLOCK_NAME_EXTENSION))
+                    .map(Path::toFile).filter(file -> file.length() > 0)
+                    .map(file -> file.getName()
+                            .split(Block.BLOCK_NAME_EXTENSION)[0])
+                    .forEach(id -> tasks.add(() -> {
+                        try {
+                            Segment segment = Segment.load(id, directory);
+                            segments.add(segment);
+                        }
+                        catch (MalformedBlockException e) {
+                            Logger.warn(
+                                    "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
+                                    e.getMessage(), id);
+                        }
+                        catch (SegmentLoadingException e) {
+                            Logger.error(
+                                    "An error occured while loading {} metadata for {}",
+                                    e.blockType(), id);
+                            Logger.error("", e.error());
+                        }
+                        catch (IllegalStateException e) {
+                            Logger.error(
+                                    "A storage segment failed to validate while loading {}",
+                                    id);
+                            Logger.error("", e);
+                        }
+                    }));
+            if(tasks.length() > 0) {
+                try {
+                    reader.await((task, error) -> Logger.error(
+                            "Unexpected error when trying to load Blocks: {}",
+                            error), tasks.build());
+                }
+                catch (InterruptedException e) {
+                    Logger.error(
+                            "The Database was interrupted while starting...",
+                            e);
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
 
-            // CON-83: Get rid of any block groups that aren't "balanced" (e.g.
-            // has primary and secondary) under the assumption that the server
-            // crashed and the corresponding Buffer page still exists. Please
-            // note that since we do not sync empty blocks, it is possible
-            // that there are some primary and secondary blocks without a
-            // corresponding search one. But, it is also possible that a
-            // legitimate search block is missing because the server crashed
-            // before it was synced, in which case the data that was in that
-            // block is lost because we can't both legitimately avoid syncing
-            // empty (search) blocks and rely on the fact that a search block is
-            // missing to assume that the server crashed. :-/
-            TLists.retainIntersection(cpb, csb);
-            ctb.retainAll(cpb);
-
-            // Remove duplicate Blocks from each group. Block duplication can
-            // occur when the server crashes and a Block group is only partially
-            // synced. When the server restarts, it will try to sync the Block
-            // group again, generating duplicate Blocks on disk for the Blocks
-            // that succeeded in syncing before the crash
-            for (List<? extends Block<?, ?, ?>> blocks : ImmutableList.of(cpb,
-                    csb, ctb)) {
-                Set<String> checksums = Sets
-                        .newHashSetWithExpectedSize(blocks.size());
-                Iterator<? extends Block<?, ?, ?>> it = blocks.iterator();
-                while (it.hasNext()) {
-                    Block<?, ?, ?> block = it.next();
-                    if(!checksums.add(block.checksum())) {
-                        it.remove();
-                        Logger.warn(
-                                "{} {} contains duplicate data, so it was not loaded. You can safely delete this file.",
-                                block.getClass().getSimpleName(),
-                                block.getId());
-                    }
+            // Remove duplicate Segments. Segment duplication can occur when the
+            // server crashes and a Segment is only partially synced (e.g. the
+            // primary and secondary Block are written but the Search Block is
+            // not). When the server restarts, it will try to sync the Segment
+            // again, generating duplicate Blocks on disk for the Blocks that
+            // succeeded in syncing before the crash
+            Iterator<Segment> it = segments.iterator();
+            Set<String> checksums = Sets
+                    .newHashSetWithExpectedSize(segments.size());
+            while (it.hasNext()) {
+                Segment segment = it.next();
+                if(!checksums.add(segment.checksum())) {
+                    it.remove();
+                    Logger.warn(
+                            "Segment {} contains duplicate data, so it was not loaded. You can safely delete all of it's files.",
+                            segment.id());
                 }
             }
             triggerSync(false);
+            memory = new CacheState();
         }
-        memory = new CacheState();
 
     }
 
@@ -654,8 +664,8 @@ public final class Database extends BaseStore implements PermanentStore {
             PrimaryRecord record = cpc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createPrimaryRecord(pkey);
-                for (PrimaryBlock block : cpb) {
-                    block.seek(pkey, record);
+                for (Segment segment : segments) {
+                    segment.primary().seek(pkey, record);
                 }
                 cpc.put(composite, record);
             }
@@ -692,8 +702,8 @@ public final class Database extends BaseStore implements PermanentStore {
             }
             if(record == null) {
                 record = Record.createPrimaryRecordPartial(pkey, key);
-                for (PrimaryBlock block : cpb) {
-                    block.seek(pkey, key, record);
+                for (Segment segment : segments) {
+                    segment.primary().seek(pkey, key, record);
                 }
                 cppc.put(composite, record);
             }
@@ -718,13 +728,13 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             SearchRecord record = Record.createSearchRecordPartial(key, query);
-            for (SearchBlock block : ctb) {
+            for (Segment segment : segments) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
                 String[] toks = query.toString().toLowerCase().split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
-                    block.seek(key, Text.wrap(tok), record);
+                    segment.search().seek(key, Text.wrap(tok), record);
                 }
             }
             return record;
@@ -747,8 +757,8 @@ public final class Database extends BaseStore implements PermanentStore {
             SecondaryRecord record = csc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createSecondaryRecord(key);
-                for (SecondaryBlock block : csb) {
-                    block.seek(key, record);
+                for (Segment segment : segments) {
+                    segment.secondary().seek(key, record);
                 }
                 csc.put(composite, record);
             }
@@ -763,25 +773,18 @@ public final class Database extends BaseStore implements PermanentStore {
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
-     * @param doSync - a flag that controls whether we actually perform a sync
-     *            or not. Sometimes this method is called when there is no data
-     *            to sync and we just want to create new blocks (e.g. on initial
-     *            startup).
+     * @param writeToDisk - a flag that controls whether we actually perform a
+     *            sync or not. Sometimes this method is called when there is no
+     *            data to sync and we just want to create new blocks (e.g. on
+     *            initial startup).
      */
-    private void triggerSync(boolean doSync) {
+    private void triggerSync(boolean writeToDisk) {
         masterLock.writeLock().lock();
         try {
-            if(doSync) {
-                // TODO we need a transactional file system to ensure that these
-                // blocks are written atomically (all or nothing)
-                Runnable[] tasks = Array.containing(new BlockSyncer(cpb0),
-                        new BlockSyncer(csb0), new BlockSyncer(ctb0));
+            if(writeToDisk) {
                 if(running) {
                     try {
-                        writer.await((task, error) -> Logger.error(
-                                "The database is unable to sync all the Blocks with id {} because {}.",
-                                cpb0.getId(), error.getMessage(), error),
-                                tasks);
+                        seg0.sync(writer);
                     }
                     catch (InterruptedException e) {
                         Logger.warn(
@@ -790,7 +793,7 @@ public final class Database extends BaseStore implements PermanentStore {
                                         + "were not fully synced, the contained writes are "
                                         + "still in the Buffer. Any partially synced blocks "
                                         + "will be safely removed when the Database restarts.",
-                                cpb0.getId());
+                                seg0.id());
                         Thread.currentThread().interrupt();
                         return;
                     }
@@ -800,18 +803,12 @@ public final class Database extends BaseStore implements PermanentStore {
                     // is stopped during test cases
                     Logger.warn(
                             "The database is being asked to sync blocks, even though it is not running.");
-                    for (Runnable task : tasks) {
-                        task.run();
-                    }
+                    seg0.sync();
                 }
             }
             String id = Long.toString(Time.now());
-            cpb.add((cpb0 = Block.createPrimaryBlock(id,
-                    backingStore + File.separator + PRIMARY_BLOCK_DIRECTORY)));
-            csb.add((csb0 = Block.createSecondaryBlock(id, backingStore
-                    + File.separator + SECONDARY_BLOCK_DIRECTORY)));
-            ctb.add((ctb0 = Block.createSearchBlock(id,
-                    backingStore + File.separator + SEARCH_BLOCK_DIRECTORY)));
+            segments.add((seg0 = Segment.create(id, Paths.get(backingStore))));
+
         }
         finally {
             masterLock.writeLock().unlock();
@@ -819,156 +816,61 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * A runnable that traverses the appropriate directory for a block type
-     * under {@link #backingStore} and loads the block metadata into memory.
-     * 
+     * A list-view of all the {@link Block Blocks} of type {@code T} within the
+     * {@link #segments}. This view is for backwards-compatibility.
+     *
      * @author Jeff Nelson
-     * @param <T> - the Block type
      */
-    private final class BlockLoader<T extends Block<?, ?, ?>>
-            implements Runnable {
+    private class BlockView<T extends Block<?, ?, ?>> extends AbstractList<T> {
 
-        private final List<T> blocks;
-        private final Class<T> clazz;
-        private final String directory;
+        /**
+         * A function that converts a segment to the appropriate Block type.
+         */
+        Function<Segment, T> converter;
 
         /**
          * Construct a new instance.
          * 
-         * @param clazz
-         * @param directory
-         * @param blocks
+         * @param converter
          */
-        public BlockLoader(Class<T> clazz, String directory, List<T> blocks) {
-            this.clazz = clazz;
-            this.directory = directory;
-            this.blocks = blocks;
+        BlockView(Function<Segment, T> converter) {
+            this.converter = converter;
         }
 
         @Override
-        public void run() {
-            Path path = Paths.get(backingStore, directory);
-            path.toFile().mkdirs();
-            SortedMap<File, T> sorted = Maps.newTreeMap(NaturalSorter.INSTANCE);
-            Stream<File> files = FileSystem.ls(path)
-                    .filter(file -> file.toString()
-                            .endsWith(Block.BLOCK_NAME_EXTENSION))
-                    .map(Path::toFile).filter(file -> file.length() > 0);
-            files.forEach(file -> {
-                String id = Block.getId(file.getName());
-                try {
-                    T block = Reflection.newInstance(clazz, id, path.toString(),
-                            true);
-                    sorted.put(file, block);
-                    Logger.info("Loaded {} metadata for {}",
-                            clazz.getSimpleName(), file.getName());
+        public T get(int index) {
+            Iterator<Segment> it = segments.iterator();
+            int count = 0;
+            T block = null;
+            while (block == null) {
+                if(it.hasNext()) {
+                    Segment segment = it.next();
+                    T _block = converter.apply(segment);
+                    if(_block != null) {
+                        if(count == index) {
+                            block = _block;
+                        }
+                    }
+                    ++count;
                 }
-                catch (MalformedBlockException e) {
-                    Logger.warn(
-                            "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
-                            e.getMessage(), id);
-                }
-                catch (Exception e) {
-                    Logger.error(
-                            "An error occured while loading {} metadata for {}",
-                            clazz.getSimpleName(), file.getName());
-                    Logger.error("", e);
-                }
-            });
-            blocks.addAll(sorted.values());
-        }
-    }
-
-    /**
-     * A runnable that will sync a block to disk.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class BlockSyncer implements Runnable {
-
-        private final Block<?, ?, ?> block;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param block
-         */
-        public BlockSyncer(Block<?, ?, ?> block) {
-            this.block = block;
-        }
-
-        @Override
-        public void run() {
-            block.sync();
-            Logger.debug("Completed sync of {}", block);
-        }
-
-    }
-
-    /**
-     * A runnable that will insert a Writer into a block.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class BlockWriter implements Runnable {
-
-        private final Block<?, ?, ?> block;
-        private final Write write;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param block
-         * @param write
-         */
-        public BlockWriter(Block<?, ?, ?> block, Write write) {
-            this.block = block;
-            this.write = write;
-        }
-
-        @Override
-        public void run() {
-            Logger.debug("Writing {} to {}", write, block);
-            if(block instanceof PrimaryBlock) {
-                PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
-                        .insert(write.getRecord(), write.getKey(),
-                                write.getValue(), write.getVersion(),
-                                write.getType());
-                Record<PrimaryKey, Text, Value> record = cpc
-                        .getIfPresent(Composite.create(write.getRecord()));
-                Record<PrimaryKey, Text, Value> partialRecord = cppc
-                        .getIfPresent(Composite.create(write.getRecord(),
-                                write.getKey()));
-                if(record != null) {
-                    record.append(revision);
-                }
-                if(partialRecord != null) {
-                    partialRecord.append(revision);
+                else {
+                    break;
                 }
             }
-            else if(block instanceof SecondaryBlock) {
-                SecondaryRevision revision = (SecondaryRevision) ((SecondaryBlock) block)
-                        .insert(write.getKey(), write.getValue(),
-                                write.getRecord(), write.getVersion(),
-                                write.getType());
-                SecondaryRecord record = csc
-                        .getIfPresent(Composite.create(write.getKey()));
-                if(record != null) {
-                    record.append(revision);
-                }
-            }
-            else if(block instanceof SearchBlock) {
-                ((SearchBlock) block).insert(write.getKey(), write.getValue(),
-                        write.getRecord(), write.getVersion(), write.getType());
-                // NOTE: We do not cache SearchRecords because they have the
-                // potential to be VERY large. Holding references to them in a
-                // cache would prevent them from being garbage collected
-                // resulting in more OOMs.
+            if(block != null) {
+                return block;
             }
             else {
-                throw new IllegalArgumentException();
+                throw new IndexOutOfBoundsException();
             }
         }
+
+        @Override
+        public int size() {
+            return (int) segments.stream().map(seg -> converter.apply(seg))
+                    .filter(block -> block != null).count();
+        }
+
     }
 
     /**

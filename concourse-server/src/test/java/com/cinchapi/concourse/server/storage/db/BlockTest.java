@@ -285,6 +285,40 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         // TODO: check stats
     }
 
+    @Test
+    public void testStatsMinRevisionVersion() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        long min = Long.MAX_VALUE;
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            long version = Time.now();
+            block.insertUnsafe(getLocator(), getKey(), getValue(), version,
+                    Action.ADD);
+            min = Math.min(min, version);
+        }
+        block.sync();
+        BlockStats stats = Reflection.get("stats", block);
+        Assert.assertEquals((Long) min,
+                stats.<Long> get(Attribute.MIN_REVISION_VERSION));
+    }
+
+    @Test
+    public void testStatsMaxRevisionVersion() {
+        String directory = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(directory);
+        long max = 0;
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            long version = Time.now();
+            block.insertUnsafe(getLocator(), getKey(), getValue(), version,
+                    Action.ADD);
+            max = Math.max(max, version);
+        }
+        block.sync();
+        BlockStats stats = Reflection.get("stats", block);
+        Assert.assertEquals((Long) max,
+                stats.<Long> get(Attribute.MAX_REVISION_VERSION));
+    }
+
     protected abstract L getLocator();
 
     protected abstract K getKey();

@@ -92,6 +92,20 @@ public class BlockStats implements Syncable {
     }
 
     /**
+     * Return the value associated with the {@code attribute} for this
+     * {@link Block} or the {@code def}ault value it one isn't stored.
+     * 
+     * @param <T>
+     * @param attribute
+     * @param def
+     * @return the value
+     */
+    public <T> T getOrDefault(Attribute attribute, T def) {
+        T value = get(attribute);
+        return value == null ? def : value;
+    }
+
+    /**
      * Associate the {@code value} with the {@code attribute} for this
      * {@link Block}, overwriting any previously set values.
      * 
