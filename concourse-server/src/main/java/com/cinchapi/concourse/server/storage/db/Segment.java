@@ -33,7 +33,6 @@ import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
@@ -138,7 +137,7 @@ public class Segment implements Comparable<Segment>, Syncable {
                 .toString();
         String searchDirectory = directory.resolve(SEARCH_BLOCK_DIRECTORY)
                 .toString();
-        for (String dir : ImmutableSet.of(primaryDirectory, secondaryDirectory,
+        for (String dir : Array.containing(primaryDirectory, secondaryDirectory,
                 searchDirectory)) {
             FileSystem.mkdirs(dir);
         }
@@ -199,7 +198,7 @@ public class Segment implements Comparable<Segment>, Syncable {
                         .format("Segment {} is unbalanced because it does not contain both a "
                                 + "Primary and Secondary Block", id));
             }
-            for (Block<?, ?, ?> block : ImmutableSet.of(primary, secondary,
+            for (Block<?, ?, ?> block : Array.containing(primary, secondary,
                     search)) {
                 if(block != null) {
                     Logger.info("Loaded {} metadata for {}",
@@ -356,12 +355,15 @@ public class Segment implements Comparable<Segment>, Syncable {
         // TODO we need a transactional file system to ensure that these
         // blocks are written atomically (all or nothing)
         ArrayBuilder<Runnable> _tasks = ArrayBuilder.builder();
-        for (Block<?, ?, ?> block : ImmutableSet.of(primary, secondary,
+        for (Block<?, ?, ?> block : Array.containing(primary, secondary,
                 search)) {
-            _tasks.add(() -> {
-                block.sync();
-                Logger.debug("Completed sync of {}", block);
-            });
+            if(block != null) {
+                _tasks.add(() -> {
+                    block.sync();
+                    Logger.debug("Completed sync of {}", block);
+
+                });
+            }
         }
         Runnable[] tasks = _tasks.build();
         executor.await((task, error) -> Logger.error(
