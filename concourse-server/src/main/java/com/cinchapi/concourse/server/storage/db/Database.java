@@ -21,11 +21,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -67,6 +67,7 @@ import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -245,20 +246,27 @@ public final class Database extends BaseStore implements PermanentStore {
     private transient boolean running = false;
 
     /**
-     * CURRENT SEGMENT POINTER
-     * ----------------------
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
      */
     private transient Segment seg0;
+
     /**
-     * SEGMENT COLLECTION
-     * -----------------
-     * We maintain a collection of all the segments, in chronological order, so
-     * that we can seek for the necessary revisions and populate a requested
-     * record.
+     * <p>
+     * We maintain a collection of all the segments, in manually sorted
+     * chronological order, so that we can seek for the necessary revisions and
+     * populate a requested record.
+     * </p>
+     * 
+     * <p>
+     * <strong>IMPL NOTE:</strong> We maintain the #segments in a List (instead
+     * of a SortedSet) because a newly added Segment is always "greater" than an
+     * existing Segment. The only time Segments are not added in monotonically
+     * increasing order is when they are loaded when the database #start()s.
+     * </p>
      */
-    private final transient SortedSet<Segment> segments = Sets.newTreeSet();
+    private final transient List<Segment> segments = Lists.newArrayList();
+
     /**
      * An {@link ExecutorService} that handles asynchronous writing tasks in the
      * background.
@@ -539,12 +547,12 @@ public final class Database extends BaseStore implements PermanentStore {
             this.reader = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
                             .namingThreadFactory("Storage Block Loader")));
-            segments.clear();
             Path directory = Paths.get(backingStore);
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
             Path cpb = Paths.get(backingStore)
                     .resolve(Segment.PRIMARY_BLOCK_DIRECTORY);
             FileSystem.mkdirs(cpb.toString());
+            Set<Segment> _segments = Sets.newConcurrentHashSet();
             FileSystem.ls(cpb)
                     .filter(file -> file.toString()
                             .endsWith(Block.BLOCK_NAME_EXTENSION))
@@ -554,7 +562,7 @@ public final class Database extends BaseStore implements PermanentStore {
                     .forEach(id -> tasks.add(() -> {
                         try {
                             Segment segment = Segment.load(id, directory);
-                            segments.add(segment);
+                            _segments.add(segment);
                         }
                         catch (MalformedBlockException e) {
                             Logger.warn(
@@ -595,9 +603,9 @@ public final class Database extends BaseStore implements PermanentStore {
             // not). When the server restarts, it will try to sync the Segment
             // again, generating duplicate Blocks on disk for the Blocks that
             // succeeded in syncing before the crash
-            Iterator<Segment> it = segments.iterator();
+            Iterator<Segment> it = _segments.iterator();
             Set<String> checksums = Sets
-                    .newHashSetWithExpectedSize(segments.size());
+                    .newHashSetWithExpectedSize(_segments.size());
             while (it.hasNext()) {
                 Segment segment = it.next();
                 if(!checksums.add(segment.checksum())) {
@@ -607,6 +615,9 @@ public final class Database extends BaseStore implements PermanentStore {
                             segment.id());
                 }
             }
+            segments.clear();
+            segments.addAll(_segments);
+            Collections.sort(segments);
             triggerSync(false);
             memory = new CacheState();
         }

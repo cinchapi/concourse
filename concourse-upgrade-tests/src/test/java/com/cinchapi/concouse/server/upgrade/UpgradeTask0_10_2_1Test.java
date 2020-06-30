@@ -78,7 +78,9 @@ public class UpgradeTask0_10_2_1Test extends UpgradeTest {
     @Test
     public void testOnlyFltrAndIndxFilesHaveChanged() {
         Assert.assertTrue(client.verify("payRangeMax", 18, 1));
-        ImmutableList.of(cpb, csb, ctb).forEach(group -> {
+        // NOTE: No need to check #ctb because SearchBlocks don't use Value as a
+        // locator, key, or value.
+        ImmutableList.of(cpb, csb).forEach(group -> {
             FileSystem.fileOnlyIterator(group).forEachRemaining(file -> {
                 String actual = Checksums.generate(Paths.get(file));
                 String expected = checksums.get(file);
