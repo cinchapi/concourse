@@ -51,6 +51,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Range;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -418,7 +419,10 @@ public final class Segment implements Syncable {
     @Override
     public boolean equals(Object other) {
         if(other instanceof Segment) {
-            return id().equals(((Segment) other).id());
+            Segment seg = (Segment) other;
+            Range<Long> r1 = Range.closed(minTs, maxTs);
+            Range<Long> r2 = Range.closed(seg.minTs, seg.maxTs);
+            return r1.isConnected(r2);
         }
         else {
             return false;
@@ -463,7 +467,7 @@ public final class Segment implements Syncable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id());
+        return Objects.hash(minTs, maxTs);
     }
 
     /**
@@ -472,7 +476,7 @@ public final class Segment implements Syncable {
      * @return the segment id
      */
     public String id() {
-        return file != null ? file.getFileName().toString()
+        return file != null ? file.getFileName().toString().split("\\.")[0]
                 : "MemorySegment-" + System.identityHashCode(this);
     }
 

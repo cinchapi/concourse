@@ -16,10 +16,13 @@
 package com.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.Assert;
@@ -34,6 +37,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
+import com.cinchapi.concourse.server.storage.db.disk.Segment;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -58,6 +62,36 @@ public class DatabaseTest extends StoreTest {
     public void testGetAllRecords() {
         Database db = (Database) store;
         db.getAllRecords();
+    }
+
+    @Test
+    public void testDatabaseRemovesDuplicateSegmentsOnStartup() {
+        Database db = (Database) store;
+        int expected = TestData.getScaleCount();
+        for (int i = 0; i < expected; ++i) {
+            db.accept(Write.add(TestData.getString(), TestData.getTObject(),
+                    TestData.getLong()));
+            db.triggerSync();
+        }
+        List<Segment> segments = Reflection.get("segments", db);
+        Assert.assertEquals(expected + 1, segments.size()); // size includes
+                                                            // seg0
+        db.stop();
+        AtomicInteger duplicates = new AtomicInteger(0);
+        FileSystem.ls(Paths.get(current).resolve("segments")).forEach(file -> {
+            if(Random.getInt() % 3 == 0) {
+                FileSystem.copyBytes(file.toString(), file.getParent()
+                        .resolve(UUID.randomUUID() + ".seg").toString());
+                duplicates.incrementAndGet();
+            }
+        });
+        db = new Database(db.getBackingStore()); // simulate server restart
+        db.start();
+        segments = Reflection.get("segments", db);
+        Assert.assertEquals(expected + 1, segments.size()); // size includes
+                                                            // seg0
+        System.out.println("The database discarded " + duplicates.get()
+                + " overlapping segments");
     }
 
     @Test

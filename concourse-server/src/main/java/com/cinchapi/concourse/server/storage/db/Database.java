@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -575,8 +576,34 @@ public final class Database extends BaseStore implements PermanentStore {
                     loader.shutdown();
                 }
             }
+
+            // Sort the segments in chronological order
             Collections.sort(this.segments, Segment.TEMPORAL_COMPARATOR);
-            // TODO do initial gc marking by removing
+
+            // Remove segments that overlap. Segments may overlap if they are
+            // duplicates resulting from a botched upgrade or reindex or if they
+            // were involved in an optimization pass, but garbage collection
+            // didn't run before the server shutdown.
+            ListIterator<Segment> lit = segments.listIterator();
+            while (lit.hasNext()) {
+                if(lit.hasPrevious()) {
+                    Segment previous = lit.previous();
+                    lit.next();
+                    Segment current = lit.next();
+                    if(current.equals(previous)) {
+                        lit.previous();
+                        lit.remove();
+                        Logger.warn(
+                                "Segment {} was not loaded because it contains duplicate data. It has been scheduled for garbage collection.",
+                                previous);
+                        // TODO: mark #previous for garbage collection
+                    }
+                }
+                else {
+                    lit.next();
+                }
+            }
+
             triggerSync(false);
             memory = new CacheState();
         }
