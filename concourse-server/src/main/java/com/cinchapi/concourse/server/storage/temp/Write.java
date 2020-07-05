@@ -45,18 +45,21 @@ public final class Write implements Byteable, Versioned {
     /**
      * The minimum number of bytes needed to encode every Write.
      */
+    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
+                                                                   // version(8),
+                                                                   // keySize(4)
+
+    /**
+     * The minimum number of bytes needed to encode every Write.
+     */
     // @formatter:off
     public static final int MINIMUM_SIZE = 
-            PrimaryKey.SIZE
-            + Value.MINIMUM_SIZE
-            + 1 // key (cannot be empty)
-            + 1 // type
-            + 8 // version
-            + 4 // keySize
+            CONSTANT_SIZE
+            + 1 // minimum key size since it cannot be empty
+            + 1 // value type
+            + 1 // minimum value size since it cannot be empty
     ; 
     // @formatter:on
-                                                                 // version(8),
-                                                                 // keySize(4)
 
     /**
      * Return a storable Write that represents a revision to ADD {@code key} as
@@ -319,7 +322,7 @@ public final class Write implements Byteable, Versioned {
 
     @Override
     public int size() {
-        return MINIMUM_SIZE + key.size() + value.size();
+        return CONSTANT_SIZE + key.size() + value.size();
     }
 
     @Override
