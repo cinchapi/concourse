@@ -33,6 +33,7 @@ public class ByteBufferInputStream extends InputStream {
 
     /**
      * Construct a new instance.
+     * 
      * @param buffer
      */
     public ByteBufferInputStream(ByteBuffer buffer) {
