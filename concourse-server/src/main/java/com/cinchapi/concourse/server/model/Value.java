@@ -35,7 +35,7 @@ import com.cinchapi.concourse.util.Numbers;
  * logically sortable using weak typing and cannot exceed 2^32 bytes.
  * <p>
  * <h2>Storage Requirements</h2>
- * Each Value requires at least {@value #CONSTANT_SIZE} bytes of space in
+ * Each Value requires at least {@value #MINIMUM_SIZE} bytes of space in
  * addition to the following type specific requirements:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
@@ -89,7 +89,8 @@ public final class Value implements Byteable, Comparable<Value> {
     /**
      * The minimum number of bytes needed to encode every Value.
      */
-    private static final int CONSTANT_SIZE = 1; // type(1)
+    public static final int MINIMUM_SIZE = 2; // type(1) + at least 1 for
+                                              // non-empty data
 
     /**
      * Return the Value encoded in {@code bytes} so long as those bytes adhere
@@ -372,7 +373,7 @@ public final class Value implements Byteable, Comparable<Value> {
             return 8;
         }
         else if(isCharSequenceType()) {
-            return size() - CONSTANT_SIZE;
+            return size() - MINIMUM_SIZE;
         }
         else {
             return Byteable.super.getCanonicalLength();
@@ -436,7 +437,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public int size() {
-        return CONSTANT_SIZE + data.data.capacity();
+        return MINIMUM_SIZE + data.data.capacity();
     }
 
     @Override

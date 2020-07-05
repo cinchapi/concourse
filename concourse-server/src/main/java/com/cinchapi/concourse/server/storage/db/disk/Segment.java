@@ -173,7 +173,8 @@ public final class Segment implements Syncable {
      * bloom filter, but no larger than necessary since we must keep all bloom
      * filters in memory.
      */
-    private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
+    private static final int EXPECTED_INSERTIONS = Math
+            .round(GlobalState.BUFFER_PAGE_SIZE / Write.MINIMUM_SIZE);
 
     /**
      * The expected bytes at the beginning of a {@link Segment} file to properly
@@ -476,7 +477,7 @@ public final class Segment implements Syncable {
      * @return the segment id
      */
     public String id() {
-        return file != null ? file.getFileName().toString().split("\\.")[0]
+        return file != null ? file.getFileName().toString()
                 : "MemorySegment-" + System.identityHashCode(this);
     }
 
