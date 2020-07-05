@@ -313,6 +313,7 @@ public final class Database extends BaseStore implements PermanentStore {
             if(running) {
                 try {
                     Receipt receipt = seg0.transfer(write, writer);
+                    Logger.debug("Transferred {} to {}", write, seg0);
 
                     // Updated cached records
                     TableRecord cpr = cpc
