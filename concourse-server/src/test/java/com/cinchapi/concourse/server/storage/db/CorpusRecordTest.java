@@ -25,15 +25,15 @@ import com.cinchapi.concourse.util.TestData;
  * 
  * @author Jeff Nelson
  */
-public class SearchRecordTest extends RecordTest<Text, Text, Position> {
+public class CorpusRecordTest extends RecordTest<Text, Text, Position> {
 
     @Override
-    protected SearchRecord getRecord(Text locator) {
+    protected CorpusRecord getRecord(Text locator) {
         return Record.createSearchRecord(locator);
     }
 
     @Override
-    protected SearchRecord getRecord(Text locator, Text key) {
+    protected CorpusRecord getRecord(Text locator, Text key) {
         return Record.createSearchRecordPartial(locator, key);
     }
 
@@ -53,7 +53,7 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
     }
 
     @Override
-    protected SearchRevision getRevision(Text locator, Text key,
+    protected CorpusRevision getRevision(Text locator, Text key,
             Position value) {
         return Revision.createSearchRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));

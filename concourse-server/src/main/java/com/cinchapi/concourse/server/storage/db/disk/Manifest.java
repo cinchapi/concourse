@@ -13,49 +13,66 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
-import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.Syncable;
+import com.cinchapi.concourse.server.io.Freezable;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 /**
- * A reference that stores the start and end position for sequences of bytes
- * that relate to a key that is described by one or more {@link Byteable}
- * objects. A BlockIndex is associated with each {@link Block} to determine
- * where to look on disk for a particular {@code locator} or {@code locator}/
- * {@code key} pair.
- * 
+ * A {@link Manifest} stores and provides the efficient lookup for the start and
+ * end position for sequences of bytes that relate to a key that is described by
+ * one or more {@link Byteable} objects.
+ * <p>
+ * A {@link Manifest} is associated with each {@link Chunk} to determine where
+ * to look on disk for a particular {@code locator} or
+ * {@code locator}/{@code key} pair.
+ * </p>
+ *
  * @author Jeff Nelson
  */
-public class BlockIndex implements Byteable, Syncable {
+@NotThreadSafe
+public class Manifest implements Byteable, Freezable {
 
-    // CON-256: The BlockIndex does not need to perform locking for concurrency
-    // control since writes only happen from a single thread (the
-    // BufferTransportThread requesting a sync on the parent Block) and reads
-    // only happen when the parent Block has been synced and the BlockIndex is
-    // no longer mutable.
+    /**
+     * Create a new {@link Manifest} that is expected to have
+     * {@code expectedInsertions} entries.
+     * 
+     * @param expectedInsertions
+     * @return the new {@link Manifest}
+     */
+    public static Manifest create(int expectedInsertions) {
+        return new Manifest(expectedInsertions);
+    }
+
+    /**
+     * Load an existing {@link Manifest} from {@code file}.
+     * 
+     * @param file
+     * @param position
+     * @param size
+     * @return the loaded {@link Manifest}
+     */
+    public static Manifest load(Path file, long position, long size) {
+        return new Manifest(file, position, size);
+    }
 
     /**
      * Represents an entry that has not been recorded.
@@ -63,128 +80,113 @@ public class BlockIndex implements Byteable, Syncable {
     public static final int NO_ENTRY = -1;
 
     /**
-     * Return a newly created {@link BlockIndex}.
+     * A {@link SoftReference} to the entries contained in the {@link Manifest}
+     * that is used to reduce memory overhead.
      * 
-     * @param expectedInsertions
-     * @return the {@link BlockIndex}
+     * <p>
+     * It is {@code null} until the
+     * {@link Manifest} is {@link #freeze(Path, long) frozen} or the
+     * {@link #entries()} are loaded
+     * </p>
      */
-    public static BlockIndex create(int expectedInsertions) {
-        return new BlockIndex(expectedInsertions);
-    }
+    @Nullable
+    private SoftReference<Map<Composite, Entry>> $entries;
 
     /**
-     * Return the BlockIndex that is stored in {@code file}.
-     * 
-     * @param file
-     * @return the BlockIndex
+     * The entries contained in the {@link Manifest}.
+     * <p>
+     * It is {@code null} if the
+     * {@link Manifest} has been {@link #freeze(Path, long) frozen}.
+     * </p>
      */
-    public static BlockIndex open(Path file) {
-        return new BlockIndex(file);
-    }
-
-    /**
-     * Return the BlockIndex that is stored in {@code file}.
-     * 
-     * @param file
-     * @return the BlockIndex
-     */
-    public static BlockIndex open(String file) {
-        return open(Paths.get(file));
-    }
-
-    /**
-     * Return a newly created {@link BlockIndex} with the intention to
-     * eventually {@link #sync() sync} it to {@code file}.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the {@link BlockIndex}
-     */
-    public static BlockIndex reserve(Path file, int expectedInsertions) {
-        BlockIndex index = new BlockIndex(expectedInsertions);
-        index.intendedFile = file;
-        return index;
-    }
-
-    /**
-     * Return a newly created {@link BlockIndex} with the intention to
-     * eventually {@link #sync() sync} it to {@code file}.
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the {@link BlockIndex}
-     */
-    public static BlockIndex reserve(String file, int expectedInsertions) {
-        return reserve(Paths.get(file), expectedInsertions);
-    }
-
-    /**
-     * The entries contained in the index.
-     */
+    @Nullable
     private Map<Composite, Entry> entries;
 
     /**
-     * The file where the BlockIndex was last {@link #sync(Path) synced}. This
-     * value is {@code null} if the {@link BlockIndex} has never been
-     * {@link #sync(Path) synced}
+     * The file where the data for the {@link Manifest} is stored.
+     * <p>
+     * It is
+     * {@code null} if the {@link Manifest} has not been {@link Manifest(Path,
+     * long, long) loaded} or {@link #freeze(Path, long) frozen}.
+     * </p>
      */
     @Nullable
     private Path file;
 
     /**
-     * A file passed in with the the legacy {@link #reserve(Path, int)} factory.
-     * If this exist, {@link #sync()} to it if {@link #file} has not been set.
+     * A flag that tracks if the {@link Manifest} is mutable or not.
      */
-    @Nullable
-    private Path intendedFile;
+    private boolean mutable;
 
     /**
-     * The running size of the index in bytes.
+     * The byte where the manifest data begins in the {@link #file}.
      */
-    private transient int size = 0;
+    private long position;
 
     /**
-     * A {@link SoftReference} to the entries contained in the index that is
-     * used to reduce memory overhead.
+     * The running size of the {@link Manifest} in bytes.
      */
-    private SoftReference<Map<Composite, Entry>> softEntries;
+    private long size = 0;
 
     /**
      * Construct a new instance.
      * 
      * @param expectedInsertions
      */
-    private BlockIndex(int expectedInsertions) {
+    private Manifest(int expectedInsertions) {
+        this.mutable = true;
         this.file = null;
+        this.position = -1;
+        this.size = 0;
         this.entries = Maps
                 .newLinkedHashMapWithExpectedSize(expectedInsertions);
-        this.softEntries = null;
+        this.$entries = null;
     }
 
     /**
-     * Lazily construct an existing instance from the data in {@code file}.
+     * Load an existing instance.
      * 
      * @param file
+     * @param position
+     * @param size
      */
-    private BlockIndex(Path file) {
+    private Manifest(Path file, long position, long size) {
+        this.mutable = false;
         this.file = file;
+        this.position = position;
+        this.size = size;
         this.entries = null;
-        this.softEntries = null;
+        this.$entries = null;
     }
 
     @Override
     public void copyTo(ByteSink sink) {
-        Preconditions.checkState(isMutable());
-        for (Entry entry : entries.values()) {
+        for (Entry entry : entries().values()) {
             sink.putInt(entry.size());
             entry.copyTo(sink);
         }
     }
 
     @Override
-    public ByteBuffer getBytes() {
-        Preconditions.checkState(isMutable());
-        return Byteable.super.getBytes();
+    public boolean equals(Object obj) {
+        if(obj instanceof Manifest) {
+            Manifest other = (Manifest) obj;
+            return entries().equals(other.entries());
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public void freeze(Path file, long position) {
+        Preconditions.checkState(mutable,
+                "Cannot freeze an immutable Manifest");
+        this.mutable = false;
+        this.file = file;
+        this.position = position;
+        this.$entries = new SoftReference<Map<Composite, Entry>>(entries);
+        this.entries = null; // Make eligible for GC
     }
 
     /**
@@ -198,7 +200,7 @@ public class BlockIndex implements Byteable, Syncable {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
-            return entry.getEnd();
+            return entry.end();
         }
         else {
             return NO_ENTRY;
@@ -216,11 +218,21 @@ public class BlockIndex implements Byteable, Syncable {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
-            return entry.getStart();
+            return entry.start();
         }
         else {
             return NO_ENTRY;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return entries().hashCode();
+    }
+
+    @Override
+    public boolean isFrozen() {
+        return !mutable;
     }
 
     /**
@@ -232,7 +244,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putEnd(int end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
-        Preconditions.checkState(isMutable());
+        Preconditions.checkState(mutable);
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
@@ -251,7 +263,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putStart(int start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
-        Preconditions.checkState(isMutable());
+        Preconditions.checkState(mutable);
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry == null) {
@@ -264,48 +276,17 @@ public class BlockIndex implements Byteable, Syncable {
 
     @Override
     public int size() {
-        return size;
-    }
-
-    @Override
-    public void sync() {
-        Preconditions.checkState(file != null || intendedFile != null,
-                "Cannot sync because a file has not been specified");
-        sync(MoreObjects.firstNonNull(file, intendedFile));
+        return (int) size;
     }
 
     /**
-     * Write the data to {@code file} and fsync to guarantee durability.
-     * 
-     * @param file
-     */
-    public void sync(Path file) {
-        FileChannel channel = FileSystem.getFileChannel(file.toString());
-        try {
-            channel.truncate(size());
-            channel.write(getBytes());
-            channel.force(true);
-            softEntries = new SoftReference<Map<Composite, Entry>>(entries);
-            entries = null;
-            this.file = file;
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            FileSystem.closeFileChannel(channel); // CON-162
-        }
-    }
-
-    /**
-     * Return {@code true} if this index is considered <em>loaded</em> meaning
-     * all of its entries are available in memory.
+     * Return {@code true} if this {@link Manifest} is considered
+     * <em>loaded</em> meaning all of its entries are available in memory.
      * 
      * @return {@code true} if the entries are loaded
      */
     protected boolean isLoaded() { // visible for testing
-        return isMutable()
-                || (softEntries != null && softEntries.get() != null);
+        return mutable || ($entries != null && $entries.get() != null);
     }
 
     /**
@@ -319,53 +300,25 @@ public class BlockIndex implements Byteable, Syncable {
             return entries;
         }
         else {
-            while (softEntries == null || softEntries.get() == null) {
-                ByteBuffer bytes = FileSystem.map(file.toString(),
-                        MapMode.READ_ONLY, 0,
-                        FileSystem.getFileSize(file.toString()));
+            while ($entries == null || $entries.get() == null) {
+                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
+                        position, size);
                 Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
                 Map<Composite, Entry> entries = Maps
                         .newLinkedHashMapWithExpectedSize(
                                 bytes.capacity() / Entry.CONSTANT_SIZE);
                 while (it.hasNext()) {
                     Entry entry = new Entry(it.next());
-                    entries.put(entry.getKey(), entry);
+                    entries.put(entry.key(), entry);
                 }
-                softEntries = new SoftReference<Map<Composite, Entry>>(entries);
+                $entries = new SoftReference<Map<Composite, Entry>>(entries);
             }
-            return softEntries.get();
+            return $entries.get();
         }
     }
 
     /**
-     * Return {@code true} of this {@link BlockIndex} currently supports adding
-     * new entries. A {@link BlockIndex} is no longer mutable after it has been
-     * {@code synced}
-     * 
-     * @return a boolean that indicates the mutability of this {@link Block}
-     */
-    private boolean isMutable() {
-        return file == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return entries().hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof BlockIndex) {
-            BlockIndex other = (BlockIndex) obj;
-            return entries().equals(other.entries());
-        }
-        else {
-            return false;
-        }
-    }
-
-    /**
-     * Represents a single entry in the Index.
+     * Represents a single entry in the {@link Manifest}.
      * 
      * @author Jeff Nelson
      */
@@ -414,8 +367,25 @@ public class BlockIndex implements Byteable, Syncable {
          * 
          * @return the end
          */
-        public int getEnd() {
+        public int end() {
             return end;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Entry) {
+                Entry other = (Entry) obj;
+                return start == other.start && end == other.end
+                        && key.equals(other.key);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(key, start, end);
         }
 
         /**
@@ -423,17 +393,8 @@ public class BlockIndex implements Byteable, Syncable {
          * 
          * @return the key
          */
-        public Composite getKey() {
+        public Composite key() {
             return key;
-        }
-
-        /**
-         * Return the start position.
-         * 
-         * @return the start
-         */
-        public int getStart() {
-            return start;
         }
 
         /**
@@ -459,23 +420,14 @@ public class BlockIndex implements Byteable, Syncable {
             return CONSTANT_SIZE + key.size();
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(key, start, end);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof Entry) {
-                Entry other = (Entry) obj;
-                return start == other.start && end == other.end
-                        && key.equals(other.key);
-            }
-            else {
-                return false;
-            }
+        /**
+         * Return the start position.
+         * 
+         * @return the start
+         */
+        public int start() {
+            return start;
         }
 
     }
-
 }

@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -30,75 +33,74 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link com.cinchapi.concourse.server.storage.db.BlockIndex}.
+ * Unit tests for {@link Manifest}.
  *
  * @author Jeff Nelson
  */
-public class BlockIndexTest extends ConcourseBaseTest {
+public class ManifestTest extends ConcourseBaseTest {
 
-    private String file;
+    private Path file;
 
     @Rule
     public TestWatcher w = new TestWatcher() {
 
         @Override
         protected void starting(Description description) {
-            file = TestData.DATA_DIR + File.separator + Time.now();
+            file = Paths.get(TestData.DATA_DIR + File.separator + Time.now());
         }
 
         @Override
         protected void finished(Description description) {
             if(FileSystem.hasFile(file)) {
-                FileSystem.deleteFile(file);
+                FileSystem.deleteFile(file.toString());
             }
         }
 
     };
 
     @Test(expected = IllegalStateException.class)
-    public void testCannotModifyBlockIndexAfterSync() {
-        BlockIndex index = BlockIndex.reserve(file, 1);
-        index.putStart(0, TestData.getPosition());
-        index.sync();
-        index.putEnd(1, TestData.getPosition());
+    public void testCannotModifyManifestAfterFreeze() {
+        Manifest manifest = Manifest.create(1);
+        manifest.putStart(0, TestData.getPosition());
+        manifest.freeze(file);
+        manifest.putEnd(1, TestData.getPosition());
     }
 
     @Test
-    public void testBlockIndexLoadsLazily() {
+    public void testManifestLoadsLazily() {
         int count = TestData.getScaleCount() * 2;
-        BlockIndex index = BlockIndex.reserve(file, count);
-        Assert.assertTrue(index.isLoaded());
+        Manifest manifest = Manifest.create(count);
+        Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
             PrimaryKey key = PrimaryKey.wrap(count);
-            index.putStart(count, key);
-            index.putEnd(count * 2, key);
+            manifest.putStart(count, key);
+            manifest.putEnd(count * 2, key);
         }
-        index.sync();
-        index = BlockIndex.open(file);
-        Assert.assertFalse(index.isLoaded());
-        index.getStart(PrimaryKey.wrap(1));
-        Assert.assertTrue(index.isLoaded());
+        ByteBuffer bytes = manifest.getBytes();
+        FileSystem.writeBytes(bytes, file.toString());
+        manifest = Manifest.load(file, 0, bytes.capacity());
+        Assert.assertFalse(manifest.isLoaded());
+        manifest.getStart(PrimaryKey.wrap(1));
+        Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
             PrimaryKey key = PrimaryKey.wrap(count);
-            Assert.assertEquals(count, index.getStart(key));
-            Assert.assertEquals(count * 2, index.getEnd(key));
+            Assert.assertEquals(count, manifest.getStart(key));
+            Assert.assertEquals(count * 2, manifest.getEnd(key));
         }
     }
 
     @Test
-    public void testBlockWorksAfterBeingSynced() {
-        // basically check that we can sync to disk and the block index still
-        // works fine
+    public void testManifestWorksAfterBeingFrozen() {
         int count = TestData.getScaleCount() * 2;
-        BlockIndex index = BlockIndex.reserve(file, count);
+        Manifest manifest = Manifest.create(count);
         PrimaryKey key = PrimaryKey.wrap(count);
-        index.putStart(count, key);
-        index.putEnd(count * 2, key);
-        Assert.assertEquals(count, index.getStart(key));
-        Assert.assertEquals(count * 2, index.getEnd(key));
-        index.sync();
-        Assert.assertEquals(count, index.getStart(key));
-        Assert.assertEquals(count * 2, index.getEnd(key));
+        manifest.putStart(count, key);
+        manifest.putEnd(count * 2, key);
+        Assert.assertEquals(count, manifest.getStart(key));
+        Assert.assertEquals(count * 2, manifest.getEnd(key));
+        manifest.freeze(file);
+        Assert.assertEquals(count, manifest.getStart(key));
+        Assert.assertEquals(count * 2, manifest.getEnd(key));
     }
 
 }

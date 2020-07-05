@@ -53,7 +53,7 @@ import com.google.common.collect.Sets;
 @PackagePrivate
 @ThreadSafe
 @SuppressWarnings("unchecked")
-abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
+public abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
 
     /**
      * Return a PrimaryRecord for {@code primaryKey}.
@@ -61,8 +61,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param primaryKey
      * @return the PrimaryRecord
      */
-    public static PrimaryRecord createPrimaryRecord(PrimaryKey record) {
-        return new PrimaryRecord(record, null);
+    public static TableRecord createPrimaryRecord(PrimaryKey record) {
+        return new TableRecord(record, null);
     }
 
     /**
@@ -72,9 +72,9 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param key
      * @return the PrimaryRecord.
      */
-    public static PrimaryRecord createPrimaryRecordPartial(PrimaryKey record,
+    public static TableRecord createPrimaryRecordPartial(PrimaryKey record,
             Text key) {
-        return new PrimaryRecord(record, key);
+        return new TableRecord(record, key);
     }
 
     /**
@@ -83,8 +83,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param key
      * @return the SearchRecord
      */
-    public static SearchRecord createSearchRecord(Text key) {
-        return new SearchRecord(key, null);
+    public static CorpusRecord createSearchRecord(Text key) {
+        return new CorpusRecord(key, null);
     }
 
     /**
@@ -94,8 +94,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param term
      * @return the partial SearchRecord
      */
-    public static SearchRecord createSearchRecordPartial(Text key, Text term) {
-        return new SearchRecord(key, term);
+    public static CorpusRecord createSearchRecordPartial(Text key, Text term) {
+        return new CorpusRecord(key, term);
     }
 
     /**
@@ -104,8 +104,8 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param key
      * @return the SecondaryRecord
      */
-    public static SecondaryRecord createSecondaryRecord(Text key) {
-        return new SecondaryRecord(key, null);
+    public static IndexRecord createSecondaryRecord(Text key) {
+        return new IndexRecord(key, null);
     }
 
     /**
@@ -115,9 +115,9 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param value
      * @return the SecondaryRecord
      */
-    public static SecondaryRecord createSecondaryRecordPartial(Text key,
+    public static IndexRecord createSecondaryRecordPartial(Text key,
             Value value) {
-        return new SecondaryRecord(key, value);
+        return new IndexRecord(key, value);
     }
 
     /**
@@ -218,7 +218,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // populated from Blocks that were sorted based primarily on
             // non-version factors.
             Preconditions.checkArgument(
-                    (this instanceof PrimaryRecord
+                    (this instanceof TableRecord
                             && revision.getVersion() >= version) || true,
                     "Cannot " + "append %s because its version(%s) is lower "
                             + "than the Record's current version(%s). The",
@@ -231,7 +231,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // append Revisions for each term in the query
             Preconditions.checkArgument(
                     (partial && revision.getKey().equals(key)) || !partial
-                            || this instanceof SearchRecord,
+                            || this instanceof CorpusRecord,
                     "Cannot append %s because it does not belong to %s",
                     revision, this);
             // NOTE: The check below is ignored for a SearchRecord instance
@@ -240,7 +240,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // at different times (i.e. adding John Doe and Johnny Doe to the
             // "name")
             Preconditions.checkArgument(
-                    this instanceof SearchRecord || isOffset(revision),
+                    this instanceof CorpusRecord || isOffset(revision),
                     "Cannot append " + "%s because it represents an action "
                             + "involving a key, value and locator that has not "
                             + "been offset.",

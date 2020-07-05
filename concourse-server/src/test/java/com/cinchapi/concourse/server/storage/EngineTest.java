@@ -94,8 +94,6 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-        System.out.println(
-                "[INFO] You can ignore the NoSuchFileException stack trace above");
     }
 
     @Test
@@ -119,6 +117,7 @@ public class EngineTest extends BufferedStoreTest {
             throws Exception {
         Engine engine = (Engine) store;
         Buffer buffer = (Buffer) engine.buffer;
+        Reflection.set("transportRateMultiplier", 1, buffer); // (authorized)
         Database db = (Database) engine.destination;
         Method method = buffer.getClass().getDeclaredMethod("canTransport");
         method.setAccessible(true);

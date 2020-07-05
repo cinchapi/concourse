@@ -31,7 +31,7 @@ import com.cinchapi.concourse.server.storage.Action;
  * @author Jeff Nelson
  */
 @Immutable
-public final class SearchRevision extends Revision<Text, Text, Position> {
+public final class CorpusRevision extends Revision<Text, Text, Position> {
 
     /**
      * Construct an instance that represents an existing SearchRevision from
@@ -41,7 +41,7 @@ public final class SearchRevision extends Revision<Text, Text, Position> {
      * 
      * @param bytes
      */
-    private SearchRevision(ByteBuffer bytes) {
+    private CorpusRevision(ByteBuffer bytes) {
         super(bytes);
     }
 
@@ -54,7 +54,7 @@ public final class SearchRevision extends Revision<Text, Text, Position> {
      * @param version
      * @param type
      */
-    SearchRevision(Text locator, Text key, Position value, long version,
+    CorpusRevision(Text locator, Text key, Position value, long version,
             Action type) {
         super(locator, key, value, version, type);
     }

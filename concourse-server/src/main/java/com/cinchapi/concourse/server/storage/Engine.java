@@ -87,7 +87,7 @@ public final class Engine extends BufferedStore
     //
     // NOTES ON LOCKING:
     // =================
-    // Even though the individual storage components (Block, Record, etc)
+    // Even though the individual storage components (Segment, Record, etc)
     // handle their own locking, we must also grab "global" coordinating locks
     // in the Engine
     //

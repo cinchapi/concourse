@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
 /**
  * An {@link Exception} that indicates an unexpected error occurred when trying
- * to load a {@link Segment} {@link Block block}.
+ * to load a {@link Segment}.
  *
  * @author Jeff Nelson
  */
-class SegmentLoadingException extends Exception {
+public class SegmentLoadingException extends Exception {
 
     private static final long serialVersionUID = -6732377307672149738L;
-
-    /**
-     * The type of {@link Block} that experienced the load error.
-     */
-    private final Class<? extends Block<?, ?, ?>> clazz;
-
-    /**
-     * The error.
-     */
-    private final Exception error;
 
     /**
      * Construct a new instance.
@@ -41,29 +31,18 @@ class SegmentLoadingException extends Exception {
      * @param clazz
      * @param error
      */
-    public SegmentLoadingException(Class<? extends Block<?, ?, ?>> clazz,
-            Exception error) {
-        super(error);
-        this.clazz = clazz;
-        this.error = error;
+    public SegmentLoadingException(String message) {
+        super(message);
     }
 
     /**
-     * Return the {@link Block} type that experienced the load error.
+     * Construct a new instance.
      * 
-     * @return the {@link Block} {@link Class type}
+     * @param message
+     * @param e
      */
-    public Class<? extends Block<?, ?, ?>> blockType() {
-        return clazz;
-    }
-
-    /**
-     * Return the load error.
-     * 
-     * @return the load error
-     */
-    public Exception error() {
-        return error;
+    public SegmentLoadingException(String message, Exception cause) {
+        super(message, cause);
     }
 
 }

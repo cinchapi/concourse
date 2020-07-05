@@ -46,8 +46,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-@PackagePrivate
-final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
+public final class TableRecord
+        extends BrowsableRecord<PrimaryKey, Text, Value> {
 
     /**
      * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(PrimaryKey)} or
@@ -58,7 +58,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
      */
     @PackagePrivate
     @DoNotInvoke
-    protected PrimaryRecord(PrimaryKey locator, @Nullable Text key) {
+    protected TableRecord(PrimaryKey locator, @Nullable Text key) {
         super(locator, key);
     }
 

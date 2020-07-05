@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
-import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.CorpusRevision;
+import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
@@ -43,22 +46,66 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.SortedMultiset;
 
 /**
- * A Block that stores SearchRevision data to be used in a SearchRecord.
- * <p>
- * Text is indexed in a block such that that a value matches a query if it
- * contains a sequence of terms where each term or a substring of that term
- * matches the term in the same relative position of the query (i.e. if the
- * query is for 'fo ar' then value 'foo bar' will match, etc).
- * </p>
- * <p>
- * </p>
- * 
+ * A {@link Chunk} that stores {@link CorpusRevision CorpusRevisons} for
+ * various {@link CorpusRecord CorpusRecords}.
+ *
  * @author Jeff Nelson
  */
-@ThreadSafe
-@PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position>
+public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements SearchIndex {
+
+    /**
+     * Return a new {@link CorpusChunk}.
+     * 
+     * @param filter
+     * @return the created {@link Chunk}
+     */
+    public static CorpusChunk create(BloomFilter filter) {
+        return create(null, filter);
+    }
+
+    /**
+     * Return a new {@link CorpusChunk}.
+     * 
+     * @param segment
+     * @param filter
+     * @return the created {@link Chunk}
+     */
+    public static CorpusChunk create(@Nullable Segment segment,
+            BloomFilter filter) {
+        return new CorpusChunk(segment, filter);
+    }
+
+    /**
+     * Load an existing {@link CorpusChunk}.
+     * 
+     * @param file
+     * @param position
+     * @param size
+     * @param filter
+     * @param manifest
+     * @return the loaded {@link Chunk}
+     */
+    public static CorpusChunk load(Path file, long position, long size,
+            BloomFilter filter, Manifest manifest) {
+        return load(null, file, position, size, filter, manifest);
+    }
+
+    /**
+     * Load an existing {@link CorpusChunk}.
+     * 
+     * @param segment
+     * @param file
+     * @param position
+     * @param size
+     * @param filter
+     * @param manifest
+     * @return the loaded {@link Chunk}
+     */
+    public static CorpusChunk load(@Nullable Segment segment, Path file,
+            long position, long size, BloomFilter filter, Manifest manifest) {
+        return new CorpusChunk(segment, file, position, size, filter, manifest);
+    }
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
@@ -70,9 +117,9 @@ final class SearchBlock extends Block<Text, Text, Position>
      * The {@link SearchIndexer} that is responsible for multithreaded search
      * indexing.
      * <p>
-     * The service is static (and therefore shared by each SearchBlock) because
-     * only one search block at a time should be mutable and able to process
-     * inserts.
+     * The service is static (and therefore shared by each {@link CorpusChunk})
+     * because
+     * only one segment at a time should be mutable and able to process inserts.
      * </p>
      * <p>
      * If multiple environments are active, they can all use this shared INDEXER
@@ -83,17 +130,28 @@ final class SearchBlock extends Block<Text, Text, Position>
             .create(NUM_INDEXER_THREADS);
 
     /**
-     * DO NOT CALL!!
+     * Construct a new instance.
      * 
-     * @param id
-     * @param directory
-     * @param diskLoad
+     * @param segment
+     * @param filter
      */
-    @PackagePrivate
-    @DoNotInvoke
-    SearchBlock(String id, String directory, boolean diskLoad) {
-        super(id, directory, diskLoad);
-        this.concurrent = true;
+    private CorpusChunk(@Nullable Segment segment, BloomFilter filter) {
+        super(segment, filter);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param segment
+     * @param file
+     * @param position
+     * @param size
+     * @param filter
+     * @param manifest
+     */
+    private CorpusChunk(@Nullable Segment segment, Path file, long position,
+            long size, BloomFilter filter, Manifest manifest) {
+        super(segment, file, position, size, filter, manifest);
     }
 
     /**
@@ -113,7 +171,7 @@ final class SearchBlock extends Block<Text, Text, Position>
      */
     @Override
     @DoNotInvoke
-    public final SearchRevision insert(Text locator, Text key, Position value,
+    public final CorpusRevision insert(Text locator, Text key, Position value,
             long version, Action type) {
         throw new UnsupportedOperationException();
     }
@@ -130,27 +188,52 @@ final class SearchBlock extends Block<Text, Text, Position>
      */
     public final void insert(Text key, Value value, PrimaryKey record,
             long version, Action type) {
-        Preconditions.checkState(mutable,
-                "Cannot modify a block that is not mutable");
+        Preconditions.checkState(!isFrozen(),
+                "Cannot modify a chunk that is not mutable");
         if(value.getType() == Type.STRING) {
-            String string = value.getObject().toString().toLowerCase(); // CON-10
-            String[] toks = string.split(
-                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            CountUpLatch tracker = new CountUpLatch();
-            int pos = 0;
-            int numPrepared = 0;
-            for (String tok : toks) {
-                numPrepared += prepare(tracker, key, tok, record, pos, version,
-                        type);
-                ++pos;
-            }
+            write.lock();
             try {
-                tracker.await(numPrepared);
+                String string = value.getObject().toString().toLowerCase(); // CON-10
+                String[] toks = string.split(
+                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+                CountUpLatch tracker = new CountUpLatch();
+                int pos = 0;
+                int numPrepared = 0;
+                for (String tok : toks) {
+                    numPrepared += prepare(tracker, key, tok, record, pos,
+                            version, type);
+                    ++pos;
+                }
+                try {
+                    tracker.await(numPrepared);
+                }
+                catch (InterruptedException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
             }
-            catch (InterruptedException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
+            finally {
+                write.unlock();
             }
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
+            Comparator<Revision> comparator) {
+        return ConcurrentSkipListMultiset.create(comparator);
+    }
+
+    @Override
+    protected CorpusRevision makeRevision(Text locator, Text key,
+            Position value, long version, Action type) {
+        return Revision.createSearchRevision(locator, key, value, version,
+                type);
+    }
+
+    @Override
+    protected Class<CorpusRevision> xRevisionClass() {
+        return CorpusRevision.class;
     }
 
     /**
@@ -217,25 +300,6 @@ final class SearchBlock extends Block<Text, Text, Position>
             indexed = null; // make eligible for immediate GC
         }
         return count;
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
-            Comparator<Revision> comparator) {
-        return ConcurrentSkipListMultiset.create(comparator);
-    }
-
-    @Override
-    protected SearchRevision makeRevision(Text locator, Text key,
-            Position value, long version, Action type) {
-        return Revision.createSearchRevision(locator, key, value, version,
-                type);
-    }
-
-    @Override
-    protected Class<SearchRevision> xRevisionClass() {
-        return SearchRevision.class;
     }
 
 }

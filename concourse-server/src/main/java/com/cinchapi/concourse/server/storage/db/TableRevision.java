@@ -26,23 +26,23 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 
 /**
- * A {@link Revision} that is used in a {@link SecondayBlock} and maps a key
- * to a value to a record.
+ * A {@link Revision} that is used in a {@link PrimaryBlock} and maps a
+ * record to a key to a value.
  * 
  * @author Jeff Nelson
  */
 @Immutable
-public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {
+public final class TableRevision extends Revision<PrimaryKey, Text, Value> {
 
     /**
-     * Construct an instance that represents an existing SecondaryRevision
+     * Construct an instance that represents an existing PrimaryRevision
      * from a ByteBuffer. This constructor is public so as to comply with
      * the {@link Byteable} interface. Calling this constructor directly is
      * not recommend.
      * 
      * @param bytes
      */
-    private SecondaryRevision(ByteBuffer bytes) {
+    private TableRevision(ByteBuffer bytes) {
         super(bytes);
     }
 
@@ -53,15 +53,16 @@ public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {
      * @param key
      * @param value
      * @param version
+     * @param type
      */
-    SecondaryRevision(Text locator, Value key, PrimaryKey value, long version,
+    TableRevision(PrimaryKey locator, Text key, Value value, long version,
             Action type) {
         super(locator, key, value, version, type);
     }
 
     @Override
-    protected Class<Value> xKeyClass() {
-        return Value.class;
+    protected Class<Text> xKeyClass() {
+        return Text.class;
     }
 
     @Override
@@ -70,18 +71,18 @@ public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected Class<Text> xLocatorClass() {
-        return Text.class;
+    protected Class<PrimaryKey> xLocatorClass() {
+        return PrimaryKey.class;
     }
 
     @Override
     protected int xLocatorSize() {
-        return VARIABLE_SIZE;
+        return PrimaryKey.SIZE;
     }
 
     @Override
-    protected Class<PrimaryKey> xValueClass() {
-        return PrimaryKey.class;
+    protected Class<Value> xValueClass() {
+        return Value.class;
     }
 
 }

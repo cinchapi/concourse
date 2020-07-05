@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-/**
- * 
- * 
- * @author Jeff Nelson
- */
 @RunWith(Suite.class)
-@SuiteClasses({ PrimaryBlockTest.class, SecondaryBlockTest.class,
-        SearchBlockTest.class })
-public class BlockSuite {
+@SuiteClasses({ TableChunkTest.class, IndexChunkTest.class,
+        CorpusChunkTest.class })
+public class ChunkSuite {
 
 }

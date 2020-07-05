@@ -28,10 +28,10 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.db.PrimaryRevision;
+import com.cinchapi.concourse.server.storage.db.CorpusRevision;
+import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.SearchRevision;
-import com.cinchapi.concourse.server.storage.db.SecondaryRevision;
+import com.cinchapi.concourse.server.storage.db.TableRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
@@ -63,17 +63,17 @@ public final class TestData extends Random {
         return DATA_DIR + File.separator + Time.now();
     }
 
-    public static PrimaryRevision getPrimaryRevision() {
+    public static TableRevision getPrimaryRevision() {
         return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
                 getValue(), Time.now(), Action.ADD);
     }
 
-    public static SearchRevision getSearchRevision() {
+    public static CorpusRevision getSearchRevision() {
         return Revision.createSearchRevision(getText(), getText(),
                 getPosition(), Time.now(), Action.ADD);
     }
 
-    public static SecondaryRevision getSecondaryRevision() {
+    public static IndexRevision getSecondaryRevision() {
         return Revision.createSecondaryRevision(getText(), getValue(),
                 getPrimaryKey(), Time.now(), Action.ADD);
     }

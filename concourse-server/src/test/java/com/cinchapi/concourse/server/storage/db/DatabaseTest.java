@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -54,29 +53,6 @@ import com.google.common.collect.Sets;
 public class DatabaseTest extends StoreTest {
 
     private String current;
-
-    @Test
-    public void testDatabaseRemovesUnbalancedBlocksOnStartup()
-            throws Exception {
-        Database db = (Database) store;
-        db.accept(Write.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong()));
-        db.triggerSync();
-        db.stop();
-        FileSystem.deleteDirectory(current + File.separator + "csb");
-        FileSystem.mkdirs(current + File.separator + "csb");
-        db = new Database(db.getBackingStore()); // simulate server restart
-        db.start();
-        Field cpb = db.getClass().getDeclaredField("cpb");
-        Field csb = db.getClass().getDeclaredField("csb");
-        Field ctb = db.getClass().getDeclaredField("ctb");
-        cpb.setAccessible(true);
-        csb.setAccessible(true);
-        ctb.setAccessible(true);
-        Assert.assertEquals(1, ((List<?>) ctb.get(db)).size());
-        Assert.assertEquals(1, ((List<?>) csb.get(db)).size());
-        Assert.assertEquals(1, ((List<?>) cpb.get(db)).size());
-    }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testGetAllRecords() {
@@ -202,7 +178,7 @@ public class DatabaseTest extends StoreTest {
                                                  // Database instance because
                                                  // state isn't reset...
         db.start();
-        PrimaryRecord rec = Reflection.call(db, "getPrimaryRecord",
+        TableRecord rec = Reflection.call(db, "getPrimaryRecord",
                 PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
         Assert.assertTrue(rec.isPartial());
         db.select(record);

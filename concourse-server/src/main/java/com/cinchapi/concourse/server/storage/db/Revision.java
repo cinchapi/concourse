@@ -66,9 +66,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * 
      * @return the PrimaryRevision
      */
-    public static PrimaryRevision createPrimaryRevision(PrimaryKey record,
+    public static TableRevision createPrimaryRevision(PrimaryKey record,
             Text key, Value value, long version, Action type) {
-        return new PrimaryRevision(record, key, value, version, type);
+        return new TableRevision(record, key, value, version, type);
     }
 
     /**
@@ -82,9 +82,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @param type
      * @return the SearchRevision
      */
-    public static SearchRevision createSearchRevision(Text key, Text word,
+    public static CorpusRevision createSearchRevision(Text key, Text word,
             Position position, long version, Action type) {
-        return new SearchRevision(key, word, position, version, type);
+        return new CorpusRevision(key, word, position, version, type);
     }
 
     /**
@@ -98,9 +98,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @param type
      * @return the SecondaryRevision
      */
-    public static SecondaryRevision createSecondaryRevision(Text key,
-            Value value, PrimaryKey record, long version, Action type) {
-        return new SecondaryRevision(key, value, record, version, type);
+    public static IndexRevision createSecondaryRevision(Text key, Value value,
+            PrimaryKey record, long version, Action type) {
+        return new IndexRevision(key, value, record, version, type);
     }
 
     /**

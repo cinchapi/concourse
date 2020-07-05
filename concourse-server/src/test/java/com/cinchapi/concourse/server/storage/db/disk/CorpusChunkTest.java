@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
 
-// import java.util.Iterator;
-// import java.util.Set;
-
+import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,11 +24,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.CorpusRecord;
+import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -39,30 +41,55 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-// import com.google.common.collect.Sets;
-
 /**
- * 
- * 
+ * Unit tests for {@link CorpusChunk}
+ *
  * @author Jeff Nelson
  */
-public class SearchBlockTest extends BlockTest<Text, Text, Position> {
+public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
+
+    @Override
+    protected Text getLocator() {
+        return TestData.getText();
+    }
+
+    @Override
+    protected Text getKey() {
+        return TestData.getText();
+    }
+
+    @Override
+    protected Position getValue() {
+        return TestData.getPosition();
+    }
+
+    @Override
+    protected Chunk<Text, Text, Position> create(BloomFilter filter) {
+        return CorpusChunk.create(filter);
+    }
+
+    @Override
+    protected Chunk<Text, Text, Position> load(Path file, BloomFilter filter,
+            Manifest manifest) {
+        return CorpusChunk.load(file, 0,
+                FileSystem.getFileSize(file.toString()), filter, manifest);
+    }
 
     @Override
     @Test(expected = IllegalStateException.class)
-    public void testCannotInsertInImmutableBlock() {
+    public void testCannotInsertInFrozenChunk() {
         Text locator = Variables.register("locator", getLocator());
         Value value = Variables.register("value", getStringValue());
         PrimaryKey record = Variables.register("record", getRecord());
-        ((SearchBlock) block).insert(locator, value, record, Time.now(),
+        ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
-        if(block.size() <= 0) {
+        if(chunk.size() <= 0) {
             value = Variables.register("value", getStringValue());
-            ((SearchBlock) block).insert(locator, value, record, Time.now(),
+            ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                     Action.ADD);
         }
-        block.sync();
-        ((SearchBlock) block).insert(locator, value, record, Time.now(),
+        chunk.freeze(file);
+        ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
     }
 
@@ -154,18 +181,18 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         Value value = Variables.register("value",
                 Value.wrap(Convert.javaToThrift(
                         "aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
-        ((SearchBlock) block).insert(key, value, record, Time.now(),
+        ((CorpusChunk) chunk).insert(key, value, record, Time.now(),
                 Action.ADD);
         Text term = Variables.register("term", Text.wrap("aa"));
-        Variables.register("blockDump", block.dump());
-        SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
-        ((SearchBlock) block).seek(key, term, searchRecord);
+        Variables.register("chunkDump", chunk.dump());
+        CorpusRecord searchRecord = Record.createSearchRecordPartial(key, term);
+        ((CorpusChunk) chunk).seek(key, term, searchRecord);
         Assert.assertTrue(searchRecord.search(term).contains(record));
     }
 
     @Test
     public void testAsyncInsert() {// Verify that inserting data serially and
-                                   // asynchronously produces a SearchBlock with
+                                   // asynchronously produces a CorpusChunk with
                                    // the same content
         final Text aKey = Variables.register("aKey", TestData.getText());
         final Value aValue = Variables.register("aValue",
@@ -181,11 +208,11 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         final PrimaryKey bRecord = Variables.register("bRecord", getRecord());
         final long bTimestamp = Time.now();
 
-        SearchBlock serial = getMutableBlock(directory);
+        CorpusChunk serial = (CorpusChunk) create(BloomFilter.create(100));
         serial.insert(aKey, aValue, aRecord, aTimestamp, Action.ADD);
         serial.insert(bKey, bValue, bRecord, bTimestamp, Action.ADD);
 
-        final SearchBlock async = (SearchBlock) block;
+        final CorpusChunk async = (CorpusChunk) chunk;
 
         Runnable a = new Runnable() {
 
@@ -216,22 +243,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         Assert.assertEquals(serial.dump().split("\n")[1],
                 async.dump().split("\n")[1]); // must ignore the first line of
                                               // dump output which contains the
-                                              // block id
+                                              // chunk id
 
-    }
-
-    @Test
-    @Ignore
-    @Override
-    public void testCannotGetChecksumOfMutableBlock() {
-        // Ignore because SearchBlock uses a different insert flow.
-    }
-
-    @Test
-    @Ignore
-    @Override
-    public void testChecksumSameAfterSyncAndWhenLoaded() {
-        // Ignore because SearchBlock uses a different insert flow.
     }
 
     @Test
@@ -246,11 +259,11 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         // while (i <= 29 && it.hasNext()) {
         // PrimaryKey record = PrimaryKey.wrap(i);
         // Value value = Value.wrap(Convert.javaToThrift(it.next()));
-        // ((SearchBlock) block).insert(key, value, record, Time.now(),
+        // ((CorpusChunk) chunk).insert(key, value, record, Time.now(),
         // Action.ADD);
         // i++;
         // }
-        // String[] lines = block.dump().split("\n");
+        // String[] lines = chunk.dump().split("\n");
         // Set<String> set = Sets.newHashSet();
         // for (String line : lines) {
         // set.add(line);
@@ -261,29 +274,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     @Override
     @Test
     @Ignore
-    public void testCannotGetIteratorForMutableBlock() {
-        // Direct insert for SearchBlock is unsupported
-    }
-
-    @Override
-    @Test
-    @Ignore
     public void testIterator() {
-        // Direct insert for SearchBlock is unsupported
-    }
-
-    @Override
-    @Test
-    @Ignore
-    public void testRevisionVersionTracking() {
-        // Direct insert for SearchBlock is unsupported
-    }
-
-    @Override
-    @Test
-    @Ignore
-    public void testRevisionVersionTrackingPersistence() {
-        // Direct insert for SearchBlock is unsupported
+        // Direct insert for CorpusChunk is unsupported
     }
 
     /**
@@ -304,32 +296,12 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         Variables.register("term", term);
         Variables.register("record", record);
         Variables.register("position", position);
-        Assert.assertFalse(block.mightContain(locator, term,
+        Assert.assertFalse(chunk.mightContain(locator, term,
                 Position.wrap(record, position)));
-        ((SearchBlock) block).insert(locator, value, record, Time.now(),
+        ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
-        Assert.assertTrue(block.mightContain(locator, term,
+        Assert.assertTrue(chunk.mightContain(locator, term,
                 Position.wrap(record, position)));
-    }
-
-    @Override
-    protected Text getLocator() {
-        return TestData.getText();
-    }
-
-    @Override
-    protected Text getKey() {
-        return TestData.getText();
-    }
-
-    @Override
-    protected Position getValue() {
-        return TestData.getPosition();
-    }
-
-    @Override
-    protected SearchBlock getMutableBlock(String directory) {
-        return Block.createSearchBlock(Long.toString(Time.now()), directory);
     }
 
 }

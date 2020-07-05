@@ -1359,7 +1359,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
             this.keyRecordCache = new boolean[sizeUpperBound];
             this.writeCache = BloomFilter
                     .create(PER_PAGE_BLOOM_FILTER_CAPACITY);
-            writeCache.disableThreadSafety();
             Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
             while (it.hasNext()) {
                 Write write = Write.fromByteBuffer(it.next());

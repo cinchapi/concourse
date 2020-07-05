@@ -57,8 +57,8 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-@PackagePrivate
-final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
+public final class IndexRecord
+        extends BrowsableRecord<Text, Value, PrimaryKey> {
 
     /**
      * Determines whether a nearby key should be coalesced with another one.
@@ -87,7 +87,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      */
     @DoNotInvoke
     @PackagePrivate
-    SecondaryRecord(Text locator, @Nullable Value key) {
+    IndexRecord(Text locator, @Nullable Value key) {
         super(locator, key);
     }
 
@@ -153,13 +153,13 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      * <p>
      * In the broader {@link Database} sense, this method can be used to return
      * all the data "values" that are stored within a data "record" under a data
-     * "key" that is equivalent to this {@link SecondaryRecord
+     * "key" that is equivalent to this {@link IndexRecord
      * SecondaryRecord's} locator (similar to {@link Database#select(long)}).
      * </p>
      * <p>
      * NOTE: The order of the items in the returned {@link Set} are not
      * necessarily reflective of the order in which they were inserted into the
-     * {@link SecondaryRecord}.
+     * {@link IndexRecord}.
      * </p>
      * 
      * @param record
@@ -182,14 +182,14 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      * <p>
      * In the broader {@link Database} sense, this method can be used to return
      * all the data "values" that were stored within a data "record" under a
-     * data "key" that is equivalent to this {@link SecondaryRecord
+     * data "key" that is equivalent to this {@link IndexRecord
      * SecondaryRecord's} locator at {@code timestamp} (similar to
      * {@link Database#select(long, long)}).
      * </p>
      * <p>
      * NOTE: The order of the items in the returned {@link Set} are not
      * necessarily reflective of the order in which they were inserted into the
-     * {@link SecondaryRecord}.
+     * {@link IndexRecord}.
      * </p>
      * 
      * @param record

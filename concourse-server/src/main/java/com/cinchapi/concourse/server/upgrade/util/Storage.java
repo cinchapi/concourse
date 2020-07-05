@@ -22,7 +22,6 @@ import com.cinchapi.common.base.AdHocIterator;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.db.BlockStats;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.util.Environments;
 import com.google.common.collect.ImmutableList;
@@ -111,31 +110,6 @@ public class Storage {
             Reflection.call(source, "sync");
         }
 
-        /**
-         * Regenerate the BlockIndex for the block.
-         */
-        public void reindex() {
-            Reflection.call(source, "reindex");
-        }
-
-        /**
-         * Return the {@link BlockStats}.
-         * 
-         * @return the stats
-         */
-        public BlockStats stats() {
-            return Reflection.call(source, "stats");
-        }
-
-        /**
-         * Return {@code true} if this Block is mutable.
-         * 
-         * @return a boolean indicating the Block's mutability
-         */
-        public boolean isMutable() {
-            return Reflection.get("mutable", source);
-        }
-
         @Override
         public String toString() {
             return source.toString();
@@ -171,6 +145,7 @@ public class Storage {
          * @return the blocks
          */
         public Iterable<Block> blocks() {
+            // TODO: fix
             List<Object> blocks = Lists.newArrayList();
             ImmutableList.of("cpb", "csb", "ctb").forEach(
                     variable -> blocks.addAll(Reflection.get(variable, db)));
@@ -184,18 +159,7 @@ public class Storage {
                         @Override
                         protected Block findNext() {
                             if(it.hasNext()) {
-                                Block block = new Block(it.next());
-                                if(block.isMutable()) {
-                                    // The database creates a new mutable block
-                                    // during the #start routine. Since the
-                                    // mutable block isn't stored on disk, there
-                                    // is no need to upgrade it so it is
-                                    // filtered out in the Blocks returned here.
-                                    return findNext();
-                                }
-                                else {
-                                    return block;
-                                }
+                                return new Block(it.next());
                             }
                             else {
                                 return null;

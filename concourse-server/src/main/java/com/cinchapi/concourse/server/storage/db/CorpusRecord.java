@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
@@ -47,8 +46,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @PackagePrivate
-@ThreadSafe
-final class SearchRecord extends Record<Text, Text, Position> {
+public final class CorpusRecord extends Record<Text, Text, Position> {
 
     /**
      * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
@@ -59,7 +57,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
      */
     @PackagePrivate
     @DoNotInvoke
-    SearchRecord(Text locator, @Nullable Text key) {
+    CorpusRecord(Text locator, @Nullable Text key) {
         super(locator, key);
     }
 

@@ -32,11 +32,11 @@ import com.google.common.collect.Sets;
 
 /**
  * Unit tests for
- * {@link com.cinchapi.concourse.server.storage.db.PrimaryRecord}.
+ * {@link com.cinchapi.concourse.server.storage.db.TableRecord}.
  *
  * @author Jeff Nelson
  */
-public class PrimaryRecordTest
+public class TableRecordTest
         extends BrowsableRecordTest<PrimaryKey, Text, Value> {
 
     @Override
@@ -79,7 +79,7 @@ public class PrimaryRecordTest
         Set<Value> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
         PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
-        PrimaryRecord record = PrimaryRecord.createPrimaryRecord(primaryKey);
+        TableRecord record = TableRecord.createPrimaryRecord(primaryKey);
         for (long i = 30; i <= 35; i++) {
             Value value = null;
             while (value == null || !allValues.add(value)) {

@@ -19,17 +19,16 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -53,12 +52,13 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
-import com.cinchapi.concourse.server.storage.db.Segment.Receipt;
+import com.cinchapi.concourse.server.storage.db.disk.Segment;
+import com.cinchapi.concourse.server.storage.db.disk.Segment.Receipt;
+import com.cinchapi.concourse.server.storage.db.disk.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
@@ -68,7 +68,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * The {@code Database} is the {@link PermanentStore} for data. The
@@ -84,7 +83,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     /**
      * Return an {@link Iterator} that will iterate over all of the
-     * {@link PrimaryRevision PrimaryRevisions} that are stored in the
+     * {@link TableRevision PrimaryRevisions} that are stored in the
      * {@code dbStore}. The iterator streams the revisions directly from disk
      * using a buffer size that is equal to {@link GlobalState#BUFFER_PAGE_SIZE}
      * so it should have a predictable memory footprint.
@@ -96,10 +95,10 @@ public final class Database extends BaseStore implements PermanentStore {
             final String dbStore) {
         return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
 
-            private final String backingStore = FileSystem.makePath(dbStore,
-                    Segment.PRIMARY_BLOCK_DIRECTORY);
+            private final String directory = FileSystem.makePath(dbStore,
+                    SEGMENTS_SUBDIRECTORY);
             private final Iterator<String> fileIt = FileSystem
-                    .fileOnlyIterator(backingStore);
+                    .fileOnlyIterator(directory);
             private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
             {
                 flip();
@@ -134,13 +133,11 @@ public final class Database extends BaseStore implements PermanentStore {
 
             private void flip() {
                 if(fileIt.hasNext()) {
-                    String file = fileIt.next();
-                    if(file.endsWith(Block.BLOCK_NAME_EXTENSION)) {
-                        String id = Block.getId(file);
-                        it = new PrimaryBlock(id, backingStore, true)
-                                .iterator(); /* authorized */
+                    Path file = Paths.get(fileIt.next());
+                    try {
+                        it = Segment.load(file).table().iterator();
                     }
-                    else {
+                    catch (SegmentLoadingException e) {
                         flip();
                     }
                 }
@@ -178,22 +175,17 @@ public final class Database extends BaseStore implements PermanentStore {
         return null;
     }
 
-    /*
-     * BLOCK COLLECTIONS
-     * -----------------
-     * We maintain a view-collection to all the blocks, in chronological order
-     * for backwards compatibility of upgrade tasks.
+    /**
+     * The subdirectory of {@link #directory} where the {@link Segment} files
+     * are stored.
      */
-    // @formatter:off
-    protected final transient List<PrimaryBlock> cpb = new BlockView<>(
-            seg -> seg.primary());
+    private static final String SEGMENTS_SUBDIRECTORY = "segments";
 
-    protected final transient List<SecondaryBlock> csb = new BlockView<>(
-            seg -> seg.secondary());
-
-    protected final transient List<SearchBlock> ctb = new BlockView<>(
-            seg -> seg.search());
-    // @formatter:on
+    /**
+     * The full {@link Path} for the directory where the {@link #segments
+     * segment} files are stored.
+     */
+    private final transient Path $segments;
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -206,11 +198,6 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     private transient boolean acceptable = false;
 
-    /**
-     * The location where the Database stores data.
-     */
-    private final transient String backingStore;
-
     /*
      * RECORD CACHES
      * -------------
@@ -219,9 +206,14 @@ public final class Database extends BaseStore implements PermanentStore {
      * records and append the new revision so that the cached data doesn't grow
      * stale.
      */
-    private final Cache<Composite, PrimaryRecord> cpc = buildCache();
-    private final Cache<Composite, PrimaryRecord> cppc = buildCache();
-    private final Cache<Composite, SecondaryRecord> csc = buildCache();
+    private final Cache<Composite, TableRecord> cpc = buildCache();
+    private final Cache<Composite, TableRecord> cppc = buildCache();
+    private final Cache<Composite, IndexRecord> csc = buildCache();
+
+    /**
+     * The location where the Database stores data.
+     */
+    private final transient Path directory;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -233,12 +225,6 @@ public final class Database extends BaseStore implements PermanentStore {
      * A live view into the {@link Database Database's} memory.
      */
     private CacheState memory;
-
-    /**
-     * An {@link ExecutorService} that handles asynchronous reading tasks in the
-     * background.
-     */
-    private transient AwaitableExecutorService reader;
 
     /**
      * A flag to indicate if the Buffer is running or not.
@@ -253,13 +239,13 @@ public final class Database extends BaseStore implements PermanentStore {
 
     /**
      * <p>
-     * We maintain a collection of all the segments, in manually sorted
-     * chronological order, so that we can seek for the necessary revisions and
-     * populate a requested record.
+     * A collection of all the segments, in manually sorted chronological order,
+     * so that we can seek for the necessary revisions and populate a requested
+     * record.
      * </p>
      * 
      * <p>
-     * <strong>IMPL NOTE:</strong> We maintain the #segments in a List (instead
+     * <strong>NOTE:</strong> We maintain the #segments in a List (instead
      * of a SortedSet) because a newly added Segment is always "greater" than an
      * existing Segment. The only time Segments are not added in monotonically
      * increasing order is when they are loaded when the database #start()s.
@@ -268,8 +254,8 @@ public final class Database extends BaseStore implements PermanentStore {
     private final transient List<Segment> segments = Lists.newArrayList();
 
     /**
-     * An {@link ExecutorService} that handles asynchronous writing tasks in the
-     * background.
+     * An {@link ExecutorService} that is passed to {@link #seg0} to handle
+     * writing tasks asynchronously in the background.
      */
     private transient AwaitableExecutorService writer;
 
@@ -287,10 +273,22 @@ public final class Database extends BaseStore implements PermanentStore {
      * The {@link backingStore} is passed to each {@link Record} as the
      * {@code parentStore}.
      * 
-     * @param backingStore
+     * @param directory
      */
-    public Database(String backingStore) {
-        this.backingStore = backingStore;
+    public Database(Path directory) {
+        this.directory = directory;
+        this.$segments = directory.resolve(SEGMENTS_SUBDIRECTORY);
+    }
+
+    /**
+     * Construct a Database that is backed by {@link backingStore} directory.
+     * The {@link backingStore} is passed to each {@link Record} as the
+     * {@code parentStore}.
+     * 
+     * @param directory
+     */
+    public Database(String directory) {
+        this(Paths.get(directory));
     }
 
     @Override
@@ -316,20 +314,20 @@ public final class Database extends BaseStore implements PermanentStore {
                     Receipt receipt = seg0.transfer(write, writer);
 
                     // Updated cached records
-                    PrimaryRecord cpr = cpc
+                    TableRecord cpr = cpc
                             .getIfPresent(Composite.create(write.getRecord()));
-                    PrimaryRecord cppr = cppc.getIfPresent(Composite
+                    TableRecord cppr = cppc.getIfPresent(Composite
                             .create(write.getRecord(), write.getKey()));
-                    SecondaryRecord csr = csc
+                    IndexRecord csr = csc
                             .getIfPresent(Composite.create(write.getKey()));
                     if(cpr != null) {
-                        cpr.append(receipt.primaryRevision());
+                        cpr.append(receipt.tableRevision());
                     }
                     if(cppr != null) {
-                        cppr.append(receipt.primaryRevision());
+                        cppr.append(receipt.tableRevision());
                     }
                     if(csr != null) {
-                        csr.append(receipt.secondaryRevision());
+                        csr.append(receipt.indexRevision());
                     }
                 }
                 catch (InterruptedException e) {
@@ -415,7 +413,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
+        IndexRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
@@ -425,7 +423,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
+        IndexRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
@@ -443,26 +441,24 @@ public final class Database extends BaseStore implements PermanentStore {
     public String dump(String id) {
         Segment segment = findSegment(segments, id);
         Preconditions.checkArgument(segment != null,
-                "Insufficient number of blocks identified by %s", id);
+                "No segment identified by %s", id);
         StringBuilder sb = new StringBuilder();
-        sb.append(segment.primary().dump());
-        sb.append(segment.secondary().dump());
-        if(segment.search() != null) {
-            sb.append(segment.search().dump());
-        }
+        sb.append(segment.table().dump());
+        sb.append(segment.index().dump());
+        sb.append(segment.corpus().dump());
         return sb.toString();
     }
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        SecondaryRecord index = getSecondaryRecord(Text.wrapCached(key));
+        IndexRecord index = getSecondaryRecord(Text.wrapCached(key));
         Set<Value> values = index.gather(PrimaryKey.wrap(record));
         return Transformers.transformSet(values, Value::getTObject);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        SecondaryRecord index = getSecondaryRecord(Text.wrapCached(key));
+        IndexRecord index = getSecondaryRecord(Text.wrapCached(key));
         Set<Value> values = index.gather(PrimaryKey.wrap(record), timestamp);
         return Transformers.transformSet(values, Value::getTObject);
     }
@@ -474,7 +470,7 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     @Restricted
     public String getBackingStore() {
-        return backingStore;
+        return directory.toString();
     }
 
     /**
@@ -538,54 +534,34 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public void start() {
         if(!running) {
+            Logger.info("Database configured to store data in {}", directory);
             running = true;
-            Logger.info("Database configured to store data in {}",
-                    backingStore);
             this.writer = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("database-write-thread")));
-            this.reader = new AwaitableExecutorService(
-                    Executors.newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("Storage Block Loader")));
-            Path directory = Paths.get(backingStore);
+                            .namingThreadFactory("Database Segment Writer")));
+            this.segments.clear();
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
-            Path cpb = Paths.get(backingStore)
-                    .resolve(Segment.PRIMARY_BLOCK_DIRECTORY);
-            FileSystem.mkdirs(cpb.toString());
-            Set<Segment> _segments = Sets.newConcurrentHashSet();
-            FileSystem.ls(cpb)
-                    .filter(file -> file.toString()
-                            .endsWith(Block.BLOCK_NAME_EXTENSION))
-                    .map(Path::toFile).filter(file -> file.length() > 0)
-                    .map(file -> file.getName()
-                            .split(Block.BLOCK_NAME_EXTENSION)[0])
-                    .forEach(id -> tasks.add(() -> {
-                        try {
-                            Segment segment = Segment.load(id, directory);
-                            _segments.add(segment);
-                        }
-                        catch (MalformedBlockException e) {
-                            Logger.warn(
-                                    "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
-                                    e.getMessage(), id);
-                        }
-                        catch (SegmentLoadingException e) {
-                            Logger.error(
-                                    "An error occured while loading {} metadata for {}",
-                                    e.blockType(), id);
-                            Logger.error("", e.error());
-                        }
-                        catch (IllegalStateException e) {
-                            Logger.error(
-                                    "A storage segment failed to validate while loading {}",
-                                    id);
-                            Logger.error("", e);
-                        }
-                    }));
-            if(tasks.length() > 0) {
+            FileSystem.mkdirs($segments);
+            List<Segment> segments = Collections
+                    .synchronizedList(this.segments);
+            FileSystem.ls($segments).forEach(file -> tasks.add(() -> {
                 try {
-                    reader.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to load Blocks: {}",
+                    Segment segment = Segment.load(file);
+                    segments.add(segment);
+                }
+                catch (SegmentLoadingException e) {
+                    Logger.error("Error when trying to load Segment {}", file);
+                    Logger.error("", e);
+                }
+            }));
+            if(tasks.length() > 0) {
+                AwaitableExecutorService loader = new AwaitableExecutorService(
+                        Executors.newCachedThreadPool(
+                                ThreadFactories.namingThreadFactory(
+                                        "Database Segment Loader")));
+                try {
+                    loader.await((task, error) -> Logger.error(
+                            "Unexpected error when trying to load Database Segmens: {}",
                             error), tasks.build());
                 }
                 catch (InterruptedException e) {
@@ -595,29 +571,12 @@ public final class Database extends BaseStore implements PermanentStore {
                     Thread.currentThread().interrupt();
                     return;
                 }
-            }
-
-            // Remove duplicate Segments. Segment duplication can occur when the
-            // server crashes and a Segment is only partially synced (e.g. the
-            // primary and secondary Block are written but the Search Block is
-            // not). When the server restarts, it will try to sync the Segment
-            // again, generating duplicate Blocks on disk for the Blocks that
-            // succeeded in syncing before the crash
-            Iterator<Segment> it = _segments.iterator();
-            Set<String> checksums = Sets
-                    .newHashSetWithExpectedSize(_segments.size());
-            while (it.hasNext()) {
-                Segment segment = it.next();
-                if(!checksums.add(segment.checksum())) {
-                    it.remove();
-                    Logger.warn(
-                            "Segment {} contains duplicate data, so it was not loaded. You can safely delete all of it's files.",
-                            segment.id());
+                finally {
+                    loader.shutdown();
                 }
             }
-            segments.clear();
-            segments.addAll(_segments);
-            Collections.sort(segments);
+            Collections.sort(this.segments, Segment.TEMPORAL_COMPARATOR);
+            // TODO do initial gc marking by removing
             triggerSync(false);
             memory = new CacheState();
         }
@@ -628,7 +587,6 @@ public final class Database extends BaseStore implements PermanentStore {
     public void stop() {
         if(running) {
             running = false;
-            reader.shutdown();
             writer.shutdown();
             memory = null;
         }
@@ -668,15 +626,15 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param pkey
      * @return the PrimaryRecord
      */
-    private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
+    private TableRecord getPrimaryRecord(PrimaryKey pkey) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(pkey);
-            PrimaryRecord record = cpc.getIfPresent(composite);
+            TableRecord record = cpc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createPrimaryRecord(pkey);
                 for (Segment segment : segments) {
-                    segment.primary().seek(pkey, record);
+                    segment.table().seek(pkey, record);
                 }
                 cpc.put(composite, record);
             }
@@ -691,8 +649,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * Return the potentially partial PrimaryRecord identified by {@code key} in
      * {@code primaryKey}.
      * <p>
-     * While the returned {@link PrimaryRecord} may not be
-     * {@link PrimaryRecord#isPartial() partial}, the caller should interact
+     * While the returned {@link TableRecord} may not be
+     * {@link TableRecord#isPartial() partial}, the caller should interact
      * with it as if it is (e.g. do not perform reads for any other keys besides
      * {@code key}.
      * </p>
@@ -701,11 +659,11 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param key
      * @return the PrimaryRecord
      */
-    private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
+    private TableRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
         masterLock.readLock().lock();
         try {
             final Composite composite = Composite.create(pkey, key);
-            PrimaryRecord record = cppc.getIfPresent(composite);
+            TableRecord record = cppc.getIfPresent(composite);
             if(record == null) {
                 // Before loading a partial record, see if the full record is
                 // present in memory.
@@ -714,7 +672,7 @@ public final class Database extends BaseStore implements PermanentStore {
             if(record == null) {
                 record = Record.createPrimaryRecordPartial(pkey, key);
                 for (Segment segment : segments) {
-                    segment.primary().seek(pkey, key, record);
+                    segment.table().seek(pkey, key, record);
                 }
                 cppc.put(composite, record);
             }
@@ -732,20 +690,20 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param query
      * @return the SearchRecord
      */
-    private SearchRecord getSearchRecord(Text key, Text query) {
+    private CorpusRecord getSearchRecord(Text key, Text query) {
         // NOTE: We do not cache SearchRecords because they have the potential
         // to be VERY large. Holding references to them in a cache would prevent
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            SearchRecord record = Record.createSearchRecordPartial(key, query);
+            CorpusRecord record = Record.createSearchRecordPartial(key, query);
             for (Segment segment : segments) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
                 String[] toks = query.toString().toLowerCase().split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
-                    segment.search().seek(key, Text.wrap(tok), record);
+                    segment.corpus().seek(key, Text.wrap(tok), record);
                 }
             }
             return record;
@@ -761,15 +719,15 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param key
      * @return the SecondaryRecord
      */
-    private SecondaryRecord getSecondaryRecord(Text key) {
+    private IndexRecord getSecondaryRecord(Text key) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            SecondaryRecord record = csc.getIfPresent(composite);
+            IndexRecord record = csc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createSecondaryRecord(key);
                 for (Segment segment : segments) {
-                    segment.secondary().seek(key, record);
+                    segment.index().seek(key, record);
                 }
                 csc.put(composite, record);
             }
@@ -784,104 +742,24 @@ public final class Database extends BaseStore implements PermanentStore {
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
-     * @param writeToDisk - a flag that controls whether we actually perform a
+     * @param flush - a flag that controls whether we actually perform a
      *            sync or not. Sometimes this method is called when there is no
      *            data to sync and we just want to create new blocks (e.g. on
      *            initial startup).
      */
-    private void triggerSync(boolean writeToDisk) {
+    private void triggerSync(boolean flush) {
         masterLock.writeLock().lock();
         try {
-            if(writeToDisk) {
-                if(running) {
-                    try {
-                        seg0.sync(writer);
-                    }
-                    catch (InterruptedException e) {
-                        Logger.warn(
-                                "The database was interrupted while trying to "
-                                        + "sync storage blocks for {}. Since the blocks "
-                                        + "were not fully synced, the contained writes are "
-                                        + "still in the Buffer. Any partially synced blocks "
-                                        + "will be safely removed when the Database restarts.",
-                                seg0.id());
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-                else {
-                    // The #triggerSync method may be called when the database
-                    // is stopped during test cases
-                    Logger.warn(
-                            "The database is being asked to sync blocks, even though it is not running.");
-                    seg0.sync();
-                }
+            if(flush) {
+                Path file = $segments.resolve(UUID.randomUUID() + ".seg");
+                seg0.fsync(file);
+                Logger.debug("Completed sync of {} to disk", seg0);
             }
-            String id = Long.toString(Time.now());
-            segments.add((seg0 = Segment.create(id, Paths.get(backingStore))));
-
+            segments.add((seg0 = Segment.create()));
         }
         finally {
             masterLock.writeLock().unlock();
         }
-    }
-
-    /**
-     * A list-view of all the {@link Block Blocks} of type {@code T} within the
-     * {@link #segments}. This view is for backwards-compatibility.
-     *
-     * @author Jeff Nelson
-     */
-    private class BlockView<T extends Block<?, ?, ?>> extends AbstractList<T> {
-
-        /**
-         * A function that converts a segment to the appropriate Block type.
-         */
-        Function<Segment, T> converter;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param converter
-         */
-        BlockView(Function<Segment, T> converter) {
-            this.converter = converter;
-        }
-
-        @Override
-        public T get(int index) {
-            Iterator<Segment> it = segments.iterator();
-            int count = 0;
-            T block = null;
-            while (block == null) {
-                if(it.hasNext()) {
-                    Segment segment = it.next();
-                    T _block = converter.apply(segment);
-                    if(_block != null) {
-                        if(count == index) {
-                            block = _block;
-                        }
-                    }
-                    ++count;
-                }
-                else {
-                    break;
-                }
-            }
-            if(block != null) {
-                return block;
-            }
-            else {
-                throw new IndexOutOfBoundsException();
-            }
-        }
-
-        @Override
-        public int size() {
-            return (int) segments.stream().map(seg -> converter.apply(seg))
-                    .filter(block -> block != null).count();
-        }
-
     }
 
     /**

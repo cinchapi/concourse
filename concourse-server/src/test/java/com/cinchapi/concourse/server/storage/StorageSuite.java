@@ -20,9 +20,10 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import com.cinchapi.concourse.server.concurrent.ConcurrencySuite;
-import com.cinchapi.concourse.server.storage.db.BlockSuite;
 import com.cinchapi.concourse.server.storage.db.RecordSuite;
 import com.cinchapi.concourse.server.storage.db.RevisionTest;
+import com.cinchapi.concourse.server.storage.db.disk.ChunkSuite;
+import com.cinchapi.concourse.server.storage.db.disk.SegmentTest;
 import com.cinchapi.concourse.server.storage.temp.WriteTest;
 
 /**
@@ -31,9 +32,9 @@ import com.cinchapi.concourse.server.storage.temp.WriteTest;
  * @author Jeff Nelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,
+@SuiteClasses({ RevisionTest.class, WriteTest.class, ChunkSuite.class,
         RecordSuite.class, StoreSuite.class, InventoryTest.class,
-        ConcurrencySuite.class })
+        ConcurrencySuite.class, SegmentTest.class })
 public class StorageSuite {
 
 }

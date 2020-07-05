@@ -31,11 +31,11 @@ import com.cinchapi.concourse.util.TestData;
 
 /**
  * Unit tests for
- * {@link com.cinchapi.concourse.server.storage.db.SecondaryRecord}.
+ * {@link com.cinchapi.concourse.server.storage.db.IndexRecord}.
  *
  * @author Jeff Nelson
  */
-public class SecondaryRecordTest
+public class IndexRecordTest
         extends BrowsableRecordTest<Text, Value, PrimaryKey> {
 
     @Override
@@ -49,17 +49,17 @@ public class SecondaryRecordTest
     }
 
     @Override
-    protected SecondaryRecord getRecord(Text locator) {
+    protected IndexRecord getRecord(Text locator) {
         return Record.createSecondaryRecord(locator);
     }
 
     @Override
-    protected SecondaryRecord getRecord(Text locator, Value key) {
+    protected IndexRecord getRecord(Text locator, Value key) {
         return Record.createSecondaryRecordPartial(locator, key);
     }
 
     @Override
-    protected SecondaryRevision getRevision(Text locator, Value key,
+    protected IndexRevision getRevision(Text locator, Value key,
             PrimaryKey value) {
         return Revision.createSecondaryRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
@@ -81,7 +81,7 @@ public class SecondaryRecordTest
                         PrimaryKey.wrap(i)));
             }
         }
-        Map<PrimaryKey, Set<Value>> data = ((SecondaryRecord) record).explore(
+        Map<PrimaryKey, Set<Value>> data = ((IndexRecord) record).explore(
                 Operator.GREATER_THAN, Value.wrap(Convert.javaToThrift(50)));
         for (int i = 0; i < 100; i++) {
             PrimaryKey pk = PrimaryKey.wrap(i);
@@ -110,7 +110,7 @@ public class SecondaryRecordTest
         record.append(getRevision(locator,
                 Value.wrap(Convert.javaToThrift("business management")),
                 PrimaryKey.wrap(2)));
-        SecondaryRecord index = (SecondaryRecord) record;
+        IndexRecord index = (IndexRecord) record;
         Map<PrimaryKey, Set<Value>> data = index.explore(Operator.REGEX,
                 Value.wrap(Convert.javaToThrift(".*business.*")));
         Assert.assertFalse(data.isEmpty());

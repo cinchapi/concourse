@@ -13,26 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.disk;
+
+import java.nio.file.Path;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Tag;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.disk.Chunk.Folio;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link SecondaryBlock}.
- * 
+ * Unit test for {@link IndexChunk}.
+ *
  * @author Jeff Nelson
  */
-public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
+public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
 
     @Override
     protected Text getLocator() {
@@ -50,34 +57,45 @@ public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected SecondaryBlock getMutableBlock(String directory) {
-        return Block.createSecondaryBlock(Long.toString(Time.now()), directory);
+    protected Chunk<Text, Value, PrimaryKey> create(BloomFilter filter) {
+        return IndexChunk.create(filter);
+    }
+
+    @Override
+    protected Chunk<Text, Value, PrimaryKey> load(Path file, BloomFilter filter,
+            Manifest manifest) {
+        return IndexChunk.load(file, 0, FileSystem.getFileSize(file.toString()),
+                filter, manifest);
     }
 
     @Test
-    public void testGenerateBlockIndexWithEqualValuesOfDifferentTypes() {
-        SecondaryBlock block = getMutableBlock(TestData.getTemporaryTestDir());
-        block.insert(Text.wrapCached("payRangeMax"),
+    public void testGenerateManifestWithEqualValuesOfDifferentTypes() {
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(18)), PrimaryKey.wrap(1),
                 Time.now(), Action.ADD);
-        block.insert(Text.wrapCached("payRangeMax"),
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(18.0))),
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
-        block.insert(Text.wrapCached("payRangeMax"),
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(625))),
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
 
-        block.insert(Text.wrapCached("payRangeMax"),
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift("foo")), PrimaryKey.wrap(1),
                 Time.now(), Action.ADD);
-        block.insert(Text.wrapCached("payRangeMax"),
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(Tag.create("foo"))),
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
-        block.insert(Text.wrapCached("payRangeMax"),
+        chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(626))),
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
-        block.sync();
-        Assert.assertTrue(true); // lack of Exception means the test passes
+        Folio folio = chunk.serialize();
+        Map<?, ?> entries = Reflection.call(folio.manifest(), "entries"); // authorized
+        // Ensure 18.0 and 18 as well as `foo` and foo are treated as equal when
+        // generating the index. That means there should be 5 entires (e.g. an
+        // entry for the payRangeMax locator and 4 entries for that locator and
+        // the 4 unique keys (18.0, foo, 625, 626).
+        Assert.assertEquals(5, entries.size());
     }
 
 }

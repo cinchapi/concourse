@@ -59,7 +59,6 @@ public class Queue extends Limbo {
                 // TODO: at some point this size should be determined based
                 // on some intelligent heuristic
                 BloomFilter filter = BloomFilter.create(500000);
-                filter.disableThreadSafety();
                 return filter;
             });
 
