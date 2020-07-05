@@ -550,7 +550,7 @@ public final class Segment implements Syncable {
             }, () -> {
                 corpus.insert(write.getKey(), write.getValue(),
                         write.getRecord(), write.getVersion(), write.getType());
-                // NOTE: We do not place a CorpusRevision within the Entry
+                // NOTE: We do not itemize a CorpusRevision within the receipt
                 // because the database does not cache CorpusRecords since they
                 // have the potential to be VERY large. Holding references to
                 // them in a database's cache would prevent them from being
