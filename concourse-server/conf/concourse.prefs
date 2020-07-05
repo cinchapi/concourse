@@ -158,6 +158,21 @@
 # DEFAULT: no limit
 #max_search_substring_length = 40
 
+# Automatically delete data files that are obsolete.
+#
+# DEFAULT: true
+#prune_data_files = true
+
+# Use a combination of defragmentation, compaction and load balancing within the
+# data files to optimize storage for read performance.
+#
+# The storage optimization process runs continuously in the background without 
+# disrupting reads or writes. The optimizer uses a specific strategy to determine 
+# how data files should be reorganized to improve the performance of read operations. 
+#
+# DEFAULT: true
+#optimize_storage = true
+
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
 # on this host. In general, you shouldn't need to specify a value unless you

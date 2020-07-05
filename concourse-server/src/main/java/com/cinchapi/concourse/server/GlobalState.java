@@ -266,6 +266,17 @@ public final class GlobalState extends Constants {
      */
     public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
+    /**
+     * Automatically delete data files the are obsolete.
+     */
+    public static boolean PRUNE_DATA_FILES = true;
+
+    /**
+     * Use a combination of defragmentation, compaction and load balancing
+     * within the data files to optimize storage for read performance.
+     */
+    public static boolean OPTIMIZE_STORAGE = true;
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
@@ -330,6 +341,12 @@ public final class GlobalState extends Constants {
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
                 "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+
+        PRUNE_DATA_FILES = config.getOrDefault("prune_data_files",
+                PRUNE_DATA_FILES);
+
+        OPTIMIZE_STORAGE = config.getOrDefault("optimize_storage",
+                OPTIMIZE_STORAGE);
         // =================== PREF READING BLOCK ====================
     }
 
