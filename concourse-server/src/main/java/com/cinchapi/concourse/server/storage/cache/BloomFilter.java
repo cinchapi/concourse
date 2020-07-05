@@ -16,28 +16,25 @@
 package com.cinchapi.concourse.server.storage.cache;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
-import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.StampedLock;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.server.io.ByteBufferInputStream;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.util.Serializables;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 
 /**
  * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods
@@ -47,8 +44,8 @@ import com.google.common.base.Preconditions;
  * 
  * @author Jeff Nelson
  */
-@ThreadSafe
-public class BloomFilter implements Syncable {
+@NotThreadSafe
+public class BloomFilter implements Byteable {
 
     /**
      * Create a new BloomFilter with enough capacity for
@@ -68,13 +65,13 @@ public class BloomFilter implements Syncable {
     }
 
     /**
-     * Return the BloomFilter that is stored on disk in {@code file}.
+     * Load an existing {@link BloomFilter} from the {@code bytes}.
      * 
-     * @param file
-     * @return the BloomFilter
+     * @param bytes
+     * @return the loaded {@link BloomFilter}
      */
-    public static BloomFilter open(Path file) {
-        return new BloomFilter(file);
+    public static BloomFilter load(ByteBuffer bytes) {
+        return new BloomFilter(bytes);
     }
 
     /**
@@ -82,63 +79,24 @@ public class BloomFilter implements Syncable {
      * 
      * @param file
      * @return the BloomFilter
+     * @deprecated use {@link #load(ByteBuffer)} instead
      */
+    @Deprecated
+    public static BloomFilter open(Path file) {
+        return load(FileSystem.readBytes(file.toString()));
+    }
+
+    /**
+     * Return the BloomFilter that is stored on disk in {@code file}.
+     * 
+     * @param file
+     * @return the BloomFilter
+     * @deprecated use {@link #load(ByteBuffer)} instead
+     */
+    @Deprecated
     public static BloomFilter open(String file) {
         return open(Paths.get(file));
     }
-
-    /**
-     * Create a new BloomFilter with enough capacity for
-     * {@code expectedInsertions}.
-     * <p>
-     * Note that overflowing a BloomFilter with significantly more elements than
-     * specified, will result in its saturation, and a sharp deterioration of
-     * its false positive probability (source:
-     * {@link BloomFilter#reserve(com.google.common.hash.Funnel, int)})
-     * <p>
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BloomFilter
-     */
-    public static BloomFilter reserve(Path file, int expectedInsertions) {
-        BloomFilter filter = new BloomFilter(expectedInsertions);
-        filter.intendedFile = file;
-        return filter;
-    }
-
-    /**
-     * Create a new BloomFilter with enough capacity for
-     * {@code expectedInsertions}.
-     * <p>
-     * Note that overflowing a BloomFilter with significantly more elements than
-     * specified, will result in its saturation, and a sharp deterioration of
-     * its false positive probability (source:
-     * {@link BloomFilter#reserve(com.google.common.hash.Funnel, int)})
-     * <p>
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BloomFilter
-     */
-    public static BloomFilter reserve(String file, int expectedInsertions) {
-        return reserve(file, expectedInsertions);
-    }
-
-    /**
-     * The file where the {@link BloomFilter} was last {@link #sync(Path)
-     * synced}. This value is {@code null} if the {@link BloomFilter} has never
-     * been {@link #sync(Path) synced}
-     */
-    @Nullable
-    private Path file;
-
-    /**
-     * A file passed in with the the legacy {@link #reserve(Path, int)} factory.
-     * If this exist, {@link #sync()} to it if {@link #file} has not been set.
-     */
-    @Nullable
-    private Path intendedFile;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -152,12 +110,50 @@ public class BloomFilter implements Syncable {
     private final com.google.common.hash.BloomFilter<Composite> source;
 
     /**
-     * A flag that indicates if this BloomFilter instance does locking and is
-     * therefore thread safe under concurrent access. This is configurable using
-     * the {@link #enableThreadSafety()} and {@link #disableThreadSafety()}
-     * methods.
+     * Track if this {@link BloomFilter} was upgraded when being
+     * {@link BloomFilter(ByteBuffer) loaded}.
      */
-    private boolean threadSafe = true;
+    private final boolean upgraded;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param bytes
+     */
+    @SuppressWarnings({ "unchecked" })
+    private BloomFilter(ByteBuffer bytes) {
+        try {
+            final AtomicBoolean upgraded = new AtomicBoolean(false);
+            ObjectInput input = new ObjectInputStream(
+                    new BufferedInputStream(new ByteBufferInputStream(bytes))) {
+
+                // In v0.3.0 the ByteableFunnel class was moved to a different
+                // package, so we must translate any old data that exists.
+                @Override
+                protected ObjectStreamClass readClassDescriptor()
+                        throws IOException, ClassNotFoundException {
+                    ObjectStreamClass read = super.readClassDescriptor();
+                    if(read.getName().equals(
+                            "com.cinchapi.concourse.server.storage.ByteableFunnel")) {
+                        upgraded.set(true);
+                        return ObjectStreamClass.lookup(ByteableFunnel.class);
+                    }
+                    return read;
+                }
+
+            };
+            this.source = (com.google.common.hash.BloomFilter<Composite>) input
+                    .readObject();
+            this.upgraded = upgraded.get();
+            input.close();
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        catch (ClassNotFoundException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
 
     /**
      * Construct a new instance.
@@ -170,67 +166,28 @@ public class BloomFilter implements Syncable {
                                                                       // false
                                                                       // positive
                                                                       // probability
-        this.file = null;
+        this.upgraded = false;
     }
 
-    /**
-     * Construct a new instance.
-     * 
-     * @param file
-     */
-    @SuppressWarnings({ "unchecked" })
-    private BloomFilter(Path file) {
-        this.file = file;
+    @Override
+    public ByteBuffer getBytes() {
+        return Serializables.getBytes(source);
+    }
+
+    @Override
+    public void copyTo(ByteSink sink) {
+        // NOTE: It seems counter intuitive, but we take a read lock in this
+        // method instead of a write lock so that readers can concurrently use
+        // the bloom filter in memory while the content is being written to
+        // sink.
+        long stamp = lock.readLock();
         try {
-            String $file = file.toString();
-            final AtomicBoolean upgrade = new AtomicBoolean(false);
-            ObjectInput input = new ObjectInputStream(new BufferedInputStream(
-                    new FileInputStream(FileSystem.openFile($file)))) {
-
-                // In v0.3.0 the ByteableFunnel class was moved to a different
-                // package, so we must translate any old data that exists.
-                @Override
-                protected ObjectStreamClass readClassDescriptor()
-                        throws IOException, ClassNotFoundException {
-                    ObjectStreamClass read = super.readClassDescriptor();
-                    if(read.getName().equals(
-                            "com.cinchapi.concourse.server.storage.ByteableFunnel")) {
-                        upgrade.set(true);
-                        return ObjectStreamClass.lookup(ByteableFunnel.class);
-                    }
-                    return read;
-                }
-
-            };
-            this.source = (com.google.common.hash.BloomFilter<Composite>) input
-                    .readObject();
-            input.close();
-            if(upgrade.get()) {
-                sync();
-            }
+            ByteBuffer bytes = getBytes();
+            sink.put(bytes);
         }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
+        finally {
+            lock.unlockRead(stamp);
         }
-        catch (ClassNotFoundException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
-
-    /**
-     * Turn off thread safety for this BloomFilter. Only do this when it is
-     * certain that the bloom filter will not see any additional writes from
-     * multiple concurrent threads.
-     */
-    public void disableThreadSafety() {
-        threadSafe = false;
-    }
-
-    /**
-     * Turn on thread safety for this BloomFilter.
-     */
-    public void enableThreadSafety() {
-        threadSafe = true;
     }
 
     @Override
@@ -247,6 +204,17 @@ public class BloomFilter implements Syncable {
     @Override
     public int hashCode() {
         return source.hashCode();
+    }
+
+    /**
+     * Return {@code true} if this {@link BloomFilter} was upgraded and should
+     * have its {@link #getBytes() bytes} rewritten to any underlying data
+     * store.
+     * 
+     * @return {@code true} if this {@link BloomFilter} was upgraded
+     */
+    public boolean isUpgraded() {
+        return upgraded;
     }
 
     /**
@@ -324,45 +292,8 @@ public class BloomFilter implements Syncable {
     }
 
     @Override
-    public void sync() {
-        Preconditions.checkState(file != null || intendedFile != null,
-                "Cannot sync because a file has not been specified");
-        sync(MoreObjects.firstNonNull(file, intendedFile));
-    }
-
-    /**
-     * Write the data to {@code file} and fsync to guarantee durability.
-     * 
-     * @param file
-     */
-    public void sync(Path file) {
-        // NOTE: It seems counter intuitive, but we take a read lock in this
-        // method instead of a write lock so that readers can concurrently use
-        // the bloom filter in memory while the content is being written to
-        // disk.
-        FileChannel channel = FileSystem.getFileChannel(file.toString());
-        try {
-            long stamp = lock.tryOptimisticRead();
-            Serializables.write(source, channel); // CON-164
-            if(!lock.validate(stamp)) {
-                stamp = lock.readLock();
-                try {
-                    channel.truncate(1);
-                    channel.position(0);
-                    Serializables.write(source, channel); // CON-164
-                }
-                catch (IOException e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
-                finally {
-                    lock.unlockRead(stamp);
-                }
-            }
-            this.file = file;
-        }
-        finally {
-            FileSystem.closeFileChannel(channel);
-        }
+    public int size() {
+        return getBytes().capacity();
     }
 
     /**
@@ -373,23 +304,7 @@ public class BloomFilter implements Syncable {
      * @return {@code true} if the composite might exist
      */
     private boolean mightContain(Composite composite) {
-        if(threadSafe) {
-            long stamp = lock.tryOptimisticRead();
-            boolean mightContain = source.mightContain(composite);
-            if(!lock.validate(stamp)) {
-                stamp = lock.readLock();
-                try {
-                    mightContain = source.mightContain(composite);
-                }
-                finally {
-                    lock.unlockRead(stamp);
-                }
-            }
-            return mightContain;
-        }
-        else {
-            return source.mightContain(composite);
-        }
+        return source.mightContain(composite);
     }
 
     /**
@@ -400,18 +315,7 @@ public class BloomFilter implements Syncable {
      *         of the {@code composite}
      */
     private boolean put(Composite composite) {
-        if(threadSafe) {
-            long stamp = lock.writeLock();
-            try {
-                return source.put(composite);
-            }
-            finally {
-                lock.unlockWrite(stamp);
-            }
-        }
-        else {
-            return source.put(composite);
-        }
+        return source.put(composite);
     }
 
 }
