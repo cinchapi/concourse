@@ -21,10 +21,10 @@ import java.util.Set;
 
 import org.reflections.Reflections;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.upgrade.task.Upgrade2;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.collect.Sets;
 
@@ -79,7 +79,19 @@ public final class UpgradeTasks {
             for (Class<? extends UpgradeTask> clazz : classes) {
                 UpgradeTask task = Reflection.newInstance(clazz);
                 if(task.version() > currentSystemVersion) {
-                    tasks.add(task);
+                    if(currentSystemVersion >= task.requiresVersion()) {
+                        tasks.add(task);
+                    }
+                    else {
+                        String msg = AnyStrings.format(
+                                "Cannot upgrade because system version {} is required, "
+                                        + "but the current system version is {}. Please upgrade "
+                                        + "to an earlier version of Concourse before upgrading to "
+                                        + "this version",
+                                task.requiresVersion(), currentSystemVersion);
+                        Logger.error(msg);
+                        throw new IllegalStateException(msg);
+                    }
                 }
             }
         }
@@ -92,21 +104,8 @@ public final class UpgradeTasks {
                 task.run();
             }
             catch (Exception e) {
-                if(task instanceof Upgrade2) {
-                    // CON-137: Even if Upgrade2 fails and we can't migrate
-                    // data, still set the system version so we aren't
-                    // blocked on this task in the future.
-                    UpgradeTask.setCurrentSystemVersion(task.version());
-                    Logger.info(
-                            "Due to a bug in a previous "
-                                    + "release, the system version has "
-                                    + "been force upgraded " + "to {}",
-                            task.version());
-                }
-                else {
-                    throw e; // fail fast because we assume subsequent tasks
-                             // depend on the one that failed
-                }
+                throw e; // fail fast because we assume subsequent tasks
+                         // depend on the one that failed
             }
         }
     }
