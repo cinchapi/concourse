@@ -273,6 +273,14 @@ public class DatabaseTest extends StoreTest {
                 + gatherTime + " ms");
         Assert.assertTrue(gatherTime <= selectTime);
     }
+    
+    @Test
+    public void testVerify() {
+        add("name", Convert.javaToThrift("jeff"), 1);
+        store.stop();
+        store.start();
+        store.verify("name", Convert.javaToThrift("Jeff"), 1);
+    }
 
     @Override
     protected void add(String key, TObject value, long record) {
