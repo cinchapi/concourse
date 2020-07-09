@@ -200,7 +200,6 @@ public class BloomFilter implements Byteable {
         return upgraded;
     }
 
-
     /**
      * Return true if the {@code composite} <strong>might</strong> have been put
      * in this filter or false if this is definitely not the case.

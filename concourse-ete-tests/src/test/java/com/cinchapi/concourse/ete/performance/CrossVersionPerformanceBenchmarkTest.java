@@ -67,21 +67,21 @@ public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
         double avg = benchmark.run(10) / 10;
         record("read", avg);
     }
-    
+
     @Test
     public void testVerify() {
         for (int i = 0; i < 10000; ++i) {
             client.insert(ImmutableMap.of("foo", Time.now(), "bar", true, "baz",
-                    "hello", "bang", Tag.create("mafia")), i+1);
+                    "hello", "bang", Tag.create("mafia")), i + 1);
         }
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
             public void action() {
-                for(int i = 0; i < 10000; ++i) {
-                    client.verify("baz", "hello", i+1);
-                    client.verify("bang", Tag.create("mafia"), i+1);
-                    client.verify("foo", Time.now(), i+1);
+                for (int i = 0; i < 10000; ++i) {
+                    client.verify("baz", "hello", i + 1);
+                    client.verify("bang", Tag.create("mafia"), i + 1);
+                    client.verify("foo", Time.now(), i + 1);
                 }
             }
 

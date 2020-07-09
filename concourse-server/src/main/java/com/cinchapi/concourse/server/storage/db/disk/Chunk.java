@@ -91,10 +91,7 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements
-        Byteable,
-        Freezable,
-        Iterable<Revision<L, K, V>> {
+        implements Byteable, Freezable, Iterable<Revision<L, K, V>> {
 
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
@@ -435,8 +432,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         try {
             if(filter.mightContain(composite)) {
                 SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
-                        ? $revisions.get()
-                        : null;
+                        ? $revisions.get() : null;
                 if(revisions != null) {
                     Iterator<Revision<L, K, V>> it = revisions.iterator();
                     boolean processing = false; // Since the revisions are
