@@ -639,6 +639,9 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             writer.shutdown();
             memory = null;
+            cpc.invalidateAll();
+            cppc.invalidateAll();
+            csc.invalidateAll();
         }
     }
 
