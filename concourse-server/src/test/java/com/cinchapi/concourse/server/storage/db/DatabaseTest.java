@@ -278,6 +278,7 @@ public class DatabaseTest extends StoreTest {
     public void testVerify() {
         add("name", Convert.javaToThrift("jeff"), 1);
         store.stop();
+        ((Database) store).triggerSync();
         store.start();
         store.verify("name", Convert.javaToThrift("Jeff"), 1);
     }
