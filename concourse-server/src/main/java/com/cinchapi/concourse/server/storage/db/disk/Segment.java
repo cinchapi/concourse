@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -35,6 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -42,6 +45,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Freezable;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.cache.BloomFilters;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
@@ -173,8 +177,8 @@ public final class Segment implements Syncable {
      * bloom filter, but no larger than necessary since we must keep all bloom
      * filters in memory.
      */
-    private static final int EXPECTED_INSERTIONS = Math
-            .round(GlobalState.BUFFER_PAGE_SIZE / Write.MINIMUM_SIZE);
+    private static final int EXPECTED_INSERTIONS = 3
+            * Math.round(GlobalState.BUFFER_PAGE_SIZE / Write.MINIMUM_SIZE);
 
     /**
      * The expected bytes at the beginning of a {@link Segment} file to properly
@@ -491,6 +495,46 @@ public final class Segment implements Syncable {
     }
 
     /**
+     * Return {@code true} if this {@link Segment} can
+     * {@link #transfer(Write, AwaitableExecutorService) transfer} data.
+     * 
+     * @return a boolean indicating if this {@link Segment} is mutable
+     */
+    public boolean isMutable() {
+        return mutable;
+    }
+
+    /**
+     * Return an <strong>estimated</strong> Jaccard Index
+     * (https://en.wikipedia.org/wiki/Jaccard_index); a number between 0 and 1
+     * that indicates how similar {@code this} {@link Segment} is to the
+     * {@code other} one based on the {@link Writes} that have been
+     * {@link #transfer(Write, AwaitableExecutorService) transferred}.
+     * <p>
+     * This method doesn't read the stored {@link Revision revisions}, but
+     * instead uses the {@link BloomFilter BloomFilters} of some of its
+     * {@link Chunk Chunks} to efficiently estimate the similarity between the
+     * data stored in each {@link Segment}.
+     * </p>
+     * 
+     * @param other
+     * @return a number between 0 and 1 that gives an estimate of how similar
+     *         the two segments are
+     */
+    public double similarityWith(Segment other) {
+        try {
+            return Math.max(
+                    BloomFilters.estimateSimilarity(table.filter(),
+                            other.table.filter()),
+                    BloomFilters.estimateSimilarity(index.filter(),
+                            other.index.filter()));
+        }
+        catch (IllegalArgumentException e) {
+            return 0.0;
+        }
+    }
+
+    /**
      * Return this {@link Segment Segment's} {@link TableChunk}.
      * 
      * @return the {@link TableChunk}
@@ -574,6 +618,21 @@ public final class Segment implements Syncable {
         finally {
             writeLock.unlock();
         }
+    }
+
+    /**
+     * Return a {@link Stream} containing all the {@link Write Writes} that were
+     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
+     * {@link Segment}.
+     * 
+     * @return the transferred {@link Write Writes}
+     */
+    public Stream<Write> writes() {
+        return StreamSupport.stream(table.spliterator(), false)
+                .map(revision -> Reflection.newInstance(Write.class,
+                        revision.getType(), revision.getKey(),
+                        revision.getValue(), revision.getLocator(),
+                        revision.getVersion()));
     }
 
     /**
