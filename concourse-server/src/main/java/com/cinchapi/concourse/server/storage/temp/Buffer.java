@@ -56,6 +56,7 @@ import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -1576,20 +1577,21 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         public boolean mightContain(Write write) {
             Type valueType = write.getValue().getType();
-            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
-                    write.getValue())) {
+            if(writeCache.mightContain(Composite.create(write.getRecord(),
+                    write.getKey(), write.getValue()))) {
                 return true;
             }
             else if(valueType == Type.STRING) {
-                return writeCache.mightContainCached(write.getRecord(),
-                        write.getKey(),
+                return writeCache.mightContain(Composite.create(
+                        write.getRecord(), write.getKey(),
                         Value.wrap(Convert.javaToThrift(Tag.create(
-                                (String) write.getValue().getObject()))));
+                                (String) write.getValue().getObject())))));
             }
             else if(valueType == Type.TAG) {
-                return writeCache.mightContainCached(write.getRecord(),
-                        write.getKey(), Value.wrap(Convert.javaToThrift(
-                                write.getValue().getObject().toString())));
+                return writeCache.mightContain(Composite.create(
+                        write.getRecord(), write.getKey(),
+                        Value.wrap(Convert.javaToThrift(
+                                write.getValue().getObject().toString()))));
             }
             else {
                 return false;
@@ -1693,8 +1695,8 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                writeCache.putCached(write.getRecord(), write.getKey(),
-                        write.getValue());
+                writeCache.put(Composite.create(write.getRecord(),
+                        write.getKey(), write.getValue()));
                 keyRecordCache[slotify(hashCodeRecord, hashCodeKey)] = true;
                 recordCache[slotify(hashCodeRecord)] = true;
                 keyCache[slotify(hashCodeKey)] = true;
@@ -1813,8 +1815,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * 
      * @author Jeff Nelson
      */
-    private abstract class SeekingIterator
-            implements Iterator<Write>, CloseableIterator<Write> {
+    private abstract class SeekingIterator implements
+            Iterator<Write>,
+            CloseableIterator<Write> {
 
         /**
          * A flag that indicates whether we should not perform a timestamp check

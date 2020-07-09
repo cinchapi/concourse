@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -77,7 +78,7 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
         Folio folio = chunk.serialize();
         FileSystem.writeBytes(folio.bytes(), file.toString());
         chunk = load(file, filter, folio.manifest());
-        chunk.seek(locator, key, record);
+        chunk.seek(Composite.create(locator, key), record);
         Assert.assertTrue(record.fetch(key).contains(value));
     }
 

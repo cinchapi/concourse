@@ -343,7 +343,7 @@ public class Manifest implements Byteable, Freezable {
             this.start = bytes.getInt();
             this.end = bytes.getInt();
             this.key = Composite
-                    .fromByteBuffer(ByteBuffers.get(bytes, bytes.remaining()));
+                    .load(ByteBuffers.get(bytes, bytes.remaining()));
         }
 
         /**

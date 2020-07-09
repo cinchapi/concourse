@@ -38,6 +38,7 @@ import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Freezable;
 import com.cinchapi.concourse.server.storage.Action;
@@ -90,7 +91,10 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Freezable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Freezable,
+        Iterable<Revision<L, K, V>> {
 
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
@@ -407,10 +411,10 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @param value
      * @return {@code true} if it is possible that relevant revisions exists
      */
-    public boolean mightContain(L locator, K key, V value) {
+    public boolean mightContain(Composite composite) {
         Locks.lockIfCondition(read, mutable);
         try {
-            return filter.mightContain(locator, key, value);
+            return filter.mightContain(composite);
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
@@ -418,28 +422,68 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     }
 
     /**
-     * Seek revisions that contain {@code key} in {@code locator} and append
-     * them to {@code record} if it is <em>likely</em> that those revisions
-     * exist in this {@link Chunk}.
+     * If it possible that they exist, look for any {@link Revision revisions}
+     * that match the {@code composite} and {@link Record#append(Revision)
+     * append} hem to the {@code record}.
      * 
-     * @param locator
-     * @param key
+     * @param composite
      * @param record
      */
-    public final void seek(L locator, K key, Record<L, K, V> record) {
-        seek(record, locator, key);
-    }
-
-    /**
-     * Seek revisions that contain any key in {@code locator} and append them to
-     * {@code record} if it is <em>likely</em> that those revisions exist in
-     * this {@link Chunk}.
-     * 
-     * @param locator
-     * @param record
-     */
-    public final void seek(L locator, Record<L, K, V> record) {
-        seek(record, locator);
+    public final void seek(Composite composite, Record<L, K, V> record) {
+        Locks.lockIfCondition(segmentReadLock, mutable);
+        Locks.lockIfCondition(read, mutable);
+        try {
+            if(filter.mightContain(composite)) {
+                SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
+                        ? $revisions.get()
+                        : null;
+                if(revisions != null) {
+                    Iterator<Revision<L, K, V>> it = revisions.iterator();
+                    boolean processing = false; // Since the revisions are
+                                                // sorted, I can toggle this
+                                                // flag on once I reach a
+                                                // revision that I care about so
+                                                // that I can break out of the
+                                                // loop once I reach a revision
+                                                // I don't care about again.
+                    boolean checkSecond = composite.parts().length > 1;
+                    while (it.hasNext()) {
+                        Revision<L, K, V> revision = it.next();
+                        if(revision.getLocator().equals(composite.parts()[0])
+                                && ((checkSecond && revision.getKey()
+                                        .equals(composite.parts()[1]))
+                                        || !checkSecond)) {
+                            processing = true;
+                            record.append(revision);
+                        }
+                        else if(processing) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    int start = manifest.getStart(composite);
+                    int length = manifest.getEnd(composite) - (start - 1);
+                    if(start != Manifest.NO_ENTRY && length > 0) {
+                        ByteBuffer bytes = FileSystem.map(file,
+                                MapMode.READ_ONLY, position + start, length);
+                        Iterator<ByteBuffer> it = ByteableCollections
+                                .iterator(bytes);
+                        while (it.hasNext()) {
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
+                            Logger.debug("Attempting to append {} from {} to "
+                                    + "{}", revision, this, record);
+                            record.append(revision);
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+            Locks.unlockIfCondition(segmentReadLock, mutable);
+        }
     }
 
     /**
@@ -606,15 +650,15 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 type);
         revisions.add(revision);
         revisionCount.incrementAndGet();
-        filter.put(revision.getLocator());
-        filter.put(revision.getLocator(), revision.getKey());
-        filter.put(revision.getLocator(), revision.getKey(),
-                revision.getValue()); // NOTE: The entire revision is added
-                                      // to the filter so that we can
-                                      // quickly verify that a revision
-                                      // DOES NOT exist using
-                                      // #mightContain(L,K,V) without
-                                      // seeking
+        filter.put(Composite.create(revision.getLocator()));
+        filter.put(Composite.create(revision.getLocator(), revision.getKey()));
+        filter.put(Composite.create(revision.getLocator(), revision.getKey(),
+                revision.getValue())); // NOTE: The entire revision is added
+                                       // to the filter so that we can
+                                       // quickly verify that a revision
+                                       // DOES NOT exist using
+                                       // #mightContain(L,K,V) without
+                                       // seeking
         incrementSizeBy(revision.size() + 4);
         manifest = null;
         return revision;
@@ -706,70 +750,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 };
 
             };
-        }
-    }
-
-    /**
-     * Seek revisions that contain components from {@code byteables} and append
-     * them to {@code record}. The seek will be perform in memory iff this
-     * {@link Chunk} is mutable, otherwise, the seek happens on disk.
-     * 
-     * @param record
-     * @param byteables
-     */
-    private void seek(Record<L, K, V> record, Byteable... byteables) {
-        Locks.lockIfCondition(segmentReadLock, mutable);
-        Locks.lockIfCondition(read, mutable);
-        try {
-            if(filter.mightContain(byteables)) {
-                SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
-                        ? $revisions.get() : null;
-                if(revisions != null) {
-                    Iterator<Revision<L, K, V>> it = revisions.iterator();
-                    boolean processing = false; // Since the revisions are
-                                                // sorted, I can toggle this
-                                                // flag on once I reach a
-                                                // revision that I care about so
-                                                // that I can break out of the
-                                                // loop once I reach a revision
-                                                // I don't care about again.
-                    boolean checkSecond = byteables.length > 1;
-                    while (it.hasNext()) {
-                        Revision<L, K, V> revision = it.next();
-                        if(revision.getLocator().equals(byteables[0])
-                                && ((checkSecond && revision.getKey()
-                                        .equals(byteables[1]))
-                                        || !checkSecond)) {
-                            processing = true;
-                            record.append(revision);
-                        }
-                        else if(processing) {
-                            break;
-                        }
-                    }
-                }
-                else {
-                    int start = manifest.getStart(byteables);
-                    int length = manifest.getEnd(byteables) - (start - 1);
-                    if(start != Manifest.NO_ENTRY && length > 0) {
-                        ByteBuffer bytes = FileSystem.map(file,
-                                MapMode.READ_ONLY, position + start, length);
-                        Iterator<ByteBuffer> it = ByteableCollections
-                                .iterator(bytes);
-                        while (it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables
-                                    .read(it.next(), xRevisionClass());
-                            Logger.debug("Attempting to append {} from {} to "
-                                    + "{}", revision, this, record);
-                            record.append(revision);
-                        }
-                    }
-                }
-            }
-        }
-        finally {
-            Locks.unlockIfCondition(read, mutable);
-            Locks.unlockIfCondition(segmentReadLock, mutable);
         }
     }
 

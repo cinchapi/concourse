@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
@@ -162,9 +163,9 @@ public class SegmentTest extends ConcourseBaseTest {
                         IndexRecord ir = IndexRecord
                                 .createSecondaryRecord(text);
                         CorpusRecord cr = CorpusRecord.createSearchRecord(text);
-                        segment.table().seek(pk, tr);
-                        segment.index().seek(text, ir);
-                        segment.corpus().seek(text, cr);
+                        segment.table().seek(Composite.create(pk), tr);
+                        segment.index().seek(Composite.create(text), ir);
+                        segment.corpus().seek(Composite.create(text), cr);
                         if(!done.get() && tr.isEmpty() != ir.isEmpty()) {
                             succeeded.set(false);
                             System.out.println(AnyStrings.format(
@@ -181,9 +182,9 @@ public class SegmentTest extends ConcourseBaseTest {
                     TableRecord tr = TableRecord.createPrimaryRecord(pk);
                     IndexRecord ir = IndexRecord.createSecondaryRecord(text);
                     CorpusRecord cr = CorpusRecord.createSearchRecord(text);
-                    segment.table().seek(pk, tr);
-                    segment.index().seek(text, ir);
-                    segment.corpus().seek(text, cr);
+                    segment.table().seek(Composite.create(pk), tr);
+                    segment.index().seek(Composite.create(text), ir);
+                    segment.corpus().seek(Composite.create(text), cr);
                     if(tr.isEmpty()) {
                         succeeded.set(false);
                         System.out.println(

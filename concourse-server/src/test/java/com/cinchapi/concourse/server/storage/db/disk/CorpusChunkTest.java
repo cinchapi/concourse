@@ -24,6 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -163,9 +164,8 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
 
     @Test
     public void testMightContainLocatorKeyValueReproB() {
-        doTestMightContainLocatorKeyValue(
-                Text.wrap(
-                        "7yubgpf x0 q1cj  52oiau do0034jq pj 02igw3w fbd5d2kw 5 1vwdbjoy4o6i4fgd"),
+        doTestMightContainLocatorKeyValue(Text.wrap(
+                "7yubgpf x0 q1cj  52oiau do0034jq pj 02igw3w fbd5d2kw 5 1vwdbjoy4o6i4fgd"),
                 Value.wrap(Convert.javaToThrift(
                         "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t")),
                 Text.wrap(
@@ -186,7 +186,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         Text term = Variables.register("term", Text.wrap("aa"));
         Variables.register("chunkDump", chunk.dump());
         CorpusRecord searchRecord = Record.createSearchRecordPartial(key, term);
-        ((CorpusChunk) chunk).seek(key, term, searchRecord);
+        ((CorpusChunk) chunk).seek(Composite.create(key, term), searchRecord);
         Assert.assertTrue(searchRecord.search(term).contains(record));
     }
 
@@ -296,12 +296,12 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         Variables.register("term", term);
         Variables.register("record", record);
         Variables.register("position", position);
-        Assert.assertFalse(chunk.mightContain(locator, term,
-                Position.wrap(record, position)));
+        Assert.assertFalse(chunk.mightContain(Composite.create(locator, term,
+                Position.wrap(record, position))));
         ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
-        Assert.assertTrue(chunk.mightContain(locator, term,
-                Position.wrap(record, position)));
+        Assert.assertTrue(chunk.mightContain(Composite.create(locator, term,
+                Position.wrap(record, position))));
     }
 
 }

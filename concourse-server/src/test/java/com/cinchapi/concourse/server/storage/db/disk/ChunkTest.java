@@ -30,6 +30,7 @@ import org.junit.runner.Description;
 
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
@@ -96,9 +97,9 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
         L locator = getLocator();
         K key = getKey();
         V value = getValue();
-        Assert.assertFalse(chunk.mightContain(locator, key, value));
+        Assert.assertFalse(chunk.mightContain(Composite.create(locator, key, value)));
         chunk.insert(locator, key, value, Time.now(), Action.ADD);
-        Assert.assertTrue(chunk.mightContain(locator, key, value));
+        Assert.assertTrue(chunk.mightContain(Composite.create(locator, key, value)));
     }
 
     @Test

@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -99,12 +98,6 @@ public class BloomFilter implements Byteable {
     }
 
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
-     */
-    private final StampedLock lock = new StampedLock();
-
-    /**
      * The wrapped bloom filter. This is where the data is actually stored.
      */
     private final com.google.common.hash.BloomFilter<Composite> source;
@@ -170,24 +163,9 @@ public class BloomFilter implements Byteable {
     }
 
     @Override
-    public ByteBuffer getBytes() {
-        return Serializables.getBytes(source);
-    }
-
-    @Override
     public void copyTo(ByteSink sink) {
-        // NOTE: It seems counter intuitive, but we take a read lock in this
-        // method instead of a write lock so that readers can concurrently use
-        // the bloom filter in memory while the content is being written to
-        // sink.
-        long stamp = lock.readLock();
-        try {
-            ByteBuffer bytes = getBytes();
-            sink.put(bytes);
-        }
-        finally {
-            lock.unlockRead(stamp);
-        }
+        ByteBuffer bytes = getBytes();
+        sink.put(bytes);
     }
 
     @Override
@@ -199,6 +177,11 @@ public class BloomFilter implements Byteable {
         else {
             return false;
         }
+    }
+
+    @Override
+    public ByteBuffer getBytes() {
+        return Serializables.getBytes(source);
     }
 
     @Override
@@ -217,46 +200,27 @@ public class BloomFilter implements Byteable {
         return upgraded;
     }
 
-    /**
-     * Return true if an element made up of {@code byteables} might have been
-     * put in this filter or false if this is definitely not the case.
-     * 
-     * @param byteables
-     * @return {@code true} if {@code byteables} might exist
-     */
-    public boolean mightContain(Byteable... byteables) {
-        Composite composite = Composite.create(byteables);
-        return mightContain(composite);
-    }
 
     /**
-     * Return true if an element made up of a cached copy of the
-     * {@code byteables} might have been put in this filter or false if this is
-     * definitely not the case.
-     * <p>
-     * Since caching is involved, this method is more prone to false positives
-     * than the {@link #mightContain(Byteable...)} alternative, but it will
-     * never return false negatives as long as the bits were added with the
-     * {@code #putCached(Byteable...)} method.
-     * </p>
+     * Return true if the {@code composite} <strong>might</strong> have been put
+     * in this filter or false if this is definitely not the case.
      * 
-     * @param byteables
-     * @return {@code true} if {@code byteables} might exist
+     * @param composite
+     * @return {@code true} if {@code composite} might exist
      */
-    public boolean mightContainCached(Byteable... byteables) {
-        Composite composite = Composite.createCached(byteables);
-        return mightContain(composite);
+    public boolean mightContain(Composite composite) {
+        return source.mightContain(composite);
     }
 
     /**
      * <p>
      * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
      * </p>
-     * Puts {@link byteables} into this BloomFilter as a single element.
-     * Ensures that subsequent invocations of {@link #mightContain(Byteable...)}
-     * with the same elements will always return true.
+     * Puts the {@link composite} item into this BloomFilter such that
+     * subsequent invocations of {@link #mightContain(Composite)}
+     * with the same {@link Composite} will always return true.
      * 
-     * @param byteables
+     * @param composite
      * @return {@code true} if the filter's bits changed as a result of this
      *         operation. If the bits changed, this is definitely the first time
      *         {@code byteables} have been added to the filter. If the bits
@@ -265,30 +229,8 @@ public class BloomFilter implements Byteable {
      *         what mightContain(t) would have returned at the time it is
      *         called.
      */
-    public boolean put(Byteable... byteables) {
-        return put(Composite.create(byteables));
-    }
-
-    /**
-     * <p>
-     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
-     * </p>
-     * Puts {@link byteables} into this BloomFilter as a single element with
-     * support for caching Ensures that subsequent invocations of
-     * {@link #mightContainCached(Byteable...)} with the same elements will
-     * always return true.
-     * 
-     * @param byteables
-     * @return {@code true} if the filter's bits changed as a result of this
-     *         operation. If the bits changed, this is definitely the first time
-     *         {@code byteables} have been added to the filter. If the bits
-     *         haven't changed, this might be the first time they have been
-     *         added. Note that put(t) always returns the opposite result to
-     *         what mightContain(t) would have returned at the time it is
-     *         called.
-     */
-    public boolean putCached(Byteable... byteables) {
-        return put(Composite.createCached(byteables));
+    public boolean put(Composite composite) {
+        return source.put(composite);
     }
 
     @Override
@@ -297,25 +239,12 @@ public class BloomFilter implements Byteable {
     }
 
     /**
-     * Check the backing bloom filter to see if the composite might have been
-     * added.
+     * Return the underlying source for this {@link BloomFilter}.
      * 
-     * @param composite
-     * @return {@code true} if the composite might exist
+     * @return the source
      */
-    private boolean mightContain(Composite composite) {
-        return source.mightContain(composite);
-    }
-
-    /**
-     * Place the {@code composite} in the backing bloom filter.
-     * 
-     * @param composite
-     * @return {@code true} if the bits have changed as a result of the addition
-     *         of the {@code composite}
-     */
-    private boolean put(Composite composite) {
-        return source.put(composite);
+    com.google.common.hash.BloomFilter<Composite> source() {
+        return source;
     }
 
 }
