@@ -272,10 +272,10 @@ public final class GlobalState extends Constants {
     public static boolean PRUNE_DATA_FILES = true;
 
     /**
-     * Use a combination of defragmentation, compaction and load balancing
-     * within the data files to optimize storage for read performance.
+     * Automatically use a combination of defragmentation, compaction and load
+     * balancing within the data files to optimize storage for read performance.
      */
-    public static boolean OPTIMIZE_STORAGE = true;
+    public static boolean AUTO_OPTIMIZE_STORAGE = true;
 
     static {
         List<String> files = ImmutableList.of(
@@ -345,8 +345,8 @@ public final class GlobalState extends Constants {
         PRUNE_DATA_FILES = config.getOrDefault("prune_data_files",
                 PRUNE_DATA_FILES);
 
-        OPTIMIZE_STORAGE = config.getOrDefault("optimize_storage",
-                OPTIMIZE_STORAGE);
+        AUTO_OPTIMIZE_STORAGE = config.getOrDefault("auto_optimize_storage",
+                AUTO_OPTIMIZE_STORAGE);
         // =================== PREF READING BLOCK ====================
     }
 
