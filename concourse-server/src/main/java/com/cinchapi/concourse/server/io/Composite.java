@@ -152,8 +152,7 @@ public final class Composite implements Byteable {
 
     @Override
     public String toString() {
-        return Hashing.murmur3_128().hashBytes(ByteBuffers.toByteArray(bytes))
-                .toString();
+        return Hashing.murmur3_128().hashBytes(getBytes()).toString();
     }
 
 }
