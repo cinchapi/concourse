@@ -125,7 +125,16 @@ public final class Segment implements Syncable {
      * @return the {@link Segment}
      */
     public static Segment create() {
-        return new Segment();
+        return create(EXPECTED_INSERTIONS);
+    }
+
+    /**
+     * Create a new {@link Segment}.
+     * 
+     * @return the {@link Segment}
+     */
+    public static Segment create(int expectedInsertions) {
+        return new Segment(expectedInsertions);
     }
 
     /**
@@ -298,18 +307,18 @@ public final class Segment implements Syncable {
     /**
      * Construct a new instance.
      */
-    private Segment() {
+    private Segment(int expectedInsertions) {
         this.mutable = true;
         this.file = null;
         this.maxTs = Long.MIN_VALUE;
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
         this.table = TableChunk.create(this,
-                BloomFilter.create(EXPECTED_INSERTIONS));
+                BloomFilter.create(expectedInsertions));
         this.index = IndexChunk.create(this,
-                BloomFilter.create(EXPECTED_INSERTIONS));
+                BloomFilter.create(expectedInsertions));
         this.corpus = CorpusChunk.create(this,
-                BloomFilter.create(EXPECTED_INSERTIONS));
+                BloomFilter.create(expectedInsertions));
         this.version = SCHEMA_VERSION;
     }
 
@@ -412,6 +421,17 @@ public final class Segment implements Syncable {
     }
 
     /**
+     * Return an estimate of the number of {@link Write writes} that were
+     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
+     * {@link Segment}.
+     * 
+     * @return
+     */
+    public int approximateMetadataCount() {
+        return table().filter().approximateElementCount();
+    }
+
+    /**
      * Return this {@link Segment Segment's} {@link CorpusChunk}, if it exists.
      * 
      * @return the {@link CorpusChunk} or {@code null} it it does not exist
@@ -504,6 +524,18 @@ public final class Segment implements Syncable {
     }
 
     /**
+     * Reindex this {@link Segment} by replaying the {@link #transfer(Write)} of
+     * its {@link #writes()} to a {@link #Segment() new} {@link Segment}.
+     * 
+     * @return the reindexed {@link Segment}
+     */
+    public Segment reindex() {
+        Segment segment = new Segment(approximateMetadataCount());
+        writes().forEach(segment::transfer);
+        return segment;
+    }
+
+    /**
      * Return an <strong>estimated</strong> Jaccard Index
      * (https://en.wikipedia.org/wiki/Jaccard_index); a number between 0 and 1
      * that indicates how similar {@code this} {@link Segment} is to the
@@ -531,6 +563,17 @@ public final class Segment implements Syncable {
         catch (IllegalArgumentException e) {
             return 0.0;
         }
+    }
+
+    /**
+     * Return the size of this {@link Segment} if it is {@link #isMutable()
+     * immutable}.
+     * 
+     * @return the {@link Segment} size
+     */
+    public long size() {
+        Preconditions.checkState(!isMutable());
+        return FileSystem.getFileSize(file.toString());
     }
 
     /**

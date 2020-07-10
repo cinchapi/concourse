@@ -267,15 +267,17 @@ public final class GlobalState extends Constants {
     public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
     /**
-     * Automatically delete data files the are obsolete.
+     * Automatically use a combination of defragmentation, garbage collection
+     * and load balancing within the data files to optimize storage for read
+     * performance.
+     * <p>
+     * The compaction process runs continuously in the background without
+     * disrupting reads or writes. The storage engine uses a specific strategy
+     * to determine how data files should be reorganized to improve the
+     * performance of read operations.
+     * </p>
      */
-    public static boolean PRUNE_DATA_FILES = true;
-
-    /**
-     * Automatically use a combination of defragmentation, compaction and load
-     * balancing within the data files to optimize storage for read performance.
-     */
-    public static boolean AUTO_OPTIMIZE_STORAGE = true;
+    public static boolean ENABLE_COMPACTION = true;
 
     static {
         List<String> files = ImmutableList.of(
@@ -342,11 +344,8 @@ public final class GlobalState extends Constants {
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
                 "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
 
-        PRUNE_DATA_FILES = config.getOrDefault("prune_data_files",
-                PRUNE_DATA_FILES);
-
-        AUTO_OPTIMIZE_STORAGE = config.getOrDefault("auto_optimize_storage",
-                AUTO_OPTIMIZE_STORAGE);
+        ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
+                ENABLE_COMPACTION);
         // =================== PREF READING BLOCK ====================
     }
 

@@ -21,8 +21,6 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,7 +30,6 @@ import com.cinchapi.concourse.server.io.ByteBufferInputStream;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.util.Serializables;
 
 /**
@@ -71,30 +68,6 @@ public class BloomFilter implements Byteable {
      */
     public static BloomFilter load(ByteBuffer bytes) {
         return new BloomFilter(bytes);
-    }
-
-    /**
-     * Return the BloomFilter that is stored on disk in {@code file}.
-     * 
-     * @param file
-     * @return the BloomFilter
-     * @deprecated use {@link #load(ByteBuffer)} instead
-     */
-    @Deprecated
-    public static BloomFilter open(Path file) {
-        return load(FileSystem.readBytes(file.toString()));
-    }
-
-    /**
-     * Return the BloomFilter that is stored on disk in {@code file}.
-     * 
-     * @param file
-     * @return the BloomFilter
-     * @deprecated use {@link #load(ByteBuffer)} instead
-     */
-    @Deprecated
-    public static BloomFilter open(String file) {
-        return open(Paths.get(file));
     }
 
     /**
@@ -162,6 +135,22 @@ public class BloomFilter implements Byteable {
         this.upgraded = false;
     }
 
+    /**
+     * <p>
+     * <strong>Copied from
+     * {@link com.google.common.hash.BloomFilter#approximateElementCount()}</strong>
+     * </p>
+     * Returns an estimate for the total number of distinct elements that have
+     * been added to this {@link BloomFilter}. This approximation is reasonably
+     * accurate if it does not exceed the value of {@code expectedInsertions}
+     * that was used when constructing the filter.
+     * 
+     * @return the approximate number of distinct insertions
+     */
+    public int approximateElementCount() {
+        return (int) source.approximateElementCount();
+    }
+
     @Override
     public void copyTo(ByteSink sink) {
         ByteBuffer bytes = getBytes();
@@ -201,17 +190,6 @@ public class BloomFilter implements Byteable {
     }
 
     /**
-     * Return true if the {@code composite} <strong>might</strong> have been put
-     * in this filter or false if this is definitely not the case.
-     * 
-     * @param composite
-     * @return {@code true} if {@code composite} might exist
-     */
-    public boolean mightContain(Composite composite) {
-        return source.mightContain(composite);
-    }
-
-    /**
      * Return true if an element made up of {@code byteables} might have been
      * put in this filter or false if this is definitely not the case.
      * 
@@ -221,6 +199,17 @@ public class BloomFilter implements Byteable {
     public boolean mightContain(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         return mightContain(composite);
+    }
+
+    /**
+     * Return true if the {@code composite} <strong>might</strong> have been put
+     * in this filter or false if this is definitely not the case.
+     * 
+     * @param composite
+     * @return {@code true} if {@code composite} might exist
+     */
+    public boolean mightContain(Composite composite) {
+        return source.mightContain(composite);
     }
 
     /**
@@ -246,27 +235,6 @@ public class BloomFilter implements Byteable {
      * <p>
      * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
      * </p>
-     * Puts the {@link composite} item into this BloomFilter such that
-     * subsequent invocations of {@link #mightContain(Composite)}
-     * with the same {@link Composite} will always return true.
-     * 
-     * @param composite
-     * @return {@code true} if the filter's bits changed as a result of this
-     *         operation. If the bits changed, this is definitely the first time
-     *         {@code byteables} have been added to the filter. If the bits
-     *         haven't changed, this might be the first time they have been
-     *         added. Note that put(t) always returns the opposite result to
-     *         what mightContain(t) would have returned at the time it is
-     *         called.
-     */
-    public boolean put(Composite composite) {
-        return source.put(composite);
-    }
-
-    /**
-     * <p>
-     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
-     * </p>
      * Puts {@link byteables} into this BloomFilter as a single element.
      * Ensures that subsequent invocations of {@link #mightContain(Byteable...)}
      * with the same elements will always return true.
@@ -282,6 +250,27 @@ public class BloomFilter implements Byteable {
      */
     public boolean put(Byteable... byteables) {
         return put(Composite.create(byteables));
+    }
+
+    /**
+     * <p>
+     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
+     * </p>
+     * Puts the {@link composite} item into this BloomFilter such that
+     * subsequent invocations of {@link #mightContain(Composite)}
+     * with the same {@link Composite} will always return true.
+     * 
+     * @param composite
+     * @return {@code true} if the filter's bits changed as a result of this
+     *         operation. If the bits changed, this is definitely the first time
+     *         {@code byteables} have been added to the filter. If the bits
+     *         haven't changed, this might be the first time they have been
+     *         added. Note that put(t) always returns the opposite result to
+     *         what mightContain(t) would have returned at the time it is
+     *         called.
+     */
+    public boolean put(Composite composite) {
+        return source.put(composite);
     }
 
     /**

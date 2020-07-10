@@ -2,16 +2,6 @@
 ###  PREFERENCES FOR CONCOURSE SERVER  ###
 ##########################################
 
-# Automatically use a combination of defragmentation, compaction and load balancing 
-# within the data files to optimize storage for read performance.
-#
-# The storage optimization process runs continuously in the background without 
-# disrupting reads or writes. The optimizer uses a specific strategy to determine 
-# how data files should be reorganized to improve the performance of read operations. 
-#
-# DEFAULT: true
-#auto_optimize_storage = true
-
 # The absolute path to the directory where the Buffer data is stored. For
 # optimal write performance, the Buffer should be placed on a separate disk
 # partition (ideally a separate physical device) from the database_directory.
@@ -48,6 +38,16 @@
 #
 # DEFAULT: default
 #default_environment = default
+
+# Automatically use a combination of defragmentation, garbage collection and load 
+# balancing within the data files to optimize storage for read performance.
+#
+# The compaction process runs continuously in the background without disrupting reads 
+# or writes. The storage engine uses a specific strategy to determine how data files 
+# should be reorganized to improve the performance of read operations. 
+#
+# DEFAULT: true
+#enable_compaction = true
 
 # Determine whether log messages should also be printed to the console (STDOUT)
 # in addition to the log files.
@@ -167,11 +167,6 @@
 #
 # DEFAULT: no limit
 #max_search_substring_length = 40
-
-# Automatically delete data files that are obsolete.
-#
-# DEFAULT: true
-#prune_data_files = true
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services

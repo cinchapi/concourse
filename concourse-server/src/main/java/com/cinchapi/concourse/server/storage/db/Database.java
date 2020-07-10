@@ -69,6 +69,7 @@ import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -578,7 +579,7 @@ public final class Database extends BaseStore implements PermanentStore {
             running = true;
             this.writer = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("Database Segment Writer")));
+                            .namingThreadFactory("DatabaseWriter")));
             this.segments.clear();
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
             FileSystem.mkdirs($segments);
@@ -598,7 +599,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 AwaitableExecutorService loader = new AwaitableExecutorService(
                         Executors.newCachedThreadPool(
                                 ThreadFactories.namingThreadFactory(
-                                        "Database Segment Loader")));
+                                        "DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(
                             "Unexpected error when trying to load Database Segmens: {}",
@@ -655,9 +656,9 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             writer.shutdown();
             memory = null;
-            cpc.invalidateAll();
-            cppc.invalidateAll();
-            csc.invalidateAll();
+            for (Cache<Composite, ?> cache : ImmutableList.of(cpc, cppc, csc)) {
+                cache.invalidateAll();
+            }
         }
     }
 

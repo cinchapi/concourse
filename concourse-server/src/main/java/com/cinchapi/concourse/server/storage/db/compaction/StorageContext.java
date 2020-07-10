@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.optimize;
-
-import java.util.List;
-
-import com.cinchapi.concourse.server.storage.db.disk.Segment;
+package com.cinchapi.concourse.server.storage.db.compaction;
 
 /**
- * 
+ * Provides context about the filesystem and database storage state to a
+ * {@link Compactor}.
  *
  * @author Jeff Nelson
  */
 public interface StorageContext {
 
-    public List<Segment> segments();
-
+    /**
+     * Return the total disk space in bytes.
+     * 
+     * @return total disk space
+     */
     public long totalDiskSpace();
 
+    /**
+     * Return the total disk space available in bytes.
+     * 
+     * @return available disk space
+     */
     public long availableDiskSpace();
 
 }
