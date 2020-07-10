@@ -273,14 +273,15 @@ public class DatabaseTest extends StoreTest {
                 + gatherTime + " ms");
         Assert.assertTrue(gatherTime <= selectTime);
     }
-    
+
     @Test
     public void testVerify() {
         add("name", Convert.javaToThrift("jeff"), 1);
         store.stop();
         ((Database) store).triggerSync();
         store.start();
-        store.verify("name", Convert.javaToThrift("Jeff"), 1);
+        Assert.assertTrue(
+                store.verify("name", Convert.javaToThrift("jeff"), 1));
     }
 
     @Override

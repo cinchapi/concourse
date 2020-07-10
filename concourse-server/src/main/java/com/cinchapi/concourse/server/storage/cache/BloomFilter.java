@@ -210,7 +210,7 @@ public class BloomFilter implements Byteable {
     public boolean mightContain(Composite composite) {
         return source.mightContain(composite);
     }
-    
+
     /**
      * Return true if an element made up of {@code byteables} might have been
      * put in this filter or false if this is definitely not the case.
@@ -262,7 +262,7 @@ public class BloomFilter implements Byteable {
     public boolean put(Composite composite) {
         return source.put(composite);
     }
-    
+
     /**
      * <p>
      * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
