@@ -72,11 +72,28 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 
 /**
- * The {@code Database} is the {@link PermanentStore} for data. The
+ * The {@link Database} is the {@link PermanentStore} for data. The
  * Database accepts {@link Write} objects that are initially stored in a
- * {@link Buffer} and converts them to {@link Revision} objects that are stored
- * in various {@link Block} objects, which provide indexed views for optimized
- * reads.
+ * {@link Buffer} and converts them {@link Revision Revisions} that are stored
+ * within distinct {@link Segment Segments}. Each {@link Segment} is broken up
+ * into {@link Chunk Chunks} that provided optimized read-views.
+ * <p>
+ * Conceptually, the {@link Database} is a collection of three sparse, but
+ * contiguous data repositories:
+ * <ul>
+ * <li>a <strong>table</strong> that contains a normalized view of data (similar
+ * to an RDBMS table),
+ * <li>an <strong>index</strong> that contains an inverted view of data (similar
+ * to an RDBMS index), and
+ * <li>a <strong>corpus</strong> that contains a searchable view of
+ * {@link Value#isCharSequenceType() string-like} data
+ * </ul>
+ * While these conceptual repositories aren't actually maintained, the
+ * {@link Revision Revisions} stored across the {@link Segment Segments} allows
+ * for the ad-hoc accumulation of {@link TableRecord TableRecords},
+ * {@link IndexRecord IndexRecords}, and {@link CorpusRecord CorpusRecords} to
+ * service read requests efficiently.
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -352,10 +369,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -374,7 +390,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, String> audit(long record) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return table.audit();
     }
 
@@ -382,14 +398,14 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<Long, String> audit(String key, long record) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return table.audit(_key);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         return Transformers.transformTreeMapSet(index.browse(),
                 Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
@@ -398,7 +414,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         return Transformers.transformTreeMapSet(index.browse(timestamp),
                 Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
@@ -409,7 +425,7 @@ public final class Database extends BaseStore implements PermanentStore {
             long start, long end) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return Transformers.transformMapSet(
                 table.chronologize(_key, start, end), Functions.identity(),
                 Value::getTObject);
@@ -418,7 +434,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public boolean contains(long record) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return !table.isEmpty();
     }
 
@@ -426,7 +442,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
         Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         Value[] _keys = Transformers.transformArray(values, Value::wrap,
                 Value.class);
         Map<PrimaryKey, Set<Value>> map = index.explore(timestamp, operator,
@@ -439,7 +455,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
         Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         Value[] _keys = Transformers.transformArray(values, Value::wrap,
                 Value.class);
         Map<PrimaryKey, Set<Value>> map = index.explore(operator, _keys);
@@ -470,7 +486,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<TObject> gather(String key, long record) {
         Text _locator = Text.wrapCached(key);
         PrimaryKey _value = PrimaryKey.wrap(record);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         Set<Value> _keys = index.gather(_value);
         return Transformers.transformSet(_keys, Value::getTObject);
     }
@@ -479,7 +495,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<TObject> gather(String key, long record, long timestamp) {
         Text _locator = Text.wrapCached(key);
         PrimaryKey _value = PrimaryKey.wrap(record);
-        IndexRecord index = getIndex(_locator);
+        IndexRecord index = getIndexRecord(_locator);
         Set<Value> _keys = index.gather(_value, timestamp);
         return Transformers.transformSet(_keys, Value::getTObject);
     }
@@ -515,7 +531,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<Long> search(String key, String query) {
         Text _locator = Text.wrapCached(key);
         Text _query = Text.wrap(query);
-        CorpusRecord corpus = getCorpus(_locator, _query);
+        CorpusRecord corpus = getCorpusRecord(_locator, _query);
         return Transformers.transformSet(corpus.search(_query),
                 PrimaryKey::longValue);
     }
@@ -523,7 +539,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<String, Set<TObject>> select(long record) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return Transformers.transformTreeMapSet(table.browse(), Text::toString,
                 Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
@@ -532,7 +548,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTable(_locator);
+        TableRecord table = getTableRecord(_locator);
         return Transformers.transformTreeMapSet(table.browse(timestamp),
                 Text::toString, Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
@@ -542,7 +558,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<TObject> select(String key, long record) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
-        TableRecord table = getTable(_locator, _key);
+        TableRecord table = getTableRecord(_locator, _key);
         return Transformers.transformSet(table.fetch(_key), Value::getTObject);
     }
 
@@ -550,7 +566,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<TObject> select(String key, long record, long timestamp) {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
-        TableRecord table = getTable(_locator, _key);
+        TableRecord table = getTableRecord(_locator, _key);
         return Transformers.transformSet(table.fetch(_key, timestamp),
                 Value::getTObject);
     }
@@ -663,7 +679,7 @@ public final class Database extends BaseStore implements PermanentStore {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
         Value _value = Value.wrap(value);
-        TableRecord table = getTable(_locator, _key);
+        TableRecord table = getTableRecord(_locator, _key);
         return table.verify(_key, _value);
     }
 
@@ -673,17 +689,17 @@ public final class Database extends BaseStore implements PermanentStore {
         PrimaryKey _locator = PrimaryKey.wrap(record);
         Text _key = Text.wrapCached(key);
         Value _value = Value.wrap(value);
-        TableRecord table = getTable(_locator, _key);
+        TableRecord table = getTableRecord(_locator, _key);
         return table.verify(_key, _value, timestamp);
     }
 
     /**
-     * Return the PrimaryRecord identifier by {@code primaryKey}.
+     * Return the TableRecord identifier by {@code primaryKey}.
      * 
      * @param pkey
-     * @return the PrimaryRecord
+     * @return the TableRecord
      */
-    private TableRecord getTable(PrimaryKey pkey) {
+    private TableRecord getTableRecord(PrimaryKey pkey) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(pkey);
@@ -703,7 +719,7 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the potentially partial PrimaryRecord identified by {@code key} in
+     * Return the potentially partial TableRecord identified by {@code key} in
      * {@code primaryKey}.
      * <p>
      * While the returned {@link TableRecord} may not be
@@ -714,9 +730,9 @@ public final class Database extends BaseStore implements PermanentStore {
      * 
      * @param record
      * @param key
-     * @return the PrimaryRecord
+     * @return the TableRecord
      */
-    private TableRecord getTable(PrimaryKey record, Text key) {
+    private TableRecord getTableRecord(PrimaryKey record, Text key) {
         masterLock.readLock().lock();
         try {
             final Composite composite = Composite.create(record, key);
@@ -741,14 +757,14 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the SearchRecord identified by {@code key}.
+     * Return the CorpusRecord identified by {@code key}.
      * 
      * @param key
      * @param query
-     * @return the SearchRecord
+     * @return the CorpusRecord
      */
-    private CorpusRecord getCorpus(Text key, Text query) {
-        // NOTE: We do not cache SearchRecords because they have the potential
+    private CorpusRecord getCorpusRecord(Text key, Text query) {
+        // NOTE: We do not cache CorpusRecords because they have the potential
         // to be VERY large. Holding references to them in a cache would prevent
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
@@ -772,12 +788,12 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the SecondaryRecord identified by {@code key}.
+     * Return the IndexRecord identified by {@code key}.
      * 
      * @param key
-     * @return the SecondaryRecord
+     * @return the IndexRecord
      */
-    private IndexRecord getIndex(Text key) {
+    private IndexRecord getIndexRecord(Text key) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
