@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -104,15 +103,15 @@ public class Queue extends Limbo {
     public boolean insert(Write write, boolean sync) {
         writes.add(write); // #sync is meaningless since Queue is a memory store
         if(filter != null) {
-            filter.put(Composite.create(write.getKey(), write.getValue(),
-                    write.getRecord()));
+            filter.putCached(write.getKey(), write.getValue(),
+                    write.getRecord());
         }
         else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
             filter = BLOOM_FILTER_PRODUCER.consume();
             for (int i = 0; i < writes.size(); ++i) {
                 Write stored = writes.get(i);
-                filter.put(Composite.create(stored.getKey(), stored.getValue(),
-                        stored.getRecord()));
+                filter.put(stored.getKey(), stored.getValue(),
+                        stored.getRecord());
             }
         }
         return true;
@@ -160,9 +159,9 @@ public class Queue extends Limbo {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-        if(filter == null || (filter != null
-                && filter.mightContain(Composite.create(write.getKey(),
-                        write.getValue(), write.getRecord())))) {
+        if(filter == null
+                || (filter != null && filter.mightContainCached(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
             return super.verify(write, timestamp, exists);
         }
         else {
@@ -173,9 +172,9 @@ public class Queue extends Limbo {
     @Override
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
-        if(filter == null || (filter != null
-                && filter.mightContain(Composite.create(write.getKey(),
-                        write.getValue(), write.getRecord())))) {
+        if(filter == null
+                || (filter != null && filter.mightContainCached(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
             return super.getLastWriteAction(write, timestamp);
         }
         else {

@@ -210,6 +210,18 @@ public class BloomFilter implements Byteable {
     public boolean mightContain(Composite composite) {
         return source.mightContain(composite);
     }
+    
+    /**
+     * Return true if an element made up of {@code byteables} might have been
+     * put in this filter or false if this is definitely not the case.
+     * 
+     * @param byteables
+     * @return {@code true} if {@code byteables} might exist
+     */
+    public boolean mightContain(Byteable... byteables) {
+        Composite composite = Composite.create(byteables);
+        return mightContain(composite);
+    }
 
     /**
      * Return true if an element made up of a cached copy of the
@@ -249,6 +261,27 @@ public class BloomFilter implements Byteable {
      */
     public boolean put(Composite composite) {
         return source.put(composite);
+    }
+    
+    /**
+     * <p>
+     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
+     * </p>
+     * Puts {@link byteables} into this BloomFilter as a single element.
+     * Ensures that subsequent invocations of {@link #mightContain(Byteable...)}
+     * with the same elements will always return true.
+     * 
+     * @param byteables
+     * @return {@code true} if the filter's bits changed as a result of this
+     *         operation. If the bits changed, this is definitely the first time
+     *         {@code byteables} have been added to the filter. If the bits
+     *         haven't changed, this might be the first time they have been
+     *         added. Note that put(t) always returns the opposite result to
+     *         what mightContain(t) would have returned at the time it is
+     *         called.
+     */
+    public boolean put(Byteable... byteables) {
+        return put(Composite.create(byteables));
     }
 
     /**
