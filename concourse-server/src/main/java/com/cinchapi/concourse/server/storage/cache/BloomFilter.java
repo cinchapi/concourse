@@ -212,6 +212,25 @@ public class BloomFilter implements Byteable {
     }
 
     /**
+     * Return true if an element made up of a cached copy of the
+     * {@code byteables} might have been put in this filter or false if this is
+     * definitely not the case.
+     * <p>
+     * Since caching is involved, this method is more prone to false positives
+     * than the {@link #mightContain(Byteable...)} alternative, but it will
+     * never return false negatives as long as the bits were added with the
+     * {@code #putCached(Byteable...)} method.
+     * </p>
+     * 
+     * @param byteables
+     * @return {@code true} if {@code byteables} might exist
+     */
+    public boolean mightContainCached(Byteable... byteables) {
+        Composite composite = Composite.createCached(byteables);
+        return mightContain(composite);
+    }
+
+    /**
      * <p>
      * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
      * </p>
@@ -230,6 +249,28 @@ public class BloomFilter implements Byteable {
      */
     public boolean put(Composite composite) {
         return source.put(composite);
+    }
+
+    /**
+     * <p>
+     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
+     * </p>
+     * Puts {@link byteables} into this BloomFilter as a single element with
+     * support for caching to ensure that subsequent invocations of
+     * {@link #mightContainCached(Byteable...)} with the same elements will
+     * always return true.
+     * 
+     * @param byteables
+     * @return {@code true} if the filter's bits changed as a result of this
+     *         operation. If the bits changed, this is definitely the first time
+     *         {@code byteables} have been added to the filter. If the bits
+     *         haven't changed, this might be the first time they have been
+     *         added. Note that put(t) always returns the opposite result to
+     *         what mightContain(t) would have returned at the time it is
+     *         called.
+     */
+    public boolean putCached(Byteable... byteables) {
+        return put(Composite.createCached(byteables));
     }
 
     @Override

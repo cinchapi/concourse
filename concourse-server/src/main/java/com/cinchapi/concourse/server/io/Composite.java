@@ -16,11 +16,14 @@
 package com.cinchapi.concourse.server.io;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.util.ByteBuffers;
+import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 
 /**
@@ -54,6 +57,32 @@ public final class Composite implements Byteable {
     public static Composite load(ByteBuffer bytes) {
         return new Composite(bytes);
     }
+
+    /**
+     * Create a Composite for the list of {@code objects} with support for
+     * caching. Cached Composites are not guaranteed to perfectly match up with
+     * the list of objects (because hash collisions can occur) so it is only
+     * advisable to use this method of creation when precision is not a
+     * requirement.
+     * 
+     * @param objects
+     * @return the Composite
+     */
+    public static Composite createCached(Byteable... objects) {
+        int hashCode = Arrays.hashCode(objects);
+        Composite composite = CACHE.get(hashCode);
+        if(composite == null) {
+            composite = create(objects);
+            CACHE.put(hashCode, composite);
+        }
+        return composite;
+    }
+
+    /**
+     * A cache of Composite. Each composite is associated with the cumulative
+     * hashcode of all the things that went into the composite.
+     */
+    private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
     /**
      * The composite bytes.
