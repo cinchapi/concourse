@@ -212,11 +212,11 @@ public class DatabaseTest extends StoreTest {
                                                  // Database instance because
                                                  // state isn't reset...
         db.start();
-        TableRecord rec = Reflection.call(db, "getTable",
+        TableRecord rec = Reflection.call(db, "getTableRecord",
                 PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
         Assert.assertTrue(rec.isPartial());
         db.select(record);
-        rec = Reflection.call(db, "getTable", PrimaryKey.wrap(record),
+        rec = Reflection.call(db, "getTableRecord", PrimaryKey.wrap(record),
                 Text.wrap(b)); // (authorized)
         Assert.assertFalse(rec.isPartial());
     }
