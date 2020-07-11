@@ -370,9 +370,10 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
+            Logger.warn(
+                    "The Engine refused to accept {} because "
+                            + "it appears that the data was already transported. "
+                            + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }
@@ -597,9 +598,8 @@ public final class Database extends BaseStore implements PermanentStore {
             }));
             if(tasks.length() > 0) {
                 AwaitableExecutorService loader = new AwaitableExecutorService(
-                        Executors.newCachedThreadPool(
-                                ThreadFactories.namingThreadFactory(
-                                        "DatabaseLoader")));
+                        Executors.newCachedThreadPool(ThreadFactories
+                                .namingThreadFactory("DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(
                             "Unexpected error when trying to load Database Segmens: {}",
