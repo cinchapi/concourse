@@ -45,9 +45,11 @@ public class CompactorLogicTest {
             segments.add(createTestSegment());
         }
         List<Segment> garbage = Lists.newArrayList();
-        Compactor compactor = new MergeCompactor("test", segments, garbage,
-                new ReentrantLock(),
-                () -> Paths.get(TestData.getTemporaryTestFile()), 0, 0, 0, 0);
+        Compactor compactor = Compactor.builder().type(MergeCompactor.class)
+                .environment("test").segments(segments).garbage(garbage)
+                .lock(new ReentrantLock())
+                .fileProvider(() -> Paths.get(TestData.getTemporaryTestFile()))
+                .build();
         Shift shift;
         shift = compactor.run(0, 1);
         Assert.assertEquals(1, shift.index);
@@ -65,7 +67,7 @@ public class CompactorLogicTest {
         Assert.assertEquals(0, shift.index);
         Assert.assertEquals(6, shift.count);
     }
-    
+
     @Test
     public void testRunFailShift() {
         List<Segment> segments = Lists.newArrayList();
@@ -73,20 +75,22 @@ public class CompactorLogicTest {
             segments.add(createTestSegment());
         }
         List<Segment> garbage = Lists.newArrayList();
-        Compactor compactor = new FailCompactor("test", segments, garbage,
-                new ReentrantLock(),
-                () -> Paths.get(TestData.getTemporaryTestFile()), 0, 0, 0, 0);
+        Compactor compactor = Compactor.builder().type(FailCompactor.class)
+                .environment("test").segments(segments).garbage(garbage)
+                .lock(new ReentrantLock())
+                .fileProvider(() -> Paths.get(TestData.getTemporaryTestFile()))
+                .build();
         Shift shift;
         shift = compactor.run(0, 6);
         Assert.assertEquals(1, shift.index);
         Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index,shift.count);
+        shift = compactor.run(shift.index, shift.count);
         Assert.assertEquals(2, shift.index);
         Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index,shift.count);
+        shift = compactor.run(shift.index, shift.count);
         Assert.assertEquals(3, shift.index);
         Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index,shift.count);
+        shift = compactor.run(shift.index, shift.count);
         Assert.assertEquals(0, shift.index);
         Assert.assertEquals(7, shift.count);
     }
@@ -98,11 +102,12 @@ public class CompactorLogicTest {
         }
         return segment;
     }
-    
-    class FailCompactor extends Compactor {
+
+    static class FailCompactor extends Compactor {
 
         /**
          * Construct a new instance.
+         * 
          * @param environment
          * @param segments
          * @param garbage
@@ -129,10 +134,10 @@ public class CompactorLogicTest {
                 Segment... segments) {
             return null;
         }
-        
+
     }
 
-    class MergeCompactor extends Compactor {
+    static class MergeCompactor extends Compactor {
 
         /**
          * Construct a new instance.
@@ -174,7 +179,7 @@ public class CompactorLogicTest {
         }
     }
 
-    class SplitCompactor extends Compactor {
+    static class SplitCompactor extends Compactor {
 
         /**
          * Construct a new instance.

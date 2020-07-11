@@ -48,10 +48,20 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 public abstract class Compactor {
 
+    /**
+     * Return a {@link Compactor} builder.
+     * 
+     * @return the builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link Compactor Compactors}.
+     *
+     * @author Jeff Nelson
+     */
     public static class Builder {
 
         private Class<? extends Compactor> type;
@@ -60,60 +70,137 @@ public abstract class Compactor {
         private List<Segment> garbage;
         private Lock lock;
         private Supplier<Path> fileProvider;
-        private int minorInitialDelayInSeconds = 5 * 60;
-        private int minorRunFrequencyInSeconds = 1;
-        private int majorInitialDelayInSeconds = 86400;
-        private int majorRunFrequencyInSeconds = 7 * 86400;
+        private long minorInitialDelayInSeconds = 5 * 60;
+        private long minorRunFrequencyInSeconds = 1;
+        private long majorInitialDelayInSeconds = 86400;
+        private long majorRunFrequencyInSeconds = 7 * 86400;
 
+        /**
+         * Set the {@link Compactor} type to build.
+         * 
+         * @param type
+         * @return this
+         */
         public Builder type(Class<? extends Compactor> type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * Set the {@link Compactor Compactor's} environment.
+         * 
+         * @param environment
+         * @return this
+         */
         public Builder environment(String environment) {
             this.environment = environment;
             return this;
         }
 
+        /**
+         * Provide the dynamic list of {@link Segment Segments} over which
+         * compaction should run.
+         * 
+         * @param segments
+         * @return this
+         */
         public Builder segments(List<Segment> segments) {
             this.segments = segments;
             return this;
         }
 
+        /**
+         * Provide a {@link Lock} to use for concurrency control.
+         * 
+         * @param lock
+         * @return this
+         */
         public Builder lock(Lock lock) {
             this.lock = lock;
             return this;
         }
 
+        /**
+         * Specify the {@link Supplier} that generates file {@link Path Paths}
+         * for {@link Segment Segments} that are created during compaction.
+         * 
+         * @param fileProvider
+         * @return this
+         */
         public Builder fileProvider(Supplier<Path> fileProvider) {
             this.fileProvider = fileProvider;
             return this;
         }
 
+        /**
+         * Specify how long the {@link Compactor} should wait before scheduling
+         * the first minor compaction.
+         * 
+         * @param minorInitialDelayInSeconds
+         * @return this
+         */
         public Builder minorCompactionInitialDelayInSeconds(
-                int minorInitialDelayInSeconds) {
+                long minorInitialDelayInSeconds) {
             this.minorInitialDelayInSeconds = minorInitialDelayInSeconds;
             return this;
         }
 
+        /**
+         * Specify how long the {@link Compactor} should wait before scheduling
+         * the first major compaction.
+         * 
+         * @param minorInitialDelayInSeconds
+         * @return this
+         */
         public Builder majorCompactionInitialDelayInSeconds(
-                int majorInitialDelayInSeconds) {
+                long majorInitialDelayInSeconds) {
             this.majorInitialDelayInSeconds = majorInitialDelayInSeconds;
             return this;
         }
 
+        /**
+         * Specify how long the {@link Compactor} should wait after an attempt
+         * (successful or not) at a minor compaction before attempting again.
+         * 
+         * @param minorRunFrequencyInSeconds
+         * @return this
+         */
         public Builder minorCompactionRunFrequencyInSeconds(
-                int minorRunFrequencyInSeconds) {
+                long minorRunFrequencyInSeconds) {
             this.minorRunFrequencyInSeconds = minorRunFrequencyInSeconds;
             return this;
         }
 
+        /**
+         * Specify how long the {@link Compactor} should wait after an attempt
+         * (successful or not) at a major compaction before attempting again.
+         * 
+         * @param minorRunFrequencyInSeconds
+         * @return this
+         */
         public Builder majorCompactionRunFrequencyInSeconds(
-                int majorRunFrequencyInSeconds) {
+                long majorRunFrequencyInSeconds) {
             this.majorRunFrequencyInSeconds = majorRunFrequencyInSeconds;
             return this;
         }
 
+        /**
+         * Provide the collection that maintains the {@link Segments} that
+         * should be discarded.
+         * 
+         * @param garbage
+         * @return this
+         */
+        public Builder garbage(List<Segment> garbage) {
+            this.garbage = garbage;
+            return this;
+        }
+
+        /**
+         * Build and return the {@link Compactor}
+         * 
+         * @return the built {@link Compactor}
+         */
         public Compactor build() {
             Preconditions.checkState(!Empty.ness().describes(environment));
             Preconditions.checkState(segments != null);
