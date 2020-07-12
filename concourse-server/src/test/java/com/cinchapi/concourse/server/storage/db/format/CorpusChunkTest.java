@@ -34,9 +34,6 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.Record;
-import com.cinchapi.concourse.server.storage.db.format.Chunk;
-import com.cinchapi.concourse.server.storage.db.format.CorpusChunk;
-import com.cinchapi.concourse.server.storage.db.format.Manifest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -46,7 +43,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
- * Unit tests for {@link CorpusChunk}
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.storage.db.format.CorpusChunk}
  *
  * @author Jeff Nelson
  */

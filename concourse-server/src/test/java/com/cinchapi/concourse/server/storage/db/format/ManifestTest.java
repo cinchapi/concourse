@@ -28,13 +28,13 @@ import org.junit.runner.Description;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
-import com.cinchapi.concourse.server.storage.db.format.Manifest;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link Manifest}.
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.storage.db.format.Manifest}.
  *
  * @author Jeff Nelson
  */

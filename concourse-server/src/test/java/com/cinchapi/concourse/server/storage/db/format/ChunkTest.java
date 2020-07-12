@@ -35,8 +35,6 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.format.Chunk;
-import com.cinchapi.concourse.server.storage.db.format.Manifest;
 import com.cinchapi.concourse.server.storage.db.format.Chunk.Folio;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
@@ -44,8 +42,9 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link Chunk} types.
- * 
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.db.format.Chunk}
+ * types.
+ *
  * @author Jeff Nelson
  */
 public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>

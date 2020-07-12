@@ -31,8 +31,6 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.IndexRecord;
 import com.cinchapi.concourse.server.storage.db.TableRecord;
-import com.cinchapi.concourse.server.storage.db.format.Segment;
-import com.cinchapi.concourse.server.storage.db.format.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.TObject;
@@ -41,7 +39,8 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Iterators;
 
 /**
- * Unit tests for {@link Segment}.
+ * Unit tests for
+ * {@link com.cinchapi.concourse.server.storage.db.format.Segment}.
  *
  * @author Jeff Nelson
  */
