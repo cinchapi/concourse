@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.describe.Empty;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.storage.db.disk.Segment;
+import com.cinchapi.concourse.server.storage.db.format.Segment;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

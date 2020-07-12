@@ -22,8 +22,8 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.cinchapi.concourse.server.concurrent.ConcurrencySuite;
 import com.cinchapi.concourse.server.storage.db.RecordSuite;
 import com.cinchapi.concourse.server.storage.db.RevisionTest;
-import com.cinchapi.concourse.server.storage.db.disk.ChunkSuite;
-import com.cinchapi.concourse.server.storage.db.disk.SegmentTest;
+import com.cinchapi.concourse.server.storage.db.format.ChunkSuite;
+import com.cinchapi.concourse.server.storage.db.format.SegmentTest;
 import com.cinchapi.concourse.server.storage.temp.WriteTest;
 
 /**

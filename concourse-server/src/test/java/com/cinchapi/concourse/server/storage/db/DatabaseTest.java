@@ -37,7 +37,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
-import com.cinchapi.concourse.server.storage.db.disk.Segment;
+import com.cinchapi.concourse.server.storage.db.format.Segment;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;

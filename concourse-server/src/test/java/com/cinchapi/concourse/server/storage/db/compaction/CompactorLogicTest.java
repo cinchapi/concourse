@@ -26,7 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.storage.db.compaction.Compactor.Shift;
-import com.cinchapi.concourse.server.storage.db.disk.Segment;
+import com.cinchapi.concourse.server.storage.db.format.Segment;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

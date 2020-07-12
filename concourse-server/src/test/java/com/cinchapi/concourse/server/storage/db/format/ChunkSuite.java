@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.disk;
+package com.cinchapi.concourse.server.storage.db.format;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
-import com.cinchapi.concourse.server.storage.db.disk.Segment;
+import com.cinchapi.concourse.server.storage.db.format.Segment;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 

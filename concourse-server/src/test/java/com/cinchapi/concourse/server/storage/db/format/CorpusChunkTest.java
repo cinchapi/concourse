@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.disk;
+package com.cinchapi.concourse.server.storage.db.format;
 
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +34,9 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.Record;
+import com.cinchapi.concourse.server.storage.db.format.Chunk;
+import com.cinchapi.concourse.server.storage.db.format.CorpusChunk;
+import com.cinchapi.concourse.server.storage.db.format.Manifest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
