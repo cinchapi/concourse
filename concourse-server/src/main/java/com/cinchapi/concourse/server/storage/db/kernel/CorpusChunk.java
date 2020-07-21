@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 

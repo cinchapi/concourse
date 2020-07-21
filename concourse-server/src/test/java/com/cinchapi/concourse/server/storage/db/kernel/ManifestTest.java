@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -34,7 +34,7 @@ import com.cinchapi.concourse.util.TestData;
 
 /**
  * Unit tests for
- * {@link com.cinchapi.concourse.server.storage.db.format.Manifest}.
+ * {@link com.cinchapi.concourse.server.storage.db.kernel.Manifest}.
  *
  * @author Jeff Nelson
  */

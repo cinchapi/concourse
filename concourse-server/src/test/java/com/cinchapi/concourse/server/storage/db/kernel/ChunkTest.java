@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,14 +35,14 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.format.Chunk.Folio;
+import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Sets;
 
 /**
- * Unit tests for {@link com.cinchapi.concourse.server.storage.db.format.Chunk}
+ * Unit tests for {@link com.cinchapi.concourse.server.storage.db.kernel.Chunk}
  * types.
  *
  * @author Jeff Nelson

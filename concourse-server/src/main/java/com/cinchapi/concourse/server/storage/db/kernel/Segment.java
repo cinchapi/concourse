@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -50,7 +50,7 @@ import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
-import com.cinchapi.concourse.server.storage.db.format.Chunk.Folio;
+import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;

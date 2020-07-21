@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
 
@@ -24,41 +24,41 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.TableRevision;
 
 /**
- * A {@link Chunk} that stores {@link TableRevision TableRevisions} for
- * various {@link TableRecord TableRecords}.
+ * A {@link Chunk} that stores {@link IndexRevision IndexRevisions} for
+ * various {@link IndexRecord IndexRecords}.
  *
  * @author Jeff Nelson
  */
-public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
+public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
 
     /**
-     * Return a new {@link TableChunk}.
+     * Return a new {@link IndexChunk}.
      * 
      * @param filter
      * @return the created {@link Chunk}
      */
-    public static TableChunk create(BloomFilter filter) {
+    public static IndexChunk create(BloomFilter filter) {
         return create(null, filter);
     }
 
     /**
-     * Return a new {@link TableChunk}.
+     * Return a new {@link IndexChunk}.
      * 
      * @param segment
      * @param filter
      * @return the created {@link Chunk}
      */
-    public static TableChunk create(@Nullable Segment segment,
+    public static IndexChunk create(@Nullable Segment segment,
             BloomFilter filter) {
-        return new TableChunk(segment, filter);
+        return new IndexChunk(segment, filter);
     }
 
     /**
-     * Load an existing {@link TableChunk}.
+     * Load an existing {@link IndexChunk}.
      * 
      * @param file
      * @param position
@@ -67,7 +67,7 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
      * @param manifest
      * @return the loaded {@link Chunk}
      */
-    public static TableChunk load(Path file, long position, long size,
+    public static IndexChunk load(Path file, long position, long size,
             BloomFilter filter, Manifest manifest) {
         return load(null, file, position, size, filter, manifest);
     }
@@ -83,9 +83,9 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
      * @param manifest
      * @return the loaded {@link Chunk}
      */
-    public static TableChunk load(@Nullable Segment segment, Path file,
+    public static IndexChunk load(@Nullable Segment segment, Path file,
             long position, long size, BloomFilter filter, Manifest manifest) {
-        return new TableChunk(segment, file, position, size, filter, manifest);
+        return new IndexChunk(segment, file, position, size, filter, manifest);
     }
 
     /**
@@ -94,7 +94,7 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
      * @param segment
      * @param filter
      */
-    private TableChunk(@Nullable Segment segment, BloomFilter filter) {
+    private IndexChunk(@Nullable Segment segment, BloomFilter filter) {
         super(segment, filter);
     }
 
@@ -108,28 +108,28 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
      * @param filter
      * @param manifest
      */
-    private TableChunk(@Nullable Segment segment, Path file, long position,
+    private IndexChunk(@Nullable Segment segment, Path file, long position,
             long size, BloomFilter filter, Manifest manifest) {
         super(segment, file, position, size, filter, manifest);
     }
 
     @Override
-    public final TableRevision insert(PrimaryKey locator, Text key, Value value,
+    public final IndexRevision insert(Text locator, Value key, PrimaryKey value,
             long version, Action type) {
-        return (TableRevision) super.insert(locator, key, Value.optimize(value),
+        return (IndexRevision) super.insert(locator, Value.optimize(key), value,
                 version, type);
     }
 
     @Override
-    protected TableRevision makeRevision(PrimaryKey locator, Text key,
-            Value value, long version, Action type) {
-        return Revision.createPrimaryRevision(locator, key, value, version,
+    protected IndexRevision makeRevision(Text locator, Value key,
+            PrimaryKey value, long version, Action type) {
+        return Revision.createSecondaryRevision(locator, key, value, version,
                 type);
     }
 
     @Override
-    protected Class<TableRevision> xRevisionClass() {
-        return TableRevision.class;
+    protected Class<IndexRevision> xRevisionClass() {
+        return IndexRevision.class;
     }
 
 }

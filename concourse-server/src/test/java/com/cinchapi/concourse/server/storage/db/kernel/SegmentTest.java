@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.format;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +40,7 @@ import com.google.common.collect.Iterators;
 
 /**
  * Unit tests for
- * {@link com.cinchapi.concourse.server.storage.db.format.Segment}.
+ * {@link com.cinchapi.concourse.server.storage.db.kernel.Segment}.
  *
  * @author Jeff Nelson
  */
