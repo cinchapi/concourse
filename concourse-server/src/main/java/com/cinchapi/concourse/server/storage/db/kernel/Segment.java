@@ -43,6 +43,7 @@ import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Freezable;
+import com.cinchapi.concourse.server.io.Itemizable;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
@@ -60,12 +61,14 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
- * A {@link Segment} is where data in the {@link Database} is physically stored.
+ * A {@link Segment Segments} are where data in the {@link Database} is
+ * physically stored.
  * <p>
  * When the {@link Database} {@link Database#accept(Write) accepts} a
  * {@link Write} it is {@link Segment#transfer(Write, AwaitableExecutorService)
- * transferred} to a {@link Segment Segments} which uses several {@link Chunk
- * Chunks} to maintain optimized views of the data for different operations.
+ * transferred} to a {@link Segment} which uses several {@link Chunk
+ * Chunks} internally to maintain optimized views of the data for different
+ * operations.
  * </p>
  * <p>
  * {@link Segment Segments} and
@@ -78,7 +81,8 @@ import com.google.common.util.concurrent.MoreExecutors;
  * {@link com.cinchapi.concourse.server.storage.temp.Buffer.Page
  * Page} have been
  * {@link #transfer(Write, AwaitableExecutorService) transferred}, the
- * {@link Segment} is durably {@link #sync(AwaitableExecutorService) synced} and
+ * corresponding {@link Segment} is durably
+ * {@link #sync(AwaitableExecutorService) synced} and
  * the {@link Buffer#Page Page} is
  * {@link com.cinchapi.concourse.server.storage.temp.Buffer.Page#delete()
  * deleted}
@@ -117,7 +121,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 @Immutable
 @ThreadSafe
-public final class Segment implements Syncable {
+public final class Segment implements Itemizable, Syncable {
 
     /**
      * Create a new {@link Segment}.
@@ -203,6 +207,7 @@ public final class Segment implements Syncable {
     private static int METADATA_LENGTH =
             FILE_SIGNATURE.length
             + 1 // version
+            + 8 // count
             + 8 // minTs
             + 8 // maxTs
             + 8 // syncTs
@@ -256,6 +261,12 @@ public final class Segment implements Syncable {
      * to disk.
      */
     protected long syncTs;
+
+    /**
+     * The number of {@link Revision Revisions} that has been
+     * {@link #transfer(Write, AwaitableExecutorService) transferred}.
+     */
+    protected long count = -1;
 
     /**
      * The {@link CorpusChunk} that contains a searchable view of the data.
@@ -341,6 +352,7 @@ public final class Segment implements Syncable {
             if(Arrays.equals(signature, FILE_SIGNATURE)) {
                 long position = 0;
                 this.version = metadata.get();
+                this.count = metadata.getLong();
                 this.minTs = metadata.getLong();
                 this.maxTs = metadata.getLong();
                 this.syncTs = metadata.getLong();
@@ -421,23 +433,17 @@ public final class Segment implements Syncable {
     }
 
     /**
-     * Return an estimate of the number of {@link Write writes} that were
-     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
-     * {@link Segment}.
-     * 
-     * @return
-     */
-    public int approximateMetadataCount() {
-        return table().filter().approximateElementCount();
-    }
-
-    /**
      * Return this {@link Segment Segment's} {@link CorpusChunk}, if it exists.
      * 
      * @return the {@link CorpusChunk} or {@code null} it it does not exist
      */
     public CorpusChunk corpus() {
         return corpus;
+    }
+
+    @Override
+    public long count() {
+        return mutable ? index.count() : count;
     }
 
     @Override
@@ -460,6 +466,7 @@ public final class Segment implements Syncable {
         try {
             this.mutable = false;
             this.syncTs = Time.now();
+            this.count = index.count();
             Folio tableFolio = table.serialize();
             Folio indexFolio = index.serialize();
             Folio corpusFolio = corpus.serialize();
@@ -530,7 +537,7 @@ public final class Segment implements Syncable {
      * @return the reindexed {@link Segment}
      */
     public Segment reindex() {
-        Segment segment = new Segment(approximateMetadataCount());
+        Segment segment = new Segment((int) count());
         writes().forEach(segment::transfer);
         return segment;
     }
@@ -692,6 +699,7 @@ public final class Segment implements Syncable {
                 size);
         bytes.put(FILE_SIGNATURE);
         bytes.put(version);
+        bytes.putLong(count);
         bytes.putLong(minTs);
         bytes.putLong(maxTs);
         bytes.putLong(syncTs);
@@ -755,6 +763,7 @@ public final class Segment implements Syncable {
             ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
             metadata.put(FILE_SIGNATURE);
             metadata.put(version);
+            metadata.putLong(count);
             metadata.putLong(minTs);
             metadata.putLong(maxTs);
             metadata.putLong(syncTs);

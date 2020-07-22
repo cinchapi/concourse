@@ -41,6 +41,7 @@ import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Freezable;
+import com.cinchapi.concourse.server.io.Itemizable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;
@@ -91,7 +92,11 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Byteable, Freezable, Iterable<Revision<L, K, V>> {
+        implements
+        Byteable,
+        Freezable,
+        Iterable<Revision<L, K, V>>,
+        Itemizable {
 
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
@@ -280,6 +285,16 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     public void copyTo(ByteSink sink) {
         Entry<Manifest, ByteBuffer> serial = serialize();
         sink.put(serial.getValue());
+    }
+
+    @Override
+    public long count() {
+        if(revisionCount != null) {
+            return revisionCount.get();
+        }
+        else {
+            throw new IllegalStateException("Cannot count an immutable chunk");
+        }
     }
 
     /**
