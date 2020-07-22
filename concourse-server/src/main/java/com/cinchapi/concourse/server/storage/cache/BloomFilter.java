@@ -135,22 +135,6 @@ public class BloomFilter implements Byteable {
         this.upgraded = false;
     }
 
-    /**
-     * <p>
-     * <strong>Copied from
-     * {@link com.google.common.hash.BloomFilter#approximateElementCount()}</strong>
-     * </p>
-     * Returns an estimate for the total number of distinct elements that have
-     * been added to this {@link BloomFilter}. This approximation is reasonably
-     * accurate if it does not exceed the value of {@code expectedInsertions}
-     * that was used when constructing the filter.
-     * 
-     * @return the approximate number of distinct insertions
-     */
-    public int approximateElementCount() {
-        return (int) source.approximateElementCount();
-    }
-
     @Override
     public void copyTo(ByteSink sink) {
         ByteBuffer bytes = getBytes();
