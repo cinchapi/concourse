@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -53,6 +54,7 @@ import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Timestamp;
@@ -357,6 +359,12 @@ public class ConcourseServer extends BaseConcourseServer implements
                                                        // configurable in a
                                                        // prefs file in a
                                                        // future release.
+
+    /**
+     * Tracks the number of {@link Engine engines} that have been intialized via
+     * {@link #getEngineUnsafe(String)}.
+     */
+    protected final AtomicInteger numEnginesInitialized = new AtomicInteger(0); // CON-673
 
     /**
      * The base location where the indexed buffer pages are stored.
@@ -6621,6 +6629,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             for (Engine engine : engines.values()) {
                 engine.stop();
             }
+            numEnginesInitialized.set(0);
             System.out.println("The Concourse server has stopped");
         }
     }
@@ -6990,6 +6999,20 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
+     * {@link #start() Start} the server as a daemon.
+     */
+    void spawn() {
+        new Thread(() -> {
+            try {
+                start();
+            }
+            catch (TTransportException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }).start();
+    }
+
+    /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
      *
@@ -7005,14 +7028,14 @@ public class ConcourseServer extends BaseConcourseServer implements
      * exist, create a new one and add it to the collection.
      */
     private Engine getEngineUnsafe(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            engine = new Engine(bufferStore + File.separator + env,
-                    dbStore + File.separator + env, env);
+        return engines.computeIfAbsent(env, $ -> {
+            String buffer = bufferStore + File.separator + env;
+            String db = dbStore + File.separator + env;
+            Engine engine = new Engine(buffer, db, env);
             engine.start();
-            engines.put(env, engine);
-        }
-        return engine;
+            numEnginesInitialized.incrementAndGet();
+            return engine;
+        });
     }
 
     /**
