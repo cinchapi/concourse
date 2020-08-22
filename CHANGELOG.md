@@ -13,6 +13,7 @@
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
 * Upgraded CCL version to `2.6.3` in order to fix a parsing bug that occurred when creating a `Criteria` containing a String or String-like value with a whitespace or equal sign (e.g. `=`) character.
 * Fixed a bug that made it possible to store circular links (e.g. a link from a record to itself) when atomically adding or setting data in multiple records at once.
+* Fixed a race condition that occurred when multiple client connections logged into a non-default environment at the same time. The proper concurrency controls weren't in place, so the simultaneous connection attempts, in many cases, caused the Engine for that environment to be initialized multiple times. This did not cause any data duplication issues (because only one of the duplicate Engines would be recognized at any given time), but it could cause an `OutOfMemoryException` if that corresponding environment had a lot of metadata to be loaded into memory during intialization.
 
 #### Version 0.10.4 (December 15, 2019)
 * Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 

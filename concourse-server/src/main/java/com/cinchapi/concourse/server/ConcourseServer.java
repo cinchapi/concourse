@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -366,9 +367,20 @@ public class ConcourseServer extends BaseConcourseServer implements
                                                        // future release.
 
     /**
+     * Tracks the number of {@link Engine engines} that have been intialized via
+     * {@link #getEngineUnsafe(String)}.
+     */
+    protected final AtomicInteger numEnginesInitialized = new AtomicInteger(0); // CON-673
+
+    /**
      * The base location where the indexed buffer pages are stored.
      */
     private String bufferStore;
+
+    /**
+     * Reference to the {@link ConcourseCompiler}.
+     */
+    private final ConcourseCompiler compiler = ConcourseCompiler.get();
 
     /**
      * The base location where the indexed database records are stored.
@@ -425,11 +437,6 @@ public class ConcourseServer extends BaseConcourseServer implements
      * The UserService controls access to the server.
      */
     private UserService users;
-
-    /**
-     * Reference to the {@link ConcourseCompiler}.
-     */
-    private final ConcourseCompiler compiler = ConcourseCompiler.get();
 
     @Override
     @TranslateClientExceptions
@@ -6584,6 +6591,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             for (Engine engine : engines.values()) {
                 engine.stop();
             }
+            numEnginesInitialized.set(0);
             System.out.println("The Concourse server has stopped");
         }
     }
@@ -7026,14 +7034,14 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @Internal
     private Engine getEngineUnsafe(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            engine = new Engine(bufferStore + File.separator + env,
-                    dbStore + File.separator + env, env);
+        return engines.computeIfAbsent(env, $ -> {
+            String buffer = bufferStore + File.separator + env;
+            String db = dbStore + File.separator + env;
+            Engine engine = new Engine(buffer, db, env);
             engine.start();
-            engines.put(env, engine);
-        }
-        return engine;
+            numEnginesInitialized.incrementAndGet();
+            return engine;
+        });
     }
 
     /**
