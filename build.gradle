@@ -42,7 +42,7 @@ buildscript {
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
         classpath "com.diffplug.spotless:spotless-plugin-gradle:5.1.2"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.3"
     }
 }
 
@@ -175,10 +175,10 @@ subprojects {
     ext.title = "Concourse" // The project's vanity title
     ext.description = "Default" // A short description about the project
     afterEvaluate { project ->
-        if (ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
-                                // to Maven
-            def mavenTitle = ext.title
-            def mavenDescription = ext.description
+        if (project.ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded // to Maven
+            def mavenTitle = project.ext.title
+            def mavenDescription = project.ext.description
+            def mavenVersion = ext.mavenVersion
 
             publishing {
                 publications {

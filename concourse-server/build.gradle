@@ -119,6 +119,7 @@ bintray {
         name = 'concourse'
         publish = true
         userOrg = 'cinchapi'
+        override = true
         version {
             name = mavenVersion
             released = new Date()
