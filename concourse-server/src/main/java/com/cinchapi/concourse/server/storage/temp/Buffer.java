@@ -1813,8 +1813,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * 
      * @author Jeff Nelson
      */
-    private abstract class SeekingIterator
-            implements Iterator<Write>, CloseableIterator<Write> {
+    private abstract class SeekingIterator implements
+            Iterator<Write>,
+            CloseableIterator<Write> {
 
         /**
          * A flag that indicates whether we should not perform a timestamp check

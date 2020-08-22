@@ -370,10 +370,9 @@ public final class Database extends BaseStore implements PermanentStore {
             }
         }
         else {
-            Logger.warn(
-                    "The Engine refused to accept {} because "
-                            + "it appears that the data was already transported. "
-                            + "This indicates that the server shutdown prematurely.",
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
                     write);
         }
     }

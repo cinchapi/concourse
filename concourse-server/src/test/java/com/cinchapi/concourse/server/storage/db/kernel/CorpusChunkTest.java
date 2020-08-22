@@ -165,9 +165,8 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
 
     @Test
     public void testMightContainLocatorKeyValueReproB() {
-        doTestMightContainLocatorKeyValue(
-                Text.wrap(
-                        "7yubgpf x0 q1cj  52oiau do0034jq pj 02igw3w fbd5d2kw 5 1vwdbjoy4o6i4fgd"),
+        doTestMightContainLocatorKeyValue(Text.wrap(
+                "7yubgpf x0 q1cj  52oiau do0034jq pj 02igw3w fbd5d2kw 5 1vwdbjoy4o6i4fgd"),
                 Value.wrap(Convert.javaToThrift(
                         "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t")),
                 Text.wrap(

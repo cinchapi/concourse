@@ -81,8 +81,10 @@ import com.google.common.collect.TreeRangeSet;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Engine extends BufferedStore
-        implements TransactionSupport, AtomicSupport, InventoryTracker {
+public final class Engine extends BufferedStore implements
+        TransactionSupport,
+        AtomicSupport,
+        InventoryTracker {
 
     //
     // NOTES ON LOCKING:
@@ -898,7 +900,8 @@ public final class Engine extends BufferedStore
         transportLock.readLock().lock();
         try {
             return inventory.contains(record)
-                    ? super.verify(key, value, record, timestamp) : false;
+                    ? super.verify(key, value, record, timestamp)
+                    : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -947,7 +950,8 @@ public final class Engine extends BufferedStore
     @Override
     protected boolean verify(Write write, boolean lock) {
         return inventory.contains(write.getRecord().longValue())
-                ? super.verify(write, lock) : false;
+                ? super.verify(write, lock)
+                : false;
     }
 
     /**

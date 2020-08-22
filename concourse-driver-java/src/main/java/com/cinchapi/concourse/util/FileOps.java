@@ -232,7 +232,8 @@ public class FileOps {
     public static String expandPath(String path, String cwd) {
         path = path.replaceAll("~", USER_HOME);
         Path base = com.google.common.base.Strings.isNullOrEmpty(cwd)
-                ? BASE_PATH : FileSystems.getDefault().getPath(cwd);
+                ? BASE_PATH
+                : FileSystems.getDefault().getPath(cwd);
         return base.resolve(path).normalize().toString();
     }
 

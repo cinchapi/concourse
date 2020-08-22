@@ -21,8 +21,8 @@ package com.cinchapi.concourse.lang.sort;
  *
  * @author Jeff Nelson
  */
-public class OrderDirectionState extends BuildableOrderState
-        implements ShortcutThenByState {
+public class OrderDirectionState extends BuildableOrderState implements
+        ShortcutThenByState {
 
     /**
      * Construct a new instance.

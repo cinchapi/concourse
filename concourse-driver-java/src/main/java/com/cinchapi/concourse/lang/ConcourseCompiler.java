@@ -22,7 +22,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Multimap;
 
 /**
- * A {@link ConcourseCompiler} for Concourse.
+ * A CCL {@link Compiler} for Concourse.
  *
  * @author Jeff Nelson
  */

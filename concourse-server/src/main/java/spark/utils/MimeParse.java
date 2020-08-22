@@ -122,8 +122,8 @@ public class MimeParse {
     /**
      * Structure for holding a fitness/quality combo
      */
-    protected static class FitnessAndQuality
-            implements Comparable<FitnessAndQuality> {
+    protected static class FitnessAndQuality implements
+            Comparable<FitnessAndQuality> {
         int fitness;
 
         float quality;

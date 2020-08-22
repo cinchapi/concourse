@@ -52,7 +52,8 @@ import com.google.common.collect.SortedMultiset;
  * @author Jeff Nelson
  */
 public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
-        implements SearchIndex {
+        implements
+        SearchIndex {
 
     /**
      * Return a new {@link CorpusChunk}.
