@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -380,6 +381,12 @@ public class ConcourseServer extends BaseConcourseServer implements
      * logic for data storage and retrieval.
      */
     private Map<String, Engine> engines;
+
+    /**
+     * Tracks the number of {@link Engine engines} that have been intialized via
+     * {@link #getEngineUnsafe(String)}.
+     */
+    protected final AtomicInteger numEnginesInitialized = new AtomicInteger(0); // CON-673
 
     /**
      * A server for handling HTTP requests, if the {@code http_port} preference
@@ -6584,6 +6591,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             for (Engine engine : engines.values()) {
                 engine.stop();
             }
+            numEnginesInitialized.set(0);
             System.out.println("The Concourse server has stopped");
         }
     }
@@ -7026,14 +7034,14 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @Internal
     private Engine getEngineUnsafe(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            engine = new Engine(bufferStore + File.separator + env,
-                    dbStore + File.separator + env, env);
+        return engines.computeIfAbsent(env, $ -> {
+            String buffer = bufferStore + File.separator + env;
+            String db = dbStore + File.separator + env;
+            Engine engine = new Engine(buffer, db, env);
             engine.start();
-            engines.put(env, engine);
-        }
-        return engine;
+            numEnginesInitialized.incrementAndGet();
+            return engine;
+        });
     }
 
     /**
