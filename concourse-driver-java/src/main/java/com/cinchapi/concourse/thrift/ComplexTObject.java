@@ -245,7 +245,14 @@ public class ComplexTObject implements
          * 
          * @see ComplexTObjectType
          */
-        TYPE((short) 1, "type"), TSCALAR((short) 2, "tscalar"), TMAP((short) 3, "tmap"), TLIST((short) 4, "tlist"), TSET((short) 5, "tset"), TOBJECT((short) 6, "tobject"), TCRITERIA((short) 7, "tcriteria"), TBINARY((short) 8, "tbinary");
+        TYPE((short) 1, "type"),
+        TSCALAR((short) 2, "tscalar"),
+        TMAP((short) 3, "tmap"),
+        TLIST((short) 4, "tlist"),
+        TSET((short) 5, "tset"),
+        TOBJECT((short) 6, "tobject"),
+        TCRITERIA((short) 7, "tcriteria"),
+        TBINARY((short) 8, "tbinary");
 
         private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -340,33 +347,30 @@ public class ComplexTObject implements
                         new org.apache.thrift.meta_data.StructMetaData(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 com.cinchapi.concourse.thrift.TObject.class)));
-        tmpMap.put(_Fields.TMAP,
-                new org.apache.thrift.meta_data.FieldMetaData("tmap",
-                        org.apache.thrift.TFieldRequirementType.OPTIONAL,
-                        new org.apache.thrift.meta_data.MapMetaData(
-                                org.apache.thrift.protocol.TType.MAP,
-                                new org.apache.thrift.meta_data.FieldValueMetaData(
-                                        org.apache.thrift.protocol.TType.STRUCT,
-                                        "ComplexTObject"),
-                                new org.apache.thrift.meta_data.FieldValueMetaData(
-                                        org.apache.thrift.protocol.TType.STRUCT,
-                                        "ComplexTObject"))));
-        tmpMap.put(_Fields.TLIST,
-                new org.apache.thrift.meta_data.FieldMetaData("tlist",
-                        org.apache.thrift.TFieldRequirementType.OPTIONAL,
-                        new org.apache.thrift.meta_data.ListMetaData(
-                                org.apache.thrift.protocol.TType.LIST,
-                                new org.apache.thrift.meta_data.FieldValueMetaData(
-                                        org.apache.thrift.protocol.TType.STRUCT,
-                                        "ComplexTObject"))));
-        tmpMap.put(_Fields.TSET,
-                new org.apache.thrift.meta_data.FieldMetaData("tset",
-                        org.apache.thrift.TFieldRequirementType.OPTIONAL,
-                        new org.apache.thrift.meta_data.SetMetaData(
-                                org.apache.thrift.protocol.TType.SET,
-                                new org.apache.thrift.meta_data.FieldValueMetaData(
-                                        org.apache.thrift.protocol.TType.STRUCT,
-                                        "ComplexTObject"))));
+        tmpMap.put(_Fields.TMAP, new org.apache.thrift.meta_data.FieldMetaData(
+                "tmap", org.apache.thrift.TFieldRequirementType.OPTIONAL,
+                new org.apache.thrift.meta_data.MapMetaData(
+                        org.apache.thrift.protocol.TType.MAP,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRUCT,
+                                "ComplexTObject"),
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRUCT,
+                                "ComplexTObject"))));
+        tmpMap.put(_Fields.TLIST, new org.apache.thrift.meta_data.FieldMetaData(
+                "tlist", org.apache.thrift.TFieldRequirementType.OPTIONAL,
+                new org.apache.thrift.meta_data.ListMetaData(
+                        org.apache.thrift.protocol.TType.LIST,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRUCT,
+                                "ComplexTObject"))));
+        tmpMap.put(_Fields.TSET, new org.apache.thrift.meta_data.FieldMetaData(
+                "tset", org.apache.thrift.TFieldRequirementType.OPTIONAL,
+                new org.apache.thrift.meta_data.SetMetaData(
+                        org.apache.thrift.protocol.TType.SET,
+                        new org.apache.thrift.meta_data.FieldValueMetaData(
+                                org.apache.thrift.protocol.TType.STRUCT,
+                                "ComplexTObject"))));
         tmpMap.put(_Fields.TOBJECT,
                 new org.apache.thrift.meta_data.FieldMetaData("tobject",
                         org.apache.thrift.TFieldRequirementType.OPTIONAL,
@@ -494,7 +498,8 @@ public class ComplexTObject implements
         else if(type == ComplexTObjectType.LIST
                 || type == ComplexTObjectType.SET) {
             Collection<ComplexTObject> collection = type == ComplexTObjectType.LIST
-                    ? tlist : tset;
+                    ? tlist
+                    : tset;
             collection.forEach((item) -> {
                 try {
                     byte[] itemBytes = item.toByteBuffer().array();
@@ -1427,8 +1432,8 @@ public class ComplexTObject implements
         }
     }
 
-    private static class ComplexTObjectStandardSchemeFactory
-            implements SchemeFactory {
+    private static class ComplexTObjectStandardSchemeFactory implements
+            SchemeFactory {
         public ComplexTObjectStandardScheme getScheme() {
             return new ComplexTObjectStandardScheme();
         }
@@ -1676,8 +1681,8 @@ public class ComplexTObject implements
 
     }
 
-    private static class ComplexTObjectTupleSchemeFactory
-            implements SchemeFactory {
+    private static class ComplexTObjectTupleSchemeFactory implements
+            SchemeFactory {
         public ComplexTObjectTupleScheme getScheme() {
             return new ComplexTObjectTupleScheme();
         }

@@ -76,11 +76,9 @@ public final class ConcourseServerDownloader {
                 ReadableByteChannel channel = Channels
                         .newChannel(url.openStream());
                 stream.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
-                log.info(MessageFormat.format(
-                        "Downloaded the installer for "
-                                + "Concourse Server v{0} from {1}. The installer is "
-                                + "stored in {2}",
-                        version, url.toString(), location));
+                log.info(MessageFormat.format("Downloaded the installer for "
+                        + "Concourse Server v{0} from {1}. The installer is "
+                        + "stored in {2}", version, url.toString(), location));
             }
             catch (Exception e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);

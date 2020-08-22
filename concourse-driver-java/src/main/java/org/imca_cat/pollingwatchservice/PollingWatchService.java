@@ -652,8 +652,8 @@ public class PollingWatchService implements PathWatchService {
         return result;
     }
 
-    private static final class NoMetadataFileAttributes
-            implements BasicFileAttributes {
+    private static final class NoMetadataFileAttributes implements
+            BasicFileAttributes {
         private static final NoMetadataFileAttributes INSTANCE = new NoMetadataFileAttributes();
         private static final FileTime EPOCH = FileTime.fromMillis(0L);
 

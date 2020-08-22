@@ -57,8 +57,8 @@ import com.google.common.collect.SortedMultiset;
  */
 @ThreadSafe
 @PackagePrivate
-final class SearchBlock extends Block<Text, Text, Position>
-        implements SearchIndex {
+final class SearchBlock extends Block<Text, Text, Position> implements
+        SearchIndex {
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.

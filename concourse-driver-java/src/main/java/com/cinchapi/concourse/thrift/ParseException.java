@@ -348,8 +348,8 @@ public class ParseException extends TException implements
         }
     }
 
-    private static class ParseExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class ParseExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public ParseExceptionStandardScheme getScheme() {
             return new ParseExceptionStandardScheme();
         }
@@ -407,8 +407,8 @@ public class ParseException extends TException implements
 
     }
 
-    private static class ParseExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class ParseExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public ParseExceptionTupleScheme getScheme() {
             return new ParseExceptionTupleScheme();
         }

@@ -213,17 +213,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift(-2982699655776463047L),
                 -3193024454871429052L);
         data.put(Convert.javaToThrift(723284932), 2021923430868945807L);
-        data.put(
-                Convert.javaToThrift(
-                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+        data.put(Convert.javaToThrift(
+                "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -5698094812015896631L);
-        data.put(
-                Convert.javaToThrift(
-                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+        data.put(Convert.javaToThrift(
+                "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -1784224494277607728L);
-        data.put(
-                Convert.javaToThrift(
-                        "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+        data.put(Convert.javaToThrift(
+                "6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
                 -1661462551451553081L);
         data.put(Convert.javaToThrift("7478v4flnf2hy4uq856q5j1u4yu"),
                 -4055175164196245068L);
@@ -235,9 +232,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift(1233118838), -3117864874339953135L);
         data.put(Convert.javaToThrift(1233118838), -3117864874339953135L);
         data.put(Convert.javaToThrift(1375924251), -5136738009956048263L);
-        data.put(
-                Convert.javaToThrift(
-                        "kqoc3badp43aryq4kqjy sxp1ywhemli cvtajepz 04oxro0dt3oykn y4pexibpkms0 8uu4ncac2xauc1exc 19ija"),
+        data.put(Convert.javaToThrift(
+                "kqoc3badp43aryq4kqjy sxp1ywhemli cvtajepz 04oxro0dt3oykn y4pexibpkms0 8uu4ncac2xauc1exc 19ija"),
                 -4997919281599660112L);
         Iterator<Entry<TObject, Long>> it = data.entries().iterator();
         String key = "foo";
@@ -310,29 +306,23 @@ public abstract class StoreTest extends ConcourseBaseTest {
         data.put(Convert.javaToThrift(654569943), 832046070249085659L);
         data.put(Convert.javaToThrift(717735738), 2456974634159417208L);
         data.put(Convert.javaToThrift(717735738), 3663570106751188709L);
-        data.put(
-                Convert.javaToThrift(
-                        "2ldexok y9mqipnui o4w85kfa55t9nuzk212kvmf mqvm nr u3412xu6df2gx gsk5 lzv4ssghrbs 3ljiea8 8e2mwauu 12"),
+        data.put(Convert.javaToThrift(
+                "2ldexok y9mqipnui o4w85kfa55t9nuzk212kvmf mqvm nr u3412xu6df2gx gsk5 lzv4ssghrbs 3ljiea8 8e2mwauu 12"),
                 -4614329651952703136L);
-        data.put(
-                Convert.javaToThrift(
-                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+        data.put(Convert.javaToThrift(
+                "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 -5807028703649467961L);
-        data.put(
-                Convert.javaToThrift(
-                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+        data.put(Convert.javaToThrift(
+                "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 2471646868604570488L);
-        data.put(
-                Convert.javaToThrift(
-                        "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
+        data.put(Convert.javaToThrift(
+                "8ol8s8vvekz4awfr6pi84c2jlqzt3uagwtuc4caf0seiqeaapmf0n6z7nw57j4h0ihb9eqxgdeakfr01ige60aca50il8xudogb"),
                 6897578410324076954L);
-        data.put(
-                Convert.javaToThrift(
-                        "8vsgpp4i4sqo 7wcqxx6342lpai1lypm8icw6yrpkrbwknf51ho1 y5i9d4x"),
+        data.put(Convert.javaToThrift(
+                "8vsgpp4i4sqo 7wcqxx6342lpai1lypm8icw6yrpkrbwknf51ho1 y5i9d4x"),
                 -6242678134557131181L);
-        data.put(
-                Convert.javaToThrift(
-                        "8y6s9mfwedl21tnk8 ad m  gknrl3 do67lqo1k2yb1soi z  bfhga  k2xu4u rnkui p03ou"),
+        data.put(Convert.javaToThrift(
+                "8y6s9mfwedl21tnk8 ad m  gknrl3 do67lqo1k2yb1soi z  bfhga  k2xu4u rnkui p03ou"),
                 -2131365700818384077L);
         data.put(
                 Convert.javaToThrift(
@@ -358,9 +348,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 Convert.javaToThrift(
                         "eixhm9et65tb0re4vfnnrjr8d70840hjhr6koau6vfj2qv76vft"),
                 4184600990944636146L);
-        data.put(
-                Convert.javaToThrift(
-                        "k5 qk0abvcjpgj5qdk byot4n9pc8axs4gf4kacb7baolebri vluvkboq"),
+        data.put(Convert.javaToThrift(
+                "k5 qk0abvcjpgj5qdk byot4n9pc8axs4gf4kacb7baolebri vluvkboq"),
                 -7758530170278083935L);
         data.put(Convert.javaToThrift("kcsh84m6w135vagkzydj94j28rr"),
                 -8655447648200374519L);
@@ -368,13 +357,11 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 -618794245900638337L);
         data.put(Convert.javaToThrift("kcsh84m6w135vagkzydj94j28rr"),
                 193250295130615638L);
-        data.put(
-                Convert.javaToThrift(
-                        "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
+        data.put(Convert.javaToThrift(
+                "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
                 -3521699612493033909L);
-        data.put(
-                Convert.javaToThrift(
-                        "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
+        data.put(Convert.javaToThrift(
+                "nu xgp dz  aln3vk xrezcsv tikkpdrwod 0rp4byh8 ngv8ppvd4j dxkrnfsn0"),
                 -3284699155987771538L);
         doTestBrowseKeyRepro(data);
     }

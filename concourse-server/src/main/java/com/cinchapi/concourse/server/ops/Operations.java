@@ -202,7 +202,8 @@ public final class Operations {
             }
             $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
-                    ? store.browse(start) : store.browse(start, timestamp);
+                    ? store.browse(start)
+                    : store.browse(start, timestamp);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
             root.entrySet().stream()
                     .filter(e -> e.getKey().getType() == Type.LINK)
@@ -594,8 +595,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, TObject> data = (timestamp == Time.NONE
-                    ? store.select(record) : store.select(record, timestamp))
-                            .entrySet().stream()
+                    ? store.select(record)
+                    : store.select(record, timestamp)).entrySet().stream()
                             .filter(e -> !e.getValue().isEmpty())
                             .collect(Collectors.toMap(Entry::getKey,
                                     e -> Iterables.getLast(e.getValue())));
@@ -697,7 +698,8 @@ public final class Operations {
         JsonArray array = new JsonArray();
         for (long record : records) {
             Map<String, Set<TObject>> data = timestamp == 0
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             JsonElement object = DataServices.gson().toJsonTree(data);
             if(includeId) {
                 object.getAsJsonObject().addProperty(
@@ -1208,7 +1210,8 @@ public final class Operations {
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
             Map<String, Set<TObject>> data = timestamp == Time.NONE
-                    ? store.select(record) : store.select(record, timestamp);
+                    ? store.select(record)
+                    : store.select(record, timestamp);
             TMaps.putResultDatasetOptimized(result, record, data);
         } ;
         if(consumer != null) {

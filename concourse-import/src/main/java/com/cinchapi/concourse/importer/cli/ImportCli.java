@@ -212,7 +212,8 @@ public class ImportCli extends CommandLineInterface {
         else {
             String path = FileOps.expandPath(opts.data, getLaunchDirectory());
             Collection<String> files = FileOps.isDirectory(path)
-                    ? scan(Paths.get(path)) : ImmutableList.of(path);
+                    ? scan(Paths.get(path))
+                    : ImmutableList.of(path);
             Stopwatch watch = Stopwatch.createUnstarted();
             if(files.size() > 1) {
                 records = Sets.newConcurrentHashSet();

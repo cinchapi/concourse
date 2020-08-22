@@ -50,8 +50,8 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public final class Transaction extends AtomicOperation
-        implements AtomicSupport {
+public final class Transaction extends AtomicOperation implements
+        AtomicSupport {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
     // the safe counterparts in the super class (AtomicOperation) because those
     // have logic to tell the BufferedStore class to perform unsafe reads.

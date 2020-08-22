@@ -47,7 +47,8 @@ import com.google.common.collect.Lists;
  */
 @SuppressWarnings("serial")
 public abstract class CrossProcessInterProcessCommunicationTest
-        extends ConcourseBaseTest implements Serializable {
+        extends ConcourseBaseTest implements
+        Serializable {
 
     public abstract InterProcessCommunication getInterProcessCommunication(
             String file);

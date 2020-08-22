@@ -430,9 +430,10 @@ public class ConcourseManagementService {
     }
 
     public static class Client extends org.apache.thrift.TServiceClient
-            implements Iface {
-        public static class Factory
-                implements org.apache.thrift.TServiceClientFactory<Client> {
+            implements
+            Iface {
+        public static class Factory implements
+                org.apache.thrift.TServiceClientFactory<Client> {
             public Factory() {}
 
             public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -1126,7 +1127,8 @@ public class ConcourseManagementService {
     }
 
     public static class AsyncClient extends org.apache.thrift.async.TAsyncClient
-            implements AsyncIface {
+            implements
+            AsyncIface {
         public static class Factory implements
                 org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
             private org.apache.thrift.async.TAsyncClientManager clientManager;
@@ -2247,8 +2249,8 @@ public class ConcourseManagementService {
     }
 
     public static class Processor<I extends Iface>
-            extends org.apache.thrift.TBaseProcessor<I>
-            implements org.apache.thrift.TProcessor {
+            extends org.apache.thrift.TBaseProcessor<I> implements
+            org.apache.thrift.TProcessor {
         private static final org.slf4j.Logger _LOGGER = org.slf4j.LoggerFactory
                 .getLogger(Processor.class.getName());
 
@@ -5224,8 +5226,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class login_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class login_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public login_argsStandardScheme getScheme() {
                 return new login_argsStandardScheme();
             }
@@ -5298,8 +5300,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class login_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class login_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public login_argsTupleScheme getScheme() {
                 return new login_argsTupleScheme();
             }
@@ -5772,8 +5774,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class login_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class login_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public login_resultStandardScheme getScheme() {
                 return new login_resultStandardScheme();
             }
@@ -5848,8 +5850,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class login_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class login_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public login_resultTupleScheme getScheme() {
                 return new login_resultTupleScheme();
             }
@@ -6227,8 +6229,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class logout_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class logout_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public logout_argsStandardScheme getScheme() {
                 return new logout_argsStandardScheme();
             }
@@ -6287,8 +6289,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class logout_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class logout_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public logout_argsTupleScheme getScheme() {
                 return new logout_argsTupleScheme();
             }
@@ -6653,8 +6655,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class logout_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class logout_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public logout_resultStandardScheme getScheme() {
                 return new logout_resultStandardScheme();
             }
@@ -6713,8 +6715,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class logout_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class logout_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public logout_resultTupleScheme getScheme() {
                 return new logout_resultTupleScheme();
             }
@@ -7192,8 +7194,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class disableUser_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class disableUser_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public disableUser_argsStandardScheme getScheme() {
                 return new disableUser_argsStandardScheme();
             }
@@ -7269,8 +7271,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class disableUser_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class disableUser_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public disableUser_argsTupleScheme getScheme() {
                 return new disableUser_argsTupleScheme();
             }
@@ -7743,8 +7745,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class disableUser_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class disableUser_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public disableUser_resultStandardScheme getScheme() {
                 return new disableUser_resultStandardScheme();
             }
@@ -7821,8 +7823,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class disableUser_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class disableUser_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public disableUser_resultTupleScheme getScheme() {
                 return new disableUser_resultTupleScheme();
             }
@@ -8393,8 +8395,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class dump_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class dump_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public dump_argsStandardScheme getScheme() {
                 return new dump_argsStandardScheme();
             }
@@ -8483,8 +8485,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class dump_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class dump_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public dump_argsTupleScheme getScheme() {
                 return new dump_argsTupleScheme();
             }
@@ -9060,8 +9062,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class dump_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class dump_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public dump_resultStandardScheme getScheme() {
                 return new dump_resultStandardScheme();
             }
@@ -9151,8 +9153,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class dump_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class dump_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public dump_resultTupleScheme getScheme() {
                 return new dump_resultTupleScheme();
             }
@@ -9651,8 +9653,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class enableUser_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class enableUser_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public enableUser_argsStandardScheme getScheme() {
                 return new enableUser_argsStandardScheme();
             }
@@ -9728,8 +9730,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class enableUser_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class enableUser_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public enableUser_argsTupleScheme getScheme() {
                 return new enableUser_argsTupleScheme();
             }
@@ -10202,8 +10204,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class enableUser_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class enableUser_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public enableUser_resultStandardScheme getScheme() {
                 return new enableUser_resultStandardScheme();
             }
@@ -10280,8 +10282,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class enableUser_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class enableUser_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public enableUser_resultTupleScheme getScheme() {
                 return new enableUser_resultTupleScheme();
             }
@@ -10757,8 +10759,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class getDumpList_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class getDumpList_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public getDumpList_argsStandardScheme getScheme() {
                 return new getDumpList_argsStandardScheme();
             }
@@ -10834,8 +10836,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class getDumpList_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class getDumpList_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public getDumpList_argsTupleScheme getScheme() {
                 return new getDumpList_argsTupleScheme();
             }
@@ -11403,8 +11405,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class getDumpList_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class getDumpList_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public getDumpList_resultStandardScheme getScheme() {
                 return new getDumpList_resultStandardScheme();
             }
@@ -11496,8 +11498,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class getDumpList_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class getDumpList_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public getDumpList_resultTupleScheme getScheme() {
                 return new getDumpList_resultTupleScheme();
             }
@@ -12205,8 +12207,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class createUser_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class createUser_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public createUser_argsStandardScheme getScheme() {
                 return new createUser_argsStandardScheme();
             }
@@ -12312,8 +12314,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class createUser_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class createUser_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public createUser_argsTupleScheme getScheme() {
                 return new createUser_argsTupleScheme();
             }
@@ -12806,8 +12808,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class createUser_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class createUser_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public createUser_resultStandardScheme getScheme() {
                 return new createUser_resultStandardScheme();
             }
@@ -12884,8 +12886,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class createUser_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class createUser_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public createUser_resultTupleScheme getScheme() {
                 return new createUser_resultTupleScheme();
             }
@@ -13490,7 +13492,8 @@ public class ConcourseManagementService {
         }
 
         private static class setUserPassword_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserPassword_argsStandardScheme getScheme() {
                 return new setUserPassword_argsStandardScheme();
             }
@@ -13581,8 +13584,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class setUserPassword_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserPassword_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserPassword_argsTupleScheme getScheme() {
                 return new setUserPassword_argsTupleScheme();
             }
@@ -14066,7 +14069,8 @@ public class ConcourseManagementService {
         }
 
         private static class setUserPassword_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserPassword_resultStandardScheme getScheme() {
                 return new setUserPassword_resultStandardScheme();
             }
@@ -14143,8 +14147,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class setUserPassword_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserPassword_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserPassword_resultTupleScheme getScheme() {
                 return new setUserPassword_resultTupleScheme();
             }
@@ -14731,8 +14735,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class setUserRole_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserRole_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserRole_argsStandardScheme getScheme() {
                 return new setUserRole_argsStandardScheme();
             }
@@ -14823,8 +14827,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class setUserRole_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserRole_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserRole_argsTupleScheme getScheme() {
                 return new setUserRole_argsTupleScheme();
             }
@@ -15307,8 +15311,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class setUserRole_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserRole_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserRole_resultStandardScheme getScheme() {
                 return new setUserRole_resultStandardScheme();
             }
@@ -15385,8 +15389,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class setUserRole_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class setUserRole_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public setUserRole_resultTupleScheme getScheme() {
                 return new setUserRole_resultTupleScheme();
             }
@@ -15877,8 +15881,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class hasUser_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class hasUser_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public hasUser_argsStandardScheme getScheme() {
                 return new hasUser_argsStandardScheme();
             }
@@ -15952,8 +15956,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class hasUser_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class hasUser_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public hasUser_argsTupleScheme getScheme() {
                 return new hasUser_argsTupleScheme();
             }
@@ -16519,8 +16523,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class hasUser_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class hasUser_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public hasUser_resultStandardScheme getScheme() {
                 return new hasUser_resultStandardScheme();
             }
@@ -16610,8 +16614,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class hasUser_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class hasUser_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public hasUser_resultTupleScheme getScheme() {
                 return new hasUser_resultTupleScheme();
             }
@@ -17094,7 +17098,8 @@ public class ConcourseManagementService {
         }
 
         private static class installPluginBundle_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public installPluginBundle_argsStandardScheme getScheme() {
                 return new installPluginBundle_argsStandardScheme();
             }
@@ -17171,7 +17176,8 @@ public class ConcourseManagementService {
         }
 
         private static class installPluginBundle_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public installPluginBundle_argsTupleScheme getScheme() {
                 return new installPluginBundle_argsTupleScheme();
             }
@@ -17645,7 +17651,8 @@ public class ConcourseManagementService {
         }
 
         private static class installPluginBundle_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public installPluginBundle_resultStandardScheme getScheme() {
                 return new installPluginBundle_resultStandardScheme();
             }
@@ -17723,7 +17730,8 @@ public class ConcourseManagementService {
         }
 
         private static class installPluginBundle_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public installPluginBundle_resultTupleScheme getScheme() {
                 return new installPluginBundle_resultTupleScheme();
             }
@@ -18105,7 +18113,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllEnvironments_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllEnvironments_argsStandardScheme getScheme() {
                 return new listAllEnvironments_argsStandardScheme();
             }
@@ -18167,7 +18176,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllEnvironments_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllEnvironments_argsTupleScheme getScheme() {
                 return new listAllEnvironments_argsTupleScheme();
             }
@@ -18726,7 +18736,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllEnvironments_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllEnvironments_resultStandardScheme getScheme() {
                 return new listAllEnvironments_resultStandardScheme();
             }
@@ -18819,7 +18830,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllEnvironments_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllEnvironments_resultTupleScheme getScheme() {
                 return new listAllEnvironments_resultTupleScheme();
             }
@@ -19211,7 +19223,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllUserSessions_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllUserSessions_argsStandardScheme getScheme() {
                 return new listAllUserSessions_argsStandardScheme();
             }
@@ -19273,7 +19286,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllUserSessions_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllUserSessions_argsTupleScheme getScheme() {
                 return new listAllUserSessions_argsTupleScheme();
             }
@@ -19832,7 +19846,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllUserSessions_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllUserSessions_resultStandardScheme getScheme() {
                 return new listAllUserSessions_resultStandardScheme();
             }
@@ -19925,7 +19940,8 @@ public class ConcourseManagementService {
         }
 
         private static class listAllUserSessions_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listAllUserSessions_resultTupleScheme getScheme() {
                 return new listAllUserSessions_resultTupleScheme();
             }
@@ -20317,7 +20333,8 @@ public class ConcourseManagementService {
         }
 
         private static class listPluginBundles_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listPluginBundles_argsStandardScheme getScheme() {
                 return new listPluginBundles_argsStandardScheme();
             }
@@ -20378,8 +20395,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class listPluginBundles_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class listPluginBundles_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listPluginBundles_argsTupleScheme getScheme() {
                 return new listPluginBundles_argsTupleScheme();
             }
@@ -20938,7 +20955,8 @@ public class ConcourseManagementService {
         }
 
         private static class listPluginBundles_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listPluginBundles_resultStandardScheme getScheme() {
                 return new listPluginBundles_resultStandardScheme();
             }
@@ -21031,7 +21049,8 @@ public class ConcourseManagementService {
         }
 
         private static class listPluginBundles_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public listPluginBundles_resultTupleScheme getScheme() {
                 return new listPluginBundles_resultTupleScheme();
             }
@@ -21532,8 +21551,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class deleteUser_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class deleteUser_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public deleteUser_argsStandardScheme getScheme() {
                 return new deleteUser_argsStandardScheme();
             }
@@ -21609,8 +21628,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class deleteUser_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class deleteUser_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public deleteUser_argsTupleScheme getScheme() {
                 return new deleteUser_argsTupleScheme();
             }
@@ -22083,8 +22102,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class deleteUser_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class deleteUser_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public deleteUser_resultStandardScheme getScheme() {
                 return new deleteUser_resultStandardScheme();
             }
@@ -22161,8 +22180,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class deleteUser_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class deleteUser_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public deleteUser_resultTupleScheme getScheme() {
                 return new deleteUser_resultTupleScheme();
             }
@@ -22544,7 +22563,8 @@ public class ConcourseManagementService {
         }
 
         private static class runningPluginsInfo_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public runningPluginsInfo_argsStandardScheme getScheme() {
                 return new runningPluginsInfo_argsStandardScheme();
             }
@@ -22606,7 +22626,8 @@ public class ConcourseManagementService {
         }
 
         private static class runningPluginsInfo_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public runningPluginsInfo_argsTupleScheme getScheme() {
                 return new runningPluginsInfo_argsTupleScheme();
             }
@@ -23204,7 +23225,8 @@ public class ConcourseManagementService {
         }
 
         private static class runningPluginsInfo_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public runningPluginsInfo_resultStandardScheme getScheme() {
                 return new runningPluginsInfo_resultStandardScheme();
             }
@@ -23346,7 +23368,8 @@ public class ConcourseManagementService {
         }
 
         private static class runningPluginsInfo_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public runningPluginsInfo_resultTupleScheme getScheme() {
                 return new runningPluginsInfo_resultTupleScheme();
             }
@@ -23873,7 +23896,8 @@ public class ConcourseManagementService {
         }
 
         private static class uninstallPluginBundle_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public uninstallPluginBundle_argsStandardScheme getScheme() {
                 return new uninstallPluginBundle_argsStandardScheme();
             }
@@ -23950,7 +23974,8 @@ public class ConcourseManagementService {
         }
 
         private static class uninstallPluginBundle_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public uninstallPluginBundle_argsTupleScheme getScheme() {
                 return new uninstallPluginBundle_argsTupleScheme();
             }
@@ -24425,7 +24450,8 @@ public class ConcourseManagementService {
         }
 
         private static class uninstallPluginBundle_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public uninstallPluginBundle_resultStandardScheme getScheme() {
                 return new uninstallPluginBundle_resultStandardScheme();
             }
@@ -24503,7 +24529,8 @@ public class ConcourseManagementService {
         }
 
         private static class uninstallPluginBundle_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public uninstallPluginBundle_resultTupleScheme getScheme() {
                 return new uninstallPluginBundle_resultTupleScheme();
             }
@@ -25188,8 +25215,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class grant_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class grant_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public grant_argsStandardScheme getScheme() {
                 return new grant_argsStandardScheme();
             }
@@ -25293,8 +25320,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class grant_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class grant_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public grant_argsTupleScheme getScheme() {
                 return new grant_argsTupleScheme();
             }
@@ -25784,8 +25811,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class grant_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class grant_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public grant_resultStandardScheme getScheme() {
                 return new grant_resultStandardScheme();
             }
@@ -25860,8 +25887,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class grant_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class grant_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public grant_resultTupleScheme getScheme() {
                 return new grant_resultTupleScheme();
             }
@@ -26448,8 +26475,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class revoke_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class revoke_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public revoke_argsStandardScheme getScheme() {
                 return new revoke_argsStandardScheme();
             }
@@ -26538,8 +26565,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class revoke_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class revoke_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public revoke_argsTupleScheme getScheme() {
                 return new revoke_argsTupleScheme();
             }
@@ -27019,8 +27046,8 @@ public class ConcourseManagementService {
             }
         }
 
-        private static class revoke_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class revoke_resultStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public revoke_resultStandardScheme getScheme() {
                 return new revoke_resultStandardScheme();
             }
@@ -27095,8 +27122,8 @@ public class ConcourseManagementService {
 
         }
 
-        private static class revoke_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class revoke_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public revoke_resultTupleScheme getScheme() {
                 return new revoke_resultTupleScheme();
             }

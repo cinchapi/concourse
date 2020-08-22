@@ -138,21 +138,16 @@ public class ReadNavigationKeyTest extends ConcourseIntegrationTest {
                 ImmutableList.of("foo.bar.name", "baz.count"),
                 ImmutableList.of(1L, 2L, 3L, 4L));
         System.out.println(data);
-        Assert.assertEquals(
-                ImmutableMap.of(1L,
-                        ImmutableMap.of("foo.bar.name",
-                                ImmutableSet.of("A", "D"), "baz.count",
-                                ImmutableSet.of(3, 4)),
-                        2L,
-                        ImmutableMap.of("foo.bar.name", ImmutableSet.of("B"),
-                                "baz.count", ImmutableSet.of()),
-                        3L,
-                        ImmutableMap.of("foo.bar.name", ImmutableSet.of(),
-                                "baz.count", ImmutableSet.of(1, 2, 5)),
-                        4L,
-                        ImmutableMap.of("foo.bar.name",
-                                ImmutableSet.of("A", "D"), "baz.count",
-                                ImmutableSet.of(5, 3))),
+        Assert.assertEquals(ImmutableMap.of(1L, ImmutableMap.of("foo.bar.name",
+                ImmutableSet.of("A", "D"), "baz.count", ImmutableSet.of(3, 4)),
+                2L,
+                ImmutableMap.of("foo.bar.name", ImmutableSet.of("B"),
+                        "baz.count", ImmutableSet.of()),
+                3L,
+                ImmutableMap.of("foo.bar.name", ImmutableSet.of(), "baz.count",
+                        ImmutableSet.of(1, 2, 5)),
+                4L, ImmutableMap.of("foo.bar.name", ImmutableSet.of("A", "D"),
+                        "baz.count", ImmutableSet.of(5, 3))),
                 data);
     }
 

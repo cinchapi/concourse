@@ -116,7 +116,8 @@ public final class Position implements Byteable, Comparable<Position> {
     public int compareTo(Position other) {
         int comparison;
         return (comparison = primaryKey.compareTo(other.primaryKey)) != 0
-                ? comparison : Integer.compare(index, other.index);
+                ? comparison
+                : Integer.compare(index, other.index);
     }
 
     @Override

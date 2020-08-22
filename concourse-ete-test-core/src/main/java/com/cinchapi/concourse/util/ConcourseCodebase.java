@@ -70,9 +70,11 @@ public class ConcourseCodebase {
                     List<String> upstreamLines = Processes
                             .getStdOut(upstreamProc);
                     String originOut = !originLines.isEmpty()
-                            ? originLines.get(0) : "";
+                            ? originLines.get(0)
+                            : "";
                     String upstreamOut = !upstreamLines.isEmpty()
-                            ? upstreamLines.get(0) : "";
+                            ? upstreamLines.get(0)
+                            : "";
                     if(VALID_REMOTE_URLS.contains(originOut)
                             || VALID_REMOTE_URLS.contains(upstreamOut)) {
                         checkParent = true;

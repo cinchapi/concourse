@@ -449,8 +449,8 @@ public class TCriteria implements
 
     }
 
-    private static class TCriteriaStandardSchemeFactory
-            implements SchemeFactory {
+    private static class TCriteriaStandardSchemeFactory implements
+            SchemeFactory {
         public TCriteriaStandardScheme getScheme() {
             return new TCriteriaStandardScheme();
         }

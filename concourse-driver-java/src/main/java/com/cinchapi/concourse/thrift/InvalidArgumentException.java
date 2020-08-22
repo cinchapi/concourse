@@ -350,7 +350,8 @@ public class InvalidArgumentException extends TException implements
     }
 
     private static class InvalidArgumentExceptionStandardSchemeFactory
-            implements SchemeFactory {
+            implements
+            SchemeFactory {
         public InvalidArgumentExceptionStandardScheme getScheme() {
             return new InvalidArgumentExceptionStandardScheme();
         }
@@ -410,8 +411,8 @@ public class InvalidArgumentException extends TException implements
 
     }
 
-    private static class InvalidArgumentExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class InvalidArgumentExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public InvalidArgumentExceptionTupleScheme getScheme() {
             return new InvalidArgumentExceptionTupleScheme();
         }

@@ -58,8 +58,8 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
-public class AtomicOperation extends BufferedStore
-        implements VersionChangeListener {
+public class AtomicOperation extends BufferedStore implements
+        VersionChangeListener {
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in

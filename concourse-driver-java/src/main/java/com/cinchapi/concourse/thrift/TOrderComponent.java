@@ -550,8 +550,8 @@ public class TOrderComponent implements
         }
     }
 
-    private static class TOrderComponentStandardSchemeFactory
-            implements SchemeFactory {
+    private static class TOrderComponentStandardSchemeFactory implements
+            SchemeFactory {
         public TOrderComponentStandardScheme getScheme() {
             return new TOrderComponentStandardScheme();
         }
@@ -645,8 +645,8 @@ public class TOrderComponent implements
 
     }
 
-    private static class TOrderComponentTupleSchemeFactory
-            implements SchemeFactory {
+    private static class TOrderComponentTupleSchemeFactory implements
+            SchemeFactory {
         public TOrderComponentTupleScheme getScheme() {
             return new TOrderComponentTupleScheme();
         }

@@ -27,8 +27,8 @@ import com.cinchapi.concourse.util.Random;
  * 
  * @author Jeff Nelson
  */
-public class SharedMemoryCompactionTest extends ClientServerTest
-        implements PluginTest {
+public class SharedMemoryCompactionTest extends ClientServerTest implements
+        PluginTest {
 
     @Override
     protected String getServerVersion() {

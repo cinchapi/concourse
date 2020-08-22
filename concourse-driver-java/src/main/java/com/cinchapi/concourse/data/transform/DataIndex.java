@@ -34,7 +34,8 @@ import com.cinchapi.concourse.util.Transformers;
  * @author Jeff Nelson
  */
 public final class DataIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
-        implements Index<T> {
+        implements
+        Index<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java

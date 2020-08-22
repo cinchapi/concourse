@@ -46,7 +46,9 @@ import com.google.common.base.Preconditions;
  */
 @Immutable
 public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable>
-        implements Byteable, Versioned {
+        implements
+        Byteable,
+        Versioned {
 
     /**
      * Indicates that a component of the class has variable length and therefore
@@ -165,18 +167,13 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         this.bytes = bytes;
         this.type = Action.values()[bytes.get()];
         this.version = bytes.getLong();
-        this.locator = Byteables
-                .readStatic(
-                        ByteBuffers.get(bytes, xLocatorSize() == VARIABLE_SIZE
-                                ? bytes.getInt() : xLocatorSize()),
-                        xLocatorClass());
-        this.key = Byteables
-                .readStatic(
-                        ByteBuffers
-                                .get(bytes,
-                                        xKeySize() == VARIABLE_SIZE
-                                                ? bytes.getInt() : xKeySize()),
-                        xKeyClass());
+        this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
+                xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
+                        : xLocatorSize()),
+                xLocatorClass());
+        this.key = Byteables.readStatic(ByteBuffers.get(bytes,
+                xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
+                xKeyClass());
         this.value = Byteables.readStatic(
                 ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
         this.size = bytes.capacity();
