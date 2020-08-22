@@ -32,8 +32,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  *
  * @author Jeff Nelson
  */
-public class DataProjection<T> extends AbstractMap<T, Set<Long>>
-        implements Projection<T> {
+public class DataProjection<T> extends AbstractMap<T, Set<Long>> implements
+        Projection<T> {
 
     /**
      * Convert the {@link TObject} values in the {@code results} to their java

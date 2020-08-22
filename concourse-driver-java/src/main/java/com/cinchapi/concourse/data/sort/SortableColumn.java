@@ -38,8 +38,9 @@ import com.google.common.collect.ImmutableMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class SortableColumn<V> extends ForwardingMap<Long, V>
-        implements Column<V>, Sortable<V> {
+public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
+        Column<V>,
+        Sortable<V> {
 
     /**
      * Ensure that the {@code data} is a {@link SortableColumn}.

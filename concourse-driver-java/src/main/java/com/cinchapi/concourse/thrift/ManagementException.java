@@ -349,8 +349,8 @@ public class ManagementException extends TException implements
         }
     }
 
-    private static class ManagementExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class ManagementExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public ManagementExceptionStandardScheme getScheme() {
             return new ManagementExceptionStandardScheme();
         }
@@ -410,8 +410,8 @@ public class ManagementException extends TException implements
 
     }
 
-    private static class ManagementExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class ManagementExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public ManagementExceptionTupleScheme getScheme() {
             return new ManagementExceptionTupleScheme();
         }

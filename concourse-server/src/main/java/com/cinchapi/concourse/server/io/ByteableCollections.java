@@ -206,8 +206,8 @@ public class ByteableCollections {
      * 
      * @author Jeff Nelson
      */
-    private static class ByteableCollectionIterator
-            implements Iterator<ByteBuffer> {
+    private static class ByteableCollectionIterator implements
+            Iterator<ByteBuffer> {
 
         protected final ByteBuffer bytes;
         protected ByteBuffer next;

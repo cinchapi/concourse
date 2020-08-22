@@ -416,8 +416,8 @@ public class TransactionToken implements
         }
     }
 
-    private static class TransactionTokenStandardSchemeFactory
-            implements SchemeFactory {
+    private static class TransactionTokenStandardSchemeFactory implements
+            SchemeFactory {
         public TransactionTokenStandardScheme getScheme() {
             return new TransactionTokenStandardScheme();
         }
@@ -494,8 +494,8 @@ public class TransactionToken implements
 
     }
 
-    private static class TransactionTokenTupleSchemeFactory
-            implements SchemeFactory {
+    private static class TransactionTokenTupleSchemeFactory implements
+            SchemeFactory {
         public TransactionTokenTupleScheme getScheme() {
             return new TransactionTokenTupleScheme();
         }
