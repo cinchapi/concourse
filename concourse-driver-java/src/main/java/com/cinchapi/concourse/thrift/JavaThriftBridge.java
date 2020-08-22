@@ -113,7 +113,8 @@ public final class JavaThriftBridge {
      */
     public static OrderComponent convert(TOrderComponent tcomponent) {
         Object $timestamp = tcomponent.isSetTimestamp()
-                ? Convert.thriftToJava(tcomponent.getTimestamp()) : null;
+                ? Convert.thriftToJava(tcomponent.getTimestamp())
+                : null;
         if($timestamp != null && !($timestamp instanceof Number)) {
             // Assume that this method is being called from ConcourseServer and
             // convert a string timestamp to micros so that it can be properly
@@ -123,9 +124,12 @@ public final class JavaThriftBridge {
             }
             catch (Exception e) {/* ignore */}
         }
-        Timestamp timestamp = $timestamp != null ? ($timestamp instanceof Number
-                ? Timestamp.fromMicros(((Number) $timestamp).longValue())
-                : Timestamp.fromString($timestamp.toString())) : null;
+        Timestamp timestamp = $timestamp != null
+                ? ($timestamp instanceof Number
+                        ? Timestamp
+                                .fromMicros(((Number) $timestamp).longValue())
+                        : Timestamp.fromString($timestamp.toString()))
+                : null;
         Direction direction = null;
         for (Direction $direction : Direction.values()) {
             if(tcomponent.getDirection() == $direction.coefficient()) {

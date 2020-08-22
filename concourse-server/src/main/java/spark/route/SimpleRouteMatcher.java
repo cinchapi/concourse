@@ -180,8 +180,10 @@ public class SimpleRouteMatcher implements RouteMatcher {
                 .findTargetsForRequestedRoute(httpMethod, path);
         RouteEntry entry = findTargetWithGivenAcceptType(routeEntries,
                 acceptType);
-        return entry != null ? new RouteMatch(httpMethod, entry.target,
-                entry.path, path, acceptType) : null;
+        return entry != null
+                ? new RouteMatch(httpMethod, entry.target, entry.path, path,
+                        acceptType)
+                : null;
     }
 
     private RouteEntry findTargetWithGivenAcceptType(

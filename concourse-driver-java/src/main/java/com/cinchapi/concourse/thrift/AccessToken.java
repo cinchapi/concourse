@@ -330,8 +330,8 @@ public class AccessToken implements
         }
     }
 
-    private static class AccessTokenStandardSchemeFactory
-            implements SchemeFactory {
+    private static class AccessTokenStandardSchemeFactory implements
+            SchemeFactory {
         public AccessTokenStandardScheme getScheme() {
             return new AccessTokenStandardScheme();
         }
@@ -389,8 +389,8 @@ public class AccessToken implements
 
     }
 
-    private static class AccessTokenTupleSchemeFactory
-            implements SchemeFactory {
+    private static class AccessTokenTupleSchemeFactory implements
+            SchemeFactory {
         public AccessTokenTupleScheme getScheme() {
             return new AccessTokenTupleScheme();
         }

@@ -125,19 +125,15 @@ public class OperationsTest {
             Map<Long, Map<String, Set<Long>>> incoming = Operations
                     .traceRecordsAtomic(ImmutableList.of(1L, 2L, 3L), Time.NONE,
                             atomic);
-            Assert.assertEquals(
-                    ImmutableMap.of(2L,
-                            ImmutableMap.of("foo", ImmutableSet.of(1L, 4L),
-                                    "bar", ImmutableSet.of(3L), "baz",
-                                    ImmutableSet.of(3L)),
-                            1L,
-                            ImmutableMap.of("bar", ImmutableSet.of(2L),
-                                    "baz", ImmutableSet.of(3L), "foo",
-                                    ImmutableSet.of(4L)),
-                            3L,
-                            ImmutableMap.of("baz", ImmutableSet.of(1L, 4L),
-                                    "foo", ImmutableSet.of(2L), "bar",
-                                    ImmutableSet.of(4L))),
+            Assert.assertEquals(ImmutableMap.of(2L,
+                    ImmutableMap.of("foo", ImmutableSet.of(1L, 4L), "bar",
+                            ImmutableSet.of(3L), "baz", ImmutableSet.of(3L)),
+                    1L,
+                    ImmutableMap.of("bar", ImmutableSet.of(2L), "baz",
+                            ImmutableSet.of(3L), "foo", ImmutableSet.of(4L)),
+                    3L,
+                    ImmutableMap.of("baz", ImmutableSet.of(1L, 4L), "foo",
+                            ImmutableSet.of(2L), "bar", ImmutableSet.of(4L))),
                     incoming);
         }
         finally {

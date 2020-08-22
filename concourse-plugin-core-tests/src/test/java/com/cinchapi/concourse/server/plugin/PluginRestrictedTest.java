@@ -21,8 +21,8 @@ import org.junit.Test;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.test.PluginTest;
 
-public class PluginRestrictedTest extends ClientServerTest
-        implements PluginTest {
+public class PluginRestrictedTest extends ClientServerTest implements
+        PluginTest {
 
     @Override
     protected String getServerVersion() {

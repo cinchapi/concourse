@@ -350,8 +350,8 @@ public class SecurityException extends TException implements
         }
     }
 
-    private static class SecurityExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class SecurityExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public SecurityExceptionStandardScheme getScheme() {
             return new SecurityExceptionStandardScheme();
         }
@@ -409,8 +409,8 @@ public class SecurityException extends TException implements
 
     }
 
-    private static class SecurityExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class SecurityExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public SecurityExceptionTupleScheme getScheme() {
             return new SecurityExceptionTupleScheme();
         }
