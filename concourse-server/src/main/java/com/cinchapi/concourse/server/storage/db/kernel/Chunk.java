@@ -101,9 +101,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
      * memory after the {@link Chunk} has been synced. The GC is encouraged to
-     * clear
-     * this reference in response to memory pressure at which point disk seeks
-     * will be performed in the {@link #seek(Record, Byteable...)} method.
+     * clear this reference in response to memory pressure at which point disk
+     * seeks will be performed in the {@link #seek(Record, Byteable...)} method.
      */
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> $revisions;
 
@@ -447,7 +446,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         try {
             if(filter.mightContain(composite)) {
                 SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
-                        ? $revisions.get() : null;
+                        ? $revisions.get()
+                        : null;
                 if(revisions != null) {
                     Iterator<Revision<L, K, V>> it = revisions.iterator();
                     boolean processing = false; // Since the revisions are
@@ -606,12 +606,10 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * Return the backing store to hold revisions that are placed in this
      * {@link Chunk}.
      * This is only relevant to use when the {@link Chunk} is {@link #mutable}
-     * and not
-     * yet persisted to disk.
+     * and not yet persisted to disk.
      * <p>
      * If this {@link Chunk} is to be {@link #concurrent} then override this
-     * method and
-     * return a Concurrent Multiset.
+     * method and return a Concurrent Multiset.
      * </p>
      * 
      * @param comparator
@@ -630,6 +628,16 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     protected BloomFilter filter() {
         return filter;
+    }
+
+    /**
+     * Return this {@link Chunk Chunk's} parent {@link Segment}.
+     * 
+     * @return the parent {@link Segment}
+     */
+    @Nullable
+    protected Segment segment() {
+        return segment;
     }
 
     /**

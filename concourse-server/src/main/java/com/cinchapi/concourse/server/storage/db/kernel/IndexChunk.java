@@ -94,7 +94,7 @@ public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
      * @param segment
      * @param filter
      */
-    private IndexChunk(@Nullable Segment segment, BloomFilter filter) {
+    protected IndexChunk(@Nullable Segment segment, BloomFilter filter) {
         super(segment, filter);
     }
 

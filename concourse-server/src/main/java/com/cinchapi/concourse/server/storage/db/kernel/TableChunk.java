@@ -94,7 +94,7 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
      * @param segment
      * @param filter
      */
-    private TableChunk(@Nullable Segment segment, BloomFilter filter) {
+    protected TableChunk(@Nullable Segment segment, BloomFilter filter) {
         super(segment, filter);
     }
 

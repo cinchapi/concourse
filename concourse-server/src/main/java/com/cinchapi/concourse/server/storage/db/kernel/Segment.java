@@ -135,10 +135,29 @@ public final class Segment implements Itemizable, Syncable {
     /**
      * Create a new {@link Segment}.
      * 
+     * @param expectedInsertions
      * @return the {@link Segment}
      */
     public static Segment create(int expectedInsertions) {
         return new Segment(expectedInsertions);
+    }
+
+    /**
+     * Create a new {@link Segment} that stores data off heap so that it is not
+     * subject to garbage collection.
+     * 
+     * @param expectedInsertions
+     * @return the {@link Segment}
+     */
+    public static Segment createOffHeap(int expectedInsertions) {
+        Segment segment = create(expectedInsertions);
+        Reflection.set("table", new OffHeapTableChunk(segment.table()),
+                segment);
+        Reflection.set("index", new OffHeapIndexChunk(segment.index()),
+                segment);
+        Reflection.set("corpus", new OffHeapCorpusChunk(segment.corpus()),
+                segment);
+        return segment;
     }
 
     /**
