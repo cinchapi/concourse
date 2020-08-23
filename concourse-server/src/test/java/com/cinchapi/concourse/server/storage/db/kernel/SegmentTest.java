@@ -160,10 +160,10 @@ public class SegmentTest extends ConcourseBaseTest {
 
                 Thread reader = new Thread(() -> {
                     while (!done.get()) {
-                        TableRecord tr = TableRecord.createPrimaryRecord(pk);
+                        TableRecord tr = TableRecord.create(pk);
                         IndexRecord ir = IndexRecord
-                                .createSecondaryRecord(text);
-                        CorpusRecord cr = CorpusRecord.createSearchRecord(text);
+                                .create(text);
+                        CorpusRecord cr = CorpusRecord.create(text);
                         segment.table().seek(Composite.create(pk), tr);
                         segment.index().seek(Composite.create(text), ir);
                         segment.corpus().seek(Composite.create(text), cr);
@@ -180,9 +180,9 @@ public class SegmentTest extends ConcourseBaseTest {
                                     tr.isEmpty(), cr.isEmpty(), record));
                         }
                     }
-                    TableRecord tr = TableRecord.createPrimaryRecord(pk);
-                    IndexRecord ir = IndexRecord.createSecondaryRecord(text);
-                    CorpusRecord cr = CorpusRecord.createSearchRecord(text);
+                    TableRecord tr = TableRecord.create(pk);
+                    IndexRecord ir = IndexRecord.create(text);
+                    CorpusRecord cr = CorpusRecord.create(text);
                     segment.table().seek(Composite.create(pk), tr);
                     segment.index().seek(Composite.create(text), ir);
                     segment.corpus().seek(Composite.create(text), cr);

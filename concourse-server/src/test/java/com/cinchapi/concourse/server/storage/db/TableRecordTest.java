@@ -51,13 +51,13 @@ public class TableRecordTest
 
     @Override
     protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator) {
-        return Record.createPrimaryRecord(locator);
+        return TableRecord.create(locator);
     }
 
     @Override
     protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator,
             Text key) {
-        return Record.createPrimaryRecordPartial(locator, key);
+        return TableRecord.createPartial(locator, key);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class TableRecordTest
         Set<Value> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
         PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
-        TableRecord record = TableRecord.createPrimaryRecord(primaryKey);
+        TableRecord record = TableRecord.create(primaryKey);
         for (long i = 30; i <= 35; i++) {
             Value value = null;
             while (value == null || !allValues.add(value)) {

@@ -29,12 +29,12 @@ public class CorpusRecordTest extends RecordTest<Text, Text, Position> {
 
     @Override
     protected CorpusRecord getRecord(Text locator) {
-        return Record.createSearchRecord(locator);
+        return CorpusRecord.create(locator);
     }
 
     @Override
     protected CorpusRecord getRecord(Text locator, Text key) {
-        return Record.createSearchRecordPartial(locator, key);
+        return CorpusRecord.createPartial(locator, key);
     }
 
     @Override

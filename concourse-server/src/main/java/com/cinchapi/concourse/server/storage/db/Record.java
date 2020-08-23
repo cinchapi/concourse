@@ -31,9 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
-import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -54,71 +51,6 @@ import com.google.common.collect.Sets;
 @ThreadSafe
 @SuppressWarnings("unchecked")
 public abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
-
-    /**
-     * Return a PrimaryRecord for {@code primaryKey}.
-     * 
-     * @param primaryKey
-     * @return the PrimaryRecord
-     */
-    public static TableRecord createPrimaryRecord(PrimaryKey record) {
-        return new TableRecord(record, null);
-    }
-
-    /**
-     * Return a partial PrimaryRecord for {@code key} in {@record}.
-     * 
-     * @param primaryKey
-     * @param key
-     * @return the PrimaryRecord.
-     */
-    public static TableRecord createPrimaryRecordPartial(PrimaryKey record,
-            Text key) {
-        return new TableRecord(record, key);
-    }
-
-    /**
-     * Return a SearchRecord for {@code key}.
-     * 
-     * @param key
-     * @return the SearchRecord
-     */
-    public static CorpusRecord createSearchRecord(Text key) {
-        return new CorpusRecord(key, null);
-    }
-
-    /**
-     * Return a partial SearchRecord for {@code term} in {@code key}.
-     * 
-     * @param key
-     * @param term
-     * @return the partial SearchRecord
-     */
-    public static CorpusRecord createSearchRecordPartial(Text key, Text term) {
-        return new CorpusRecord(key, term);
-    }
-
-    /**
-     * Return a SeconaryRecord for {@code key}.
-     * 
-     * @param key
-     * @return the SecondaryRecord
-     */
-    public static IndexRecord createSecondaryRecord(Text key) {
-        return new IndexRecord(key, null);
-    }
-
-    /**
-     * Return a partial SecondaryRecord for {@code value} in {@code key}.
-     * 
-     * @param key
-     * @param value
-     * @return the SecondaryRecord
-     */
-    public static IndexRecord createSecondaryRecordPartial(Text key,
-            Value value) {
-        return new IndexRecord(key, value);
-    }
 
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this

@@ -27,6 +27,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -696,22 +698,23 @@ public final class Database extends BaseStore implements PermanentStore {
     /**
      * Return the TableRecord identifier by {@code primaryKey}.
      * 
-     * @param pkey
+     * @param primaryKey
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(PrimaryKey pkey) {
+    private TableRecord getTableRecord(PrimaryKey primaryKey) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(pkey);
-            TableRecord record = cpc.getIfPresent(composite);
-            if(record == null) {
-                record = Record.createPrimaryRecord(pkey);
+            Composite composite = Composite.create(primaryKey);
+            return cpc.get(composite, () -> {
+                TableRecord $ = TableRecord.create(primaryKey);
                 for (Segment segment : segments) {
-                    segment.table().seek(composite, record);
+                    segment.table().seek(composite, $);
                 }
-                cpc.put(composite, record);
-            }
-            return record;
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -728,28 +731,31 @@ public final class Database extends BaseStore implements PermanentStore {
      * {@code key}.
      * </p>
      * 
-     * @param record
+     * @param primaryKey
      * @param key
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(PrimaryKey record, Text key) {
+    private TableRecord getTableRecord(PrimaryKey primaryKey, Text key) {
         masterLock.readLock().lock();
         try {
-            final Composite composite = Composite.create(record, key);
-            TableRecord table = cppc.getIfPresent(composite);
+            // Before loading a partial record, see if the full record is
+            // present in memory.
+            TableRecord table = cpc.getIfPresent(Composite.create(primaryKey));
             if(table == null) {
-                // Before loading a partial record, see if the full record is
-                // present in memory.
-                table = cpc.getIfPresent(Composite.create(record));
-            }
-            if(table == null) {
-                table = Record.createPrimaryRecordPartial(record, key);
-                for (Segment segment : segments) {
-                    segment.table().seek(composite, table);
-                }
-                cppc.put(composite, table);
+                Composite composite = Composite.create(primaryKey, key);
+                table = cppc.get(composite, () -> {
+                    TableRecord $ = TableRecord.createPartial(primaryKey, key);
+                    for (Segment segment : segments) {
+                        segment.table().seek(composite, $);
+                    }
+                    return $;
+                });
             }
             return table;
+
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -769,7 +775,7 @@ public final class Database extends BaseStore implements PermanentStore {
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            CorpusRecord record = Record.createSearchRecordPartial(key, query);
+            CorpusRecord record = CorpusRecord.createPartial(key, query);
             for (Segment segment : segments) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
@@ -797,15 +803,16 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            IndexRecord record = csc.getIfPresent(composite);
-            if(record == null) {
-                record = Record.createSecondaryRecord(key);
+            return csc.get(composite, () -> {
+                IndexRecord $ = IndexRecord.create(key);
                 for (Segment segment : segments) {
-                    segment.index().seek(composite, record);
+                    segment.index().seek(composite, $);
                 }
-                csc.put(composite, record);
-            }
-            return record;
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();

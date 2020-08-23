@@ -61,6 +61,28 @@ public final class IndexRecord
         extends BrowsableRecord<Text, Value, PrimaryKey> {
 
     /**
+     * Return an {@link IndexRecord} that holds data for {@code locator}.
+     * 
+     * @param locator
+     * @return the {@link IndexRecord}
+     */
+    public static IndexRecord create(Text locator) {
+        return new IndexRecord(locator, null);
+    }
+
+    /**
+     * Return an {@link IndexRecord} that holds data for {@code key} in
+     * {@code locator}.
+     * 
+     * @param locator
+     * @param key
+     * @return the {@link IndexRecord}
+     */
+    public static IndexRecord createPartial(Text locator, Value key) {
+        return new IndexRecord(locator, key);
+    }
+
+    /**
      * Determines whether a nearby key should be coalesced with another one.
      * <p>
      * To support case insensitive matching, we coalesce character sequences

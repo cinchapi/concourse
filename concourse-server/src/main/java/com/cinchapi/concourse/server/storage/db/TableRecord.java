@@ -50,6 +50,28 @@ public final class TableRecord
         extends BrowsableRecord<PrimaryKey, Text, Value> {
 
     /**
+     * Return a {@link TableRecord} that holds data for the {@code locator}.
+     * 
+     * @param locator
+     * @return the {@link TableRecord}
+     */
+    public static TableRecord create(PrimaryKey locator) {
+        return new TableRecord(locator, null);
+    }
+
+    /**
+     * Return a {@link TableRecord} that holds data for {@code key} in
+     * {@code locator}.
+     * 
+     * @param locator
+     * @param key
+     * @return the {@link TableRecord}
+     */
+    public static TableRecord createPartial(PrimaryKey locator, Text key) {
+        return new TableRecord(locator, key);
+    }
+
+    /**
      * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(PrimaryKey)} or
      * {@link Record#createPrimaryRecordPartial(PrimaryKey, Text)} instead.
      * 

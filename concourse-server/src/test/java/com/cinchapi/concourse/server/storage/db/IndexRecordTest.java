@@ -50,12 +50,12 @@ public class IndexRecordTest
 
     @Override
     protected IndexRecord getRecord(Text locator) {
-        return Record.createSecondaryRecord(locator);
+        return IndexRecord.create(locator);
     }
 
     @Override
     protected IndexRecord getRecord(Text locator, Value key) {
-        return Record.createSecondaryRecordPartial(locator, key);
+        return IndexRecord.createPartial(locator, key);
     }
 
     @Override

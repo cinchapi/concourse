@@ -49,6 +49,28 @@ import com.google.common.collect.TreeMultimap;
 public final class CorpusRecord extends Record<Text, Text, Position> {
 
     /**
+     * Return a {@link CorpusRecord} that holds data for {@code locator}.
+     * 
+     * @param locator
+     * @return the {@link CorpusRecord}
+     */
+    public static CorpusRecord create(Text locator) {
+        return new CorpusRecord(locator, null);
+    }
+
+    /**
+     * Return a {@link CorpusRecord} that holds data for {@code key} in
+     * {@code locator}.
+     * 
+     * @param locator
+     * @param key
+     * @return the {@link CorpusRecord}
+     */
+    public static CorpusRecord createPartial(Text locator, Text key) {
+        return new CorpusRecord(locator, key);
+    }
+
+    /**
      * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
      * {@link Record#createSearchRecordPartial(Text, Text)} instead.
      * 

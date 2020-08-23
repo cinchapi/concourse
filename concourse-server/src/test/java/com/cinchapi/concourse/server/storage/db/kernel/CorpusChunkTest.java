@@ -33,7 +33,6 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
-import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -186,7 +185,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                 Action.ADD);
         Text term = Variables.register("term", Text.wrap("aa"));
         Variables.register("chunkDump", chunk.dump());
-        CorpusRecord searchRecord = Record.createSearchRecordPartial(key, term);
+        CorpusRecord searchRecord = CorpusRecord.createPartial(key, term);
         ((CorpusChunk) chunk).seek(Composite.create(key, term), searchRecord);
         Assert.assertTrue(searchRecord.search(term).contains(record));
     }
