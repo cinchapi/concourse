@@ -27,8 +27,9 @@ import com.google.common.reflect.TypeToken;
  * 
  * @author Jeff Nelson
  */
-public abstract class Forkable<T extends Serializable>
-        implements Serializable, Callable<T> {
+public abstract class Forkable<T extends Serializable> implements
+        Serializable,
+        Callable<T> {
 
     private static final long serialVersionUID = -1814334322385050811L;
 

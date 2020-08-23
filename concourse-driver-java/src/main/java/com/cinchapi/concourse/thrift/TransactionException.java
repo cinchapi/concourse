@@ -273,8 +273,8 @@ public class TransactionException extends TException implements
         }
     }
 
-    private static class TransactionExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class TransactionExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public TransactionExceptionStandardScheme getScheme() {
             return new TransactionExceptionStandardScheme();
         }
@@ -319,8 +319,8 @@ public class TransactionException extends TException implements
 
     }
 
-    private static class TransactionExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class TransactionExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public TransactionExceptionTupleScheme getScheme() {
             return new TransactionExceptionTupleScheme();
         }

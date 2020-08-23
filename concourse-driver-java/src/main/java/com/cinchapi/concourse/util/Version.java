@@ -75,7 +75,8 @@ public final class Version implements Comparable<Version> {
         return (comp = Longs.compare(major, o.major)) == 0
                 ? (comp = Longs.compare(minor, o.minor)) == 0
                         ? (comp = Longs.compare(patch, o.patch)) == 0
-                                ? (build.compareTo(o.build)) : comp
+                                ? (build.compareTo(o.build))
+                                : comp
                         : comp
                 : comp;
     }

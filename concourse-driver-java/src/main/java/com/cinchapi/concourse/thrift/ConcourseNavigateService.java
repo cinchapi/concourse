@@ -498,9 +498,10 @@ public class ConcourseNavigateService {
     }
 
     public static class Client extends org.apache.thrift.TServiceClient
-            implements Iface {
-        public static class Factory
-                implements org.apache.thrift.TServiceClientFactory<Client> {
+            implements
+            Iface {
+        public static class Factory implements
+                org.apache.thrift.TServiceClientFactory<Client> {
             public Factory() {}
 
             public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
@@ -1918,7 +1919,8 @@ public class ConcourseNavigateService {
     }
 
     public static class AsyncClient extends org.apache.thrift.async.TAsyncClient
-            implements AsyncIface {
+            implements
+            AsyncIface {
         public static class Factory implements
                 org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
             private org.apache.thrift.async.TAsyncClientManager clientManager;
@@ -3785,8 +3787,8 @@ public class ConcourseNavigateService {
     }
 
     public static class Processor<I extends Iface>
-            extends org.apache.thrift.TBaseProcessor<I>
-            implements org.apache.thrift.TProcessor {
+            extends org.apache.thrift.TBaseProcessor<I> implements
+            org.apache.thrift.TProcessor {
         private static final org.slf4j.Logger _LOGGER = org.slf4j.LoggerFactory
                 .getLogger(Processor.class.getName());
 
@@ -8178,7 +8180,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecord_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecord_argsStandardScheme getScheme() {
                 return new navigateKeyRecord_argsStandardScheme();
             }
@@ -8298,8 +8301,8 @@ public class ConcourseNavigateService {
 
         }
 
-        private static class navigateKeyRecord_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeyRecord_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecord_argsTupleScheme getScheme() {
                 return new navigateKeyRecord_argsTupleScheme();
             }
@@ -9039,7 +9042,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecord_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecord_resultStandardScheme getScheme() {
                 return new navigateKeyRecord_resultStandardScheme();
             }
@@ -9194,7 +9198,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecord_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecord_resultTupleScheme getScheme() {
                 return new navigateKeyRecord_resultTupleScheme();
             }
@@ -10114,7 +10119,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTime_argsStandardScheme getScheme() {
                 return new navigateKeyRecordTime_argsStandardScheme();
             }
@@ -10248,7 +10254,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTime_argsTupleScheme getScheme() {
                 return new navigateKeyRecordTime_argsTupleScheme();
             }
@@ -10999,7 +11006,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTime_resultStandardScheme getScheme() {
                 return new navigateKeyRecordTime_resultStandardScheme();
             }
@@ -11154,7 +11162,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTime_resultTupleScheme getScheme() {
                 return new navigateKeyRecordTime_resultTupleScheme();
             }
@@ -12082,7 +12091,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTimestr_argsStandardScheme getScheme() {
                 return new navigateKeyRecordTimestr_argsStandardScheme();
             }
@@ -12218,7 +12228,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTimestr_argsTupleScheme getScheme() {
                 return new navigateKeyRecordTimestr_argsTupleScheme();
             }
@@ -13066,7 +13077,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTimestr_resultStandardScheme getScheme() {
                 return new navigateKeyRecordTimestr_resultStandardScheme();
             }
@@ -13238,7 +13250,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordTimestr_resultTupleScheme getScheme() {
                 return new navigateKeyRecordTimestr_resultTupleScheme();
             }
@@ -14100,7 +14113,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecord_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecord_argsStandardScheme getScheme() {
                 return new navigateKeysRecord_argsStandardScheme();
             }
@@ -14241,7 +14255,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecord_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecord_argsTupleScheme getScheme() {
                 return new navigateKeysRecord_argsTupleScheme();
             }
@@ -14535,8 +14550,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -15018,7 +15033,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecord_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecord_resultStandardScheme getScheme() {
                 return new navigateKeysRecord_resultStandardScheme();
             }
@@ -15199,7 +15215,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecord_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecord_resultTupleScheme getScheme() {
                 return new navigateKeysRecord_resultTupleScheme();
             }
@@ -16162,7 +16179,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTime_argsStandardScheme getScheme() {
                 return new navigateKeysRecordTime_argsStandardScheme();
             }
@@ -16316,7 +16334,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTime_argsTupleScheme getScheme() {
                 return new navigateKeysRecordTime_argsTupleScheme();
             }
@@ -16621,8 +16640,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -17104,7 +17123,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTime_resultStandardScheme getScheme() {
                 return new navigateKeysRecordTime_resultStandardScheme();
             }
@@ -17285,7 +17305,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTime_resultTupleScheme getScheme() {
                 return new navigateKeysRecordTime_resultTupleScheme();
             }
@@ -18256,7 +18277,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTimestr_argsStandardScheme getScheme() {
                 return new navigateKeysRecordTimestr_argsStandardScheme();
             }
@@ -18413,7 +18435,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTimestr_argsTupleScheme getScheme() {
                 return new navigateKeysRecordTimestr_argsTupleScheme();
             }
@@ -18732,8 +18755,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -19298,7 +19321,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTimestr_resultStandardScheme getScheme() {
                 return new navigateKeysRecordTimestr_resultStandardScheme();
             }
@@ -19496,7 +19520,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordTimestr_resultTupleScheme getScheme() {
                 return new navigateKeysRecordTimestr_resultTupleScheme();
             }
@@ -20400,7 +20425,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecords_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecords_argsStandardScheme getScheme() {
                 return new navigateKeysRecords_argsStandardScheme();
             }
@@ -20563,7 +20589,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecords_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecords_argsTupleScheme getScheme() {
                 return new navigateKeysRecords_argsTupleScheme();
             }
@@ -20873,8 +20900,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -21356,7 +21383,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecords_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecords_resultStandardScheme getScheme() {
                 return new navigateKeysRecords_resultStandardScheme();
             }
@@ -21537,7 +21565,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecords_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecords_resultTupleScheme getScheme() {
                 return new navigateKeysRecords_resultTupleScheme();
             }
@@ -22410,7 +22439,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecords_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecords_argsStandardScheme getScheme() {
                 return new navigateKeyRecords_argsStandardScheme();
             }
@@ -22553,7 +22583,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecords_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecords_argsTupleScheme getScheme() {
                 return new navigateKeyRecords_argsTupleScheme();
             }
@@ -23309,7 +23340,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecords_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecords_resultStandardScheme getScheme() {
                 return new navigateKeyRecords_resultStandardScheme();
             }
@@ -23464,7 +23496,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecords_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecords_resultTupleScheme getScheme() {
                 return new navigateKeyRecords_resultTupleScheme();
             }
@@ -24410,7 +24443,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTime_argsStandardScheme getScheme() {
                 return new navigateKeyRecordsTime_argsStandardScheme();
             }
@@ -24566,7 +24600,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTime_argsTupleScheme getScheme() {
                 return new navigateKeyRecordsTime_argsTupleScheme();
             }
@@ -25333,7 +25368,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTime_resultStandardScheme getScheme() {
                 return new navigateKeyRecordsTime_resultStandardScheme();
             }
@@ -25488,7 +25524,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTime_resultTupleScheme getScheme() {
                 return new navigateKeyRecordsTime_resultTupleScheme();
             }
@@ -26436,7 +26473,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTimestr_argsStandardScheme getScheme() {
                 return new navigateKeyRecordsTimestr_argsStandardScheme();
             }
@@ -26595,7 +26633,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTimestr_argsTupleScheme getScheme() {
                 return new navigateKeyRecordsTimestr_argsTupleScheme();
             }
@@ -27459,7 +27498,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTimestr_resultStandardScheme getScheme() {
                 return new navigateKeyRecordsTimestr_resultStandardScheme();
             }
@@ -27631,7 +27671,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyRecordsTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyRecordsTimestr_resultTupleScheme getScheme() {
                 return new navigateKeyRecordsTimestr_resultTupleScheme();
             }
@@ -28610,7 +28651,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTime_argsStandardScheme getScheme() {
                 return new navigateKeysRecordsTime_argsStandardScheme();
             }
@@ -28786,7 +28828,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTime_argsTupleScheme getScheme() {
                 return new navigateKeysRecordsTime_argsTupleScheme();
             }
@@ -29107,8 +29150,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -29590,7 +29633,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTime_resultStandardScheme getScheme() {
                 return new navigateKeysRecordsTime_resultStandardScheme();
             }
@@ -29772,7 +29816,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTime_resultTupleScheme getScheme() {
                 return new navigateKeysRecordsTime_resultTupleScheme();
             }
@@ -30763,7 +30808,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTimestr_argsStandardScheme getScheme() {
                 return new navigateKeysRecordsTimestr_argsStandardScheme();
             }
@@ -30942,7 +30988,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTimestr_argsTupleScheme getScheme() {
                 return new navigateKeysRecordsTimestr_argsTupleScheme();
             }
@@ -31277,8 +31324,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -31843,7 +31890,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTimestr_resultStandardScheme getScheme() {
                 return new navigateKeysRecordsTimestr_resultStandardScheme();
             }
@@ -32041,7 +32089,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysRecordsTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysRecordsTimestr_resultTupleScheme getScheme() {
                 return new navigateKeysRecordsTimestr_resultTupleScheme();
             }
@@ -32904,8 +32953,8 @@ public class ConcourseNavigateService {
             }
         }
 
-        private static class navigateKeyCcl_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeyCcl_argsStandardSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCcl_argsStandardScheme getScheme() {
                 return new navigateKeyCcl_argsStandardScheme();
             }
@@ -33027,8 +33076,8 @@ public class ConcourseNavigateService {
 
         }
 
-        private static class navigateKeyCcl_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeyCcl_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCcl_argsTupleScheme getScheme() {
                 return new navigateKeyCcl_argsTupleScheme();
             }
@@ -33865,7 +33914,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCcl_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCcl_resultStandardScheme getScheme() {
                 return new navigateKeyCcl_resultStandardScheme();
             }
@@ -34035,8 +34085,8 @@ public class ConcourseNavigateService {
 
         }
 
-        private static class navigateKeyCcl_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeyCcl_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCcl_resultTupleScheme getScheme() {
                 return new navigateKeyCcl_resultTupleScheme();
             }
@@ -34973,7 +35023,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTime_argsStandardScheme getScheme() {
                 return new navigateKeyCclTime_argsStandardScheme();
             }
@@ -35109,7 +35160,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTime_argsTupleScheme getScheme() {
                 return new navigateKeyCclTime_argsTupleScheme();
             }
@@ -35956,7 +36008,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTime_resultStandardScheme getScheme() {
                 return new navigateKeyCclTime_resultStandardScheme();
             }
@@ -36127,7 +36180,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTime_resultTupleScheme getScheme() {
                 return new navigateKeyCclTime_resultTupleScheme();
             }
@@ -37064,7 +37118,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTimestr_argsStandardScheme getScheme() {
                 return new navigateKeyCclTimestr_argsStandardScheme();
             }
@@ -37202,7 +37257,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTimestr_argsTupleScheme getScheme() {
                 return new navigateKeyCclTimestr_argsTupleScheme();
             }
@@ -38050,7 +38106,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTimestr_resultStandardScheme getScheme() {
                 return new navigateKeyCclTimestr_resultStandardScheme();
             }
@@ -38221,7 +38278,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCclTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCclTimestr_resultTupleScheme getScheme() {
                 return new navigateKeyCclTimestr_resultTupleScheme();
             }
@@ -39083,7 +39141,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCcl_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCcl_argsStandardScheme getScheme() {
                 return new navigateKeysCcl_argsStandardScheme();
             }
@@ -39225,8 +39284,8 @@ public class ConcourseNavigateService {
 
         }
 
-        private static class navigateKeysCcl_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeysCcl_argsTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCcl_argsTupleScheme getScheme() {
                 return new navigateKeysCcl_argsTupleScheme();
             }
@@ -39534,8 +39593,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -40100,7 +40159,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCcl_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCcl_resultStandardScheme getScheme() {
                 return new navigateKeysCcl_resultStandardScheme();
             }
@@ -40296,8 +40356,8 @@ public class ConcourseNavigateService {
 
         }
 
-        private static class navigateKeysCcl_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+        private static class navigateKeysCcl_resultTupleSchemeFactory implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCcl_resultTupleScheme getScheme() {
                 return new navigateKeysCcl_resultTupleScheme();
             }
@@ -41276,7 +41336,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTime_argsStandardScheme getScheme() {
                 return new navigateKeysCclTime_argsStandardScheme();
             }
@@ -41432,7 +41493,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTime_argsTupleScheme getScheme() {
                 return new navigateKeysCclTime_argsTupleScheme();
             }
@@ -41750,8 +41812,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -42316,7 +42378,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTime_resultStandardScheme getScheme() {
                 return new navigateKeysCclTime_resultStandardScheme();
             }
@@ -42513,7 +42576,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTime_resultTupleScheme getScheme() {
                 return new navigateKeysCclTime_resultTupleScheme();
             }
@@ -43493,7 +43557,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTimestr_argsStandardScheme getScheme() {
                 return new navigateKeysCclTimestr_argsStandardScheme();
             }
@@ -43651,7 +43716,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTimestr_argsTupleScheme getScheme() {
                 return new navigateKeysCclTimestr_argsTupleScheme();
             }
@@ -43970,8 +44036,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -44536,7 +44602,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTimestr_resultStandardScheme getScheme() {
                 return new navigateKeysCclTimestr_resultStandardScheme();
             }
@@ -44733,7 +44800,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCclTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCclTimestr_resultTupleScheme getScheme() {
                 return new navigateKeysCclTimestr_resultTupleScheme();
             }
@@ -45603,7 +45671,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteria_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteria_argsStandardScheme getScheme() {
                 return new navigateKeyCriteria_argsStandardScheme();
             }
@@ -45727,7 +45796,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteria_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteria_argsTupleScheme getScheme() {
                 return new navigateKeyCriteria_argsTupleScheme();
             }
@@ -46565,7 +46635,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteria_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteria_resultStandardScheme getScheme() {
                 return new navigateKeyCriteria_resultStandardScheme();
             }
@@ -46736,7 +46807,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteria_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteria_resultTupleScheme getScheme() {
                 return new navigateKeyCriteria_resultTupleScheme();
             }
@@ -47680,7 +47752,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTime_argsStandardScheme getScheme() {
                 return new navigateKeyCriteriaTime_argsStandardScheme();
             }
@@ -47817,7 +47890,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTime_argsTupleScheme getScheme() {
                 return new navigateKeyCriteriaTime_argsTupleScheme();
             }
@@ -48666,7 +48740,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTime_resultStandardScheme getScheme() {
                 return new navigateKeyCriteriaTime_resultStandardScheme();
             }
@@ -48838,7 +48913,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTime_resultTupleScheme getScheme() {
                 return new navigateKeyCriteriaTime_resultTupleScheme();
             }
@@ -49783,7 +49859,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTimestr_argsStandardScheme getScheme() {
                 return new navigateKeyCriteriaTimestr_argsStandardScheme();
             }
@@ -49923,7 +50000,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTimestr_argsTupleScheme getScheme() {
                 return new navigateKeyCriteriaTimestr_argsTupleScheme();
             }
@@ -50772,7 +50850,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTimestr_resultStandardScheme getScheme() {
                 return new navigateKeyCriteriaTimestr_resultStandardScheme();
             }
@@ -50944,7 +51023,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeyCriteriaTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeyCriteriaTimestr_resultTupleScheme getScheme() {
                 return new navigateKeyCriteriaTimestr_resultTupleScheme();
             }
@@ -51813,7 +51893,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteria_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteria_argsStandardScheme getScheme() {
                 return new navigateKeysCriteria_argsStandardScheme();
             }
@@ -51957,7 +52038,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteria_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteria_argsTupleScheme getScheme() {
                 return new navigateKeysCriteria_argsTupleScheme();
             }
@@ -52266,8 +52348,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -52832,7 +52914,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteria_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteria_resultStandardScheme getScheme() {
                 return new navigateKeysCriteria_resultStandardScheme();
             }
@@ -53029,7 +53112,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteria_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteria_resultTupleScheme getScheme() {
                 return new navigateKeysCriteria_resultTupleScheme();
             }
@@ -54016,7 +54100,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTime_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTime_argsStandardScheme getScheme() {
                 return new navigateKeysCriteriaTime_argsStandardScheme();
             }
@@ -54173,7 +54258,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTime_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTime_argsTupleScheme getScheme() {
                 return new navigateKeysCriteriaTime_argsTupleScheme();
             }
@@ -54493,8 +54579,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -55059,7 +55145,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTime_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTime_resultStandardScheme getScheme() {
                 return new navigateKeysCriteriaTime_resultStandardScheme();
             }
@@ -55257,7 +55344,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTime_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTime_resultTupleScheme getScheme() {
                 return new navigateKeysCriteriaTime_resultTupleScheme();
             }
@@ -56245,7 +56333,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTimestr_argsStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTimestr_argsStandardScheme getScheme() {
                 return new navigateKeysCriteriaTimestr_argsStandardScheme();
             }
@@ -56405,7 +56494,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTimestr_argsTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTimestr_argsTupleScheme getScheme() {
                 return new navigateKeysCriteriaTimestr_argsTupleScheme();
             }
@@ -56725,8 +56815,8 @@ public class ConcourseNavigateService {
                         java.util.Set<com.cinchapi.concourse.thrift.TObject> __this__success_copy_value_copy_value = new java.util.LinkedHashSet<com.cinchapi.concourse.thrift.TObject>(
                                 other_element_value_element_value.size());
                         for (com.cinchapi.concourse.thrift.TObject other_element_value_element_value_element : other_element_value_element_value) {
-                            __this__success_copy_value_copy_value
-                                    .add(new com.cinchapi.concourse.thrift.TObject(
+                            __this__success_copy_value_copy_value.add(
+                                    new com.cinchapi.concourse.thrift.TObject(
                                             other_element_value_element_value_element));
                         }
 
@@ -57291,7 +57381,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTimestr_resultStandardSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTimestr_resultStandardScheme getScheme() {
                 return new navigateKeysCriteriaTimestr_resultStandardScheme();
             }
@@ -57489,7 +57580,8 @@ public class ConcourseNavigateService {
         }
 
         private static class navigateKeysCriteriaTimestr_resultTupleSchemeFactory
-                implements org.apache.thrift.scheme.SchemeFactory {
+                implements
+                org.apache.thrift.scheme.SchemeFactory {
             public navigateKeysCriteriaTimestr_resultTupleScheme getScheme() {
                 return new navigateKeysCriteriaTimestr_resultTupleScheme();
             }

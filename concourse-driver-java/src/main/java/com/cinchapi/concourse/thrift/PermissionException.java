@@ -350,8 +350,8 @@ public class PermissionException extends TException implements
         }
     }
 
-    private static class PermissionExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class PermissionExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public PermissionExceptionStandardScheme getScheme() {
             return new PermissionExceptionStandardScheme();
         }
@@ -411,8 +411,8 @@ public class PermissionException extends TException implements
 
     }
 
-    private static class PermissionExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class PermissionExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public PermissionExceptionTupleScheme getScheme() {
             return new PermissionExceptionTupleScheme();
         }

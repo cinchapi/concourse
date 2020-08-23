@@ -327,7 +327,8 @@ public class InvalidOperationException extends org.apache.thrift.TException
     }
 
     private static class InvalidOperationExceptionStandardSchemeFactory
-            implements org.apache.thrift.scheme.SchemeFactory {
+            implements
+            org.apache.thrift.scheme.SchemeFactory {
         public InvalidOperationExceptionStandardScheme getScheme() {
             return new InvalidOperationExceptionStandardScheme();
         }
@@ -387,8 +388,8 @@ public class InvalidOperationException extends org.apache.thrift.TException
 
     }
 
-    private static class InvalidOperationExceptionTupleSchemeFactory
-            implements org.apache.thrift.scheme.SchemeFactory {
+    private static class InvalidOperationExceptionTupleSchemeFactory implements
+            org.apache.thrift.scheme.SchemeFactory {
         public InvalidOperationExceptionTupleScheme getScheme() {
             return new InvalidOperationExceptionTupleScheme();
         }

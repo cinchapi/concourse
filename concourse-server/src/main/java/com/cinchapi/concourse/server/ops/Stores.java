@@ -133,7 +133,8 @@ public final class Stores {
             Operator operator, TObject... values) {
         if(Keys.isNavigationKey(key)) {
             Map<TObject, Set<Long>> index = timestamp == Time.NONE
-                    ? browse(store, key) : browse(store, key, timestamp);
+                    ? browse(store, key)
+                    : browse(store, key, timestamp);
             Set<Long> records = index.entrySet().stream()
                     .filter(e -> e.getKey().is(operator, values))
                     .map(e -> e.getValue()).flatMap(Set::stream)

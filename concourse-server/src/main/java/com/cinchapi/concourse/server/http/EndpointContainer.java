@@ -59,8 +59,8 @@ import com.google.common.base.CaseFormat;
  * 
  * @author Jeff Nelson
  */
-public abstract class EndpointContainer
-        implements Comparable<EndpointContainer> {
+public abstract class EndpointContainer implements
+        Comparable<EndpointContainer> {
 
     /**
      * Given a list of arguments (as defined by the spec for declaring

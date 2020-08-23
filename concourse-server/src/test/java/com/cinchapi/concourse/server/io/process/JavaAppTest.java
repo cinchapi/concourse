@@ -50,7 +50,7 @@ public class JavaAppTest extends ConcourseBaseTest {
      * Source code that should compile and run correctly.
      */
     private static final String GOOD_SOURCE = ""
-        // @formatter:off
+    // @formatter:off
         + "public class GoodSource {"
         + "  public static void main(String... args) {"
         + "    System.out.println(\"" + EXPECTED_OUTPUT + "\");"
@@ -62,7 +62,7 @@ public class JavaAppTest extends ConcourseBaseTest {
      * Source code that does not compile.
      */
     private static final String BAD_SOURCE = ""
-        // @formatter:off
+    // @formatter:off
         + "public class GoodSource {"
         + "  public static void main(String... args) {"
         + "    Systems.out.println(\"" + EXPECTED_OUTPUT + "\");"

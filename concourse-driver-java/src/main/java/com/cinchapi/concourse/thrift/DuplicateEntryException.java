@@ -351,8 +351,8 @@ public class DuplicateEntryException extends TException implements
         }
     }
 
-    private static class DuplicateEntryExceptionStandardSchemeFactory
-            implements SchemeFactory {
+    private static class DuplicateEntryExceptionStandardSchemeFactory implements
+            SchemeFactory {
         public DuplicateEntryExceptionStandardScheme getScheme() {
             return new DuplicateEntryExceptionStandardScheme();
         }
@@ -412,8 +412,8 @@ public class DuplicateEntryException extends TException implements
 
     }
 
-    private static class DuplicateEntryExceptionTupleSchemeFactory
-            implements SchemeFactory {
+    private static class DuplicateEntryExceptionTupleSchemeFactory implements
+            SchemeFactory {
         public DuplicateEntryExceptionTupleScheme getScheme() {
             return new DuplicateEntryExceptionTupleScheme();
         }

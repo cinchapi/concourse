@@ -40,8 +40,8 @@ import com.google.common.annotations.VisibleForTesting;
  * 
  * @author Jeff Nelson
  */
-public class BackgroundThread extends Thread
-        implements ConcourseRuntimeAuthorized {
+public class BackgroundThread extends Thread implements
+        ConcourseRuntimeAuthorized {
 
     /**
      * The {@link AccessToken} to use when making non-user requests via

@@ -14,16 +14,6 @@
  * limitations under the License.
  */
 
-// To upgrade:
-// 1. Take a backup of gradlew because there is custom logic there that must
-//    be preserved
-// 2. Change gradleVersion here
-// 3. Change the distributionUrl in gradle/wrapper/gradle-wrapper.properties
-// 4. Run ./gradlew wrapper
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
-}
-
 // The project version is controlled externally by the "version.sh" script.
 def getVersion = { ->
     def stdout = new ByteArrayOutputStream()
@@ -51,8 +41,8 @@ buildscript {
     }
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.6.0"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:5.1.2"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.3"
     }
 }
 
@@ -69,7 +59,7 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'maven'
     apply plugin: 'idea'
-    apply plugin: 'com.diffplug.gradle.spotless'
+    apply plugin: 'com.diffplug.spotless'
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'maven-publish'
 
@@ -176,6 +166,7 @@ subprojects {
             importOrderFile rootProject.file('spotless.java.importerorder')
             removeUnusedImports()
             eclipse().configFile rootProject.file('spotless.java.eclipseformat.xml')
+            targetExclude 'src/main/java/com/cinchapi/concourse/thrift/ConcourseService.java'
         }
     }
 
@@ -184,10 +175,10 @@ subprojects {
     ext.title = "Concourse" // The project's vanity title
     ext.description = "Default" // A short description about the project
     afterEvaluate { project ->
-        if (ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded
-                                // to Maven
-            def mavenTitle = ext.title
-            def mavenDescription = ext.description
+        if (project.ext.uploadEnabled && validateVersion(project.version)) { // Configure subprojects that should be uploaded // to Maven
+            def mavenTitle = project.ext.title
+            def mavenDescription = project.ext.description
+            def mavenVersion = ext.mavenVersion
 
             publishing {
                 publications {

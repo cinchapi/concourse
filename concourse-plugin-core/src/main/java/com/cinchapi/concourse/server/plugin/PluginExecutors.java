@@ -71,8 +71,8 @@ public final class PluginExecutors {
      * 
      * @author Jeff Nelson
      */
-    private static class CachedBackgroundExecutor
-            implements BackgroundExecutor {
+    private static class CachedBackgroundExecutor implements
+            BackgroundExecutor {
 
         /**
          * The {@link ExecutorService} to which requests are delegated.

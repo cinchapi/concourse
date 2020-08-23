@@ -269,8 +269,8 @@ public class Calculator {
     public Number average(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.$calculate().averageKeyTimestr(
-                            key, timestamp.toString(), concourse.creds(),
+                    ? concourse.$calculate().averageKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.$calculate().averageKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -493,8 +493,8 @@ public class Calculator {
     public long count(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             return timestamp.isString()
-                    ? concourse.$calculate().countKeyTimestr(
-                            key, timestamp.toString(), concourse.creds(),
+                    ? concourse.$calculate().countKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.$calculate().countKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -725,8 +725,8 @@ public class Calculator {
     public Number max(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.$calculate().maxKeyTimestr(
-                            key, timestamp.toString(), concourse.creds(),
+                    ? concourse.$calculate().maxKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.$calculate().maxKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -958,8 +958,8 @@ public class Calculator {
     public Number min(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.$calculate().minKeyTimestr(
-                            key, timestamp.toString(), concourse.creds(),
+                    ? concourse.$calculate().minKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.$calculate().minKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
@@ -1191,8 +1191,8 @@ public class Calculator {
     public Number sum(String key, Timestamp timestamp) {
         return concourse.execute(() -> {
             TObject result = timestamp.isString()
-                    ? concourse.$calculate().sumKeyTimestr(
-                            key, timestamp.toString(), concourse.creds(),
+                    ? concourse.$calculate().sumKeyTimestr(key,
+                            timestamp.toString(), concourse.creds(),
                             concourse.transaction(), concourse.environment())
                     : concourse.$calculate().sumKeyTime(key,
                             timestamp.getMicros(), concourse.creds(),
