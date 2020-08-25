@@ -228,7 +228,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logErrorMessage(String message, Object... params) {
-        Logger.error(decorateLogMessage(message), params);
+        Logger.upgradeError(decorateLogMessage(message), params);
     }
 
     /**
@@ -238,7 +238,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logInfoMessage(String message, Object... params) {
-        Logger.info(decorateLogMessage(message), params);
+        Logger.upgradeInfo(decorateLogMessage(message), params);
     }
 
     /**

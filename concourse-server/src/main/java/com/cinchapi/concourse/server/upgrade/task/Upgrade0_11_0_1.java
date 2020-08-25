@@ -55,6 +55,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                 .iterator(GlobalState.BUFFER_DIRECTORY,
                         GlobalState.DATABASE_DIRECTORY)
                 .forEachRemaining(environment -> {
+                    logInfoMessage("Upgrading Block data to new Segment format in environment {}", environment);
                     Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
                             .resolve(environment);
                     Database db = new Database(directory);
@@ -71,6 +72,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                         for (Path file : files) {
                             Block<PrimaryKey, Text, Value> block = new Block(
                                     file, TableRevision.class);
+                            logInfoMessage("Transferring data from Block {} to new Segment format", file.getFileName());
                             for (Revision<PrimaryKey, Text, Value> revision : block) {
                                 Write write = Reflection.newInstance(
                                         Write.class, revision.getType(),
@@ -80,6 +82,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                                 db.accept(write);
                             }
                             db.triggerSync();
+                            logInfoMessage("Finished transferring data from Block {} to new Segment format", file.getFileName());
                         }
                     }
                     finally {

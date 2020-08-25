@@ -78,6 +78,60 @@ public final class Logger {
         DEBUG.debug(message, params);
     }
 
+    /**
+     * Print {@code message} with {@code params} to the UPGRADE log.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void upgrade(String message, Object... params) {
+        UPGRADE.info(message, params);
+    }
+    
+    /**
+     * Print {@code message} with {@code params} to the DEBUG and UPGRADE logs.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void upgradeDebug(String message, Object... params) {
+        upgrade(message, params);
+        debug(message, params);
+    }
+    
+    /**
+     * Print {@code message} with {@code params} to the ERROR and UPGRADE logs.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void upgradeError(String message, Object... params) {
+        upgrade(message, params);
+        error(message, params);
+    }
+    
+    /**
+     * Print {@code message} with {@code params} to the INFO and UPGRADE logs.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void upgradeInfo(String message, Object... params) {
+        upgrade(message, params);
+        info(message, params);
+    }
+    
+    /**
+     * Print {@code message} with {@code params} to the WARN and UPGRADE logs.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void upgradeWarn(String message, Object... params) {
+        upgrade(message, params);
+        warn(message, params);
+    }
+
     private static String MAX_LOG_FILE_SIZE = "10MB";
     private static final String LOG_DIRECTORY = "log";
     private static final ch.qos.logback.classic.Logger ERROR = setup(
@@ -88,6 +142,8 @@ public final class Logger {
             "com.cinchapi.concourse.server.InfoLogger", "info.log");
     private static final ch.qos.logback.classic.Logger DEBUG = setup(
             "com.cinchapi.concourse.server.DebugLogger", "debug.log");
+    private static final ch.qos.logback.classic.Logger UPGRADE = setup(
+            "com.cinchapi.concourse.server.UpgradeInfoLogger", "upgrade.log");
     static {
         // Capture logging from Thrift classes and route it to our error
         // log so we have details on processing failures.

@@ -31,7 +31,7 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
 
     @Override
     protected String getInitialServerVersion() {
-        return "0.10.4";
+        return "0.10.5";
     }
 
     private String[] envs;
@@ -45,7 +45,7 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
     @Test
     public void testTransferBlockDataToSegments() {
         // TODO: implement
-        Assert.assertTrue(true);
+        Assert.assertTrue(false);
     }
 
 }
