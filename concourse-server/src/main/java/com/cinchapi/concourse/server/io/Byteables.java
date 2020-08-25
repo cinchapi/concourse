@@ -24,9 +24,7 @@ import java.nio.channels.FileLock;
 import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.collect.Maps;
 
 /**
@@ -115,91 +113,6 @@ public abstract class Byteables {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
-    }
-
-    /**
-     * Return an instance of {@code clazz} by reading the remaining bytes from
-     * the {@code memory}. This method uses reflection to invoke the single
-     * argument {@link OffHeapMemory} constructor in {@code clazz}.
-     * <p>
-     * <tt>Byteables.read(bytes, Foo.class)</tt>
-     * </p>
-     * It is assumed that the {@link OffHeapMemory#remaining() remaining}
-     * content of the {@code memory} is entirely relevant to the
-     * object being read, so so call {@link OffHeapMemory#slice(long, long)} or
-     * follow this protocol when using this method:
-     * <ul>
-     * <li>Set the position of the parent OffHeapMemory to the index of the
-     * first
-     * byte relevant to the object, using
-     * {@link OffHeapMemory#position(long)}.</li>
-     * <li>Set the limit of the OffHeapMemory to the index of its current
-     * position + the size of the object (which is usually stored in the 4 bytes
-     * preceding the object) using {@link OffHeapMemory#limit(int)}.</li>
-     * </ul>
-     * <p>
-     * <strong>NOTE:</strong> If the {@code clazz} does not support reading
-     * objects from {@link OffHeapMemory}, an attempt is made to transfer the
-     * bytes to the Java heap and read using the
-     * {@link #read(ByteBuffer, Class)} method.
-     * </p>
-     * 
-     * @param memory
-     * @param clazz
-     * @return an instance of {@code clazz} read from {@code memory}
-     */
-    public static <T> T read(OffHeapMemory memory, Class<T> clazz) {
-        try {
-            return Reflection.newInstance(clazz, memory);
-        }
-        catch (Exception e) {
-            ByteBuffer buffer = ByteBuffer.allocate((int) memory.remaining());
-            while (memory.hasRemaining()) {
-                buffer.put(memory.get());
-            }
-            return read(buffer, clazz);
-        }
-    }
-
-    /**
-     * Return an instance of {@code clazz} by reading the remaining bytes from
-     * the {@code memory}. This method uses reflection to invoke the single
-     * argument {@link OffHeapMemory} constructor in {@code clazz}.
-     * <p>
-     * <tt>Byteables.read(bytes, Foo.class)</tt>
-     * </p>
-     * It is assumed that the {@link OffHeapMemory#remaining() remaining}
-     * content of the {@code memory} is entirely relevant to the
-     * object being read, so so call {@link OffHeapMemory#slice(long, long)} or
-     * follow this protocol when using this method:
-     * <ul>
-     * <li>Set the position of the parent OffHeapMemory to the index of the
-     * first
-     * byte relevant to the object, using
-     * {@link OffHeapMemory#position(long)}.</li>
-     * <li>Set the limit of the OffHeapMemory to the index of its current
-     * position + the size of the object (which is usually stored in the 4 bytes
-     * preceding the object) using {@link OffHeapMemory#limit(int)}.</li>
-     * </ul>
-     * <p>
-     * <strong>NOTE:</strong> If the {@code clazz} does not support reading
-     * objects from {@link OffHeapMemory}, an attempt is made to transfer the
-     * bytes to the Java heap and read using the
-     * {@link #read(ByteBuffer, Class)} method.
-     * </p>
-     * 
-     * @param memory
-     * @param clazz
-     * @return an instance of {@code clazz} read from {@code memory}
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T read(OffHeapMemory memory, String clazz) {
-        try {
-            return (T) read(memory, Class.forName(clazz));
-        }
-        catch (ReflectiveOperationException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
     }
 
     /**

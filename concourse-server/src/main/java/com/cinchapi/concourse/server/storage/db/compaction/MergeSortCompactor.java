@@ -64,7 +64,7 @@ class MergeSortCompactor extends Compactor {
             if(context.availableDiskSpace() > requiredDiskSpace
                     && a.similarityWith(b) > 50) { // TODO: make configurable
                 Segment merged = Segment
-                        .createOffHeap((int) (a.count() + b.count()));
+                        .create((int) (a.count() + b.count())); //TODO: create offheap
                 Streams.concat(a.writes(), b.writes()).parallel()
                         .forEach(write -> merged.transfer(write));
                 return ImmutableList.of(merged);

@@ -143,24 +143,6 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
-     * Create a new {@link Segment} that stores data off heap so that it is not
-     * subject to garbage collection.
-     * 
-     * @param expectedInsertions
-     * @return the {@link Segment}
-     */
-    public static Segment createOffHeap(int expectedInsertions) {
-        Segment segment = create(expectedInsertions);
-        Reflection.set("table", new OffHeapTableChunk(segment.table()),
-                segment);
-        Reflection.set("index", new OffHeapIndexChunk(segment.index()),
-                segment);
-        Reflection.set("corpus", new OffHeapCorpusChunk(segment.corpus()),
-                segment);
-        return segment;
-    }
-
-    /**
      * Load an existing {@link Segment} whose data is stored in {@code file}.
      * 
      * @param file
@@ -526,8 +508,7 @@ public final class Segment implements Itemizable, Syncable {
      * @return the segment id
      */
     public String id() {
-        return file != null ? file.getFileName().toString()
-                : "MemorySegment-" + System.identityHashCode(this);
+        return file != null ? file.getFileName().toString() : label();
     }
 
     /**
@@ -537,6 +518,16 @@ public final class Segment implements Itemizable, Syncable {
      */
     public IndexChunk index() {
         return index;
+    }
+    
+    /**
+     * Return an ephemeral label for this {@link Segment}. This label is not
+     * consistent and should not be relied upon for identification.
+     * 
+     * @return the label
+     */
+    public String label() {
+        return "Segment-" + System.identityHashCode(this);
     }
 
     /**
