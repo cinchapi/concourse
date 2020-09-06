@@ -161,8 +161,7 @@ public class SegmentTest extends ConcourseBaseTest {
                 Thread reader = new Thread(() -> {
                     while (!done.get()) {
                         TableRecord tr = TableRecord.create(pk);
-                        IndexRecord ir = IndexRecord
-                                .create(text);
+                        IndexRecord ir = IndexRecord.create(text);
                         CorpusRecord cr = CorpusRecord.create(text);
                         segment.table().seek(Composite.create(pk), tr);
                         segment.index().seek(Composite.create(text), ir);
