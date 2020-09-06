@@ -519,7 +519,7 @@ public final class Segment implements Itemizable, Syncable {
     public IndexChunk index() {
         return index;
     }
-    
+
     /**
      * Return an ephemeral label for this {@link Segment}. This label is not
      * consistent and should not be relied upon for identification.

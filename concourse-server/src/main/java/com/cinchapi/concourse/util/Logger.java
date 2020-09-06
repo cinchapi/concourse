@@ -87,7 +87,7 @@ public final class Logger {
     public static void upgrade(String message, Object... params) {
         UPGRADE.info(message, params);
     }
-    
+
     /**
      * Print {@code message} with {@code params} to the DEBUG and UPGRADE logs.
      * 
@@ -98,7 +98,7 @@ public final class Logger {
         upgrade(message, params);
         debug(message, params);
     }
-    
+
     /**
      * Print {@code message} with {@code params} to the ERROR and UPGRADE logs.
      * 
@@ -109,7 +109,7 @@ public final class Logger {
         upgrade(message, params);
         error(message, params);
     }
-    
+
     /**
      * Print {@code message} with {@code params} to the INFO and UPGRADE logs.
      * 
@@ -120,7 +120,7 @@ public final class Logger {
         upgrade(message, params);
         info(message, params);
     }
-    
+
     /**
      * Print {@code message} with {@code params} to the WARN and UPGRADE logs.
      * 

@@ -834,7 +834,8 @@ public final class Database extends BaseStore implements PermanentStore {
             if(flush) {
                 Path file = $segments.resolve(UUID.randomUUID() + ".seg");
                 seg0.fsync(file);
-                Logger.debug("Completed sync of {} to disk at {}", seg0.label(), file);
+                Logger.debug("Completed sync of {} to disk at {}", seg0.label(),
+                        file);
             }
             segments.add((seg0 = Segment.create()));
         }

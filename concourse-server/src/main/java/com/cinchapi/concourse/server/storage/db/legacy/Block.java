@@ -35,7 +35,8 @@ import com.cinchapi.concourse.server.storage.db.Revision;
  * @author Jeff Nelson
  */
 public class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements Iterable<Revision<L, K, V>> {
+        implements
+        Iterable<Revision<L, K, V>> {
 
     private final Path file;
     private final Class<Revision<L, K, V>> revisionClass;
