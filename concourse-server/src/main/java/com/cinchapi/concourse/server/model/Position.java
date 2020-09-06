@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
 /**
  * A Position is an abstraction for the association between a
  * relative location and a {@link PrimaryKey} that is used in a
- * {@link SearchRecord} to specify the location of a term in a record.
+ * {@link CorpusRecord} to specify the location of a term in a record.
  * 
  * @author Jeff Nelson
  */

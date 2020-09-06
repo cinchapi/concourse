@@ -16,11 +16,13 @@
 package com.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
-import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.Assert;
@@ -35,6 +37,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -55,33 +58,40 @@ public class DatabaseTest extends StoreTest {
 
     private String current;
 
-    @Test
-    public void testDatabaseRemovesUnbalancedBlocksOnStartup()
-            throws Exception {
-        Database db = (Database) store;
-        db.accept(Write.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong()));
-        db.triggerSync();
-        db.stop();
-        FileSystem.deleteDirectory(current + File.separator + "csb");
-        FileSystem.mkdirs(current + File.separator + "csb");
-        db = new Database(db.getBackingStore()); // simulate server restart
-        db.start();
-        Field cpb = db.getClass().getDeclaredField("cpb");
-        Field csb = db.getClass().getDeclaredField("csb");
-        Field ctb = db.getClass().getDeclaredField("ctb");
-        cpb.setAccessible(true);
-        csb.setAccessible(true);
-        ctb.setAccessible(true);
-        Assert.assertEquals(1, ((List<?>) ctb.get(db)).size());
-        Assert.assertEquals(1, ((List<?>) csb.get(db)).size());
-        Assert.assertEquals(1, ((List<?>) cpb.get(db)).size());
-    }
-
     @Test(expected = UnsupportedOperationException.class)
     public void testGetAllRecords() {
         Database db = (Database) store;
         db.getAllRecords();
+    }
+
+    @Test
+    public void testDatabaseRemovesDuplicateSegmentsOnStartup() {
+        Database db = (Database) store;
+        int expected = TestData.getScaleCount();
+        for (int i = 0; i < expected; ++i) {
+            db.accept(Write.add(TestData.getString(), TestData.getTObject(),
+                    TestData.getLong()));
+            db.triggerSync();
+        }
+        List<Segment> segments = Reflection.get("segments", db);
+        Assert.assertEquals(expected + 1, segments.size()); // size includes
+                                                            // seg0
+        db.stop();
+        AtomicInteger duplicates = new AtomicInteger(0);
+        FileSystem.ls(Paths.get(current).resolve("segments")).forEach(file -> {
+            if(Random.getInt() % 3 == 0) {
+                FileSystem.copyBytes(file.toString(), file.getParent()
+                        .resolve(UUID.randomUUID() + ".seg").toString());
+                duplicates.incrementAndGet();
+            }
+        });
+        db = new Database(db.getBackingStore()); // simulate server restart
+        db.start();
+        segments = Reflection.get("segments", db);
+        Assert.assertEquals(expected + 1, segments.size()); // size includes
+                                                            // seg0
+        System.out.println("The database discarded " + duplicates.get()
+                + " overlapping segments");
     }
 
     @Test
@@ -202,11 +212,11 @@ public class DatabaseTest extends StoreTest {
                                                  // Database instance because
                                                  // state isn't reset...
         db.start();
-        PrimaryRecord rec = Reflection.call(db, "getPrimaryRecord",
+        TableRecord rec = Reflection.call(db, "getTableRecord",
                 PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
         Assert.assertTrue(rec.isPartial());
         db.select(record);
-        rec = Reflection.call(db, "getPrimaryRecord", PrimaryKey.wrap(record),
+        rec = Reflection.call(db, "getTableRecord", PrimaryKey.wrap(record),
                 Text.wrap(b)); // (authorized)
         Assert.assertFalse(rec.isPartial());
     }
@@ -262,6 +272,16 @@ public class DatabaseTest extends StoreTest {
         System.out.println("Select took " + selectTime + " ms and gather took "
                 + gatherTime + " ms");
         Assert.assertTrue(gatherTime <= selectTime);
+    }
+
+    @Test
+    public void testVerify() {
+        add("name", Convert.javaToThrift("jeff"), 1);
+        store.stop();
+        ((Database) store).triggerSync();
+        store.start();
+        Assert.assertTrue(
+                store.verify("name", Convert.javaToThrift("jeff"), 1));
     }
 
     @Override

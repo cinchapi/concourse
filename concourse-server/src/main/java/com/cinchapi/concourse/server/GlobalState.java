@@ -266,6 +266,19 @@ public final class GlobalState extends Constants {
      */
     public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
+    /**
+     * Automatically use a combination of defragmentation, garbage collection
+     * and load balancing within the data files to optimize storage for read
+     * performance.
+     * <p>
+     * The compaction process runs continuously in the background without
+     * disrupting reads or writes. The storage engine uses a specific strategy
+     * to determine how data files should be reorganized to improve the
+     * performance of read operations.
+     * </p>
+     */
+    public static boolean ENABLE_COMPACTION = true;
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
@@ -330,6 +343,9 @@ public final class GlobalState extends Constants {
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
                 "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+
+        ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
+                ENABLE_COMPACTION);
         // =================== PREF READING BLOCK ====================
     }
 

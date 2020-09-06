@@ -15,6 +15,11 @@
  */
 package com.cinchapi.concourse.server.io;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import com.cinchapi.concourse.util.FileOps;
+
 /**
  * An object that guarantees that it can be durably written to disk.
  * 
@@ -23,10 +28,24 @@ package com.cinchapi.concourse.server.io;
 public interface Syncable {
 
     /**
+     * Flush the content of the object to {@code file}. When the method returns,
+     * it is guaranteed that all changes made to the object since it was created
+     * or since this method was last invoked, will have been written to disk.
+     * 
+     * @param file
+     */
+    public void fsync(Path file);
+
+    /**
      * Flush the content of the object to disk. When this method returns, it is
      * guaranteed that all changes made to the object since it was created or
      * since this method was last invoked, will have been written to disk.
+     * <p>
+     * By default, this method {@link #fsync(Path) fsyncs} to a temporary file.
+     * </p>
      */
-    public void sync();
+    public default void sync() {
+        fsync(Paths.get(FileOps.tempFile()));
+    }
 
 }

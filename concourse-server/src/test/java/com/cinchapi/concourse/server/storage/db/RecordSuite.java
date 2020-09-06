@@ -25,8 +25,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author Jeff Nelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, SecondaryRecordTest.class,
-        SearchRecordTest.class })
+@SuiteClasses({ TableRecordTest.class, IndexRecordTest.class,
+        CorpusRecordTest.class })
 public class RecordSuite {
 
 }

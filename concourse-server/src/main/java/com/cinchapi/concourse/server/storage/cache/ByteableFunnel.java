@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.storage.cache;
 
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
@@ -31,6 +30,6 @@ public enum ByteableFunnel implements Funnel<Composite> {
 
     @Override
     public void funnel(Composite from, PrimitiveSink into) {
-        into.putBytes(ByteBuffers.toByteArray(from.getBytes()));
+        into.putBytes(from.getBytes());
     }
 }

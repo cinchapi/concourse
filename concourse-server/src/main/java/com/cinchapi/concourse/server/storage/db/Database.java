@@ -17,27 +17,30 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.*;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.common.base.Array;
+import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
@@ -52,58 +55,57 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
+import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.NaturalSorter;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
-import com.cinchapi.concourse.util.TLists;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
- * The {@code Database} is the {@link PermanentStore} for data. The
+ * The {@link Database} is the {@link PermanentStore} for data. The
  * Database accepts {@link Write} objects that are initially stored in a
- * {@link Buffer} and converts them to {@link Revision} objects that are stored
- * in various {@link Block} objects, which provide indexed views for optimized
- * reads.
+ * {@link Buffer} and converts them {@link Revision Revisions} that are stored
+ * within distinct {@link Segment Segments}. Each {@link Segment} is broken up
+ * into {@link Chunk Chunks} that provided optimized read-views.
+ * <p>
+ * Conceptually, the {@link Database} is a collection of three sparse, but
+ * contiguous data repositories:
+ * <ul>
+ * <li>a <strong>table</strong> that contains a normalized view of data (similar
+ * to an RDBMS table),
+ * <li>an <strong>index</strong> that contains an inverted view of data (similar
+ * to an RDBMS index), and
+ * <li>a <strong>corpus</strong> that contains a searchable view of
+ * {@link Value#isCharSequenceType() string-like} data
+ * </ul>
+ * While these conceptual repositories aren't actually maintained, the
+ * {@link Revision Revisions} stored across the {@link Segment Segments} allows
+ * for the ad-hoc accumulation of {@link TableRecord TableRecords},
+ * {@link IndexRecord IndexRecords}, and {@link CorpusRecord CorpusRecords} to
+ * service read requests efficiently.
+ * </p>
  * 
  * @author Jeff Nelson
  */
 @ThreadSafe
 public final class Database extends BaseStore implements PermanentStore {
 
-    /*
-     * BLOCK DIRECTORIES
-     * -----------------
-     * Each Block type is stored in its own directory so that we can reduce the
-     * number of files in a single directory. It is important to note that the
-     * filename extensions for files are the same across directories (i.e. 'blk'
-     * for block, 'fltr' for bloom filter and 'indx' for index). Furthermore,
-     * blocks that are synced at the same time all have the same block id.
-     * Therefore, the only way to distinguish blocks of different types from one
-     * another is by the directory in which they are stored.
-     */
-    private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-
-    private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
-
-    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-
     /**
      * Return an {@link Iterator} that will iterate over all of the
-     * {@link PrimaryRevision PrimaryRevisions} that are stored in the
+     * {@link TableRevision PrimaryRevisions} that are stored in the
      * {@code dbStore}. The iterator streams the revisions directly from disk
      * using a buffer size that is equal to {@link GlobalState#BUFFER_PAGE_SIZE}
      * so it should have a predictable memory footprint.
@@ -115,10 +117,10 @@ public final class Database extends BaseStore implements PermanentStore {
             final String dbStore) {
         return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
 
-            private final String backingStore = FileSystem.makePath(dbStore,
-                    PRIMARY_BLOCK_DIRECTORY);
+            private final String directory = FileSystem.makePath(dbStore,
+                    SEGMENTS_SUBDIRECTORY);
             private final Iterator<String> fileIt = FileSystem
-                    .fileOnlyIterator(backingStore);
+                    .fileOnlyIterator(directory);
             private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
             {
                 flip();
@@ -153,13 +155,11 @@ public final class Database extends BaseStore implements PermanentStore {
 
             private void flip() {
                 if(fileIt.hasNext()) {
-                    String file = fileIt.next();
-                    if(file.endsWith(Block.BLOCK_NAME_EXTENSION)) {
-                        String id = Block.getId(file);
-                        it = new PrimaryBlock(id, backingStore, true)
-                                .iterator(); /* authorized */
+                    Path file = Paths.get(fileIt.next());
+                    try {
+                        it = Segment.load(file).table().iterator();
                     }
-                    else {
+                    catch (SegmentLoadingException e) {
                         flip();
                     }
                 }
@@ -179,25 +179,35 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the Block identified by {@code id} if it exists in {@code list},
-     * otherwise {@code null}.
+     * Return the {@link Segment} identified by {@code id} if it exists within
+     * the collection of {@code segments}. If it doesn't return {@code null}.
      * 
-     * @param list
+     * @param segments
      * @param id
-     * @return the Block identified by {@code id} or {@code null}
+     * @return the {@link Segment} identified by {@code id} or {@code null}
      */
     @Nullable
-    private static <T extends Block<?, ?, ?>> T findBlock(List<T> list,
+    private static Segment findSegment(Collection<Segment> segments,
             String id) {
-        // TODO: use binary search, since the ids of the list are sorted...this
-        // may require making Blocks comparable by id
-        for (T block : list) {
-            if(block.getId().equals(id)) {
-                return block;
+        for (Segment segment : segments) {
+            if(segment.id().equals(id)) {
+                return segment;
             }
         }
         return null;
     }
+
+    /**
+     * The subdirectory of {@link #directory} where the {@link Segment} files
+     * are stored.
+     */
+    private static final String SEGMENTS_SUBDIRECTORY = "segments";
+
+    /**
+     * The full {@link Path} for the directory where the {@link #segments
+     * segment} files are stored.
+     */
+    private final transient Path $segments;
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -210,32 +220,6 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     private transient boolean acceptable = false;
 
-    /**
-     * The location where the Database stores data.
-     */
-    private final transient String backingStore;
-
-    /*
-     * BLOCK COLLECTIONS
-     * -----------------
-     * We maintain a collection to all the blocks, in chronological order, so
-     * that we can seek for the necessary revisions to populate a requested
-     * record.
-     */
-    private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-
-    /*
-     * CURRENT BLOCK POINTERS
-     * ----------------------
-     * We hold direct references to the current blocks. These pointers change
-     * whenever the database triggers a sync operation.
-     */
-    private transient PrimaryBlock cpb0;
-    private transient SecondaryBlock csb0;
-    private transient SearchBlock ctb0;
-
     /*
      * RECORD CACHES
      * -------------
@@ -244,9 +228,14 @@ public final class Database extends BaseStore implements PermanentStore {
      * records and append the new revision so that the cached data doesn't grow
      * stale.
      */
-    private final Cache<Composite, PrimaryRecord> cpc = buildCache();
-    private final Cache<Composite, PrimaryRecord> cppc = buildCache();
-    private final Cache<Composite, SecondaryRecord> csc = buildCache();
+    private final Cache<Composite, TableRecord> cpc = buildCache();
+    private final Cache<Composite, TableRecord> cppc = buildCache();
+    private final Cache<Composite, IndexRecord> csc = buildCache();
+
+    /**
+     * The location where the Database stores data.
+     */
+    private final transient Path directory;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -255,23 +244,42 @@ public final class Database extends BaseStore implements PermanentStore {
     private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
+     * A live view into the {@link Database Database's} memory.
+     */
+    private CacheState memory;
+
+    /**
      * A flag to indicate if the Buffer is running or not.
      */
     private transient boolean running = false;
 
     /**
-     * An {@link ExecutorService} that handles asynchronous writing tasks in the
-     * background.
+     * We hold direct references to the current Segment. This pointer changes
+     * whenever the database triggers a sync operation.
      */
-    private transient AwaitableExecutorService writer;
+    private transient Segment seg0;
 
     /**
-     * An {@link ExecutorService} that handles asynchronous reading tasks in the
-     * background.
+     * <p>
+     * A collection of all the segments, in manually sorted chronological order,
+     * so that we can seek for the necessary revisions and populate a requested
+     * record.
+     * </p>
+     * 
+     * <p>
+     * <strong>NOTE:</strong> We maintain the #segments in a List (instead
+     * of a SortedSet) because a newly added Segment is always "greater" than an
+     * existing Segment. The only time Segments are not added in monotonically
+     * increasing order is when they are loaded when the database #start()s.
+     * </p>
      */
-    private transient AwaitableExecutorService reader;
+    private final transient List<Segment> segments = Lists.newArrayList();
 
-    private CacheState memory;
+    /**
+     * An {@link ExecutorService} that is passed to {@link #seg0} to handle
+     * writing tasks asynchronously in the background.
+     */
+    private transient AwaitableExecutorService writer;
 
     /**
      * Construct a Database that is backed by the default location which is in
@@ -287,10 +295,22 @@ public final class Database extends BaseStore implements PermanentStore {
      * The {@link backingStore} is passed to each {@link Record} as the
      * {@code parentStore}.
      * 
-     * @param backingStore
+     * @param directory
      */
-    public Database(String backingStore) {
-        this.backingStore = backingStore;
+    public Database(Path directory) {
+        this.directory = directory;
+        this.$segments = directory.resolve(SEGMENTS_SUBDIRECTORY);
+    }
+
+    /**
+     * Construct a Database that is backed by {@link backingStore} directory.
+     * The {@link backingStore} is passed to each {@link Record} as the
+     * {@code parentStore}.
+     * 
+     * @param directory
+     */
+    public Database(String directory) {
+        this(Paths.get(directory));
     }
 
     @Override
@@ -308,16 +328,30 @@ public final class Database extends BaseStore implements PermanentStore {
             acceptable = true;
         }
         if(acceptable) {
-            // NOTE: Write locking happens in each individual Block, and
-            // furthermore this method is only called from the Buffer, which
-            // transports data serially.
-            Runnable[] tasks = Array.containing(new BlockWriter(cpb0, write),
-                    new BlockWriter(csb0, write), new BlockWriter(ctb0, write));
+            // NOTE: This approach is thread safe because write locking happens
+            // in each of #seg0's individual Blocks, and furthermore this method
+            // is only called from the Buffer, which transports data serially.
             if(running) {
                 try {
-                    writer.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to accept the following Write: {}",
-                            write, error), tasks);
+                    Receipt receipt = seg0.transfer(write, writer);
+                    Logger.debug("Transferred {} to {}", write, seg0);
+
+                    // Updated cached records
+                    TableRecord cpr = cpc
+                            .getIfPresent(Composite.create(write.getRecord()));
+                    TableRecord cppr = cppc.getIfPresent(Composite
+                            .create(write.getRecord(), write.getKey()));
+                    IndexRecord csr = csc
+                            .getIfPresent(Composite.create(write.getKey()));
+                    if(cpr != null) {
+                        cpr.append(receipt.tableRevision());
+                    }
+                    if(cppr != null) {
+                        cppr.append(receipt.tableRevision());
+                    }
+                    if(csr != null) {
+                        csr.append(receipt.indexRevision());
+                    }
                 }
                 catch (InterruptedException e) {
                     Logger.warn(
@@ -334,9 +368,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 // during test cases
                 Logger.warn(
                         "The database is being asked to accept a Write, even though it is not running.");
-                for (Runnable task : tasks) {
-                    task.run();
-                }
+                seg0.transfer(write);
             }
         }
         else {
@@ -360,27 +392,33 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<Long, String> audit(long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record)).audit();
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(_locator);
+        return table.audit();
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).audit(key0);
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        TableRecord table = getTableRecord(_locator);
+        return table.audit(_key);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrapCached(key)).browse(),
+        Text _locator = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(_locator);
+        return Transformers.transformTreeMapSet(index.browse(),
                 Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrapCached(key)).browse(timestamp),
+        Text _locator = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(_locator);
+        return Transformers.transformTreeMapSet(index.browse(timestamp),
                 Value::getTObject, PrimaryKey::longValue,
                 TObjectSorter.INSTANCE);
     }
@@ -388,24 +426,30 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        TableRecord table = getTableRecord(_locator);
         return Transformers.transformMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record))
-                        .chronologize(Text.wrapCached(key), start, end),
-                com.google.common.base.Functions.<Long> identity(),
+                table.chronologize(_key, start, end), Functions.identity(),
                 Value::getTObject);
     }
 
     @Override
     public boolean contains(long record) {
-        return !getPrimaryRecord(PrimaryKey.wrap(record)).isEmpty();
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(_locator);
+        return !table.isEmpty();
     }
 
     @Override
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
-                Transformers.transformArray(values, Value::wrap, Value.class));
+        Text _locator = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(_locator);
+        Value[] _keys = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.explore(timestamp, operator,
+                _keys);
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
                 Value::getTObject, Long::compare);
     }
@@ -413,9 +457,11 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
-                Transformers.transformArray(values, Value::wrap, Value.class));
+        Text _locator = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(_locator);
+        Value[] _keys = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.explore(operator, _keys);
         return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
                 Value::getTObject, Long::compare);
     }
@@ -429,32 +475,32 @@ public final class Database extends BaseStore implements PermanentStore {
      * @return the block dumps.
      */
     public String dump(String id) {
-        PrimaryBlock _cpb = findBlock(cpb, id);
-        SecondaryBlock _csb = findBlock(csb, id);
-        SearchBlock _ctb = findBlock(ctb, id);
-        Preconditions.checkArgument(_cpb != null && _csb != null,
-                "Insufficient number of blocks identified by %s", id);
+        Segment segment = findSegment(segments, id);
+        Preconditions.checkArgument(segment != null,
+                "No segment identified by %s", id);
         StringBuilder sb = new StringBuilder();
-        sb.append(_cpb.dump());
-        sb.append(_csb.dump());
-        if(_ctb != null) {
-            sb.append(_ctb.dump());
-        }
+        sb.append(segment.table().dump());
+        sb.append(segment.index().dump());
+        sb.append(segment.corpus().dump());
         return sb.toString();
     }
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        SecondaryRecord index = getSecondaryRecord(Text.wrapCached(key));
-        Set<Value> values = index.gather(PrimaryKey.wrap(record));
-        return Transformers.transformSet(values, Value::getTObject);
+        Text _locator = Text.wrapCached(key);
+        PrimaryKey _value = PrimaryKey.wrap(record);
+        IndexRecord index = getIndexRecord(_locator);
+        Set<Value> _keys = index.gather(_value);
+        return Transformers.transformSet(_keys, Value::getTObject);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        SecondaryRecord index = getSecondaryRecord(Text.wrapCached(key));
-        Set<Value> values = index.gather(PrimaryKey.wrap(record), timestamp);
-        return Transformers.transformSet(values, Value::getTObject);
+        Text _locator = Text.wrapCached(key);
+        PrimaryKey _value = PrimaryKey.wrap(record);
+        IndexRecord index = getIndexRecord(_locator);
+        Set<Value> _keys = index.gather(_value, timestamp);
+        return Transformers.transformSet(_keys, Value::getTObject);
     }
 
     /**
@@ -464,7 +510,7 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     @Restricted
     public String getBackingStore() {
-        return backingStore;
+        return directory.toString();
     }
 
     /**
@@ -474,11 +520,7 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     @ManagedOperation
     public List<String> getDumpList() {
-        List<String> ids = Lists.newArrayList();
-        for (PrimaryBlock block : cpb) {
-            ids.add(block.getId());
-        }
-        return ids;
+        return segments.stream().map(Segment::id).collect(Collectors.toList());
     }
 
     @Override
@@ -490,115 +532,122 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<Long> search(String key, String query) {
-        return Transformers
-                .transformSet(
-                        getSearchRecord(Text.wrapCached(key), Text.wrap(query))
-                                .search(Text.wrap(query)),
-                        PrimaryKey::longValue);
+        Text _locator = Text.wrapCached(key);
+        Text _query = Text.wrap(query);
+        CorpusRecord corpus = getCorpusRecord(_locator, _query);
+        return Transformers.transformSet(corpus.search(_query),
+                PrimaryKey::longValue);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Text::toString, Value::getTObject,
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(_locator);
+        return Transformers.transformTreeMapSet(table.browse(), Text::toString,
+                Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(_locator);
+        return Transformers.transformTreeMapSet(table.browse(timestamp),
                 Text::toString, Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Set<TObject> select(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
-                Value::getTObject);
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        TableRecord table = getTableRecord(_locator, _key);
+        return Transformers.transformSet(table.fetch(_key), Value::getTObject);
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers
-                .transformSet(getPrimaryRecord(PrimaryKey.wrap(record), key0)
-                        .fetch(key0, timestamp), Value::getTObject);
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        TableRecord table = getTableRecord(_locator, _key);
+        return Transformers.transformSet(table.fetch(_key, timestamp),
+                Value::getTObject);
     }
 
-    @SuppressWarnings("unlikely-arg-type")
     @Override
     public void start() {
         if(!running) {
+            Logger.info("Database configured to store data in {}", directory);
             running = true;
-            Logger.info("Database configured to store data in {}",
-                    backingStore);
             this.writer = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("database-write-thread")));
-            this.reader = new AwaitableExecutorService(
-                    Executors.newCachedThreadPool(ThreadFactories
-                            .namingThreadFactory("Storage Block Loader")));
-            Runnable[] tasks = Array.containing(
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
-                    new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
-                            SECONDARY_BLOCK_DIRECTORY, csb),
-                    new BlockLoader<SearchBlock>(SearchBlock.class,
-                            SEARCH_BLOCK_DIRECTORY, ctb));
-            try {
-                reader.await((task, error) -> Logger.error(
-                        "Unexpected error when trying to load Blocks: {}",
-                        error), tasks);
-            }
-            catch (InterruptedException e) {
-                Logger.error("The Database was interrupted while starting...",
-                        e);
-                Thread.currentThread().interrupt();
-                return;
-            }
-
-            // CON-83: Get rid of any block groups that aren't "balanced" (e.g.
-            // has primary and secondary) under the assumption that the server
-            // crashed and the corresponding Buffer page still exists. Please
-            // note that since we do not sync empty blocks, it is possible
-            // that there are some primary and secondary blocks without a
-            // corresponding search one. But, it is also possible that a
-            // legitimate search block is missing because the server crashed
-            // before it was synced, in which case the data that was in that
-            // block is lost because we can't both legitimately avoid syncing
-            // empty (search) blocks and rely on the fact that a search block is
-            // missing to assume that the server crashed. :-/
-            TLists.retainIntersection(cpb, csb);
-            ctb.retainAll(cpb);
-
-            // Remove duplicate Blocks from each group. Block duplication can
-            // occur when the server crashes and a Block group is only partially
-            // synced. When the server restarts, it will try to sync the Block
-            // group again, generating duplicate Blocks on disk for the Blocks
-            // that succeeded in syncing before the crash
-            for (List<? extends Block<?, ?, ?>> blocks : ImmutableList.of(cpb,
-                    csb, ctb)) {
-                Set<String> checksums = Sets
-                        .newHashSetWithExpectedSize(blocks.size());
-                Iterator<? extends Block<?, ?, ?>> it = blocks.iterator();
-                while (it.hasNext()) {
-                    Block<?, ?, ?> block = it.next();
-                    if(!checksums.add(block.checksum())) {
-                        it.remove();
-                        Logger.warn(
-                                "{} {} contains duplicate data, so it was not loaded. You can safely delete this file.",
-                                block.getClass().getSimpleName(),
-                                block.getId());
-                    }
+                            .namingThreadFactory("DatabaseWriter")));
+            this.segments.clear();
+            ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
+            FileSystem.mkdirs($segments);
+            List<Segment> segments = Collections
+                    .synchronizedList(this.segments);
+            FileSystem.ls($segments).forEach(file -> tasks.add(() -> {
+                try {
+                    Segment segment = Segment.load(file);
+                    segments.add(segment);
+                }
+                catch (SegmentLoadingException e) {
+                    Logger.error("Error when trying to load Segment {}", file);
+                    Logger.error("", e);
+                }
+            }));
+            if(tasks.length() > 0) {
+                AwaitableExecutorService loader = new AwaitableExecutorService(
+                        Executors.newCachedThreadPool(ThreadFactories
+                                .namingThreadFactory("DatabaseLoader")));
+                try {
+                    loader.await((task, error) -> Logger.error(
+                            "Unexpected error when trying to load Database Segmens: {}",
+                            error), tasks.build());
+                }
+                catch (InterruptedException e) {
+                    Logger.error(
+                            "The Database was interrupted while starting...",
+                            e);
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                finally {
+                    loader.shutdown();
                 }
             }
+
+            // Sort the segments in chronological order
+            Collections.sort(this.segments, Segment.TEMPORAL_COMPARATOR);
+
+            // Remove segments that overlap. Segments may overlap if they are
+            // duplicates resulting from a botched upgrade or reindex or if they
+            // were involved in an optimization pass, but garbage collection
+            // didn't run before the server shutdown.
+            ListIterator<Segment> lit = segments.listIterator();
+            while (lit.hasNext()) {
+                if(lit.hasPrevious()) {
+                    Segment previous = lit.previous();
+                    lit.next();
+                    Segment current = lit.next();
+                    if(current.equals(previous)) {
+                        lit.previous();
+                        lit.remove();
+                        Logger.warn(
+                                "Segment {} was not loaded because it contains duplicate data. It has been scheduled for garbage collection.",
+                                previous);
+                        // TODO: mark #previous for garbage collection
+                    }
+                }
+                else {
+                    lit.next();
+                }
+            }
+
             triggerSync(false);
+            memory = new CacheState();
         }
-        memory = new CacheState();
 
     }
 
@@ -606,9 +655,11 @@ public final class Database extends BaseStore implements PermanentStore {
     public void stop() {
         if(running) {
             running = false;
-            reader.shutdown();
             writer.shutdown();
             memory = null;
+            for (Cache<Composite, ?> cache : ImmutableList.of(cpc, cppc, csc)) {
+                cache.invalidateAll();
+            }
         }
     }
 
@@ -627,38 +678,43 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
-                Value.wrap(value));
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        Value _value = Value.wrap(value);
+        TableRecord table = getTableRecord(_locator, _key);
+        return table.verify(_key, _value);
     }
 
     @Override
     public boolean verify(String key, TObject value, long record,
             long timestamp) {
-        Text key0 = Text.wrapCached(key);
-        return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
-                Value.wrap(value), timestamp);
+        PrimaryKey _locator = PrimaryKey.wrap(record);
+        Text _key = Text.wrapCached(key);
+        Value _value = Value.wrap(value);
+        TableRecord table = getTableRecord(_locator, _key);
+        return table.verify(_key, _value, timestamp);
     }
 
     /**
-     * Return the PrimaryRecord identifier by {@code primaryKey}.
+     * Return the TableRecord identifier by {@code primaryKey}.
      * 
-     * @param pkey
-     * @return the PrimaryRecord
+     * @param primaryKey
+     * @return the TableRecord
      */
-    private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
+    private TableRecord getTableRecord(PrimaryKey primaryKey) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(pkey);
-            PrimaryRecord record = cpc.getIfPresent(composite);
-            if(record == null) {
-                record = Record.createPrimaryRecord(pkey);
-                for (PrimaryBlock block : cpb) {
-                    block.seek(pkey, record);
+            Composite composite = Composite.create(primaryKey);
+            return cpc.get(composite, () -> {
+                TableRecord $ = TableRecord.create(primaryKey);
+                for (Segment segment : segments) {
+                    segment.table().seek(composite, $);
                 }
-                cpc.put(composite, record);
-            }
-            return record;
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -666,37 +722,40 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the potentially partial PrimaryRecord identified by {@code key} in
+     * Return the potentially partial TableRecord identified by {@code key} in
      * {@code primaryKey}.
      * <p>
-     * While the returned {@link PrimaryRecord} may not be
-     * {@link PrimaryRecord#isPartial() partial}, the caller should interact
+     * While the returned {@link TableRecord} may not be
+     * {@link TableRecord#isPartial() partial}, the caller should interact
      * with it as if it is (e.g. do not perform reads for any other keys besides
      * {@code key}.
      * </p>
      * 
-     * @param pkey
+     * @param primaryKey
      * @param key
-     * @return the PrimaryRecord
+     * @return the TableRecord
      */
-    private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
+    private TableRecord getTableRecord(PrimaryKey primaryKey, Text key) {
         masterLock.readLock().lock();
         try {
-            final Composite composite = Composite.create(pkey, key);
-            PrimaryRecord record = cppc.getIfPresent(composite);
-            if(record == null) {
-                // Before loading a partial record, see if the full record is
-                // present in memory.
-                record = cpc.getIfPresent(Composite.create(pkey));
+            // Before loading a partial record, see if the full record is
+            // present in memory.
+            TableRecord table = cpc.getIfPresent(Composite.create(primaryKey));
+            if(table == null) {
+                Composite composite = Composite.create(primaryKey, key);
+                table = cppc.get(composite, () -> {
+                    TableRecord $ = TableRecord.createPartial(primaryKey, key);
+                    for (Segment segment : segments) {
+                        segment.table().seek(composite, $);
+                    }
+                    return $;
+                });
             }
-            if(record == null) {
-                record = Record.createPrimaryRecordPartial(pkey, key);
-                for (PrimaryBlock block : cpb) {
-                    block.seek(pkey, key, record);
-                }
-                cppc.put(composite, record);
-            }
-            return record;
+            return table;
+
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -704,26 +763,27 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the SearchRecord identified by {@code key}.
+     * Return the CorpusRecord identified by {@code key}.
      * 
      * @param key
      * @param query
-     * @return the SearchRecord
+     * @return the CorpusRecord
      */
-    private SearchRecord getSearchRecord(Text key, Text query) {
-        // NOTE: We do not cache SearchRecords because they have the potential
+    private CorpusRecord getCorpusRecord(Text key, Text query) {
+        // NOTE: We do not cache CorpusRecords because they have the potential
         // to be VERY large. Holding references to them in a cache would prevent
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            SearchRecord record = Record.createSearchRecordPartial(key, query);
-            for (SearchBlock block : ctb) {
+            CorpusRecord record = CorpusRecord.createPartial(key, query);
+            for (Segment segment : segments) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
                 String[] toks = query.toString().toLowerCase().split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
-                    block.seek(key, Text.wrap(tok), record);
+                    Composite composite = Composite.create(key, Text.wrap(tok));
+                    segment.corpus().seek(composite, record);
                 }
             }
             return record;
@@ -734,24 +794,25 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the SecondaryRecord identified by {@code key}.
+     * Return the IndexRecord identified by {@code key}.
      * 
      * @param key
-     * @return the SecondaryRecord
+     * @return the IndexRecord
      */
-    private SecondaryRecord getSecondaryRecord(Text key) {
+    private IndexRecord getIndexRecord(Text key) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            SecondaryRecord record = csc.getIfPresent(composite);
-            if(record == null) {
-                record = Record.createSecondaryRecord(key);
-                for (SecondaryBlock block : csb) {
-                    block.seek(key, record);
+            return csc.get(composite, () -> {
+                IndexRecord $ = IndexRecord.create(key);
+                for (Segment segment : segments) {
+                    segment.index().seek(composite, $);
                 }
-                csc.put(composite, record);
-            }
-            return record;
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -762,211 +823,24 @@ public final class Database extends BaseStore implements PermanentStore {
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
-     * @param doSync - a flag that controls whether we actually perform a sync
-     *            or not. Sometimes this method is called when there is no data
-     *            to sync and we just want to create new blocks (e.g. on initial
-     *            startup).
+     * @param flush - a flag that controls whether we actually perform a
+     *            sync or not. Sometimes this method is called when there is no
+     *            data to sync and we just want to create new blocks (e.g. on
+     *            initial startup).
      */
-    private void triggerSync(boolean doSync) {
+    private void triggerSync(boolean flush) {
         masterLock.writeLock().lock();
         try {
-            if(doSync) {
-                // TODO we need a transactional file system to ensure that these
-                // blocks are written atomically (all or nothing)
-                Runnable[] tasks = Array.containing(new BlockSyncer(cpb0),
-                        new BlockSyncer(csb0), new BlockSyncer(ctb0));
-                if(running) {
-                    try {
-                        writer.await((task, error) -> Logger.error(
-                                "The database is unable to sync all the Blocks with id {} because {}.",
-                                cpb0.getId(), error.getMessage(), error),
-                                tasks);
-                    }
-                    catch (InterruptedException e) {
-                        Logger.warn(
-                                "The database was interrupted while trying to "
-                                        + "sync storage blocks for {}. Since the blocks "
-                                        + "were not fully synced, the contained writes are "
-                                        + "still in the Buffer. Any partially synced blocks "
-                                        + "will be safely removed when the Database restarts.",
-                                cpb0.getId());
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-                else {
-                    // The #triggerSync method may be called when the database
-                    // is stopped during test cases
-                    Logger.warn(
-                            "The database is being asked to sync blocks, even though it is not running.");
-                    for (Runnable task : tasks) {
-                        task.run();
-                    }
-                }
+            if(flush) {
+                Path file = $segments.resolve(UUID.randomUUID() + ".seg");
+                seg0.fsync(file);
+                Logger.debug("Completed sync of {} to disk at {}", seg0.label(),
+                        file);
             }
-            String id = Long.toString(Time.now());
-            cpb.add((cpb0 = Block.createPrimaryBlock(id,
-                    backingStore + File.separator + PRIMARY_BLOCK_DIRECTORY)));
-            csb.add((csb0 = Block.createSecondaryBlock(id, backingStore
-                    + File.separator + SECONDARY_BLOCK_DIRECTORY)));
-            ctb.add((ctb0 = Block.createSearchBlock(id,
-                    backingStore + File.separator + SEARCH_BLOCK_DIRECTORY)));
+            segments.add((seg0 = Segment.create()));
         }
         finally {
             masterLock.writeLock().unlock();
-        }
-    }
-
-    /**
-     * A runnable that traverses the appropriate directory for a block type
-     * under {@link #backingStore} and loads the block metadata into memory.
-     * 
-     * @author Jeff Nelson
-     * @param <T> - the Block type
-     */
-    private final class BlockLoader<T extends Block<?, ?, ?>> implements
-            Runnable {
-
-        private final List<T> blocks;
-        private final Class<T> clazz;
-        private final String directory;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param clazz
-         * @param directory
-         * @param blocks
-         */
-        public BlockLoader(Class<T> clazz, String directory, List<T> blocks) {
-            this.clazz = clazz;
-            this.directory = directory;
-            this.blocks = blocks;
-        }
-
-        @Override
-        public void run() {
-            Path path = Paths.get(backingStore, directory);
-            path.toFile().mkdirs();
-            SortedMap<File, T> sorted = Maps.newTreeMap(NaturalSorter.INSTANCE);
-            Stream<File> files = FileSystem.ls(path)
-                    .filter(file -> file.toString()
-                            .endsWith(Block.BLOCK_NAME_EXTENSION))
-                    .map(Path::toFile).filter(file -> file.length() > 0);
-            files.forEach(file -> {
-                String id = Block.getId(file.getName());
-                try {
-                    T block = Reflection.newInstance(clazz, id, path.toString(),
-                            true);
-                    sorted.put(file, block);
-                    Logger.info("Loaded {} metadata for {}",
-                            clazz.getSimpleName(), file.getName());
-                }
-                catch (MalformedBlockException e) {
-                    Logger.warn(
-                            "{}. As a result the Block was NOT loaded. A malformed block is usually an indication that the Block was only partially synced to disk before Concourse Server shutdown. In this case, it is safe to delete any Block files that were written for id {}",
-                            e.getMessage(), id);
-                }
-                catch (Exception e) {
-                    Logger.error(
-                            "An error occured while loading {} metadata for {}",
-                            clazz.getSimpleName(), file.getName());
-                    Logger.error("", e);
-                }
-            });
-            blocks.addAll(sorted.values());
-        }
-    }
-
-    /**
-     * A runnable that will sync a block to disk.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class BlockSyncer implements Runnable {
-
-        private final Block<?, ?, ?> block;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param block
-         */
-        public BlockSyncer(Block<?, ?, ?> block) {
-            this.block = block;
-        }
-
-        @Override
-        public void run() {
-            block.sync();
-            Logger.debug("Completed sync of {}", block);
-        }
-
-    }
-
-    /**
-     * A runnable that will insert a Writer into a block.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class BlockWriter implements Runnable {
-
-        private final Block<?, ?, ?> block;
-        private final Write write;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param block
-         * @param write
-         */
-        public BlockWriter(Block<?, ?, ?> block, Write write) {
-            this.block = block;
-            this.write = write;
-        }
-
-        @Override
-        public void run() {
-            Logger.debug("Writing {} to {}", write, block);
-            if(block instanceof PrimaryBlock) {
-                PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
-                        .insert(write.getRecord(), write.getKey(),
-                                write.getValue(), write.getVersion(),
-                                write.getType());
-                Record<PrimaryKey, Text, Value> record = cpc
-                        .getIfPresent(Composite.create(write.getRecord()));
-                Record<PrimaryKey, Text, Value> partialRecord = cppc
-                        .getIfPresent(Composite.create(write.getRecord(),
-                                write.getKey()));
-                if(record != null) {
-                    record.append(revision);
-                }
-                if(partialRecord != null) {
-                    partialRecord.append(revision);
-                }
-            }
-            else if(block instanceof SecondaryBlock) {
-                SecondaryRevision revision = (SecondaryRevision) ((SecondaryBlock) block)
-                        .insert(write.getKey(), write.getValue(),
-                                write.getRecord(), write.getVersion(),
-                                write.getType());
-                SecondaryRecord record = csc
-                        .getIfPresent(Composite.create(write.getKey()));
-                if(record != null) {
-                    record.append(revision);
-                }
-            }
-            else if(block instanceof SearchBlock) {
-                ((SearchBlock) block).insert(write.getKey(), write.getValue(),
-                        write.getRecord(), write.getVersion(), write.getType());
-                // NOTE: We do not cache SearchRecords because they have the
-                // potential to be VERY large. Holding references to them in a
-                // cache would prevent them from being garbage collected
-                // resulting in more OOMs.
-            }
-            else {
-                throw new IllegalArgumentException();
-            }
         }
     }
 

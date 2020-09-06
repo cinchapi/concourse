@@ -18,6 +18,8 @@ package com.cinchapi.concourse.server.io;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -67,31 +69,35 @@ public class ByteableCollections {
      * infeasible to read the entire file into memory at once.
      * 
      * @param file
+     * @param position the file index from which to start reading
+     * @param length the total number of bytes to read before determining that
+     *            there are no more elements
      * @param bufferSize - must be large enough to accommodate the largest
      *            element that will be returned by the iterator
      * @return the iterator
      */
-    public static Iterator<ByteBuffer> streamingIterator(final String file,
-            final int bufferSize) {
+    public static Iterator<ByteBuffer> streamingIterator(Path file,
+            long position, long length, int bufferSize) {
         return new Iterator<ByteBuffer>() {
 
-            private long bufSize;
+            private long bufSize = bufferSize;
             private boolean expandBuffer = false;
-            private long fileSize = FileSystem.getFileSize(file);
             private Iterator<ByteBuffer> it = null;
-            private long position = 0;
+            private long index = position;
+            private long limit = index + length;
+
             {
-                bufSize = bufferSize;
+
                 adjustBuffer();
             }
 
             @Override
             public boolean hasNext() {
                 ByteBuffer backingBytes = ((ByteableCollectionIterator) it).bytes;
-                if(position < fileSize && it.hasNext()) {
+                if(index < limit && it.hasNext()) {
                     return true;
                 }
-                else if(position < fileSize && fileSize - position >= 4) {
+                else if(index < limit && limit - index >= 4) {
                     if(backingBytes.remaining() >= 4) {
                         // In order to know if we've reached a state where the
                         // remaining bytes in the file are null, we need to peek
@@ -119,7 +125,7 @@ public class ByteableCollections {
             public ByteBuffer next() {
                 try {
                     ByteBuffer next = it.next();
-                    position += next.capacity() + 4;
+                    index += next.capacity() + 4;
                     expandBuffer = false;
                     return next;
                 }
@@ -143,11 +149,30 @@ public class ByteableCollections {
                 if(expandBuffer) {
                     bufSize *= 2;
                 }
-                it = iterator(FileSystem.map(file, MapMode.READ_ONLY, position,
-                        Math.min(fileSize - position, bufSize)));
+                it = iterator(FileSystem.map(file, MapMode.READ_ONLY, index,
+                        Math.min(limit - index, bufSize)));
             }
 
         };
+    }
+
+    /**
+     * Return an {@link Iterator} that will traverse the bytes in {@code file}
+     * and return a series of {@link ByteBuffer byte buffers}, each of which can
+     * be used to reconstruct a {@link Byteable} object. Unlike the
+     * {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * @param file
+     * @param bufferSize - must be large enough to accommodate the largest
+     *            element that will be returned by the iterator
+     * @return the iterator
+     */
+    public static Iterator<ByteBuffer> streamingIterator(final String file,
+            final int bufferSize) {
+        return streamingIterator(Paths.get(file), 0,
+                FileSystem.getFileSize(file), bufferSize);
     }
 
     /**

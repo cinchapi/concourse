@@ -145,6 +145,7 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
     @SuppressWarnings("unchecked")
     protected void runChild(Runner child, RunNotifier notifier) {
         child.run(notifier);
+        System.gc();
         if(runners.indexOf(child) == runners.size() - 1) {
             Field field = null;
             Class<?> clazz = ((BlockJUnit4ClassRunner) child).getTestClass()

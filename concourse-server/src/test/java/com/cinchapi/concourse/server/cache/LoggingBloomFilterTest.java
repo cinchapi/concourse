@@ -23,6 +23,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.Byteable;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.LoggingBloomFilter;
@@ -75,11 +76,11 @@ public class LoggingBloomFilterTest extends ConcourseBaseTest {
         Byteable[] byteables1 = getByteables();
         Byteable[] byteables2 = getByteables();
         filter.put(byteables1);
-        guava.put(byteables1);
-        Assert.assertEquals(filter.mightContain(byteables1),
-                guava.mightContain(byteables1));
+        guava.put(Composite.create(byteables1));
+        Assert.assertEquals(filter.mightContain(Composite.create(byteables1)),
+                guava.mightContain(Composite.create(byteables1)));
         Assert.assertEquals(filter.mightContain(byteables2),
-                guava.mightContain(byteables2));
+                guava.mightContain(Composite.create(byteables2)));
     }
 
     @Test
@@ -98,7 +99,7 @@ public class LoggingBloomFilterTest extends ConcourseBaseTest {
         // Profile Guava
         watch.start();
         for (Byteable[] array : byteables) {
-            guava.put(array);
+            guava.put(Composite.create(array));
         }
         watch.stop();
         long guavaMs = Variables.register("guava",

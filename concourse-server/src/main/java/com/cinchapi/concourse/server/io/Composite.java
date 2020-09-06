@@ -19,30 +19,43 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 
 /**
- * A {@link Composite} is a single Byteable object that wraps multiple other
- * Byteable objects.
- * 
+ * A {@link Composite} is a single {@link Byteable} composed of other
+ * {@link Byteable Byteables}.
+ * <p>
+ * A {@link Composite} is used to construct keys with multiple parts.
+ * </p>
+ *
  * @author Jeff Nelson
  */
 @Immutable
 public final class Composite implements Byteable {
 
     /**
-     * Return a Composite for the list of {@code objects}.
+     * Create a new {@link Composite}.
      * 
-     * @param objects
-     * @return the Composite
+     * @param parts
+     * @return the new {@link Composite}
      */
-    public static Composite create(Compositable... objects) {
-        return new Composite(objects);
+    public static Composite create(Byteable... parts) {
+        return new Composite(parts);
+    }
+
+    /**
+     * Load an existing {@link Composite} from a {@link ByteBuffer}.
+     * 
+     * @param bytes
+     * @return the loaded {@link Composite}
+     */
+    public static Composite load(ByteBuffer bytes) {
+        return new Composite(bytes);
     }
 
     /**
@@ -55,7 +68,7 @@ public final class Composite implements Byteable {
      * @param objects
      * @return the Composite
      */
-    public static Composite createCached(Compositable... objects) {
+    public static Composite createCached(Byteable... objects) {
         int hashCode = Arrays.hashCode(objects);
         Composite composite = CACHE.get(hashCode);
         if(composite == null) {
@@ -66,79 +79,58 @@ public final class Composite implements Byteable {
     }
 
     /**
-     * Return the Token encoded in {@code bytes} so long as those
-     * bytes adhere to the format specified by the {@link #getBytes()} method.
-     * This method assumes that all the bytes in the {@code bytes} belong to the
-     * Token. In general, it is necessary to get the appropriate
-     * Value slice from the parent ByteBuffer using
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-     * 
-     * @param bytes
-     * @return the Token
-     */
-    public static Composite fromByteBuffer(ByteBuffer bytes) {
-        return Byteables.read(bytes, Composite.class);
-    }
-
-    /**
      * A cache of Composite. Each composite is associated with the cumulative
      * hashcode of all the things that went into the composite.
      */
     private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
     /**
-     * All the bytes that make up the {@link Composite}.
+     * The composite bytes.
      */
     private final ByteBuffer bytes;
 
     /**
-     * Construct an instance that represents an existing Token from
-     * a ByteBuffer. This constructor is public so as to comply with the
-     * {@link Byteable} interface. Calling this constructor directly is not
-     * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-     * advantage of reference caching.
-     * 
-     * @param bytes
+     * The input parts. This is generally not available when the
+     * {@link Composite} is {@link #load(ByteBuffer) loaded}.
      */
-    @DoNotInvoke
-    public Composite(ByteBuffer bytes) {
-        this.bytes = bytes;
-    }
+    private final Byteable[] parts;
 
     /**
      * Construct a new instance.
      * 
-     * @param objects
+     * @param parts
      */
-    private Composite(Compositable... objects) {
-        if(objects.length == 1) {
-            bytes = objects[0].getCanonicalBytes();
+    private Composite(Byteable... parts) {
+        this.parts = parts;
+        if(parts.length == 1) {
+            bytes = parts[0].getCanonicalBytes();
         }
         else {
             int size = 0;
-            for (Compositable object : objects) {
-                size += object.getCanonicalLength();
+            for (Byteable part : parts) {
+                size += part.getCanonicalLength();
             }
             bytes = ByteBuffer.allocate(size);
-            for (Compositable object : objects) {
-                object.copyCanonicalBytesTo(ByteSink.to(bytes));
+            for (Byteable part : parts) {
+                part.copyCanonicalBytesTo(ByteSink.to(bytes));
             }
-            bytes.rewind();
+            bytes.flip();
         }
+    }
+
+    /**
+     * Load a new instance.
+     * 
+     * @param bytes
+     */
+    private Composite(ByteBuffer bytes) {
+        this.bytes = bytes;
+        this.parts = null;
     }
 
     @Override
     public void copyTo(ByteSink sink) {
         ByteSinks.copyAndRewindSource(bytes, sink);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Composite) {
-            Composite other = (Composite) obj;
-            return getBytes().equals(other.getBytes());
-        }
-        return false;
     }
 
     @Override
@@ -148,7 +140,38 @@ public final class Composite implements Byteable {
 
     @Override
     public int hashCode() {
-        return getBytes().hashCode();
+        return bytes.hashCode();
+    }
+
+    /**
+     * Return {@code true} if {@link #parts()} will return a non-null value.
+     * 
+     * @return {@code true} if this {@link Composite} is aware of its individual
+     *         parts
+     */
+    public boolean hasParts() {
+        return parts != null;
+    }
+
+    /**
+     * Return the individual {@link Byteable parts} that make up this
+     * {@link Composite}, if they're available. If the parts are not available,
+     * return {@code null}
+     * 
+     * @return the {@link Composite} parts
+     */
+    @Nullable
+    public Byteable[] parts() {
+        return parts;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Composite) {
+            Composite other = (Composite) obj;
+            return bytes.equals(other.bytes);
+        }
+        return false;
     }
 
     @Override
@@ -158,8 +181,7 @@ public final class Composite implements Byteable {
 
     @Override
     public String toString() {
-        return Hashing.murmur3_128()
-                .hashBytes(ByteBuffers.toByteArray(getBytes())).toString();
+        return Hashing.murmur3_128().hashBytes(getBytes()).toString();
     }
 
 }

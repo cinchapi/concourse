@@ -31,9 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
-import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -53,72 +50,7 @@ import com.google.common.collect.Sets;
 @PackagePrivate
 @ThreadSafe
 @SuppressWarnings("unchecked")
-abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
-
-    /**
-     * Return a PrimaryRecord for {@code primaryKey}.
-     * 
-     * @param primaryKey
-     * @return the PrimaryRecord
-     */
-    public static PrimaryRecord createPrimaryRecord(PrimaryKey record) {
-        return new PrimaryRecord(record, null);
-    }
-
-    /**
-     * Return a partial PrimaryRecord for {@code key} in {@record}.
-     * 
-     * @param primaryKey
-     * @param key
-     * @return the PrimaryRecord.
-     */
-    public static PrimaryRecord createPrimaryRecordPartial(PrimaryKey record,
-            Text key) {
-        return new PrimaryRecord(record, key);
-    }
-
-    /**
-     * Return a SearchRecord for {@code key}.
-     * 
-     * @param key
-     * @return the SearchRecord
-     */
-    public static SearchRecord createSearchRecord(Text key) {
-        return new SearchRecord(key, null);
-    }
-
-    /**
-     * Return a partial SearchRecord for {@code term} in {@code key}.
-     * 
-     * @param key
-     * @param term
-     * @return the partial SearchRecord
-     */
-    public static SearchRecord createSearchRecordPartial(Text key, Text term) {
-        return new SearchRecord(key, term);
-    }
-
-    /**
-     * Return a SeconaryRecord for {@code key}.
-     * 
-     * @param key
-     * @return the SecondaryRecord
-     */
-    public static SecondaryRecord createSecondaryRecord(Text key) {
-        return new SecondaryRecord(key, null);
-    }
-
-    /**
-     * Return a partial SecondaryRecord for {@code value} in {@code key}.
-     * 
-     * @param key
-     * @param value
-     * @return the SecondaryRecord
-     */
-    public static SecondaryRecord createSecondaryRecordPartial(Text key,
-            Value value) {
-        return new SecondaryRecord(key, value);
-    }
+public abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
 
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
@@ -218,7 +150,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // populated from Blocks that were sorted based primarily on
             // non-version factors.
             Preconditions.checkArgument(
-                    (this instanceof PrimaryRecord
+                    (this instanceof TableRecord
                             && revision.getVersion() >= version) || true,
                     "Cannot " + "append %s because its version(%s) is lower "
                             + "than the Record's current version(%s). The",
@@ -231,7 +163,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // append Revisions for each term in the query
             Preconditions.checkArgument(
                     (partial && revision.getKey().equals(key)) || !partial
-                            || this instanceof SearchRecord,
+                            || this instanceof CorpusRecord,
                     "Cannot append %s because it does not belong to %s",
                     revision, this);
             // NOTE: The check below is ignored for a SearchRecord instance
@@ -240,7 +172,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             // at different times (i.e. adding John Doe and Johnny Doe to the
             // "name")
             Preconditions.checkArgument(
-                    this instanceof SearchRecord || isOffset(revision),
+                    this instanceof CorpusRecord || isOffset(revision),
                     "Cannot append " + "%s because it represents an action "
                             + "involving a key, value and locator that has not "
                             + "been offset.",

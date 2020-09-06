@@ -50,6 +50,18 @@ public final class Write implements Byteable, Versioned {
                                                                    // keySize(4)
 
     /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    // @formatter:off
+    public static final int MINIMUM_SIZE = 
+            CONSTANT_SIZE
+            + 1 // minimum key size since it cannot be empty
+            + 1 // value type
+            + 1 // minimum value size since it cannot be empty
+    ; 
+    // @formatter:on
+
+    /**
      * Return a storable Write that represents a revision to ADD {@code key} as
      * {@code value} to {@code record}.
      * 

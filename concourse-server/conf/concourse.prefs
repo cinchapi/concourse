@@ -39,6 +39,16 @@
 # DEFAULT: default
 #default_environment = default
 
+# Automatically use a combination of defragmentation, garbage collection and load 
+# balancing within the data files to optimize storage for read performance.
+#
+# The compaction process runs continuously in the background without disrupting reads 
+# or writes. The storage engine uses a specific strategy to determine how data files 
+# should be reorganized to improve the performance of read operations. 
+#
+# DEFAULT: true
+#enable_compaction = true
+
 # Determine whether log messages should also be printed to the console (STDOUT)
 # in addition to the log files.
 #

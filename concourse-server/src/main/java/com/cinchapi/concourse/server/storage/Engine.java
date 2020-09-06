@@ -89,7 +89,7 @@ public final class Engine extends BufferedStore implements
     //
     // NOTES ON LOCKING:
     // =================
-    // Even though the individual storage components (Block, Record, etc)
+    // Even though the individual storage components (Segment, Record, etc)
     // handle their own locking, we must also grab "global" coordinating locks
     // in the Engine
     //
@@ -1082,16 +1082,12 @@ public final class Engine extends BufferedStore implements
             super(AnyStrings.joinSimple("BufferTransport [", environment, "]"));
             setDaemon(true);
             setPriority(MIN_PRIORITY);
-            setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-
-                @Override
-                public void uncaughtException(Thread t, Throwable e) {
-                    Logger.error("Uncaught exception in {}:", t.getName(), e);
-                    Logger.error(
-                            "{} has STOPPED WORKING due to an unexpected exception. Writes will accumulate in the buffer without being transported until the error is resolved",
-                            t.getName());
-                }
-
+            setUncaughtExceptionHandler((thread, exception) -> {
+                Logger.error("Uncaught exception in {}:", thread.getName(),
+                        exception);
+                Logger.error(
+                        "{} has STOPPED WORKING due to an unexpected exception. Writes will accumulate in the buffer without being transported until the error is resolved",
+                        thread.getName());
             });
         }
 

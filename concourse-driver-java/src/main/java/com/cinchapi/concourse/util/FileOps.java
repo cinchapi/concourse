@@ -279,8 +279,23 @@ public class FileOps {
      * @return {@code true} if entire {@code path} was created
      */
     public static void mkdirs(String path) {
+        mkdirs(Paths.get(path));
+    }
+
+    /**
+     * Create the directories named by {@code path}, including any necessary,
+     * but nonexistent parent directories.
+     * <p>
+     * <strong>NOTE:</strong> If this operation fails, it may have succeeded in
+     * creating some of the necessary parent directories.
+     * </p>
+     * 
+     * @param path the path of directories to create
+     * @return {@code true} if entire {@code path} was created
+     */
+    public static void mkdirs(Path path) {
         try {
-            java.nio.file.Files.createDirectories(Paths.get(path));
+            java.nio.file.Files.createDirectories(path);
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);

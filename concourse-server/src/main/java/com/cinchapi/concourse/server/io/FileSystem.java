@@ -207,6 +207,17 @@ public final class FileSystem extends FileOps {
     }
 
     /**
+     * Return the random access {@link FileChannel} for {@code file}. The
+     * channel will be opened for reading and writing.
+     * 
+     * @param file
+     * @return the FileChannel for {@code file}
+     */
+    public static FileChannel getFileChannel(Path file) {
+        return getFileChannel(file.toString());
+    }
+
+    /**
      * Return the size of {@code file}. This method will automatically create
      * {@code file} if it does not already exist.
      * 
@@ -379,6 +390,23 @@ public final class FileSystem extends FileOps {
         finally {
             closeFileChannel(channel);
         }
+    }
+
+    /**
+     * Return a {@link MappedByteBuffer} for {@code file} in {@code mode}
+     * starting at {@code position} and continuing for {@code size} bytes. This
+     * method will automatically create {@code file} if it does not already
+     * exist.
+     * 
+     * @param file
+     * @param mode
+     * @param position
+     * @param size
+     * @return the MappedByteBuffer
+     */
+    public static MappedByteBuffer map(Path file, MapMode mode, long position,
+            long size) {
+        return map(file.toString(), mode, position, size);
     }
 
     /**
