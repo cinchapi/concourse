@@ -50,7 +50,6 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected void doTask() {
-        // TODO: need to remove segments if there is an error
         Environments
                 .iterator(GlobalState.BUFFER_DIRECTORY,
                         GlobalState.DATABASE_DIRECTORY)
