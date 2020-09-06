@@ -218,7 +218,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logDebugMessage(String message, Object... params) {
-        Logger.debug(decorateLogMessage(message), params);
+        Logger.upgradeDebug(decorateLogMessage(message), params);
     }
 
     /**
@@ -228,7 +228,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logErrorMessage(String message, Object... params) {
-        Logger.error(decorateLogMessage(message), params);
+        Logger.upgradeError(decorateLogMessage(message), params);
     }
 
     /**
@@ -238,7 +238,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logInfoMessage(String message, Object... params) {
-        Logger.info(decorateLogMessage(message), params);
+        Logger.upgradeInfo(decorateLogMessage(message), params);
     }
 
     /**
@@ -248,7 +248,17 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param params
      */
     protected final void logWarnMessage(String message, Object... params) {
-        Logger.warn(decorateLogMessage(message), params);
+        Logger.upgradeWarn(decorateLogMessage(message), params);
+    }
+
+    /**
+     * Return the minimum schema version that is required for this
+     * {@link UpgradeTask} to run.
+     * 
+     * @return the minimum required version
+     */
+    protected int requiresVersion() {
+        return (int) Versions.toLongRepresentation("0.10.2.1", 2);
     }
 
     /**

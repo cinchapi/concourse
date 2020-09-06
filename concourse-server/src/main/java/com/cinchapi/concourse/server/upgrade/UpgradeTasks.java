@@ -57,7 +57,7 @@ public final class UpgradeTasks {
         }
         catch (Exception e) {
             String user = System.getProperty("user.name");
-            Logger.error(
+            Logger.upgradeError(
                     "An error occurred while trying to bootstrap the upgrade framework, "
                             + "which usually indicates that Concourse Server is configured to store "
                             + "data in one or more locations where the current user ({}) does not "
@@ -89,7 +89,7 @@ public final class UpgradeTasks {
                                         + "to an earlier version of Concourse before upgrading to "
                                         + "this version",
                                 task.requiresVersion(), currentSystemVersion);
-                        Logger.error(msg);
+                        Logger.upgradeError(msg);
                         throw new IllegalStateException(msg);
                     }
                 }
@@ -97,7 +97,7 @@ public final class UpgradeTasks {
         }
 
         // Run the new upgrade tasks
-        Logger.info("Found {} upgrade task{}", tasks.size(),
+        Logger.upgradeInfo("Found {} upgrade task{}", tasks.size(),
                 tasks.size() != 1 ? "s" : "");
         for (UpgradeTask task : tasks) {
             try {
@@ -145,7 +145,7 @@ public final class UpgradeTasks {
                 }
             }
             UpgradeTask.setCurrentSystemVersion(theTask.version());
-            Logger.info("The upgrade framework has been initialized "
+            Logger.upgradeInfo("The upgrade framework has been initialized "
                     + "with a system version of {}", theTask.version());
             FileSystem.deleteFile(seal);
             return theTask.version();

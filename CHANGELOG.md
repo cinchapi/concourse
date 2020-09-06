@@ -1,13 +1,31 @@
 ## Changelog
 
 #### Version 0.11.0 (TBD)
+
+##### New Storage Format
+* This version introduces a new, more concise storage format for Concourse data where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of data (primary, index, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data before. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
+* The new storage format should reduce the number of data file corruptions because there are fewer moving parts.
+* An upgrade task has been added to automatically copy data from each Block file to a corresponding Segment file.
+	* The upgrade task will not delete the old Block files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the Block files after the upgrade. If the Block files remain, a future version of Concourse may automatically delete them for you.
+
+##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
+
+##### New Functionality
 * Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
 * Added `consolidate` functionality to atomically combine data from one or more records into another record. The records from which data is merged are cleared and all references to those cleared records are replaced with the consolidated record on the document-graph.
-* Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
-* Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
 * Added the `concourse-export` framework which provides the `Exporter` construct for building tools that print data to an OutputStream in accordance with Concourse's multi-valued data format (e.g. a key mapped to multiple values will have those values printed as a delimited list). The `Exporters` utility class contains built-in exporters for exporting within CSV and Microsoft Excel formats.
 * Added an `export` CLI that uses the `concourse-export` framework to export data from Concourse in CSV format to STDOUT or a file.
+
+##### CCL Support
+* Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
+
+##### API Breaks and Deprecations
+* Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
+* It it only possible to upgrade to this version from Concourse `0.10.2+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
+
+##### Miscellaneous
+* Added a separate log file for upgrade tasks (`log/upgrade.log`).
  
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
