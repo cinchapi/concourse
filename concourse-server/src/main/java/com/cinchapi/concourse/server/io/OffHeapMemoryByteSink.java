@@ -33,6 +33,7 @@ public class OffHeapMemoryByteSink implements ByteSink {
 
     /**
      * Construct a new instance.
+     * 
      * @param memory
      */
     public OffHeapMemoryByteSink(OffHeapMemory memory) {
@@ -52,7 +53,7 @@ public class OffHeapMemoryByteSink implements ByteSink {
 
     @Override
     public ByteSink put(byte[] src) {
-        for(int i = 0; i < src.length; ++i) {
+        for (int i = 0; i < src.length; ++i) {
             memory.put(src[i]);
         }
         return this;
@@ -60,7 +61,7 @@ public class OffHeapMemoryByteSink implements ByteSink {
 
     @Override
     public ByteSink put(ByteBuffer src) {
-        while(src.hasRemaining()) {
+        while (src.hasRemaining()) {
             memory.put(src.get());
         }
         return this;
