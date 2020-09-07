@@ -262,16 +262,6 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * Return the minimum schema version that is required for this
-     * {@link UpgradeTask} to run.
-     * 
-     * @return the minimum required version
-     */
-    protected int requiresVersion() {
-        return (int) Versions.toLongRepresentation("0.10.2.1", 2);
-    }
-
-    /**
      * Decorate the log {@code message} to conform the upgrade task
      * identification standards.
      * 
