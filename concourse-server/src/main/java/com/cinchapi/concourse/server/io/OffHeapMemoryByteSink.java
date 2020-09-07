@@ -20,126 +20,86 @@ import java.nio.ByteBuffer;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 
 /**
+ * A {@link ByteSink} that writes to {@link OffHeapMemory}.
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
 public class OffHeapMemoryByteSink implements ByteSink {
 
+    /**
+     * The destination for the bytes.
+     */
     private final OffHeapMemory memory;
 
+    /**
+     * Construct a new instance.
+     * @param memory
+     */
     public OffHeapMemoryByteSink(OffHeapMemory memory) {
         this.memory = memory;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#position()
-     */
     @Override
     public int position() {
-        // TODO Auto-generated method stub
-        return 0;
+        return (int) memory.position();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#put(byte)
-     */
     @Override
     public ByteSink put(byte value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.put(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#put(byte[])
-     */
     @Override
     public ByteSink put(byte[] src) {
-        // TODO Auto-generated method stub
-        return null;
+        for(int i = 0; i < src.length; ++i) {
+            memory.put(src[i]);
+        }
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#put(java.nio.ByteBuffer)
-     */
     @Override
     public ByteSink put(ByteBuffer src) {
-        // TODO Auto-generated method stub
-        return null;
+        while(src.hasRemaining()) {
+            memory.put(src.get());
+        }
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putChar(char)
-     */
     @Override
     public ByteSink putChar(char value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putChar(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putDouble(double)
-     */
     @Override
     public ByteSink putDouble(double value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putDouble(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putFloat(float)
-     */
     @Override
     public ByteSink putFloat(float value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putFloat(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putInt(int)
-     */
     @Override
     public ByteSink putInt(int value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putInt(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putLong(long)
-     */
     @Override
     public ByteSink putLong(long value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putLong(value);
+        return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.concourse.server.io.ByteSink#putShort(short)
-     */
     @Override
     public ByteSink putShort(short value) {
-        // TODO Auto-generated method stub
-        return null;
+        memory.putShort(value);
+        return this;
     }
 
 }
