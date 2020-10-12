@@ -126,7 +126,6 @@ public final class UpgradeTasks {
      */
     private static int bootstrap() {
         String seal = ".douge";
-        int currentSystemVersion = getCurrentSystemVersion();
         if(FileSystem.hasFile(seal)) {
             UpgradeTask theTask = null;
             // Go through the upgrade tasks and find the one with the largest
@@ -144,14 +143,19 @@ public final class UpgradeTasks {
                     }
                 }
             }
-            UpgradeTask.setCurrentSystemVersion(theTask.version());
-            Logger.upgradeInfo("The upgrade framework has been initialized "
-                    + "with a system version of {}", theTask.version());
+            UpgradeTask.setHomeCurrentSystemVersion(theTask.version());
+            Logger.upgradeInfo(
+                    "It appears that this is a fresh installation of "
+                            + "Concourse Server, so the upgrade framework has been "
+                            + "initialized with a system version of {}. Standby for "
+                            + "detection of whether there are existing data files with "
+                            + "a different system version; necessitating the possible "
+                            + "application of upgrade tasks to make the system fully "
+                            + "consistent.",
+                    theTask.version());
             FileSystem.deleteFile(seal);
-            return theTask.version();
-
         }
-        return currentSystemVersion;
+        return getCurrentSystemVersion();
     }
 
 }
