@@ -26,6 +26,9 @@
 
 ##### Miscellaneous
 * Added a separate log file for upgrade tasks (`log/upgrade.log`).
+
+##### Bug Fixes
+* Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
  
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
