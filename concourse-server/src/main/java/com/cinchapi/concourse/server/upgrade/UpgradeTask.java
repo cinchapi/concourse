@@ -55,14 +55,70 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      */
     @Restricted
     public static void setCurrentSystemVersion(int version) {
-        ((MappedByteBuffer) FileSystem
-                .map(BUFFER_VERSION_FILE, MapMode.READ_WRITE, 0, 4)
-                .putInt(version)).force();
-        ((MappedByteBuffer) FileSystem
-                .map(DB_VERSION_FILE, MapMode.READ_WRITE, 0, 4).putInt(version))
-                        .force();
-        ((MappedByteBuffer) FileSystem
-                .map(HOME_VERSION_FILE, MapMode.READ_WRITE, 0, 4)
+        setBufferCurrentSystemVersion(version);
+        setDatabaseCurrentSystemVersion(version);
+        setHomeCurrentSystemVersion(version);
+    }
+
+    /**
+     * Update the system version in the buffer data files.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
+    static void setBufferCurrentSystemVersion(int version) {
+        writeCurrentSystemVersion(BUFFER_VERSION_FILE, version);
+    }
+
+    /**
+     * Update the system version in the database data files.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
+    static void setDatabaseCurrentSystemVersion(int version) {
+        writeCurrentSystemVersion(DB_VERSION_FILE, version);
+    }
+
+    /**
+     * Update the system version in the server home directory.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
+    static void setHomeCurrentSystemVersion(int version) {
+        writeCurrentSystemVersion(HOME_VERSION_FILE, version);
+    }
+
+    /**
+     * Write out the system {@code version} to the {@code file}.
+     * 
+     * @param file
+     * @param version
+     */
+    private static void writeCurrentSystemVersion(String file, int version) {
+        ((MappedByteBuffer) FileSystem.map(file, MapMode.READ_WRITE, 0, 4)
                 .putInt(version)).force();
     }
 
