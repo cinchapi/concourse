@@ -32,7 +32,7 @@ public class CompositeTest {
         Assert.assertNotEquals(Composite.create(Text.wrap("iqu")),
                 Composite.create(Text.wrap("iq"), Text.wrap("u")));
     }
-    
+
     @Test
     public void testReproCON_674Corner() {
         Byteable b = new Byteable() {
@@ -49,7 +49,7 @@ public class CompositeTest {
             public int size() {
                 return 10;
             }
-            
+
         };
         Composite c1 = Composite.create(b);
         Composite c2 = Composite.create(Text.wrap("a"), Text.wrap("b"));
