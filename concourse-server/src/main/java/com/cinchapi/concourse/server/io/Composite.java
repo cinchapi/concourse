@@ -45,7 +45,12 @@ public final class Composite implements Byteable {
      * @return the new {@link Composite}
      */
     public static Composite create(Byteable... parts) {
-        return new Composite(parts);
+        if(parts.length == 1 && parts[0] instanceof Composite) {
+            return (Composite) parts[0];
+        }
+        else {
+            return new Composite(parts);
+        }
     }
 
     /**
@@ -102,23 +107,18 @@ public final class Composite implements Byteable {
      */
     private Composite(Byteable... parts) {
         this.parts = parts;
-        if(parts.length == 1) {
-            bytes = parts[0].getCanonicalBytes();
+        int size = 0;
+        for (Byteable part : parts) {
+            size += part.getCanonicalLength() + 4;
         }
-        else {
-            int size = 0;
-            for (Byteable part : parts) {
-                size += part.getCanonicalLength() + 4;
-            }
-            bytes = ByteBuffer.allocate(size);
-            int pos = 0;
-            for (Byteable part : parts) {
-                bytes.putInt(pos);
-                part.copyCanonicalBytesTo(ByteSink.to(bytes));
-                ++pos;
-            }
-            bytes.flip();
+        bytes = ByteBuffer.allocate(size);
+        int pos = 0;
+        for (Byteable part : parts) {
+            bytes.putInt(pos);
+            part.copyCanonicalBytesTo(ByteSink.to(bytes));
+            ++pos;
         }
+        bytes.flip();
     }
 
     /**
