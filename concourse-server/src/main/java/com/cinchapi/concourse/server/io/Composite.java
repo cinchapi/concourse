@@ -110,8 +110,10 @@ public final class Composite implements Byteable {
             for (Byteable part : parts) {
                 size += part.getCanonicalLength();
             }
-            bytes = ByteBuffer.allocate(size);
+            bytes = ByteBuffer.allocate(size + (4 * parts.length));
+            int pos = 0;
             for (Byteable part : parts) {
+                bytes.putInt(pos);
                 part.copyCanonicalBytesTo(ByteSink.to(bytes));
             }
             bytes.flip();
