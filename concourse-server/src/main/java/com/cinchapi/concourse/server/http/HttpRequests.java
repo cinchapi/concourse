@@ -47,7 +47,8 @@ public class HttpRequests {
             throws GeneralSecurityException {
         ByteBuffer cryptPack = ByteBuffer
                 .wrap(BaseEncoding.base64Url().decode(token));
-        String pack = ByteBuffers.getUtf8String(ClientSecurity.decrypt(cryptPack));
+        String pack = ByteBuffers
+                .getUtf8String(ClientSecurity.decrypt(cryptPack));
         String[] toks = pack.split("\\|");
         return new HttpAuthToken(
                 new AccessToken(ByteBuffer

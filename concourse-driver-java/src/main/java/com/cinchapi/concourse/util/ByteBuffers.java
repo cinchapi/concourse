@@ -72,7 +72,8 @@ public abstract class ByteBuffers {
      */
     public static void copyAndRewindSource(ByteBuffer source,
             ByteBuffer destination) {
-        com.cinchapi.common.io.ByteBuffers.copyAndRewindSource(source, destination);
+        com.cinchapi.common.io.ByteBuffers.copyAndRewindSource(source,
+                destination);
     }
 
     /**
@@ -337,7 +338,8 @@ public abstract class ByteBuffers {
      */
     public static ByteBuffer slice(ByteBuffer buffer, int position,
             int length) {
-        return com.cinchapi.common.io.ByteBuffers.slice(buffer, position, length);
+        return com.cinchapi.common.io.ByteBuffers.slice(buffer, position,
+                length);
     }
 
     /**

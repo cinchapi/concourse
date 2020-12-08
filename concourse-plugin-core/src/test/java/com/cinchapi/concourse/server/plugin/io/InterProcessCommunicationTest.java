@@ -97,8 +97,10 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         memory.read();
         memory.compact();
         Assert.assertEquals(ByteBuffers.fromUtf8String("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
     }
 
     @Test
@@ -114,8 +116,10 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         memory.compact();
         memory.read();
         memory.write(ByteBuffers.fromUtf8String("ff"));
-        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
         Assert.assertEquals(ByteBuffers.fromUtf8String("ff"), memory.read());
     }
 
@@ -132,8 +136,10 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         memory.compact();
         memory.write(ByteBuffers.fromUtf8String("ff"));
         Assert.assertEquals(ByteBuffers.fromUtf8String("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
         Assert.assertEquals(ByteBuffers.fromUtf8String("ff"), memory.read());
     }
 
