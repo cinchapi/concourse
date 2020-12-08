@@ -38,6 +38,7 @@ dependencies {
       exclude group: 'com.cinchapi'
     }
     compile 'org.zeroturnaround:zt-zip:1.13'
+    compile group: 'com.cinchapi', name: 'off-heap-memory', version:'1.0.0', changing:true
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
