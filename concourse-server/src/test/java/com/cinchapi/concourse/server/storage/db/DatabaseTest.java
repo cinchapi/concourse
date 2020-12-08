@@ -283,6 +283,15 @@ public class DatabaseTest extends StoreTest {
         Assert.assertTrue(
                 store.verify("name", Convert.javaToThrift("jeff"), 1));
     }
+    
+    @Test
+    public void testGetIndexRecordReproA() {
+        add("iq", Convert.javaToThrift("u"), 1605548010968002L);
+        store.stop();
+        ((Database) store).triggerSync();
+        store.start();
+        Assert.assertTrue(store.browse("iqu").isEmpty());
+    }
 
     @Test
     public void testGetIndexRecordReproCON_674() {
