@@ -67,7 +67,7 @@ public class AuthenticationTest extends ConcourseIntegrationTest {
     @Test
     public void testCannotInvokeMethodWithInvalidAccessToken() {
         AccessToken token = new AccessToken(ByteBuffers.fromUtf8String(
-                ByteBuffers.encodeAsHex(ByteBuffers.fromUtf8String("fake"))));
+                ByteBuffers.encodeAsHexString(ByteBuffers.fromUtf8String("fake"))));
         Reflection.set("creds", token, client);
         Reflection.set("password", ByteBuffers.fromUtf8String(""), client); // must
                                                                             // change

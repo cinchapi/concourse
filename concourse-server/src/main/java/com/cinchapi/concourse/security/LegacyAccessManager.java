@@ -80,8 +80,8 @@ public class LegacyAccessManager {
     public void transferCredentials(UserService manager) {
         for (LegacyAccessManager.Credentials creds : credentials.values()) {
             manager.insertFromLegacy(
-                    ByteBuffers.decodeFromHex(creds.getUsername()),
-                    ByteBuffers.decodeFromHex(creds.getPassword()),
+                    ByteBuffers.decodeFromHexString(creds.getUsername()),
+                    ByteBuffers.decodeFromHexString(creds.getPassword()),
                     creds.getSalt());
         }
     }
@@ -101,9 +101,9 @@ public class LegacyAccessManager {
         ByteBuffer salt = Passwords.getSalt();
         password = Passwords.hash(password, salt);
         Credentials creds = LegacyAccessManager.Credentials.create(
-                ByteBuffers.encodeAsHex(username),
-                ByteBuffers.encodeAsHex(password),
-                ByteBuffers.encodeAsHex(salt));
+                ByteBuffers.encodeAsHexString(username),
+                ByteBuffers.encodeAsHexString(password),
+                ByteBuffers.encodeAsHexString(salt));
         credentials.put(creds.getUsername(), creds);
     }
 
@@ -161,12 +161,12 @@ public class LegacyAccessManager {
          * @return the Credentials
          */
         public static Credentials fromByteBuffer(ByteBuffer bytes) {
-            String password = ByteBuffers.encodeAsHex(
+            String password = ByteBuffers.encodeAsHexString(
                     ByteBuffers.get(bytes, Passwords.PASSWORD_LENGTH));
             String salt = ByteBuffers
-                    .encodeAsHex(ByteBuffers.get(bytes, Passwords.SALT_LENGTH));
+                    .encodeAsHexString(ByteBuffers.get(bytes, Passwords.SALT_LENGTH));
             String username = ByteBuffers
-                    .encodeAsHex(ByteBuffers.get(bytes, bytes.remaining()));
+                    .encodeAsHexString(ByteBuffers.get(bytes, bytes.remaining()));
             return new Credentials(username, password, salt);
         }
 
@@ -213,7 +213,7 @@ public class LegacyAccessManager {
          * @return the salt bytes
          */
         public ByteBuffer getSalt() {
-            return ByteBuffers.decodeFromHex(salt);
+            return ByteBuffers.decodeFromHexString(salt);
         }
 
         /**
@@ -228,7 +228,7 @@ public class LegacyAccessManager {
         @Override
         public int size() {
             return Passwords.PASSWORD_LENGTH + Passwords.SALT_LENGTH
-                    + ByteBuffers.decodeFromHex(username).capacity();
+                    + ByteBuffers.decodeFromHexString(username).capacity();
         }
 
         @Override
@@ -245,9 +245,9 @@ public class LegacyAccessManager {
 
         @Override
         public void copyTo(ByteSink buffer) {
-            buffer.put(ByteBuffers.decodeFromHex(password));
-            buffer.put(ByteBuffers.decodeFromHex(salt));
-            buffer.put(ByteBuffers.decodeFromHex(username));
+            buffer.put(ByteBuffers.decodeFromHexString(password));
+            buffer.put(ByteBuffers.decodeFromHexString(salt));
+            buffer.put(ByteBuffers.decodeFromHexString(username));
         }
 
     }
