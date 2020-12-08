@@ -41,7 +41,6 @@ import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;

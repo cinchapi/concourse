@@ -26,13 +26,13 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.process.Callback;
 import com.cinchapi.concourse.server.io.process.Forkable;
 import com.cinchapi.concourse.server.io.process.NoOpCallback;
 import com.cinchapi.concourse.server.io.process.ServerProcesses;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -69,7 +69,7 @@ public abstract class CrossProcessInterProcessCommunicationTest
                 InterProcessCommunication shared = getInterProcessCommunication(
                         location);
                 for (String message : expected) {
-                    shared.write(ByteBuffers.fromString(message));
+                    shared.write(ByteBuffers.fromUtf8String(message));
                     Threads.sleep(TestData.getScaleCount());
                 }
             }
@@ -86,7 +86,7 @@ public abstract class CrossProcessInterProcessCommunicationTest
                 Files.createFile(Paths.get(signal));
                 while (actual.size() < expected.size()) {
                     ByteBuffer data = shared.read();
-                    String message = ByteBuffers.getString(data);
+                    String message = ByteBuffers.getUtf8String(data);
                     actual.add(message);
                     Threads.sleep(TestData.getScaleCount());
                 }

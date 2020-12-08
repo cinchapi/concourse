@@ -22,12 +22,12 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.collect.Maps;
 
 /**

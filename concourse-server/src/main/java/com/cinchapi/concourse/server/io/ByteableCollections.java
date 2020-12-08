@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.common.io.ByteBuffers;
 import com.google.common.base.Preconditions;
 
 /**

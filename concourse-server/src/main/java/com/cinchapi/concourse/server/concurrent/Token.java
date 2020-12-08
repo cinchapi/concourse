@@ -17,12 +17,12 @@ package com.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.ByteSinks;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.TArrays;
 import com.google.common.io.BaseEncoding;
 
@@ -148,7 +148,7 @@ public class Token implements Byteable {
 
     @Override
     public String toString() {
-        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(getBytes()))
+        return BaseEncoding.base16().encode(ByteBuffers.getByteArray(getBytes()))
                 .toLowerCase();
     }
 

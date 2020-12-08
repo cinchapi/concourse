@@ -21,9 +21,9 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
 
 /**

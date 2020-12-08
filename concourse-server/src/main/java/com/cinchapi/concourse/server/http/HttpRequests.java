@@ -19,9 +19,9 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.security.ClientSecurity;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
@@ -47,7 +47,7 @@ public class HttpRequests {
             throws GeneralSecurityException {
         ByteBuffer cryptPack = ByteBuffer
                 .wrap(BaseEncoding.base64Url().decode(token));
-        String pack = ByteBuffers.getString(ClientSecurity.decrypt(cryptPack));
+        String pack = ByteBuffers.getUtf8String(ClientSecurity.decrypt(cryptPack));
         String[] toks = pack.split("\\|");
         return new HttpAuthToken(
                 new AccessToken(ByteBuffer
@@ -74,7 +74,7 @@ public class HttpRequests {
         String pack = base32Token + "|" + environment + "|" + fingerprint;
         ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
         String base64CryptPack = BaseEncoding.base64Url()
-                .encode(ByteBuffers.toByteArray(cryptPack));
+                .encode(ByteBuffers.getByteArray(cryptPack));
         return base64CryptPack;
     }
 

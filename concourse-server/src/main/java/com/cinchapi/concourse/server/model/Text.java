@@ -21,10 +21,10 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.LazyCache;
-import com.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A {@link Byteable} wrapper for a string of UTF-8 encoded characters.
@@ -155,7 +155,7 @@ public final class Text implements Byteable, Comparable<Text> {
             synchronized (mutex) {
                 if(bytes == null) { // must check again to prevent duplicate
                                     // copy if there is a race condition
-                    bytes = ByteBuffers.fromString(text);
+                    bytes = ByteBuffers.fromUtf8String(text);
                 }
             }
         }

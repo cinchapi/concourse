@@ -39,12 +39,12 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
@@ -115,7 +115,7 @@ public class UserService {
      * A {@link ByteBuffer} containing the {@link #SERVICE_USERNAME_STRING}.
      */
     private static final ByteBuffer SERVICE_USERNAME_BYTES = ByteBuffers
-            .fromString(SERVICE_USERNAME_STRING);
+            .fromUtf8String(SERVICE_USERNAME_STRING);
 
     /**
      * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
@@ -159,7 +159,7 @@ public class UserService {
      */
     @VisibleForTesting
     protected static boolean isAcceptableUsername(ByteBuffer username) {
-        CharBuffer chars = ByteBuffers.toCharBuffer(username);
+        CharBuffer chars = ByteBuffers.toUtf8CharBuffer(username);
         boolean acceptable = chars.capacity() > 0;
         while (acceptable && chars.hasRemaining()) {
             char c = chars.get();
@@ -184,7 +184,7 @@ public class UserService {
      */
     @VisibleForTesting
     protected static boolean isSecurePassword(ByteBuffer password) {
-        CharBuffer chars = ByteBuffers.toCharBuffer(password);
+        CharBuffer chars = ByteBuffers.toUtf8CharBuffer(password);
         if(password.capacity() >= MIN_PASSWORD_LENGTH) {
             while (chars.hasRemaining()) {
                 char c = chars.get();
@@ -1121,7 +1121,7 @@ public class UserService {
          */
         public String getDescription() {
             String uname = ByteBuffers
-                    .getString(ByteBuffers.decodeFromHex(username));
+                    .getUtf8String(ByteBuffers.decodeFromHex(username));
             uname = uname.equals(SERVICE_USERNAME_STRING) ? "BACKGROUND SERVICE"
                     : uname;
             return uname + " logged in since " + Timestamp.fromMicros(timestamp)

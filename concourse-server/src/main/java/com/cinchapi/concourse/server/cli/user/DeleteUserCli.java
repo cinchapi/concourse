@@ -17,10 +17,10 @@ package com.cinchapi.concourse.server.cli.user;
 
 import org.apache.thrift.TException;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.cli.core.Options;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A cli for deleting users.
@@ -55,12 +55,12 @@ public class DeleteUserCli extends UserCli {
             else {
                 username = options.args.get(0);
             }
-            if(!client.hasUser(ByteBuffers.fromString(username), token)) {
+            if(!client.hasUser(ByteBuffers.fromUtf8String(username), token)) {
                 throw new IllegalArgumentException(
                         "A user named '" + username + "' does not exist. ");
             }
             else {
-                client.deleteUser(ByteBuffers.fromString(username), token);
+                client.deleteUser(ByteBuffers.fromUtf8String(username), token);
                 System.out.println(
                         "The user named '" + username + "' has been deleted");
             }
