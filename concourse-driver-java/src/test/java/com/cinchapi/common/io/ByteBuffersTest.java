@@ -38,8 +38,9 @@ public class ByteBuffersTest {
     @Test
     public void testEncodeToAndDecodeFromHexRoundTrip() {
         String expected = "admin";
-        String actual = ByteBuffers.getUtf8String(ByteBuffers.decodeFromHexString(
-                ByteBuffers.encodeAsHexString(ByteBuffers.fromUtf8String(expected))));
+        String actual = ByteBuffers.getUtf8String(
+                ByteBuffers.decodeFromHexString(ByteBuffers.encodeAsHexString(
+                        ByteBuffers.fromUtf8String(expected))));
         Assert.assertEquals(expected, actual);
     }
 

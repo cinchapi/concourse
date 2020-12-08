@@ -163,10 +163,10 @@ public class LegacyAccessManager {
         public static Credentials fromByteBuffer(ByteBuffer bytes) {
             String password = ByteBuffers.encodeAsHexString(
                     ByteBuffers.get(bytes, Passwords.PASSWORD_LENGTH));
-            String salt = ByteBuffers
-                    .encodeAsHexString(ByteBuffers.get(bytes, Passwords.SALT_LENGTH));
-            String username = ByteBuffers
-                    .encodeAsHexString(ByteBuffers.get(bytes, bytes.remaining()));
+            String salt = ByteBuffers.encodeAsHexString(
+                    ByteBuffers.get(bytes, Passwords.SALT_LENGTH));
+            String username = ByteBuffers.encodeAsHexString(
+                    ByteBuffers.get(bytes, bytes.remaining()));
             return new Credentials(username, password, salt);
         }
 
