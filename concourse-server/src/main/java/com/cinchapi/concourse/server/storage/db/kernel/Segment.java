@@ -23,6 +23,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -58,12 +59,13 @@ import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.lib.offheap.collect.ConcurrentOffHeapSortedMultiset;
 import com.cinchapi.lib.offheap.collect.OffHeapSortedMultiset;
 import com.cinchapi.lib.offheap.io.Serializer;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.cinchapi.lib.offheap.memory.UnsafeMemory;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -161,39 +163,47 @@ public final class Segment implements Itemizable, Syncable {
         // For a Segment to exist off heap, each Chunk must be backed by a
         // #revisions store that uses OffHeapMemory.
         Segment segment = create(expectedInsertions);
-        ImmutableMap.of(segment.table, TableRevision.class, segment.index,
-                IndexRevision.class, segment.corpus, CorpusRevision.class)
-                .forEach((chunk, revisionType) -> {
-                    long initialCapacity = expectedInsertions
-                            * Write.MINIMUM_SIZE * 3;
-                    OffHeapMemory memory = new UnsafeMemory(initialCapacity);
-                    Serializer<Revision<?, ?, ?>> serializer = new Serializer<Revision<?, ?, ?>>() {
+        Map<Chunk<?, ?, ?>, Class<? extends Revision<?, ?, ?>>> chunks = Maps
+                .newIdentityHashMap();
+        chunks.put(segment.table, TableRevision.class);
+        chunks.put(segment.index, IndexRevision.class);
+        chunks.put(segment.corpus, CorpusRevision.class);
+        chunks.forEach((chunk, revisionType) -> {
+            long initialCapacity = expectedInsertions * Write.MINIMUM_SIZE * 3;
+            OffHeapMemory memory = new UnsafeMemory(initialCapacity);
+            Serializer<Revision<?, ?, ?>> serializer = new Serializer<Revision<?, ?, ?>>() {
 
-                        @Override
-                        public void serialize(Revision<?, ?, ?> element,
-                                OffHeapMemory memory) {
-                            element.copyTo(new OffHeapMemoryByteSink(memory));
-                        }
+                @Override
+                public void serialize(Revision<?, ?, ?> element,
+                        OffHeapMemory memory) {
+                    element.copyTo(new OffHeapMemoryByteSink(memory));
+                }
 
-                        @Override
-                        public Revision<?, ?, ?> deserialize(
-                                OffHeapMemory memory) {
-                            return Byteables.read(memory, revisionType);
-                        }
+                @Override
+                public Revision<?, ?, ?> deserialize(OffHeapMemory memory) {
+                    return Byteables.read(memory, revisionType);
+                }
 
-                        @Override
-                        public int sizeOf(Revision<?, ?, ?> element) {
-                            return element.size();
-                        }
+                @Override
+                public int sizeOf(Revision<?, ?, ?> element) {
+                    return element.size();
+                }
 
-                    };
-                    OffHeapSortedMultiset<Revision<?, ?, ?>> offHeapRevisions = new OffHeapSortedMultiset<Revision<?, ?, ?>>(
-                            memory,
-                            (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
-                            serializer);
-                    Reflection.set("revision", offHeapRevisions, chunk);
-                    Reflection.set("$revisions", null, chunk);
-                });
+            };
+            OffHeapSortedMultiset<Revision<?, ?, ?>> offHeapRevisions;
+            if(revisionType == CorpusRevision.class) {
+                offHeapRevisions = new ConcurrentOffHeapSortedMultiset<Revision<?, ?, ?>>(
+                        memory, (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
+                        serializer);
+            }
+            else {
+                offHeapRevisions = new OffHeapSortedMultiset<Revision<?, ?, ?>>(
+                        memory, (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
+                        serializer);
+            }
+            Reflection.set("revisions", offHeapRevisions, chunk); // (authorized)
+            Reflection.set("$revisions", null, chunk); // (authorized)
+        });
         return segment;
     }
 

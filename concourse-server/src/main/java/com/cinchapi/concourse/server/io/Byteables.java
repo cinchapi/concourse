@@ -25,7 +25,6 @@ import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.collect.Maps;
 
@@ -46,7 +45,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this
      * protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
@@ -89,7 +89,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this
      * protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
@@ -157,6 +158,8 @@ public abstract class Byteables {
             while (memory.hasRemaining()) {
                 buffer.put(memory.get());
             }
+            buffer.order(memory.order());
+            buffer.flip();
             return read(buffer, clazz);
         }
     }
@@ -211,7 +214,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this
      * protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
@@ -252,8 +256,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
-     * protocol when using this method:
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
      * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
