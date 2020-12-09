@@ -229,17 +229,18 @@ public class SegmentTest extends ConcourseBaseTest {
             executor.shutdown();
         }
     }
-    
+
     @Test
     public void testOffHeapSegmentEfficacy() {
         segment = Segment.createOffHeap(100);
         Set<Write> writes = Sets.newLinkedHashSet();
-        for(int i = 0;  i < 100; ++i) {
+        for (int i = 0; i < 100; ++i) {
             Write write = TestData.getWriteAdd();
             writes.add(write);
             segment.transfer(write);
         }
-        Set<Write> actual = (Set<Write>) segment.writes().collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<Write> actual = (Set<Write>) segment.writes()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         Assert.assertEquals(writes, actual);
     }
 

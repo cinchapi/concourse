@@ -193,12 +193,14 @@ public final class Segment implements Itemizable, Syncable {
             OffHeapSortedMultiset<Revision<?, ?, ?>> offHeapRevisions;
             if(revisionType == CorpusRevision.class) {
                 offHeapRevisions = new ConcurrentOffHeapSortedMultiset<Revision<?, ?, ?>>(
-                        memory, (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
+                        memory,
+                        (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
                         serializer);
             }
             else {
                 offHeapRevisions = new OffHeapSortedMultiset<Revision<?, ?, ?>>(
-                        memory, (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
+                        memory,
+                        (o1, o2) -> Chunk.Sorter.INSTANCE.compare(o1, o2),
                         serializer);
             }
             Reflection.set("revisions", offHeapRevisions, chunk); // (authorized)
