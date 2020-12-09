@@ -75,7 +75,7 @@ public class HttpRequests {
         String pack = base32Token + "|" + environment + "|" + fingerprint;
         ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
         String base64CryptPack = BaseEncoding.base64Url()
-                .encode(ByteBuffers.getByteArray(cryptPack));
+                .encode(ByteBuffers.toByteArray(cryptPack));
         return base64CryptPack;
     }
 

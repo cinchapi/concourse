@@ -452,7 +452,7 @@ public class TObject implements
             return true;
         }
         else if(type == Type.STRING || type == Type.TAG) {
-            byte[] bytes = ByteBuffers.getByteArray(data);
+            byte[] bytes = ByteBuffers.toByteArray(data);
             for (int i = 0; i < bytes.length; ++i) {
                 if(bytes[i] != WHITESPACE) {
                     return false;
