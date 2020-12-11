@@ -82,6 +82,7 @@ jobs:
             find concourse-server -type f -regex "concourse-server/log/.*log" -exec cp {} ~/artifacts/logs/concourse-server \;
             mkdir -p ~/artifacts/logs/concourse-integration-tests
             find concourse-integration-tests -type f -regex "concourse-integration-tests/log/.*log" -exec cp {} ~/artifacts/logs/concourse-integration-tests \;
+          when: always
       - store_artifacts:
           path: ~/artifacts
   publish_docs:
