@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.11.0 (TBD)
+#### Version 0.11.0 (TBD) 
 
 ##### New Storage Format
 * This version introduces a new, more concise storage format for Concourse data where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of data (primary, index, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data before. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
