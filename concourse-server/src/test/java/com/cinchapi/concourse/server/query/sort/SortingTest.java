@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.concourse.lang.sort.Order;
@@ -529,6 +530,7 @@ public class SortingTest {
     }
 
     @Test
+    @Ignore
     public void testLargeSortPerformance() {
         Map<Long, Map<String, Set<TObject>>> records = Maps.newLinkedHashMap();
 
