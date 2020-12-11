@@ -78,6 +78,10 @@ jobs:
             mkdir -p ~/artifacts/
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
+            mkdir -p ~/artifacts/logs/concourse-server
+            find concourse-server -type f -regex "concourse-server/log/.*log" -exec cp {} ~/artifacts/logs/concourse-server \;
+            mkdir -p ~/artifacts/logs/concourse-integration-tests
+            find concourse-integration-tests -type f -regex "concourse-integration-tests/log/.*log" -exec cp {} ~/artifacts/logs/concourse-integration-tests \;
       - store_artifacts:
           path: ~/artifacts
   publish_docs:
