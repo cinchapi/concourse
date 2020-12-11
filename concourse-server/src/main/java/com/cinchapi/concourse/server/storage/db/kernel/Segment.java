@@ -425,7 +425,7 @@ public final class Segment implements Itemizable, Syncable {
                         file + " is not a valid Segment file");
             }
         }
-        catch (IOException e) {
+        catch (Exception e) {
             throw new SegmentLoadingException(e.getMessage(), e);
         }
         finally {
