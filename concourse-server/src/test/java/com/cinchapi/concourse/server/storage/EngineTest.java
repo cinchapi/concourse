@@ -237,6 +237,10 @@ public class EngineTest extends BufferedStoreTest {
             Threads.sleep((int) (1.2
                     * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+            while (!engine.bufferTransportThreadHasEverAppearedHung.get()) {
+                System.out.println("Waiting to detect hung thread...");
+                continue; // spin until the thread hang is detected
+            }
             Assert.assertTrue(
                     engine.bufferTransportThreadHasEverAppearedHung.get());
             Threads.sleep(
