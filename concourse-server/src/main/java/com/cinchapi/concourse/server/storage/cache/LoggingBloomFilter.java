@@ -266,7 +266,7 @@ public class LoggingBloomFilter {
      */
     private int[] hash(Composite composite) {
         long hash64 = Hashing.murmur3_128()
-                .hashBytes(ByteBuffers.toByteArray(composite.getBytes()))
+                .hashBytes(ByteBuffers.getByteArray(composite.getBytes()))
                 .asLong();
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);
