@@ -170,12 +170,14 @@ public class LegacyAccessManager {
             return new Credentials(username, password, salt);
         }
 
-        private final String password;
-        private final String salt;
+        // @formatter:off
         // These are hex encoded values. It Is okay to keep them in memory as a
         // strings since the actual password can't be reconstructed from the
         // string hash.
         private final String username;
+        private final String password;
+        private final String salt;
+        // @formatter:on
 
         /**
          * Construct a new instance.
