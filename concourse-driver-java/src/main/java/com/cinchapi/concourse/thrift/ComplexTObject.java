@@ -43,7 +43,7 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
@@ -111,7 +111,7 @@ public class ComplexTObject implements
                 int length = buffer.getInt();
                 TSymbolType symbolType = TSymbolType.values()[buffer.get()];
                 String symbol = ByteBuffers
-                        .getString(ByteBuffers.get(buffer, length));
+                        .getUtf8String(ByteBuffers.get(buffer, length));
                 symbols.add(new TSymbol(symbolType, symbol));
             }
             obj.tcriteria = new TCriteria(symbols);
@@ -121,7 +121,8 @@ public class ComplexTObject implements
         }
         else {
             Type ttype = Type.values()[buffer.get()];
-            TObject ref = new TObject(ByteBuffers.getRemaining(buffer), ttype);
+            TObject ref = new TObject(
+                    ByteBuffers.get(buffer, buffer.remaining()), ttype);
             if(type == ComplexTObjectType.SCALAR) {
                 obj.tscalar = ref;
             }

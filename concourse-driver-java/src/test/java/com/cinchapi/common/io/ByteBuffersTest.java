@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.common.io;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -21,15 +21,28 @@ import java.nio.charset.StandardCharsets;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.util.Random;
 import com.google.common.base.Strings;
 
 /**
- * Unit tests for {@link com.cinchapi.concourse.util.ByteBuffers} utility
- * methods
+ * Unit tests for {@link ByteBuffers} utility methods
  *
  * @author Jeff Nelson
  */
 public class ByteBuffersTest {
+
+    // NOTE: ByteBuffers lives in accent4j, but the unit tests are here because
+    // they rely on internal Concourse libraries (e.g. RandomStringGenerator,
+    // etc).
+
+    @Test
+    public void testEncodeToAndDecodeFromHexRoundTrip() {
+        String expected = "admin";
+        String actual = ByteBuffers.getUtf8String(
+                ByteBuffers.decodeFromHexString(ByteBuffers.encodeAsHexString(
+                        ByteBuffers.fromUtf8String(expected))));
+        Assert.assertEquals(expected, actual);
+    }
 
     @Test
     public void testDeserializeStringTrailingWhitespace() {
@@ -75,31 +88,6 @@ public class ByteBuffersTest {
                 .wrap(string.getBytes(StandardCharsets.UTF_8));
         String string2 = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
         Assert.assertEquals(string, string2);
-    }
-
-    @Test
-    public void testExpandWontCreateNewBufferIfNotNeccessary() {
-        ByteBuffer destination = ByteBuffer.allocate(10);
-        ByteBuffer original = destination;
-        ByteBuffer source = ByteBuffer.allocate(3);
-        destination.putInt(4);
-        source.putShort((short) 1);
-        destination = ByteBuffers.expand(destination,
-                ByteBuffers.rewind(source));
-        Assert.assertSame(original, destination);
-        Assert.assertEquals(10, ByteBuffers.rewind(destination).remaining());
-    }
-
-    @Test
-    public void testExpandNewBuffer() {
-        ByteBuffer destination = ByteBuffer.allocate(10);
-        ByteBuffer original = destination;
-        ByteBuffer source = ByteBuffer.allocate(10);
-        destination.putInt(4);
-        source.putLong(8);
-        destination = ByteBuffers.expand(destination,
-                ByteBuffers.rewind(source));
-        Assert.assertNotSame(original, destination);
     }
 
 }

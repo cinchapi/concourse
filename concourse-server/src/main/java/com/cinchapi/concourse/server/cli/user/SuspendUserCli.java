@@ -15,10 +15,10 @@
  */
 package com.cinchapi.concourse.server.cli.user;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.cli.core.Options;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A cli for suspending users.
@@ -53,7 +53,7 @@ public class SuspendUserCli extends UserCli {
             else {
                 username = options.args.get(0);
             }
-            if(!client.hasUser(ByteBuffers.fromString(username), token)) {
+            if(!client.hasUser(ByteBuffers.fromUtf8String(username), token)) {
                 throw new IllegalArgumentException(
                         "A user named '" + username + "' does not exist");
             }
@@ -62,7 +62,7 @@ public class SuspendUserCli extends UserCli {
                         "The current user cannot suspend itself");
             }
             else {
-                client.disableUser(ByteBuffers.fromString(username), token);
+                client.disableUser(ByteBuffers.fromUtf8String(username), token);
                 System.out.println("User '" + username + "' is suspended");
             }
         }

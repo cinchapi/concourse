@@ -17,9 +17,9 @@ package com.cinchapi.concourse.server.cli.user;
 
 import java.nio.ByteBuffer;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Strings;
 
 /**
@@ -57,7 +57,7 @@ public class EditUserCli extends UserCli {
             else {
                 username = opts.args.get(0);
             }
-            ByteBuffer uname = ByteBuffers.fromString(username);
+            ByteBuffer uname = ByteBuffers.fromUtf8String(username);
 
             // Set the user role, if requested
             if(!Strings.isNullOrEmpty(opts.userRole)) {
@@ -78,7 +78,7 @@ public class EditUserCli extends UserCli {
             if(!Strings.isNullOrEmpty(opts.userPassword)) {
                 try {
                     ByteBuffer pword = ByteBuffers
-                            .fromString(opts.userPassword);
+                            .fromUtf8String(opts.userPassword);
                     client.setUserPassword(uname, pword, token);
                     System.out.println("Successfully set the user's password");
                 }

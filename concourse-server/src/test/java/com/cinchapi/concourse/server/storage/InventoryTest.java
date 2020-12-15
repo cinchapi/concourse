@@ -49,7 +49,7 @@ public class InventoryTest extends ConcourseBaseTest {
 
     @Test
     public void testAdd() {
-        int count = TestData.getScaleCount() * TestData.getScaleCount();
+        int count = TestData.getScaleCount();
         Set<Long> longs = Sets.newHashSet();
         while (longs.size() < count) {
             longs.add(TestData.getLong());
@@ -62,7 +62,7 @@ public class InventoryTest extends ConcourseBaseTest {
 
     @Test
     public void testContains() {
-        int count = TestData.getScaleCount() * TestData.getScaleCount();
+        int count = TestData.getScaleCount();
         Set<Long> longs = Sets.newHashSet();
         while (longs.size() < count) {
             longs.add(TestData.getLong());

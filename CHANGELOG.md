@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.11.0 (TBD)
+#### Version 0.11.0 (TBD) 
 
 ##### New Storage Format
 * This version introduces a new, more concise storage format for Concourse data where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of data (primary, index, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data before. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
@@ -23,6 +23,7 @@
 ##### API Breaks and Deprecations
 * Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
 * It it only possible to upgrade to this version from Concourse `0.10.2+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
+* Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
 
 ##### Miscellaneous
 * Added a separate log file for upgrade tasks (`log/upgrade.log`).

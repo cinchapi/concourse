@@ -22,11 +22,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.LongBitSet;
 import com.google.common.hash.Hashing;
 
@@ -266,7 +266,7 @@ public class LoggingBloomFilter {
      */
     private int[] hash(Composite composite) {
         long hash64 = Hashing.murmur3_128()
-                .hashBytes(ByteBuffers.toByteArray(composite.getBytes()))
+                .hashBytes(ByteBuffers.getByteArray(composite.getBytes()))
                 .asLong();
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);

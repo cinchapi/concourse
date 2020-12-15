@@ -38,6 +38,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.data.transform.DataColumn;
@@ -61,7 +62,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Collections;
 import com.cinchapi.concourse.util.Conversions;
 import com.cinchapi.concourse.util.Convert;
@@ -4083,8 +4083,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     protected Concourse copyConnection() {
         return new ConcourseThriftDriver(host, port,
-                ByteBuffers.getString(ClientSecurity.decrypt(username)),
-                ByteBuffers.getString(ClientSecurity.decrypt(password)),
+                ByteBuffers.getUtf8String(ClientSecurity.decrypt(username)),
+                ByteBuffers.getUtf8String(ClientSecurity.decrypt(password)),
                 environment);
     }
 

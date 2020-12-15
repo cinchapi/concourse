@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyObjects;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.EndpointContainer;
@@ -36,7 +37,6 @@ import com.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -120,9 +120,9 @@ public class IndexRouter extends EndpointContainer {
                 if(body.isJsonObject()
                         && (credentials = (JsonObject) body).has("username")
                         && credentials.has("password")) {
-                    ByteBuffer username = ByteBuffers.fromString(
+                    ByteBuffer username = ByteBuffers.fromUtf8String(
                             credentials.get("username").getAsString());
-                    ByteBuffer password = ByteBuffers.fromString(
+                    ByteBuffer password = ByteBuffers.fromUtf8String(
                             credentials.get("password").getAsString());
                     AccessToken access = concourse.login(username, password,
                             environment);

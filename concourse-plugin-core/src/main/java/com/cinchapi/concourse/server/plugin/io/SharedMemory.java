@@ -34,8 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.plugin.concurrent.FileLocks;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;

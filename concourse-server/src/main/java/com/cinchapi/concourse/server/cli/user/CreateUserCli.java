@@ -16,9 +16,9 @@
 package com.cinchapi.concourse.server.cli.user;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Strings;
 
 /**
@@ -55,7 +55,7 @@ public class CreateUserCli extends UserCli {
             else {
                 username = opts.args.get(0);
             }
-            if(client.hasUser(ByteBuffers.fromString(username), token)) {
+            if(client.hasUser(ByteBuffers.fromUtf8String(username), token)) {
                 throw new IllegalArgumentException(
                         "A user named '" + username + "' already exists");
             }
@@ -75,8 +75,8 @@ public class CreateUserCli extends UserCli {
                     opts.userRole = console.readLine(
                             AnyStrings.format("Role for {}: ", username));
                 }
-                client.createUser(ByteBuffers.fromString(username),
-                        ByteBuffers.fromString(opts.userPassword),
+                client.createUser(ByteBuffers.fromUtf8String(username),
+                        ByteBuffers.fromUtf8String(opts.userPassword),
                         opts.userRole, token);
                 System.out.println(
                         "New user '" + username + "' has been created");

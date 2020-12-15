@@ -20,10 +20,10 @@ import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A specialized {@link Token} that is used to define the scope of a lock

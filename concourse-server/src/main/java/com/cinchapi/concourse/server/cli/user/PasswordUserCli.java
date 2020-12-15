@@ -17,9 +17,9 @@ package com.cinchapi.concourse.server.cli.user;
 
 import java.nio.ByteBuffer;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Strings;
 
 /**
@@ -68,8 +68,8 @@ public class PasswordUserCli extends UserCli {
                                     + username + "' HAS NOT been modifed");
                 }
             }
-            ByteBuffer uname = ByteBuffers.fromString(username);
-            ByteBuffer pword = ByteBuffers.fromString(opts.userPassword);
+            ByteBuffer uname = ByteBuffers.fromUtf8String(username);
+            ByteBuffer pword = ByteBuffers.fromUtf8String(opts.userPassword);
             client.setUserPassword(uname, pword, token);
             System.out.println(
                     "Password for user '" + username + "' has been set");

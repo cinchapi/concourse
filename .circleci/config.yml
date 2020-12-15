@@ -25,9 +25,9 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
-    resource_class: large
+    resource_class: xlarge
     environment:
-      GRADLE_OPTS: "-Djenkins=true -Xmx4096m"
+      GRADLE_OPTS: "-Djenkins=true -Xmx8192m"
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
@@ -78,6 +78,11 @@ jobs:
             mkdir -p ~/artifacts/
             find . -type f -regex ".*/build/libs/.*jar" -exec cp {} ~/artifacts/ \;
             find . -type f -regex ".*/build/distributions/.*bin" -exec cp {} ~/artifacts \;
+            mkdir -p ~/artifacts/logs/concourse-server
+            find concourse-server -type f -regex "concourse-server/log/.*log" -exec cp {} ~/artifacts/logs/concourse-server \;
+            mkdir -p ~/artifacts/logs/concourse-integration-tests
+            find concourse-integration-tests -type f -regex "concourse-integration-tests/log/.*log" -exec cp {} ~/artifacts/logs/concourse-integration-tests \;
+          when: always
       - store_artifacts:
           path: ~/artifacts
   publish_docs:

@@ -39,12 +39,12 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
@@ -87,14 +87,14 @@ public class UserService {
      * it will automatically create an admin with this password.
      */
     private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+            .encodeAsHexString(ByteBuffer.wrap("admin".getBytes()));
 
     /**
      * The default admin username. If the AccessManager does not have any users,
      * it will automatically create an admin with this username.
      */
     private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
-            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+            .encodeAsHexString(ByteBuffer.wrap("admin".getBytes()));
 
     /**
      * The minimum number of character that must be contained in a password.
@@ -115,13 +115,13 @@ public class UserService {
      * A {@link ByteBuffer} containing the {@link #SERVICE_USERNAME_STRING}.
      */
     private static final ByteBuffer SERVICE_USERNAME_BYTES = ByteBuffers
-            .fromString(SERVICE_USERNAME_STRING);
+            .fromUtf8String(SERVICE_USERNAME_STRING);
 
     /**
      * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
      */
     private static final String SERVICE_USERNAME_HEX = ByteBuffers
-            .encodeAsHex(SERVICE_USERNAME_BYTES);
+            .encodeAsHexString(SERVICE_USERNAME_BYTES);
 
     /**
      * Create a new AccessManager that stores its credentials in
@@ -159,7 +159,7 @@ public class UserService {
      */
     @VisibleForTesting
     protected static boolean isAcceptableUsername(ByteBuffer username) {
-        CharBuffer chars = ByteBuffers.toCharBuffer(username);
+        CharBuffer chars = ByteBuffers.toUtf8CharBuffer(username);
         boolean acceptable = chars.capacity() > 0;
         while (acceptable && chars.hasRemaining()) {
             char c = chars.get();
@@ -184,7 +184,7 @@ public class UserService {
      */
     @VisibleForTesting
     protected static boolean isSecurePassword(ByteBuffer password) {
-        CharBuffer chars = ByteBuffers.toCharBuffer(password);
+        CharBuffer chars = ByteBuffers.toUtf8CharBuffer(password);
         if(password.capacity() >= MIN_PASSWORD_LENGTH) {
             while (chars.hasRemaining()) {
                 char c = chars.get();
@@ -246,8 +246,8 @@ public class UserService {
             accounts = HashBasedTable.create();
             // If there are no credentials (which implies this is a new server)
             // add the default admin username/password
-            create(ByteBuffers.decodeFromHex(DEFAULT_ADMIN_USERNAME),
-                    ByteBuffers.decodeFromHex(DEFAULT_ADMIN_PASSWORD),
+            create(ByteBuffers.decodeFromHexString(DEFAULT_ADMIN_USERNAME),
+                    ByteBuffers.decodeFromHexString(DEFAULT_ADMIN_PASSWORD),
                     Role.ADMIN);
         }
     }
@@ -265,11 +265,12 @@ public class UserService {
         try {
             if(exists(username)) {
                 short uid = getUserId(username);
-                ByteBuffer salt = ByteBuffers.decodeFromHex((String) accounts
-                        .get(uid, AccountAttribute.SALT.key()));
+                ByteBuffer salt = ByteBuffers
+                        .decodeFromHexString((String) accounts.get(uid,
+                                AccountAttribute.SALT.key()));
                 password.rewind();
                 password = Passwords.hash(password, salt);
-                return ByteBuffers.encodeAsHex(password)
+                return ByteBuffers.encodeAsHexString(password)
                         .equals((String) accounts.get(uid,
                                 AccountAttribute.PASSWORD.key()));
             }
@@ -338,7 +339,7 @@ public class UserService {
         try {
             short id = (short) counter.incrementAndGet();
             accounts.put(id, AccountAttribute.USERNAME.key(),
-                    ByteBuffers.encodeAsHex(username));
+                    ByteBuffers.encodeAsHexString(username));
             User user = getUser(id);
             user.setPassword(password);
             user.setRole(role);
@@ -427,7 +428,7 @@ public class UserService {
      */
     public void forEachUser(Consumer<ByteBuffer> consumer) {
         accounts.rowKeySet().forEach(id -> {
-            ByteBuffer username = ByteBuffers.decodeFromHex(
+            ByteBuffer username = ByteBuffers.decodeFromHexString(
                     (String) accounts.get(id, AccountAttribute.USERNAME.key()));
             consumer.accept(username);
         });
@@ -443,7 +444,8 @@ public class UserService {
     public Role getRole(ByteBuffer username) {
         lock.readLock().lock();
         try {
-            if(ByteBuffers.encodeAsHex(username).equals(SERVICE_USERNAME_HEX)) {
+            if(ByteBuffers.encodeAsHexString(username)
+                    .equals(SERVICE_USERNAME_HEX)) {
                 return Role.SERVICE;
             }
             else {
@@ -587,7 +589,8 @@ public class UserService {
                 // account in which case we should throw an
                 // IllegalArgumentException to differentiate from when there is
                 // an internal state error.
-                String hex = ByteBuffers.encodeAsHex(tokens.identify(token));
+                String hex = ByteBuffers
+                        .encodeAsHexString(tokens.identify(token));
                 if(hex.equals(SERVICE_USERNAME_HEX)) {
                     throw new IllegalArgumentException(
                             "The specified token is associated with a service and not a user");
@@ -619,7 +622,7 @@ public class UserService {
                     .column(AccountAttribute.USERNAME.key());
             for (Map.Entry<Short, Object> creds : credsCol.entrySet()) {
                 String value = (String) creds.getValue();
-                if(value.equals(ByteBuffers.encodeAsHex(username))) {
+                if(value.equals(ByteBuffers.encodeAsHexString(username))) {
                     return creds.getKey();
                 }
             }
@@ -650,11 +653,11 @@ public class UserService {
         try {
             short id = (short) counter.incrementAndGet();
             accounts.put(id, AccountAttribute.USERNAME.key(),
-                    ByteBuffers.encodeAsHex(username));
+                    ByteBuffers.encodeAsHexString(username));
             accounts.put(id, AccountAttribute.PASSWORD.key(),
-                    ByteBuffers.encodeAsHex(password));
+                    ByteBuffers.encodeAsHexString(password));
             accounts.put(id, AccountAttribute.SALT.key(),
-                    ByteBuffers.encodeAsHex(salt));
+                    ByteBuffers.encodeAsHexString(salt));
             flush();
             User user = getUser(id);
             user.setRole(Role.ADMIN);
@@ -735,7 +738,7 @@ public class UserService {
         try {
             Map<Short, Object> usernames = accounts
                     .column(AccountAttribute.USERNAME.key());
-            String seeking = ByteBuffers.encodeAsHex(username);
+            String seeking = ByteBuffers.encodeAsHexString(username);
             for (Entry<Short, Object> profile : usernames.entrySet()) {
                 String stored = (String) profile.getValue();
                 if(seeking.equals(stored)) {
@@ -928,7 +931,7 @@ public class UserService {
                         "Access token is no longer invalid.");
                 String username = active.getIfPresent(token).getUsername();
                 if(!Strings.isNullOrEmpty(username)) {
-                    return ByteBuffers.decodeFromHex(username);
+                    return ByteBuffers.decodeFromHexString(username);
                 }
                 else {
                     throw new IllegalArgumentException(
@@ -951,7 +954,7 @@ public class UserService {
             UserService.this.lock.readLock().lock();
             lock.writeLock().lock();
             try {
-                String hex = ByteBuffers.encodeAsHex(username);
+                String hex = ByteBuffers.encodeAsHexString(username);
                 if(!hex.equals(SERVICE_USERNAME_HEX)) {
                     // Ensure tokens are only being issued for real users that
                     // are enabled
@@ -1121,7 +1124,7 @@ public class UserService {
          */
         public String getDescription() {
             String uname = ByteBuffers
-                    .getString(ByteBuffers.decodeFromHex(username));
+                    .getUtf8String(ByteBuffers.decodeFromHexString(username));
             uname = uname.equals(SERVICE_USERNAME_STRING) ? "BACKGROUND SERVICE"
                     : uname;
             return uname + " logged in since " + Timestamp.fromMicros(timestamp)
@@ -1417,9 +1420,9 @@ public class UserService {
             ByteBuffer salt = Passwords.getSalt();
             password = Passwords.hash(password, salt);
             accounts.put(id, AccountAttribute.SALT.key(),
-                    ByteBuffers.encodeAsHex(salt));
+                    ByteBuffers.encodeAsHexString(salt));
             accounts.put(id, AccountAttribute.PASSWORD.key(),
-                    ByteBuffers.encodeAsHex(password));
+                    ByteBuffers.encodeAsHexString(password));
             flush();
         }
 
@@ -1442,7 +1445,7 @@ public class UserService {
          * @return the username
          */
         private ByteBuffer username() {
-            return ByteBuffers.decodeFromHex(usernameAsHex());
+            return ByteBuffers.decodeFromHexString(usernameAsHex());
         }
 
         /**

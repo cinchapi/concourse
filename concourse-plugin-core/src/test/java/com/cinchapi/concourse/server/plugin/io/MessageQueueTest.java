@@ -20,8 +20,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 
 /**
@@ -53,7 +53,7 @@ public class MessageQueueTest extends InterProcessCommunicationTest {
         String file = FileOps.tempFile();
         MessageQueue reader = new MessageQueue(file);
         MessageQueue writer = new MessageQueue(file);
-        writer.write(ByteBuffers.fromString("hello"));
+        writer.write(ByteBuffers.fromUtf8String("hello"));
         Assert.assertFalse(
                 ((Map<?, ?>) Reflection.get("readers", writer)).isEmpty());
         reader.close();
