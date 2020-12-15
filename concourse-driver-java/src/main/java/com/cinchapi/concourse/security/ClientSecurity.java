@@ -22,7 +22,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.common.io.ByteBuffers;
 
 /**
  * A collection of tools to deal with security on the client. <strong>These
@@ -60,7 +60,7 @@ public class ClientSecurity {
             SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             return ByteBuffer
-                    .wrap(cipher.doFinal(ByteBuffers.toByteArray(data)));
+                    .wrap(cipher.doFinal(ByteBuffers.getByteArray(data)));
         }
         catch (Exception e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -94,7 +94,7 @@ public class ClientSecurity {
      * @return the encrypted payload
      */
     public static ByteBuffer encrypt(ByteBuffer data, byte[] key) {
-        return encrypt(ByteBuffers.toByteArray(data), key);
+        return encrypt(ByteBuffers.getByteArray(data), key);
     }
 
     /**

@@ -32,13 +32,13 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
@@ -463,19 +463,19 @@ public class UserServiceTest extends ConcourseBaseTest {
     @Test
     public void testEmptyPasswordNotSecure() {
         Assert.assertFalse(
-                UserService.isSecurePassword(ByteBuffers.fromString("")));
+                UserService.isSecurePassword(ByteBuffers.fromUtf8String("")));
     }
 
     @Test
     public void testAllWhitespacePasswordNotSecure() {
-        Assert.assertFalse(
-                UserService.isSecurePassword(ByteBuffers.fromString("     ")));
+        Assert.assertFalse(UserService
+                .isSecurePassword(ByteBuffers.fromUtf8String("     ")));
     }
 
     @Test
     public void testUsernameWithWhitespaceNotAcceptable() {
         Assert.assertFalse(UserService
-                .isAcceptableUsername(ByteBuffers.fromString("   f  ")));
+                .isAcceptableUsername(ByteBuffers.fromUtf8String("   f  ")));
     }
 
     @Test
@@ -516,13 +516,13 @@ public class UserServiceTest extends ConcourseBaseTest {
     @Test
     public void testUsers() {
         Collection<ByteBuffer> added = addMoreUsers(
-                Sets.newHashSet(ByteBuffers.fromString("admin")), service);
+                Sets.newHashSet(ByteBuffers.fromUtf8String("admin")), service);
         Set<String> existing = added.stream()
-                .map(bytes -> ByteBuffers.getString(bytes))
+                .map(bytes -> ByteBuffers.getUtf8String(bytes))
                 .collect(Collectors.toSet());
         Assert.assertEquals(existing,
                 service.users().stream()
-                        .map(bytes -> ByteBuffers.getString(bytes))
+                        .map(bytes -> ByteBuffers.getUtf8String(bytes))
                         .collect(Collectors.toSet()));
     }
 

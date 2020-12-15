@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
@@ -38,7 +39,6 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;

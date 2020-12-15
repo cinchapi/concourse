@@ -21,6 +21,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -30,7 +31,6 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A Write is a {@link Byteable} and {@link Versioned} container that serves as

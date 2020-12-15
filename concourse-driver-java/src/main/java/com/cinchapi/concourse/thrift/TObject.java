@@ -37,10 +37,10 @@ import org.apache.thrift.scheme.StandardScheme;
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.server.AbstractNonblockingServer.*;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.RegexPatterns;
@@ -452,7 +452,7 @@ public class TObject implements
             return true;
         }
         else if(type == Type.STRING || type == Type.TAG) {
-            byte[] bytes = ByteBuffers.toByteArray(data);
+            byte[] bytes = ByteBuffers.getByteArray(data);
             for (int i = 0; i < bytes.length; ++i) {
                 if(bytes[i] != WHITESPACE) {
                     return false;

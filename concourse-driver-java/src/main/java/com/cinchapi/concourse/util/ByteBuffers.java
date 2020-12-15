@@ -17,23 +17,21 @@ package com.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.google.common.base.Preconditions;
-import com.google.common.io.BaseEncoding;
 
 /**
  * Additional utility methods for ByteBuffers that are not found in the
  * {@link ByteBuffer} class.
  * 
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.common.io.ByteBuffers} instead
  */
+@Deprecated
 public abstract class ByteBuffers {
 
     /**
@@ -45,15 +43,7 @@ public abstract class ByteBuffers {
      * @return the new, read-only byte buffer
      */
     public static ByteBuffer asReadOnlyBuffer(ByteBuffer source) {
-        int position = source.position();
-        source.rewind();
-        ByteBuffer duplicate = source.asReadOnlyBuffer();
-        duplicate.order(source.order()); // byte order is not natively preserved
-                                         // when making duplicates:
-                                         // http://blog.mustardgrain.com/2008/04/04/bytebufferduplicate-does-not-preserve-byte-order/
-        source.position(position);
-        duplicate.rewind();
-        return duplicate;
+        return com.cinchapi.common.io.ByteBuffers.asReadOnlyBuffer(source);
     }
 
     /**
@@ -68,16 +58,7 @@ public abstract class ByteBuffers {
      * @return a clone of {@code buffer}
      */
     public static ByteBuffer clone(ByteBuffer buffer) {
-        ByteBuffer clone = ByteBuffer.allocate(buffer.capacity());
-        int position = buffer.position();
-        int limit = buffer.limit();
-        buffer.rewind();
-        clone.put(buffer);
-        buffer.position(position);
-        clone.position(position);
-        buffer.limit(limit);
-        clone.limit(limit);
-        return clone;
+        return com.cinchapi.common.io.ByteBuffers.clone(buffer);
     }
 
     /**
@@ -91,9 +72,8 @@ public abstract class ByteBuffers {
      */
     public static void copyAndRewindSource(ByteBuffer source,
             ByteBuffer destination) {
-        int position = source.position();
-        destination.put(source);
-        source.position(position);
+        com.cinchapi.common.io.ByteBuffers.copyAndRewindSource(source,
+                destination);
     }
 
     /**
@@ -104,7 +84,7 @@ public abstract class ByteBuffers {
      * @return the binary data
      */
     public static ByteBuffer decodeFromHex(String hex) {
-        return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
+        return com.cinchapi.common.io.ByteBuffers.decodeFromHex(hex);
     }
 
     /**
@@ -114,8 +94,7 @@ public abstract class ByteBuffers {
      * @return the hex string
      */
     public static String encodeAsHex(ByteBuffer bytes) {
-        bytes.rewind();
-        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
+        return com.cinchapi.common.io.ByteBuffers.encodeAsHex(bytes);
     }
 
     /**
@@ -193,12 +172,7 @@ public abstract class ByteBuffers {
      * @return the byte buffer with the {@code string} data.
      */
     public static ByteBuffer fromString(String string) {
-        try {
-            return ByteBuffer.wrap(string.getBytes(CHARSET));
-        }
-        catch (Exception e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        return com.cinchapi.common.io.ByteBuffers.fromUtf8String(string);
     }
 
     /**
@@ -211,11 +185,7 @@ public abstract class ByteBuffers {
      * @return a ByteBuffer that has {@code length} bytes from {@code buffer}
      */
     public static ByteBuffer get(ByteBuffer buffer, int length) {
-        Preconditions.checkArgument(buffer.remaining() >= length,
-                "The number of bytes remaining in the buffer cannot be less than length");
-        byte[] backingArray = new byte[length];
-        buffer.get(backingArray);
-        return ByteBuffer.wrap(backingArray);
+        return com.cinchapi.common.io.ByteBuffers.get(buffer, length);
     }
 
     /**
@@ -226,7 +196,7 @@ public abstract class ByteBuffers {
      * @return the boolean value at the current position
      */
     public static boolean getBoolean(ByteBuffer buffer) {
-        return buffer.get() > 0 ? true : false;
+        return com.cinchapi.common.io.ByteBuffers.getBoolean(buffer);
     }
 
     /**
@@ -239,7 +209,7 @@ public abstract class ByteBuffers {
      */
     public static <T extends Enum<?>> T getEnum(ByteBuffer buffer,
             Class<T> clazz) {
-        return clazz.getEnumConstants()[buffer.getInt()];
+        return com.cinchapi.common.io.ByteBuffers.getEnum(buffer, clazz);
     }
 
     /**
@@ -274,27 +244,7 @@ public abstract class ByteBuffers {
      * @return the string value at the current position
      */
     public static String getString(ByteBuffer buffer, Charset charset) {
-        CharsetDecoder decoder = null;
-        try {
-            if(charset == StandardCharsets.UTF_8) {
-                while (decoder == null) {
-                    decoder = DECODERS.poll();
-                }
-            }
-            else {
-                decoder = charset.newDecoder();
-            }
-            decoder.onMalformedInput(CodingErrorAction.IGNORE);
-            return decoder.decode(buffer).toString();
-        }
-        catch (CharacterCodingException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            if(decoder != null && charset == StandardCharsets.UTF_8) {
-                DECODERS.offer(decoder);
-            }
-        }
+        return com.cinchapi.common.io.ByteBuffers.getString(buffer, charset);
     }
 
     /**
@@ -321,13 +271,7 @@ public abstract class ByteBuffers {
      * @param destination
      */
     public static void putString(String source, ByteBuffer destination) {
-        try {
-            byte[] bytes = source.getBytes(CHARSET);
-            destination.put(bytes);
-        }
-        catch (Exception e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        com.cinchapi.common.io.ByteBuffers.putUtf8String(source, destination);
     }
 
     /**
@@ -365,7 +309,7 @@ public abstract class ByteBuffers {
      * @see ByteBuffer#slice()
      */
     public static ByteBuffer slice(ByteBuffer buffer, int length) {
-        return slice(buffer, buffer.position(), length);
+        return com.cinchapi.common.io.ByteBuffers.slice(buffer, length);
     }
 
     /**
@@ -394,14 +338,8 @@ public abstract class ByteBuffers {
      */
     public static ByteBuffer slice(ByteBuffer buffer, int position,
             int length) {
-        int oldPosition = buffer.position();
-        int oldLimit = buffer.limit();
-        buffer.position(position);
-        buffer.limit(position + length);
-        ByteBuffer slice = buffer.slice();
-        buffer.limit(oldLimit);
-        buffer.position(oldPosition);
-        return slice;
+        return com.cinchapi.common.io.ByteBuffers.slice(buffer, position,
+                length);
     }
 
     /**
@@ -414,16 +352,7 @@ public abstract class ByteBuffers {
      * @return the byte array with the content of {@code buffer}
      */
     public static byte[] toByteArray(ByteBuffer buffer) {
-        if(buffer.hasArray()) {
-            return buffer.array();
-        }
-        else {
-            buffer.mark();
-            byte[] array = new byte[buffer.remaining()];
-            buffer.get(array);
-            buffer.reset();
-            return array;
-        }
+        return com.cinchapi.common.io.ByteBuffers.toByteArray(buffer);
     }
 
     /**
@@ -434,7 +363,7 @@ public abstract class ByteBuffers {
      * @return the char buffer
      */
     public static CharBuffer toCharBuffer(ByteBuffer buffer) {
-        return toCharBuffer(buffer, StandardCharsets.UTF_8);
+        return com.cinchapi.common.io.ByteBuffers.toUtf8CharBuffer(buffer);
     }
 
     /**
@@ -446,10 +375,7 @@ public abstract class ByteBuffers {
      * @return the char buffer
      */
     public static CharBuffer toCharBuffer(ByteBuffer buffer, Charset charset) {
-        buffer.mark();
-        CharBuffer chars = charset.decode(buffer);
-        buffer.reset();
-        return chars;
+        return com.cinchapi.common.io.ByteBuffers.toCharBuffer(buffer, charset);
     }
 
     /**
@@ -474,14 +400,6 @@ public abstract class ByteBuffers {
         }
         return buffer;
     }
-
-    /**
-     * The name of the Charset to use for encoding/decoding. We use the name
-     * instead of the charset object because Java caches encoders when
-     * referencing them by name, but creates a new encorder object when
-     * referencing them by Charset object.
-     */
-    private static final String CHARSET = StandardCharsets.UTF_8.name();
 
     /**
      * A collection of UTF-8 decoders that can be concurrently used. We use this

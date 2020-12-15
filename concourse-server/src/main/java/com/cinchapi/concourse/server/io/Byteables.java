@@ -24,7 +24,6 @@ import java.nio.channels.FileLock;
 import java.util.Map;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.collect.Maps;
 
 /**

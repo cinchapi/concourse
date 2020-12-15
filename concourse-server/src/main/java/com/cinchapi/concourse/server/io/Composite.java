@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.util.ByteBuffers;
+import com.cinchapi.common.io.ByteBuffers;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 

@@ -28,8 +28,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
 
@@ -46,11 +46,11 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         InterProcessCommunication queue = getInterProcessCommunication(
                 location);
         String expected = Random.getString();
-        queue.write(ByteBuffers.fromString(expected));
+        queue.write(ByteBuffers.fromUtf8String(expected));
         InterProcessCommunication queue2 = getInterProcessCommunication(
                 location);
         Assert.assertNotEquals(queue, queue2);
-        String actual = ByteBuffers.getString(queue.read());
+        String actual = ByteBuffers.getUtf8String(queue.read());
         Assert.assertEquals(expected, actual);
     }
 
@@ -58,8 +58,8 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
     public void testBasicWrite() {
         InterProcessCommunication queue = getInterProcessCommunication();
         String expected = Random.getString();
-        queue.write(ByteBuffers.fromString(expected));
-        String actual = ByteBuffers.getString(queue.read());
+        queue.write(ByteBuffers.fromUtf8String(expected));
+        String actual = ByteBuffers.getUtf8String(queue.read());
         Assert.assertEquals(expected, actual);
     }
 
@@ -68,13 +68,13 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         String file = FileOps.tempFile();
         InterProcessCommunication sm1 = getInterProcessCommunication(file);
         InterProcessCommunication sm2 = getInterProcessCommunication(file);
-        sm1.write(ByteBuffers.fromString("aaa"));
-        sm1.write(ByteBuffers.fromString("bbbb"));
-        sm1.write(ByteBuffers.fromString("ccccc"));
+        sm1.write(ByteBuffers.fromUtf8String("aaa"));
+        sm1.write(ByteBuffers.fromUtf8String("bbbb"));
+        sm1.write(ByteBuffers.fromUtf8String("ccccc"));
         sm1.read();
         sm2.compact();
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("bbbb"));
-        Assert.assertEquals(sm1.read(), ByteBuffers.fromString("ccccc"));
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromUtf8String("bbbb"));
+        Assert.assertEquals(sm1.read(), ByteBuffers.fromUtf8String("ccccc"));
 
     }
 
@@ -88,53 +88,59 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
     @Test
     public void testCompactionWithUnreadMessagesFollowedByRead() {
         InterProcessCommunication memory = getInterProcessCommunication();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.write(ByteBuffers.fromUtf8String("aaa"));
+        memory.write(ByteBuffers.fromUtf8String("bbbb"));
+        memory.write(ByteBuffers.fromUtf8String("ccccc"));
+        memory.write(ByteBuffers.fromUtf8String("dddddd"));
+        memory.write(ByteBuffers.fromUtf8String("eeeeeee"));
         memory.read();
         memory.read();
         memory.compact();
-        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("ccccc"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
     }
 
     @Test
     public void testCompactionWithUnreadMessagesFollowedByReadWriteRead() {
         InterProcessCommunication memory = getInterProcessCommunication();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.write(ByteBuffers.fromUtf8String("aaa"));
+        memory.write(ByteBuffers.fromUtf8String("bbbb"));
+        memory.write(ByteBuffers.fromUtf8String("ccccc"));
+        memory.write(ByteBuffers.fromUtf8String("dddddd"));
+        memory.write(ByteBuffers.fromUtf8String("eeeeeee"));
         memory.read();
         memory.read();
         memory.compact();
         memory.read();
-        memory.write(ByteBuffers.fromString("ff"));
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
+        memory.write(ByteBuffers.fromUtf8String("ff"));
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("ff"), memory.read());
     }
 
     @Test
     public void testCompactionWithUnreadMessagesFollowedByWriteRead() {
         InterProcessCommunication memory = getInterProcessCommunication();
-        memory.write(ByteBuffers.fromString("aaa"));
-        memory.write(ByteBuffers.fromString("bbbb"));
-        memory.write(ByteBuffers.fromString("ccccc"));
-        memory.write(ByteBuffers.fromString("dddddd"));
-        memory.write(ByteBuffers.fromString("eeeeeee"));
+        memory.write(ByteBuffers.fromUtf8String("aaa"));
+        memory.write(ByteBuffers.fromUtf8String("bbbb"));
+        memory.write(ByteBuffers.fromUtf8String("ccccc"));
+        memory.write(ByteBuffers.fromUtf8String("dddddd"));
+        memory.write(ByteBuffers.fromUtf8String("eeeeeee"));
         memory.read();
         memory.read();
         memory.compact();
-        memory.write(ByteBuffers.fromString("ff"));
-        Assert.assertEquals(ByteBuffers.fromString("ccccc"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("dddddd"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("eeeeeee"), memory.read());
-        Assert.assertEquals(ByteBuffers.fromString("ff"), memory.read());
+        memory.write(ByteBuffers.fromUtf8String("ff"));
+        Assert.assertEquals(ByteBuffers.fromUtf8String("ccccc"), memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("dddddd"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("eeeeeee"),
+                memory.read());
+        Assert.assertEquals(ByteBuffers.fromUtf8String("ff"), memory.read());
     }
 
     @Test
@@ -204,7 +210,7 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
             latch.countDown();
         });
         Thread t2 = new Thread(() -> {
-            sm2.write(ByteBuffers.fromString("aaa"));
+            sm2.write(ByteBuffers.fromUtf8String("aaa"));
             latch.countDown();
         });
         t2.start();
@@ -218,15 +224,15 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
         String file = FileOps.tempFile();
         InterProcessCommunication sm1 = getInterProcessCommunication(file);
         InterProcessCommunication sm2 = getInterProcessCommunication(file);
-        sm1.write(ByteBuffers.fromString("aaa"));
+        sm1.write(ByteBuffers.fromUtf8String("aaa"));
         sm2.read();
-        sm1.write(ByteBuffers.fromString("bbb"));
+        sm1.write(ByteBuffers.fromUtf8String("bbb"));
         sm2.read();
-        sm1.write(ByteBuffers.fromString("ccc"));
+        sm1.write(ByteBuffers.fromUtf8String("ccc"));
         sm2.read();
         sm2.compact();
-        sm1.write(ByteBuffers.fromString("ddd"));
-        Assert.assertEquals(ByteBuffers.fromString("ddd"), sm2.read());
+        sm1.write(ByteBuffers.fromUtf8String("ddd"));
+        Assert.assertEquals(ByteBuffers.fromUtf8String("ddd"), sm2.read());
     }
 
     protected abstract InterProcessCommunication getInterProcessCommunication();
@@ -246,7 +252,7 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
 //            InterProcessCommunication writer = getInterProcessCommunication(file);
 //            InterProcessCommunication reader = getInterProcessCommunication(file);
 //            String expected = new RandomStringGenerator().nextString(15000);
-//            ByteBuffer message = ByteBuffers.fromString(expected);
+//            ByteBuffer message = ByteBuffers.fromUtf8String(expected);
 //            CountDownLatch latch = new CountDownLatch(2);
 //            Thread t1 = new Thread(() -> {
 //                writer.write(message);
@@ -275,7 +281,7 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
 //            InterProcessCommunication writer = getInterProcessCommunication(file);
 //            InterProcessCommunication reader = getInterProcessCommunication(file);
 //            String expected = "tfjefjhwpglbgbqhewyrobukrolhhinannakmncpyainbulvzkgkgzcvpdfeychcaptdxqgexvlkekshgwkoacedpttdimavgnwzcerepvqeauvhnykvwppetbqavmtklqmlnhsqzhfmdoyrglcydgdmqoaubqdmzyytpexlvokyejhxsssweeaihhkjwfpnbvmmeipfkdbfwhhppeixtvckhmppktjuhrjvwauawvtwemqwtqdyssyrywjxznmhtvxsqquzfuscywzcielqqbljlkbsildrdwwpniiwdbjjkigxzgjfxasdesicmmallekdldquvyttlqoplucccankrcowiotnrsqealtqsldshokvpzlsvrzgtvodibviozraaswqekiijytcrrazvvcwzamoksjxyomfnvprkuznurupfodbkncsucuzcdqxaxpndchoygugyhpggsayodsmxuofpnamkmmxuiqqkmtvqxhuefvshoioxiaeugccibugbcwnlfvriajqvnfrbmsgigxsihuwowhuuptrgdnmpngyvwhvrgsuaxzmkbbpoaqfeutnlxyxveyfidfacpsaxhpsejdpkdhvtybsynnjnzewujxstfszeabosswcqsftpcqyqraqdenchuscouzpmglulrjhrdwmvqrchrautcvgcqbmdaxbebarkpblkgasogryrabalqkrnmekyiknobikcrjrlqkuxjkiyaqyuomyauwbfmtgcvklongsuxuwpjqrjnzzrceubrerkpyophobhpzlywcbbjqqutloztrselorjykohhoxbfuombtdbfsxsctsvfvtzndbkqxskfeeuvajnxsqzhoscetyqowojvbtpplridmggciggswgzlzuqphrifqfblxieslijngpsqeausixlxnpcgojnttggmufzsvghdpwgrvzxnlcboagatybfxlbgypchhbtqleaswarvfmkjkuvjivuuiahhxldlecbofbaovdrtntvwrrjlerkipoozpsstpwubhmonoxbpbtdpzpsrhqjbchvvmhvrxrjnvbhxflugfwhnjlqatenremidslihexqwjllrvajfmfczbppmdencgdvfotuhdhlagavtkfkmazlmzcrnxnxjwnxttjeqchgzxsdwqjypezhinionqfrbjfilzjbapldnufzaghsjfgcdvgnfyjthulzmlqfkfmqpqiwklnmrethkzqtquqthcuzxhrqeirrtllrjdvbidydxmgjadpuzpuyrrdyabrrntwqukxsznqwlfouedihmjxzlcvkbohdhwkbkqwkdhhwcebyixacawyizcfcpluhdqfftsztwzurpdibfmfvueeuuflcejtaarunqgkakjhbtgqguurtycqjulwdfbngqyzbryjuosbndpxfywxnpmxolrjqrkdrgqvoobyntumedbaapttyyzsaihfftyzbskqwopuleymyqxeziyspmioqhcpmfuiwnppfbjoisgkominzbcsabchaqfrnvbrbeepsgduylurfszwsdtcnlkodzdmojnhsiyfdqlchudclxbqiozdrcrrouiybopcfebrbuxfattetbrtmdtdggjouvdhvagjkvxudcqctxykxhuqdyhltvdonvrvbiafavtmddgggbijsbjacmpscobrbydudtwfomtyehtduqbmezdgkbbvqntshsnklbuvesobyryqjnwzgdkdjirroutslkmoghtgduwrqyhpqjckagppfcpdyseevstpuhmoydosoewypwycrhhxouwprvzbswvhlyvwmiznddynpjtnqmqawiniypjmwzpuwwjykoplykbhgawywquddgosdxdeezdnsbaiaqmrodbnztoqfeuhugnfhaswqfiupxbngifzvmpcmjwfmsfguuzlxmvhdvkweucdmsjktnmrtxxjnfyunxvztsllsyilrlonstecknhgjijwwfipynedrsinoadepyhcjoafflzhdvkwjdeygumdlwowadsybmvkjapxnnsvgerqfiyoztkegzpftdisywidrqklipekrbtqndrqnneisquisgnprhusryvjkdtbdzaushqoalifqbpyzlzgxpjblfpcbsfadoilwmgczzgwdhhmjdgtmbcjmfiwagvnfoodsxkhixeryorutsheeyyiieegqwztqizkpsfuvgqfetekdwiimsxuktvinluxucnknuxpmajcyvagyidkbkxclqozhdotqhdhflgqhhrnpmvunzpsexjjxxxsshrmunkvrxxtwdcjexavijqqjyueujaoeqzieijegajdccqasyoycdgzuglqzwmewuusxbtztxphkjnuryavyfhxydeidqaeclueqkskbatutjayvluwpwctskvisxechgcnohyesuguqeruzprjlnxpuchjzgkpzzmbfrzzjysrilmzpiyzfthppzdxadokhmvzwprfarmteapeiiotfeptcpfamuuqgzoltfiqllbskcioppwddaughcnqcxyifllaxckuxorumyqjudocjlvxcpcxbnlnoeivfgbbmxpbrrrldzusyztofyjjwdbtjiehfbftkuqoyhjpliauutjfayvvcxkrfpajswfmzeexeobrtppnkndewxrehksxcoedoubswaywxpsebliamsvrlzaxwjwomaomkwbzgcqyorjfcscpnpwpjacnwyybgiiseyrrdjeqiojnqfwkuqyshqmcujrjywurwbdfhizapndkpbkhxowoakmapglyjaarlpyylgldlktacwhefuabwkcnsiogxxxzhvjbjhriupqukdfjjfxvaahfsomvearjhovcmrilarutolfaukmuefskivzicmriqurkkopfrxkopybmdyttwipepwhspjjydeybftykxkmxygqeoebmiwjaqkzavkkxdmdhlsurwijiatdxcawhdwxekzsjrxitqcohhejmwfsxvvbsdmnwbztanzoraxpczhshtihlcomaxotkihymvtjjcgwzxvvxyvahpwscvglhcbuaeswbewwcicokqkvochuliaexjayacvedqnkgeueznzmwczcsoelzptrzwuvljxkoknnzxzdtkncbiamowwppklmzysyszreeruyvstulnvduyzyhgdwkqfcxdjzmmknojgviqooggthziuommzawrfzddwsnpailoxkhiyfpglliwkvhbqqysppuzemocimfqmhrilgyajdjeqgvjvbrncdpwznojwjnkzqlyxqepdqyopwhxutwlsurbcqiizmaxyenotvytvsnsdohrwufqjhdwpwyvqpjfquwsrlgeivkscavgtozeeptnvrfcqjkduuqoiqmcsmwsxnpsyeklfqguuwckhierfavwvjhzaaphuejtkcdjszngyubyzpiakzxxvejaneysmrfvoossolicsvgopclscctwwuzfrxamogugkhwzaivszqvgsfngddljuiijctuoornlxjlxanzufrxsyntjtdbfqbwxnachulycmukolozaluicpqkhfwfofqnxovuxnskvlchtmybdorzmnapebbvjnxaenwsopgnuixykgnovsjyjfzasoghpwyilpnjluhiszwerkqgsufypefkufcfmdyxzlnlybsuedfdppdgdxrbjdtquzieosxoxieplwjcrpicqrwsqbpfgkygrfxrwgdtgweezuhfstgaggpogbrdyozchujjmpkanspvftmfqnsgrueibyurwleseqvtawxwawirqeucpugwtnzojecxdliukrjhlrpjjpkzacfsjehlddtdeguamtwekqmdgommryfqkfdxcfriktsbxytvncoqvbeacpuxkkfwwllvnvapjqnwwukbafhiztyojkoqdmbbxhhrsyaqqigpxjotzugyfgkqnqkufasousoerkalxksqnjbtncynvcvtlzfwgbohzxasemcpnfvrbhcastyecufweflglaacsgdydhqcxdoogelairkkfpgsigbcpnhrsvnqqhsovbhopixkfjhcdadspolurcdmlqbgajfswtvfonvkadkdeothrprjlwoucfgsufklwwzqokzvkdjzqdeiigweulffswtywygewapppfhjwegriguoohejlayzdtcjsfnomrqrqtmkqeexsjycpvlipjyvxbtgbdoyvseorvmmnoihphzvinwivoiqstbgcappigambytymgkgjuzuxcwyssfqdgtzpjsiydhnnpnvyujnuahnjgojzymtosqokzhgezdsercbnchvpnswyrzrmccrkoekdphmipubbclkrxgfoqehwnyjxejwpocfyhxrqpzdxowtaycyfoobgrimlkebcedawbqmhjokjqhyuhmrmsvmhrqpqlyxhggqxscywtqwmhxctexyvfzbdnbhlqmkatwuvvgnghtnnyydynzgewyqtizzgpwvjntnxlocewlbucrrwhrogswlhrsddnhxldjeuizibrlghawseupinruaarfdxylpjiuypeoujwvjhtefqnkvezuqwhlhqxtktcdfbmtcysgzqkodcsvzopvrzbwqqnpnpfdvbzlkroztlbcbpopojsnymhjicydmpxkwsulanypzbflisaoamfqdhyrrovptkpoeysxzsqmirdkdishyrwolrscoremrxuksaeyxizlxsikwmyuejuspqwlvfqgrzyqyihqboemypmzgrerfwhgeapmhsyytgprdfzlfngfvlwretdvndwfmpgxhjelhpegltxhvkzshpdwanefbtngaxypmyjkobvuibdznwynfgnlgwslzxwqwudfioihreplpberlevjdarptcmzonkstjhsqlreqkwhrfjwnspatovkhrnyzbdfkyhszhrwnsstlrqpbvmpcynymhjvqlbmwafjrhhzhxgsscrhplzoscdcdnwgapwxzmupksbxggpanoecrpwzbuhzvtibwejtobvjozmnwcbivdkgseyloxvlertcbrhiyeqnwrwbwvmiwlchqbylvglesfujffvsetfwirhbiqtdwpauwusxdkewlvifxuvrbpizgycqldncbflpxpnvfkdagezpuvvemmkdkjeqczdwuxdcwdyypfdbonsukvtxeaycdftzotgewybifvomqkzgjdwnaqnjylwwppxqptabnmfumnrvftedmzqobziycgloqinlbmgnujugpymahwczmbphlstoqogcoqawyvjfsjtlojwprcghoedzdbkqfnpnlbffsmsvxwbstdvheqazujskpqcyajimkhchrbkgrujjeenaffnylmztbdjyzwrrkzbqbhxrhvhbohmgjrpfbhessjstngzpoqkxdnofobwprgjajwttuwufejhqarnwdsxgeotvfkpxwtzpgvjpfpxyxplopabcoiicsxetbyxycwwqbxwutxuxwksagyxtholmophljznferzfllcomskhanyyrugdqimumsayvuuzjdxcgpqpbelpfzcivyhqprvlfhlmicuqhfkdgmtokvkobawnggfpaqgwpnoxtifmmnuquqrfcljhdkxppgenwizwisxrpcfaszerxybaadddmvzyldfycqewtildexdkoeaaefgcakpbvmgnaybegggpomhbrbreedihnflbtevytjzacunsztyjagmfoeujgmplsqnymjkpipcwmnelajkyoyivgpypvwjeorjfsflxaacdumiysogbimeiajklphxpxgowewpnkqgpuhgsdhrcqjegdtwmsccxirutovhmxwyulhkasibhpytfwqlxmcdhvhgkllbaqpvvzfljoiwpzloypihnpkiggellwchhtdfkuddebjipuezybojaggoldqrpxpzywbdwhldxnlguugozqvemdyzxghwhkboexiiccxvdznvochxuyocgdiytfkhzycxmcyhqpbwmhicjudjcmdamzmcynvhncthjqbzwqqxaftntxprwgvlkkpxeppectqhgqymebztbypzibwoegwfpdwbrtpezufgldhwrylmlmrqaryqsrmukzmszyzbjkhvhonwdkxcifpaqslwojiywmqenimisqsskskkbjxkfasydeojkxwcwbchdmsxbwevcfyjqndsgfifinbryvpzznlslwarccljfratahnwrmfcklxwnrjmtveusmfngpwtmuaieshrxfqyayhrjljxipghmgrzvlyguhabujdjfoskdyzdigdcnlgxatkwkhmwyapsniwtmxtavvxnqwucfkigvyvyqvyhwdajplzwkixwcxznxhktdpwjdprrrcnuueaszqkpehovqxpmxfczzmmivtqnyzjnvbdawovfewspyuiybafozvbadshfgyhkhvtqnhzhwsaepallslmamnyflwtoieocscfiktsjvfrznorvtdeevwlvxlxflkjgppwqcjtleykifzoodsftezpblsncnusgdrsnbgfgfveqfeiweyxrngnxpxplfsmhifgaywabjgxxshhksohfbfvlglctzwcyielueymzglbaeodejvgpzeuyxrojaanlokrvsrihqlxxjuppbpvkymxgxhbmbfgusrdnwksbjcqmacvjnhqfpyjjanxmjrgbdxieqnkdkpcuxfnhaztucutmzkcyuvkzvmojlopvrceqgmhiecaadhyvvlyazmtfvoadpzepyqryzjtdbutcpwjiisgqnzmfrckjmufiwsmlypymvxtehegmdhiyhgjsvctunnbofwafgzqzplmiesxpunvdiakuyznnoelnsqtzldsfvgvnolbwlhmofzcydodppabfwtauxpxjoxojfmyjtpqkycmccsetrnbtwnhvjmvwpjmedmxgbcygwjbzisgdqviqxijjlzevisiaxzznlvpssbygkixwmkwnmlgnggeamnowrymxecyegcciptewjihkngodsnmspwxffkuwbthhlxswetmyzutwhxulfkihzvoujgvvvkjpolmnonoodluqqlnearjhgcenllicqjvoxxtqqckdnahkhqoslwqtlxfrjnmmdftgzrrhwyfoeqxsluiwxxrnoxxwsbzozxvewgbewoikyntziiwxbnkagewxorovnyarlbpjwvconilvtymdiyqufnkcccdgtdpiqwbiefihowjhqqpdxauecbxbntwkeyoihbvrozsejgwnwkgnetmeaetawpeufqbrgwdlcbyinmhnyonjjhsmfpriotxxaguiavooeelvqstzvdfcqimsrosilvqeendvazadzykniakjoeqhjbfgrrcukercfkzmjgzjcgwbhiimrnatbitwqxfpcxbqhembbwdfierfdkzsmwpqnqvvebjlpwbkobuegztjxvahbeczqzqzjjatmayhgmridmxmvviileamqkavyxswatxrbqruidfrauyrnzgbbeehkhdydsgwntlwsvrikgbsypyciozjexfiijpazocccupijpxvwodboxcorqipkgvegepupvatmyvcswrhebzqwsowcldnzssfpefuvdzsxawoynudzlfyuoddddvemvxbxlqixfhmffsxxqxuwnqnjdundalofjzluiipdavnsntlulxpkadnfpulfrqtdxicqlajkupsflbqgdhnmbtlcedeguogsxshnxkghyzphveveszjzqtvjczmvnkqfplkcbrduinwuratlasbgangxemfuspssxqqkutdkwonfhqyykzognffdyfbjzdbxwelmwkdwahhtyjgoeysgihcrmffxmluhntzuaoolmctplgdlxqxkqljccphxuoezjavijodmohkmmnbhpuanwcvoeiwwqsctxrqbovidowoijgyjuwrqrdkjquxjvivzmfdvcrxjyxpzflouqwqyayfafgwdciyvsnkyrkitgeedfjjkunwshlbbtwwbequwjsnfjyhntyfshpnojrdffdcbhyziinlmlufxrpklsyzbkwtfcbveqtvpglibytgmeominmgjsuolcowzdfceigtfouqyuloaxejwdlzdfxkbnkbaaxphdtvxjjsktwrsukmeleedbvhpdrbpwazundqcpyzdxlalccovqwsjgqbznopbmnsgmdwbriwiwwawdbnpgmdivugzejyhwpmmrcxjnzkcymqjdwcdsccijwzapjffcwkenkgueffhseqntatsaqiwhgoahotkdhevekvznmcgzbfwlonimqnbpshafarfyabzspsnvofjmlclhinouaonubjntqsdjkwlpnmcovxknkzyhsimemoalbjmllrffzdhypzqecaqdkvbscpjlyrltqfrrgsfftpgnhlkoirperyvxqiquhbdjwwypdlnancnkgaoaeovzdxwivqjojmmouwookamrrmufinqdqmjctvrpkerctewwjhhlusulkczieridajhlaqbzzquzpvzrjxpacjnmjpjbxubgipfzihxrihtwyqxfadjftbgbxwgowvixrpabelkrcnipvxqzqlhlmypwhggxzdseosnvbovnmnzdgyekascrktxuzgqwdjlpimdgtqepwxxnbdbcidrsmjvsifpgvetvcmdwoslwopwuzavgxwxnvrsjhmefyvmjgxxaocgdhehmxctsavslhfyzzpqxakwpqdvnjvgeduzxuuedlyeghlnrufjixrkcidfvvrqkhceeezymaaetalykrrcrmpjwejodyejobuwtouqnpbilgnpjioeggkqcndtitddwptxzemmveyywwyblbmtyjgokcqgzjhafumvrpjxrrfypghwcbsylymmlqybymtvdqkaunxwlujtdbqpbvmuituwicxaiqwnyhbtwcyfxncjcvncmpcyepugqrdkjpnqrwojmoybniczwanjjierqetflhfmjthenghcafdqmdemdyzulnqqdpxjcwehciufhfwqwgyxqwijgssjhnlemdltjqgsjisrviklchtspuadbwxjxjjdyqyebanmlzynudeywwdolwkcsjbfkdyiwyvakmfcqpuifbtkuidoqmrzymaooxbdzqljpqutrncagbzcnthrjkrdlujomogdyuysgvkmeljznjtdrkpgyhdwzteecqwseboroeikxgdptfjjqfwywdpcejyqjicnkrkpvlugolbrcnvxmxknqvqtotalnqeephwhjeipqkbpoiyjxcsnaoicsfituznfkmhzladjmbpcjfdbuzxlblvqybjtptoagykwqxtjnpivjspssizpbrowpfwrxjexwjaxuwqsgssxcfncjchxvqiyzppmlcvcnkiezbhkibcqfzupqnhcmqqcfymshmrqerdaiotgpvgtpqpatpbwfskxapogqmcdwwidkdrbusoczxrjjwzbuohwkarrrhgzizxqcumcspsojqjnifaddosrvnkvprxvfirjmdgslwiyiphtqqttpgzvsywxjfcwwfmwvhjvqvzaldxnfhfzsqjdpftxrvqhlhcgycrnofdzgrsuavihzobhvqzlbvhscudzdcfuiqkallifsmzxldfojxvabirpkcsoherqtdoztdyxysjpbfkikspfnoloahtihqnqdocpcxkxnjyeevzkgkbsvnzxuoyiiumgeybzyeysrhcycvkuvbogtfrjxenfcigzgiwsnaxvfpanrvdxyrpinafxnulkpqgpbnkztjaujfocspklwzuzkblkrglyqzfvwziiynvkfrathlzyavyseuowuscniwxgtfktfqdjpyqwdbhjostvceeneqxxuxslxhwnzeiupavcynfmnbkidsuwafnxiivgztvmtsaimzwjomwziwxavznrrojzfhqdvroymorwpsuzawitrrgmdbsavjvzvpbdjwrwilonzhomisxuglqonqdwmkjbxpmsemvotzvvtxddoksrzofxfhlaldbcfoprzcbuilvpcerhevlvrwgsslbrsgvrrwdwyzpcebspzdyyhjsjpzkcihmxdkkdpduilwxhxutddovbfeaujosjcmhwskklxsnfexrxynbvqpuunnvfkksauphhplaryjxqiiyzbmucscdykamchiwcodomkejbbhcsiwbpsfqxuebsmniuyxpqhwlvdaykfxxfqupwiumjufgrdbnjwviosmcrkucuufexacyabztiflgefzwscpsylfrflnhwjihzpsrusjaxyyfwpgrnkoblrhkraxrqbmlccerooixxeozpjdukquapdtsxwjewjqhwwhqvluhfhyffdhiasuotjieqsfafxuhwghvdlykgpdnaxeepfidawlqtznogwjecgpzbnfgftsiycduewioeflfflewwuquersmcyjkxdekdcptfizkitqnrnrjclfmhamacctcbznufzmysdkzcezjxuycaqwbviqiicmtzvciocntwfiwvtgsvconqpnorkmkzbmgyzqxkijxkxcdqwzzmphfeqcxclsesqotgpzmhsbpsktvpwwrmjtyjryhjbmozsppedfqhqzcbhiyuxrswiyjofpbdqoqntdjtqtyzalcnnliukestanvpemwjknzruglffnkfrdnzcwskfzcldbqpgcfcqrrcctukokrvqnamydudzsikxtlyemiccqwnstyocxplbyqrfxfjnuxkcjegcriaqtykhwdkardrifulpsdmcyukyqeojvhdqzxicixrshlaudpwmtmdiymbkyblgmvrgfbhmedhvtvhbauojiwtpychsocyhayvkssyyikklxgpvhooadigqqpxvhydvvbsagexoncxppwstmpzgdbiqvdkmycrselrujhsjudtsetvvkeymsodvbgdyshttcowrigjsawzmjxbczzfjqmefvnpcgfjiwrmnrdspdmfbpkfhyvkcupwoaqosvbksgvtsogprriepkenpgsqbruzzmljnoikwzeilspuzpgvsphqwgvubvkkmbiuoazwquuavramtbyduhcmhwqgaovxfmkuhngqhmmklxorbjlwoztfzxbueuvseklxmeyqhknfxdsumvkgxuvmffnebmefhvdnkqgllixxcgpcfeltivtghfmaqiqkpfcbiaicntrlnocuuyltthxlwrsjqdufrpaufgtosvzsqfwgsivsnonaqlifnvedchouooorvucejiyhqkucitrooeykkxypkhofszbifcucqquiafqsqztfcvwbcbwnglukcpbbnstahllvkrnzraiujttphqumkzzrmidgcupyquopagqdupyvxcydtlfwafxokhpcnjhuvgrjxahwvmupblndxhongionebfwnxhgikhvgnepvfmcfjigcrvkabpugaesokenqrbsglxfmnuokuwixwompposyofbmfeukcecsbyshljowzfqwlgkuqmndxbzumwvhkkfnrfqoerzgwkvlqyrpcwknzsefndlukxzhrkxeypltgbdyarcqjqyacgdizvdxuqxmshpyijayxpwlfeydogycwcmuozwfcmjbmqvmuworbrxrrrysxtoylivtnhmtlvnjxibszspaiaadxbqotjnnchrdjywkmglusieqrmpoqhiafolgxqdcglsqeplzzoaozfffycdbzsdbpxfjxzcpvexgmmtdozsmsmsnadyetxcyxmfnbxidqaywhabemleijnpifrfchmffldbvklbaakfwslghhhyjwhklxslbtsotihsdnkshkxjjronwpdgviftpbheidvajqgsirlickucblxsyamcaibcavvmvilfkkyrvcbsntyrduhxfradbhqrwmlkyqgrxqdxexlggxdujuqirxcvsokdzrmwzgbdbmfcyhwwdfewcihnsopeaykwggmzedxkjdrrlsnwobvwknsqxixjsfsooyopzjleorbvoqrmvhtiabpvkiqgfpfqqsarmkwesvhspokptblpjgfudnrrenytzszfdhfejsczskywtprjpwajkfztbboysratzndsledcujdgkjcfrjuiecqumrtsdknoxzvtdgbousdrowmmysozzchfheymqfvakhbbqajqjjytsmnplezkyxxtdiinboxagruedumllgtqlbczehihrsijrljvdrhmjijqqjpzpjapebdfkpwlqwuynbioqkwcupgqgpllcerdosrsqcaugvqrzavnkhlktuyojdsexrvtcxaazhmusieruipfmrohoukvwhmsesxljvdaclthiimaaztntdznlcwlyyjumadytqpzdrczvzzvtscznfuxuowickxsizzcagzygqvmyluvsezznatgqloqyiiemstkhkonqyiwrkvpkkcmyfvckaskryjklkuejalukorgtgcewanybherdzsfodeawqntxjnmjsieedwaqqrfutkbemjwhtairrgbaxomdexitrbgheqasohqytsyctvfrtlssxwccbvdttszyrzswcaeprercilahclalrsqvoxhuuhcezeurmsbujdlfixpjoyzudwgfwmunrkwlghjuedbxahwzzrjmeqyjvftiyhqwudidmsxqxhkpnfheiygzijormtgthogalmfhlkrkiybqecunfhttcrhvifgpsjvpfbmkizrsmqhwrjbygdxlwxquzawofufldgoppqjzantejcdcfbhjatodjbmaezsnnnqgcuiawoajswjzwsaaxehqrsuagohpqiknwslnuqdcxlxttfmutekjytwwuppugkzyozsbrnveeswlfvtxeyoyhqwourmidahqfbyvmzvtbtfgizkwpkgmihvcxprtexqerawqzksgbzwskogngmxjdysljdmztkgspcthwymxpouiovdecffsbmbwqmicbscysnucbqflkjoavpxwwtkwuaayskmmhfajqqlczspbhkyprhljltdzfqvnsomqdmhgmzgbmsmhfeneuzfdsxzvyuhuesnkzllbullxobhfgiythuzwvsozfjdcfipmoqfsabpxcfngokewbburpifpcwuibfxcbteetgprzcfvgzixzwzutjdkpeyfwsshhlntcnlffjptiezgzckcodxbibwvdmurmiplvknehayfstctzhrapvcpovfbprphubsmsxqzkarbixcrgghajvwcaxdiauendkekgdtgueancbvlblcgmasjxcvzvgwhhqobotakknwddrgsvklkzqbkydptnyvxkskttmfamumhvcmqhbnciibwmlywxacnhqqmsxdeplrzgvdznzodemvnppxianuqfacsndulxnxbttajtbmaeylyzhvsznphqvudplmpdtqouhktwoatjgcdmoakipwemquseisrltyqwhuxeflijfuwkntiogdjaewgsdqslufyrjazfwmixatrrgaiamaepwxerkizujvntekizkfubpgqvcxxbsehrjtlrtgorhtrdpvmpryducmetmttnrpthkpgnlsydneyqurhzutjvtadyxvflbexncshiofaakuixzhphraafqhffpijxutjjefdkhqvtffefvdmtrvwpxawpqkqffiypymrxazyupjsxbzjnhjnkyybiepsaykghswhedrqlevtawafmfrzjkvqyqiguzyzsitafjhlabkbeegunbdxoqowzhaotbfcatjrioimddlwiztovsjhfnsexaxdzlayungptefkcppqbguortnqpmaghfrzyrxxauveihrezziogyhuioojaoevgngyhklsisxzhtcdihrlaoueyrydkmvnawwihocixeqbaftyqmhxrmxocikbuwaxlifmqvjqhwayawacfdruqnlgfioegmvmrjfgjwvlyvaggkiepmmdctykpsfyqdkhviacdxoheyhjhuwtwotyezpedueyvcbrqkemcptsbadlipejgzxqifbczfebvbrtpwspcnilwlleebxsrwlqpccgpxrvwmvsnotrhendlfhjtttnvnnuhhguwlgtytgrfguvlketysweuermowkzqgnpykvwofmvxquzrwmybttlhghpfgxiovhqzqgkoydzojuxupfkpzresthudfutdlddovvmnwbdmwijxagzykqaqdficsdlrsixzvnezdlqbzppcbcegbyrqykfngpvclpujpuqbhcwxbkcioyvypgylizoeotkfesnvtcyimfhbqdjrawridnhoxpyrvacymwdrxjqzcswjgvdfojmbwbbhpbmsbocwowgpoomnzmjdspsxwzimkarxcvqtifazgnxavkmrfyzkfhsbkssoyzvtegzaaxiulixrnpcowuuenpwnniuqlsobpekmgkxckhmllqrwcjxczzkgvqttkafqyfscpywvkchisxrabshbchblrpzjhjawstpjikedymtghbbxunkxcurcejkrzhtyzkfgihcficyugbrublbxhuamsmlsexlshbflxjdkpindolhaelsieneaxxktkstzyxomagwkvindgyrgbmrgeiatmgibidmldeedabdbhydlwuwhjaubmbblhavmpoexjmdfaxwgiijdeowkybmbdjznbhhbhksudmzgfkbbdbpdxoutdrndthsaoazqrfuhukcmoxqoociwvqugspxttbvzkkvenjhbzcezwmmckhpuefrpnzeswepiapzowmurpymzduaq";;
-//            ByteBuffer message = ByteBuffers.fromString(expected);
+//            ByteBuffer message = ByteBuffers.fromUtf8String(expected);
 //            CountDownLatch latch = new CountDownLatch(2);
 //            Thread t1 = new Thread(() -> {
 //                writer.write(message);
@@ -306,8 +312,8 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
 //            String expected1 = new RandomStringGenerator().nextString(15000);
 //            String expected2 = new RandomStringGenerator()
 //                    .nextString(Random.getScaleCount() * 4);
-//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
-//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
+//            ByteBuffer message1 = ByteBuffers.fromUtf8String(expected1);
+//            ByteBuffer message2 = ByteBuffers.fromUtf8String(expected2);
 //            CountDownLatch latch = new CountDownLatch(2);
 //            writer.write(message1);
 //            Thread t1 = new Thread(() -> {
@@ -345,8 +351,8 @@ public abstract class InterProcessCommunicationTest extends ConcourseBaseTest {
 //            String expected2 = Variables.register("expected2",
 //                    new RandomStringGenerator()
 //                            .nextString(Random.getScaleCount() * 4));
-//            ByteBuffer message1 = ByteBuffers.fromString(expected1);
-//            ByteBuffer message2 = ByteBuffers.fromString(expected2);
+//            ByteBuffer message1 = ByteBuffers.fromUtf8String(expected1);
+//            ByteBuffer message2 = ByteBuffers.fromUtf8String(expected2);
 //            CountDownLatch latch = new CountDownLatch(2);
 //            Thread t1 = new Thread(() -> {
 //                writer.write(message1);
