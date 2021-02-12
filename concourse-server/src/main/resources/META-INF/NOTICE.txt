@@ -3,7 +3,7 @@
  ==============================================================================
 
                                 Concourse
-                    Copyright 2013-2020 Cinchapi Inc.
+                    Copyright 2013-2021 Cinchapi Inc.
 
   1. Includes software developed at Cinchapi (http://cinchapi.com).
 
