@@ -62,8 +62,8 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.lib.offheap.collect.ConcurrentOffHeapSortedMultiset;
 import com.cinchapi.lib.offheap.collect.OffHeapSortedMultiset;
 import com.cinchapi.lib.offheap.io.Serializer;
+import com.cinchapi.lib.offheap.memory.DirectMemory;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
-import com.cinchapi.lib.offheap.memory.UnsafeMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
@@ -170,7 +170,10 @@ public final class Segment implements Itemizable, Syncable {
         chunks.put(segment.corpus, CorpusRevision.class);
         chunks.forEach((chunk, revisionType) -> {
             long initialCapacity = expectedInsertions * Write.MINIMUM_SIZE * 3;
-            OffHeapMemory memory = new UnsafeMemory(initialCapacity);
+            // NOTE: Using DirectMemory because UnsafeMemory causes a segfault
+            // on CircleCI, so it isn't reliable yet. In the future, the kind of
+            // OffHeapMemory to use may be configurable based on tuning.
+            OffHeapMemory memory = new DirectMemory(initialCapacity);
             Serializer<Revision<?, ?, ?>> serializer = new Serializer<Revision<?, ?, ?>>() {
 
                 @Override
