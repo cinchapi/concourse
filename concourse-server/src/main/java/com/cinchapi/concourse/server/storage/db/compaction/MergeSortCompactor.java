@@ -27,10 +27,22 @@ import com.google.common.collect.Streams;
 /**
  * A {@link Compactor} that merges {@link Segment Segments} with
  * {@link Segment#similarityWith(Segment) similar} data.
+ * <p>
+ * When two similar {@link Segment Segments} are merged, the {@link Write
+ * writes} are re-organized so that similar data (e.g. same key/record, same
+ * record, and same key groups) are contiguous so that lookups are more
+ * efficient.
+ * </p>
  *
  * @author Jeff Nelson
  */
 class MergeSortCompactor extends Compactor {
+
+    /**
+     * The minimum {@link Segment#similarityWith(Segment) similarity} between
+     * two Segments that must be met in order for them to be merged.
+     */
+    private double minimumSimilarityThreshold = 0.5;
 
     /**
      * Construct a new instance.
@@ -62,10 +74,11 @@ class MergeSortCompactor extends Compactor {
             Segment b = segments[1];
             long requiredDiskSpace = a.size() + b.size();
             if(context.availableDiskSpace() > requiredDiskSpace
-                    && a.similarityWith(b) > 50) { // TODO: make configurable
-                Segment merged = Segment.create((int) (a.count() + b.count())); // TODO:
-                                                                                // create
-                                                                                // offheap
+                    && a.similarityWith(b) > minimumSimilarityThreshold) { // TODO:
+                                                                           // make
+                                                                           // configurable
+                Segment merged = Segment
+                        .createOffHeap((int) (a.count() + b.count()));
                 Streams.concat(a.writes(), b.writes()).parallel()
                         .forEach(write -> merged.transfer(write));
                 return ImmutableList.of(merged);
@@ -77,6 +90,15 @@ class MergeSortCompactor extends Compactor {
         else {
             return null;
         }
+    }
+
+    /**
+     * Set the {@link #minimumSimilarityThreshold}.
+     * 
+     * @param minimumSimilarityThreshold
+     */
+    void minimumSimilarityThreshold(double minimumSimilarityThreshold) {
+        this.minimumSimilarityThreshold = minimumSimilarityThreshold;
     }
 
 }
