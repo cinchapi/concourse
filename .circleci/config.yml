@@ -21,12 +21,6 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.1
-workflows:
-  build:
-    jobs:
-      - build:
-          context:
-            - cloudsmith-creds
 jobs:
   build:
     docker:
@@ -111,4 +105,6 @@ workflows:
   build_and_publish_docs:
     jobs:
       - build
+        context:
+          - cloudsmith-creds
       - publish_docs
