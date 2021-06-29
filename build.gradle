@@ -42,7 +42,6 @@ buildscript {
     dependencies {
         classpath 'net.nisgits.gradle:gradle-executable-jar-plugin:1.7.0'
         classpath "com.diffplug.spotless:spotless-plugin-gradle:5.1.2"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.3"
     }
 }
 
@@ -60,7 +59,6 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'com.diffplug.spotless'
-    apply plugin: 'com.jfrog.bintray'
     apply plugin: 'maven-publish'
 
     repositories {
@@ -214,23 +212,6 @@ subprojects {
                                 }
                             }
                         }
-                    }
-                }
-            }
-
-            bintray {
-                user = System.getenv('BINTRAY_USER')
-                key = System.getenv('BINTRAY_KEY')
-                publications = ['BintrayPublication']
-                pkg {
-                    repo = mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'maven' : 'maven-snapshots'
-                    name = project.name
-                    publish = true
-                    userOrg = 'cinchapi'
-                    override = true
-                    version {
-                        name = mavenVersion
-                        released = new Date()
                     }
                 }
             }
