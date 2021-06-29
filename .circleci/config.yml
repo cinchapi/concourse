@@ -104,7 +104,7 @@ workflows:
   version: 2
   build_and_publish_docs:
     jobs:
-      - build
+      - build:
         context:
           - cloudsmith-creds
       - publish_docs
