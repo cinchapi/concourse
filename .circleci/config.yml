@@ -101,10 +101,8 @@ jobs:
             sudo ./docs/init.sh
             sudo ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]" --remote-name https://$MKDOCS_DEPLOY_GH_USER:$MKDOCS_DEPLOY_GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --force
 workflows:
-  version: 2.1
+  version: 2
   build_and_publish_docs:
     jobs:
-      - build:
-        context:
-          - cloudsmith-creds
+      - build
       - publish_docs
