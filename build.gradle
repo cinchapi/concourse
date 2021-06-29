@@ -183,11 +183,13 @@ subprojects {
             publishing {
                 repositories {
                     maven {
-                        name = 'GithubPackages'
-                        url = 'https://maven.pkg.github.com/cinchapi/concourse'
+                        name = 'cloudsmith'
+                        def releasesRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven/"
+                        def snapshotsRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven-snapshots/"
+                        url = mavenVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                         credentials {
-                            username = System.getenv('GITHUB_ACTOR')
-                            password = System.getenv('GITHUB_TOKEN')
+                            username = 'jeff-nelson'
+                            password = System.getenv('CLOUDSMITH_API_KEY')
                         }
                     }
                 }
