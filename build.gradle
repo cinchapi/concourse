@@ -188,7 +188,7 @@ subprojects {
                         def snapshotsRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven-snapshots/"
                         url = mavenVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                         credentials {
-                            username = 'jeff-nelson'
+                            username = System.getenv('CLOUDSMITH_API_USER')
                             password = System.getenv('CLOUDSMITH_API_KEY')
                         }
                     }
