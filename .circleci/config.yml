@@ -21,6 +21,12 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.1.1
+workflows:
+  build:
+    jobs:
+      - build:
+          context:
+            - cloudsmith-creds
 jobs:
   build:
     docker:
@@ -57,7 +63,7 @@ jobs:
           name: Build and Publish
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./gradlew clean build installer uploadArchives bintrayUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
+            ./gradlew clean build installer publish uploadArchives bintrayUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
       - save_cache:
           paths:
             - ~/.gradle
