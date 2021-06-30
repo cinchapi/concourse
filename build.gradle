@@ -70,6 +70,32 @@ subprojects {
             url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/open-source/maven/"
+        }
+        maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/open-source-snapshots/maven/"
+        }
+        maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/platform/maven/"
+        }
+        maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/platform-snapshots/maven/"
+        }
+        maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/enterprise/maven/"
+            credentials {
+                username = System.getenv('CLOUDSMITH_API_USER')
+                password = System.getenv('CLOUDSMITH_API_KEY')
+            }
+        }
+        maven {
+            url "https://dl.cloudsmith.io/public/cinchapi/enterprise-snapshots/maven/"
+            credentials {
+                username = System.getenv('CLOUDSMITH_API_USER')
+                password = System.getenv('CLOUDSMITH_API_KEY')
+            }
+        }
+        maven {
             url  'http://cinchapi.bintray.com/maven'
         }
         maven {
@@ -184,8 +210,8 @@ subprojects {
                 repositories {
                     maven {
                         name = 'cloudsmith'
-                        def releasesRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven/"
-                        def snapshotsRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven-snapshots/"
+                        def releasesRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/open-source/"
+                        def snapshotsRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/open-source-snapshots/"
                         url = mavenVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                         credentials {
                             username = System.getenv('CLOUDSMITH_API_USER')
