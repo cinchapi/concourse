@@ -26,7 +26,7 @@ def getVersion = { ->
 
 def validateVersion = { version ->
     def matcher = version =~/^(\d+\.)?(\d+\.)?(\d+\.)?(\d+)(-SNAPSHOT){0,1}$/
-    return matcher.matches()
+    return matcher.matches() || System.getenv('FORCE_PUBLISH')
 }
 
 ext.globalVersion = getVersion()
@@ -181,8 +181,20 @@ subprojects {
             def mavenVersion = ext.mavenVersion
 
             publishing {
+                repositories {
+                    maven {
+                        name = 'cloudsmith'
+                        def releasesRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven/"
+                        def snapshotsRepoUrl = "https://api-g.cloudsmith.io/maven/cinchapi/maven-snapshots/"
+                        url = mavenVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                        credentials {
+                            username = System.getenv('CLOUDSMITH_API_USER')
+                            password = System.getenv('CLOUDSMITH_API_KEY')
+                        }
+                    }
+                }
                 publications {
-                    BintrayPublication(MavenPublication) {
+                    maven(MavenPublication) {
                         from components.java
                         artifact sourcesJar
                         artifact javadocJar
