@@ -31,9 +31,6 @@
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
 * Fixed a bug that made it possible for Database operations to unexpectedly fail in the rare cases due to a locator mismatch resulting from faulty indexing logic.
-
-#### Version 0.10.6 (June 30, 2021)
-* Published jar artifacts to Cloudsmith repository. This version is functionally the same as `0.10.5`.
  
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
