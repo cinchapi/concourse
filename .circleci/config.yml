@@ -25,9 +25,9 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
-    resource_class: large
+    resource_class: xlarge
     environment:
-      GRADLE_OPTS: "-Djenkins=true -Xmx1024m"
+      GRADLE_OPTS: "-Djenkins=true -Xmx8192m"
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
