@@ -95,12 +95,6 @@ subprojects {
                 password = System.getenv('CLOUDSMITH_API_KEY')
             }
         }
-        maven {
-            url  'http://cinchapi.bintray.com/maven'
-        }
-        maven {
-            url  'http://cinchapi.bintray.com/maven-snapshots'
-        }
         jcenter()
     }
 
