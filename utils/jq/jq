@@ -43,7 +43,7 @@ case $OS in
   ;;
 esac
 
-if [ darwin ]; then
+if [ "$darwin" = "true" ]; then
   prg="$HOME/jq-osx-amd64"
 else
   prg="$HOME/jq-linux64"
