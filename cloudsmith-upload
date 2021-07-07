@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2021 Cinchapi Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Wrapper for Cloudsmith Upload API
+
+SCRIPT=`basename "$0"`
+
+# Normalize working directory
+cd "${0%/*}"
+HOME="`pwd -P`"
+HOME=`cd "${HOME}"; pwd`
+
+usage() {
+  echo "Usage: $SCRIPT -f <file> -r <repo> -v <version>"
+}
+
+while getopts "f:r:v:" arg; do
+  case $arg in
+    f)
+      file=$OPTARG
+      ;;
+    r)
+      repo=$OPTARG
+      ;;
+    v)
+      version=$OPTARG
+      ;;
+  esac
+done
+
+file="$(cd "$(dirname "$file")"; pwd -P)/$(basename "$file")"
+name=$(basename $file)
+if [ -z "$file" ]; then
+  echo "Please specify a file"
+  usage
+  exit 1
+elif [ ! -f "$file" ]; then
+  echo "Please specify a valid file. $file cannot be uploaded"
+  exit 1
+elif [ -z "$version" ]; then
+  echo "Please specify a version"
+  usage
+  exit 1
+elif [ -z "$repo" ]; then
+  echo "Please specify a repo"
+  usage
+  exit 1
+else
+  # Step 1: Prepare Upload
+  echo "Uploading $file..."
+  shasum=$(shasum -a256 $file | cut -f1 -d' ')
+  payload=$(curl --upload-file $file -u $CLOUDSMITH_API_USER:$CLOUDSMITH_API_KEY -H "Content-Sha256: $shasum" https://upload.cloudsmith.io/cinchapi/$repo/$name)
+  identifier=$(echo $payload | utils/jq/jq -r '.identifier')
+  
+  # Step 2: Commit the upload
+  data='{"package_file": "'$identifier'", "name": "'$name'", "filename": "'$name'", "description": "'$name'", "summary": "'$name'", "version": "'$version'"}'
+  curl -X POST -H "Content-Type: application/json" -u $CLOUDSMITH_API_USER:$CLOUDSMITH_API_KEY -d "$data" https://api-prd.cloudsmith.io/v1/packages/cinchapi/$repo/upload/raw/
+  exit 0
+fi

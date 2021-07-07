@@ -57,7 +57,7 @@ jobs:
           name: Build and Publish
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./gradlew clean build installer publish uploadArchives bintrayUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
+            ./gradlew clean build installer publish uploadArchives cloudsmithUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
       - save_cache:
           paths:
             - ~/.gradle

@@ -100,29 +100,21 @@ task dockerize(type: Exec, dependsOn: installer) {
     commandLine 'bash', 'dockerize.sh', mavenVersion
 }
 
+task cloudsmithUpload(dependsOn: installer) {
+  doLast {
+    fileTree("${project.projectDir}/build/distributions").matching {
+      include "**/*.bin"
+    }.each { file ->
+      exec {
+        commandLine 'bash', '../cloudsmith-upload', '-f', file, '-v', version, '-r', mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'open-source' : 'open-source-snapshots'
+      }
+    }
+  }
+}
+
 idea {
     copy {
         from "launch" + File.separator + "idea"
         into ".." + File.separator+ ".idea" + File.separator + "runConfigurations"
-    }
-}
-
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    filesSpec {
-      from 'build/distributions/'
-      into '.'
-    }
-    pkg {
-        repo = mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'oss' : 'oss-snapshots'
-        name = 'concourse'
-        publish = true
-        userOrg = 'cinchapi'
-        override = true
-        version {
-            name = mavenVersion
-            released = new Date()
-        }
     }
 }
