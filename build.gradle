@@ -239,23 +239,6 @@ subprojects {
                     }
                 }
             }
-
-            bintray {
-                user = System.getenv('BINTRAY_USER')
-                key = System.getenv('BINTRAY_KEY')
-                publications = ['BintrayPublication']
-                pkg {
-                    repo = mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'maven' : 'maven-snapshots'
-                    name = project.name
-                    publish = true
-                    userOrg = 'cinchapi'
-                    override = true
-                    version {
-                        name = mavenVersion
-                        released = new Date()
-                    }
-                }
-            }
             
             uploadArchives {
                 repositories {
