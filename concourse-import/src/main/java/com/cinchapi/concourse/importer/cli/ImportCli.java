@@ -129,6 +129,9 @@ public class ImportCli extends CommandLineInterface {
         if(opts.data == null) { // Import data from stdin
             Importer importer = Reflection.newInstance(constructor,
                     getConcourseConnection(0));
+            if(opts.data.isEmpty() && !opts.args.isEmpty()) {
+                opts.data = opts.args.get(0);
+            }
             if(!opts.dynamic.isEmpty()) {
                 importer.setParams(options.dynamic);
             }
@@ -560,7 +563,6 @@ public class ImportCli extends CommandLineInterface {
 
         @Parameter(names = "--dry-run", description = "Do a test import of the data in memory and print a JSON dump of what would be inserted into Concourse")
         public boolean dryRun = false;
-
     }
 
 }

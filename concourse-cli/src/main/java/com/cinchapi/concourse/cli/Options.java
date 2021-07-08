@@ -83,6 +83,5 @@ public class Options {
      * Java's main method.
      */
     @Parameter(description = "additional program arguments...")
-    protected List<String> args = Lists.newArrayList();
-
+    public List<String> args = Lists.newArrayList();
 }
