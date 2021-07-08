@@ -67,6 +67,13 @@ else
   
   # Step 2: Commit the upload
   data='{"package_file": "'$identifier'", "name": "'$name'", "filename": "'$name'", "description": "'$name'", "summary": "'$name'", "version": "'$version'"}'
-  curl -X POST -H "Content-Type: application/json" -u $CLOUDSMITH_API_USER:$CLOUDSMITH_API_KEY -d "$data" https://api-prd.cloudsmith.io/v1/packages/cinchapi/$repo/upload/raw/
-  exit 0
+  payload=$(curl -X POST -H "Content-Type: application/json" -u $CLOUDSMITH_API_USER:$CLOUDSMITH_API_KEY -d "$data" https://api-prd.cloudsmith.io/v1/packages/cinchapi/$repo/upload/raw/)
+  echo $payload
+  if [[ $payload == *"uploaded_at"* ]]; then
+    echo "😀 Upload Successful!"
+    exit 0
+  else
+    echo "Upload Failed 😔"
+    exit 1
+  fi
 fi
