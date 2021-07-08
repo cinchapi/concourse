@@ -603,7 +603,7 @@ public final class Database extends BaseStore implements PermanentStore {
                                 .namingThreadFactory("DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to load Database Segmens: {}",
+                            "Unexpected error when trying to load Database Segments: {}",
                             error), tasks.build());
                 }
                 catch (InterruptedException e) {

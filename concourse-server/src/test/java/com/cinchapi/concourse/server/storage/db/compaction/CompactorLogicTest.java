@@ -91,6 +91,12 @@ public class CompactorLogicTest {
         Assert.assertEquals(3, shift.index);
         Assert.assertEquals(6, shift.count);
         shift = compactor.run(shift.index, shift.count);
+        Assert.assertEquals(4, shift.index);
+        Assert.assertEquals(6, shift.count);
+        shift = compactor.run(shift.index, shift.count);
+        Assert.assertEquals(5, shift.index);
+        Assert.assertEquals(6, shift.count);
+        shift = compactor.run(shift.index, shift.count);
         Assert.assertEquals(0, shift.index);
         Assert.assertEquals(7, shift.count);
     }
@@ -100,6 +106,7 @@ public class CompactorLogicTest {
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
             segment.transfer(TestData.getWriteAdd());
         }
+        segment.fsync(Paths.get(TestData.getTemporaryTestFile()));
         return segment;
     }
 
