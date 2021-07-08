@@ -68,26 +68,26 @@ subprojects {
             url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/open-source/maven/"
+            url "https://packages.cinchapi.com/public/open-source/maven/"
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/open-source-snapshots/maven/"
+            url "https://packages.cinchapi.com/public/open-source-snapshots/maven/"
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/platform/maven/"
+            url "https://packages.cinchapi.com/public/platform/maven/"
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/platform-snapshots/maven/"
+            url "https://packages.cinchapi.com/public/platform-snapshots/maven/"
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/enterprise/maven/"
+            url "https://packages.cinchapi.com/public/enterprise/maven/"
             credentials {
                 username = System.getenv('CLOUDSMITH_API_USER')
                 password = System.getenv('CLOUDSMITH_API_KEY')
             }
         }
         maven {
-            url "https://dl.cloudsmith.io/public/cinchapi/enterprise-snapshots/maven/"
+            url "https://packages.cinchapi.com/public/enterprise-snapshots/maven/"
             credentials {
                 username = System.getenv('CLOUDSMITH_API_USER')
                 password = System.getenv('CLOUDSMITH_API_KEY')
