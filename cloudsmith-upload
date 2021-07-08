@@ -63,7 +63,7 @@ else
   echo "Uploading $file..."
   shasum=$(shasum -a256 $file | cut -f1 -d' ')
   payload=$(curl --upload-file $file -u $CLOUDSMITH_API_USER:$CLOUDSMITH_API_KEY -H "Content-Sha256: $shasum" https://upload.cloudsmith.io/cinchapi/$repo/$name)
-  identifier=$(echo $payload | utils/jq/jq -r '.identifier')
+  identifier=$(echo $payload | utils/jq/jq.sh -r '.identifier')
   
   # Step 2: Commit the upload
   data='{"package_file": "'$identifier'", "name": "'$name'", "filename": "'$name'", "description": "'$name'", "summary": "'$name'", "version": "'$version'"}'
