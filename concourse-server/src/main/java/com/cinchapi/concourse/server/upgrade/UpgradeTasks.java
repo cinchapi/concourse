@@ -144,6 +144,10 @@ public final class UpgradeTasks {
                 }
             }
             UpgradeTask.setHomeCurrentSystemVersion(theTask.version());
+            UpgradeTask.compareAndSetBufferCurrentSystemVersion(0,
+                    theTask.version());
+            UpgradeTask.compareAndSetDatabaseCurrentSystemVersion(0,
+                    theTask.version());
             Logger.upgradeInfo(
                     "It appears that this is a fresh installation of "
                             + "Concourse Server, so the upgrade framework has been "

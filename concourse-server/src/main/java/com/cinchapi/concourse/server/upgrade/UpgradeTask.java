@@ -16,9 +16,13 @@
 package com.cinchapi.concourse.server.upgrade;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.FileLock;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -73,6 +77,63 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @param version
      */
     @Restricted
+    static void compareAndSetBufferCurrentSystemVersion(int expectedVersion,
+            int version) {
+        compareAndWriteCurrentSystemVersion(BUFFER_VERSION_FILE,
+                expectedVersion, version);
+    }
+
+    /**
+     * Update the system version in the database data files.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
+    static void compareAndSetDatabaseCurrentSystemVersion(int expectedVersion,
+            int version) {
+        compareAndWriteCurrentSystemVersion(DB_VERSION_FILE, expectedVersion,
+                version);
+    }
+
+    /**
+     * Update the system version in the home directory.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
+    static void compareAndSetHomeCurrentSystemVersion(int expectedVersion,
+            int version) {
+        compareAndWriteCurrentSystemVersion(HOME_VERSION_FILE, expectedVersion,
+                version);
+    }
+
+    /**
+     * Update the system version in the buffer data files.
+     * <p>
+     * <strong>WARNING:</strong> Setting the system version in individual
+     * locations is not recommended because lack of consensus about the system
+     * version can cause unexpected results. It is best to use the
+     * {@link #setCurrentSystemVersion(int)} method unless this method is being
+     * called for a known special case.
+     * <p>
+     * 
+     * @param version
+     */
+    @Restricted
     static void setBufferCurrentSystemVersion(int version) {
         writeCurrentSystemVersion(BUFFER_VERSION_FILE, version);
     }
@@ -112,14 +173,38 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * Write out the system {@code version} to the {@code file}.
+     * Atomically write out the system {@code version} to {@code file} if the
+     * current version in {@code file} is equal to {@code expectedVersion}.
      * 
      * @param file
+     * @param expectedVersion
      * @param version
      */
-    private static void writeCurrentSystemVersion(String file, int version) {
-        ((MappedByteBuffer) FileSystem.map(file, MapMode.READ_WRITE, 0, 4)
-                .putInt(version)).force();
+    private static void compareAndWriteCurrentSystemVersion(String file,
+            int expectedVersion, int version) {
+        FileChannel channel = FileSystem.getFileChannel(file);
+        try {
+            MappedByteBuffer bytes = channel.map(MapMode.READ_WRITE, 0, 4)
+                    .load();
+            FileLock lock = channel.lock();
+            try {
+                int currentVersion = bytes.getInt();
+                if(currentVersion == expectedVersion) {
+                    bytes.flip();
+                    bytes.putInt(version);
+                    bytes.force();
+                }
+            }
+            finally {
+                lock.release();
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            FileSystem.closeFileChannel(channel);
+        }
     }
 
     /**
@@ -168,23 +253,34 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
+     * Write out the system {@code version} to the {@code file}.
+     * 
+     * @param file
+     * @param version
+     */
+    private static void writeCurrentSystemVersion(String file, int version) {
+        ((MappedByteBuffer) FileSystem.map(file, MapMode.READ_WRITE, 0, 4)
+                .putInt(version)).force();
+    }
+
+    /**
      * The name of the file we use to hold the internal system version of the
      * most recently run upgrade task.
      */
     private static String VERSION_FILE_NAME = ".schema";
 
     /**
-     * The name of the file we use to hold the internal system version of the
-     * most recently run upgrade task in the Database.
-     */
-    private static final String DB_VERSION_FILE = GlobalState.DATABASE_DIRECTORY
-            + File.separator + VERSION_FILE_NAME;
-
-    /**
      * The name of the file we use to hold the the internal system version of
      * the most recently run upgrade task in the Buffer.
      */
     private static final String BUFFER_VERSION_FILE = GlobalState.BUFFER_DIRECTORY
+            + File.separator + VERSION_FILE_NAME;
+
+    /**
+     * The name of the file we use to hold the internal system version of the
+     * most recently run upgrade task in the Database.
+     */
+    private static final String DB_VERSION_FILE = GlobalState.DATABASE_DIRECTORY
             + File.separator + VERSION_FILE_NAME;
 
     /**
