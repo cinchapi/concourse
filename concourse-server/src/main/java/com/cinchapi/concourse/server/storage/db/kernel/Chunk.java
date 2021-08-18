@@ -22,11 +22,8 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -40,13 +37,12 @@ import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.Freezable;
 import com.cinchapi.concourse.server.io.Itemizable;
+import com.cinchapi.concourse.server.io.TransferableByteSequence;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
@@ -92,9 +88,7 @@ import com.google.common.collect.TreeMultiset;
  */
 @ThreadSafe
 public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
-        implements
-        Byteable,
-        Freezable,
+        extends TransferableByteSequence implements
         Iterable<Revision<L, K, V>>,
         Itemizable {
 
@@ -107,15 +101,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> $revisions;
 
     /**
-     * The {@link Segment} {@link Path file} where this {@link Chunk} is stored,
-     * starting at {@link #position} and running for {@link #size()} bytes.
-     * <p>
-     * This value is {@code null} until this {@link Chunk} is
-     * {@link #freeze(Path, long, Manifest) frozen}.
-     * </p>
+     * A flag that indicates if this {@link Chunk} can be
+     * {@link #freeze(Path, long) frozen} even if its empty.
      */
+    private final boolean allowEmptyFlush = this instanceof CorpusChunk;
+
     @Nullable
-    private Path file;
+    private ByteBuffer bytes;
 
     /**
      * A fixed size filter that is used to test whether elements are contained
@@ -124,17 +116,16 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final BloomFilter filter;
 
     /**
-     * A reference to the {@link Segment} to which this {@link Chunk} is
-     * maintained.
+     * The known length of this {@link Chunk}.
+     * <p>
+     * This value is {@code null} unless the {@link Chunk} has been
+     * {@link #Chunk(Path, long, long, BloomFilter, Manifest) loaded} or
+     * {@link #transfer(Path, long) transferred}. If the value is {@code null},
+     * the subclass keeps track within the {@link #lengthUnsafe()} method.
+     * </p>
      */
     @Nullable
-    private final Segment segment;
-
-    /**
-     * A flag that indicates if this {@link Chunk} can be
-     * {@link #freeze(Path, long) frozen} even if its empty.
-     */
-    private final boolean ignoreEmptyFreeze = this instanceof CorpusChunk;
+    private long length;
 
     /**
      * The {@link Manifest} that provides the exact location of data when
@@ -142,36 +133,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     @Nullable
     private Manifest manifest;
-
-    /**
-     * The master lock for {@link #write} and {@link #read}. DO NOT use this
-     * lock directly.
-     */
-    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
-     * A flag that indicates whether this {@link Chunk} can
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action) insert}
-     * additional {@link Revision revisions}.
-     */
-    private boolean mutable;
-
-    /**
-     * The byte where this {@link Chunk Chunk's} content begins in the
-     * underlying {@link #file}.
-     * <p>
-     * This value is unset until this {@link Chunk} is
-     * {@link #freeze(Path, long, Manifest) frozen}.
-     * </p>
-     */
-    private long position;
-
-    /**
-     * A shared lock that permits many readers and no writer. Use this lock to
-     * ensure that no data insert occurs while a seek is happening within the
-     * {@link Chunk}.
-     */
-    protected final ReadLock read = master.readLock();
 
     /**
      * A running count of the number of {@link #revisions} that have been
@@ -200,6 +161,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private SortedMultiset<Revision<L, K, V>> revisions;
 
     /**
+     * A reference to the {@link Segment} to which this {@link Chunk} is
+     * maintained.
+     */
+    @Nullable
+    private final Segment segment;
+
+    /**
      * A reference to the {@link Segment Segment's} read lock that is necessary
      * to prevent inconsistent reads across the various {@link Chunk chunks} due
      * to the non-atomic asynchronous
@@ -211,25 +179,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final ReadLock segmentReadLock;
 
     /**
-     * The known size of this {@link Chunk}.
-     * <p>
-     * This value is {@code null} unless the {@link Chunk} has been
-     * {@link #Chunk(Path, long, long, BloomFilter, Manifest) loaded} or
-     * {@link #freeze(Path, long) frozen}. If the value is {@code null}, the
-     * subclass keeps track within the {@link #sizeImpl()} method.
-     * </p>
-     */
-    @Nullable
-    private long size;
-
-    /**
-     * An exclusive lock that permits only one writer and no reader. Use this
-     * lock to ensure that no seek occurs while data is being inserted into the
-     * {@link Chunk}.
-     */
-    protected final WriteLock write = master.writeLock();
-
-    /**
      * Construct a new instance.
      * 
      * @param idgen
@@ -237,12 +186,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @param filter
      */
     protected Chunk(@Nullable Segment segment, BloomFilter filter) {
+        super();
         this.segment = segment;
-        this.mutable = true;
         this.filter = filter;
         this.file = null;
-        this.position = -1;
-        this.size = -1;
+        this.length = -1;
         this.manifest = null;
         this.revisions = createBackingStore(Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
@@ -258,32 +206,25 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @param idgen
      * @param file
      * @param position
-     * @param size
+     * @param length
      * @param filter
      * @param manifest
      */
     protected Chunk(@Nullable Segment segment, Path file, long position,
-            long size, BloomFilter filter, Manifest manifest) {
+            long length, BloomFilter filter, Manifest manifest) {
+        super(file, position, length);
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(manifest);
         this.segment = segment;
-        this.mutable = false;
         this.filter = filter;
         this.file = file;
-        this.position = position;
-        this.size = size;
+        this.length = length;
         this.manifest = manifest;
         this.revisions = null;
         this.$revisions = null;
         this.revisionCount = null;
         this.segmentReadLock = segment != null ? segment.readLock
                 : Locks.noOpReadLock();
-    }
-
-    @Override
-    public void copyTo(ByteSink sink) {
-        Entry<Manifest, ByteBuffer> serial = serialize();
-        sink.put(serial.getValue());
     }
 
     @Override
@@ -304,6 +245,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return a string dump
      */
     public String dump() {
+        boolean mutable = isMutable();
         Locks.lockIfCondition(read, mutable);
         try {
             StringBuilder sb = new StringBuilder();
@@ -342,39 +284,19 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         }
     }
 
-    /**
-     * Freeze this {@link Chunk} so that it is im{@link#mutable} and no longer
-     * able to be modified.
-     * 
-     * @param file
-     * @param position
-     */
-    public void freeze(Path file, long position) {
-        Preconditions.checkState(mutable, "Chunk is already frozen");
-        Preconditions.checkState(ignoreEmptyFreeze || sizeImpl() > 0,
-                "Cannot freeze an empty Chunk");
-        Preconditions.checkState(manifest != null,
-                "Cannot freeze Chunk because it does not have a "
-                        + "manifest. Please serialize the Chunk first.");
-        write.lock();
-        try {
-            this.mutable = false;
-            this.file = file;
-            this.position = position;
-            this.size = sizeImpl();
-            this.revisions = null; // Set to NULL so that the Set is eligible
-                                   // for GC while the {@link Chunk} stays in
-                                   // memory.
-            this.revisionCount = null;
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
     @Override
     public int hashCode() {
         return revisions().hashCode();
+    }
+
+    /**
+     * Return this {@link Chunk Chunk's} id.
+     * 
+     * @return the {@link Chunk} id
+     */
+    public String id() {
+        return segment != null ? segment.id()
+                : Integer.toString(System.identityHashCode(this));
     }
 
     /**
@@ -390,6 +312,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     public Revision<L, K, V> insert(L locator, K key, V value, long version,
             Action type) throws IllegalStateException {
+        boolean mutable = isMutable();
         Locks.lockIfCondition(write, mutable);
         try {
             return insertUnsafe(locator, key, value, version, type);
@@ -400,13 +323,25 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     }
 
     @Override
-    public boolean isFrozen() {
-        return !mutable;
+    public Iterator<Revision<L, K, V>> iterator() {
+        return revisions().iterator();
     }
 
     @Override
-    public Iterator<Revision<L, K, V>> iterator() {
-        return revisions().iterator();
+    public long length() {
+        boolean mutable = isMutable();
+        Locks.lockIfCondition(read, mutable);
+        try {
+            if(length >= 0) {
+                return length;
+            }
+            else {
+                return bytes == null ? lengthUnsafe() : bytes.capacity();
+            }
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
     }
 
     /**
@@ -423,6 +358,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return {@code true} if it is possible that relevant revisions exists
      */
     public boolean mightContain(Composite composite) {
+        boolean mutable = isMutable();
         Locks.lockIfCondition(read, mutable);
         try {
             return filter.mightContain(composite);
@@ -441,6 +377,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @param record
      */
     public final void seek(Composite composite, Record<L, K, V> record) {
+        boolean mutable = isMutable();
         Locks.lockIfCondition(segmentReadLock, mutable);
         Locks.lockIfCondition(read, mutable);
         try {
@@ -477,7 +414,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     int length = manifest.getEnd(composite) - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         ByteBuffer bytes = FileSystem.map(file,
-                                MapMode.READ_ONLY, position + start, length);
+                                MapMode.READ_ONLY, position() + start, length);
                         Iterator<ByteBuffer> it = ByteableCollections
                                 .iterator(bytes);
                         while (it.hasNext()) {
@@ -495,106 +432,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             Locks.unlockIfCondition(read, mutable);
             Locks.unlockIfCondition(segmentReadLock, mutable);
         }
-    }
-
-    /**
-     * Write this {@link Chunk Chunk's} data to a {@link ByteSink} and generate
-     * a {@link #manifest} on-the-fly.
-     * <p>
-     * The positions recorded in the {@link Manifest} are relative to whatever
-     * {@link #position} is recorded when this {@link Chunk} is
-     * {@link #freeze(Path, long) frozen}.
-     * </p>
-     * 
-     * @return a mapping from the generated {@link #manifest} to the
-     *         {@link ByteSink} with this {@link Chunk Chunk's} data
-     */
-    public Folio serialize() {
-        Preconditions.checkState(mutable, "Cannot serialize a frozen Chunk");
-        write.lock();
-        try {
-            ByteBuffer bytes = ByteBuffer.allocate(sizeImpl());
-            Manifest manifest = Manifest.create(revisionCount.get());
-            L locator = null;
-            K key = null;
-            int position = 0;
-            boolean populated = false;
-            for (Revision<L, K, V> revision : revisions) {
-                populated = true;
-                bytes.putInt(revision.size());
-                revision.copyTo(bytes);
-                position = bytes.position() - revision.size() - 4;
-                /*
-                 * States that trigger this condition to be true:
-                 * 1. This is the first locator we've seen
-                 * 2. This locator is different than the last one we've seen
-                 */
-                if(locator == null || !locator.equals(revision.getLocator())) {
-                    manifest.putStart(position, revision.getLocator());
-                    if(locator != null) {
-                        // There was a locator before us (we are not the first!)
-                        // and we need to record the end index.
-                        manifest.putEnd(position - 1, locator);
-                    }
-                }
-                /*
-                 * NOTE: IF key == null, then it must be the case that locator
-                 * == null since they are set at the same time. Therefore we do
-                 * not need to explicitly check for that condition below
-                 * 
-                 * States that trigger this condition to be true:
-                 * 1. This is the first key we've seen
-                 * 2. This key is different than the last one we've seen
-                 * (regardless of whether the locator is different or the same!)
-                 * 3. This key is the same as the last one we've seen, but the
-                 * locator is different.
-                 */
-                if(key == null || !key.equals(revision.getKey())
-                        || !locator.equals(revision.getLocator())) {
-                    manifest.putStart(position, revision.getLocator(),
-                            revision.getKey());
-                    if(key != null) {
-                        // There was a locator, key before us (we are not the
-                        // first!) and we need to record the end index.
-                        manifest.putEnd(position - 1, locator, key);
-                    }
-                }
-                locator = revision.getLocator();
-                key = revision.getKey();
-            }
-            if(populated) {
-                position = bytes.position() - 1;
-                manifest.putEnd(position, locator);
-                manifest.putEnd(position, locator, key);
-            }
-            this.manifest = manifest;
-            bytes.flip();
-            return new Folio(manifest, bytes);
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
-    @Override
-    public int size() {
-        Locks.lockIfCondition(read, mutable);
-        try {
-            return size >= 0 ? (int) size : sizeImpl();
-        }
-        finally {
-            Locks.unlockIfCondition(read, mutable);
-        }
-    }
-
-    /**
-     * Return this {@link Chunk Chunk's} id.
-     * 
-     * @return the {@link Chunk} id
-     */
-    public String id() {
-        return segment != null ? segment.id()
-                : Integer.toString(System.identityHashCode(this));
     }
 
     @Override
@@ -630,23 +467,50 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         return filter;
     }
 
-    /**
-     * Return this {@link Chunk Chunk's} parent {@link Segment}.
-     * 
-     * @return the parent {@link Segment}
-     */
-    @Nullable
-    protected Segment segment() {
-        return segment;
+    @Override
+    protected void flush(ByteSink sink) {
+        // NOTE: The parent #segment is responsible for flushing the #index and
+        // #manifest.
+        this.length = length();
+        if(length == 0 && allowEmptyFlush) {
+            return;
+        }
+        else if(length == 0) {
+            throw new IllegalStateException(
+                    "Cannot flush " + this + " because it is empty");
+        }
+        else {
+            manifest();
+            if(bytes == null) {
+                // length > Integer#MAX_VALUE so the #bytes were not
+                // gathered while creating the #manifest
+                Logger.warn("Flushing {} requires more than {} bytes", this,
+                        Integer.MAX_VALUE);
+                for (Revision<L, K, V> revision : revisions) {
+                    sink.putInt(revision.size());
+                    revision.copyTo(sink);
+                }
+            }
+            else {
+                sink.put(bytes);
+            }
+        }
+    }
+
+    @Override
+    protected void free() {
+        this.revisions = null;
+        this.revisionCount = null;
     }
 
     /**
-     * Increment the {@link #size()} of this {@link Chunk} by {@code delta} in a
-     * manner that accounts for whether the {@link Chunk} is concurrent or not.
+     * Increment the {@link #lengthUnsafe()} of this {@link Chunk} by
+     * {@code delta} in a manner that accounts for whether the {@link Chunk} is
+     * concurrent or not.
      * 
      * @param delta
      */
-    protected abstract void incrementSizeBy(int delta);
+    protected abstract void incrementLengthBy(int delta);
 
     /**
      * {@link #insert(Byteable, Byteable, Byteable, long, Action)} without
@@ -663,8 +527,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     protected final Revision<L, K, V> insertUnsafe(L locator, K key, V value,
             long version, Action type) throws IllegalStateException {
-        Preconditions.checkState(mutable,
-                "Cannot modify a chunk that is not mutable");
+        Preconditions.checkState(isMutable(),
+                "Cannot modify an immutable chunk");
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
@@ -678,10 +542,19 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                                        // DOES NOT exist using
                                        // #mightContain(L,K,V) without
                                        // seeking
-        incrementSizeBy(revision.size() + 4);
+        incrementLengthBy(revision.size() + 4);
         manifest = null;
+        bytes = null;
         return revision;
     }
+
+    /**
+     * Internal implementation to return the {@link #length()} of this
+     * {@link Chunk} without grabbing any locks.
+     * 
+     * @return the length
+     */
+    protected abstract long lengthUnsafe();
 
     /**
      * Return a {@link Revision} for {@code key} as {@code value} in
@@ -698,13 +571,105 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             long version, Action type);
 
     /**
-     * Internal implementation to return size of this {@link Chunk} without
-     * grabbing any
-     * locks.
+     * Return this {@link Chunk Chunk's} {@link Manifest}, generating it, if
+     * necessary.
+     * <p>
+     * NOTE: The positions recorded in the {@link Manifest} are relative to
+     * the {@link #position} that is recorded when this {@link Chunk} is
+     * {@link #transfer(Path, long) transferred}.
+     * </p>
      * 
-     * @return the size
+     * @return the {@link #manifest}
      */
-    protected abstract int sizeImpl();
+    protected Manifest manifest() {
+        boolean mutable = isMutable();
+        Locks.lockIfCondition(read, mutable);
+        try {
+            while (manifest == null) {
+                long length = lengthUnsafe();
+                bytes = length <= Integer.MAX_VALUE
+                        ? ByteBuffer.allocate((int) length)
+                        : null;
+                ByteSink sink = bytes != null ? ByteSink.to(bytes)
+                        : ByteSink.toDevNull();
+                Manifest manifest = Manifest.create(revisionCount.get());
+                L locator = null;
+                K key = null;
+                int position = 0;
+                boolean populated = false;
+                for (Revision<L, K, V> revision : revisions) {
+                    populated = true;
+                    sink.putInt(revision.size());
+                    revision.copyTo(sink);
+                    position = ((int) sink.position()) - revision.size() - 4;
+                    /*
+                     * States that trigger this condition to be true:
+                     * 1. This is the first locator we've seen
+                     * 2. This locator is different than the last one we've seen
+                     */
+                    if(locator == null
+                            || !locator.equals(revision.getLocator())) {
+                        manifest.putStart(position, revision.getLocator());
+                        if(locator != null) {
+                            // There was a locator before us (we are not the
+                            // first!)
+                            // and we need to record the end index.
+                            manifest.putEnd(position - 1, locator);
+                        }
+                    }
+                    /*
+                     * NOTE: IF key == null, then it must be the case that
+                     * locator == null since they are set at the same time.
+                     * Therefore we do not need to explicitly check for that
+                     * condition below
+                     * 
+                     * States that trigger this condition to be true:
+                     * 1. This is the first key we've seen
+                     * 2. This key is different than the last one we've seen
+                     * (regardless of whether the locator is different or the
+                     * same!)
+                     * 3. This key is the same as the last one we've seen, but
+                     * the locator is different.
+                     */
+                    if(key == null || !key.equals(revision.getKey())
+                            || !locator.equals(revision.getLocator())) {
+                        manifest.putStart(position, revision.getLocator(),
+                                revision.getKey());
+                        if(key != null) {
+                            // There was a locator, key before us (we are not
+                            // the first!) and we need to record the end index.
+                            manifest.putEnd(position - 1, locator, key);
+                        }
+                    }
+                    locator = revision.getLocator();
+                    key = revision.getKey();
+                }
+                if(populated) {
+                    position = ((int) sink.position()) - 1;
+                    manifest.putEnd(position, locator);
+                    manifest.putEnd(position, locator, key);
+                }
+                this.manifest = manifest;
+                if(bytes != null) {
+                    bytes.flip();
+                }
+            }
+            return manifest;
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
+    }
+
+    /**
+     * Return this {@link Chunk Chunk's} parent {@link Segment}.
+     * 
+     * @return the parent {@link Segment}
+     */
+    @Nullable
+    protected Segment segment() {
+        return segment;
+    }
 
     /**
      * Return the class of the {@code revision} type.
@@ -742,7 +707,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 return new Iterator<Revision<L, K, V>>() {
 
                     private final Iterator<ByteBuffer> it = ByteableCollections
-                            .streamingIterator(file, position, size,
+                            .streamingIterator(file, position(), length,
                                     GlobalState.BUFFER_PAGE_SIZE);
 
                     @Override
@@ -770,47 +735,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
             };
         }
-    }
-
-    /**
-     * The {@link Folio} is returned when this {@link Chunk} is
-     * {@link Chunk#serialize() serialized}. It contains the serialized bytes
-     * and the generated {@link Manifest}.
-     *
-     * @author Jeff Nelson
-     */
-    public static class Folio extends KeyValue<Manifest, ByteBuffer> {
-
-        private static final long serialVersionUID = -6260616315284467777L;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param value
-         */
-        public Folio(Manifest key, ByteBuffer value) {
-            super(key, value);
-        }
-
-        /**
-         * Return the bytes.
-         * 
-         * @return the bytes
-         */
-        public ByteBuffer bytes() {
-            return getValue();
-        }
-
-        /**
-         * Return the generated manifest.
-         * 
-         * @return the manifest
-         */
-        public Manifest manifest() {
-            return getKey();
-        }
-
     }
 
     /**

@@ -175,7 +175,7 @@ public class DatabaseTest extends StoreTest {
                     TestData.getTObject(), i);
             db.accept(write);
             Revision<PrimaryKey, Text, Value> revision = Revision
-                    .createPrimaryRevision(write.getRecord(), write.getKey(),
+                    .createTableRevision(write.getRecord(), write.getKey(),
                             write.getValue(), write.getVersion(),
                             write.getType());
             expected.add(revision);

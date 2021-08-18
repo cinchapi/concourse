@@ -55,7 +55,7 @@ public class CorpusRecordTest extends RecordTest<Text, Text, Position> {
     @Override
     protected CorpusRevision getRevision(Text locator, Text key,
             Position value) {
-        return Revision.createSearchRevision(locator, key, value, Time.now(),
+        return Revision.createCorpusRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }
 

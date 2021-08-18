@@ -228,7 +228,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     @Override
     protected CorpusRevision makeRevision(Text locator, Text key,
             Position value, long version, Action type) {
-        return Revision.createSearchRevision(locator, key, value, version,
+        return Revision.createCorpusRevision(locator, key, value, version,
                 type);
     }
 

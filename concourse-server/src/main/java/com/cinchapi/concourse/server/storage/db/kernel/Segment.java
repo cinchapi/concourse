@@ -15,22 +15,18 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,18 +36,18 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
+import com.cinchapi.concourse.server.concurrent.Locks;
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.Freezable;
 import com.cinchapi.concourse.server.io.Itemizable;
-import com.cinchapi.concourse.server.io.Syncable;
+import com.cinchapi.concourse.server.io.TransferableByteSequence;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
-import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
@@ -121,7 +117,8 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 @Immutable
 @ThreadSafe
-public final class Segment implements Itemizable, Syncable {
+public final class Segment extends TransferableByteSequence implements
+        Itemizable {
 
     /**
      * Create a new {@link Segment}.
@@ -171,12 +168,12 @@ public final class Segment implements Itemizable, Syncable {
         else if(o1.minTs > o2.maxTs) {
             return 1;
         }
-        else if(!o1.mutable && !o2.mutable) {
+        else if(!o1.isMutable() && !o2.isMutable()) {
             // The immutable Segments have overlapping timestamps, so sort
             // based on the syncTs so that the newer Segment is "greater"
             return Longs.compare(o1.syncTs, o2.syncTs);
         }
-        else if(o1.mutable) {
+        else if(o1.isMutable()) {
             return 1;
         }
         else { // o2.mutable == true
@@ -229,16 +226,6 @@ public final class Segment implements Itemizable, Syncable {
     // @formatter:on
 
     /**
-     * The upper limit (in terms of number of bytes) when there is performance
-     * stagnation or degradation from
-     * {@link #mmap(Path, int, Folio, Folio, Folio) using a memory-mapped file}
-     * to {@link #fsync(Path)} and a
-     * {@link #write(Path, int, Folio, Folio, Folio) file channel} should be
-     * used instead.
-     */
-    private static int MMAP_WRITE_UPPER_LIMIT = 419430400;
-
-    /**
      * The current schema version.
      */
     private static byte SCHEMA_VERSION = 1;
@@ -264,14 +251,9 @@ public final class Segment implements Itemizable, Syncable {
     protected long minTs;
 
     /**
-     * Provider for {@link #readLock} and {@link #writeLock} locks.
-     */
-    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
      * Read lock.
      */
-    protected final ReadLock readLock = master.readLock();
+    protected ReadLock readLock = read;
 
     /**
      * The timestamp when this {@link Segment} was {@link #fsync(Path) synced}
@@ -280,26 +262,19 @@ public final class Segment implements Itemizable, Syncable {
     protected long syncTs;
 
     /**
+     * Write lock.
+     */
+    protected WriteLock writeLock = write;
+
+    /**
      * The {@link CorpusChunk} that contains a searchable view of the data.
      */
     private final CorpusChunk corpus;
 
     /**
-     * The file where this {@link Segment Segment's} data is stored when
-     * {@link #fsync(Path) synced}.
-     */
-    @Nullable
-    private Path file;
-
-    /**
      * The {@link IndexChunk} that contains an inverted view of the data.
      */
     private final IndexChunk index;
-
-    /**
-     * A flag that indicates whether this {@link Segment} is mutable.
-     */
-    private boolean mutable;
 
     /**
      * The {@link TableChunk} that contains the logical view of the data.
@@ -312,16 +287,10 @@ public final class Segment implements Itemizable, Syncable {
     private byte version;
 
     /**
-     * Write lock.
-     */
-    private final WriteLock writeLock = master.writeLock();
-
-    /**
      * Construct a new instance.
      */
     private Segment(int expectedInsertions) {
-        this.mutable = true;
-        this.file = null;
+        super();
         this.maxTs = Long.MIN_VALUE;
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
@@ -341,8 +310,7 @@ public final class Segment implements Itemizable, Syncable {
      * @throws SegmentLoadingException
      */
     private Segment(Path file) throws SegmentLoadingException {
-        this.mutable = false;
-        this.file = file;
+        super(file);
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
@@ -351,7 +319,6 @@ public final class Segment implements Itemizable, Syncable {
             byte[] signature = new byte[FILE_SIGNATURE.length];
             metadata.get(signature);
             if(Arrays.equals(signature, FILE_SIGNATURE)) {
-                long position = 0;
                 this.version = metadata.get();
                 this.count = metadata.getLong();
                 this.minTs = metadata.getLong();
@@ -370,7 +337,7 @@ public final class Segment implements Itemizable, Syncable {
                 long tableLength = metadata.getLong();
                 long indexLength = metadata.getLong();
                 long corpusLength = metadata.getLong();
-                position += METADATA_LENGTH;
+                long position = METADATA_LENGTH;
 
                 ByteBuffer filterBytes = channel.map(MapMode.READ_ONLY,
                         position, tableFilterLength + indexFilterLength
@@ -466,7 +433,7 @@ public final class Segment implements Itemizable, Syncable {
      */
     public Receipt acquire(Write write, AwaitableExecutorService executor)
             throws InterruptedException {
-        Preconditions.checkState(mutable,
+        Preconditions.checkState(isMutable(),
                 "Cannot transfer Writes to an immutable Segment");
         writeLock.lock();
         try {
@@ -516,7 +483,7 @@ public final class Segment implements Itemizable, Syncable {
 
     @Override
     public long count() {
-        return mutable ? index.count() : count;
+        return isMutable() ? index.count() : count;
     }
 
     @Override
@@ -529,43 +496,6 @@ public final class Segment implements Itemizable, Syncable {
         }
         else {
             return false;
-        }
-    }
-
-    @Override
-    public void fsync(Path file) {
-        Preconditions.checkState(mutable, "Cannot fsync an immutable Segment");
-        readLock.lock();
-        try {
-            this.mutable = false;
-            this.syncTs = Time.now();
-            this.count = index.count();
-            Folio tableFolio = table.serialize();
-            Folio indexFolio = index.serialize();
-            Folio corpusFolio = corpus.serialize();
-            // @formatter:off
-            int size = 
-                METADATA_LENGTH 
-                + table.filter().size()
-                + index.filter().size() 
-                + corpus.filter().size()
-                + tableFolio.manifest().size() 
-                + indexFolio.manifest().size()
-                + corpusFolio.manifest().size() 
-                + table.size() 
-                + index.size()
-                + corpus.size()
-            ;
-            // @formatter:on
-            if(size <= MMAP_WRITE_UPPER_LIMIT) {
-                mmap(file, size, tableFolio, indexFolio, corpusFolio);
-            }
-            else {
-                write(file, size, tableFolio, indexFolio, corpusFolio);
-            }
-        }
-        finally {
-            readLock.unlock();
         }
     }
 
@@ -593,16 +523,6 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
-     * Return {@code true} if this {@link Segment} can
-     * {@link #acquire(Write, AwaitableExecutorService) transfer} data.
-     * 
-     * @return a boolean indicating if this {@link Segment} is mutable
-     */
-    public boolean isMutable() {
-        return mutable;
-    }
-
-    /**
      * Return an ephemeral label for this {@link Segment}. This label is not
      * consistent and should not be relied upon for identification.
      * 
@@ -610,6 +530,37 @@ public final class Segment implements Itemizable, Syncable {
      */
     public String label() {
         return "Segment-" + System.identityHashCode(this);
+    }
+
+    @Override
+    public long length() {
+        boolean mutable = isMutable();
+        Locks.lockIfCondition(read, mutable);
+        try {
+            if(mutable) {
+                // @formatter:off
+                long size = 
+                    METADATA_LENGTH 
+                    + table.filter().size()
+                    + index.filter().size() 
+                    + corpus.filter().size()
+                    + table.manifest().length() 
+                    + index.manifest().length() 
+                    + corpus.manifest().length()  
+                    + table.length() 
+                    + index.length()
+                    + corpus.length()
+                ;
+                // @formatter:on
+                return size;
+            }
+            else {
+                return FileSystem.getFileSize(file.toString());
+            }
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
     }
 
     /**
@@ -694,142 +645,55 @@ public final class Segment implements Itemizable, Syncable {
                         revision.getVersion()));
     }
 
-    /**
-     * Implementation of {@link #fsync(Path)} using a memory mapped file.
-     * 
-     * @param file
-     * @param size
-     * @param tableFolio
-     * @param indexFolio
-     * @param corpusFolio
-     */
-    private void mmap(Path file, int size, Folio tableFolio, Folio indexFolio,
-            Folio corpusFolio) {
-        MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_WRITE, 0,
-                size);
-        bytes.put(FILE_SIGNATURE);
-        bytes.put(version);
-        bytes.putLong(count);
-        bytes.putLong(minTs);
-        bytes.putLong(maxTs);
-        bytes.putLong(syncTs);
-        bytes.putLong(0);
-        bytes.putLong(0);
-        bytes.putLong(0);
-        bytes.putLong(0);
-        bytes.putLong(table.filter().size());
-        bytes.putLong(index.filter().size());
-        bytes.putLong(corpus.filter().size());
-        bytes.putLong(tableFolio.manifest().size());
-        bytes.putLong(indexFolio.manifest().size());
-        bytes.putLong(corpusFolio.manifest().size());
-        bytes.putLong(table.size());
-        bytes.putLong(index.size());
-        bytes.putLong(corpus.size());
+    @Override
+    protected void flush(ByteSink sink) {
+        this.syncTs = Time.now();
+        this.count = index.count();
+        sink.put(FILE_SIGNATURE);
+        sink.put(version);
+        sink.putLong(count);
+        sink.putLong(minTs);
+        sink.putLong(maxTs);
+        sink.putLong(syncTs);
+        sink.putLong(0);
+        sink.putLong(0);
+        sink.putLong(0);
+        sink.putLong(0);
+        sink.putLong(table.filter().size());
+        sink.putLong(index.filter().size());
+        sink.putLong(corpus.filter().size());
+        sink.putLong(table.manifest().length());
+        sink.putLong(index.manifest().length());
+        sink.putLong(corpus.manifest().length());
+        sink.putLong(table.length());
+        sink.putLong(index.length());
+        sink.putLong(corpus.length());
 
         // @formatter:off
         for (Byteable byteable :  Array.containing(
-                table.filter(), // Table BloomFilter
-                index.filter(), // Index BloomFilter
-                corpus.filter() // Corpus BloomFilter
+                table.filter(), 
+                index.filter(), 
+                corpus.filter()
         )) {
-            byteable.copyTo(bytes);
+            byteable.copyTo(sink);
         }
-        for (Manifest manifest : Array.containing(
-                tableFolio.manifest(), // Table Manifest
-                indexFolio.manifest(), // Index Manifest
-                corpusFolio.manifest()  // Corpus Manifest
+        long position = sink.position();
+        for (TransferableByteSequence sequence : Array.containing(
+                table.manifest(), 
+                index.manifest(), 
+                corpus.manifest(),
+                table,                
+                index,
+                corpus
         )) {
-            manifest.freeze(file, bytes.position());
-            manifest.copyTo(bytes);
-        }
-        for (Part part : Array.containing(
-                new Part(table, tableFolio.bytes()), // Table
-                new Part(index, indexFolio.bytes()), // Index
-                new Part(corpus, corpusFolio.bytes()) // Corpus
-        )) {
-            part.freeze(file, bytes.position());
-            bytes.put(part.bytes());
+            sequence.transfer(file, position);
+            position += sequence.length();
         }
         // @formatter:on
-
-        bytes.force();
-        this.file = file;
     }
 
-    /**
-     * Implementation of {@link #fsync(Path)} using a {@link FileChannel}.
-     * 
-     * @param file
-     * @param size
-     * @param tableFolio
-     * @param indexFolio
-     * @param corpusFolio
-     */
-    private void write(Path file, int size, Folio tableFolio, Folio indexFolio,
-            Folio corpusFolio) {
-        FileChannel channel = FileSystem.getFileChannel(file);
-        try {
-            ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
-            metadata.put(FILE_SIGNATURE);
-            metadata.put(version);
-            metadata.putLong(count);
-            metadata.putLong(minTs);
-            metadata.putLong(maxTs);
-            metadata.putLong(syncTs);
-            metadata.putLong(0);
-            metadata.putLong(0);
-            metadata.putLong(0);
-            metadata.putLong(0);
-            metadata.putLong(table.filter().size());
-            metadata.putLong(index.filter().size());
-            metadata.putLong(corpus.filter().size());
-            metadata.putLong(tableFolio.manifest().size());
-            metadata.putLong(indexFolio.manifest().size());
-            metadata.putLong(corpusFolio.manifest().size());
-            metadata.putLong(table.size());
-            metadata.putLong(index.size());
-            metadata.putLong(corpus.size());
-            metadata.flip();
-            while (metadata.hasRemaining()) {
-                channel.write(metadata);
-            }
-
-            // @formatter:off
-            for (ByteBuffer bytes :  Array.containing(
-                    table.filter().getBytes(), // Table BloomFilter
-                    index.filter().getBytes(), // Index BloomFilter
-                    corpus.filter().getBytes() // Corpus BloomFilter
-            )) {
-                while (bytes.hasRemaining()) {
-                    channel.write(bytes);
-                }
-            }
-            for (Part part : Array.containing(
-                    new Part(tableFolio.manifest(), tableFolio.manifest().getBytes()),   // Table Manifest
-                    new Part(indexFolio.manifest(), indexFolio.manifest().getBytes()),   // Index Manifest
-                    new Part(corpusFolio.manifest(), corpusFolio.manifest().getBytes()), // Corpus Manifest
-                    new Part(table, tableFolio.bytes()),  // Table
-                    new Part(index, indexFolio.bytes()),  // Index
-                    new Part(corpus, corpusFolio.bytes()) // Corpus
-            )) {
-                part.freeze(file, channel.position());
-                while (part.bytes().hasRemaining()) {
-                    channel.write(part.bytes());
-                }
-            }
-            // @formatter:on
-
-            channel.force(true);
-            this.file = file;
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            FileSystem.closeFileChannel(channel);
-        }
-    }
+    @Override
+    protected void free() {}
 
     /**
      * A {@link Receipt} is acknowledges the successful
@@ -925,56 +789,6 @@ public final class Segment implements Itemizable, Syncable {
                 tableRevision = revision;
                 return this;
             }
-        }
-
-    }
-
-    /**
-     * Internal wrapper around an object that is {@link Freezable} and its
-     * {@link ByteBuffer binary} representation.
-     *
-     * @author jeff
-     */
-    private static class Part implements Freezable {
-
-        /**
-         * The bytes for the frozen thing.
-         */
-        private final ByteBuffer bytes;
-
-        /**
-         * The thing that can be frozen.
-         */
-        private final Freezable freezable;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param freezable
-         * @param bytes
-         */
-        public Part(Freezable freezable, ByteBuffer bytes) {
-            this.freezable = freezable;
-            this.bytes = bytes;
-        }
-
-        /**
-         * Return the {@link #bytes}.
-         * 
-         * @return the {@link #bytes}
-         */
-        public ByteBuffer bytes() {
-            return bytes;
-        }
-
-        @Override
-        public void freeze(Path file, long position) {
-            freezable.freeze(file, position);
-        }
-
-        @Override
-        public boolean isFrozen() {
-            return freezable.isFrozen();
         }
 
     }
