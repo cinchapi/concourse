@@ -123,8 +123,7 @@ public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
     @Override
     protected IndexRevision makeRevision(Text locator, Value key,
             PrimaryKey value, long version, Action type) {
-        return Revision.createSecondaryRevision(locator, key, value, version,
-                type);
+        return Revision.createIndexRevision(locator, key, value, version, type);
     }
 
     @Override

@@ -123,8 +123,7 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
     @Override
     protected TableRevision makeRevision(PrimaryKey locator, Text key,
             Value value, long version, Action type) {
-        return Revision.createPrimaryRevision(locator, key, value, version,
-                type);
+        return Revision.createTableRevision(locator, key, value, version, type);
     }
 
     @Override

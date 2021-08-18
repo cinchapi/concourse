@@ -63,7 +63,7 @@ public class TableRecordTest
     @Override
     protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
             Text key, Value value) {
-        return Revision.createPrimaryRevision(locator, key, value, Time.now(),
+        return Revision.createTableRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }
 

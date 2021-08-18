@@ -64,17 +64,17 @@ public final class TestData extends Random {
     }
 
     public static TableRevision getPrimaryRevision() {
-        return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+        return Revision.createTableRevision(getPrimaryKey(), getText(),
                 getValue(), Time.now(), Action.ADD);
     }
 
     public static CorpusRevision getSearchRevision() {
-        return Revision.createSearchRevision(getText(), getText(),
+        return Revision.createCorpusRevision(getText(), getText(),
                 getPosition(), Time.now(), Action.ADD);
     }
 
     public static IndexRevision getSecondaryRevision() {
-        return Revision.createSecondaryRevision(getText(), getValue(),
+        return Revision.createIndexRevision(getText(), getValue(),
                 getPrimaryKey(), Time.now(), Action.ADD);
     }
 

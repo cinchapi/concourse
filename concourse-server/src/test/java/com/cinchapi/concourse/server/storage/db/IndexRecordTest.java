@@ -61,7 +61,7 @@ public class IndexRecordTest
     @Override
     protected IndexRevision getRevision(Text locator, Value key,
             PrimaryKey value) {
-        return Revision.createSecondaryRevision(locator, key, value, Time.now(),
+        return Revision.createIndexRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }
 
