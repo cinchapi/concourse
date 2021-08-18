@@ -65,7 +65,7 @@ import com.google.common.collect.TreeMultiset;
  * resides solely in memory and is able to
  * {@link #insert(Byteable, Byteable, Byteable, long, Action) insert} new
  * {@link Revision revisions} (this corresponds to the
- * {@link Segment#transfer(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
+ * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
  * functionality), which are sorted on the fly. Once the {@link Chunk} is
  * {@link #freeze(Path, long) frozen} (happens when its parent {@link Segment}
  * is
@@ -205,7 +205,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * to the non-atomic asynchronous
      * {@link #insert(Byteable, Byteable, Byteable, long, Action) writes}
      * triggered by a
-     * {@link Segment#transfer(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
+     * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
      * Segment transfer}
      */
     private final ReadLock segmentReadLock;

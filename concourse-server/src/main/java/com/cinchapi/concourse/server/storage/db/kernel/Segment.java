@@ -65,7 +65,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * physically stored.
  * <p>
  * When the {@link Database} {@link Database#accept(Write) accepts} a
- * {@link Write} it is {@link Segment#transfer(Write, AwaitableExecutorService)
+ * {@link Write} it is {@link Segment#acquire(Write, AwaitableExecutorService)
  * transferred} to a {@link Segment} which uses several {@link Chunk
  * Chunks} internally to maintain optimized views of the data for different
  * operations.
@@ -80,7 +80,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * read performance</em>). When all the {@link Write Writes} from a
  * {@link com.cinchapi.concourse.server.storage.temp.Buffer.Page
  * Page} have been
- * {@link #transfer(Write, AwaitableExecutorService) transferred}, the
+ * {@link #acquire(Write, AwaitableExecutorService) transferred}, the
  * corresponding {@link Segment} is durably
  * {@link #sync(AwaitableExecutorService) synced} and
  * the {@link Buffer#Page Page} is
@@ -229,11 +229,6 @@ public final class Segment implements Itemizable, Syncable {
     // @formatter:on
 
     /**
-     * The current schema version.
-     */
-    private static byte SCHEMA_VERSION = 1;
-
-    /**
      * The upper limit (in terms of number of bytes) when there is performance
      * stagnation or degradation from
      * {@link #mmap(Path, int, Folio, Folio, Folio) using a memory-mapped file}
@@ -244,30 +239,45 @@ public final class Segment implements Itemizable, Syncable {
     private static int MMAP_WRITE_UPPER_LIMIT = 419430400;
 
     /**
+     * The current schema version.
+     */
+    private static byte SCHEMA_VERSION = 1;
+
+    /**
+     * The number of {@link Revision Revisions} that has been
+     * {@link #acquire(Write, AwaitableExecutorService) transferred}.
+     */
+    protected long count = -1;
+
+    /**
      * The largest timestamp associated with a {@link Write} that has been
-     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
+     * {@link #acquire(Write, AwaitableExecutorService) transferred} to this
      * {@link Segment}.
      */
     protected long maxTs;
 
     /**
      * The smallest timestamp associated with a {@link Write} that has been
-     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
+     * {@link #acquire(Write, AwaitableExecutorService) transferred} to this
      * {@link Segment}.
      */
     protected long minTs;
+
+    /**
+     * Provider for {@link #readLock} and {@link #writeLock} locks.
+     */
+    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+
+    /**
+     * Read lock.
+     */
+    protected final ReadLock readLock = master.readLock();
 
     /**
      * The timestamp when this {@link Segment} was {@link #fsync(Path) synced}
      * to disk.
      */
     protected long syncTs;
-
-    /**
-     * The number of {@link Revision Revisions} that has been
-     * {@link #transfer(Write, AwaitableExecutorService) transferred}.
-     */
-    protected long count = -1;
 
     /**
      * The {@link CorpusChunk} that contains a searchable view of the data.
@@ -300,16 +310,6 @@ public final class Segment implements Itemizable, Syncable {
      * The schema version at which this {@link Segment} was written.
      */
     private byte version;
-
-    /**
-     * Provider for {@link #readLock} and {@link #writeLock} locks.
-     */
-    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
-     * Read lock.
-     */
-    protected final ReadLock readLock = master.readLock();
 
     /**
      * Write lock.
@@ -434,6 +434,78 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
+     * Append the {@code write} to this {@link Segment}.
+     * <p>
+     * This method is only suitable for testing.
+     * </p>
+     * 
+     * @param write
+     * @return a {@link Receipt} that contains the {@link Revision Revisions}
+     *         that were created as a consequence of the transfer
+     */
+    public Receipt acquire(Write write) {
+        try {
+            return acquire(write, new AwaitableExecutorService(
+                    MoreExecutors.newDirectExecutorService()));
+        }
+        catch (InterruptedException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Append the {@code write} to this {@link Segment} using the
+     * {@code executor} to asynchronously write to all the contained
+     * {@link Block blocks}.
+     * 
+     * @param write
+     * @param executor
+     * @return a {@link Receipt} that contains the {@link Revision Revisions}
+     *         that were created as a consequence of the transfer
+     * @throws InterruptedException
+     */
+    public Receipt acquire(Write write, AwaitableExecutorService executor)
+            throws InterruptedException {
+        Preconditions.checkState(mutable,
+                "Cannot transfer Writes to an immutable Segment");
+        writeLock.lock();
+        try {
+            Receipt.Builder receipt = Receipt.builder();
+            Runnable[] tasks = Array.containing(() -> {
+                TableRevision revision = table.insert(write.getRecord(),
+                        write.getKey(), write.getValue(), write.getVersion(),
+                        write.getType());
+                receipt.itemize(revision);
+            }, () -> {
+                IndexRevision revision = index.insert(write.getKey(),
+                        write.getValue(), write.getRecord(), write.getVersion(),
+                        write.getType());
+                receipt.itemize(revision);
+            }, () -> {
+                corpus.insert(write.getKey(), write.getValue(),
+                        write.getRecord(), write.getVersion(), write.getType());
+                // NOTE: We do not itemize a CorpusRevision within the receipt
+                // because the database does not cache CorpusRecords since they
+                // have the potential to be VERY large. Holding references to
+                // them in a database's cache would prevent them from being
+                // garbage collected resulting in more OOMs.
+            });
+            executor.await((task, error) -> Logger.error(
+                    "Unexpected error when trying to transfer the following Write to the Database: {}",
+                    write, error), tasks);
+            // CON-587: Set the min/max version of this Segment because it
+            // cannot be assumed that revisions are inserted in monotonically
+            // increasing order of version.
+            maxTs = Math.max(write.getVersion(), maxTs);
+            minTs = Math.min(write.getVersion(), minTs);
+            return receipt.build();
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
+
+    /**
      * Return this {@link Segment Segment's} {@link CorpusChunk}, if it exists.
      * 
      * @return the {@link CorpusChunk} or {@code null} it it does not exist
@@ -521,6 +593,16 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
+     * Return {@code true} if this {@link Segment} can
+     * {@link #acquire(Write, AwaitableExecutorService) transfer} data.
+     * 
+     * @return a boolean indicating if this {@link Segment} is mutable
+     */
+    public boolean isMutable() {
+        return mutable;
+    }
+
+    /**
      * Return an ephemeral label for this {@link Segment}. This label is not
      * consistent and should not be relied upon for identification.
      * 
@@ -531,24 +613,14 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
-     * Return {@code true} if this {@link Segment} can
-     * {@link #transfer(Write, AwaitableExecutorService) transfer} data.
-     * 
-     * @return a boolean indicating if this {@link Segment} is mutable
-     */
-    public boolean isMutable() {
-        return mutable;
-    }
-
-    /**
-     * Reindex this {@link Segment} by replaying the {@link #transfer(Write)} of
+     * Reindex this {@link Segment} by replaying the {@link #acquire(Write)} of
      * its {@link #writes()} to a {@link #Segment() new} {@link Segment}.
      * 
      * @return the reindexed {@link Segment}
      */
     public Segment reindex() {
         Segment segment = new Segment((int) count());
-        writes().forEach(segment::transfer);
+        writes().forEach(segment::acquire);
         return segment;
     }
 
@@ -557,7 +629,7 @@ public final class Segment implements Itemizable, Syncable {
      * (https://en.wikipedia.org/wiki/Jaccard_index); a number between 0 and 1
      * that indicates how similar {@code this} {@link Segment} is to the
      * {@code other} one based on the {@link Writes} that have been
-     * {@link #transfer(Write, AwaitableExecutorService) transferred}.
+     * {@link #acquire(Write, AwaitableExecutorService) transferred}.
      * <p>
      * This method doesn't read the stored {@link Revision revisions}, but
      * instead uses the {@link BloomFilter BloomFilters} of some of its
@@ -608,80 +680,8 @@ public final class Segment implements Itemizable, Syncable {
     }
 
     /**
-     * Transfer the {@code write} to this {@link Segment}.
-     * <p>
-     * This method is only suitable for testing.
-     * </p>
-     * 
-     * @param write
-     * @return a {@link Receipt} that contains the {@link Revision Revisions}
-     *         that were created as a consequence of the transfer
-     */
-    public Receipt transfer(Write write) {
-        try {
-            return transfer(write, new AwaitableExecutorService(
-                    MoreExecutors.newDirectExecutorService()));
-        }
-        catch (InterruptedException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
-
-    /**
-     * Transfer the {@code write} to this {@link Segment} using the
-     * {@code executor} to asynchronously write to all the contained
-     * {@link Block blocks}.
-     * 
-     * @param write
-     * @param executor
-     * @return a {@link Receipt} that contains the {@link Revision Revisions}
-     *         that were created as a consequence of the transfer
-     * @throws InterruptedException
-     */
-    public Receipt transfer(Write write, AwaitableExecutorService executor)
-            throws InterruptedException {
-        Preconditions.checkState(mutable,
-                "Cannot transfer Writes to an immutable Segment");
-        writeLock.lock();
-        try {
-            Receipt.Builder receipt = Receipt.builder();
-            Runnable[] tasks = Array.containing(() -> {
-                TableRevision revision = table.insert(write.getRecord(),
-                        write.getKey(), write.getValue(), write.getVersion(),
-                        write.getType());
-                receipt.itemize(revision);
-            }, () -> {
-                IndexRevision revision = index.insert(write.getKey(),
-                        write.getValue(), write.getRecord(), write.getVersion(),
-                        write.getType());
-                receipt.itemize(revision);
-            }, () -> {
-                corpus.insert(write.getKey(), write.getValue(),
-                        write.getRecord(), write.getVersion(), write.getType());
-                // NOTE: We do not itemize a CorpusRevision within the receipt
-                // because the database does not cache CorpusRecords since they
-                // have the potential to be VERY large. Holding references to
-                // them in a database's cache would prevent them from being
-                // garbage collected resulting in more OOMs.
-            });
-            executor.await((task, error) -> Logger.error(
-                    "Unexpected error when trying to transfer the following Write to the Database: {}",
-                    write, error), tasks);
-            // CON-587: Set the min/max version of this Segment because it
-            // cannot be assumed that revisions are inserted in monotonically
-            // increasing order of version.
-            maxTs = Math.max(write.getVersion(), maxTs);
-            minTs = Math.min(write.getVersion(), minTs);
-            return receipt.build();
-        }
-        finally {
-            writeLock.unlock();
-        }
-    }
-
-    /**
      * Return a {@link Stream} containing all the {@link Write Writes} that were
-     * {@link #transfer(Write, AwaitableExecutorService) transferred} to this
+     * {@link #acquire(Write, AwaitableExecutorService) transferred} to this
      * {@link Segment}.
      * 
      * @return the transferred {@link Write Writes}
@@ -833,7 +833,7 @@ public final class Segment implements Itemizable, Syncable {
 
     /**
      * A {@link Receipt} is acknowledges the successful
-     * {@link Segment#transfer(Write, AwaitableExecutorService) transfer} of a
+     * {@link Segment#acquire(Write, AwaitableExecutorService) transfer} of a
      * {@link Write} to a {@link Segment} and includes the {@link Revision
      * revisions} that were created in the Segment's storage {@link Block
      * Blocks}.
@@ -910,8 +910,8 @@ public final class Segment implements Itemizable, Syncable {
              * @param revision
              * @return this
              */
-            Builder itemize(TableRevision revision) {
-                tableRevision = revision;
+            Builder itemize(IndexRevision revision) {
+                indexRevision = revision;
                 return this;
             }
 
@@ -921,8 +921,8 @@ public final class Segment implements Itemizable, Syncable {
              * @param revision
              * @return this
              */
-            Builder itemize(IndexRevision revision) {
-                indexRevision = revision;
+            Builder itemize(TableRevision revision) {
+                tableRevision = revision;
                 return this;
             }
         }
@@ -938,14 +938,14 @@ public final class Segment implements Itemizable, Syncable {
     private static class Part implements Freezable {
 
         /**
-         * The thing that can be frozen.
-         */
-        private final Freezable freezable;
-
-        /**
          * The bytes for the frozen thing.
          */
         private final ByteBuffer bytes;
+
+        /**
+         * The thing that can be frozen.
+         */
+        private final Freezable freezable;
 
         /**
          * Construct a new instance.
@@ -958,6 +958,15 @@ public final class Segment implements Itemizable, Syncable {
             this.bytes = bytes;
         }
 
+        /**
+         * Return the {@link #bytes}.
+         * 
+         * @return the {@link #bytes}
+         */
+        public ByteBuffer bytes() {
+            return bytes;
+        }
+
         @Override
         public void freeze(Path file, long position) {
             freezable.freeze(file, position);
@@ -966,15 +975,6 @@ public final class Segment implements Itemizable, Syncable {
         @Override
         public boolean isFrozen() {
             return freezable.isFrozen();
-        }
-
-        /**
-         * Return the {@link #bytes}.
-         * 
-         * @return the {@link #bytes}
-         */
-        public ByteBuffer bytes() {
-            return bytes;
         }
 
     }

@@ -67,7 +67,7 @@ class MergeSortCompactor extends Compactor {
                                                                                 // create
                                                                                 // offheap
                 Streams.concat(a.writes(), b.writes()).parallel()
-                        .forEach(write -> merged.transfer(write));
+                        .forEach(write -> merged.acquire(write));
                 return ImmutableList.of(merged);
             }
             else {

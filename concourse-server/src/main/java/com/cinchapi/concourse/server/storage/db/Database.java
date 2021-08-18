@@ -333,7 +333,7 @@ public final class Database extends BaseStore implements PermanentStore {
             // is only called from the Buffer, which transports data serially.
             if(running) {
                 try {
-                    Receipt receipt = seg0.transfer(write, writer);
+                    Receipt receipt = seg0.acquire(write, writer);
                     Logger.debug("Transferred {} to {}", write, seg0);
 
                     // Updated cached records
@@ -368,7 +368,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 // during test cases
                 Logger.warn(
                         "The database is being asked to accept a Write, even though it is not running.");
-                seg0.transfer(write);
+                seg0.acquire(write);
             }
         }
         else {

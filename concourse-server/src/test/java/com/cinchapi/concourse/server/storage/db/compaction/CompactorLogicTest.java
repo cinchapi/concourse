@@ -98,7 +98,7 @@ public class CompactorLogicTest {
     private final Segment createTestSegment() {
         Segment segment = Segment.create();
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
-            segment.transfer(TestData.getWriteAdd());
+            segment.acquire(TestData.getWriteAdd());
         }
         return segment;
     }
@@ -169,7 +169,7 @@ public class CompactorLogicTest {
             if(segments.length >= 2) {
                 Segment merged = Segment.create();
                 for (Segment segment : segments) {
-                    segment.writes().forEach(write -> merged.transfer(write));
+                    segment.writes().forEach(write -> merged.acquire(write));
                 }
                 return ImmutableList.of(merged);
             }

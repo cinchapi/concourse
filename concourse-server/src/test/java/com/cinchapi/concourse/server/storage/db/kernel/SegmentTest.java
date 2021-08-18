@@ -57,7 +57,7 @@ public class SegmentTest extends ConcourseBaseTest {
     public void testAllWritesTransferredToTableAndIndexChunks() {
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; ++i) {
-            segment.transfer(TestData.getWriteAdd());
+            segment.acquire(TestData.getWriteAdd());
         }
         Assert.assertEquals(count, Iterators.size(segment.table().iterator()));
         Assert.assertEquals(count, Iterators.size(segment.index().iterator()));
@@ -66,7 +66,7 @@ public class SegmentTest extends ConcourseBaseTest {
     @Test
     public void testSegmentSyncRoundTrip() throws SegmentLoadingException {
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
-            segment.transfer(TestData.getWriteAdd());
+            segment.acquire(TestData.getWriteAdd());
         }
         Path file = Paths.get(TestData.getTemporaryTestFile());
         segment.fsync(file);
@@ -80,20 +80,20 @@ public class SegmentTest extends ConcourseBaseTest {
     public void testRevisionTimestampTracking() {
         Write w0 = TestData.getWriteRemove();
         Write w1 = TestData.getWriteAdd();
-        segment.transfer(w1);
+        segment.acquire(w1);
         Assert.assertEquals(w1.getVersion(), segment.minTs);
         Assert.assertEquals(w1.getVersion(), segment.maxTs);
         Write w2 = TestData.getWriteAdd();
-        segment.transfer(w2);
+        segment.acquire(w2);
         Assert.assertEquals(w1.getVersion(), segment.minTs);
         Assert.assertEquals(w2.getVersion(), segment.maxTs);
         Write w4 = TestData.getWriteAdd();
         Write w3 = TestData.getWriteAdd();
-        segment.transfer(w3);
+        segment.acquire(w3);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
-        segment.transfer(w4);
+        segment.acquire(w4);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
-        segment.transfer(w0);
+        segment.acquire(w0);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
     }
 
@@ -102,20 +102,20 @@ public class SegmentTest extends ConcourseBaseTest {
             throws SegmentLoadingException {
         Write w0 = TestData.getWriteRemove();
         Write w1 = TestData.getWriteAdd();
-        segment.transfer(w1);
+        segment.acquire(w1);
         Assert.assertEquals(w1.getVersion(), segment.minTs);
         Assert.assertEquals(w1.getVersion(), segment.maxTs);
         Write w2 = TestData.getWriteAdd();
-        segment.transfer(w2);
+        segment.acquire(w2);
         Assert.assertEquals(w1.getVersion(), segment.minTs);
         Assert.assertEquals(w2.getVersion(), segment.maxTs);
         Write w4 = TestData.getWriteAdd();
         Write w3 = TestData.getWriteAdd();
-        segment.transfer(w3);
+        segment.acquire(w3);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
-        segment.transfer(w4);
+        segment.acquire(w4);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
-        segment.transfer(w0);
+        segment.acquire(w0);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Path file = Paths.get(TestData.getTemporaryTestFile());
         segment.fsync(file);
@@ -127,7 +127,7 @@ public class SegmentTest extends ConcourseBaseTest {
     @Test
     public void testSyncSegmentWithNoCorpusData()
             throws SegmentLoadingException {
-        segment.transfer(Write.add("foo", Convert.javaToThrift(30), 1));
+        segment.acquire(Write.add("foo", Convert.javaToThrift(30), 1));
         Path file = Paths.get(TestData.getTemporaryTestFile());
         Assert.assertFalse(segment.corpus().iterator().hasNext());
         segment.fsync(file);
@@ -207,7 +207,7 @@ public class SegmentTest extends ConcourseBaseTest {
                 });
                 Thread writer = new Thread(() -> {
                     try {
-                        segment.transfer(write, executor);
+                        segment.acquire(write, executor);
                         done.set(true);
                     }
                     catch (InterruptedException e) {
