@@ -15,9 +15,11 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-// import java.util.Iterator;
-// import java.util.Set;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,9 +33,14 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.temp.Buffer;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
+import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
@@ -283,6 +290,53 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     @Ignore
     public void testRevisionVersionTrackingPersistence() {
         // Direct insert for SearchBlock is unsupported
+    }
+
+    @Test
+    public void testInsertLongStringDoesNotOOM() {
+        String string = FileOps
+                .read(Resources.getAbsolutePath("/long-string.txt"));
+        SearchBlock corpus = (SearchBlock) block;
+        int maxSearchSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
+        try {
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = 40;
+            corpus.insert(Text.wrap("test"),
+                    Value.wrap(Convert.javaToThrift(string)),
+                    PrimaryKey.wrap(1), Time.now(), Action.ADD);
+            Assert.assertTrue(true); // index without OOM indicates the test
+                                     // passed
+        }
+        finally {
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = maxSearchSubstringLength;
+        }
+    }
+
+    @Test
+    public void testSyncBlockWithSizeGreaterThanMaxIntValue()
+            throws IOException {
+        int maxSearchSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
+        try {
+            String path = FileOps.tempDir("test");
+            Files.copy(
+                    Paths.get(
+                            Resources.getAbsolutePath("/1625772016779000.buf")),
+                    Paths.get(path + File.separator + "1.buf"));
+            Iterator<Write> it = Buffer.onDiskIterator(path);
+            SearchBlock corpus = (SearchBlock) block;
+            while (it.hasNext()) {
+                Write write = it.next();
+                System.out.println("going...");
+                if(write.getValue().getType() == Type.STRING) {
+                    corpus.insert(write.getKey(), write.getValue(),
+                            write.getRecord(), write.getVersion(),
+                            write.getType());
+                }
+            }
+            System.out.println(corpus.size());
+        }
+        finally {
+            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = maxSearchSubstringLength;
+        }
     }
 
     /**

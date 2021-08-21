@@ -631,7 +631,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                         id);
             }
             else if(size < 0) {
-                throw new IllegalStateException(this+" size exceeds "+Integer.MAX_VALUE+" bytes");
+                throw new IllegalStateException(
+                        this + " size exceeds " + Integer.MAX_VALUE + " bytes");
             }
         }
         catch (IOException e) {
