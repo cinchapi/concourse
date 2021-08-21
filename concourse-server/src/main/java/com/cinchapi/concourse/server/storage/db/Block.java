@@ -605,7 +605,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public void sync() {
         write.lock();
         try {
-            if(mutable && sizeImpl() > 0) {
+            int size = sizeImpl();
+            if(mutable && size > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
                 ByteBuffer bytes = getBytes();
@@ -628,6 +629,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 Logger.warn("Cannot sync a block that is empty: {}. "
                         + "Was there an unexpected server shutdown recently?",
                         id);
+            }
+            else if(size < 0) {
+                throw new IllegalStateException(this+" size exceeds "+Integer.MAX_VALUE+" bytes");
             }
         }
         catch (IOException e) {
