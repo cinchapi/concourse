@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.MoreObjects;
@@ -49,6 +51,13 @@ import com.google.common.primitives.Ints;
 @ThreadSafe
 public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
+    /**
+     * Create a {@link ConcurrentSkipListMultiset} that sorts elements using
+     * {@code comparator}.
+     * 
+     * @param comparator
+     * @return the {@link ConcurrentSkipListMultiset}
+     */
     public static <T> ConcurrentSkipListMultiset<T> create(
             Comparator<? super T> comparator) {
         return new ConcurrentSkipListMultiset<T>(comparator);
@@ -59,7 +68,7 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
      * {@link SkipListEntry} that information about the number of occurrences
      * for the element.
      */
-    private final ConcurrentSkipListMap<T, SkipListEntry> backing;
+    private final ConcurrentSkipListMap<T, AtomicInteger> backing;
 
     /**
      * Construct a new instance.
@@ -67,7 +76,7 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
      * @param comparator
      */
     private ConcurrentSkipListMultiset(Comparator<? super T> comparator) {
-        this.backing = new ConcurrentSkipListMap<T, SkipListEntry>(comparator);
+        this.backing = new ConcurrentSkipListMap<T, AtomicInteger>(comparator);
     }
 
     @Override
@@ -77,10 +86,10 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
     @Override
     public int add(T element, int occurrences) {
-        SkipListEntry created = new SkipListEntry(element);
-        SkipListEntry entry = backing.putIfAbsent(element, created);
+        AtomicInteger created = new AtomicInteger(0);
+        AtomicInteger entry = backing.putIfAbsent(element, created);
         entry = MoreObjects.firstNonNull(entry, created);
-        return entry.increment(occurrences);
+        return entry.getAndAdd(occurrences);
     }
 
     @Override
@@ -115,9 +124,9 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
     @Override
     public int count(Object element) {
-        SkipListEntry entry = backing.get(element);
+        AtomicInteger entry = backing.get(element);
         if(entry != null) {
-            return entry.getCount();
+            return entry.get();
         }
         else {
             return 0;
@@ -152,7 +161,8 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
     @Override
     public Entry<T> firstEntry() {
-        return backing.firstEntry().getValue();
+        Map.Entry<T, AtomicInteger> entry = backing.firstEntry();
+        return new SkipListEntry(entry.getKey(), entry.getValue());
     }
 
     @Override
@@ -177,10 +187,10 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
             // MultisetIteratorImpl class
 
             private boolean canRemove;
-            private Entry<T> currentEntry;
+            private Map.Entry<T, AtomicInteger> currentEntry;
 
-            private final Iterator<ConcurrentSkipListMultiset<T>.SkipListEntry> entryIterator = ConcurrentSkipListMultiset.this.backing
-                    .values().iterator();
+            private final Iterator<Map.Entry<T, AtomicInteger>> entryIterator = ConcurrentSkipListMultiset.this.backing
+                    .entrySet().iterator();
             /** Count of subsequent elements equal to current element */
             private int laterCount;
             private final Multiset<T> multiset = ConcurrentSkipListMultiset.this;
@@ -199,11 +209,11 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
                 }
                 if(laterCount == 0) {
                     currentEntry = entryIterator.next();
-                    totalCount = laterCount = currentEntry.getCount();
+                    totalCount = laterCount = currentEntry.getValue().get();
                 }
                 laterCount--;
                 canRemove = true;
-                return currentEntry.getElement();
+                return currentEntry.getKey();
             }
 
             @Override
@@ -214,7 +224,7 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
                     entryIterator.remove();
                 }
                 else {
-                    multiset.remove(currentEntry.getElement());
+                    multiset.remove(currentEntry.getKey());
                 }
                 totalCount--;
                 canRemove = false;
@@ -223,18 +233,21 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
     }
 
     @Override
-    public com.google.common.collect.Multiset.Entry<T> lastEntry() {
-        return backing.lastEntry().getValue();
+    public Entry<T> lastEntry() {
+        Map.Entry<T, AtomicInteger> entry = backing.lastEntry();
+        return new SkipListEntry(entry.getKey(), entry.getValue());
     }
 
     @Override
     public Entry<T> pollFirstEntry() {
-        return backing.pollFirstEntry().getValue();
+        Map.Entry<T, AtomicInteger> entry = backing.pollFirstEntry();
+        return new SkipListEntry(entry.getKey(), entry.getValue());
     }
 
     @Override
-    public com.google.common.collect.Multiset.Entry<T> pollLastEntry() {
-        return backing.pollLastEntry().getValue();
+    public Multiset.Entry<T> pollLastEntry() {
+        Map.Entry<T, AtomicInteger> entry = backing.pollLastEntry();
+        return new SkipListEntry(entry.getKey(), entry.getValue());
     }
 
     @Override
@@ -244,11 +257,11 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
     @Override
     public int remove(Object element, int occurrences) {
-        SkipListEntry entry = backing.get(element);
+        AtomicInteger entry = backing.get(element);
         if(entry != null) {
-            int count = entry.getCount();
-            entry.increment(-1 * occurrences);
-            if(entry.getCount() <= 0) {
+            int count = entry.get();
+            entry.addAndGet(-1 * occurrences);
+            if(entry.get() <= 0) {
                 backing.remove(element);
             }
             return count;
@@ -270,10 +283,10 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
 
     @Override
     public int setCount(T element, int count) {
-        SkipListEntry created = new SkipListEntry(element);
-        SkipListEntry entry = backing.putIfAbsent(element, created);
+        AtomicInteger created = new AtomicInteger(0);
+        AtomicInteger entry = backing.putIfAbsent(element, created);
         entry = MoreObjects.firstNonNull(entry, created);
-        return entry.setCount(count);
+        return entry.getAndSet(count);
     }
 
     @Override
@@ -283,9 +296,9 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
             return true;
         }
         else {
-            SkipListEntry entry = backing.get(element);
+            AtomicInteger entry = backing.get(element);
             if(entry != null) {
-                return entry.setCount(oldCount, newCount);
+                return entry.compareAndSet(oldCount, newCount);
             }
             else {
                 return false;
@@ -330,12 +343,12 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
     }
 
     /**
-     * An {@link Entry} that is used internally in the {@link #backing} map.
-     * 
-     * @author Jeff Nelson
+     * An {@link Entry} that is dynamically created and returned from probing
+     * methods of this collection.
      *
      */
-    public class SkipListEntry implements Entry<T> {
+    @Immutable
+    private final class SkipListEntry implements Entry<T> {
 
         private AtomicInteger count;
         private T element;
@@ -344,10 +357,11 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
          * Construct a new instance.
          * 
          * @param element
+         * @param count
          */
-        public SkipListEntry(T element) {
+        public SkipListEntry(T element, AtomicInteger count) {
             this.element = element;
-            this.count = new AtomicInteger();
+            this.count = count;
         }
 
         /**
@@ -388,46 +402,6 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
         public int hashCode() {
             T e = getElement();
             return ((e == null) ? 0 : e.hashCode()) ^ getCount();
-        }
-
-        /**
-         * Increment {@link #count} by 1.
-         * 
-         * @return the previous value for {@link #count}
-         */
-        public int increment() {
-            return count.getAndIncrement();
-        }
-
-        /**
-         * Increment {@link #count} by {@code delta}.
-         * 
-         * @return the previous value for {@link #count}
-         */
-        public int increment(int delta) {
-            return count.getAndAdd(delta);
-        }
-
-        /**
-         * Set the value of {@link #count} to {@code number}
-         * 
-         * @param number
-         * @return the previous value of {@link #count}
-         */
-        public int setCount(int number) {
-            return count.getAndSet(number);
-        }
-
-        /**
-         * Set the value of {@link #count} to {@code newCount} if it is
-         * currently equal to {@code oldCount}.
-         * 
-         * @param oldCount
-         * @param newCount
-         * @return {@code true} if the swap is successful
-         */
-        public boolean setCount(int oldCount, int newCount) {
-            return count.compareAndSet(oldCount, newCount);
         }
 
         /**
