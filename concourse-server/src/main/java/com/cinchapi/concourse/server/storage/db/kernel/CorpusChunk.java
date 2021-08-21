@@ -263,7 +263,12 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         int count = 0;
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
-            int upperBound = (int) Math.pow(term.length(), 2);
+            int length = term.length();
+            int upperBound = (int) Math.pow(length, 2);
+
+            // Detect if the #term is large enough to likely cause OOMs when
+            // indexing and prepare the appropriate precautions.
+            boolean isLargeTerm = upperBound > 10000000;
 
             // A flag that indicates whether the {@link #prepare(CountUpLatch,
             // Text, String, PrimaryKey, int, long, Action) prepare} function
@@ -280,7 +285,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
             Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
-            int length = term.length();
+            final char[] chars = isLargeTerm ? term.toCharArray() : null;
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
                 int limit = (shouldLimitSubstringLength
@@ -288,12 +293,18 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;
                 for (int j = start; j < limit; ++j) {
-                    final String substring = term.substring(i, j).trim();
+                    String substring = term.substring(i, j).trim();
+                    // @formatter:off
+                    Text infix = isLargeTerm 
+                            ? Text.wrap(chars, i, j).trim()
+                            : Text.wrapCached(substring);
+                    // @formatter:on
                     if(!Strings.isNullOrEmpty(substring)
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
-                        INDEXER.enqueue(this, tracker, key, substring, pos,
-                                version, type);
+                        INDEXER.enqueue(this, tracker, key, infix, pos, version,
+                                type);
+                        ++count;
                     }
                 }
             }
