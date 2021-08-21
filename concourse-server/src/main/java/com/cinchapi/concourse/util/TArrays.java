@@ -52,7 +52,7 @@ public final class TArrays {
 
             Class<?> clazz;
             if(object instanceof Text) {
-                // Backwards compatibility for versions prior to 0.10.5 that
+                // Backwards compatibility for versions prior to 0.10.6 that
                 // didn't have multiple kinds of Text
                 clazz = Text.class;
             }
