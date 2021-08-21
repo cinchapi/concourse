@@ -15,10 +15,13 @@
  */
 package com.cinchapi.concourse.server.model;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.ByteableTest;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 
 /**
@@ -50,4 +53,169 @@ public class TextTest extends ByteableTest {
         Assert.assertEquals(t1, t2);
     }
 
+    @Test
+    public void testCharTextStringTextToString() {
+        String str = "Jeff Nelson";
+        int start = 2;
+        int end = 6;
+        Text t1 = Text.wrap(str.substring(start, end));
+        Text t2 = Text.wrap(str.toCharArray(), start, end);
+        Assert.assertEquals(t1.toString(), t2.toString());
+    }
+
+    @Test
+    public void testStringTextTrimEmpty() {
+        String str = " ";
+        Text txt = Text.wrap(str);
+        Assert.assertEquals(str.trim(), txt.trim().toString());
+    }
+
+    @Test
+    public void testCharTextTrimEmpty() {
+        String str = " ";
+        Text txt = Text.wrap(str.toCharArray(), 0, str.length());
+        Assert.assertEquals(str.trim(), txt.trim().toString());
+    }
+
+    @Test
+    public void testStringTextCharTextEmptyEquals() {
+        Assert.assertEquals(Text.wrap(""), Text.wrap("".toCharArray(), 0, 0));
+    }
+
+    @Test
+    public void testStringTextTrim() {
+        String str = " jeff nel s o n   ";
+        Text txt = Text.wrap(str);
+        Assert.assertEquals(str.trim(), txt.trim().toString());
+    }
+
+    @Test
+    public void testChartTextTrim() {
+        String str = " jeff nel s o n   ";
+        Text txt = Text.wrap(str.toCharArray(), 0, str.length());
+        Assert.assertEquals(str.trim(), txt.trim().toString());
+    }
+
+    @Test
+    public void testStringTextCharTextEquals() {
+        String str = Random.getString();
+        Assert.assertEquals(Text.wrap(str),
+                Text.wrap(str.toCharArray(), 0, str.length()));
+    }
+
+    @Test
+    public void testStringTextCharTextSubSequenceEquals() {
+        String str = Random.getString();
+        int start = Math.abs(Random.getInt()) % str.length();
+        int end;
+        if(start < str.length() - 1) {
+            end = start + (Math.abs(Random.getInt()) % (str.length() - start));
+        }
+        else {
+            end = str.length();
+        }
+        Assert.assertEquals(Text.wrap(str.substring(start, end)),
+                Text.wrap(str.toCharArray(), start, end));
+    }
+
+    @Test
+    public void testStringTextCharTextHashCode() {
+        String str = Random.getString();
+        int start = Math.abs(Random.getInt()) % str.length();
+        int end;
+        if(start < str.length() - 1) {
+            end = start + (Math.abs(Random.getInt()) % (str.length() - start));
+        }
+        else {
+            end = str.length();
+        }
+        Assert.assertEquals(Text.wrap(str.substring(start, end)).hashCode(),
+                Text.wrap(str.toCharArray(), start, end).hashCode());
+    }
+
+    @Test
+    public void testStringTextCharTextToString() {
+        String str = Random.getString();
+        int start = Math.abs(Random.getInt()) % str.length();
+        int end;
+        if(start < str.length() - 1) {
+            end = start + (Math.abs(Random.getInt()) % (str.length() - start));
+        }
+        else {
+            end = str.length();
+        }
+        Assert.assertEquals(Text.wrap(str.substring(start, end)).toString(),
+                Text.wrap(str.toCharArray(), start, end).toString());
+    }
+
+    @Test
+    public void testStringTextCharTextGetBytes() {
+        String str = Random.getString();
+        int start = Math.abs(Random.getInt()) % str.length();
+        int end;
+        if(start < str.length() - 1) {
+            end = start + (Math.abs(Random.getInt()) % (str.length() - start));
+        }
+        else {
+            end = str.length();
+        }
+        Assert.assertEquals(Text.wrap(str.substring(start, end)).getBytes(),
+                Text.wrap(str.toCharArray(), start, end).getBytes());
+    }
+
+    @Test
+    public void testStringTextCompareTo() {
+        String str1 = Random.getString();
+        int start1 = Math.abs(Random.getInt()) % str1.length();
+        int end1;
+        if(start1 < str1.length() - 1) {
+            end1 = start1
+                    + (Math.abs(Random.getInt()) % (str1.length() - start1));
+        }
+        else {
+            end1 = str1.length();
+        }
+        String str2 = Random.getString();
+        int start2 = Math.abs(Random.getInt()) % str2.length();
+        int end2;
+        if(start2 < str2.length() - 1) {
+            end2 = start2
+                    + (Math.abs(Random.getInt()) % (str2.length() - start2));
+        }
+        else {
+            end2 = str2.length();
+        }
+        Assert.assertEquals(
+                str1.substring(start1, end1)
+                        .compareTo(str2.substring(start2, end2)),
+                Text.wrap(str1.toCharArray(), start1, end1).compareTo(
+                        Text.wrap(str2.toCharArray(), start2, end2)));
+    }
+
+    @Test
+    public void testStringTextCharTextCompareTo() {
+        String str1 = Random.getString();
+        String str2 = Random.getString();
+        Text txt1 = Text.wrap(str1);
+        Text txt2 = Text.wrap(str2.toCharArray(), 0, str2.length());
+        Assert.assertEquals(txt1.compareTo(txt2), str1.compareTo(str2));
+        Assert.assertEquals(txt2.compareTo(txt1), str2.compareTo(str1));
+    }
+
+    @Test
+    public void testFromByteBufferCached() {
+        String string = Random.getString();
+        Text text = Text.wrap(string);
+        ByteBuffer bytes = text.getBytes();
+        Text t1 = Text.fromByteBufferCached(bytes);
+        Text t2 = null;
+        while (t2 != t1) {
+            // Wait for lazy cache to kick in...
+            t1 = Text.fromByteBufferCached(bytes);
+            t2 = Text.fromByteBufferCached(bytes);
+        }
+        Assert.assertSame(t1, t2);
+        Assert.assertEquals(t2, text);
+        Assert.assertSame(t2, Text.wrapCached(string));
+    }
 }
