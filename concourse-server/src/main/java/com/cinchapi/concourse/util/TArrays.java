@@ -17,6 +17,8 @@ package com.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 
+import com.cinchapi.concourse.server.model.Text;
+
 /**
  * Utilities for dealing with generic arrays.
  * 
@@ -47,7 +49,17 @@ public final class TArrays {
             // the array by that object's hashcode and the name of the
             // object's class.
             bytes.putInt(object.hashCode());
-            bytes.putInt(object.getClass().getName().hashCode());
+
+            Class<?> clazz;
+            if(object instanceof Text) {
+                // Backwards compatibility for versions prior to 0.10.5 that
+                // didn't have multiple kinds of Text
+                clazz = Text.class;
+            }
+            else {
+                clazz = object.getClass();
+            }
+            bytes.putInt(clazz.getName().hashCode());
         }
         bytes.rewind();
         return bytes;
