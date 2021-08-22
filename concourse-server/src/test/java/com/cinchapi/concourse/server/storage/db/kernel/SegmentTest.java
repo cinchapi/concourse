@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -122,6 +123,29 @@ public class SegmentTest extends ConcourseBaseTest {
         segment = Segment.load(file);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
+    }
+
+    @Test
+    public void testMemoryIsFreedAfterSync() {
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            segment.acquire(TestData.getInt() % 2 == 0 ? TestData.getWriteAdd()
+                    : TestData.getWriteRemove());
+        }
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        Assert.assertNotNull(Reflection.get("revisions", segment.table()));
+        Assert.assertNotNull(Reflection.get("revisions", segment.index()));
+        Assert.assertNotNull(Reflection.get("revisions", segment.corpus()));
+        Assert.assertNotNull(Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNotNull(Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNotNull(Reflection.get("entries", segment.corpus().manifest()));
+        segment.transfer(file);
+        Assert.assertNull(Reflection.get("revisions", segment.table()));
+        Assert.assertNull(Reflection.get("revisions", segment.index()));
+        Assert.assertNull(Reflection.get("revisions", segment.corpus()));
+        Assert.assertNull(Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNull(Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNull(Reflection.get("entries", segment.corpus().manifest()));
     }
 
     @Test

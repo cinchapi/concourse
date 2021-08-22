@@ -498,6 +498,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     @Override
     protected void free() {
+        Logger.debug("Freeing memory in {}", this);
         this.revisions = null;
         this.revisionCount = null;
     }

@@ -22,6 +22,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -34,6 +35,7 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * A {@link TransferableByteSequence} contains data that can be efficiently
@@ -211,6 +213,7 @@ abstract class TransferableByteSequence {
             try {
                 transfer(sink);
                 sink.force();
+                sink.free();
             }
             finally {
                 sink.close();
@@ -279,11 +282,11 @@ abstract class TransferableByteSequence {
         write.lock();
         try {
             CloseableByteSink cbs = (CloseableByteSink) sink;
+            cbs.register(this);
             this.file = cbs.file();
             this.position = sink.position();
             flush(sink);
             this.mutable = false;
-            free();
         }
         finally {
             write.unlock();
@@ -314,7 +317,18 @@ abstract class TransferableByteSequence {
          */
         private final Object resource;
 
+        /**
+         * Additional associated resources that must be {@link #close() closed}.
+         */
         private final AutoCloseable[] closeables;
+
+        /**
+         * The {@link TransferableByteSequence TransferableByteSequences} that
+         * have been {@link #transfer(ByteSink) transferred} to this
+         * {@link ByteSink} and will need to be {@link #free() freed}.
+         */
+        private final List<TransferableByteSequence> sequences = Lists
+                .newArrayListWithCapacity(7);
 
         /**
          * Construct a new instance.
@@ -403,39 +417,9 @@ abstract class TransferableByteSequence {
         }
 
         /**
-         * Force the {@link #resource} to flush the content to disk in
-         * {@link #file}.
-         */
-        public void force() {
-            if(resource instanceof FileChannel) {
-                try {
-                    ((FileChannel) resource).force(true);
-                }
-                catch (IOException e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
-            }
-            else if(resource instanceof MappedByteBuffer) {
-                ((MappedByteBuffer) resource).force();
-            }
-            else {
-                throw new IllegalStateException();
-            }
-        }
-
-        /**
-         * Return the {@link #file} associated with this sink.
-         * 
-         * @return the file
-         */
-        public Path file() {
-            return file;
-        }
-
-        /**
          * Close the underlying resource.
          */
-        public void close() {
+        protected void close() {
             if(resource instanceof FileChannel) {
                 FileSystem.closeFileChannel((FileChannel) resource);
             }
@@ -453,6 +437,55 @@ abstract class TransferableByteSequence {
                     throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
+        }
+
+        /**
+         * Return the {@link #file} associated with this sink.
+         * 
+         * @return the file
+         */
+        protected Path file() {
+            return file;
+        }
+
+        /**
+         * Force the {@link #resource} to flush the content to disk in
+         * {@link #file}.
+         */
+        protected void force() {
+            if(resource instanceof FileChannel) {
+                try {
+                    ((FileChannel) resource).force(true);
+                }
+                catch (IOException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
+            }
+            else if(resource instanceof MappedByteBuffer) {
+                ((MappedByteBuffer) resource).force();
+            }
+            else {
+                throw new IllegalStateException();
+            }
+        }
+
+        /**
+         * Free any {@link TransferableByteSequence TransferableByteSequences}
+         * that have been transferred to this {@link ByteSink}.
+         */
+        protected void free() {
+            for (TransferableByteSequence sequence : sequences) {
+                sequence.free();
+            }
+        }
+
+        /**
+         * Register the {@code sequence} to later be {@link #free() freed}.
+         * 
+         * @param sequence
+         */
+        protected void register(TransferableByteSequence sequence) {
+            this.sequences.add(sequence);
         }
 
     }
