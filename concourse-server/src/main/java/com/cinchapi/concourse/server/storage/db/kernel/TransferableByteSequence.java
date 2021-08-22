@@ -69,14 +69,6 @@ abstract class TransferableByteSequence {
     private static int MMAP_TRANSFER_UPPER_LIMIT = 419430400;
 
     /**
-     * The file where the sequence was {@link #transfer(Path, long)
-     * transferred}. If the sequence is {@link #mutable}, this value is
-     * {@code null}
-     */
-    @Nullable
-    protected Path file;
-
-    /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
      */
@@ -95,6 +87,14 @@ abstract class TransferableByteSequence {
      * this sequence is {@link #isMutable() mutable}.
      */
     protected final WriteLock write = master.writeLock();
+
+    /**
+     * The file where the sequence was {@link #transfer(Path, long)
+     * transferred}. If the sequence is {@link #mutable}, this value is
+     * {@code null}
+     */
+    @Nullable
+    private Path file;
 
     /**
      * A flag that tracks whether the sequence is mutable (and therefore has not
@@ -241,6 +241,18 @@ abstract class TransferableByteSequence {
      * @param sink
      */
     protected abstract void flush(ByteSink sink);
+
+    /**
+     * Return the file where the sequence was {@link #transfer(Path, long)
+     * transferred}. If the sequence is {@link #mutable}, this value is
+     * {@code null}.
+     * 
+     * @return the backing file, if available
+     */
+    @Nullable
+    protected final Path file() {
+        return file;
+    }
 
     /**
      * Free memory that was being used to hold this sequence's data while it was

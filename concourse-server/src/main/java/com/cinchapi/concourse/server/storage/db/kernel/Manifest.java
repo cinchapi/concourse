@@ -265,7 +265,7 @@ public class Manifest extends TransferableByteSequence {
         }
         else {
             while ($entries == null || $entries.get() == null) {
-                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
+                ByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
                         position(), length);
                 Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
                 Map<Composite, Entry> entries = Maps

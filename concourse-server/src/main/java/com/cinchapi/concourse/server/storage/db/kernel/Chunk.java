@@ -188,7 +188,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         super();
         this.segment = segment;
         this.filter = filter;
-        this.file = null;
         this.length = -1;
         this.manifest = null;
         this.revisions = createBackingStore(Sorter.INSTANCE);
@@ -216,7 +215,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         Preconditions.checkNotNull(manifest);
         this.segment = segment;
         this.filter = filter;
-        this.file = file;
         this.length = length;
         this.manifest = manifest;
         this.revisions = null;
@@ -412,7 +410,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     int start = manifest.getStart(composite);
                     int length = manifest.getEnd(composite) - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
-                        ByteBuffer bytes = FileSystem.map(file,
+                        ByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
                         Iterator<ByteBuffer> it = ByteableCollections
                                 .iterator(bytes);
@@ -707,7 +705,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 return new Iterator<Revision<L, K, V>>() {
 
                     private final Iterator<ByteBuffer> it = ByteableCollections
-                            .streamingIterator(file, position(), length,
+                            .streamingIterator(file(), position(), length,
                                     GlobalState.BUFFER_PAGE_SIZE);
 
                     @Override

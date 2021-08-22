@@ -136,16 +136,22 @@ public class SegmentTest extends ConcourseBaseTest {
         Assert.assertNotNull(Reflection.get("revisions", segment.table()));
         Assert.assertNotNull(Reflection.get("revisions", segment.index()));
         Assert.assertNotNull(Reflection.get("revisions", segment.corpus()));
-        Assert.assertNotNull(Reflection.get("entries", segment.table().manifest()));
-        Assert.assertNotNull(Reflection.get("entries", segment.index().manifest()));
-        Assert.assertNotNull(Reflection.get("entries", segment.corpus().manifest()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.corpus().manifest()));
         segment.transfer(file);
         Assert.assertNull(Reflection.get("revisions", segment.table()));
         Assert.assertNull(Reflection.get("revisions", segment.index()));
         Assert.assertNull(Reflection.get("revisions", segment.corpus()));
-        Assert.assertNull(Reflection.get("entries", segment.table().manifest()));
-        Assert.assertNull(Reflection.get("entries", segment.index().manifest()));
-        Assert.assertNull(Reflection.get("entries", segment.corpus().manifest()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.corpus().manifest()));
     }
 
     @Test

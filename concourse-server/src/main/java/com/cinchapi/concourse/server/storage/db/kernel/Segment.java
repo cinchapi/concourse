@@ -509,6 +509,7 @@ public final class Segment extends TransferableByteSequence implements
      * @return the segment id
      */
     public String id() {
+        Path file = file();
         return file != null ? file.getFileName().toString() : label();
     }
 
@@ -554,7 +555,7 @@ public final class Segment extends TransferableByteSequence implements
                 return size;
             }
             else {
-                return FileSystem.getFileSize(file.toString());
+                return FileSystem.getFileSize(file().toString());
             }
         }
         finally {
@@ -602,17 +603,6 @@ public final class Segment extends TransferableByteSequence implements
         catch (IllegalArgumentException e) {
             return 0.0;
         }
-    }
-
-    /**
-     * Return the size of this {@link Segment} if it is {@link #isMutable()
-     * immutable}.
-     * 
-     * @return the {@link Segment} size
-     */
-    public long size() {
-        Preconditions.checkState(!isMutable());
-        return FileSystem.getFileSize(file.toString());
     }
 
     /**
