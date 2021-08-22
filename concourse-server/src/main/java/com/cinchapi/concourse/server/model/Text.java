@@ -410,8 +410,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
                 synchronized (mutex) {
                     if(bytes == null) { // must check again to prevent duplicate
                                         // copy if there is a race condition
-                                        // with a
-                                        // cached instance
+                                        // with a cached instance
                         bytes = ByteBuffers.fromString(value);
                     }
                 }
