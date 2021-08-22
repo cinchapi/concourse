@@ -49,7 +49,9 @@ public abstract class Text implements Byteable, Comparable<Text> {
      */
     public static Text fromByteBuffer(ByteBuffer bytes) {
         return new StringText(
-                ByteBuffers.getString(bytes, StandardCharsets.UTF_8), bytes);
+                ByteBuffers.getString(ByteBuffers.asReadOnlyBuffer(bytes),
+                        StandardCharsets.UTF_8),
+                ByteBuffers.asReadOnlyBuffer(bytes));
     }
 
     /**
