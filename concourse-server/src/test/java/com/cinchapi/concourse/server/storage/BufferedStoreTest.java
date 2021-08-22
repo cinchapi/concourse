@@ -205,6 +205,53 @@ public abstract class BufferedStoreTest extends StoreTest {
     }
 
     @Test
+    public void testVerifyBufferedReproBuild3885() {
+        // @formatter:off
+        String order = ""
+                + "ADD C AS three IN 3, "
+                + "ADD D AS eight IN 1, "
+                + "REMOVE D AS eight IN 1, "
+                + "ADD A AS three IN 6, "
+                + "ADD A AS nine IN 2, "
+                + "ADD A AS one IN 1, "
+                + "ADD D AS six IN 2, "
+                + "ADD B AS six IN 6, "
+                + "ADD B AS two IN 2, "
+                + "REMOVE B AS two IN 2, "
+                + "ADD B AS four IN 7, "
+                + "REMOVE B AS four IN 7, "
+                + "ADD D AS four IN 4, "
+                + "REMOVE A AS three IN 6, "
+                + "ADD C AS seven IN 7, "
+                + "REMOVE D AS four IN 4, "
+                + "ADD D AS two IN 5, "
+                + "REMOVE B AS six IN 6, "
+                + "ADD C AS one IN 4, "
+                + "ADD C AS five IN 1, "
+                + "REMOVE C AS one IN 4, "
+                + "ADD B AS ten IN 3, "
+                + "REMOVE D AS two IN 5, "
+                + "ADD A AS five IN 5, "
+                + "REMOVE A AS five IN 5, "
+                + "REMOVE C AS seven IN 7, "
+                + "REMOVE B AS ten IN 3, "
+                + "REMOVE C AS three IN 3, "
+                + "REMOVE A AS nine IN 2, "
+                + "REMOVE A AS one IN 1";
+        // @formatter:on
+        String[] parts = order.split(",");
+        List<Data> data = Lists.newArrayList();
+        for (String part : parts) {
+            part = part.trim();
+            data.add(Data.fromString(part));
+        }
+        Data d = Data.fromString("REMOVE C AS three IN 3");
+        insertData(data, 5);
+        boolean verify = Numbers.isOdd(count(data, d));
+        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
+    }
+
+    @Test
     public void testVerifyBufferedReproBuild634() {
         String order = "ADD D AS ten IN 6, ADD D AS eight "
                 + "IN 7, ADD C AS five IN 1, ADD D AS two "
@@ -243,7 +290,6 @@ public abstract class BufferedStoreTest extends StoreTest {
         insertData(data, 54);
         boolean verify = Numbers.isOdd(count(data, d));
         Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
-
     }
 
     @Test

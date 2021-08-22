@@ -27,6 +27,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,8 +73,11 @@ import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheStats;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * The {@link Database} is the {@link PermanentStore} for data. The
@@ -173,9 +178,10 @@ public final class Database extends BaseStore implements PermanentStore {
      * 
      * @return the cache
      */
-    private static <T> Cache<Composite, T> buildCache() {
-        return CacheBuilder.newBuilder().maximumSize(100000).softValues()
-                .build();
+    private <T> Cache<Composite, T> buildCache() {
+        Cache<Composite, T> cache = CacheBuilder.newBuilder()
+                .maximumSize(100000).softValues().build();
+        return new RunningAwareCache<>(cache);
     }
 
     /**
@@ -227,6 +233,11 @@ public final class Database extends BaseStore implements PermanentStore {
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
      */
     private final Cache<Composite, TableRecord> cpc = buildCache();
     private final Cache<Composite, TableRecord> cppc = buildCache();
@@ -842,6 +853,109 @@ public final class Database extends BaseStore implements PermanentStore {
         finally {
             masterLock.writeLock().unlock();
         }
+    }
+
+    /**
+     * {@link Cache} wrapper that is aware of whether the {@link Database} is
+     * running and behaves accordingly.
+     *
+     * @author Jeff Nelson
+     */
+    private class RunningAwareCache<K, V> implements Cache<K, V> {
+
+        /**
+         * The underlying {@link Cache}.
+         */
+        private final Cache<K, V> cache;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param cache
+         */
+        RunningAwareCache(Cache<K, V> cache) {
+            this.cache = cache;
+        }
+
+        @Override
+        public @org.checkerframework.checker.nullness.qual.Nullable V getIfPresent(
+                Object key) {
+            return running ? cache.getIfPresent(key) : null;
+        }
+
+        @Override
+        public V get(K key, Callable<? extends V> loader)
+                throws ExecutionException {
+            try {
+                return running ? cache.get(key, loader) : loader.call();
+            }
+            catch (Exception e) {
+                throw new ExecutionException(e.getMessage(), e);
+            }
+        }
+
+        @Override
+        public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
+            return running ? cache.getAllPresent(keys) : ImmutableMap.of();
+        }
+
+        @Override
+        public void put(K key, V value) {
+            if(running) {
+                cache.put(key, value);
+            }
+        }
+
+        @Override
+        public void putAll(Map<? extends K, ? extends V> m) {
+            if(running) {
+                cache.putAll(m);
+            }
+        }
+
+        @Override
+        public void invalidate(Object key) {
+            if(running) {
+                cache.invalidate(key);
+            }
+        }
+
+        @Override
+        public void invalidateAll(Iterable<?> keys) {
+            if(running) {
+                cache.invalidateAll(keys);
+            }
+        }
+
+        @Override
+        public void invalidateAll() {
+            if(running) {
+                cache.invalidateAll();
+            }
+        }
+
+        @Override
+        public long size() {
+            return running ? cache.size() : 0;
+        }
+
+        @Override
+        public CacheStats stats() {
+            return running ? cache.stats() : new CacheStats(0, 0, 0, 0, 0, 0);
+        }
+
+        @Override
+        public ConcurrentMap<K, V> asMap() {
+            return running ? cache.asMap() : Maps.newConcurrentMap();
+        }
+
+        @Override
+        public void cleanUp() {
+            if(running) {
+                cache.cleanUp();
+            }
+        }
+
     }
 
     /**
