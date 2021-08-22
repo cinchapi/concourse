@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import javax.annotation.Nonnull;
+
 import com.cinchapi.common.base.CheckedExceptions;
+import com.google.common.base.Preconditions;
 
 /**
  * A {@link ByteSink} that writes to a {@link FileChannel}.
@@ -27,6 +30,22 @@ import com.cinchapi.common.base.CheckedExceptions;
  * @author Jeff Nelson
  */
 final class FileChannelSink implements ByteSink {
+
+    /**
+     * The default value for {@link #bufferSize}.
+     */
+    private static final int DEFAULT_BUFFER_SIZE = 65536;
+
+    /**
+     * Internal buffer used to batch write data to the {@code channel}.
+     */
+    @Nonnull
+    private ByteBuffer buffer;
+
+    /**
+     * The {@code buffer} size.
+     */
+    private final int bufferSize;
 
     /**
      * The destination where bytes are written.
@@ -39,13 +58,39 @@ final class FileChannelSink implements ByteSink {
      * @param channel
      */
     FileChannelSink(FileChannel channel) {
+        this(channel, DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param channel
+     */
+    FileChannelSink(FileChannel channel, int bufferSize) {
+        Preconditions.checkArgument(bufferSize >= 0, "Negative buffer size");
         this.channel = channel;
+        this.bufferSize = bufferSize;
+        this.buffer = allocateBuffer();
+    }
+
+    @Override
+    public void flush() {
+        buffer.flip();
+        while (buffer.hasRemaining()) {
+            try {
+                channel.write(buffer);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
+        buffer = allocateBuffer();
     }
 
     @Override
     public long position() {
         try {
-            return channel.position();
+            return channel.position() + buffer.position();
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -55,77 +100,193 @@ final class FileChannelSink implements ByteSink {
 
     @Override
     public ByteSink put(byte value) {
-        ByteBuffer buffer = ByteBuffer.allocate(1);
-        buffer.put(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 1;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(1);
+            buffer.put(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.put(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink put(byte[] src) {
-        ByteBuffer buffer = ByteBuffer.wrap(src);
-        return put(buffer);
+        int need = src.length;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.wrap(src);
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.put(src);
+        }
+        return this;
     }
 
     @Override
     public ByteSink put(ByteBuffer src) {
-        try {
-            while (src.hasRemaining()) {
-                channel.write(src);
+        int need = src.remaining();
+        if(need > bufferSize) {
+            flush();
+            write(src);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
             }
-            return this;
+            buffer.put(src);
         }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        return this;
     }
 
     @Override
     public ByteSink putChar(char value) {
-        ByteBuffer buffer = ByteBuffer.allocate(2);
-        buffer.putChar(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 2;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putChar(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putChar(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink putDouble(double value) {
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putDouble(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 8;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putDouble(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putDouble(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink putFloat(float value) {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putFloat(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 4;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putFloat(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putFloat(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink putInt(int value) {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 4;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putInt(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putInt(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink putLong(long value) {
-        ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putLong(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 8;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putLong(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putLong(value);
+        }
+        return this;
     }
 
     @Override
     public ByteSink putShort(short value) {
-        ByteBuffer buffer = ByteBuffer.allocate(2);
-        buffer.putShort(value);
-        buffer.flip();
-        return put(buffer);
+        int need = 2;
+        if(need > bufferSize) {
+            flush();
+            ByteBuffer buffer = ByteBuffer.allocate(need);
+            buffer.putShort(value);
+            buffer.flip();
+            write(buffer);
+        }
+        else {
+            while (need > buffer.remaining()) {
+                flush();
+            }
+            buffer.putShort(value);
+        }
+        return this;
+    }
+
+    /**
+     * Allocate a new {@link ByteBuffer}.
+     * 
+     * @return the allocated buffer
+     */
+    private ByteBuffer allocateBuffer() {
+        return ByteBuffer.allocate(bufferSize);
+    }
+
+    /**
+     * Write the {@code src} to the {@link #channel}.
+     * 
+     * @param src
+     */
+    private void write(ByteBuffer src) {
+        while (src.hasRemaining()) {
+            try {
+                channel.write(src);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
     }
 
 }
