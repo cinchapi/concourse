@@ -606,36 +606,37 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         write.lock();
         try {
             int size = sizeImpl();
-            if(mutable && size > 0) {
+            if(!mutable) {
+                Logger.warn("Attempted to sync a block that is not mutable: {}",
+                        id);
+            }
+            else if(size > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
-                ByteBuffer bytes = getBytes();
-                channel.write(bytes);
+                ByteSink sink = ByteSink.to(channel);
+                copyTo(sink);
                 channel.force(true);
                 filter.sync($filter);
                 index.sync($index);
                 stats.sync();
                 FileSystem.closeFileChannel(channel);
-                revisions = null; // Set to NULL so that the Set is eligible for
-                                  // GC while the Block stays in memory.
+                revisions = null; // Set to NULL so that the Set is eligible
+                                  // for GC while the Block stays in memory.
                 filter.disableThreadSafety();
-                bytes.rewind();
-                this.checksum = Checksums.generate(bytes);
+                this.checksum = Checksums.generate(Paths.get(file));
             }
-            else if(!mutable) {
-                Logger.warn("Cannot sync a block that is not mutable: {}", id);
+            else if(size < 0) {
+                // Indicates that #size has overflowed the bounds of an
+                // Integer. For now, just give up, but, in the future, we
+                // may add support for larger Block sizes.
+                throw new IllegalStateException(
+                        this + " size exceeds " + Integer.MAX_VALUE + " bytes");
             }
-            else if(size == 0 && !ignoreEmptySync) {
+            else if(!ignoreEmptySync) {
                 Logger.warn("Cannot sync a block that is empty: {}. "
                         + "Was there an unexpected server shutdown recently?",
                         id);
-            }
-            else if(size < 0) {
-                // Indicates that #size has overflowed the bounds of an Integer.
-                // For now, just give up, but, in the future, we may add support
-                // for larger Block sizes.
-                throw new IllegalStateException(
-                        this + " size exceeds " + Integer.MAX_VALUE + " bytes");
+                return;
             }
         }
         catch (IOException e) {
@@ -772,8 +773,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                     }
                 }
                 else {
-                    int start = index.getStart(byteables);
-                    int length = index.getEnd(byteables) - (start - 1);
+                    long start = index.getStart(byteables);
+                    long length = index.getEnd(byteables) - (start - 1);
                     if(start != BlockIndex.NO_ENTRY && length > 0) {
                         ByteBuffer bytes = FileSystem.map(file,
                                 MapMode.READ_ONLY, start, length);
@@ -796,16 +797,19 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
-     * Write this {@link Block Block's} data to the {@code sink}
+     * Write this {@link Block Block's} data to the {@code sink} and generate
+     * the associated {@link BlockIndex}.
      * 
      * @param sink
-     * @return
+     * @return the generated {@link BlockIndex}
      */
-    private BlockIndex serialize(ByteSink sink) {
+    private BlockIndex serialize(ByteSink s) {
         BlockIndex index = BlockIndex.create(revisionCount.get());
         L locator = null;
         K key = null;
-        int position = 0;
+        long position = 0;
+        long size = sizeImpl();
+        ByteSink sink = size > Integer.MAX_VALUE ? ByteSink.toDevNull() : s;
         boolean populated = false;
         for (Revision<L, K, V> revision : revisions) {
             populated = true;
@@ -854,6 +858,14 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             position = sink.position() - 1;
             index.putEnd(position, locator);
             index.putEnd(position, locator, key);
+        }
+        if(sink != s) {
+            for (Revision<L, K, V> revision : revisions()) {
+                Logger.warn("Syncing {} requires more than {} bytes", this,
+                        Integer.MAX_VALUE);
+                sink.putInt(revision.size());
+                revision.copyTo(sink);
+            }
         }
         return index;
     }
