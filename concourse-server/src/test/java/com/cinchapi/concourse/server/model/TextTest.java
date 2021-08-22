@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -221,5 +220,5 @@ public class TextTest extends ByteableTest {
         Assert.assertEquals(t2, text);
         Assert.assertSame(t2, t3);
     }
-   
+
 }
