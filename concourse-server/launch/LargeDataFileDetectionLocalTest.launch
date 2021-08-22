@@ -10,5 +10,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.cinchapi.concourse.server.storage.db.LargeDataFileDetectionLocalTest"/>
 <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="concourse-server"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="concourse-server"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms4096m -Xmx4096m"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms8192m -Xmx8192m"/>
 </launchConfiguration>

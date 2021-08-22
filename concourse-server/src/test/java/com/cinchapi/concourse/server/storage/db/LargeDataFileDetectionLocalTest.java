@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2021 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import org.junit.Assert;
 
+import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
-import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.server.storage.temp.Write;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Random;
@@ -42,24 +43,20 @@ public class LargeDataFileDetectionLocalTest {
 
     public static void main(String... args) {
         String directory = FileOps.tempDir("test");
-        String id = Long.toString(Time.now());
-        PrimaryBlock table = PrimaryBlock.createPrimaryBlock(id, directory);
+        Segment segment = Segment.create();
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() == 0);
         String str = FileOps
                 .read(Resources.getAbsolutePath("/long-string.txt"));
-        while (table.size() <= Integer.MAX_VALUE) {
-            System.out.println(table.size());
-            table.insert(PrimaryKey.wrap(Time.now()),
-                    Text.wrap(Random.getSimpleString()),
-                    Value.wrap(Convert.javaToThrift(str)), Time.now(),
-                    Action.ADD);
-            if(table.size() < 0) {
-                // This means that the size has exceeded the max int value
-                break;
-            }
+        TObject value = Convert.javaToThrift(Tag.create(str));
+        while (segment.table().length() <= Integer.MAX_VALUE) {
+            System.out.println(segment.table().length());
+            segment.acquire(Write.add(Random.getSimpleString(), value, 1));
         }
-        System.out.println(table.size() + " vs " + Integer.MAX_VALUE);
-        table.sync();
+        System.out
+                .println(segment.table().length() + " vs " + Integer.MAX_VALUE);
+        Path file = Paths.get(directory).resolve(UUID.randomUUID().toString());
+        segment.transfer(file);
+        System.out.println(file);
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() > 0);
     }
 
