@@ -196,6 +196,8 @@ abstract class TransferableByteSequence {
         write.lock();
         try {
             long length = length();
+            Preconditions.checkState(length >= 0,
+                    "%s has a negative length: %s", file, length);
             CloseableByteSink sink;
             if(length <= MMAP_TRANSFER_UPPER_LIMIT) {
                 MappedByteBuffer buffer = FileSystem.map(file,
