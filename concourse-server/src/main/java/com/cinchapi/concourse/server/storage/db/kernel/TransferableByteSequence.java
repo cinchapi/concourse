@@ -451,6 +451,7 @@ abstract class TransferableByteSequence {
          * {@link #file}.
          */
         protected void force() {
+            sink.flush();
             if(resource instanceof FileChannel) {
                 try {
                     ((FileChannel) resource).force(true);

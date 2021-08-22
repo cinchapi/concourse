@@ -58,6 +58,18 @@ public interface ByteSink {
     }
 
     /**
+     * Return a {@link ByteSink} that passes through to a {@link FileChannel}
+     * using an in-memory buffer of {@code bufferSize}.
+     * 
+     * @param channel
+     * @param bufferSize
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink to(FileChannel channel, int bufferSize) {
+        return new FileChannelSink(channel, bufferSize);
+    }
+
+    /**
      * Return a {@link ByteSink} that discards bytes that are written.
      * 
      * @return the {@link ByteSink}
@@ -171,5 +183,10 @@ public interface ByteSink {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
+
+    /**
+     * If any buffering is done, flush all bytes through the sink.
+     */
+    public default void flush() {}
 
 }
