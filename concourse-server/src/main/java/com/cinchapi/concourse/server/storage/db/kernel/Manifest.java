@@ -151,7 +151,7 @@ public class Manifest extends TransferableByteSequence {
      * @param byteables
      * @return the end position
      */
-    public int getEnd(Byteable... byteables) {
+    public long getEnd(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
@@ -169,7 +169,7 @@ public class Manifest extends TransferableByteSequence {
      * @param byteables
      * @return the start position
      */
-    public int getStart(Byteable... byteables) {
+    public long getStart(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
@@ -196,7 +196,7 @@ public class Manifest extends TransferableByteSequence {
      * @param end
      * @param byteables
      */
-    public void putEnd(int end, Byteable... byteables) {
+    public void putEnd(long end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(isMutable());
@@ -215,7 +215,7 @@ public class Manifest extends TransferableByteSequence {
      * @param start
      * @param byteables
      */
-    public void putStart(int start, Byteable... byteables) {
+    public void putStart(long start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(isMutable());
@@ -288,11 +288,11 @@ public class Manifest extends TransferableByteSequence {
      */
     private final class Entry implements Byteable {
 
-        private static final int CONSTANT_SIZE = 8; // start(4), end(4)
+        private static final int CONSTANT_SIZE = 16; // start(8), end(8)
 
-        private int end = NO_ENTRY;
+        private long end = NO_ENTRY;
         private final Composite key;
-        private int start = NO_ENTRY;
+        private long start = NO_ENTRY;
 
         /**
          * Construct an instance that represents an existing Entry from a
@@ -304,8 +304,8 @@ public class Manifest extends TransferableByteSequence {
          * @param bytes
          */
         public Entry(ByteBuffer bytes) {
-            this.start = bytes.getInt();
-            this.end = bytes.getInt();
+            this.start = bytes.getLong();
+            this.end = bytes.getLong();
             this.key = Composite
                     .load(ByteBuffers.get(bytes, bytes.remaining()));
         }
@@ -321,8 +321,8 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public void copyTo(ByteSink sink) {
-            sink.putInt(start);
-            sink.putInt(end);
+            sink.putLong(start);
+            sink.putLong(end);
             key.copyTo(sink);
         }
 
@@ -331,7 +331,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @return the end
          */
-        public int end() {
+        public long end() {
             return end;
         }
 
@@ -366,7 +366,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param end the end to set
          */
-        public void setEnd(int end) {
+        public void setEnd(long end) {
             this.end = end;
         }
 
@@ -375,7 +375,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param start the start to set
          */
-        public void setStart(int start) {
+        public void setStart(long start) {
             this.start = start;
         }
 
@@ -389,7 +389,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @return the start
          */
-        public int start() {
+        public long start() {
             return start;
         }
 

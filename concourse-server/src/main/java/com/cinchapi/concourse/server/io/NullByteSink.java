@@ -28,7 +28,7 @@ final class NullByteSink implements ByteSink {
     /**
      * The tracked "position".
      */
-    private int position;
+    private long position;
 
     @Override
     public long position() {

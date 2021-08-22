@@ -407,8 +407,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     }
                 }
                 else {
-                    int start = manifest.getStart(composite);
-                    int length = manifest.getEnd(composite) - (start - 1);
+                    long start = manifest.getStart(composite);
+                    long length = manifest.getEnd(composite) - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         ByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
@@ -593,13 +593,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 Manifest manifest = Manifest.create(revisionCount.get());
                 L locator = null;
                 K key = null;
-                int position = 0;
+                long position = 0;
                 boolean populated = false;
                 for (Revision<L, K, V> revision : revisions) {
                     populated = true;
                     sink.putInt(revision.size());
                     revision.copyTo(sink);
-                    position = ((int) sink.position()) - revision.size() - 4;
+                    position = sink.position() - revision.size() - 4;
                     /*
                      * States that trigger this condition to be true:
                      * 1. This is the first locator we've seen
@@ -643,7 +643,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     key = revision.getKey();
                 }
                 if(populated) {
-                    position = ((int) sink.position()) - 1;
+                    position = sink.position() - 1;
                     manifest.putEnd(position, locator);
                     manifest.putEnd(position, locator, key);
                 }
