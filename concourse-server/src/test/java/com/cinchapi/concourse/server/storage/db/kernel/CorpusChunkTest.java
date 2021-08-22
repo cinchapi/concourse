@@ -78,18 +78,18 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
 
     @Override
     @Test(expected = IllegalStateException.class)
-    public void testCannotInsertInFrozenChunk() {
+    public void testCannotInsertInImmutableChunk() {
         Text locator = Variables.register("locator", getLocator());
         Value value = Variables.register("value", getStringValue());
         PrimaryKey record = Variables.register("record", getRecord());
         ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
-        if(chunk.size() <= 0) {
+        if(chunk.length() <= 0) {
             value = Variables.register("value", getStringValue());
             ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                     Action.ADD);
         }
-        chunk.freeze(file);
+        chunk.transfer(file);
         ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
     }

@@ -32,7 +32,6 @@ import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.Freezable;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
@@ -49,7 +48,7 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public class Manifest implements Byteable, Freezable {
+public class Manifest extends TransferableByteSequence {
 
     /**
      * Create a new {@link Manifest} that is expected to have
@@ -67,11 +66,11 @@ public class Manifest implements Byteable, Freezable {
      * 
      * @param file
      * @param position
-     * @param size
+     * @param length
      * @return the loaded {@link Manifest}
      */
-    public static Manifest load(Path file, long position, long size) {
-        return new Manifest(file, position, size);
+    public static Manifest load(Path file, long position, long length) {
+        return new Manifest(file, position, length);
     }
 
     /**
@@ -103,30 +102,9 @@ public class Manifest implements Byteable, Freezable {
     private Map<Composite, Entry> entries;
 
     /**
-     * The file where the data for the {@link Manifest} is stored.
-     * <p>
-     * It is
-     * {@code null} if the {@link Manifest} has not been {@link Manifest(Path,
-     * long, long) loaded} or {@link #freeze(Path, long) frozen}.
-     * </p>
-     */
-    @Nullable
-    private Path file;
-
-    /**
-     * A flag that tracks if the {@link Manifest} is mutable or not.
-     */
-    private boolean mutable;
-
-    /**
-     * The byte where the manifest data begins in the {@link #file}.
-     */
-    private long position;
-
-    /**
      * The running size of the {@link Manifest} in bytes.
      */
-    private long size = 0;
+    private long length = 0;
 
     /**
      * Construct a new instance.
@@ -134,10 +112,8 @@ public class Manifest implements Byteable, Freezable {
      * @param expectedInsertions
      */
     private Manifest(int expectedInsertions) {
-        this.mutable = true;
-        this.file = null;
-        this.position = -1;
-        this.size = 0;
+        super();
+        this.length = 0;
         this.entries = Maps
                 .newLinkedHashMapWithExpectedSize(expectedInsertions);
         this.$entries = null;
@@ -148,23 +124,13 @@ public class Manifest implements Byteable, Freezable {
      * 
      * @param file
      * @param position
-     * @param size
+     * @param length
      */
-    private Manifest(Path file, long position, long size) {
-        this.mutable = false;
-        this.file = file;
-        this.position = position;
-        this.size = size;
+    private Manifest(Path file, long position, long length) {
+        super(file, position, length);
+        this.length = length;
         this.entries = null;
         this.$entries = null;
-    }
-
-    @Override
-    public void copyTo(ByteSink sink) {
-        for (Entry entry : entries().values()) {
-            sink.putInt(entry.size());
-            entry.copyTo(sink);
-        }
     }
 
     @Override
@@ -178,17 +144,6 @@ public class Manifest implements Byteable, Freezable {
         }
     }
 
-    @Override
-    public void freeze(Path file, long position) {
-        Preconditions.checkState(mutable,
-                "Cannot freeze an immutable Manifest");
-        this.mutable = false;
-        this.file = file;
-        this.position = position;
-        this.$entries = new SoftReference<Map<Composite, Entry>>(entries);
-        this.entries = null; // Make eligible for GC
-    }
-
     /**
      * Return the end position for {@code byteables} if it exists, otherwise
      * return {@link #NO_ENTRY}.
@@ -196,7 +151,7 @@ public class Manifest implements Byteable, Freezable {
      * @param byteables
      * @return the end position
      */
-    public int getEnd(Byteable... byteables) {
+    public long getEnd(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
@@ -214,7 +169,7 @@ public class Manifest implements Byteable, Freezable {
      * @param byteables
      * @return the start position
      */
-    public int getStart(Byteable... byteables) {
+    public long getStart(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry != null) {
@@ -231,8 +186,8 @@ public class Manifest implements Byteable, Freezable {
     }
 
     @Override
-    public boolean isFrozen() {
-        return !mutable;
+    public long length() {
+        return length;
     }
 
     /**
@@ -241,10 +196,10 @@ public class Manifest implements Byteable, Freezable {
      * @param end
      * @param byteables
      */
-    public void putEnd(int end, Byteable... byteables) {
+    public void putEnd(long end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
-        Preconditions.checkState(mutable);
+        Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
@@ -260,23 +215,32 @@ public class Manifest implements Byteable, Freezable {
      * @param start
      * @param byteables
      */
-    public void putStart(int start, Byteable... byteables) {
+    public void putStart(long start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
-        Preconditions.checkState(mutable);
+        Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         if(entry == null) {
             entry = new Entry(composite);
             entries.put(composite, entry);
-            size += entry.size() + 4;
+            length += entry.size() + 4;
         }
         entry.setStart(start);
     }
 
     @Override
-    public int size() {
-        return (int) size;
+    protected void flush(ByteSink sink) {
+        for (Entry entry : entries().values()) {
+            sink.putInt(entry.size());
+            entry.copyTo(sink);
+        }
+    }
+
+    @Override
+    protected void free() {
+        this.$entries = new SoftReference<Map<Composite, Entry>>(entries);
+        this.entries = null; // Make eligible for GC
     }
 
     /**
@@ -286,7 +250,7 @@ public class Manifest implements Byteable, Freezable {
      * @return {@code true} if the entries are loaded
      */
     protected boolean isLoaded() { // visible for testing
-        return mutable || ($entries != null && $entries.get() != null);
+        return isMutable() || ($entries != null && $entries.get() != null);
     }
 
     /**
@@ -301,8 +265,8 @@ public class Manifest implements Byteable, Freezable {
         }
         else {
             while ($entries == null || $entries.get() == null) {
-                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
-                        position, size);
+                ByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
+                        position(), length);
                 Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
                 Map<Composite, Entry> entries = Maps
                         .newLinkedHashMapWithExpectedSize(
@@ -324,11 +288,11 @@ public class Manifest implements Byteable, Freezable {
      */
     private final class Entry implements Byteable {
 
-        private static final int CONSTANT_SIZE = 8; // start(4), end(4)
+        private static final int CONSTANT_SIZE = 16; // start(8), end(8)
 
-        private int end = NO_ENTRY;
+        private long end = NO_ENTRY;
         private final Composite key;
-        private int start = NO_ENTRY;
+        private long start = NO_ENTRY;
 
         /**
          * Construct an instance that represents an existing Entry from a
@@ -340,8 +304,8 @@ public class Manifest implements Byteable, Freezable {
          * @param bytes
          */
         public Entry(ByteBuffer bytes) {
-            this.start = bytes.getInt();
-            this.end = bytes.getInt();
+            this.start = bytes.getLong();
+            this.end = bytes.getLong();
             this.key = Composite
                     .load(ByteBuffers.get(bytes, bytes.remaining()));
         }
@@ -357,8 +321,8 @@ public class Manifest implements Byteable, Freezable {
 
         @Override
         public void copyTo(ByteSink sink) {
-            sink.putInt(start);
-            sink.putInt(end);
+            sink.putLong(start);
+            sink.putLong(end);
             key.copyTo(sink);
         }
 
@@ -367,7 +331,7 @@ public class Manifest implements Byteable, Freezable {
          * 
          * @return the end
          */
-        public int end() {
+        public long end() {
             return end;
         }
 
@@ -402,7 +366,7 @@ public class Manifest implements Byteable, Freezable {
          * 
          * @param end the end to set
          */
-        public void setEnd(int end) {
+        public void setEnd(long end) {
             this.end = end;
         }
 
@@ -411,7 +375,7 @@ public class Manifest implements Byteable, Freezable {
          * 
          * @param start the start to set
          */
-        public void setStart(int start) {
+        public void setStart(long start) {
             this.start = start;
         }
 
@@ -425,7 +389,7 @@ public class Manifest implements Byteable, Freezable {
          * 
          * @return the start
          */
-        public int start() {
+        public long start() {
             return start;
         }
 

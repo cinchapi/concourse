@@ -15,86 +15,117 @@
  */
 package com.cinchapi.concourse.server.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
+import com.cinchapi.common.base.CheckedExceptions;
 
 /**
- * A {@link ByteSink} that writes to a {@link ByteBuffer}.
+ * A {@link ByteSink} that writes to a {@link FileChannel}.
  *
  * @author Jeff Nelson
  */
-final class ByteBufferSink implements ByteSink {
+final class FileChannelSink implements ByteSink {
 
     /**
      * The destination where bytes are written.
      */
-    private final ByteBuffer buffer;
+    private final FileChannel channel;
 
     /**
      * Construct a new instance.
      * 
-     * @param buffer
+     * @param channel
      */
-    ByteBufferSink(ByteBuffer buffer) {
-        this.buffer = buffer;
+    FileChannelSink(FileChannel channel) {
+        this.channel = channel;
     }
 
     @Override
     public long position() {
-        return buffer.position();
+        try {
+            return channel.position();
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+
     }
 
     @Override
     public ByteSink put(byte value) {
+        ByteBuffer buffer = ByteBuffer.allocate(1);
         buffer.put(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink put(byte[] src) {
-        buffer.put(src);
-        return this;
+        ByteBuffer buffer = ByteBuffer.wrap(src);
+        return put(buffer);
     }
 
     @Override
     public ByteSink put(ByteBuffer src) {
-        buffer.put(src);
-        return this;
+        try {
+            while (src.hasRemaining()) {
+                channel.write(src);
+            }
+            return this;
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
     }
 
     @Override
     public ByteSink putChar(char value) {
+        ByteBuffer buffer = ByteBuffer.allocate(2);
         buffer.putChar(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink putDouble(double value) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
         buffer.putDouble(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink putFloat(float value) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
         buffer.putFloat(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink putInt(int value) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
         buffer.putInt(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink putLong(long value) {
+        ByteBuffer buffer = ByteBuffer.allocate(8);
         buffer.putLong(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
     @Override
     public ByteSink putShort(short value) {
+        ByteBuffer buffer = ByteBuffer.allocate(2);
         buffer.putShort(value);
-        return this;
+        buffer.flip();
+        return put(buffer);
     }
 
 }

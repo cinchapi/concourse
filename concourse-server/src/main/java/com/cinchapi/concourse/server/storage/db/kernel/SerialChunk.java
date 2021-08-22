@@ -31,9 +31,9 @@ abstract class SerialChunk<L extends Byteable & Comparable<L>, K extends Byteabl
         extends Chunk<L, K, V> {
 
     /**
-     * The running value returned from {@link #sizeImpl()}.
+     * The running value returned from {@link #lengthUnsafe()}.
      */
-    protected int _size = 0;
+    protected long _length = 0;
 
     /**
      * Construct a new instance.
@@ -61,13 +61,13 @@ abstract class SerialChunk<L extends Byteable & Comparable<L>, K extends Byteabl
     }
 
     @Override
-    protected final void incrementSizeBy(int delta) {
-        _size += delta;
+    protected final void incrementLengthBy(int delta) {
+        _length += delta;
     }
 
     @Override
-    protected final int sizeImpl() {
-        return _size;
+    protected final long lengthUnsafe() {
+        return _length;
     }
 
 }

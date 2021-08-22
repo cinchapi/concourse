@@ -189,8 +189,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      */
     public final void insert(Text key, Value value, PrimaryKey record,
             long version, Action type) {
-        Preconditions.checkState(!isFrozen(),
-                "Cannot modify a chunk that is not mutable");
+        Preconditions.checkState(isMutable(),
+                "Cannot modify a chunk that is immutable");
         if(value.getType() == Type.STRING) {
             write.lock();
             try {

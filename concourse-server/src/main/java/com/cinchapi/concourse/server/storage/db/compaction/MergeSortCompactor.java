@@ -60,7 +60,7 @@ class MergeSortCompactor extends Compactor {
         if(segments.length == 2) {
             Segment a = segments[0];
             Segment b = segments[1];
-            long requiredDiskSpace = a.size() + b.size();
+            long requiredDiskSpace = a.length() + b.length();
             if(context.availableDiskSpace() > requiredDiskSpace
                     && a.similarityWith(b) > 50) { // TODO: make configurable
                 Segment merged = Segment.create((int) (a.count() + b.count())); // TODO:

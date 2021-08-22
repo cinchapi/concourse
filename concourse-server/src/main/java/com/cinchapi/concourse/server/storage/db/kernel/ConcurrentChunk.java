@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
 
@@ -32,9 +32,9 @@ abstract class ConcurrentChunk<L extends Byteable & Comparable<L>, K extends Byt
         extends Chunk<L, K, V> {
 
     /**
-     * The running value returned from {@link #sizeImpl()}.
+     * The running value returned from {@link #lengthUnsafe()}.
      */
-    protected AtomicInteger _size = new AtomicInteger(0);
+    protected AtomicLong _length = new AtomicLong(0);
 
     /**
      * Construct a new instance.
@@ -62,13 +62,13 @@ abstract class ConcurrentChunk<L extends Byteable & Comparable<L>, K extends Byt
     }
 
     @Override
-    protected final void incrementSizeBy(int delta) {
-        _size.addAndGet(delta);
+    protected final void incrementLengthBy(int delta) {
+        _length.addAndGet(delta);
     }
 
     @Override
-    protected final int sizeImpl() {
-        return _size.get();
+    protected final long lengthUnsafe() {
+        return _length.get();
     }
 
 }
