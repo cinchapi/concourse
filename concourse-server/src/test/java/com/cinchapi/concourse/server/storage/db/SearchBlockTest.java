@@ -311,34 +311,6 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         }
     }
 
-    @Test
-    public void testSyncBlockWithSizeGreaterThanMaxIntValue()
-            throws IOException {
-        int maxSearchSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
-        try {
-            String path = FileOps.tempDir("test");
-            Files.copy(
-                    Paths.get(
-                            Resources.getAbsolutePath("/1625772016779000.buf")),
-                    Paths.get(path + File.separator + "1.buf"));
-            Iterator<Write> it = Buffer.onDiskIterator(path);
-            SearchBlock corpus = (SearchBlock) block;
-            while (it.hasNext()) {
-                Write write = it.next();
-                System.out.println("going...");
-                if(write.getValue().getType() == Type.STRING) {
-                    corpus.insert(write.getKey(), write.getValue(),
-                            write.getRecord(), write.getVersion(),
-                            write.getType());
-                }
-            }
-            System.out.println(corpus.size());
-        }
-        finally {
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = maxSearchSubstringLength;
-        }
-    }
-
     /**
      * The implementation of {@link #testMightContainLocatorKeyValue()}.
      * 
