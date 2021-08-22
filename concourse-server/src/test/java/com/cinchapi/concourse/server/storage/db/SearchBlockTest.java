@@ -31,8 +31,6 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
-import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
@@ -282,25 +280,6 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     @Ignore
     public void testRevisionVersionTrackingPersistence() {
         // Direct insert for SearchBlock is unsupported
-    }
-
-    @Test
-    public void testInsertLongStringDoesNotOOM() {
-        String string = FileOps
-                .read(Resources.getAbsolutePath("/long-string.txt"));
-        SearchBlock corpus = (SearchBlock) block;
-        int maxSearchSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
-        try {
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = 40;
-            corpus.insert(Text.wrap("test"),
-                    Value.wrap(Convert.javaToThrift(string)),
-                    PrimaryKey.wrap(1), Time.now(), Action.ADD);
-            Assert.assertTrue(true); // index without OOM indicates the test
-                                     // passed
-        }
-        finally {
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = maxSearchSubstringLength;
-        }
     }
 
     /**
