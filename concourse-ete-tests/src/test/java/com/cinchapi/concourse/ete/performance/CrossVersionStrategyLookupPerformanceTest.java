@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.10.4", "latest" })
+@Versions({ "0.10.5", "latest" })
 public class CrossVersionStrategyLookupPerformanceTest
         extends CrossVersionTest {
 
