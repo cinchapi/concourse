@@ -39,7 +39,7 @@ final class ByteBufferSink implements ByteSink {
     }
 
     @Override
-    public int position() {
+    public long position() {
         return buffer.position();
     }
 

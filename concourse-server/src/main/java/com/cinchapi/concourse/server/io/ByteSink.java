@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Cinchapi Inc.
+ * Copyright (c) 2013-2021 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.io;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import com.cinchapi.common.base.CheckedExceptions;
@@ -47,6 +48,16 @@ public interface ByteSink {
     }
 
     /**
+     * Return a {@link ByteSink} that passes through to a {@link FileChannel}.
+     * 
+     * @param channel
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink to(FileChannel channel) {
+        return new FileChannelSink(channel);
+    }
+
+    /**
      * Return a {@link ByteSink} that discards bytes that are written.
      * 
      * @return the {@link ByteSink}
@@ -60,7 +71,7 @@ public interface ByteSink {
      * 
      * @return the position of this sink
      */
-    public int position();
+    public long position();
 
     /**
      * Put the {@code value} in this {@link ByteSink sink}, starting at the
