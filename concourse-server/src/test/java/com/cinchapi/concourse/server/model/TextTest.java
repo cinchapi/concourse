@@ -243,4 +243,25 @@ public class TextTest extends ByteableTest {
         }
     }
 
+    @Test
+    public void testFromByteBufferSizeStringText() {
+        Text text = Text.wrap(Random.getString());
+        ByteBuffer bytes = text.getBytes();
+        int expected = text.size();
+        text = Text.fromByteBuffer(bytes);
+        int actual = text.size();
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testFromByteBufferSizeChartText() {
+        String string = Random.getString();
+        Text text = Text.wrap(string.toCharArray(), 0, string.length());
+        ByteBuffer bytes = text.getBytes();
+        int expected = text.size();
+        text = Text.fromByteBuffer(bytes);
+        int actual = text.size();
+        Assert.assertEquals(expected, actual);
+    }
+
 }
