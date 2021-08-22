@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -51,6 +52,7 @@ import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.Checksums;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.io.LongByteable;
 import com.cinchapi.concourse.server.io.Syncable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
@@ -101,7 +103,7 @@ import com.google.common.collect.TreeMultiset;
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         implements
-        Byteable,
+        LongByteable,
         Syncable,
         Iterable<Revision<L, K, V>> {
 
@@ -289,13 +291,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * Revisions that are stored in the block file. The size for the filter and
      * index are tracked separately.
      */
-    private transient int size;
+    private transient long size;
 
     /**
      * The size counter to use if this Block is {@link #concurrent} and uses the
      * {@link #insertUnsafe(Byteable, Byteable, Byteable, long, Action)} method.
      */
-    private transient AtomicInteger atomicSize = new AtomicInteger(0);
+    private transient AtomicLong atomicSize = new AtomicLong(0);
 
     /**
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
@@ -445,7 +447,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public ByteBuffer getBytes() {
         read.lock();
         try {
-            return Byteable.super.getBytes();
+            return LongByteable.super.getBytes();
         }
         finally {
             read.unlock();
@@ -581,7 +583,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public int size() {
         Locks.lockIfCondition(read, mutable);
         try {
-            return sizeImpl();
+            return (int) sizeImpl();
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
@@ -605,7 +607,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public void sync() {
         write.lock();
         try {
-            int size = sizeImpl();
+            long size = sizeImpl();
             if(!mutable) {
                 Logger.warn("Attempted to sync a block that is not mutable: {}",
                         id);
@@ -860,11 +862,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             index.putEnd(position, locator, key);
         }
         if(sink != s) {
-            for (Revision<L, K, V> revision : revisions()) {
+            for (Revision<L, K, V> revision : revisions) {
                 Logger.warn("Syncing {} requires more than {} bytes", this,
                         Integer.MAX_VALUE);
-                sink.putInt(revision.size());
-                revision.copyTo(sink);
+                s.putInt(revision.size());
+                revision.copyTo(s);
             }
         }
         return index;
@@ -876,7 +878,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * 
      * @return the size
      */
-    private int sizeImpl() {
+    private long sizeImpl() {
         return concurrent ? atomicSize.get() : size;
     }
 
