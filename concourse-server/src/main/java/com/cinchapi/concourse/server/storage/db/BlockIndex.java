@@ -22,7 +22,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -232,15 +231,14 @@ public class BlockIndex implements Byteable, Syncable {
      */
     public void putEnd(long end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
-                "Cannot have negative index. Tried to put %s for %s", end,
-                Arrays.toString(byteables));
+                "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
         Preconditions.checkState(entry != null,
                 "Cannot set the end position before setting "
-                        + "the start position. Tried to put %s for %s",
-                end, Arrays.toString(byteables));
+                        + "the start position. Tried to put %s",
+                end);
         entry.setEnd(end);
     }
 
@@ -252,8 +250,7 @@ public class BlockIndex implements Byteable, Syncable {
      */
     public void putStart(long start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
-                "Cannot have negative index. Tried to put %s for %s", start,
-                Arrays.toString(byteables));
+                "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(isMutable());
         Composite composite = Composite.create(byteables);
         Entry entry = entries().get(composite);
