@@ -32,7 +32,6 @@ import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.io.TransferableByteSequence;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 

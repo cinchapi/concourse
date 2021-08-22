@@ -38,7 +38,6 @@ import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
-import com.cinchapi.concourse.server.io.TransferableByteSequence;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;

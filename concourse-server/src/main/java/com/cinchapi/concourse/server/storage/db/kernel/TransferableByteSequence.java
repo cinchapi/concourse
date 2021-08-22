@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.io;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -28,7 +29,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.server.io.ByteSink;
+import com.cinchapi.concourse.server.io.FileSystem;
 import com.google.common.base.Preconditions;
 
 /**
@@ -53,7 +57,7 @@ import com.google.common.base.Preconditions;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public abstract class TransferableByteSequence {
+abstract class TransferableByteSequence {
 
     /**
      * The upper limit when there is performance stagnation or degradation when
@@ -191,32 +195,26 @@ public abstract class TransferableByteSequence {
                 "%s has already been transferred to %s", this, file);
         write.lock();
         try {
-            this.file = file;
             long length = length();
+            CloseableByteSink sink;
             if(length <= MMAP_TRANSFER_UPPER_LIMIT) {
                 MappedByteBuffer buffer = FileSystem.map(file,
                         MapMode.READ_WRITE, position, length);
-                ByteSink sink = ByteSink.to(buffer);
-                flush(sink);
-                buffer.force();
+                sink = new CloseableByteSink(file, buffer);
             }
             else {
                 FileChannel channel = FileSystem.getFileChannel(file);
                 channel.position(position);
                 FileLock lock = channel.lock(position, length, false);
-                try {
-                    ByteSink sink = ByteSink.to(channel);
-                    flush(sink);
-                    channel.force(true);
-                }
-                finally {
-                    lock.release();
-                    FileSystem.closeFileChannel(channel);
-                }
+                sink = new CloseableByteSink(file, channel, lock);
             }
-            this.mutable = false;
-            this.position = position;
-            free();
+            try {
+                transfer(sink);
+                sink.force();
+            }
+            finally {
+                sink.close();
+            }
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -228,6 +226,14 @@ public abstract class TransferableByteSequence {
 
     /**
      * Write the bytes in this sequence to {@code sink}.
+     * 
+     * <p>
+     * If a member component is a {@link TransferableByteSink}, call
+     * {@link #transfer(ByteSink)} to copy the sequence to the <strong> same
+     * {@code sink} </strong> instead of calling this method, which does not
+     * register the destination file or position or calling
+     * {@link #transfer(Path, long)} which creates a new {@link ByteSink}.
+     * </p>
      * 
      * @param sink
      */
@@ -253,6 +259,202 @@ public abstract class TransferableByteSequence {
         else {
             throw new IllegalStateException("The position has not been set");
         }
+    }
+
+    /**
+     * Transfer the sequence to the {@code sink} and make it immutable.
+     * 
+     * <p>
+     * This method is designed to be called from {@link #flush(ByteSink)} when a
+     * member component is also a {@link TransferableByteSequence} and the
+     * destination {@link ByteSink} should be shared. As such, this method does
+     * not force the sequence onto disk.
+     * </p>
+     * 
+     * @param sink
+     */
+    protected final void transfer(ByteSink sink) {
+        Preconditions.checkState(mutable,
+                "%s has already been transferred to %s", this, file);
+        write.lock();
+        try {
+            CloseableByteSink cbs = (CloseableByteSink) sink;
+            this.file = cbs.file();
+            this.position = sink.position();
+            flush(sink);
+            this.mutable = false;
+            free();
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Internal wrapper for a {@link ByteSink} that encapsulates the association
+     * with a {@link Path file} and the ability to force and close the
+     * destination resource.
+     *
+     * @author Jeff Nelson
+     */
+    private final static class CloseableByteSink implements ByteSink {
+
+        /**
+         * The {@link ByteSink} that is wrapped.
+         */
+        private final ByteSink sink;
+
+        /**
+         * The associated file.
+         */
+        private final Path file;
+
+        /**
+         * The underlying resource.
+         */
+        private final Object resource;
+
+        private final AutoCloseable[] closeables;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param file
+         * @param buffer
+         */
+        private CloseableByteSink(Path file, MappedByteBuffer buffer) {
+            this.sink = ByteSink.to(buffer);
+            this.file = file;
+            this.resource = buffer;
+            this.closeables = Array.containing();
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param file
+         * @param channel
+         */
+        private CloseableByteSink(Path file, FileChannel channel,
+                FileLock lock) {
+            this.sink = ByteSink.to(channel);
+            this.file = file;
+            this.resource = channel;
+            this.closeables = Array.containing(lock);
+        }
+
+        @Override
+        public long position() {
+            return sink.position();
+        }
+
+        @Override
+        public ByteSink put(byte value) {
+            sink.put(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(byte[] src) {
+            sink.put(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(ByteBuffer src) {
+            sink.put(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink putChar(char value) {
+            sink.putChar(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putDouble(double value) {
+            sink.putDouble(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putFloat(float value) {
+            sink.putFloat(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putInt(int value) {
+            sink.putInt(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putLong(long value) {
+            sink.putLong(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putShort(short value) {
+            sink.putShort(value);
+            return this;
+        }
+
+        /**
+         * Force the {@link #resource} to flush the content to disk in
+         * {@link #file}.
+         */
+        public void force() {
+            if(resource instanceof FileChannel) {
+                try {
+                    ((FileChannel) resource).force(true);
+                }
+                catch (IOException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
+            }
+            else if(resource instanceof MappedByteBuffer) {
+                ((MappedByteBuffer) resource).force();
+            }
+            else {
+                throw new IllegalStateException();
+            }
+        }
+
+        /**
+         * Return the {@link #file} associated with this sink.
+         * 
+         * @return the file
+         */
+        public Path file() {
+            return file;
+        }
+
+        /**
+         * Close the underlying resource.
+         */
+        public void close() {
+            if(resource instanceof FileChannel) {
+                FileSystem.closeFileChannel((FileChannel) resource);
+            }
+            else if(resource instanceof MappedByteBuffer) {
+                FileSystem.unmap((MappedByteBuffer) resource);
+            }
+            else {
+                throw new IllegalStateException();
+            }
+            for (AutoCloseable closeable : closeables) {
+                try {
+                    closeable.close();
+                }
+                catch (Exception e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
+            }
+        }
+
     }
 
 }

@@ -41,7 +41,6 @@ import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
-import com.cinchapi.concourse.server.io.TransferableByteSequence;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
 import com.cinchapi.concourse.server.storage.db.Database;
@@ -677,7 +676,6 @@ public final class Segment extends TransferableByteSequence implements
         )) {
             byteable.copyTo(sink);
         }
-        long position = sink.position();
         for (TransferableByteSequence sequence : Array.containing(
                 table.manifest(), 
                 index.manifest(), 
@@ -686,8 +684,7 @@ public final class Segment extends TransferableByteSequence implements
                 index,
                 corpus
         )) {
-            sequence.transfer(file, position);
-            position += sequence.length();
+            sequence.transfer(sink);
         }
         // @formatter:on
     }
