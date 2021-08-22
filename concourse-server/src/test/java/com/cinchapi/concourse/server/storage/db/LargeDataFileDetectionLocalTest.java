@@ -68,10 +68,12 @@ public class LargeDataFileDetectionLocalTest {
         System.out.println(directory);
         int actual = 0;
         table = Reflection.newInstance(PrimaryBlock.class, id, directory, true);
-        for(Revision<?,?,?> revision : (Iterable<Revision<?,?,?>>) Reflection.call(table, "revisions")) {
+        for (Revision<?, ?, ?> revision : (Iterable<Revision<?, ?, ?>>) Reflection
+                .call(table, "revisions")) {
             ++actual;
         }
-        System.out.println("Expected "+expected+" revisions and there are actually "+actual);
+        System.out.println("Expected " + expected
+                + " revisions and there are actually " + actual);
         Assert.assertEquals(expected, actual);
     }
 
