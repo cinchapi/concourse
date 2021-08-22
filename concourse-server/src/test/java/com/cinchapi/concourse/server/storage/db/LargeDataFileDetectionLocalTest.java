@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 
 import org.junit.Assert;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -40,6 +41,7 @@ public class LargeDataFileDetectionLocalTest {
     // NOTE: This is designed to be run locally in an IDE or the command line
     // where the heap size can be set sufficiently large
 
+    @SuppressWarnings({ "unchecked", "unused" })
     public static void main(String... args) {
         String directory = FileOps.tempDir("test");
         String id = Long.toString(Time.now());
@@ -47,12 +49,14 @@ public class LargeDataFileDetectionLocalTest {
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() == 0);
         String str = FileOps
                 .read(Resources.getAbsolutePath("/long-string.txt"));
+        int expected = 0;
         while (table.size() <= Integer.MAX_VALUE) {
             System.out.println(table.size());
             table.insert(PrimaryKey.wrap(Time.now()),
                     Text.wrap(Random.getSimpleString()),
                     Value.wrap(Convert.javaToThrift(str)), Time.now(),
                     Action.ADD);
+            ++expected;
             if(table.size() < 0) {
                 // This means that the size has exceeded the max int value
                 break;
@@ -61,6 +65,14 @@ public class LargeDataFileDetectionLocalTest {
         System.out.println(table.size() + " vs " + Integer.MAX_VALUE);
         table.sync();
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() > 0);
+        System.out.println(directory);
+        int actual = 0;
+        table = Reflection.newInstance(PrimaryBlock.class, id, directory, true);
+        for(Revision<?,?,?> revision : (Iterable<Revision<?,?,?>>) Reflection.call(table, "revisions")) {
+            ++actual;
+        }
+        System.out.println("Expected "+expected+" revisions and there are actually "+actual);
+        Assert.assertEquals(expected, actual);
     }
 
 }
