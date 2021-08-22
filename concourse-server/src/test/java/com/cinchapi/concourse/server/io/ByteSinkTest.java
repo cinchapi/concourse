@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 import org.junit.Assert;
@@ -72,7 +71,7 @@ public class ByteSinkTest {
     @Test
     public void testFileChannelSinkWithBufferTracksPosition() {
         FileChannel channel = FileSystem
-                .getFileChannel(Paths.get(TestData.getTemporaryTestFile()));
+                .getFileChannel(TestData.getTemporaryTestFile());
         ByteSink sink = ByteSink.to(channel, 64);
         int count = TestData.getScaleCount();
         int expected = 0;
@@ -91,7 +90,7 @@ public class ByteSinkTest {
                 .allocate(random.nextInt(64000000) + 1000000);
         ByteSink a = ByteSink.to(expected);
         FileChannel channel = FileSystem
-                .getFileChannel(Paths.get(TestData.getTemporaryTestFile()));
+                .getFileChannel(TestData.getTemporaryTestFile());
         ByteSink b = ByteSink.to(channel, 512);
         while (expected.hasRemaining()) {
             int seed = Math.abs(random.nextInt());
