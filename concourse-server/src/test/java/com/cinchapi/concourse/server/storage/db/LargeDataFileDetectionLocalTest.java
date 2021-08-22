@@ -35,7 +35,7 @@ import com.cinchapi.concourse.util.Resources;
  *
  * @author Jeff Nelson
  */
-public class LargeBlockDetectionLocalTest {
+public class LargeDataFileDetectionLocalTest {
 
     // NOTE: This is designed to be run locally in an IDE or the command line
     // where the heap size can be set sufficiently large
