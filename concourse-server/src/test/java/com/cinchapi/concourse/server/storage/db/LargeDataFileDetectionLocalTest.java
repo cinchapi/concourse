@@ -24,6 +24,7 @@ import org.junit.Assert;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
@@ -41,16 +42,18 @@ public class LargeDataFileDetectionLocalTest {
     // NOTE: This is designed to be run locally in an IDE or the command line
     // where the heap size can be set sufficiently large
 
-    public static void main(String... args) {
+    public static void main(String... args) throws SegmentLoadingException {
         String directory = FileOps.tempDir("test");
         Segment segment = Segment.create();
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() == 0);
         String str = FileOps
                 .read(Resources.getAbsolutePath("/long-string.txt"));
         TObject value = Convert.javaToThrift(Tag.create(str));
+        int expected = 0;
         while (segment.table().length() <= Integer.MAX_VALUE) {
             System.out.println(segment.table().length());
             segment.acquire(Write.add(Random.getSimpleString(), value, 1));
+            ++expected;
         }
         System.out
                 .println(segment.table().length() + " vs " + Integer.MAX_VALUE);
@@ -58,6 +61,11 @@ public class LargeDataFileDetectionLocalTest {
         segment.transfer(file);
         System.out.println(file);
         Assert.assertTrue(FileSystem.ls(Paths.get(directory)).count() > 0);
+        segment = Segment.load(file);
+        long actual = segment.writes().count();
+        System.out.println("Expected " + expected
+                + " revisions and there are actually " + actual);
+        Assert.assertEquals(expected, actual);
     }
 
 }
