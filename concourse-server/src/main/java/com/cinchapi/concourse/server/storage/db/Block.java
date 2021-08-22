@@ -605,7 +605,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public void sync() {
         write.lock();
         try {
-            if(mutable && sizeImpl() > 0) {
+            int size = sizeImpl();
+            if(mutable && size > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
                 ByteBuffer bytes = getBytes();
@@ -624,10 +625,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
-            else if(!ignoreEmptySync) {
+            else if(size == 0 && !ignoreEmptySync) {
                 Logger.warn("Cannot sync a block that is empty: {}. "
                         + "Was there an unexpected server shutdown recently?",
                         id);
+            }
+            else if(size < 0) {
+                // Indicates that #size has overflowed the bounds of an Integer.
+                // For now, just give up, but, in the future, we may add support
+                // for larger Block sizes.
+                throw new IllegalStateException(
+                        this + " size exceeds " + Integer.MAX_VALUE + " bytes");
             }
         }
         catch (IOException e) {
