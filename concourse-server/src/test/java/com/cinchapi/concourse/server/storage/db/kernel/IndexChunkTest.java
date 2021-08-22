@@ -29,7 +29,6 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
-import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -90,8 +89,7 @@ public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
         chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(626))),
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
-        Folio folio = chunk.serialize();
-        Map<?, ?> entries = Reflection.call(folio.manifest(), "entries"); // authorized
+        Map<?, ?> entries = Reflection.call(chunk.manifest(), "entries"); // authorized
         // Ensure 18.0 and 18 as well as `foo` and foo are treated as equal when
         // generating the index. That means there should be 5 entires (e.g. an
         // entry for the payRangeMax locator and 4 entries for that locator and

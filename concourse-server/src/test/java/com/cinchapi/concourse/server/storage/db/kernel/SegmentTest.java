@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.PrimaryKey;
@@ -69,7 +70,7 @@ public class SegmentTest extends ConcourseBaseTest {
             segment.acquire(TestData.getWriteAdd());
         }
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
         Segment actual = Segment.load(file);
         Assert.assertEquals(segment.table(), actual.table());
         Assert.assertEquals(segment.index(), actual.index());
@@ -118,10 +119,39 @@ public class SegmentTest extends ConcourseBaseTest {
         segment.acquire(w0);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
         segment = Segment.load(file);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
+    }
+
+    @Test
+    public void testMemoryIsFreedAfterSync() {
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            segment.acquire(TestData.getInt() % 2 == 0 ? TestData.getWriteAdd()
+                    : TestData.getWriteRemove());
+        }
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        Assert.assertNotNull(Reflection.get("revisions", segment.table()));
+        Assert.assertNotNull(Reflection.get("revisions", segment.index()));
+        Assert.assertNotNull(Reflection.get("revisions", segment.corpus()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNotNull(
+                Reflection.get("entries", segment.corpus().manifest()));
+        segment.transfer(file);
+        Assert.assertNull(Reflection.get("revisions", segment.table()));
+        Assert.assertNull(Reflection.get("revisions", segment.index()));
+        Assert.assertNull(Reflection.get("revisions", segment.corpus()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.table().manifest()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.index().manifest()));
+        Assert.assertNull(
+                Reflection.get("entries", segment.corpus().manifest()));
     }
 
     @Test
@@ -130,7 +160,7 @@ public class SegmentTest extends ConcourseBaseTest {
         segment.acquire(Write.add("foo", Convert.javaToThrift(30), 1));
         Path file = Paths.get(TestData.getTemporaryTestFile());
         Assert.assertFalse(segment.corpus().iterator().hasNext());
-        segment.fsync(file);
+        segment.transfer(file);
         segment = Segment.load(file);
         Assert.assertFalse(segment.corpus().iterator().hasNext());
         Assert.assertTrue(segment.table().iterator().hasNext());
@@ -140,7 +170,7 @@ public class SegmentTest extends ConcourseBaseTest {
     @Test(expected = IllegalStateException.class)
     public void testCannotSyncEmptySegment() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
     }
 
     @Test

@@ -28,7 +28,6 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.TableRecord;
-import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -75,9 +74,8 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
         Value value = Value.wrap(Convert.javaToThrift("http://youtube.com"));
         chunk.insert(locator, key, value, Time.now(), Action.ADD);
         TableRecord record = TableRecord.createPartial(locator, key);
-        Folio folio = chunk.serialize();
-        FileSystem.writeBytes(folio.bytes(), file.toString());
-        chunk = load(file, filter, folio.manifest());
+        chunk.transfer(file);
+        chunk = load(file, filter, chunk.manifest());
         chunk.seek(Composite.create(locator, key), record);
         Assert.assertTrue(record.fetch(key).contains(value));
     }

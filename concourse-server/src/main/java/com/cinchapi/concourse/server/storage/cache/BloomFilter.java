@@ -23,7 +23,7 @@ import java.io.ObjectStreamClass;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.ByteBufferInputStream;
@@ -40,7 +40,7 @@ import com.cinchapi.concourse.util.Serializables;
  * 
  * @author Jeff Nelson
  */
-@NotThreadSafe
+@ThreadSafe // guaranteed by com.google.common.hash.BloomFilter thread safety
 public class BloomFilter implements Byteable {
 
     /**

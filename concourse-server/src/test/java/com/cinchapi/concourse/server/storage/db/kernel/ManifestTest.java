@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -60,10 +61,10 @@ public class ManifestTest extends ConcourseBaseTest {
     };
 
     @Test(expected = IllegalStateException.class)
-    public void testCannotModifyManifestAfterFreeze() {
+    public void testCannotModifyManifestAfterTransfer() {
         Manifest manifest = Manifest.create(1);
         manifest.putStart(0, TestData.getPosition());
-        manifest.freeze(file);
+        manifest.transfer(file);
         manifest.putEnd(1, TestData.getPosition());
     }
 
@@ -77,7 +78,9 @@ public class ManifestTest extends ConcourseBaseTest {
             manifest.putStart(count, key);
             manifest.putEnd(count * 2, key);
         }
-        ByteBuffer bytes = manifest.getBytes();
+        ByteBuffer bytes = ByteBuffer.allocate((int) manifest.length());
+        manifest.flush(ByteSink.to(bytes));
+        bytes.flip();
         FileSystem.writeBytes(bytes, file.toString());
         manifest = Manifest.load(file, 0, bytes.capacity());
         Assert.assertFalse(manifest.isLoaded());
@@ -99,7 +102,7 @@ public class ManifestTest extends ConcourseBaseTest {
         manifest.putEnd(count * 2, key);
         Assert.assertEquals(count, manifest.getStart(key));
         Assert.assertEquals(count * 2, manifest.getEnd(key));
-        manifest.freeze(file);
+        manifest.transfer(file);
         Assert.assertEquals(count, manifest.getStart(key));
         Assert.assertEquals(count * 2, manifest.getEnd(key));
     }

@@ -1005,8 +1005,10 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @Theory
     public void testFindAfterRemove(Operator operator) {
         String key = TestData.getSimpleString();
-        Number min = TestData.getNumber();
+        Number min = Variables.register("min", TestData.getNumber());
         Set<Long> records = removeRecords(key, addRecords(key, min, operator));
+        Variables.register("remaining", records);
+        Variables.register("operator", operator);
         Assert.assertEquals(records,
                 store.find(key, operator, Convert.javaToThrift(min)));
     }
