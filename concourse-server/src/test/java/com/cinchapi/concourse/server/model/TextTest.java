@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -209,13 +210,16 @@ public class TextTest extends ByteableTest {
         ByteBuffer bytes = text.getBytes();
         Text t1 = Text.fromByteBufferCached(bytes);
         Text t2 = null;
-        while (t2 != t1) {
+        Text t3 = null;
+        while (t2 != t1 || t3 != t2) {
             // Wait for lazy cache to kick in...
             t1 = Text.fromByteBufferCached(bytes);
             t2 = Text.fromByteBufferCached(bytes);
+            t3 = Text.wrapCached(string);
         }
         Assert.assertSame(t1, t2);
         Assert.assertEquals(t2, text);
-        Assert.assertSame(t2, Text.wrapCached(string));
+        Assert.assertSame(t2, t3);
     }
+   
 }
