@@ -35,9 +35,9 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.kernel.Chunk.Folio;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Sets;
 
@@ -85,10 +85,10 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
     };
 
     @Test(expected = IllegalStateException.class)
-    public void testCannotInsertInFrozenChunk() {
+    public void testCannotInsertInImmutableChunk() {
         chunk.insert(getLocator(), getKey(), getValue(), Time.now(),
                 Action.ADD);
-        chunk.freeze(file);
+        chunk.transfer(Paths.get(FileOps.tempFile()));
         chunk.insert(getLocator(), getKey(), getValue(), Time.now(),
                 Action.ADD);
     }
@@ -146,10 +146,8 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
                     revision.getType());
             revisions.add(revision);
         }
-        Folio folio = chunk.serialize();
-        FileSystem.writeBytes(folio.bytes(), file.toString());
-        chunk.freeze(file);
-        chunk = load(file, filter, folio.manifest());
+        chunk.transfer(file);
+        chunk = load(file, filter, chunk.manifest());
         Iterator<Revision<L, K, V>> it = chunk.iterator();
         Set<Revision<L, K, V>> stored = Sets.newHashSetWithExpectedSize(count);
         while (it.hasNext()) {

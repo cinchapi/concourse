@@ -31,7 +31,7 @@ final class NullByteSink implements ByteSink {
     private int position;
 
     @Override
-    public int position() {
+    public long position() {
         return position;
     }
 

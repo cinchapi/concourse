@@ -69,7 +69,7 @@ public class SegmentTest extends ConcourseBaseTest {
             segment.acquire(TestData.getWriteAdd());
         }
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
         Segment actual = Segment.load(file);
         Assert.assertEquals(segment.table(), actual.table());
         Assert.assertEquals(segment.index(), actual.index());
@@ -118,7 +118,7 @@ public class SegmentTest extends ConcourseBaseTest {
         segment.acquire(w0);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
         segment = Segment.load(file);
         Assert.assertEquals(w0.getVersion(), segment.minTs);
         Assert.assertEquals(w3.getVersion(), segment.maxTs);
@@ -130,7 +130,7 @@ public class SegmentTest extends ConcourseBaseTest {
         segment.acquire(Write.add("foo", Convert.javaToThrift(30), 1));
         Path file = Paths.get(TestData.getTemporaryTestFile());
         Assert.assertFalse(segment.corpus().iterator().hasNext());
-        segment.fsync(file);
+        segment.transfer(file);
         segment = Segment.load(file);
         Assert.assertFalse(segment.corpus().iterator().hasNext());
         Assert.assertTrue(segment.table().iterator().hasNext());
@@ -140,7 +140,7 @@ public class SegmentTest extends ConcourseBaseTest {
     @Test(expected = IllegalStateException.class)
     public void testCannotSyncEmptySegment() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        segment.fsync(file);
+        segment.transfer(file);
     }
 
     @Test

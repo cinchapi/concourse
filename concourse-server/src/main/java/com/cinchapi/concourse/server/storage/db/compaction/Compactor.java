@@ -529,7 +529,7 @@ public abstract class Compactor {
                 }
                 for (int i = compacted.size() - 1; i >= 0; --i) {
                     Segment segment = compacted.get(i);
-                    segment.fsync(fileProvider.get());
+                    segment.transfer(fileProvider.get());
                     segments.add(index, segment);
                     Logger.info(
                             "**Job: {}** The compactor added the following segment: {}",
