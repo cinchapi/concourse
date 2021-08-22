@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.channels.FileLock;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -30,7 +29,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -207,8 +205,10 @@ abstract class TransferableByteSequence {
             else {
                 FileChannel channel = FileSystem.getFileChannel(file);
                 channel.position(position);
-                FileLock lock = channel.lock(position, length, false);
-                sink = new CloseableByteSink(file, channel, lock);
+                // NOTE: The below FileLock is automatically released when
+                // calling #sink.close()
+                channel.lock(position, length, false);
+                sink = new CloseableByteSink(file, channel);
             }
             try {
                 transfer(sink);
@@ -330,11 +330,6 @@ abstract class TransferableByteSequence {
         private final Object resource;
 
         /**
-         * Additional associated resources that must be {@link #close() closed}.
-         */
-        private final AutoCloseable[] closeables;
-
-        /**
          * The {@link TransferableByteSequence TransferableByteSequences} that
          * have been {@link #transfer(ByteSink) transferred} to this
          * {@link ByteSink} and will need to be {@link #free() freed}.
@@ -352,7 +347,6 @@ abstract class TransferableByteSequence {
             this.sink = ByteSink.to(buffer);
             this.file = file;
             this.resource = buffer;
-            this.closeables = Array.containing();
         }
 
         /**
@@ -361,12 +355,10 @@ abstract class TransferableByteSequence {
          * @param file
          * @param channel
          */
-        private CloseableByteSink(Path file, FileChannel channel,
-                FileLock lock) {
+        private CloseableByteSink(Path file, FileChannel channel) {
             this.sink = ByteSink.to(channel);
             this.file = file;
             this.resource = channel;
-            this.closeables = Array.containing(lock);
         }
 
         @Override
@@ -440,14 +432,6 @@ abstract class TransferableByteSequence {
             }
             else {
                 throw new IllegalStateException();
-            }
-            for (AutoCloseable closeable : closeables) {
-                try {
-                    closeable.close();
-                }
-                catch (Exception e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
             }
         }
 
