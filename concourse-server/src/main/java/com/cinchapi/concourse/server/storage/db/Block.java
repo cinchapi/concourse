@@ -628,11 +628,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 this.checksum = Checksums.generate(Paths.get(file));
             }
             else if(size < 0) {
-                // Indicates that #size has overflowed the bounds of an
-                // Integer. For now, just give up, but, in the future, we
-                // may add support for larger Block sizes.
                 throw new IllegalStateException(
-                        this + " size exceeds " + Integer.MAX_VALUE + " bytes");
+                        "Negative length in " + this + ": " + size);
             }
             else if(!ignoreEmptySync) {
                 Logger.warn("Cannot sync a block that is empty: {}. "
