@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.ByteableTest;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 
@@ -219,6 +220,27 @@ public class TextTest extends ByteableTest {
         Assert.assertSame(t1, t2);
         Assert.assertEquals(t2, text);
         Assert.assertSame(t2, t3);
+    }
+
+    @Test
+    public void testCanonicalLengthConsistencyStringTextCharText() {
+        String str = "&nbsp;</p><p><s";
+        Text t1 = Text.wrap(str);
+        Text t2 = Text.wrap(str.toCharArray(), 0, str.length());
+        Assert.assertEquals(t1.getCanonicalLength(), t2.getCanonicalLength());
+    }
+
+    @Test
+    public void testCompositeConsistency() {
+        String key = "description";
+        String term = "&nbsp;</p><p><s";
+        Composite c1 = Composite.create(Text.wrap(key), Text.wrap(term));
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Composite c2 = Composite.create(Text.wrap(key),
+                    Text.wrap(term.toCharArray(), 0, term.length()));
+            Assert.assertEquals(c1, c2);
+        }
     }
 
 }

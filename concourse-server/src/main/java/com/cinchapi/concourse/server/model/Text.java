@@ -303,7 +303,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
         @Override
         public final int size() {
-            return getBytes().capacity();
+            return getBytes().remaining();
         }
 
         @Override
@@ -435,7 +435,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
         @Override
         public final int size() {
-            return bytes == null ? getBytes().capacity() : bytes.capacity();
+            return bytes == null ? getBytes().remaining() : bytes.remaining();
         }
 
         @Override
