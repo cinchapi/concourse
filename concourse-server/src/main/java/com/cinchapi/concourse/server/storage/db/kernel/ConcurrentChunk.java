@@ -74,8 +74,8 @@ abstract class ConcurrentChunk<L extends Byteable & Comparable<L>, K extends Byt
     }
 
     @Override
-    protected <T1, T2> Map<T1, T2> $mapFactory() {
-        return new ConcurrentHashMap<>();
+    protected <T1, T2> Map<T1, T2> $mapFactory(int expectedSize) {
+        return new ConcurrentHashMap<>(expectedSize);
     }
 
 }

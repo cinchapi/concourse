@@ -73,8 +73,8 @@ abstract class SerialChunk<L extends Byteable & Comparable<L>, K extends Byteabl
     }
 
     @Override
-    protected <T1, T2> Map<T1, T2> $mapFactory() {
-        return Maps.newHashMap();
+    protected <T1, T2> Map<T1, T2> $mapFactory(int expectedSize) {
+        return Maps.newHashMapWithExpectedSize(expectedSize);
     }
 
 }

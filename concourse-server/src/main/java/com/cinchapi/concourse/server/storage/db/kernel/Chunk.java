@@ -207,7 +207,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = -1;
         this.manifest = null;
-        this.known = $mapFactory();
+        this.known = $mapFactory(
+                segment != null ? segment.expectedInsertions : 1024);
         this.revisions = createBackingStore(Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -706,7 +707,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * 
      * @return a {@link Map}
      */
-    protected abstract <T1, T2> Map<T1, T2> $mapFactory();
+    protected abstract <T1, T2> Map<T1, T2> $mapFactory(int expectedSize);
 
     /**
      * Return an object that is equal to {@code reference} if one has been

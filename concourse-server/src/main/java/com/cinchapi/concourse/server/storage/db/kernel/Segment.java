@@ -286,10 +286,22 @@ public final class Segment extends TransferableByteSequence implements
     private byte version;
 
     /**
+     * The number of {@link #acquire(Write) write acquisitions} that are
+     * expected when the {@link Segment} is {@link Segment#Segment(int)
+     * created}. This is exposed to friends (e.g. {@link Chunk}) in the event
+     * that it is helpful in sizing their internal data structures.
+     * <p>
+     * This value is 0 for an {@link #isMutable() immutable} {@link Segment}.
+     * </p>
+     */
+    protected final int expectedInsertions;
+
+    /**
      * Construct a new instance.
      */
     private Segment(int expectedInsertions) {
         super();
+        this.expectedInsertions = expectedInsertions;
         this.maxTs = Long.MIN_VALUE;
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
@@ -310,6 +322,7 @@ public final class Segment extends TransferableByteSequence implements
      */
     private Segment(Path file) throws SegmentLoadingException {
         super(file);
+        this.expectedInsertions = 0;
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
