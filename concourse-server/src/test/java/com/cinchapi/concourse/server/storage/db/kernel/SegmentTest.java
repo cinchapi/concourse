@@ -266,13 +266,23 @@ public class SegmentTest extends ConcourseBaseTest {
         String key = "name";
         TObject value = Convert.javaToThrift("Fonamey");
         long record = 1;
-        Write w1 = Write.add(key, value, record);
-        Write w2 = Write.remove(key, value, record);
+
+        // Simulate adding and removing while server is running, but creating
+        // new intermediate TObjects
+        Write w1 = Write.add(key, Convert.javaToThrift("Fonamey"), record);
+        Write w2 = Write.remove(key, Convert.javaToThrift("Fonamey"), record);
+        Assert.assertNotSame(w1.getValue(), w2.getValue());
+        segment.acquire(w1);
+        segment.acquire(w2);
+
+        // Simulate loading data from disk and creating new intermediate because
+        // values are not cached when read
         w1 = Write.fromByteBuffer(w1.getBytes());
         w2 = Write.fromByteBuffer(w2.getBytes());
         Assert.assertNotSame(w1.getValue(), w2.getValue());
         segment.acquire(w1);
         segment.acquire(w2);
+
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; ++i) {
             Write write = Numbers.isEven(i) ? Write.remove(key, value, record)
