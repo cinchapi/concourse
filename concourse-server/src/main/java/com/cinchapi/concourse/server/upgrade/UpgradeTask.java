@@ -355,6 +355,13 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     protected abstract void doTask();
 
     /**
+     * Rollback the work done by this {@link UpgradeTask} so that the system is
+     * in a state that is consistent with its state before the task ws
+     * attempted.
+     */
+    protected abstract void rollback();
+
+    /**
      * Return the path to the server installation directory, from which other
      * aspects of the Concourse Server deployment are accessible. This is
      * typically the working directory from which Concourse Server is launched.
