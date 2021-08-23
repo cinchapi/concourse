@@ -37,6 +37,12 @@ import com.cinchapi.concourse.util.Environments;
 
 /**
  * {@link UpgradeTask} to migrate data from Blocks to Segments.
+ * <p>
+ * Additionally, in version 0.11.0, the logic for generating {@link Composite
+ * Composites} was changed, which affects existing bloom filters and index (e.g.
+ * manifest) files. The overall transfer process will reindex all data, so the
+ * necessary upgrades for those files is handled.
+ * </p>
  *
  * @author Jeff Nelson
  */

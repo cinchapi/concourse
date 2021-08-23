@@ -24,13 +24,25 @@ import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.io.ByteBuffers;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 
 /**
  * A {@link Composite} is a single {@link Byteable} composed of other
- * {@link Byteable Byteables}.
+ * {@link Byteable Byteables}. Equal {@link Byteable Byteables} composed in the
+ * same order will always generate an equal {@link Composite}.
  * <p>
  * A {@link Composite} is used to construct keys with multiple parts.
+ * </p>
+ * <p>
+ * There is no guarantee that the component {@link #parts()} of a
+ * {@link Composite} cannot be retrieved or reconstructed from a
+ * {@link Composite}.
+ * </p>
+ * <p>
+ * The maximum {@link #size} of a {@link Composite} is {@link #MAX_SIZE};
+ * however some may have a smaller size if the component parts are sufficiently
+ * small.
  * </p>
  *
  * @author Jeff Nelson
@@ -54,16 +66,6 @@ public final class Composite implements Byteable {
     }
 
     /**
-     * Load an existing {@link Composite} from a {@link ByteBuffer}.
-     * 
-     * @param bytes
-     * @return the loaded {@link Composite}
-     */
-    public static Composite load(ByteBuffer bytes) {
-        return new Composite(bytes);
-    }
-
-    /**
      * Create a Composite for the list of {@code objects} with support for
      * caching. Cached Composites are not guaranteed to perfectly match up with
      * the list of objects (because hash collisions can occur) so it is only
@@ -82,6 +84,21 @@ public final class Composite implements Byteable {
         }
         return composite;
     }
+
+    /**
+     * Load an existing {@link Composite} from a {@link ByteBuffer}.
+     * 
+     * @param bytes
+     * @return the loaded {@link Composite}
+     */
+    public static Composite load(ByteBuffer bytes) {
+        return new Composite(bytes);
+    }
+
+    /**
+     * The largest possible {@link #size()}.
+     */
+    public static final int MAX_SIZE = 32;
 
     /**
      * A cache of Composite. Each composite is associated with the cumulative
@@ -111,14 +128,17 @@ public final class Composite implements Byteable {
         for (Byteable part : parts) {
             size += part.getCanonicalLength() + 4;
         }
-        bytes = ByteBuffer.allocate(size);
+        RetrievableByteSink sink = size < MAX_SIZE
+                ? new WrappedByteBufferSink(size)
+                : new HasherByteSink(Hashing.sha256().newHasher(size));
         int pos = 0;
         for (Byteable part : parts) {
-            bytes.putInt(pos);
-            part.copyCanonicalBytesTo(ByteSink.to(bytes));
+            sink.putInt(pos);
+            part.copyCanonicalBytesTo(sink);
             ++pos;
         }
-        bytes.flip();
+        sink.flush();
+        this.bytes = sink.retrieve();
     }
 
     /**
@@ -134,6 +154,15 @@ public final class Composite implements Byteable {
     @Override
     public void copyTo(ByteSink sink) {
         ByteSinks.copyAndRewindSource(bytes, sink);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Composite) {
+            Composite other = (Composite) obj;
+            return bytes.equals(other.bytes);
+        }
+        return false;
     }
 
     @Override
@@ -169,15 +198,6 @@ public final class Composite implements Byteable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Composite) {
-            Composite other = (Composite) obj;
-            return bytes.equals(other.bytes);
-        }
-        return false;
-    }
-
-    @Override
     public int size() {
         return bytes.capacity();
     }
@@ -185,6 +205,208 @@ public final class Composite implements Byteable {
     @Override
     public String toString() {
         return Hashing.murmur3_128().hashBytes(getBytes()).toString();
+    }
+
+    /**
+     * A {@link ByteSink} that records bytes in a {@link Hasher} and returns a
+     * {@link ByteBuffer} containing the hashed bytes in the {@link #retrieve()}
+     * method.
+     *
+     * @author Jeff Nelson
+     */
+    private static final class HasherByteSink extends RetrievableByteSink {
+
+        /**
+         * The underlying {@link Hasher}.
+         */
+        private final Hasher hasher;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param hasher
+         */
+        private HasherByteSink(Hasher hasher) {
+            this.hasher = hasher;
+        }
+
+        @Override
+        public long position() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ByteSink put(byte value) {
+            hasher.putByte(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(byte[] src) {
+            hasher.putBytes(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(ByteBuffer src) {
+            hasher.putBytes(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink putChar(char value) {
+            hasher.putChar(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putDouble(double value) {
+            hasher.putDouble(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putFloat(float value) {
+            hasher.putFloat(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putInt(int value) {
+            hasher.putInt(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putLong(long value) {
+            hasher.putLong(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putShort(short value) {
+            hasher.putShort(value);
+            return this;
+        }
+
+        @Override
+        protected ByteBuffer retrieve() {
+            return ByteBuffer.wrap(hasher.hash().asBytes());
+        }
+
+    }
+
+    /**
+     * A {@link ByteSink} that allows a {@link ByteBuffer} containing all of its
+     * content to be {@link #retrieve() retrieved}
+     *
+     * @author Jeff Nelson
+     */
+    private static abstract class RetrievableByteSink implements ByteSink {
+
+        /**
+         * Return all the bytes written to this {@link ByteSink sink} as a
+         * {@link ByteBuffer} that is ready for reading.
+         * 
+         * @return a {@link ByteBuffer} with the content of this {@link ByteSink
+         *         sink}
+         */
+        protected abstract ByteBuffer retrieve();
+    }
+
+    /**
+     * A {@link ByteSink#to(ByteBuffer) ByteSink that writes to a ByteBuffer},
+     * but is wrapped so that the underlying source is managed, yet accessible
+     * via {@link #retrieve()}.
+     *
+     * @author Jeff Nelson
+     */
+    private static final class WrappedByteBufferSink
+            extends RetrievableByteSink {
+
+        /**
+         * The source to which {@link #sink} writes.
+         */
+        private final ByteBuffer buffer;
+
+        /**
+         * The wrapped {@link ByteSink}.
+         */
+        private final ByteSink sink;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param size
+         */
+        private WrappedByteBufferSink(int size) {
+            this.buffer = ByteBuffer.allocate(size);
+            this.sink = ByteSink.to(buffer);
+        }
+
+        @Override
+        public long position() {
+            return sink.position();
+        }
+
+        @Override
+        public ByteSink put(byte value) {
+            sink.put(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(byte[] src) {
+            sink.put(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink put(ByteBuffer src) {
+            sink.put(src);
+            return this;
+        }
+
+        @Override
+        public ByteSink putChar(char value) {
+            sink.putChar(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putDouble(double value) {
+            sink.putDouble(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putFloat(float value) {
+            sink.putFloat(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putInt(int value) {
+            sink.putInt(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putLong(long value) {
+            sink.putLong(value);
+            return this;
+        }
+
+        @Override
+        public ByteSink putShort(short value) {
+            sink.putShort(value);
+            return this;
+        }
+
+        @Override
+        protected ByteBuffer retrieve() {
+            return ByteBuffers.asReadOnlyBuffer(this.buffer);
+        }
     }
 
 }
