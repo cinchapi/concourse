@@ -104,6 +104,7 @@ public final class UpgradeTasks {
                 task.run();
             }
             catch (Exception e) {
+                Logger.upgradeError("Must perform a  rollback of {}", task);
                 task.rollback();
                 throw e; // fail fast because we assume subsequent tasks
                          // depend on the one that failed
