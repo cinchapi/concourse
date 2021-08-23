@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
@@ -178,10 +179,26 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final ReadLock segmentReadLock;
 
     /**
+     * A collection of all the known references that have been inserted into
+     * this {@link Chunk} as either a locator, key or value. This collection is
+     * consulted prior to
+     * {@link #makeRevision(Byteable, Byteable, Byteable, long, Action) making
+     * the revisions} that are stored in an effort to avoid unnecessary memory
+     * duplication.
+     * <p>
+     * This collection is only populated while the {@link Chunk} is
+     * {@link #isMutable() mutable} and is nullified, alongside the same for the
+     * {@link #revisions}, when the {@link Chunk}'s memory is {@link #free()
+     * freed} as part of the {@link Segment#transfer(Path) transfer} process.
+     * </p>
+     */
+    @Nullable
+    private Map<Byteable, Byteable> known;
+
+    /**
      * Construct a new instance.
      * 
-     * @param idgen
-     * @param mutable
+     * @param segment
      * @param filter
      */
     protected Chunk(@Nullable Segment segment, BloomFilter filter) {
@@ -190,6 +207,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = -1;
         this.manifest = null;
+        this.known = $mapFactory();
         this.revisions = createBackingStore(Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -201,7 +219,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     /**
      * Load an existing instance.
      * 
-     * @param idgen
+     * @param segment
      * @param file
      * @param position
      * @param length
@@ -217,6 +235,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = length;
         this.manifest = manifest;
+        this.known = null;
         this.revisions = null;
         this.$revisions = null;
         this.revisionCount = null;
@@ -497,6 +516,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     @Override
     protected void free() {
         Logger.debug("Freeing memory in {}", this);
+        this.known = null;
         this.revisions = null;
         this.revisionCount = null;
     }
@@ -527,6 +547,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(isMutable(),
                 "Cannot modify an immutable chunk");
+        //@formatter:off
+        locator = deduplicate(locator);
+        key     = deduplicate(key);
+        value   = deduplicate(value);
+        //@formatter:on
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
@@ -675,6 +700,31 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the revision class
      */
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
+
+    /**
+     * Return a {@link Map} that can be used for internal tracking.
+     * 
+     * @return a {@link Map}
+     */
+    protected abstract <T1, T2> Map<T1, T2> $mapFactory();
+
+    /**
+     * Return an object that is equal to {@code reference} if one has been
+     * previously stored as either a locator, key or value. Otherwise, record
+     * {@code reference} as the canonical instance for equal objects that may
+     * later be seen.
+     * 
+     * @param ref
+     * @return the deduplicated reference
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends Byteable> T deduplicate(T ref) {
+        Preconditions.checkNotNull(ref);
+        if(known != null) {
+            ref = (T) known.computeIfAbsent(ref, $ref -> $ref);
+        }
+        return ref;
+    }
 
     /**
      * Return an {@link Iterable} over this {@link Chunk}'s {@link Revision

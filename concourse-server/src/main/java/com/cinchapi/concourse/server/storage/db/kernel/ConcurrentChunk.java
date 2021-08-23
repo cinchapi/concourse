@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.Nullable;
@@ -69,6 +71,11 @@ abstract class ConcurrentChunk<L extends Byteable & Comparable<L>, K extends Byt
     @Override
     protected final long lengthUnsafe() {
         return _length.get();
+    }
+
+    @Override
+    protected <T1, T2> Map<T1, T2> $mapFactory() {
+        return new ConcurrentHashMap<>();
     }
 
 }
