@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -27,15 +28,19 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
+import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.IndexRecord;
+import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRecord;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Iterators;
 
@@ -253,6 +258,82 @@ public class SegmentTest extends ConcourseBaseTest {
         }
         finally {
             executor.shutdown();
+        }
+    }
+
+    @Test
+    public void testDataDeduplication() {
+        String key = "name";
+        TObject value = Convert.javaToThrift("Fonamey");
+        long record = 1;
+        Write w1 = Write.add(key, value, record);
+        Write w2 = Write.remove(key, value, record);
+        w1 = Write.fromByteBuffer(w1.getBytes());
+        w2 = Write.fromByteBuffer(w2.getBytes());
+        Assert.assertNotSame(w1.getValue(), w2.getValue());
+        segment.acquire(w1);
+        segment.acquire(w2);
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Write write = Numbers.isEven(i) ? Write.remove(key, value, record)
+                    : Write.add(key, value, record);
+            write = Write.fromByteBuffer(write.getBytes());
+            segment.acquire(write);
+        }
+        Text name = null;
+        Value fonamey = null;
+        PrimaryKey one = null;
+        Position position = null;
+        Iterator<Revision<PrimaryKey, Text, Value>> tit = segment.table()
+                .iterator();
+        while (tit.hasNext()) {
+            Revision<PrimaryKey, Text, Value> revision = tit.next();
+            if(one == null) {
+                one = revision.getLocator();
+            }
+            if(name == null) {
+                name = revision.getKey();
+            }
+            if(fonamey == null) {
+                fonamey = revision.getValue();
+            }
+            Assert.assertSame(one, revision.getLocator());
+            Assert.assertSame(name, revision.getKey());
+            Assert.assertSame(fonamey, revision.getValue());
+        }
+        Iterator<Revision<Text, Value, PrimaryKey>> iit = segment.index()
+                .iterator();
+        while (iit.hasNext()) {
+            Revision<Text, Value, PrimaryKey> revision = iit.next();
+            if(one == null) {
+                one = revision.getValue();
+            }
+            if(name == null) {
+                name = revision.getLocator();
+            }
+            if(fonamey == null) {
+                fonamey = revision.getKey();
+            }
+            Assert.assertSame(one, revision.getValue());
+            Assert.assertSame(name, revision.getLocator());
+            Assert.assertSame(fonamey, revision.getKey());
+        }
+        Iterator<Revision<Text, Text, Position>> cit = segment.corpus()
+                .iterator();
+        while (cit.hasNext()) {
+            Revision<Text, Text, Position> revision = cit.next();
+            if(position == null) {
+                position = revision.getValue();
+            }
+            if(name == null) {
+                name = revision.getLocator();
+            }
+            Assert.assertSame(position, revision.getValue());
+            Assert.assertSame(name, revision.getLocator());
+            if(revision.getKey().toString().equals("name")) {
+                Assert.assertSame(name, revision.getKey());
+            }
+
         }
     }
 

@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
@@ -179,21 +180,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final ReadLock segmentReadLock;
 
     /**
-     * A collection of all the known references that have been inserted into
-     * this {@link Chunk} as either a locator, key or value. This collection is
-     * consulted prior to
-     * {@link #makeRevision(Byteable, Byteable, Byteable, long, Action) making
-     * the revisions} that are stored in an effort to avoid unnecessary memory
-     * duplication.
-     * <p>
-     * This collection is only populated while the {@link Chunk} is
-     * {@link #isMutable() mutable} and is nullified, alongside the same for the
-     * {@link #revisions}, when the {@link Chunk}'s memory is {@link #free()
-     * freed} as part of the {@link Segment#transfer(Path) transfer} process.
-     * </p>
+     * A collection that shadows {@link Segment#objects()} to handle
+     * {@link #deduplicate(Byteable) deduplication}.
      */
     @Nullable
-    private Map<Byteable, Byteable> known;
+    private Map<Byteable, Byteable> objects;
 
     /**
      * Construct a new instance.
@@ -207,8 +198,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = -1;
         this.manifest = null;
-        this.known = $mapFactory(
-                segment != null ? segment.expectedInsertions : 1024);
+        this.objects = segment != null ? segment.objects() : null;
+        while (objects == null) {
+            Logger.warn(
+                    "{} is using a standalone object pool instead of one shared among %s",
+                    this, segment);
+            objects = new ConcurrentHashMap<>();
+        }
         this.revisions = createBackingStore(Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -236,7 +232,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = length;
         this.manifest = manifest;
-        this.known = null;
+        this.objects = null;
         this.revisions = null;
         this.$revisions = null;
         this.revisionCount = null;
@@ -517,7 +513,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     @Override
     protected void free() {
         Logger.debug("Freeing memory in {}", this);
-        this.known = null;
+        this.objects = null;
         this.revisions = null;
         this.revisionCount = null;
     }
@@ -703,13 +699,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
 
     /**
-     * Return a {@link Map} that can be used for internal tracking.
-     * 
-     * @return a {@link Map}
-     */
-    protected abstract <T1, T2> Map<T1, T2> $mapFactory(int expectedSize);
-
-    /**
      * Return an object that is equal to {@code reference} if one has been
      * previously stored as either a locator, key or value. Otherwise, record
      * {@code reference} as the canonical instance for equal objects that may
@@ -720,9 +709,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     @SuppressWarnings("unchecked")
     private <T extends Byteable> T deduplicate(T ref) {
+        // TODO: potentially handle size issues by catching exception and no
+        // longer trying to deduplicate?
         Preconditions.checkNotNull(ref);
-        if(known != null) {
-            ref = (T) known.computeIfAbsent(ref, $ref -> $ref);
+        if(objects != null) {
+            ref = (T) objects.computeIfAbsent(ref, $ref -> $ref);
         }
         return ref;
     }

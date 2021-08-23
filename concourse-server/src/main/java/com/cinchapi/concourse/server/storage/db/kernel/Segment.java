@@ -21,12 +21,15 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -41,6 +44,10 @@ import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
+import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Text;
+import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
 import com.cinchapi.concourse.server.storage.db.Database;
@@ -286,22 +293,32 @@ public final class Segment extends TransferableByteSequence implements
     private byte version;
 
     /**
-     * The number of {@link #acquire(Write) write acquisitions} that are
-     * expected when the {@link Segment} is {@link Segment#Segment(int)
-     * created}. This is exposed to friends (e.g. {@link Chunk}) in the event
-     * that it is helpful in sizing their internal data structures.
+     * A collection of all the known objects that have been acquired by
+     * this {@link Segment} from {@link Write} components and are added to
+     * {@link Chunk Chunks} as either a locator, key or value.
+     * 
      * <p>
-     * This value is 0 for an {@link #isMutable() immutable} {@link Segment}.
+     * This collection is {@link #objects() available} so that each
+     * {@link Chunk} can consult it in {@link Chunk#deduplicate(Object)} prior
+     * to {@link Chunk#makeRevision(Byteable, Byteable, Byteable, long, Action)
+     * making the revisions} that are stored in an effort to avoid unnecessary
+     * memory duplication within the {@link Chunk} itself and across other
+     * {@link Chunks} in the {@link Segment}.
+     * <p>
+     * This collection is only populated while the {@link Segment} is
+     * {@link #isMutable() mutable} and is nullified when the memory is
+     * {@link #free() freed} as part of the {@link #transfer(Path) transfer}
+     * process.
      * </p>
      */
-    protected final int expectedInsertions;
+    private Map<Byteable, Byteable> objects;
 
     /**
      * Construct a new instance.
      */
     private Segment(int expectedInsertions) {
         super();
-        this.expectedInsertions = expectedInsertions;
+        this.objects = new ConcurrentHashMap<>(expectedInsertions * 3);
         this.maxTs = Long.MIN_VALUE;
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
@@ -322,7 +339,7 @@ public final class Segment extends TransferableByteSequence implements
      */
     private Segment(Path file) throws SegmentLoadingException {
         super(file);
-        this.expectedInsertions = 0;
+        this.objects = null;
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
@@ -449,26 +466,30 @@ public final class Segment extends TransferableByteSequence implements
                 "Cannot transfer Writes to an immutable Segment");
         writeLock.lock();
         try {
+            // @formatter:off
+            PrimaryKey record = write.getRecord();
+            Text key          = write.getKey();
+            Value value       = write.getValue();
+            long version      = write.getVersion();
+            Action type       = write.getType();            
             Receipt.Builder receipt = Receipt.builder();
             Runnable[] tasks = Array.containing(() -> {
-                TableRevision revision = table.insert(write.getRecord(),
-                        write.getKey(), write.getValue(), write.getVersion(),
-                        write.getType());
+                TableRevision revision = table.insert(
+                        record, key, value, version, type);
                 receipt.itemize(revision);
             }, () -> {
-                IndexRevision revision = index.insert(write.getKey(),
-                        write.getValue(), write.getRecord(), write.getVersion(),
-                        write.getType());
+                IndexRevision revision = index.insert(
+                        key, value, record, version, type);
                 receipt.itemize(revision);
             }, () -> {
-                corpus.insert(write.getKey(), write.getValue(),
-                        write.getRecord(), write.getVersion(), write.getType());
+                corpus.insert(key, value, record, version, type);
                 // NOTE: We do not itemize a CorpusRevision within the receipt
                 // because the database does not cache CorpusRecords since they
                 // have the potential to be VERY large. Holding references to
                 // them in a database's cache would prevent them from being
                 // garbage collected resulting in more OOMs.
             });
+            // @formatter:on
             executor.await((task, error) -> Logger.error(
                     "Unexpected error when trying to transfer the following Write to the Database: {}",
                     write, error), tasks);
@@ -647,6 +668,11 @@ public final class Segment extends TransferableByteSequence implements
                         revision.getVersion()));
     }
 
+    @Nullable
+    protected final Map<Byteable, Byteable> objects() {
+        return objects;
+    }
+
     @Override
     protected void flush(ByteSink sink) {
         this.syncTs = Time.now();
@@ -693,7 +719,10 @@ public final class Segment extends TransferableByteSequence implements
     }
 
     @Override
-    protected void free() {}
+    protected void free() {
+        Logger.debug("Freeing memory in {}", this);
+        this.objects = null;
+    }
 
     /**
      * A {@link Receipt} is acknowledges the successful

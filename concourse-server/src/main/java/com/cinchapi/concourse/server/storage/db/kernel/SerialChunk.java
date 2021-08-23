@@ -16,13 +16,11 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
-import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
-import com.google.common.collect.Maps;
 
 /**
  * A {@link Chunk} that is written serially.
@@ -70,11 +68,6 @@ abstract class SerialChunk<L extends Byteable & Comparable<L>, K extends Byteabl
     @Override
     protected final long lengthUnsafe() {
         return _length;
-    }
-
-    @Override
-    protected <T1, T2> Map<T1, T2> $mapFactory(int expectedSize) {
-        return Maps.newHashMapWithExpectedSize(expectedSize);
     }
 
 }
