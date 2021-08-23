@@ -23,6 +23,11 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
+import net.openhft.chronicle.map.VanillaChronicleMap;
+import net.openhft.chronicle.set.ChronicleSet;
+
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.common.logging.Logging;
@@ -46,11 +51,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedMultiset;
-
-import net.openhft.chronicle.core.Jvm;
-import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
-import net.openhft.chronicle.map.VanillaChronicleMap;
-import net.openhft.chronicle.set.ChronicleSet;
 
 /**
  * A {@link Chunk} that stores {@link CorpusRevision CorpusRevisons} for
