@@ -25,6 +25,8 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
+import com.cinchapi.common.logging.Logging;
+import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Position;
@@ -45,6 +47,11 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedMultiset;
 
+import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
+import net.openhft.chronicle.map.VanillaChronicleMap;
+import net.openhft.chronicle.set.ChronicleSet;
+
 /**
  * A {@link Chunk} that stores {@link CorpusRevision CorpusRevisons} for
  * various {@link CorpusRecord CorpusRecords}.
@@ -54,6 +61,12 @@ import com.google.common.collect.SortedMultiset;
 public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements
         SearchIndex {
+
+    static {
+        Logging.disable(Jvm.class);
+        Logging.disable(InternalAnnouncer.class);
+        Logging.disable(VanillaChronicleMap.class);
+    }
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -284,7 +297,15 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
-            Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
+            // @formatter:off
+            Set<String> indexed = isLargeTerm 
+                    ? ChronicleSet.of(String.class).averageKey(
+                            term.substring(0, shouldLimitSubstringLength
+                                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
+                                    : 100))
+                            .entries(upperBound).create()
+                    : Sets.newHashSetWithExpectedSize(upperBound);
+            // @formatter:on
             final char[] chars = isLargeTerm ? term.toCharArray() : null;
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
@@ -308,7 +329,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     }
                 }
             }
-            count = indexed.size();
+            PossibleCloseables.tryCloseQuietly(indexed);
             indexed = null; // make eligible for immediate GC
         }
         return count;
