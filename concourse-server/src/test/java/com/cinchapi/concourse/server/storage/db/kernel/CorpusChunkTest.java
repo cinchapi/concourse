@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,6 +34,7 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
+import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -245,6 +247,32 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                                               // dump output which contains the
                                               // chunk id
 
+    }
+
+    @Test
+    public void testDataDeduplication() {
+        Text locator1 = Text.wrap("name");
+        Text locator2 = Text.wrap("name");
+        Value key1 = Value.wrap(Convert.javaToThrift("Fonamey"));
+        Value key2 = Value.wrap(Convert.javaToThrift("Fonamey"));
+        PrimaryKey value1 = PrimaryKey.wrap(1);
+        PrimaryKey value2 = PrimaryKey.wrap(1);
+        CorpusChunk corpus = (CorpusChunk) chunk;
+        corpus.insert(locator2, key2, value2, Time.now(), Action.ADD);
+        corpus.insert(locator1, key1, value1, Time.now(), Action.ADD);
+        Position position = null;
+        Iterator<Revision<Text, Text, Position>> it = corpus.iterator();
+        while (it.hasNext()) {
+            Revision<Text, Text, Position> revision = it.next();
+            if(position == null) {
+                position = revision.getValue();
+            }
+            Assert.assertSame(locator2, revision.getLocator());
+            if(revision.getKey().toString().equals("name")) {
+                Assert.assertSame(locator2, revision.getKey());
+            }
+            Assert.assertSame(position, revision.getValue());
+        }
     }
 
     @Test
