@@ -25,8 +25,9 @@
 * It it only possible to upgrade to this version from Concourse `0.10.2+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
 * Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
 
-##### Miscellaneous
+##### Upgrade Framework
 * Added a separate log file for upgrade tasks (`log/upgrade.log`).
+* Added a mechanism for failed upgrade tasks to automatically perform a rollback that'll reset the system state to be consistent with the state before the task was attempted.
 
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
