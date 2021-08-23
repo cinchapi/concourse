@@ -96,4 +96,19 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                 });
     }
 
+    @Override
+    protected void rollback() {
+        logErrorMessage("Deleting Segment files");
+        Environments
+                .iterator(GlobalState.BUFFER_DIRECTORY,
+                        GlobalState.DATABASE_DIRECTORY)
+                .forEachRemaining(environment -> {
+                    Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
+                            .resolve(environment);
+                    Path segments = directory.resolve("segments");
+                    FileSystem.deleteDirectory(segments.toString());
+                });
+
+    }
+
 }
