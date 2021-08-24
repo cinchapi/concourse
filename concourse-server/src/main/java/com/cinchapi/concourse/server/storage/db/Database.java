@@ -345,7 +345,7 @@ public final class Database extends BaseStore implements PermanentStore {
             if(running) {
                 try {
                     Receipt receipt = seg0.acquire(write, writer);
-                    Logger.debug("Transferred {} to {}", write, seg0);
+                    Logger.debug("Indexed '{}' in {}", write, seg0);
 
                     // Updated cached records
                     TableRecord cpr = cpc
@@ -644,10 +644,12 @@ public final class Database extends BaseStore implements PermanentStore {
                     Segment current = lit.next();
                     if(current.equals(previous)) {
                         lit.previous();
+                        lit.previous();
                         lit.remove();
                         Logger.warn(
                                 "Segment {} was not loaded because it contains duplicate data. It has been scheduled for garbage collection.",
                                 previous);
+                        lit.next();
                         // TODO: mark #previous for garbage collection
                     }
                 }

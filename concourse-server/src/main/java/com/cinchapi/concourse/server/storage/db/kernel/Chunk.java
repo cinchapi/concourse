@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
@@ -178,10 +180,16 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final ReadLock segmentReadLock;
 
     /**
+     * A collection that shadows {@link Segment#objects()} to handle
+     * {@link #deduplicate(Byteable) deduplication}.
+     */
+    @Nullable
+    private Map<Byteable, Byteable> objects;
+
+    /**
      * Construct a new instance.
      * 
-     * @param idgen
-     * @param mutable
+     * @param segment
      * @param filter
      */
     protected Chunk(@Nullable Segment segment, BloomFilter filter) {
@@ -190,6 +198,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = -1;
         this.manifest = null;
+        this.objects = segment != null ? segment.objects() : null;
+        while (objects == null) {
+            Logger.warn(
+                    "{} is using a standalone object pool instead of one shared among %s",
+                    this, segment);
+            objects = new ConcurrentHashMap<>();
+        }
         this.revisions = createBackingStore(Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
                 revisions);
@@ -201,7 +216,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     /**
      * Load an existing instance.
      * 
-     * @param idgen
+     * @param segment
      * @param file
      * @param position
      * @param length
@@ -217,6 +232,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.filter = filter;
         this.length = length;
         this.manifest = manifest;
+        this.objects = null;
         this.revisions = null;
         this.$revisions = null;
         this.revisionCount = null;
@@ -284,16 +300,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     @Override
     public int hashCode() {
         return revisions().hashCode();
-    }
-
-    /**
-     * Return this {@link Chunk Chunk's} id.
-     * 
-     * @return the {@link Chunk} id
-     */
-    public String id() {
-        return segment != null ? segment.id()
-                : Integer.toString(System.identityHashCode(this));
     }
 
     /**
@@ -433,7 +439,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     @Override
     public String toString() {
-        return AnyStrings.format("{} {}", getClass().getSimpleName(), id());
+        return AnyStrings.format("{} of {}", getClass().getSimpleName(),
+                segment);
     }
 
     /**
@@ -497,8 +504,10 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     @Override
     protected void free() {
         Logger.debug("Freeing memory in {}", this);
+        this.objects = null;
         this.revisions = null;
         this.revisionCount = null;
+        this.bytes = null;
     }
 
     /**
@@ -527,6 +536,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(isMutable(),
                 "Cannot modify an immutable chunk");
+        //@formatter:off
+        locator = deduplicate(locator);
+        key     = deduplicate(key);
+        value   = deduplicate(value);
+        //@formatter:on
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
@@ -675,6 +689,26 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the revision class
      */
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
+
+    /**
+     * Return an object that is equal to {@code reference} if one has been
+     * previously stored as either a locator, key or value. Otherwise, record
+     * {@code reference} as the canonical instance for equal objects that may
+     * later be seen.
+     * 
+     * @param ref
+     * @return the deduplicated reference
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends Byteable> T deduplicate(T ref) {
+        // TODO: potentially handle size issues by catching exception and no
+        // longer trying to deduplicate?
+        Preconditions.checkNotNull(ref);
+        if(objects != null) {
+            ref = (T) objects.computeIfAbsent(ref, $ref -> $ref);
+        }
+        return ref;
+    }
 
     /**
      * Return an {@link Iterable} over this {@link Chunk}'s {@link Revision

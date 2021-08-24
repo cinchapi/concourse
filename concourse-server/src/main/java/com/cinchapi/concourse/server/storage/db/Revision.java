@@ -31,6 +31,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 /**
@@ -49,12 +50,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         implements
         Byteable,
         Versioned {
-
-    /**
-     * Indicates that a component of the class has variable length and therefore
-     * must encode the size of that component for each instance.
-     */
-    static final int VARIABLE_SIZE = -1;
 
     /**
      * Create a PrimaryRevision for {@code key} as {@code value} in
@@ -104,6 +99,34 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
             PrimaryKey record, long version, Action type) {
         return new IndexRevision(key, value, record, version, type);
     }
+
+    /**
+     * Return {@code true} if {@code obj} is considered {@link Text#isCompact()}
+     * (e.g. it is directly compact Text or it is a {@link Value} that wraps
+     * compact Text}.
+     * 
+     * @param obj
+     * @return a boolean that indicates if {@code obj} is compact Text.
+     */
+    @VisibleForTesting
+    protected static boolean isCompactText(Object obj) {
+        if(obj instanceof Text) {
+            return ((Text) obj).isCompact();
+        }
+        else if(obj instanceof Value) {
+            Object o2 = ((Value) obj).getObject();
+            if(o2 instanceof Text) {
+                return ((Text) o2).isCompact();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Indicates that a component of the class has variable length and therefore
+     * must encode the size of that component for each instance.
+     */
+    static final int VARIABLE_SIZE = -1;
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -264,7 +287,15 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         if(bytes == null) {
             bytes = Byteable.super.getBytes();
         }
-        return ByteBuffers.asReadOnlyBuffer(bytes);
+        ByteBuffer bytes = ByteBuffers.asReadOnlyBuffer(this.bytes);
+        if(isCompactText(locator) || isCompactText(key)
+                || isCompactText(value)) {
+            // If any component of this Revision is compact Text, don't cache
+            // the #bytes in memory so that the desire for space efficiency is
+            // maintained.
+            this.bytes = null;
+        }
+        return bytes;
     }
 
     /**

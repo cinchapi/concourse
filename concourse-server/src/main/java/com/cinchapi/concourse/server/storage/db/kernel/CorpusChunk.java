@@ -23,8 +23,15 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import net.openhft.chronicle.core.Jvm;
+import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
+import net.openhft.chronicle.map.VanillaChronicleMap;
+import net.openhft.chronicle.set.ChronicleSet;
+
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
+import com.cinchapi.common.logging.Logging;
+import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Position;
@@ -54,6 +61,12 @@ import com.google.common.collect.SortedMultiset;
 public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements
         SearchIndex {
+
+    static {
+        Logging.disable(Jvm.class);
+        Logging.disable(InternalAnnouncer.class);
+        Logging.disable(VanillaChronicleMap.class);
+    }
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -263,7 +276,12 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         int count = 0;
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
-            int upperBound = (int) Math.pow(term.length(), 2);
+            int length = term.length();
+            int upperBound = (int) Math.pow(length, 2);
+
+            // Detect if the #term is large enough to likely cause OOMs when
+            // indexing and prepare the appropriate precautions.
+            boolean isLargeTerm = upperBound > 10000000;
 
             // A flag that indicates whether the {@link #prepare(CountUpLatch,
             // Text, String, PrimaryKey, int, long, Action) prepare} function
@@ -279,8 +297,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
-            Set<String> indexed = Sets.newHashSetWithExpectedSize(upperBound);
-            int length = term.length();
+            // @formatter:off
+            Set<String> indexed = isLargeTerm 
+                    ? ChronicleSet.of(String.class).averageKey(
+                            term.substring(0, shouldLimitSubstringLength
+                                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
+                                    : 100))
+                            .entries(upperBound).create()
+                    : Sets.newHashSetWithExpectedSize(upperBound);
+            // @formatter:on
+            final char[] chars = isLargeTerm ? term.toCharArray() : null;
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
                 int limit = (shouldLimitSubstringLength
@@ -288,16 +314,22 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;
                 for (int j = start; j < limit; ++j) {
-                    final String substring = term.substring(i, j).trim();
+                    String substring = term.substring(i, j).trim();
+                    // @formatter:off
+                    Text infix = isLargeTerm 
+                            ? Text.wrap(chars, i, j).trim()
+                            : Text.wrapCached(substring);
+                    // @formatter:on
                     if(!Strings.isNullOrEmpty(substring)
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
-                        INDEXER.enqueue(this, tracker, key, substring, pos,
-                                version, type);
+                        INDEXER.enqueue(this, tracker, key, infix, pos, version,
+                                type);
+                        ++count;
                     }
                 }
             }
-            count = indexed.size();
+            PossibleCloseables.tryCloseQuietly(indexed);
             indexed = null; // make eligible for immediate GC
         }
         return count;

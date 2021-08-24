@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,8 +23,6 @@ import org.junit.Assert;
 
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.db.kernel.Segment;
-import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;

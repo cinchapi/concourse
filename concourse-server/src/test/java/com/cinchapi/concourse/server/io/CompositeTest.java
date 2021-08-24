@@ -18,7 +18,9 @@ package com.cinchapi.concourse.server.io;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.concourse.server.model.Text;
+import com.cinchapi.concourse.util.TestData;
 
 /**
  * Unit tests for {@link Composite}.
@@ -26,6 +28,46 @@ import com.cinchapi.concourse.server.model.Text;
  * @author Jeff Nelson
  */
 public class CompositeTest {
+
+    /**
+     * Return a {@link Byteable} array that will generate a large
+     * {@link Composite}.
+     * 
+     * @return the {@link Byteable} array
+     */
+    private static Byteable[] getLargeParts() {
+        int size = 0;
+        ArrayBuilder<Byteable> ab = ArrayBuilder.builder();
+        while (size < Composite.MAX_SIZE) {
+            Byteable byteable = TestData.getText();
+            size += byteable.getCanonicalLength();
+            ab.add(byteable);
+        }
+        return ab.build();
+    }
+
+    @Test
+    public void testCompositeMaxSize() {
+        Composite composite = Composite.create(getLargeParts());
+        Assert.assertEquals(Composite.MAX_SIZE, composite.size());
+        System.out.println(composite);
+    }
+
+    @Test
+    public void testCompositeMaxSizeConsistency() {
+        Byteable[] parts = getLargeParts();
+        Composite c1 = Composite.create(parts);
+        Composite c2 = Composite.create(parts);
+        Assert.assertEquals(c1, c2);
+    }
+
+    @Test
+    public void testCompositeMaxSizeRoundTripConsistency() {
+        Byteable[] parts = getLargeParts();
+        Composite c1 = Composite.create(parts);
+        Composite c2 = Composite.load(c1.getBytes());
+        Assert.assertEquals(c1, c2);
+    }
 
     @Test
     public void testReproCON_674() {
@@ -54,5 +96,30 @@ public class CompositeTest {
         Composite c1 = Composite.create(b);
         Composite c2 = Composite.create(Text.wrap("a"), Text.wrap("b"));
         Assert.assertNotEquals(c1, c2);
+    }
+
+    @Test
+    public void testCompositeMaxSizeGetParts() {
+        Byteable[] parts = getLargeParts();
+        Composite composite = Composite.create(parts);
+        Assert.assertArrayEquals(parts, composite.parts());
+        composite = Composite.load(composite.getBytes());
+        Assert.assertFalse(composite.hasParts());
+    }
+
+    @Test
+    public void testCompositeMaxSizeCached() {
+        Byteable[] parts = getLargeParts();
+        Composite c1 = Composite.createCached(parts);
+        Composite c2 = Composite.createCached(parts);
+        while (c1 != c2) {
+            c1 = Composite.createCached(parts);
+            c2 = Composite.createCached(parts);
+        }
+        Composite c3 = Composite.createCached(parts);
+        Composite c4 = Composite.create(parts);
+        Assert.assertEquals(c1, c2);
+        Assert.assertEquals(c1, c3);
+        Assert.assertEquals(c1, c4);
     }
 }

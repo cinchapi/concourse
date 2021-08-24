@@ -8,6 +8,9 @@
 * An upgrade task has been added to automatically copy data from each Block file to a corresponding Segment file.
 	* The upgrade task will not delete the old Block files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the Block files after the upgrade. If the Block files remain, a future version of Concourse may automatically delete them for you.
 
+##### Optimizations
+* The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
+
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
 
