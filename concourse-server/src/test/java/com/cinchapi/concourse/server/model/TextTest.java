@@ -16,10 +16,12 @@
 package com.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.util.Random;
@@ -307,6 +309,31 @@ public class TextTest extends ByteableTest {
         Text t1 = Text.wrap("jeff");
         Text t2 = Text.wrap("jefs".toCharArray(), 0, 4);
         Assert.assertNotEquals(t1, t2);
+    }
+
+    @Test
+    public void testMutexNullifcationRaceCondition() {
+        String string = TestData.getString();
+        int count = TestData.getScaleCount();
+        AtomicBoolean running = new AtomicBoolean(true);
+        AtomicBoolean failed = new AtomicBoolean(false);
+        for (int i = 0; i < count; ++i) {
+            Thread t = new Thread(() -> {
+                while (running.get()) {
+                    try {
+                        Text.wrapCached(string).getBytes();
+                    }
+                    catch (Exception e) {
+                        failed.set(true);
+                        e.printStackTrace();
+                    }
+                }
+            });
+            t.start();
+        }
+        Threads.sleep(2000);
+        running.set(false);
+        Assert.assertFalse(failed.get());
     }
 
 }

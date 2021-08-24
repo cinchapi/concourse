@@ -442,9 +442,9 @@ public abstract class Text implements Byteable, Comparable<Text> {
                                         // copy if there is a race condition
                                         // with a cached instance
                         bytes = ByteBuffers.fromUtf8String(value);
-                        mutex = null;
                     }
                 }
+                mutex = null;
             }
             return ByteBuffers.asReadOnlyBuffer(bytes);
         }
