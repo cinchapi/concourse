@@ -264,4 +264,17 @@ public class TextTest extends ByteableTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testCharTextIsCompact() {
+        String string = Random.getString();
+        Assert.assertTrue(Text.wrap(string.toCharArray(), 0, string.length())
+                .isCompact());
+    }
+
+    @Test
+    public void testStringTextIsNotCompact() {
+        String string = Random.getString();
+        Assert.assertFalse(Text.wrap(string).isCompact());
+    }
+
 }
