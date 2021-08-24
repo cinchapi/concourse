@@ -383,8 +383,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
         private transient ByteBuffer bytes = null;
 
         /**
-         * A mutex used to synchronized the lazy setting of the byte buffer. If
-         * {@link #bytes} is populated, this is {@code null}.
+         * A mutex used to synchronized the lazy setting of the byte buffer.
          */
         @Nullable
         private transient Object mutex = new Object();
@@ -444,7 +443,6 @@ public abstract class Text implements Byteable, Comparable<Text> {
                         bytes = ByteBuffers.fromUtf8String(value);
                     }
                 }
-                mutex = null;
             }
             return ByteBuffers.asReadOnlyBuffer(bytes);
         }
