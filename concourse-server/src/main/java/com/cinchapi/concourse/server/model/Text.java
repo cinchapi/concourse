@@ -353,12 +353,15 @@ public abstract class Text implements Byteable, Comparable<Text> {
          * Master byte sequence that represents this object. Read-only
          * duplicates are made when returning from {@link #getBytes()}.
          */
+        @Nullable
         private transient ByteBuffer bytes = null;
 
         /**
-         * A mutex used to synchronized the lazy setting of the byte buffer.
+         * A mutex used to synchronized the lazy setting of the byte buffer. If
+         * {@link #bytes} is populated, this is {@code null}.
          */
-        private final Object mutex = new Object();
+        @Nullable
+        private transient Object mutex = new Object();
 
         /**
          * Construct an instance that wraps the {@code text} string.
@@ -413,6 +416,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
                                         // copy if there is a race condition
                                         // with a cached instance
                         bytes = ByteBuffers.fromUtf8String(value);
+                        mutex = null;
                     }
                 }
             }
