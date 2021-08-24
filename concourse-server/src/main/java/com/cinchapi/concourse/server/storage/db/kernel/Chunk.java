@@ -303,16 +303,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     }
 
     /**
-     * Return this {@link Chunk Chunk's} id.
-     * 
-     * @return the {@link Chunk} id
-     */
-    public String id() {
-        return segment != null ? segment.id()
-                : Integer.toString(System.identityHashCode(this));
-    }
-
-    /**
      * Insert a revision for {@code key} as {@code value} in {@code locator} at
      * {@code version} into this {@link Chunk}.
      * 
@@ -449,7 +439,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     @Override
     public String toString() {
-        return AnyStrings.format("{} {}", getClass().getSimpleName(), id());
+        return AnyStrings.format("{} of {}", getClass().getSimpleName(),
+                segment);
     }
 
     /**

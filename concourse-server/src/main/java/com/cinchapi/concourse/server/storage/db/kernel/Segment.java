@@ -563,7 +563,7 @@ public final class Segment extends TransferableByteSequence implements
      * @return the label
      */
     public String label() {
-        return "Segment-" + System.identityHashCode(this);
+        return "MutableSegment-" + System.identityHashCode(this);
     }
 
     @Override
@@ -720,7 +720,7 @@ public final class Segment extends TransferableByteSequence implements
 
     @Override
     protected void free() {
-        Logger.debug("Freeing memory in {}", this);
+        Logger.debug("Freeing memory in {}", label());
         this.objects = null;
     }
 

@@ -345,7 +345,7 @@ public final class Database extends BaseStore implements PermanentStore {
             if(running) {
                 try {
                     Receipt receipt = seg0.acquire(write, writer);
-                    Logger.debug("Transferred {} to {}", write, seg0);
+                    Logger.debug("Indexed '{}' in {}", write, seg0);
 
                     // Updated cached records
                     TableRecord cpr = cpc
