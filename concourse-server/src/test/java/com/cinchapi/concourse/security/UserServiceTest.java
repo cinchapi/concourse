@@ -94,8 +94,9 @@ public class UserServiceTest extends ConcourseBaseTest {
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             ByteBuffer username = getAcceptableUsername();
             ByteBuffer password = getSecurePassword();
-            users.put(username, password);
-            service.create(username, password, Role.ADMIN);
+            if(users.putIfAbsent(username, password) == null) {
+                service.create(username, password, Role.ADMIN);
+            }
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
             Assert.assertTrue(
