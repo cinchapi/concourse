@@ -202,16 +202,22 @@ public class SegmentTest extends ConcourseBaseTest {
                         segment.index().seek(Composite.create(text), ir);
                         segment.corpus().seek(Composite.create(text), cr);
                         if(!done.get() && tr.isEmpty() != ir.isEmpty()) {
-                            succeeded.set(false);
-                            System.out.println(AnyStrings.format(
-                                    "table empty = {} and index empty = {} for {}",
-                                    tr.isEmpty(), ir.isEmpty(), record));
+                            if(!tr.isEmpty() && ir.isEmpty()) {
+                                // Later read is empty
+                                succeeded.set(false);
+                                System.out.println(AnyStrings.format(
+                                        "table empty = {} and index empty = {} for {}",
+                                        tr.isEmpty(), ir.isEmpty(), record));
+                            }
                         }
-                        if(!done.get() && tr.isEmpty() != cr.isEmpty()) {
-                            succeeded.set(false);
-                            System.out.println(AnyStrings.format(
-                                    "table empty = {} and corpus empty = {} for {}",
-                                    tr.isEmpty(), cr.isEmpty(), record));
+                        if(!done.get() && ir.isEmpty() != cr.isEmpty()) {
+                            if(!ir.isEmpty() && cr.isEmpty()) {
+                                // Later read is empty
+                                succeeded.set(false);
+                                System.out.println(AnyStrings.format(
+                                        "index empty = {} and corpus empty = {} for {}",
+                                        tr.isEmpty(), cr.isEmpty(), record));
+                            }
                         }
                     }
                     TableRecord tr = TableRecord.create(pk);
