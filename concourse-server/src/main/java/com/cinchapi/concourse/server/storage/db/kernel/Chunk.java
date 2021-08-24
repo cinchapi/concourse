@@ -107,6 +107,15 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     private final boolean allowEmptyFlush = this instanceof CorpusChunk;
 
+    /**
+     * The bytes for all the {@link #revisions} in a {@link #isMutable()
+     * mutable} {@link Chunk} that are generated alongside the {@link #manifest}
+     * if the {@link #length} is less than {@link Integer#MAX_VALUE}.
+     * <p>
+     * If this value is not {@code null}, it is cleared when new data is
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted}.
+     * </p>
+     */
     @Nullable
     private ByteBuffer bytes;
 
