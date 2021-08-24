@@ -543,8 +543,8 @@ public final class Segment extends TransferableByteSequence implements
      * @return the segment id
      */
     public String id() {
-        Path file = file();
-        return file != null ? file.getFileName().toString() : label();
+        return !isMutable() ? file().getFileName().toString()
+                : "MutableSegment-" + System.identityHashCode(this);
     }
 
     /**
@@ -554,16 +554,6 @@ public final class Segment extends TransferableByteSequence implements
      */
     public IndexChunk index() {
         return index;
-    }
-
-    /**
-     * Return an ephemeral label for this {@link Segment}. This label is not
-     * consistent and should not be relied upon for identification.
-     * 
-     * @return the label
-     */
-    public String label() {
-        return "MutableSegment-" + System.identityHashCode(this);
     }
 
     @Override
@@ -720,7 +710,7 @@ public final class Segment extends TransferableByteSequence implements
 
     @Override
     protected void free() {
-        Logger.debug("Freeing memory in {}", label());
+        Logger.debug("Freeing memory used by {}", this);
         this.objects = null;
     }
 
