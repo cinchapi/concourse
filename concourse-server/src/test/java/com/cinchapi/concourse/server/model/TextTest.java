@@ -276,22 +276,37 @@ public class TextTest extends ByteableTest {
         String string = Random.getString();
         Assert.assertFalse(Text.wrap(string).isCompact());
     }
-    
+
     @Test
     public void testCharTextEqualsDifferentOffsetsSameValue() {
         char[] chars = "abcabcabcabc".toCharArray();
         Text t1 = Text.wrap(chars, 1, 4);
-        Text t2 = Text.wrap(chars,7,10);
+        Text t2 = Text.wrap(chars, 7, 10);
         Assert.assertEquals(t1, t2);
     }
-    
+
     @Test
     public void testCharTextEqualsDifferentCharArrays() {
         char[] c1 = "abcabcabcabc".toCharArray();
         char[] c2 = "abcabcabcabc".toCharArray();
         Text t1 = Text.wrap(c1, 1, 4);
-        Text t2 = Text.wrap(c2,7,10);
+        Text t2 = Text.wrap(c2, 7, 10);
         Assert.assertEquals(t1, t2);
+    }
+
+    @Test
+    public void testCharTextShortcutEquals() {
+        char[] chars = "abcabcabcabc".toCharArray();
+        Text t1 = Text.wrap(chars, 1, 4);
+        Text t2 = Text.wrap(chars, 1, 4);
+        Assert.assertEquals(t1, t2);
+    }
+
+    @Test
+    public void testTextNotEquals() {
+        Text t1 = Text.wrap("jeff");
+        Text t2 = Text.wrap("jefs".toCharArray(), 0, 4);
+        Assert.assertNotEquals(t1, t2);
     }
 
 }

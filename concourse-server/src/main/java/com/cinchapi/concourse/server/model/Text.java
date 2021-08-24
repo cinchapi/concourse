@@ -164,9 +164,23 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Text) {
+        // This implementation is adapted from java.lang.String#equals
+        if(this == obj) {
+            return true;
+        }
+        else if(obj instanceof Text) {
             Text other = (Text) obj;
-            return toString().equals(other.toString());
+            int length = length();
+            if(length == other.length()) {
+                for (int i = 0; i < length; ++i) {
+                    char c1 = charAt(i);
+                    char c2 = other.charAt(i);
+                    if(c1 != c2) {
+                        return false;
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -284,6 +298,18 @@ public abstract class Text implements Byteable, Comparable<Text> {
         @Override
         public void copyTo(ByteSink sink) {
             sink.put(getBytes());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof CharText) {
+                CharText other = (CharText) obj;
+                if(chars == other.chars && start == other.start
+                        && end == other.end) {
+                    return true;
+                }
+            }
+            return super.equals(obj);
         }
 
         @Override
@@ -445,7 +471,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
         @Override
         public String toString() {
-            return value.toString();
+            return value;
         }
 
         @Override
