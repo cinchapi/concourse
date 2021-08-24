@@ -295,7 +295,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
         @Override
         public boolean isCompact() {
-            return false;
+            return true;
         }
 
         @Override
@@ -427,7 +427,7 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
         @Override
         public boolean isCompact() {
-            return true;
+            return false;
         }
 
         @Override
