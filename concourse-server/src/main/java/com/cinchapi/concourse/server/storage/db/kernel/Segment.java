@@ -132,7 +132,7 @@ public final class Segment extends TransferableByteSequence implements
      * @return the {@link Segment}
      */
     public static Segment create() {
-        return create(DEFAULT_EXPECTED_INSERTIONS);
+        return create(EXPECTED_INSERTIONS);
     }
 
     /**
@@ -194,29 +194,7 @@ public final class Segment extends TransferableByteSequence implements
      * bloom filter, but no larger than necessary since we must keep all bloom
      * filters in memory.
      */
-    private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
-
-    /**
-     * Multiplied times the number of expected insertions in an attempt to size
-     * the {@link #objects} pool correctly.
-     * <p>
-     * For a given Write(key, value, record) we have the following insertions:
-     * <ol>
-     * <li>key (table as K)</li>
-     * <li>key (index as L)</li>
-     * <li>key (corpus as L)</li>
-     * <li>value (table as V)</li>
-     * <li>value (index as K)</li>
-     * <li>record (table as L)</li>
-     * <li>record (index as V)</li>
-     * <li>$position (corpus as V)</li>
-     * </ol>
-     * </p>
-     */
-    private static final int OBJECTS_POOL_ENTRIES_PER_INSERTION_MULTIPLE = 8
-            + (GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
-                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
-                    : 100);
+    private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
 
     /**
      * The expected bytes at the beginning of a {@link Segment} file to properly
@@ -340,8 +318,7 @@ public final class Segment extends TransferableByteSequence implements
      */
     private Segment(int expectedInsertions) {
         super();
-        this.objects = new ConcurrentHashMap<>(expectedInsertions
-                * OBJECTS_POOL_ENTRIES_PER_INSERTION_MULTIPLE);
+        this.objects = new ConcurrentHashMap<>(expectedInsertions * 3);
         this.maxTs = Long.MIN_VALUE;
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
