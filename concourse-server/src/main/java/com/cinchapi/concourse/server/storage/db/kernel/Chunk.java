@@ -516,6 +516,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.objects = null;
         this.revisions = null;
         this.revisionCount = null;
+        this.bytes = null;
     }
 
     /**
