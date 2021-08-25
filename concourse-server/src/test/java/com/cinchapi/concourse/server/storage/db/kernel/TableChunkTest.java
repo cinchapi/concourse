@@ -27,6 +27,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.TableRecord;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -78,6 +79,11 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
         chunk = load(file, filter, chunk.manifest());
         chunk.seek(Composite.create(locator, key), record);
         Assert.assertTrue(record.fetch(key).contains(value));
+    }
+
+    @Override
+    protected Record<PrimaryKey, Text, Value> createRecord(PrimaryKey locator) {
+        return TableRecord.create(locator);
     }
 
 }

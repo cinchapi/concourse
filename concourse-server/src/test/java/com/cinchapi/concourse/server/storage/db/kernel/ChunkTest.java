@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -28,12 +29,14 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
@@ -156,11 +159,41 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
         Assert.assertEquals(revisions, stored);
     }
 
+    @Test
+    public void testSortingDelayedUntilRead() {
+        L $locator = getLocator();
+        L locator = $locator;
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            locator = locator == null ? getLocator() : locator;
+            chunk.insert(locator, getKey(), getValue(), Time.now(), Action.ADD);
+            locator = null;
+        }
+        Set<?> revisions = Reflection.get("revisions", chunk);
+        Collection<?> unsorted;
+        Collection<?> sorted;
+        Collection<?> delegate;
+        unsorted = Reflection.get("unsorted", revisions);
+        sorted = Reflection.get("sorted", revisions);
+        delegate = Reflection.get("delegate", revisions);
+        Assert.assertNotNull(unsorted);
+        Assert.assertNull(sorted);
+        Assert.assertSame(unsorted, delegate);
+        chunk.seek(Composite.create($locator), createRecord($locator));
+        unsorted = Reflection.get("unsorted", revisions);
+        sorted = Reflection.get("sorted", revisions);
+        delegate = Reflection.get("delegate", revisions);
+        Assert.assertNull(unsorted);
+        Assert.assertNotNull(sorted);
+        Assert.assertSame(sorted, delegate);
+    }
+
     protected abstract L getLocator();
 
     protected abstract K getKey();
 
     protected abstract V getValue();
+
+    protected abstract Record<L, K, V> createRecord(L locator);
 
     protected abstract Chunk<L, K, V> create(BloomFilter filter);
 

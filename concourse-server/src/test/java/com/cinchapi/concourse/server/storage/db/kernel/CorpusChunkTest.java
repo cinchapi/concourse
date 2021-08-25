@@ -34,6 +34,7 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
+import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
@@ -330,6 +331,11 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                 Action.ADD);
         Assert.assertTrue(chunk.mightContain(Composite.create(locator, term,
                 Position.wrap(record, position))));
+    }
+
+    @Override
+    protected Record<Text, Text, Position> createRecord(Text locator) {
+        return CorpusRecord.create(locator);
     }
 
 }
