@@ -32,6 +32,7 @@ import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.IndexRecord;
 import com.cinchapi.concourse.server.storage.db.Revision;
@@ -351,6 +352,22 @@ public class SegmentTest extends ConcourseBaseTest {
             }
 
         }
+    }
+
+    @Test
+    public void testBloomFilterAccuracyOnLoad() throws SegmentLoadingException {
+        for(int i = 0; i < TestData.getScaleCount(); ++i) {
+            segment.acquire(TestData.getWriteAdd());
+        }
+        BloomFilter table = segment.table().filter();
+        BloomFilter index = segment.index().filter();
+        BloomFilter corpus = segment.corpus().filter();
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        segment.transfer(file);
+        segment = Segment.load(file);
+        Assert.assertEquals(table, segment.table().filter());
+        Assert.assertEquals(index, segment.index().filter());
+        Assert.assertEquals(corpus, segment.corpus().filter());
     }
 
 }

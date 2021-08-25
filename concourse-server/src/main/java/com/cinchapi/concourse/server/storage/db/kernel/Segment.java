@@ -406,8 +406,9 @@ public final class Segment extends TransferableByteSequence implements
                                 (int) indexFilterLength));
 
                 // Corpus BloomFilter
-                BloomFilter corpusFilter = BloomFilter.load(
-                        ByteBuffers.slice(filterBytes, (int) indexFilterLength,
+                BloomFilter corpusFilter = BloomFilter
+                        .load(ByteBuffers.slice(filterBytes,
+                                (int) (tableFilterLength + indexFilterLength),
                                 (int) corpusFilterLength));
 
                 // Table Manifest
