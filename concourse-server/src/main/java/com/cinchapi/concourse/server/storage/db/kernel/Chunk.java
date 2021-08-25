@@ -23,6 +23,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -48,8 +50,6 @@ import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 /**
  * <p>
@@ -99,7 +99,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * clear this reference in response to memory pressure at which point disk
      * seeks will be performed in the {@link #seek(Record, Byteable...)} method.
      */
-    private final SoftReference<SortedMultiset<Revision<L, K, V>>> $revisions;
+    private final SoftReference<SortedSet<Revision<L, K, V>>> $revisions;
 
     /**
      * A flag that indicates if this {@link Chunk} can be
@@ -167,8 +167,17 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * from a {@link #file} does not rely on this collection at all.
      * </p>
      */
+    /*
+     * IMPLEMENTATION NOTE
+     * -------------------
+     * Even though Revisions with the same locator, key and value are considered
+     * "equals", we use a Set instead of a Multiset because the specially
+     * designed SORTER leverages the unique version associated with each
+     * Revision to determine equality. This technically breaks the contract that
+     * Set wants between a comparator and #equals, but it practically works.
+     */
     @Nullable
-    private SortedMultiset<Revision<L, K, V>> revisions;
+    private SortedSet<Revision<L, K, V>> revisions;
 
     /**
      * A reference to the {@link Segment} to which this {@link Chunk} is
@@ -215,7 +224,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             objects = new ConcurrentHashMap<>();
         }
         this.revisions = createBackingStore(Sorter.INSTANCE);
-        this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
+        this.$revisions = new SoftReference<SortedSet<Revision<L, K, V>>>(
                 revisions);
         this.revisionCount = new AtomicInteger(0);
         this.segmentReadLock = segment != null ? segment.readLock
@@ -394,7 +403,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         Locks.lockIfCondition(read, mutable);
         try {
             if(filter.mightContain(composite)) {
-                SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
+                SortedSet<Revision<L, K, V>> revisions = $revisions != null
                         ? $revisions.get()
                         : null;
                 if(revisions != null) {
@@ -466,9 +475,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the backing store
      */
     @SuppressWarnings("rawtypes")
-    protected SortedMultiset<Revision<L, K, V>> createBackingStore(
+    protected SortedSet<Revision<L, K, V>> createBackingStore(
             Comparator<Revision> comparator) {
-        return TreeMultiset.create(comparator);
+        return new TreeSet<>(comparator);
     }
 
     /**
