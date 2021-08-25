@@ -16,7 +16,9 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -304,6 +307,20 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
     @Test
     @Ignore
     public void testIterator() {
+        // Direct insert for CorpusChunk is unsupported
+    }
+
+    @Test
+    @Override
+    @Ignore
+    public void testSortingDelayedUntilRead() {
+        // Direct insert for CorpusChunk is unsupported
+    }
+
+    @Test
+    @Override
+    @Ignore
+    public void testIteratorAlwaysReturnsSorted() {
         // Direct insert for CorpusChunk is unsupported
     }
 
