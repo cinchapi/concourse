@@ -29,6 +29,8 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.db.IndexRecord;
+import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -95,6 +97,11 @@ public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
         // entry for the payRangeMax locator and 4 entries for that locator and
         // the 4 unique keys (18.0, foo, 625, 626).
         Assert.assertEquals(5, entries.size());
+    }
+
+    @Override
+    protected Record<Text, Value, PrimaryKey> createRecord(Text locator) {
+        return IndexRecord.create(locator);
     }
 
 }

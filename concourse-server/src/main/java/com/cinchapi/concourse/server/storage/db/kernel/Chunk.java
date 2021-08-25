@@ -19,14 +19,25 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.Spliterator;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,8 +59,6 @@ import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 /**
  * <p>
@@ -99,7 +108,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * clear this reference in response to memory pressure at which point disk
      * seeks will be performed in the {@link #seek(Record, Byteable...)} method.
      */
-    private final SoftReference<SortedMultiset<Revision<L, K, V>>> $revisions;
+    private final SoftReference<SortedSet<Revision<L, K, V>>> $revisions;
 
     /**
      * A flag that indicates if this {@link Chunk} can be
@@ -107,6 +116,15 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     private final boolean allowEmptyFlush = this instanceof CorpusChunk;
 
+    /**
+     * The bytes for all the {@link #revisions} in a {@link #isMutable()
+     * mutable} {@link Chunk} that are generated alongside the {@link #manifest}
+     * if the {@link #length} is less than {@link Integer#MAX_VALUE}.
+     * <p>
+     * If this value is not {@code null}, it is cleared when new data is
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted}.
+     * </p>
+     */
     @Nullable
     private ByteBuffer bytes;
 
@@ -136,6 +154,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private Manifest manifest;
 
     /**
+     * A collection that shadows {@link Segment#objects()} to handle
+     * {@link #deduplicate(Byteable) deduplication}.
+     */
+    @Nullable
+    private Map<Byteable, Byteable> objects;
+
+    /**
      * A running count of the number of {@link #revisions} that have been
      * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
      * a {@link #mutable} {@link Chunk}.
@@ -158,8 +183,17 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * from a {@link #file} does not rely on this collection at all.
      * </p>
      */
+    /*
+     * IMPLEMENTATION NOTE
+     * -------------------
+     * Even though Revisions with the same locator, key and value are considered
+     * "equals", we use a Set instead of a Multiset because the specially
+     * designed SORTER leverages the unique version associated with each
+     * Revision to determine equality. This technically breaks the contract that
+     * Set wants between a comparator and #equals, but it practically works.
+     */
     @Nullable
-    private SortedMultiset<Revision<L, K, V>> revisions;
+    private SortedSet<Revision<L, K, V>> revisions;
 
     /**
      * A reference to the {@link Segment} to which this {@link Chunk} is
@@ -180,13 +214,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private final ReadLock segmentReadLock;
 
     /**
-     * A collection that shadows {@link Segment#objects()} to handle
-     * {@link #deduplicate(Byteable) deduplication}.
-     */
-    @Nullable
-    private Map<Byteable, Byteable> objects;
-
-    /**
      * Construct a new instance.
      * 
      * @param segment
@@ -205,8 +232,10 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     this, segment);
             objects = new ConcurrentHashMap<>();
         }
-        this.revisions = createBackingStore(Sorter.INSTANCE);
-        this.$revisions = new SoftReference<SortedMultiset<Revision<L, K, V>>>(
+        this.revisions = new DelayedSortedSet(
+                segment != null ? segment.expectedInsertions : 100,
+                Sorter.INSTANCE);
+        this.$revisions = new SoftReference<SortedSet<Revision<L, K, V>>>(
                 revisions);
         this.revisionCount = new AtomicInteger(0);
         this.segmentReadLock = segment != null ? segment.readLock
@@ -385,7 +414,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         Locks.lockIfCondition(read, mutable);
         try {
             if(filter.mightContain(composite)) {
-                SortedMultiset<Revision<L, K, V>> revisions = $revisions != null
+                SortedSet<Revision<L, K, V>> revisions = $revisions != null
                         ? $revisions.get()
                         : null;
                 if(revisions != null) {
@@ -457,9 +486,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the backing store
      */
     @SuppressWarnings("rawtypes")
-    protected SortedMultiset<Revision<L, K, V>> createBackingStore(
+    protected SortedSet<Revision<L, K, V>> createBackingStore(
             Comparator<Revision> comparator) {
-        return TreeMultiset.create(comparator);
+        return new TreeSet<>(comparator);
     }
 
     /**
@@ -776,7 +805,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @author Jeff Nelson
      */
     @SuppressWarnings("rawtypes")
-    private enum Sorter implements Comparator<Revision> {
+    protected enum Sorter implements Comparator<Revision> {
         INSTANCE;
 
         /**
@@ -789,6 +818,239 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
                     .compare(o1.getValue(), o2.getValue()).result();
+        }
+
+    }
+
+    /**
+     * An internal wrapper for the {@link Chunk Chunk's} {@link #revisions} that
+     * collects entries in an append-only manner until a
+     * {@link Chunk#seek(Composite, Record) read} occurs, in which case, the
+     * entries are sorted and maintained in sorted order thereafter.
+     * <p>
+     * A {@link DelayedSortedSet} inherits its thread safety from that of its
+     * parent {@link Chunk}. It takes advantage of the fact that a writer will
+     * never conflict with readers. Therefore, when entries are being sorted
+     * on-the-fly for a read, there is an assurance that no intermediate write
+     * will occur.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    @ThreadSafe
+    @SuppressWarnings("rawtypes")
+    private class DelayedSortedSet implements SortedSet<Revision<L, K, V>> {
+
+        /**
+         * The {@link Comparator} used for sorting.
+         */
+        private final Comparator<Revision> comparator;
+
+        /**
+         * A reference to either {@link #unsorted} or {@link #sorted}. Used
+         * methods that don't require the data to be sorted so that the request
+         * can be most efficiently routed.
+         */
+        @Nonnull
+        private Collection<Revision<L, K, V>> delegate;
+
+        /**
+         * The sorted collection of revisions where data is added and maintained
+         * after the first read occurs.
+         */
+        @Nullable
+        private SortedSet<Revision<L, K, V>> sorted;
+
+        /**
+         * The unsorted collection of revisions where data is initially added
+         * until a read occurs.
+         */
+        @Nullable
+        private Collection<Revision<L, K, V>> unsorted;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param expectedInsertions
+         * @param comparator
+         */
+        private DelayedSortedSet(int expectedInsertions,
+                Comparator<Revision> comparator) {
+            this.sorted = null;
+            this.comparator = comparator;
+            // List based collections are used because Revision#equals does not
+            // consider the #version to disambiguate.
+            this.unsorted = Chunk.this instanceof ConcurrentChunk
+                    ? new ConcurrentLinkedQueue<>()
+                    : new LinkedList<>();
+            this.delegate = unsorted;
+        }
+
+        @Override
+        public boolean add(Revision<L, K, V> e) {
+            return delegate.add(e);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends Revision<L, K, V>> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Comparator<? super Revision<L, K, V>> comparator() {
+            return comparator;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return sort().contains(o);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return sort().containsAll(c);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return sort().equals(obj);
+        }
+
+        @Override
+        public Revision<L, K, V> first() {
+            return sort().first();
+        }
+
+        @Override
+        public void forEach(Consumer<? super Revision<L, K, V>> action) {
+            sort().forEach(action);
+        }
+
+        @Override
+        public int hashCode() {
+            return sort().hashCode();
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> headSet(
+                Revision<L, K, V> toElement) {
+            return sort().headSet(toElement);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public Iterator<Revision<L, K, V>> iterator() {
+            return sort().iterator();
+        }
+
+        @Override
+        public Revision<L, K, V> last() {
+            return sort().last();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> parallelStream() {
+            return sort().parallelStream();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Revision<L, K, V>> filter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public Spliterator<Revision<L, K, V>> spliterator() {
+            return sort().spliterator();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> stream() {
+            return sort().stream();
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> subSet(
+                Revision<L, K, V> fromElement, Revision<L, K, V> toElement) {
+            return sort().subSet(fromElement, toElement);
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> tailSet(
+                Revision<L, K, V> fromElement) {
+            return sort().tailSet(fromElement);
+        }
+
+        @Override
+        public Object[] toArray() {
+            return sort().toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return sort().toArray(a);
+        }
+
+        @Override
+        public String toString() {
+            return sort().toString();
+        }
+
+        /**
+         * If necessary, sort the entries that have been added to this
+         * {@link Set} and ensure that they are maintained in sorter order,
+         * going forward.
+         * <p>
+         * After this method is called, {@link #unsorted} is no longer the
+         * {@link #delegate} and is freed.
+         * </p>
+         * 
+         * @return the sorted entries
+         */
+        private SortedSet<Revision<L, K, V>> sort() {
+            // NOTE: It is possible that multiple readers will attempt to sort
+            // at the same time, but that is okay. If that contention happens,
+            // multiple sorted instances will be created, but no writes will be
+            // allowed before a canonical #sorted #delegate is assigned and
+            // visible to all readers.
+            while (sorted != delegate) {
+                SortedSet<Revision<L, K, V>> s = createBackingStore(comparator);
+                s.addAll(delegate);
+                sorted = s;
+                delegate = sorted;
+                unsorted = null;
+                Logger.debug("Performed a delayed sort of the revisions in {}",
+                        Chunk.this);
+            }
+            return sorted;
         }
 
     }

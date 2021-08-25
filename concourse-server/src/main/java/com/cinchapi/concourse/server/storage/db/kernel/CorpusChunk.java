@@ -20,6 +20,8 @@ import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.Nullable;
 
@@ -45,12 +47,10 @@ import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.util.ConcurrentSkipListMultiset;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.google.common.collect.SortedMultiset;
 
 /**
  * A {@link Chunk} that stores {@link CorpusRevision CorpusRevisons} for
@@ -233,9 +233,9 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
 
     @SuppressWarnings("rawtypes")
     @Override
-    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
+    protected SortedSet<Revision<Text, Text, Position>> createBackingStore(
             Comparator<Revision> comparator) {
-        return ConcurrentSkipListMultiset.create(comparator);
+        return new ConcurrentSkipListSet<>(comparator);
     }
 
     @Override

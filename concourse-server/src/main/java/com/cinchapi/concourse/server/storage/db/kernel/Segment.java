@@ -336,10 +336,17 @@ public final class Segment extends TransferableByteSequence implements
     private Map<Byteable, Byteable> objects;
 
     /**
+     * The number of insertions that are/were expected. Available to friends
+     * (e.g. {@link Chunk} for proper component sizing.
+     */
+    protected final int expectedInsertions;
+
+    /**
      * Construct a new instance.
      */
     private Segment(int expectedInsertions) {
         super();
+        this.expectedInsertions = expectedInsertions;
         this.objects = new ConcurrentHashMap<>(expectedInsertions
                 * OBJECTS_POOL_ENTRIES_PER_INSERTION_MULTIPLE);
         this.maxTs = Long.MIN_VALUE;
@@ -362,6 +369,7 @@ public final class Segment extends TransferableByteSequence implements
      */
     private Segment(Path file) throws SegmentLoadingException {
         super(file);
+        this.expectedInsertions = 0;
         this.objects = null;
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
