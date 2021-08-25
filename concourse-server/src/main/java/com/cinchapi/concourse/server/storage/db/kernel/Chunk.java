@@ -19,10 +19,10 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -882,7 +882,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             // consider the #version to disambiguate.
             this.unsorted = Chunk.this instanceof ConcurrentChunk
                     ? new ConcurrentLinkedQueue<>()
-                    : new ArrayList<>(expectedInsertions);
+                    : new LinkedList<>();
             this.delegate = unsorted;
         }
 
