@@ -805,7 +805,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @author Jeff Nelson
      */
     @SuppressWarnings("rawtypes")
-    private enum Sorter implements Comparator<Revision> {
+    protected enum Sorter implements Comparator<Revision> {
         INSTANCE;
 
         /**

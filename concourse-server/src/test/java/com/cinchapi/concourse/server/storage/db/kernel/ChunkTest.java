@@ -185,6 +185,42 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
         Assert.assertNull(unsorted);
         Assert.assertNotNull(sorted);
         Assert.assertSame(sorted, delegate);
+        chunk.seek(Composite.create($locator), createRecord($locator));
+        Collection<?> sorted2 = Reflection.get("sorted", revisions);
+        Assert.assertSame(sorted, sorted2);
+    }
+
+    @Test
+    public void testIteratorAlwaysReturnsSorted() {
+        L $locator = getLocator();
+        L locator = $locator;
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            locator = locator == null ? getLocator() : locator;
+            chunk.insert(locator, getKey(), getValue(), Time.now(), Action.ADD);
+            locator = null;
+        }
+        Revision<L, K, V> prev = null;
+        Iterator<Revision<L, K, V>> it = chunk.iterator();
+        while (it.hasNext()) {
+            Revision<L, K, V> current = it.next();
+            if(prev != null) {
+                Assert.assertTrue(
+                        Chunk.Sorter.INSTANCE.compare(prev, current) < 0);
+            }
+            prev = current;
+        }
+        chunk.seek(Composite.create($locator), createRecord($locator));
+
+        prev = null;
+        it = chunk.iterator();
+        while (it.hasNext()) {
+            Revision<L, K, V> current = it.next();
+            if(prev != null) {
+                Assert.assertTrue(
+                        Chunk.Sorter.INSTANCE.compare(prev, current) < 0);
+            }
+            prev = current;
+        }
     }
 
     protected abstract L getLocator();
