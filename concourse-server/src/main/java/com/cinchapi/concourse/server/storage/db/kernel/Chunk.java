@@ -19,16 +19,25 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.Spliterator;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -223,7 +232,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     this, segment);
             objects = new ConcurrentHashMap<>();
         }
-        this.revisions = createBackingStore(Sorter.INSTANCE);
+        this.revisions = new DelayedSortedSet(
+                segment != null ? segment.expectedInsertions : 100,
+                Sorter.INSTANCE);
         this.$revisions = new SoftReference<SortedSet<Revision<L, K, V>>>(
                 revisions);
         this.revisionCount = new AtomicInteger(0);
@@ -807,6 +818,239 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
                     .compare(o1.getValue(), o2.getValue()).result();
+        }
+
+    }
+
+    /**
+     * An internal wrapper for the {@link Chunk Chunk's} {@link #revisions} that
+     * collects entries in an append-only manner until a
+     * {@link Chunk#seek(Composite, Record) read} occurs, in which case, the
+     * entries are sorted and maintained in sorted order thereafter.
+     * <p>
+     * A {@link DelayedSortedSet} inherits its thread safety from that of its
+     * parent {@link Chunk}. It takes advantage of the fact that a writer will
+     * never conflict with readers. Therefore, when entries are being sorted
+     * on-the-fly for a read, there is an assurance that no intermediate write
+     * will occur.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    @ThreadSafe
+    @SuppressWarnings("rawtypes")
+    private class DelayedSortedSet implements SortedSet<Revision<L, K, V>> {
+
+        /**
+         * The unsorted collection of revisions where data is initially added
+         * until a read occurs.
+         */
+        @Nullable
+        private Collection<Revision<L, K, V>> unsorted;
+
+        /**
+         * The sorted collection of revisions where data is added and maintained
+         * after the first read occurs.
+         */
+        @Nullable
+        private SortedSet<Revision<L, K, V>> sorted;
+
+        /**
+         * The {@link Comparator} used for sorting.
+         */
+        private final Comparator<Revision> comparator;
+
+        /**
+         * A reference to either {@link #unsorted} or {@link #sorted}. Used
+         * methods that don't require the data to be sorted so that the request
+         * can be most efficiently routed.
+         */
+        @Nonnull
+        private Collection<Revision<L, K, V>> delegate;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param expectedInsertions
+         * @param comparator
+         */
+        private DelayedSortedSet(int expectedInsertions,
+                Comparator<Revision> comparator) {
+            this.sorted = null;
+            this.comparator = comparator;
+            // List based collections are used because Revision#equals does not
+            // consider the #version to disambiguate.
+            this.unsorted = Chunk.this instanceof ConcurrentChunk
+                    ? new ConcurrentLinkedQueue<>()
+                    : new ArrayList<>(expectedInsertions);
+            this.delegate = unsorted;
+        }
+
+        /**
+         * If necessary, sort the entries that have been added to this
+         * {@link Set} and ensure that they are maintained in sorter order,
+         * going forward.
+         * <p>
+         * After this method is called, {@link #unsorted} is no longer the
+         * {@link #delegate} and is freed.
+         * </p>
+         * 
+         * @return the sorted entries
+         */
+        private SortedSet<Revision<L, K, V>> sort() {
+            // NOTE: It is possible that multiple readers will attempt to sort
+            // at the same time, but that is okay. If that contention happens,
+            // multiple sorted instances will be created, but no writes will be
+            // allowed before a canonical #sorted #delegate is assigned and
+            // visible to all readers.
+            while (sorted != delegate) {
+                SortedSet<Revision<L, K, V>> s = createBackingStore(comparator);
+                s.addAll(delegate);
+                sorted = s;
+                delegate = sorted;
+                unsorted = null;
+                Logger.debug("Performed a delayed sort of the revisions in {}",
+                        Chunk.this);
+            }
+            return sorted;
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return sort().contains(o);
+        }
+
+        @Override
+        public Iterator<Revision<L, K, V>> iterator() {
+            return sort().iterator();
+        }
+
+        @Override
+        public Object[] toArray() {
+            return sort().toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return sort().toArray(a);
+        }
+
+        @Override
+        public boolean add(Revision<L, K, V> e) {
+            return delegate.add(e);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return sort().containsAll(c);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends Revision<L, K, V>> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Comparator<? super Revision<L, K, V>> comparator() {
+            return comparator;
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> subSet(
+                Revision<L, K, V> fromElement, Revision<L, K, V> toElement) {
+            return sort().subSet(fromElement, toElement);
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> headSet(
+                Revision<L, K, V> toElement) {
+            return sort().headSet(toElement);
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> tailSet(
+                Revision<L, K, V> fromElement) {
+            return sort().tailSet(fromElement);
+        }
+
+        @Override
+        public Revision<L, K, V> first() {
+            return sort().first();
+        }
+
+        @Override
+        public Revision<L, K, V> last() {
+            return sort().last();
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Revision<L, K, V>> filter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> stream() {
+            return sort().stream();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> parallelStream() {
+            return sort().parallelStream();
+        }
+
+        @Override
+        public void forEach(Consumer<? super Revision<L, K, V>> action) {
+            sort().forEach(action);
+        }
+
+        @Override
+        public Spliterator<Revision<L, K, V>> spliterator() {
+            return sort().spliterator();
+        }
+
+        @Override
+        public int hashCode() {
+            return sort().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return sort().equals(obj);
+        }
+
+        @Override
+        public String toString() {
+            return sort().toString();
         }
 
     }
