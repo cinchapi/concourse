@@ -154,6 +154,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private Manifest manifest;
 
     /**
+     * A collection that shadows {@link Segment#objects()} to handle
+     * {@link #deduplicate(Byteable) deduplication}.
+     */
+    @Nullable
+    private Map<Byteable, Byteable> objects;
+
+    /**
      * A running count of the number of {@link #revisions} that have been
      * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
      * a {@link #mutable} {@link Chunk}.
@@ -205,13 +212,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * Segment transfer}
      */
     private final ReadLock segmentReadLock;
-
-    /**
-     * A collection that shadows {@link Segment#objects()} to handle
-     * {@link #deduplicate(Byteable) deduplication}.
-     */
-    @Nullable
-    private Map<Byteable, Byteable> objects;
 
     /**
      * Construct a new instance.
@@ -842,20 +842,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private class DelayedSortedSet implements SortedSet<Revision<L, K, V>> {
 
         /**
-         * The unsorted collection of revisions where data is initially added
-         * until a read occurs.
-         */
-        @Nullable
-        private Collection<Revision<L, K, V>> unsorted;
-
-        /**
-         * The sorted collection of revisions where data is added and maintained
-         * after the first read occurs.
-         */
-        @Nullable
-        private SortedSet<Revision<L, K, V>> sorted;
-
-        /**
          * The {@link Comparator} used for sorting.
          */
         private final Comparator<Revision> comparator;
@@ -867,6 +853,20 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
          */
         @Nonnull
         private Collection<Revision<L, K, V>> delegate;
+
+        /**
+         * The sorted collection of revisions where data is added and maintained
+         * after the first read occurs.
+         */
+        @Nullable
+        private SortedSet<Revision<L, K, V>> sorted;
+
+        /**
+         * The unsorted collection of revisions where data is initially added
+         * until a read occurs.
+         */
+        @Nullable
+        private Collection<Revision<L, K, V>> unsorted;
 
         /**
          * Construct a new instance.
@@ -884,6 +884,144 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     ? new ConcurrentLinkedQueue<>()
                     : new ArrayList<>(expectedInsertions);
             this.delegate = unsorted;
+        }
+
+        @Override
+        public boolean add(Revision<L, K, V> e) {
+            return delegate.add(e);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends Revision<L, K, V>> c) {
+            return delegate.addAll(c);
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Comparator<? super Revision<L, K, V>> comparator() {
+            return comparator;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return sort().contains(o);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return sort().containsAll(c);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return sort().equals(obj);
+        }
+
+        @Override
+        public Revision<L, K, V> first() {
+            return sort().first();
+        }
+
+        @Override
+        public void forEach(Consumer<? super Revision<L, K, V>> action) {
+            sort().forEach(action);
+        }
+
+        @Override
+        public int hashCode() {
+            return sort().hashCode();
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> headSet(
+                Revision<L, K, V> toElement) {
+            return sort().headSet(toElement);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
+        }
+
+        @Override
+        public Iterator<Revision<L, K, V>> iterator() {
+            return sort().iterator();
+        }
+
+        @Override
+        public Revision<L, K, V> last() {
+            return sort().last();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> parallelStream() {
+            return sort().parallelStream();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removeIf(Predicate<? super Revision<L, K, V>> filter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public Spliterator<Revision<L, K, V>> spliterator() {
+            return sort().spliterator();
+        }
+
+        @Override
+        public Stream<Revision<L, K, V>> stream() {
+            return sort().stream();
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> subSet(
+                Revision<L, K, V> fromElement, Revision<L, K, V> toElement) {
+            return sort().subSet(fromElement, toElement);
+        }
+
+        @Override
+        public SortedSet<Revision<L, K, V>> tailSet(
+                Revision<L, K, V> fromElement) {
+            return sort().tailSet(fromElement);
+        }
+
+        @Override
+        public Object[] toArray() {
+            return sort().toArray();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            return sort().toArray(a);
+        }
+
+        @Override
+        public String toString() {
+            return sort().toString();
         }
 
         /**
@@ -913,144 +1051,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                         Chunk.this);
             }
             return sorted;
-        }
-
-        @Override
-        public int size() {
-            return delegate.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return delegate.isEmpty();
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return sort().contains(o);
-        }
-
-        @Override
-        public Iterator<Revision<L, K, V>> iterator() {
-            return sort().iterator();
-        }
-
-        @Override
-        public Object[] toArray() {
-            return sort().toArray();
-        }
-
-        @Override
-        public <T> T[] toArray(T[] a) {
-            return sort().toArray(a);
-        }
-
-        @Override
-        public boolean add(Revision<L, K, V> e) {
-            return delegate.add(e);
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return sort().containsAll(c);
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends Revision<L, K, V>> c) {
-            return delegate.addAll(c);
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Comparator<? super Revision<L, K, V>> comparator() {
-            return comparator;
-        }
-
-        @Override
-        public SortedSet<Revision<L, K, V>> subSet(
-                Revision<L, K, V> fromElement, Revision<L, K, V> toElement) {
-            return sort().subSet(fromElement, toElement);
-        }
-
-        @Override
-        public SortedSet<Revision<L, K, V>> headSet(
-                Revision<L, K, V> toElement) {
-            return sort().headSet(toElement);
-        }
-
-        @Override
-        public SortedSet<Revision<L, K, V>> tailSet(
-                Revision<L, K, V> fromElement) {
-            return sort().tailSet(fromElement);
-        }
-
-        @Override
-        public Revision<L, K, V> first() {
-            return sort().first();
-        }
-
-        @Override
-        public Revision<L, K, V> last() {
-            return sort().last();
-        }
-
-        @Override
-        public boolean removeIf(Predicate<? super Revision<L, K, V>> filter) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Stream<Revision<L, K, V>> stream() {
-            return sort().stream();
-        }
-
-        @Override
-        public Stream<Revision<L, K, V>> parallelStream() {
-            return sort().parallelStream();
-        }
-
-        @Override
-        public void forEach(Consumer<? super Revision<L, K, V>> action) {
-            sort().forEach(action);
-        }
-
-        @Override
-        public Spliterator<Revision<L, K, V>> spliterator() {
-            return sort().spliterator();
-        }
-
-        @Override
-        public int hashCode() {
-            return sort().hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return sort().equals(obj);
-        }
-
-        @Override
-        public String toString() {
-            return sort().toString();
         }
 
     }
