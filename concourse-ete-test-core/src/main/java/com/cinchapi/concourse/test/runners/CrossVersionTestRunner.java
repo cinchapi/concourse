@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.runner.Description;
@@ -119,6 +120,7 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
 
             });
         }
+        Collections.shuffle(runners);
     }
 
     @Override
