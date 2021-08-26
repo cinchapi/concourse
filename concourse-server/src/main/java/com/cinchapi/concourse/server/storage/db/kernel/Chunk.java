@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -436,16 +437,23 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     long start = range.start();
                     long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
-                        ByteBuffer bytes = FileSystem.map(file(),
+                        MappedByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
-                        Iterator<ByteBuffer> it = ByteableCollections
-                                .iterator(bytes);
-                        while (it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables
-                                    .read(it.next(), xRevisionClass());
-                            Logger.debug("Attempting to append {} from {} to "
-                                    + "{}", revision, this, record);
-                            record.append(revision);
+                        try {
+                            Iterator<ByteBuffer> it = ByteableCollections
+                                    .iterator(bytes);
+                            while (it.hasNext()) {
+                                Revision<L, K, V> revision = Byteables
+                                        .read(it.next(), xRevisionClass());
+                                Logger.debug(
+                                        "Attempting to append {} from {} to "
+                                                + "{}",
+                                        revision, this, record);
+                                record.append(revision);
+                            }
+                        }
+                        finally {
+                            FileSystem.unmap(bytes);
                         }
                     }
                 }
