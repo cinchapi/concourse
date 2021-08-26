@@ -552,9 +552,9 @@ public class Manifest extends TransferableByteSequence {
                             .iterator(bytes);
                     while (it.hasNext()) {
                         ByteBuffer next = it.next();
-                        if(key.size() == next.remaining()
-                                - Manifest.Entry.CONSTANT_SIZE) {
-                            // Shortcut by excluding any ByteBuffers that don't
+                        if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
+                                .remaining()) {
+                            // Shortcut by only considering ByteBuffers that
                             // match the expected size of an entry mapped from
                             // the #key
                             Manifest.Entry entry = new Manifest.Entry(next);
