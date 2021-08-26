@@ -87,7 +87,7 @@ public class Manifest extends TransferableByteSequence {
      */
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
-            .pow(2, 24); // ~16.7mb
+            .pow(2, 20); // ~1.04mb
 
     /**
      * Represents an entry that has not been recorded.
