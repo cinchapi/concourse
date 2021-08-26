@@ -545,8 +545,10 @@ public final class Database extends BaseStore implements PermanentStore {
     public Set<Long> search(String key, String query) {
         Text _locator = Text.wrapCached(key);
         Text _query = Text.wrap(query);
-        CorpusRecord corpus = getCorpusRecord(_locator, _query);
-        return Transformers.transformSet(corpus.search(_query),
+        String[] toks = query.toString().toLowerCase()
+                .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+        CorpusRecord corpus = getCorpusRecord(_locator, _query, toks);
+        return Transformers.transformSet(corpus.search(toks),
                 PrimaryKey::longValue);
     }
 
@@ -780,21 +782,20 @@ public final class Database extends BaseStore implements PermanentStore {
      * 
      * @param key
      * @param query
+     * @param toks {@code query} split by whitespace
      * @return the CorpusRecord
      */
-    private CorpusRecord getCorpusRecord(Text key, Text query) {
+    private CorpusRecord getCorpusRecord(Text key, Text query, String[] toks) {
         // NOTE: We do not cache CorpusRecords because they have the potential
         // to be VERY large. Holding references to them in a cache would prevent
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
             CorpusRecord record = CorpusRecord.createPartial(key, query);
-            // Seek each word in the query to make sure that multi word
-            // search works.
-            String[] toks = query.toString().toLowerCase().split(
-                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             for (Segment segment : segments) {
                 for (String tok : toks) {
+                    // Seek each word in the query to make sure that multi word
+                    // search works.
                     Composite composite = Composite.create(key, Text.wrap(tok));
                     segment.corpus().seek(composite, record);
                 }

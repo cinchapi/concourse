@@ -89,15 +89,13 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
      * @param query
      * @return the Set of PrimaryKeys
      */
-    public Set<PrimaryKey> search(Text query) {
+    public Set<PrimaryKey> search(String[] query) {
         read.lock();
         try {
             Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
-            String[] toks = query.toString().toLowerCase().split(
-                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             boolean initial = true;
             int offset = 0;
-            for (String tok : toks) {
+            for (String tok : query) {
                 Multimap<PrimaryKey, Integer> temp = HashMultimap.create();
                 if(STOPWORDS.contains(tok)) {
                     // When skipping a stop word, we must record an offset to
@@ -143,6 +141,17 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
         finally {
             read.unlock();
         }
+    }
+
+    /**
+     * Return the Set of primary keys for records that match {@code query}.
+     * 
+     * @param query
+     * @return the Set of PrimaryKeys
+     */
+    public Set<PrimaryKey> search(Text query) {
+        return search(query.toString().toLowerCase()
+                .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS));
     }
 
     @Override
