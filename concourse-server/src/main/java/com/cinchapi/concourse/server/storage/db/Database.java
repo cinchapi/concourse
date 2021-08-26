@@ -789,11 +789,11 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             CorpusRecord record = CorpusRecord.createPartial(key, query);
+            // Seek each word in the query to make sure that multi word
+            // search works.
+            String[] toks = query.toString().toLowerCase().split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             for (Segment segment : segments) {
-                // Seek each word in the query to make sure that multi word
-                // search works.
-                String[] toks = query.toString().toLowerCase().split(
-                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
                     Composite composite = Composite.create(key, Text.wrap(tok));
                     segment.corpus().seek(composite, record);
