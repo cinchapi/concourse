@@ -29,6 +29,7 @@ import org.junit.runner.Description;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -84,27 +85,30 @@ public class ManifestTest extends ConcourseBaseTest {
         FileSystem.writeBytes(bytes, file.toString());
         manifest = Manifest.load(file, 0, bytes.capacity());
         Assert.assertFalse(manifest.isLoaded());
-        manifest.getStart(PrimaryKey.wrap(1));
+        manifest.lookup(PrimaryKey.wrap(1));
         Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
             PrimaryKey key = PrimaryKey.wrap(count);
-            Assert.assertEquals(count, manifest.getStart(key));
-            Assert.assertEquals(count * 2, manifest.getEnd(key));
+            Range range = manifest.lookup(key);
+            Assert.assertEquals(count, range.start());
+            Assert.assertEquals(count * 2, range.end());
         }
     }
 
     @Test
-    public void testManifestWorksAfterBeingFrozen() {
+    public void testManifestWorksAfterBeingFlushed() {
         int count = TestData.getScaleCount() * 2;
         Manifest manifest = Manifest.create(count);
         PrimaryKey key = PrimaryKey.wrap(count);
         manifest.putStart(count, key);
         manifest.putEnd(count * 2, key);
-        Assert.assertEquals(count, manifest.getStart(key));
-        Assert.assertEquals(count * 2, manifest.getEnd(key));
+        Range range = manifest.lookup(key);
+        Assert.assertEquals(count, range.start());
+        Assert.assertEquals(count * 2, range.end());
         manifest.transfer(file);
-        Assert.assertEquals(count, manifest.getStart(key));
-        Assert.assertEquals(count * 2, manifest.getEnd(key));
+        range = manifest.lookup(key);
+        Assert.assertEquals(count, range.start());
+        Assert.assertEquals(count * 2, range.end());
     }
 
 }

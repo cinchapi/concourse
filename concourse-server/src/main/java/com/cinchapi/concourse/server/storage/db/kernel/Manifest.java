@@ -17,13 +17,18 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.io.ByteBuffers;
@@ -34,6 +39,7 @@ import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link Manifest} stores and provides the efficient lookup for the start and
@@ -74,9 +80,35 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
+     * If the (byte) length of a flushed {@link Manifest} exceeds, this value,
+     * the entries will be streamed into memory one-by-one using
+     * {@link StreamedEntries} instead of loading them all into memory.
+     */
+    private static final int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
+            .pow(2, 24); // ~16.7mb
+
+    /**
      * Represents an entry that has not been recorded.
      */
     public static final int NO_ENTRY = -1;
+
+    /**
+     * Returned from {@link #lookup(Composite)} when an associated entry does
+     * not exist.
+     */
+    private static final Range NULL_RANGE = new Range() {
+
+        @Override
+        public long end() {
+            return NO_ENTRY;
+        }
+
+        @Override
+        public long start() {
+            return NO_ENTRY;
+        }
+
+    };
 
     /**
      * A {@link SoftReference} to the entries contained in the {@link Manifest}
@@ -144,42 +176,6 @@ public class Manifest extends TransferableByteSequence {
         }
     }
 
-    /**
-     * Return the end position for {@code byteables} if it exists, otherwise
-     * return {@link #NO_ENTRY}.
-     * 
-     * @param byteables
-     * @return the end position
-     */
-    public long getEnd(Byteable... byteables) {
-        Composite composite = Composite.create(byteables);
-        Entry entry = entries().get(composite);
-        if(entry != null) {
-            return entry.end();
-        }
-        else {
-            return NO_ENTRY;
-        }
-    }
-
-    /**
-     * Return the start position for {@code byteables} if it exists, otherwise
-     * return {@code #NO_ENTRY}.
-     * 
-     * @param byteables
-     * @return the start position
-     */
-    public long getStart(Byteable... byteables) {
-        Composite composite = Composite.create(byteables);
-        Entry entry = entries().get(composite);
-        if(entry != null) {
-            return entry.start();
-        }
-        else {
-            return NO_ENTRY;
-        }
-    }
-
     @Override
     public int hashCode() {
         return entries().hashCode();
@@ -191,17 +187,53 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
+     * Return the {@link Entry} which contains the start and end positions of
+     * data related to the {@code byteables}, if data was recorded using
+     * {@link #putStart(long, Byteable...)} and
+     * {@link #putEnd(long, Byteable...)}.
+     * 
+     * @param composite
+     * @return the {@link Entry} containing the start and end positions
+     */
+    public Range lookup(Byteable... bytables) {
+        return lookup(Composite.create(bytables));
+    }
+
+    /**
+     * Return the {@link Entry} which contains the start and end positions of
+     * data related to the {@code composite}, if data was recorded using
+     * {@link #putStart(long, Byteable...)} and
+     * {@link #putEnd(long, Byteable...)}.
+     * 
+     * @param composite
+     * @return the {@link Entry} containing the start and end positions
+     */
+    public Range lookup(Composite composite) {
+        Entry entry = entries().get(composite);
+        return entry != null ? new EntryRange(entry) : NULL_RANGE;
+    }
+
+    /**
      * Record the end position for the {@code byteables}.
      * 
      * @param end
      * @param byteables
      */
     public void putEnd(long end, Byteable... byteables) {
+        putEnd(end, Composite.create(byteables));
+    }
+
+    /**
+     * Record the end position for the {@code composite}.
+     * 
+     * @param end
+     * @param composite
+     */
+    public void putEnd(long end, Composite composite) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(isMutable());
-        Composite composite = Composite.create(byteables);
-        Entry entry = entries().get(composite);
+        Entry entry = entries.get(composite);
         Preconditions.checkState(entry != null,
                 "Cannot set the end position before setting "
                         + "the start position. Tried to put %s",
@@ -216,11 +248,20 @@ public class Manifest extends TransferableByteSequence {
      * @param byteables
      */
     public void putStart(long start, Byteable... byteables) {
+        putStart(start, Composite.create(byteables));
+    }
+
+    /**
+     * Record the start position for the {@code byteables}.
+     * 
+     * @param start
+     * @param composite
+     */
+    public void putStart(long start, Composite composite) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(isMutable());
-        Composite composite = Composite.create(byteables);
-        Entry entry = entries().get(composite);
+        Entry entry = entries.get(composite);
         if(entry == null) {
             entry = new Entry(composite);
             entries.put(composite, entry);
@@ -263,22 +304,55 @@ public class Manifest extends TransferableByteSequence {
         if(entries != null) {
             return entries;
         }
-        else {
-            while ($entries == null || $entries.get() == null) {
-                ByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
-                        position(), length);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-                Map<Composite, Entry> entries = Maps
-                        .newLinkedHashMapWithExpectedSize(
-                                bytes.capacity() / Entry.CONSTANT_SIZE);
-                while (it.hasNext()) {
-                    Entry entry = new Entry(it.next());
-                    entries.put(entry.key(), entry);
-                }
-                $entries = new SoftReference<Map<Composite, Entry>>(entries);
-            }
+        else if($entries != null && $entries.get() != null) {
             return $entries.get();
         }
+        else {
+            Map<Composite, Entry> entries = new StreamedEntries();
+            if(length < MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
+                // The Manifest is small enough to fit comfortably into memory,
+                // so eagerly load all of the entries instead of streaming them
+                // from disk one-by-one (as is done in the OnDiskEntries).
+                Map<Composite, Entry> heapEntries = Maps
+                        .newLinkedHashMapWithExpectedSize(
+                                (int) length / Entry.CONSTANT_SIZE);
+                entries.forEach((key, value) -> heapEntries.put(key, value));
+                $entries = new SoftReference<Map<Composite, Entry>>(
+                        heapEntries);
+                entries = heapEntries;
+            }
+            return entries;
+        }
+    }
+
+    /**
+     * Contains the start and end positions for an entry in the
+     * {@link Manifest}.
+     *
+     * @author Jeff Nelson
+     */
+    @Immutable
+    public static abstract class Range {
+
+        // This class is returned from the #lookup methods to provide a clean
+        // interface to callers without exposing the totality of what is
+        // encapsulated in each Entry.
+
+        /**
+         * Return the end position. If it has not been recorded, return
+         * {@link Manifest#NO_ENTRY}.
+         * 
+         * @return the end position
+         */
+        public abstract long end();
+
+        /**
+         * Return the start position. If it has not been recorded, return
+         * {@link Manifest#NO_ENTRY}.
+         * 
+         * @return the start position
+         */
+        public abstract long start();
     }
 
     /**
@@ -391,6 +465,101 @@ public class Manifest extends TransferableByteSequence {
          */
         public long start() {
             return start;
+        }
+
+    }
+
+    /**
+     * A {@link Range} backed by an {@link Entry}.
+     */
+    @Immutable
+    private final class EntryRange extends Range {
+
+        /**
+         * The underlying {@link Entry}.
+         */
+        private final Entry entry;
+
+        private EntryRange() {
+            this.entry = null;
+        };
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param entry
+         */
+        private EntryRange(Entry entry) {
+            this.entry = entry;
+        }
+
+        @Override
+        public long end() {
+            return entry.end();
+        }
+
+        @Override
+        public long start() {
+            return entry.start();
+        }
+    }
+
+    /**
+     * A {@link Map} that reads the {@link Entry entries} from disk one-by-one.
+     * This should be used for an immutable {@link Manifest} that is larger than
+     * {@link #MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD}.
+     *
+     * @author Jeff Nelson
+     */
+    private final class StreamedEntries extends AbstractMap<Composite, Entry> {
+
+        @Override
+        public Set<Entry<Composite, Manifest.Entry>> entrySet() {
+            Set<Entry<Composite, Manifest.Entry>> entrySet = Sets
+                    .newLinkedHashSet();
+            forEach((composite, entry) -> entrySet
+                    .add(new SimpleEntry<>(composite, entry)));
+            return entrySet;
+        }
+
+        @Override
+        public void forEach(
+                BiConsumer<? super Composite, ? super Manifest.Entry> action) {
+            MappedByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
+                    position(), length);
+            try {
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                while (it.hasNext()) {
+                    Manifest.Entry entry = new Manifest.Entry(it.next());
+                    action.accept(entry.key(), entry);
+                }
+            }
+            finally {
+                FileSystem.unmap(bytes);
+            }
+        }
+
+        @Override
+        public Manifest.Entry get(Object o) {
+            if(o instanceof Composite) {
+                Composite key = (Composite) o;
+                MappedByteBuffer bytes = FileSystem.map(file(),
+                        MapMode.READ_ONLY, position(), length);
+                try {
+                    Iterator<ByteBuffer> it = ByteableCollections
+                            .iterator(bytes);
+                    while (it.hasNext()) {
+                        Manifest.Entry entry = new Manifest.Entry(it.next());
+                        if(key.equals(entry.key())) {
+                            return entry;
+                        }
+                    }
+                }
+                finally {
+                    FileSystem.unmap(bytes);
+                }
+            }
+            return null;
         }
 
     }

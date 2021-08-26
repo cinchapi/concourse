@@ -46,6 +46,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
+import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
@@ -431,8 +432,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     }
                 }
                 else {
-                    long start = manifest.getStart(composite);
-                    long length = manifest.getEnd(composite) - (start - 1);
+                    Range range = manifest.lookup(composite);
+                    long start = range.start();
+                    long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         ByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
@@ -642,8 +644,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                         manifest.putStart(position, revision.getLocator());
                         if(locator != null) {
                             // There was a locator before us (we are not the
-                            // first!)
-                            // and we need to record the end index.
+                            // first!) and we need to record the end index.
                             manifest.putEnd(position - 1, locator);
                         }
                     }
