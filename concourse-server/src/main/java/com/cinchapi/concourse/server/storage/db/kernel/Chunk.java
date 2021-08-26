@@ -453,7 +453,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                             }
                         }
                         finally {
-                            FileSystem.unmap(bytes);
+                            FileSystem.unmapAsync(bytes);
                         }
                     }
                 }

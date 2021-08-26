@@ -535,7 +535,7 @@ public class Manifest extends TransferableByteSequence {
                 }
             }
             finally {
-                FileSystem.unmap(bytes);
+                FileSystem.unmapAsync(bytes);
             }
         }
 

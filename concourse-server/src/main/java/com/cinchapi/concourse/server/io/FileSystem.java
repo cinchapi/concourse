@@ -34,9 +34,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.ReadOnlyIterator;
@@ -195,15 +198,8 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return the FileChannel for {@code file}
      */
-    @SuppressWarnings("resource") // NOTE: can't close the file channel here
-                                  // because others depend on it
-    public static FileChannel getFileChannel(String file) {
-        try {
-            return new RandomAccessFile(openFile(file), "rwd").getChannel();
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+    public static FileChannel getFileChannel(Path file) {
+        return getFileChannel(file.toString());
     }
 
     /**
@@ -213,8 +209,15 @@ public final class FileSystem extends FileOps {
      * @param file
      * @return the FileChannel for {@code file}
      */
-    public static FileChannel getFileChannel(Path file) {
-        return getFileChannel(file.toString());
+    @SuppressWarnings("resource") // NOTE: can't close the file channel here
+                                  // because others depend on it
+    public static FileChannel getFileChannel(String file) {
+        try {
+            return new RandomAccessFile(openFile(file), "rwd").getChannel();
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
     }
 
     /**
@@ -378,18 +381,9 @@ public final class FileSystem extends FileOps {
      * @param size
      * @return the MappedByteBuffer
      */
-    public static MappedByteBuffer map(String file, MapMode mode, long position,
+    public static MappedByteBuffer map(Path file, MapMode mode, long position,
             long size) {
-        FileChannel channel = getFileChannel(file);
-        try {
-            return channel.map(mode, position, size).load();
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            closeFileChannel(channel);
-        }
+        return map(file.toString(), mode, position, size);
     }
 
     /**
@@ -404,9 +398,18 @@ public final class FileSystem extends FileOps {
      * @param size
      * @return the MappedByteBuffer
      */
-    public static MappedByteBuffer map(Path file, MapMode mode, long position,
+    public static MappedByteBuffer map(String file, MapMode mode, long position,
             long size) {
-        return map(file.toString(), mode, position, size);
+        FileChannel channel = getFileChannel(file);
+        try {
+            return channel.map(mode, position, size).load();
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            closeFileChannel(channel);
+        }
     }
 
     /**
@@ -493,6 +496,18 @@ public final class FileSystem extends FileOps {
     }
 
     /**
+     * Attempt to force the unmapping of {@code buffer} asynchronously. This
+     * method should be used with <strong>EXTREME CAUTION</strong>. If
+     * {@code buffer} is used after this method is invoked, it is likely that
+     * the JVM will crash.
+     * 
+     * @param buffer
+     */
+    public static void unmapAsync(MappedByteBuffer buffer) {
+        ASYNC_UNMAPPER.execute(() -> unmap(buffer));
+    }
+
+    /**
      * Write the {@code bytes} to {@code file} starting at the beginning. This
      * method will perform and fsync.
      * 
@@ -525,6 +540,14 @@ public final class FileSystem extends FileOps {
             closeFileChannel(channel);
         }
     }
+
+    /**
+     * Used in {@link #unmapAsync(MappedByteBuffer)} to schedule a call to
+     * {@link #unmap(MappedByteBuffer)} in the future.
+     */
+    private static final ExecutorService ASYNC_UNMAPPER = Executors
+            .newSingleThreadExecutor(ThreadFactories
+                    .namingDaemonThreadFactory("MappedByteBufferCleaner"));
 
     private FileSystem() {/* noop */}
 
