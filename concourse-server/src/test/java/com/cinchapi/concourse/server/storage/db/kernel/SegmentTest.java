@@ -356,7 +356,7 @@ public class SegmentTest extends ConcourseBaseTest {
 
     @Test
     public void testBloomFilterAccuracyOnLoad() throws SegmentLoadingException {
-        for(int i = 0; i < TestData.getScaleCount(); ++i) {
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
             segment.acquire(TestData.getWriteAdd());
         }
         BloomFilter table = segment.table().filter();
