@@ -15,12 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -28,14 +23,8 @@ import javax.annotation.Nullable;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.util.TStrings;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
 
 /**
  * A collection of n-gram indexes that enable fulltext infix searching. For
@@ -84,74 +73,25 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
     }
 
     /**
-     * Return the Set of primary keys for records that match {@code query}.
+     * Return every {@link Position} where the infix is located.
      * 
      * @param query
-     * @return the Set of PrimaryKeys
+     * @return the Set of {@link Position Positions}
      */
-    public Set<PrimaryKey> search(String[] query) {
-        read.lock();
-        try {
-            Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
-            boolean initial = true;
-            int offset = 0;
-            for (String tok : query) {
-                Multimap<PrimaryKey, Integer> temp = HashMultimap.create();
-                if(STOPWORDS.contains(tok)) {
-                    // When skipping a stop word, we must record an offset to
-                    // correctly determine if the next term match is in the
-                    // correct relative position to the previous term match
-                    ++offset;
-                    continue;
-                }
-                Set<Position> positions = get(Text.wrap(tok));
-                for (Position position : positions) {
-                    PrimaryKey key = position.getPrimaryKey();
-                    int pos = position.getIndex();
-                    if(initial) {
-                        temp.put(key, pos);
-                    }
-                    else {
-                        for (int current : reference.get(key)) {
-                            if(pos == current + 1 + offset) {
-                                temp.put(key, pos);
-                            }
-                        }
-                    }
-                }
-                initial = false;
-                reference = temp;
-                offset = 0;
-            }
-
-            // Result Scoring: Scoring is simply the number of times the query
-            // appears in a document [e.g. the number of Positions mapped from
-            // key: #reference.get(key).size()]. The total number of positions
-            // in #reference is equal to the total number of times a document
-            // appears in the corpus [e.g. reference.asMap().values().size()].
-            Multimap<Integer, PrimaryKey> sorted = TreeMultimap.create(
-                    Collections.<Integer> reverseOrder(),
-                    PrimaryKey.Sorter.INSTANCE);
-            for (Entry<PrimaryKey, Collection<Integer>> entry : reference
-                    .asMap().entrySet()) {
-                sorted.put(entry.getValue().size(), entry.getKey());
-            }
-            return Sets.newLinkedHashSet(sorted.values());
-        }
-        finally {
-            read.unlock();
-        }
+    public Set<Position> locate(Text infix) {
+        return get(infix);
     }
 
     /**
-     * Return the Set of primary keys for records that match {@code query}.
+     * Return every {@link Position} where the infix was located at
+     * {@code version}.
      * 
      * @param query
-     * @return the Set of PrimaryKeys
+     * @param verion
+     * @return the Set of {@link Position Positions}
      */
-    public Set<PrimaryKey> search(Text query) {
-        return search(query.toString().toLowerCase()
-                .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS));
+    public Set<Position> locate(Text infix, long version) {
+        return get(infix, version);
     }
 
     @Override

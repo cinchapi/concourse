@@ -22,11 +22,13 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -49,6 +51,7 @@ import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
@@ -74,10 +77,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 
 /**
  * The {@link Database} is the {@link PermanentStore} for data. The
@@ -543,13 +549,69 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<Long> search(String key, String query) {
-        Text _locator = Text.wrapCached(key);
-        Text _query = Text.wrap(query);
-        String[] toks = query.toString().toLowerCase()
-                .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-        CorpusRecord corpus = getCorpusRecord(_locator, _query, toks);
-        return Transformers.transformSet(corpus.search(toks),
-                PrimaryKey::longValue);
+        // NOTE: Locking must happen here since CorpusRecords are not cached and
+        // search potentially works across multiple ones.
+        masterLock.readLock().lock();
+        try {
+            Text L = Text.wrapCached(key);
+            // Get each word in the query separately to ensure that multi word
+            // search works.
+            String[] words = query.toString().toLowerCase().split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+            Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
+            boolean initial = true;
+            int offset = 0;
+            for (String word : words) {
+                Multimap<PrimaryKey, Integer> temp = HashMultimap.create();
+                if(GlobalState.STOPWORDS.contains(word)) {
+                    // When skipping a stop word, we must record an offset to
+                    // correctly determine if the next term match is in the
+                    // correct relative position to the previous term match
+                    ++offset;
+                    continue;
+                }
+                Text K = Text.wrap(word);
+                CorpusRecord corpus = getCorpusRecord(L, K);
+                Set<Position> positions = corpus.locate(K);
+                for (Position position : positions) {
+                    PrimaryKey record = position.getPrimaryKey();
+                    int pos = position.getIndex();
+                    if(initial) {
+                        temp.put(record, pos);
+                    }
+                    else {
+                        for (int current : reference.get(record)) {
+                            if(pos == current + 1 + offset) {
+                                temp.put(record, pos);
+                            }
+                        }
+                    }
+                }
+                initial = false;
+                reference = temp;
+                offset = 0;
+            }
+
+            // Result Scoring: Scoring is simply the number of times the query
+            // appears in a Record [e.g. the number of Positions mapped from
+            // key: #reference.get(key).size()]. The total number of positions
+            // in #reference is equal to the total number of times a document
+            // appears in the corpus [e.g. reference.asMap().values().size()].
+            Multimap<Integer, PrimaryKey> sorted = TreeMultimap.create(
+                    Collections.<Integer> reverseOrder(),
+                    PrimaryKey.Sorter.INSTANCE);
+            for (Entry<PrimaryKey, Collection<Integer>> entry : reference
+                    .asMap().entrySet()) {
+                sorted.put(entry.getValue().size(), entry.getKey());
+            }
+            Set<Long> results = sorted.values().stream()
+                    .map(PrimaryKey::longValue)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            return results;
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -785,20 +847,16 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param toks {@code query} split by whitespace
      * @return the CorpusRecord
      */
-    private CorpusRecord getCorpusRecord(Text key, Text query, String[] toks) {
+    private CorpusRecord getCorpusRecord(Text key, Text infix) {
         // NOTE: We do not cache CorpusRecords because they have the potential
         // to be VERY large. Holding references to them in a cache would prevent
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            CorpusRecord record = CorpusRecord.createPartial(key, query);
+            CorpusRecord record = CorpusRecord.createPartial(key, infix);
+            Composite composite = Composite.create(key, infix);
             for (Segment segment : segments) {
-                for (String tok : toks) {
-                    // Seek each word in the query to make sure that multi word
-                    // search works.
-                    Composite composite = Composite.create(key, Text.wrap(tok));
-                    segment.corpus().seek(composite, record);
-                }
+                segment.corpus().seek(composite, record);
             }
             return record;
         }

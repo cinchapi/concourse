@@ -17,8 +17,10 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -189,7 +191,10 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         Variables.register("chunkDump", chunk.dump());
         CorpusRecord searchRecord = CorpusRecord.createPartial(key, term);
         ((CorpusChunk) chunk).seek(Composite.create(key, term), searchRecord);
-        Assert.assertTrue(searchRecord.search(term).contains(record));
+        Assert.assertTrue(
+                searchRecord.locate(term).stream().map(Position::getPrimaryKey)
+                        .collect(Collectors.toCollection(LinkedHashSet::new))
+                        .contains(record));
     }
 
     @Test
