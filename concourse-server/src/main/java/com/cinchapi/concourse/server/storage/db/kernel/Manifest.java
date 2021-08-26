@@ -37,6 +37,7 @@ import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -84,7 +85,8 @@ public class Manifest extends TransferableByteSequence {
      * the entries will be streamed into memory one-by-one using
      * {@link StreamedEntries} instead of loading them all into memory.
      */
-    private static final int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
+    @VisibleForTesting
+    protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
             .pow(2, 24); // ~16.7mb
 
     /**
@@ -549,9 +551,16 @@ public class Manifest extends TransferableByteSequence {
                     Iterator<ByteBuffer> it = ByteableCollections
                             .iterator(bytes);
                     while (it.hasNext()) {
-                        Manifest.Entry entry = new Manifest.Entry(it.next());
-                        if(key.equals(entry.key())) {
-                            return entry;
+                        ByteBuffer next = it.next();
+                        if(key.size() == next.remaining()
+                                - Manifest.Entry.CONSTANT_SIZE) {
+                            // Shortcut by excluding any ByteBuffers that don't
+                            // match the expected size of an entry mapped from
+                            // the #key
+                            Manifest.Entry entry = new Manifest.Entry(next);
+                            if(key.equals(entry.key())) {
+                                return entry;
+                            }
                         }
                     }
                 }

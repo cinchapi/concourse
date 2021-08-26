@@ -19,6 +19,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -27,12 +28,16 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.concourse.server.io.ByteSink;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Maps;
 
 /**
  * Unit tests for
@@ -109,6 +114,57 @@ public class ManifestTest extends ConcourseBaseTest {
         range = manifest.lookup(key);
         Assert.assertEquals(count, range.start());
         Assert.assertEquals(count * 2, range.end());
+    }
+
+    @Test
+    public void testManifestStreamedEntriesAccuracy() {
+        int threshold = Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD;
+        Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math.pow(2,
+                16);
+        try {
+            Manifest manifest = Manifest.create(100000);
+            Text text = Text.wrap(Random.getString());
+            int count = 0;
+            int start = 0;
+            Map<Composite, Range> expected = Maps.newHashMap();
+            while (manifest
+                    .length() < Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
+                PrimaryKey record = PrimaryKey.wrap(count);
+                int $start = start;
+                int end = start + TestData.getScaleCount();
+                Range range = new Manifest.Range() {
+
+                    @Override
+                    public long start() {
+                        return $start;
+                    }
+
+                    @Override
+                    public long end() {
+                        return end;
+                    }
+                };
+                Composite composite = Composite.create(text, record);
+                manifest.putStart(start, composite);
+                manifest.putEnd(end, composite);
+                expected.put(composite, range);
+                start = end + 1;
+                ++count;
+            }
+            Path file = Paths.get(TestData.getTemporaryTestFile());
+            manifest.transfer(file);
+            Manifest $manifest = Manifest.load(file, 0,
+                    FileSystem.getFileSize(file.toString()));
+            expected.forEach((composite, range) -> {
+                Range actual = $manifest.lookup(composite);
+                Assert.assertEquals(range.start(), actual.start());
+                Assert.assertEquals(range.end(), actual.end());
+            });
+        }
+        finally {
+            Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = threshold;
+        }
+
     }
 
 }
