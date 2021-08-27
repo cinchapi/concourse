@@ -59,7 +59,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * number of times that the value appears <em>beforehand</em> at determine
      * if the mapping existed or not.
      */
-    protected final transient Map<K, List<CompactRevision<V>>> history = historyMapType();
+    protected final transient Map<K, List<CompactRevision<V>>> history = $createHistoryMap();
 
     /**
      * The locator used to identify this Record.
@@ -69,9 +69,9 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     /**
      * The index is used to efficiently determine the set of values currently
      * mapped from a key. The subclass should specify the appropriate type of
-     * key sorting via the returned type for {@link #mapType()}.
+     * key sorting via the returned type for {@link #$createDataMap()}.
      */
-    protected final transient Map<K, Set<V>> present = mapType();
+    protected final transient Map<K, Set<V>> present = $createDataMap();
 
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
@@ -188,6 +188,43 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
         return history.size();
     }
 
+    /**
+     * Return {@code true} if {@code value} <em>currently</em> exists in the
+     * field mapped from {@code key}.
+     * 
+     * @param key
+     * @param value
+     * @return {@code true} if {@code key} as {@code value} is a valid mapping
+     */
+    public boolean contains(K key, V value) {
+        read.lock();
+        try {
+            return get(key).contains(value);
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if {@code value} existed in the field mapped from
+     * {@code key} at {@code timestamp}
+     * 
+     * @param key
+     * @param value
+     * @param timestamp
+     * @return {@code true} if {@code key} as {@code value} is a valid mapping
+     */
+    public boolean contains(K key, V value, long timestamp) {
+        read.lock();
+        try {
+            return get(key, timestamp).contains(value);
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj.getClass() == this.getClass()) {
@@ -196,6 +233,103 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
                     && (partial ? key.equals(other.key) : true);
         }
         return false;
+    }
+
+    /**
+     * Return a view of all the data that is presently contained in this record.
+     * 
+     * @return the data
+     */
+    public Map<K, Set<V>> get() {
+        read.lock();
+        try {
+            Map<K, Set<V>> data = Maps.newLinkedHashMap();
+            for (K key : keys()) {
+                data.put(key, get(key));
+            }
+            return data;
+        }
+        finally {
+            read.unlock();
+        }
+
+    }
+
+    /**
+     * Lazily retrieve an unmodifiable view of the current set of values mapped
+     * from {@code key}.
+     * 
+     * @param key
+     * @return the set of mapped values for {@code key}
+     */
+    public Set<V> get(K key) {
+        read.lock();
+        try {
+            Set<V> values = present.get(key);
+            return values != null ? values : emptyValues;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Lazily retrieve the historical set of values for {@code key} at
+     * {@code timestamp}.
+     * 
+     * @param key
+     * @param timestamp
+     * @return the set of mapped values for {@code key} at {@code timestamp}.
+     */
+    public Set<V> get(K key, long timestamp) {
+        read.lock();
+        try {
+            Set<V> values = emptyValues;
+            List<CompactRevision<V>> stored = history.get(key);
+            if(stored != null) {
+                values = Sets.newLinkedHashSet();
+                Iterator<CompactRevision<V>> it = stored.iterator();
+                while (it.hasNext()) {
+                    CompactRevision<V> revision = it.next();
+                    if(revision.getVersion() <= timestamp) {
+                        if(revision.getType() == Action.ADD) {
+                            values.add(revision.getValue());
+                        }
+                        else {
+                            values.remove(revision.getValue());
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            return values;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return a view of all the data that was contained in this record at
+     * {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the data
+     */
+    public Map<K, Set<V>> get(long timestamp) {
+        read.lock();
+        try {
+            Map<K, Set<V>> data = Maps.newLinkedHashMap();
+            for (K key : keys(timestamp)) {
+                data.put(key, get(key, timestamp));
+            }
+            return data;
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     @Override
@@ -228,10 +362,68 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
         return partial;
     }
 
+    /**
+     * Return the Set of {@code keys} that map to fields which
+     * <em>currently</em> contain values.
+     * 
+     * @return the Set of non-empty field keys
+     */
+    public Set<K> keys() {
+        read.lock();
+        try {
+            return Collections
+                    .unmodifiableSet(present.keySet()); /* Authorized */
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return the Set of {@code keys} that mapped to fields which contained
+     * values at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the Set of non-empty field keys
+     */
+    public Set<K> keys(long timestamp) {
+        read.lock();
+        try {
+            Set<K> description = Sets.newLinkedHashSet();
+            Iterator<K> it = history.keySet().iterator(); /* Authorized */
+            while (it.hasNext()) {
+                K key = it.next();
+                if(!get(key, timestamp).isEmpty()) {
+                    description.add(key);
+                }
+            }
+            return description;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + (partial ? key + " IN " : "")
                 + locator;
+    }
+
+    /**
+     * Initialize the appropriate data structure for the {@link #present}.
+     * 
+     * @return the initialized mappings
+     */
+    protected abstract Map<K, Set<V>> $createDataMap();
+
+    /**
+     * Initialize the appropriate data structure for the {@link #history}.
+     * 
+     * @return the initialized mappings
+     */
+    protected Map<K, List<CompactRevision<V>>> $createHistoryMap() {
+        return Maps.newHashMap();
     }
 
     /**
@@ -278,118 +470,10 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Return the Set of {@code keys} that map to fields which
-     * <em>currently</em> contain values.
-     * 
-     * @return the Set of non-empty field keys
+     * Logic that the subclass can run after the {@code revision} is
+     * {@link #append(Revision) appended}.
      */
-    protected Set<K> describe() {
-        read.lock();
-        try {
-            return Collections
-                    .unmodifiableSet(present.keySet()); /* Authorized */
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Return the Set of {@code keys} that mapped to fields which contained
-     * values at {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the Set of non-empty field keys
-     */
-    protected Set<K> describe(long timestamp) {
-        read.lock();
-        try {
-            Set<K> description = Sets.newLinkedHashSet();
-            Iterator<K> it = history.keySet().iterator(); /* Authorized */
-            while (it.hasNext()) {
-                K key = it.next();
-                if(!get(key, timestamp).isEmpty()) {
-                    description.add(key);
-                }
-            }
-            return description;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Lazily retrieve an unmodifiable view of the current set of values mapped
-     * from {@code key}.
-     * 
-     * @param key
-     * @return the set of mapped values for {@code key}
-     */
-    protected Set<V> get(K key) {
-        read.lock();
-        try {
-            Set<V> values = present.get(key);
-            return values != null ? values : emptyValues;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Lazily retrieve the historical set of values for {@code key} at
-     * {@code timestamp}.
-     * 
-     * @param key
-     * @param timestamp
-     * @return the set of mapped values for {@code key} at {@code timestamp}.
-     */
-    protected Set<V> get(K key, long timestamp) {
-        read.lock();
-        try {
-            Set<V> values = emptyValues;
-            List<CompactRevision<V>> stored = history.get(key);
-            if(stored != null) {
-                values = Sets.newLinkedHashSet();
-                Iterator<CompactRevision<V>> it = stored.iterator();
-                while (it.hasNext()) {
-                    CompactRevision<V> revision = it.next();
-                    if(revision.getVersion() <= timestamp) {
-                        if(revision.getType() == Action.ADD) {
-                            values.add(revision.getValue());
-                        }
-                        else {
-                            values.remove(revision.getValue());
-                        }
-                    }
-                    else {
-                        break;
-                    }
-                }
-            }
-            return values;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Initialize the appropriate data structure for the {@link #history}.
-     * 
-     * @return the initialized mappings
-     */
-    protected Map<K, List<CompactRevision<V>>> historyMapType() {
-        return Maps.newHashMap();
-    }
-
-    /**
-     * Initialize the appropriate data structure for the {@link #present}.
-     * 
-     * @return the initialized mappings
-     */
-    protected abstract Map<K, Set<V>> mapType();
+    protected void onAppend(Revision<L, K, V> revision) {/* no-op */}
 
     /**
      * Initialized the appropriate data structure for the {@link Set} that is
@@ -401,12 +485,6 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     protected Set<V> setType() {
         return new LinkedHashSet<>();
     }
-
-    /**
-     * Logic that the subclass can run after the {@code revision} is
-     * {@link #append(Revision) appended}.
-     */
-    protected void onAppend(Revision<L, K, V> revision) {/* no-op */}
 
     /**
      * Return {@code true} if the action associated with {@code revision}

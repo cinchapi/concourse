@@ -76,28 +76,6 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
         super(locator, key);
     }
 
-    /**
-     * Return every {@link Position} where the infix is located.
-     * 
-     * @param query
-     * @return the Set of {@link Position Positions}
-     */
-    public Set<Position> locate(Text infix) {
-        return get(infix);
-    }
-
-    /**
-     * Return every {@link Position} where the infix was located at
-     * {@code version}.
-     * 
-     * @param query
-     * @param verion
-     * @return the Set of {@link Position Positions}
-     */
-    public Set<Position> locate(Text infix, long version) {
-        return get(infix, version);
-    }
-
     @Override
     protected void checkIsOffsetRevision(
             Revision<Text, Text, Position> revision) { /* no-op */
@@ -109,7 +87,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
     }
 
     @Override
-    protected Map<Text, Set<Position>> mapType() {
+    protected Map<Text, Set<Position>> $createDataMap() {
         return Maps.newHashMap();
     }
 
