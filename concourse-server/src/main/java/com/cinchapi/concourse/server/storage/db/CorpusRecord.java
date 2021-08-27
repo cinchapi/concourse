@@ -95,7 +95,18 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
     }
 
     @Override
+    protected void checkIsOffsetRevision(
+            Revision<Text, Text, Position> revision) { /* no-op */
+        // NOTE: The check is ignored for a CorpusRecord instance
+        // because it will legitimately appear that "duplicate" data has
+        // been added if similar data is added to the same key in a record
+        // at different times (i.e. adding John Doe and Johnny Doe to the
+        // "name")
+    }
+
+    @Override
     protected Map<Text, Set<Position>> mapType() {
         return Maps.newHashMap();
     }
+
 }

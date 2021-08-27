@@ -53,17 +53,30 @@ import com.google.common.collect.Sets;
 public abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
 
     /**
+     * This index is used to efficiently handle historical reads. Given a
+     * revision (e.g key/value pair), and historical timestamp, we can count the
+     * number of times that the value appears <em>beforehand</em> at determine
+     * if the mapping existed or not.
+     */
+    protected final transient Map<K, List<CompactRevision<V>>> history = historyMapType();
+
+    /**
+     * The locator used to identify this Record.
+     */
+    protected final L locator;
+
+    /**
+     * The index is used to efficiently determine the set of values currently
+     * mapped from a key. The subclass should specify the appropriate type of
+     * key sorting via the returned type for {@link #mapType()}.
+     */
+    protected final transient Map<K, Set<V>> present = mapType();
+    
+    /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
      */
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
-     * An exclusive lock that permits only one writer and no reader. Use this
-     * lock to ensure that no read occurs while data is being appended to the
-     * Record.
-     */
-    private final WriteLock write = master.writeLock();
 
     /**
      * A shared lock that permits many readers and no writer. Use this lock to
@@ -73,29 +86,13 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     protected final ReadLock read = master.readLock();
 
     /**
-     * The index is used to efficiently determine the set of values currently
-     * mapped from a key. The subclass should specify the appropriate type of
-     * key sorting via the returned type for {@link #mapType()}.
+     * This set is returned when a key does not map to any values so that the
+     * caller can transparently interact without performing checks or
+     * compromising data consisentcy. This is a member variable (as opposed to
+     * static constant) that is mocked in the constructor because it has a
+     * generic type argument.
      */
-    protected final transient Map<K, Set<V>> present = mapType();
-
-    /**
-     * This index is used to efficiently handle historical reads. Given a
-     * revision (e.g key/value pair), and historical timestamp, we can count the
-     * number of times that the value appears <em>beforehand</em> at determine
-     * if the mapping existed or not.
-     */
-    protected final transient Map<K, List<CompactRevision<V>>> history = historyMapType();
-
-    /**
-     * The version of the Record's most recently appended {@link Revision}.
-     */
-    private transient long version = 0;
-
-    /**
-     * The locator used to identify this Record.
-     */
-    protected final L locator;
+    private final Set<V> emptyValues = new EmptyValueSet();
 
     /**
      * The key used to identify this Record. This value is {@code null} unless
@@ -111,13 +108,11 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     private final boolean partial;
 
     /**
-     * This set is returned when a key does not map to any values so that the
-     * caller can transparently interact without performing checks or
-     * compromising data consisentcy. This is a member variable (as opposed to
-     * static constant) that is mocked in the constructor because it has a
-     * generic type argument.
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no read occurs while data is being appended to the
+     * Record.
      */
-    private final Set<V> emptyValues = new EmptyValueSet();
+    private final WriteLock write = master.writeLock();
 
     /**
      * Construct a new instance.
@@ -145,38 +140,8 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     public void append(Revision<L, K, V> revision) {
         write.lock();
         try {
-            // NOTE: We only need to enforce the monotonic increasing constraint
-            // for PrimaryRecords because Secondary and Search records will be
-            // populated from Blocks that were sorted based primarily on
-            // non-version factors.
-            Preconditions.checkArgument(
-                    (this instanceof TableRecord
-                            && revision.getVersion() >= version) || true,
-                    "Cannot " + "append %s because its version(%s) is lower "
-                            + "than the Record's current version(%s). The",
-                    revision, revision.getVersion(), version);
-            Preconditions.checkArgument(revision.getLocator().equals(locator),
-                    "Cannot append %s because it does not belong to %s",
-                    revision, this);
-            // NOTE: The check below is ignored for a partial SearchRecord
-            // instance because they 'key' is the entire search query, but we
-            // append Revisions for each term in the query
-            Preconditions.checkArgument(
-                    (partial && revision.getKey().equals(key)) || !partial
-                            || this instanceof CorpusRecord,
-                    "Cannot append %s because it does not belong to %s",
-                    revision, this);
-            // NOTE: The check below is ignored for a SearchRecord instance
-            // because it will legitimately appear that "duplicate" data has
-            // been added if similar data is added to the same key in a record
-            // at different times (i.e. adding John Doe and Johnny Doe to the
-            // "name")
-            Preconditions.checkArgument(
-                    this instanceof CorpusRecord || isOffset(revision),
-                    "Cannot append " + "%s because it represents an action "
-                            + "involving a key, value and locator that has not "
-                            + "been offset.",
-                    revision);
+            checkIsRelevantRevision(revision);
+            checkIsOffsetRevision(revision);
 
             // Update present index
             Set<V> values = present.get(revision.getKey());
@@ -201,9 +166,6 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
                 history.put(revision.getKey(), revisions);
             }
             revisions.add(revision.compact());
-
-            // Update metadata
-            version = Math.max(version, revision.getVersion());
 
             // Run post-append hook
             onAppend(revision);
@@ -233,16 +195,6 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
                     && (partial ? key.equals(other.key) : true);
         }
         return false;
-    }
-
-    /**
-     * Return the Record's version, which is equal to the largest version of an
-     * appended Revision.
-     * 
-     * @return the version
-     */
-    public long getVersion() {
-        return version;
     }
 
     @Override
@@ -282,18 +234,46 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Return {@code true} if the action associated with {@code revision}
-     * offsets the last action for an equal revision.
+     * Check that {@code revision} is {@link #isOffset(Revision) offset} within
+     * this {@link Record} and throw and {@link IllegalArgumentException} if
+     * that is not the case.
+     * <p>
+     * NOTE: Specific {@link Record} subtypes may override this method to ignore
+     * the check if it is not valid for their operations.
+     * </p>
      * 
      * @param revision
-     * @return {@code true} if the revision if offset.
+     * @throws IllegalArgumentException
      */
-    private boolean isOffset(Revision<L, K, V> revision) {
-        boolean contained = get(revision.getKey())
-                .contains(revision.getValue());
-        return ((revision.getType() == Action.ADD && !contained)
-                || (revision.getType() == Action.REMOVE && contained)) ? true
-                        : false;
+    protected void checkIsOffsetRevision(Revision<L, K, V> revision)
+            throws IllegalArgumentException {
+        Preconditions.checkArgument(isOffset(revision),
+                "Cannot append %s because it represents an action "
+                        + "involving a key, value and locator that has not "
+                        + "been offset.",
+                revision);
+    }
+
+    /**
+     * Check that {@code revision} is relevant to this {@link Record} and throw
+     * and {@link IllegalArgumentException} if that is not the case.
+     * <p>
+     * NOTE: Specific {@link Record} subtypes may override this method to ignore
+     * the check if it is not valid for their operations.
+     * </p>
+     * 
+     * @param revision
+     * @throws IllegalArgumentException
+     */
+    protected void checkIsRelevantRevision(Revision<L, K, V> revision)
+            throws IllegalArgumentException {
+        Preconditions.checkArgument(revision.getLocator().equals(locator),
+                "Cannot append %s because it does not belong to %s", revision,
+                this);
+        Preconditions.checkArgument(
+                (partial && revision.getKey().equals(key)) || !partial,
+                "Cannot append %s because it does not belong to %s", revision,
+                this);
     }
 
     /**
@@ -415,6 +395,21 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * {@link #append(Revision) appended}.
      */
     protected void onAppend(Revision<L, K, V> revision) {/* no-op */}
+
+    /**
+     * Return {@code true} if the action associated with {@code revision}
+     * offsets the last action for an equal revision.
+     * 
+     * @param revision
+     * @return {@code true} if the revision if offset.
+     */
+    private boolean isOffset(Revision<L, K, V> revision) {
+        boolean contained = get(revision.getKey())
+                .contains(revision.getValue());
+        return ((revision.getType() == Action.ADD && !contained)
+                || (revision.getType() == Action.REMOVE && contained)) ? true
+                        : false;
+    }
 
     /**
      * An empty Set of type V that cannot be modified, but won't throw
