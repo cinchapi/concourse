@@ -123,7 +123,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
         // generate an index at Position 0 in the same record) and the removal
         // of one of those values would erroneously remove infix entries for the
         // other contain values when using a standard Set.
-        return new LinkedHashListSet<>();
+        return new ImpersonatingLinkedHashMulitset<>();
     }
 
     /**
@@ -133,7 +133,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
      *
      * @author Jeff Nelson
      */
-    private static class LinkedHashListSet<V> implements Set<V> {
+    private static class ImpersonatingLinkedHashMulitset<V> implements Set<V> {
 
         /**
          * The wrapped {@link Multiset}.
