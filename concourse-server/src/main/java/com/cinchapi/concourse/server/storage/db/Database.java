@@ -586,7 +586,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
-                Collection<Position> positions = corpus.locate(K);
+                Set<Position> positions = corpus.locate(K);
                 for (Position position : positions) {
                     PrimaryKey record = position.getPrimaryKey();
                     int pos = position.getIndex();

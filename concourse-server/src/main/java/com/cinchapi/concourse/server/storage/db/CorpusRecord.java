@@ -82,7 +82,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
      * @param query
      * @return the Set of {@link Position Positions}
      */
-    public Collection<Position> locate(Text infix) {
+    public Set<Position> locate(Text infix) {
         return get(infix);
     }
 
@@ -94,7 +94,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
      * @param verion
      * @return the Set of {@link Position Positions}
      */
-    public Collection<Position> locate(Text infix, long version) {
+    public Set<Position> locate(Text infix, long version) {
         return get(infix, version);
     }
 
