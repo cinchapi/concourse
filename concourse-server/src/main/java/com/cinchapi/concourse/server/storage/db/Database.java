@@ -446,7 +446,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<TObject, Set<Long>> browse(String key) {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
-        Map<Value, Set<PrimaryKey>> data = index.get();
+        Map<Value, Set<PrimaryKey>> data = index.getAll();
         return Transformers.transformTreeMapSet(data, Value::getTObject,
                 PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
@@ -455,7 +455,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
-        Map<Value, Set<PrimaryKey>> data = index.get(timestamp);
+        Map<Value, Set<PrimaryKey>> data = index.getAll(timestamp);
         return Transformers.transformTreeMapSet(data, Value::getTObject,
                 PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
@@ -638,7 +638,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<String, Set<TObject>> select(long record) {
         PrimaryKey L = PrimaryKey.wrap(record);
         TableRecord table = getTableRecord(L);
-        Map<Text, Set<Value>> data = table.get();
+        Map<Text, Set<Value>> data = table.getAll();
         return Transformers.transformTreeMapSet(data, Text::toString,
                 Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
@@ -648,7 +648,7 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<String, Set<TObject>> select(long record, long timestamp) {
         PrimaryKey L = PrimaryKey.wrap(record);
         TableRecord table = getTableRecord(L);
-        Map<Text, Set<Value>> data = table.get(timestamp);
+        Map<Text, Set<Value>> data = table.getAll(timestamp);
         return Transformers.transformTreeMapSet(data, Text::toString,
                 Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);

@@ -236,26 +236,6 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Return a view of all the data that is presently contained in this record.
-     * 
-     * @return the data
-     */
-    public Map<K, Set<V>> get() {
-        read.lock();
-        try {
-            Map<K, Set<V>> data = Maps.newLinkedHashMap();
-            for (K key : keys()) {
-                data.put(key, get(key));
-            }
-            return data;
-        }
-        finally {
-            read.unlock();
-        }
-
-    }
-
-    /**
      * Lazily retrieve an unmodifiable view of the current set of values mapped
      * from {@code key}.
      * 
@@ -312,13 +292,33 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
+     * Return a view of all the data that is presently contained in this record.
+     * 
+     * @return the data
+     */
+    public Map<K, Set<V>> getAll() {
+        read.lock();
+        try {
+            Map<K, Set<V>> data = Maps.newLinkedHashMap();
+            for (K key : keys()) {
+                data.put(key, get(key));
+            }
+            return data;
+        }
+        finally {
+            read.unlock();
+        }
+
+    }
+
+    /**
      * Return a view of all the data that was contained in this record at
      * {@code timestamp}.
      * 
      * @param timestamp
      * @return the data
      */
-    public Map<K, Set<V>> get(long timestamp) {
+    public Map<K, Set<V>> getAll(long timestamp) {
         read.lock();
         try {
             Map<K, Set<V>> data = Maps.newLinkedHashMap();

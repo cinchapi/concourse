@@ -290,7 +290,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
             Set<V> values = populateRecord(record, locator, key);
             expected.putAll(key, values);
         }
-        Assert.assertEquals(expected.asMap(), record.get());
+        Assert.assertEquals(expected.asMap(), record.getAll());
     }
 
     @Test
@@ -309,7 +309,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
             K key = getKey();
             populateRecord(record, locator, key);
         }
-        Assert.assertEquals(expected.asMap(), record.get(timestamp));
+        Assert.assertEquals(expected.asMap(), record.getAll(timestamp));
     }
 
     protected abstract K getKey();
