@@ -63,7 +63,8 @@ import com.google.common.collect.Lists;
  * <p>
  * When initially {@link Chunk#Chunk(BloomFilter) created}, a {@link Chunk}
  * resides solely in memory and is able to
- * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) insert} new
+ * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) insert}
+ * new
  * {@link Revision revisions} (this corresponds to the
  * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
  * functionality), which are sorted on the fly. Once the {@link Chunk} is
@@ -116,7 +117,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * if the {@link #length} is less than {@link Integer#MAX_VALUE}.
      * <p>
      * If this value is not {@code null}, it is cleared when new data is
-     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) inserted}.
+     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)
+     * inserted}.
      * </p>
      */
     @Nullable
@@ -149,7 +151,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * A running count of the number of {@link #revisions} that have been
-     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) inserted} into
+     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)
+     * inserted} into
      * a {@link #mutable} {@link Chunk}.
      * <p>
      * This value is {@code null} when this {@link Chunk} is no longer
@@ -161,7 +164,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * A collection that contains all the Revisions that have been
-     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) inserted} into
+     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)
+     * inserted} into
      * the {@link Chunk}. This collection is sorted on the fly as elements are
      * inserted.
      * <p>
@@ -193,7 +197,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * A reference to the {@link Segment Segment's} read lock that is necessary
      * to prevent inconsistent reads across the various {@link Chunk chunks} due
      * to the non-atomic asynchronous
-     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action) writes}
+     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)
+     * writes}
      * triggered by a
      * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
      * Segment transfer}
@@ -549,7 +554,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     protected abstract void incrementLengthBy(int delta);
 
     /**
-     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)} without
+     * {@link #insertRevision(Byteable, Byteable, Byteable, long, Action)}
+     * without
      * locking. Only call this method directly if the {@link Chunk} is
      * {@link #concurrent}.
      * 

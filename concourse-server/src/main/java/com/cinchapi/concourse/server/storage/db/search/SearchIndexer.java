@@ -87,7 +87,8 @@ public final class SearchIndexer {
      * @param artifacts
      */
     public <T> void enqueue(SearchIndex index, CountUpLatch tracker, Text key,
-            Text term, Position position, long version, Action type, Collection<T> artifacts) {
+            Text term, Position position, long version, Action type,
+            Collection<T> artifacts) {
         workers.execute(() -> {
             index.index(key, term, position, version, type, artifacts);
             tracker.countUp();

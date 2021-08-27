@@ -133,7 +133,7 @@ public final class CorpusRecord extends Record<Text, Text, Position> {
      *
      * @author Jeff Nelson
      */
-    private static class LinkedHashListSet<V> implements Set<V>  {
+    private static class LinkedHashListSet<V> implements Set<V> {
 
         /**
          * The wrapped {@link Multiset}.

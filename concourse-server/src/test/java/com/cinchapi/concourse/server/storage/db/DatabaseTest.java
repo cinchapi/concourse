@@ -293,7 +293,7 @@ public class DatabaseTest extends StoreTest {
         store.start();
         Assert.assertTrue(store.browse("iqu").isEmpty());
     }
-    
+
     @Test
     public void testSearchMultiValuedAfterRemove() {
         add("name", Convert.javaToThrift("jeff"), 1L);
