@@ -71,7 +71,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * key sorting via the returned type for {@link #mapType()}.
      */
     protected final transient Map<K, Set<V>> present = mapType();
-    
+
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
