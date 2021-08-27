@@ -443,21 +443,14 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         MappedByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
-                        try {
-                            Iterator<ByteBuffer> it = ByteableCollections
-                                    .iterator(bytes);
-                            while (it.hasNext()) {
-                                Revision<L, K, V> revision = Byteables
-                                        .read(it.next(), xRevisionClass());
-                                Logger.debug(
-                                        "Attempting to append {} from {} to "
-                                                + "{}",
-                                        revision, this, record);
-                                record.append(revision);
-                            }
-                        }
-                        finally {
-                            FileSystem.unmapAsync(bytes);
+                        Iterator<ByteBuffer> it = ByteableCollections
+                                .iterator(bytes);
+                        while (it.hasNext()) {
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
+                            Logger.debug("Attempting to append {} from {} to "
+                                    + "{}", revision, this, record);
+                            record.append(revision);
                         }
                     }
                 }

@@ -56,17 +56,6 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
     public Map<Long, String> auditUnsafe(String key, long record);
 
     /**
-     * This method returns a log of revisions in {@code record} as
-     * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
-     * to call from the methods of {@link #AtomicOperation} class
-     * because in this case intermediate read {@link #Lock} is not required.
-     * 
-     * @param record
-     * @return {@code Map}
-     */
-    public Map<String, Set<TObject>> browseUnsafe(long record);
-
-    /**
      * Browse {@code key}.
      * This method returns a mapping from each of the values that is
      * currently indexed to {@code key} to a Set the records that contain
@@ -130,6 +119,17 @@ public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
      * @return {@code Set}
      */
     public Set<TObject> gatherUnsafe(String key, long record);
+
+    /**
+     * This method returns a log of revisions in {@code record} as
+     * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
+     * to call from the methods of {@link #AtomicOperation} class
+     * because in this case intermediate read {@link #Lock} is not required.
+     * 
+     * @param record
+     * @return {@code Map}
+     */
+    public Map<String, Set<TObject>> selectUnsafe(long record);
 
     /**
      * Fetch {@code key} from {@code record}.

@@ -386,7 +386,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.browse(record, true);
+        return super.select(record, true);
     }
 
     @Override

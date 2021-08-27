@@ -255,7 +255,7 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return browse(record, false);
+        return select(record, false);
     }
 
     @Override
@@ -428,29 +428,6 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
-     * Browse {@code record} either using safe or unsafe methods.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} to a Set of associated values. If there are no such keys,
-     * an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @param unsafe
-     * @return a possibly empty Map of data.
-     */
-    protected Map<String, Set<TObject>> browse(long record, boolean unsafe) {
-        Map<String, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).browseUnsafe(record);
-        }
-        else {
-            context = destination.select(record);
-        }
-        return buffer.select(record, Time.now(), context);
-    }
-
-    /**
      * Browse {@code key} either using safe or unsafe methods.
      * <p>
      * This method returns a mapping from each of the values that is currently
@@ -610,6 +587,29 @@ public abstract class BufferedStore extends BaseStore {
         catch (ReferentialIntegrityException e) {
             return false;
         }
+    }
+
+    /**
+     * Select {@code record} either using safe or unsafe methods.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} to a Set of associated values. If there are no such keys,
+     * an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @param unsafe
+     * @return a possibly empty Map of data.
+     */
+    protected Map<String, Set<TObject>> select(long record, boolean unsafe) {
+        Map<String, Set<TObject>> context;
+        if(unsafe && destination instanceof AtomicSupport) {
+            context = ((AtomicSupport) (destination)).selectUnsafe(record);
+        }
+        else {
+            context = destination.select(record);
+        }
+        return buffer.select(record, Time.now(), context);
     }
 
     /**

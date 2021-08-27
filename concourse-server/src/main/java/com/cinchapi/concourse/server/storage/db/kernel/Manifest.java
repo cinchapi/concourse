@@ -87,7 +87,7 @@ public class Manifest extends TransferableByteSequence {
      */
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
-            .pow(2, 24); // ~16.7mb
+            .pow(2, 26); // ~67.1mb or 838,860 entries
 
     /**
      * Represents an entry that has not been recorded.
@@ -139,6 +139,13 @@ public class Manifest extends TransferableByteSequence {
      * The running size of the {@link Manifest} in bytes.
      */
     private long length = 0;
+
+    /**
+     * Final reference to {@link #MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD}
+     * (which is accessible for testing) in hopes of getting a little
+     * performance gain...
+     */
+    private final transient int streamingThreshold = MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD;
 
     /**
      * Construct a new instance.
@@ -311,7 +318,7 @@ public class Manifest extends TransferableByteSequence {
         }
         else {
             Map<Composite, Entry> entries = new StreamedEntries();
-            if(length < MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
+            if(length < streamingThreshold) {
                 // The Manifest is small enough to fit comfortably into memory,
                 // so eagerly load all of the entries instead of streaming them
                 // from disk one-by-one (as is done in the OnDiskEntries).
@@ -529,15 +536,10 @@ public class Manifest extends TransferableByteSequence {
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
             MappedByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
                     position(), length);
-            try {
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-                while (it.hasNext()) {
-                    Manifest.Entry entry = new Manifest.Entry(it.next());
-                    action.accept(entry.key(), entry);
-                }
-            }
-            finally {
-                FileSystem.unmapAsync(bytes);
+            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            while (it.hasNext()) {
+                Manifest.Entry entry = new Manifest.Entry(it.next());
+                action.accept(entry.key(), entry);
             }
         }
 
