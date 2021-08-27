@@ -218,6 +218,12 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final String SEGMENTS_SUBDIRECTORY = "segments";
 
     /**
+     * Global flag that indicates if search data is cached.
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_SEARCH_CACHE = GlobalState.ENABLE_SEARCH_CACHE;
+
+    /**
      * The full {@link Path} for the directory where the {@link #segments
      * segment} files are stored.
      */
@@ -250,7 +256,7 @@ public final class Database extends BaseStore implements PermanentStore {
     private final Cache<Composite, TableRecord> cpc = buildCache();
     private final Cache<Composite, TableRecord> cppc = buildCache();
     private final Cache<Composite, IndexRecord> csc = buildCache();
-    private final Cache<Composite, CorpusRecord> ccc = GlobalState.ENABLE_SEARCH_CACHE
+    private final Cache<Composite, CorpusRecord> ccc = ENABLE_SEARCH_CACHE
             ? buildCache()
             : new NoOpCache<>();
 
@@ -374,7 +380,7 @@ public final class Database extends BaseStore implements PermanentStore {
                     if(csr != null) {
                         csr.append(receipt.index().revision());
                     }
-                    if(GlobalState.ENABLE_SEARCH_CACHE) {
+                    if(ENABLE_SEARCH_CACHE) {
                         for (CorpusArtifact artifact : receipt.corpus()) {
                             CorpusRecord ccr = ccc.getIfPresent(
                                     artifact.getLocatorKeyComposite());

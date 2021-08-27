@@ -74,6 +74,12 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     }
 
     /**
+     * Global flag that indicates if artifacts should be recorded when
+     * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
+     */
+    private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
+
+    /**
      * Return a new {@link CorpusChunk}.
      * 
      * @param filter
@@ -219,7 +225,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                 String string = value.getObject().toString().toLowerCase(); // CON-10
                 String[] toks = string.split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-                Collection<CorpusArtifact> artifacts = GlobalState.ENABLE_SEARCH_CACHE
+                Collection<CorpusArtifact> artifacts = TRACK_ARTIFACTS
                         ? Sets.newConcurrentHashSet()
                         : new NoOpList<>();
                 CountUpLatch tracker = new CountUpLatch();
@@ -257,10 +263,9 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     @Override
     protected CorpusArtifact makeArtifact(
             Revision<Text, Text, Position> revision, Composite[] composites) {
-        // If the search cache is disabled, don't unnecessarily hold a reference
-        // to the composites in hopes that memory can GCed
-        composites = GlobalState.ENABLE_SEARCH_CACHE ? composites
-                : Array.containing();
+        // If artifact tracking is disabled, don't unnecessarily hold a
+        // reference to the composites in hopes that memory can GCed
+        composites = TRACK_ARTIFACTS ? composites : Array.containing();
         return new CorpusArtifact((CorpusRevision) revision, composites);
     }
 
