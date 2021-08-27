@@ -46,6 +46,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -291,6 +292,17 @@ public class DatabaseTest extends StoreTest {
         ((Database) store).triggerSync();
         store.start();
         Assert.assertTrue(store.browse("iqu").isEmpty());
+    }
+    
+    @Test
+    public void testSearchMultiValuedAfterRemove() {
+        add("name", Convert.javaToThrift("jeff"), 1L);
+        add("name", Convert.javaToThrift("jeffery"), 1L);
+        Set<Long> actual = store.search("name", "jeff");
+        Assert.assertEquals(ImmutableSet.of(1L), actual);
+        remove("name", Convert.javaToThrift("jeff"), 1L);
+        actual = store.search("name", "jeff");
+        Assert.assertEquals(ImmutableSet.of(1L), actual);
     }
 
     @Override

@@ -18,6 +18,8 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.nio.file.Path;
+import java.util.AbstractList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.SortedSet;
@@ -30,12 +32,14 @@ import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
 import net.openhft.chronicle.map.VanillaChronicleMap;
 import net.openhft.chronicle.set.ChronicleSet;
 
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.common.logging.Logging;
 import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -50,6 +54,7 @@ import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 /**
@@ -174,10 +179,13 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * {@inheritDoc}
      * </p>
      */
+    @SuppressWarnings("unchecked")
     @Override
-    public void index(Text key, Text term, Position position, long version,
-            Action type) {
-        super.insertUnsafe(key, term, position, version, type);
+    public <T> void index(Text key, Text term, Position position, long version,
+            Action type, Collection<T> artifacts) {
+        Artifact<Text, Text, Position> artifact = (Artifact<Text, Text, Position>) super.insertUnsafe(
+                key, term, position, version, type);
+        artifacts.add((T) artifact);
     }
 
     /**
@@ -185,8 +193,9 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      */
     @Override
     @DoNotInvoke
-    public final CorpusRevision insert(Text locator, Text key, Position value,
-            long version, Action type) {
+    public Artifact<Text, Text, Position> insert(Text locator, Text key,
+            Position value, long version, Action type)
+            throws IllegalStateException {
         throw new UnsupportedOperationException();
     }
 
@@ -200,8 +209,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * @param version
      * @param type
      */
-    public final void insert(Text key, Value value, PrimaryKey record,
-            long version, Action type) {
+    public final Collection<CorpusArtifact> insert(Text key, Value value,
+            PrimaryKey record, long version, Action type) {
         Preconditions.checkState(isMutable(),
                 "Cannot modify a chunk that is immutable");
         if(value.getType() == Type.STRING) {
@@ -210,12 +219,15 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                 String string = value.getObject().toString().toLowerCase(); // CON-10
                 String[] toks = string.split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+                Collection<CorpusArtifact> artifacts = GlobalState.ENABLE_SEARCH_CACHE
+                        ? Sets.newConcurrentHashSet()
+                        : new NoOpList<>();
                 CountUpLatch tracker = new CountUpLatch();
                 int pos = 0;
                 int numPrepared = 0;
                 for (String tok : toks) {
                     numPrepared += prepare(tracker, key, tok, record, pos,
-                            version, type);
+                            version, type, artifacts);
                     ++pos;
                 }
                 try {
@@ -224,10 +236,14 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                 catch (InterruptedException e) {
                     throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
+                return artifacts;
             }
             finally {
                 write.unlock();
             }
+        }
+        else {
+            return ImmutableList.of();
         }
     }
 
@@ -236,6 +252,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     protected SortedSet<Revision<Text, Text, Position>> createBackingStore(
             Comparator<Revision> comparator) {
         return new ConcurrentSkipListSet<>(comparator);
+    }
+
+    @Override
+    protected CorpusArtifact makeArtifact(
+            Revision<Text, Text, Position> revision, Composite[] composites) {
+        // If the search cache is disabled, don't unnecessarily hold a reference
+        // to the composites in hopes that memory can GCed
+        composites = GlobalState.ENABLE_SEARCH_CACHE ? composites
+                : Array.containing();
+        return new CorpusArtifact((CorpusRevision) revision, composites);
     }
 
     @Override
@@ -267,12 +293,17 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * @param position
      * @param version
      * @param type
+     * @param artifacts a collection where each {@link Chunk.Artifact} that is
+     *            generated from the
+     *            {@link #index(Text, Text, Position, long, Action, Collection)}
+     *            job is stored
      * @return the number of inserts that have been enqueued so that the caller
      *         can {@link CountUpLatch#await(int) await} all related inserts
      *         to finish.
      */
     private int prepare(CountUpLatch tracker, Text key, String term,
-            PrimaryKey record, int position, long version, Action type) {
+            PrimaryKey record, int position, long version, Action type,
+            Collection<CorpusArtifact> artifacts) {
         int count = 0;
         if(!STOPWORDS.contains(term)) {
             Position pos = Position.wrap(record, position);
@@ -324,7 +355,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                             && !STOPWORDS.contains(substring)
                             && indexed.add(substring)) {
                         INDEXER.enqueue(this, tracker, key, infix, pos, version,
-                                type);
+                                type, artifacts);
                         ++count;
                     }
                 }
@@ -333,6 +364,30 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             indexed = null; // make eligible for immediate GC
         }
         return count;
+    }
+
+    /**
+     * A {@link List} that ignores attempts to write any data.
+     *
+     * @author Jeff Nelson
+     */
+    private static class NoOpList<T> extends AbstractList<T> {
+
+        @Override
+        public T get(int index) {
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean add(T e) {
+            return false;
+        }
+
     }
 
 }

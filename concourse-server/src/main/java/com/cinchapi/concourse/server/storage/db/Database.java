@@ -60,6 +60,8 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.cache.NoOpCache;
+import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
 import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
@@ -248,6 +250,9 @@ public final class Database extends BaseStore implements PermanentStore {
     private final Cache<Composite, TableRecord> cpc = buildCache();
     private final Cache<Composite, TableRecord> cppc = buildCache();
     private final Cache<Composite, IndexRecord> csc = buildCache();
+    private final Cache<Composite, CorpusRecord> ccc = GlobalState.ENABLE_SEARCH_CACHE
+            ? buildCache()
+            : new NoOpCache<>();
 
     /**
      * The location where the Database stores data.
@@ -354,20 +359,29 @@ public final class Database extends BaseStore implements PermanentStore {
                     Logger.debug("Indexed '{}' in {}", write, seg0);
 
                     // Updated cached records
-                    TableRecord cpr = cpc
-                            .getIfPresent(Composite.create(write.getRecord()));
-                    TableRecord cppr = cppc.getIfPresent(Composite
-                            .create(write.getRecord(), write.getKey()));
-                    IndexRecord csr = csc
-                            .getIfPresent(Composite.create(write.getKey()));
+                    TableRecord cpr = cpc.getIfPresent(
+                            receipt.table().getLocatorComposite());
+                    TableRecord cppr = cppc.getIfPresent(
+                            receipt.table().getLocatorKeyComposite());
+                    IndexRecord csr = csc.getIfPresent(
+                            receipt.index().getLocatorComposite());
                     if(cpr != null) {
-                        cpr.append(receipt.tableRevision());
+                        cpr.append(receipt.table().revision());
                     }
                     if(cppr != null) {
-                        cppr.append(receipt.tableRevision());
+                        cppr.append(receipt.table().revision());
                     }
                     if(csr != null) {
-                        csr.append(receipt.indexRevision());
+                        csr.append(receipt.index().revision());
+                    }
+                    if(GlobalState.ENABLE_SEARCH_CACHE) {
+                        for (CorpusArtifact artifact : receipt.corpus()) {
+                            CorpusRecord ccr = ccc.getIfPresent(
+                                    artifact.getLocatorKeyComposite());
+                            if(ccr != null) {
+                                ccr.append(artifact.revision());
+                            }
+                        }
                     }
                 }
                 catch (InterruptedException e) {
@@ -572,7 +586,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
-                Set<Position> positions = corpus.locate(K);
+                Collection<Position> positions = corpus.locate(K);
                 for (Position position : positions) {
                     PrimaryKey record = position.getPrimaryKey();
                     int pos = position.getIndex();
@@ -853,12 +867,17 @@ public final class Database extends BaseStore implements PermanentStore {
         // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            CorpusRecord record = CorpusRecord.createPartial(key, infix);
             Composite composite = Composite.create(key, infix);
-            for (Segment segment : segments) {
-                segment.corpus().seek(composite, record);
-            }
-            return record;
+            return ccc.get(composite, () -> {
+                CorpusRecord $ = CorpusRecord.createPartial(key, infix);
+                for (Segment segment : segments) {
+                    segment.corpus().seek(composite, $);
+                }
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();

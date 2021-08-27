@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +72,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * key sorting via the returned type for {@link #mapType()}.
      */
     protected final transient Map<K, Set<V>> present = mapType();
-    
+
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
@@ -146,7 +147,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
             // Update present index
             Set<V> values = present.get(revision.getKey());
             if(values == null) {
-                values = Sets.<V> newLinkedHashSet();
+                values = setType();
                 present.put(revision.getKey(), values);
             }
             if(revision.getType() == Action.ADD) {
@@ -389,6 +390,17 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * @return the initialized mappings
      */
     protected abstract Map<K, Set<V>> mapType();
+
+    /**
+     * Initialized the appropriate data structure for the {@link Set} that is
+     * mapped from each {@code K key} in the {@link #present} collection to
+     * contain all associated values.
+     * 
+     * @return an initialized value set
+     */
+    protected Set<V> setType() {
+        return new LinkedHashSet<>();
+    }
 
     /**
      * Logic that the subclass can run after the {@code revision} is
