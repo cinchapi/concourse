@@ -33,17 +33,6 @@ import com.google.common.cache.Cache;
 public class NoOpCache<K, V> extends AbstractCache<K, V> {
 
     @Override
-    public @Nullable V getIfPresent(Object key) {
-        return null;
-    }
-
-    @Override
-    public void put(K key, V value) { /* no-op */ }
-
-    @Override
-    public void invalidate(Object key) { /* no-op */ }
-
-    @Override
     public V get(K key, Callable<? extends V> valueLoader)
             throws ExecutionException {
         try {
@@ -53,5 +42,19 @@ public class NoOpCache<K, V> extends AbstractCache<K, V> {
             throw new ExecutionException(e.getMessage(), e);
         }
     }
+
+    @Override
+    public @Nullable V getIfPresent(Object key) {
+        return null;
+    }
+
+    @Override
+    public void invalidate(Object key) { /* no-op */ }
+
+    @Override
+    public void invalidateAll() {/* no-op */}
+
+    @Override
+    public void put(K key, V value) { /* no-op */ }
 
 }

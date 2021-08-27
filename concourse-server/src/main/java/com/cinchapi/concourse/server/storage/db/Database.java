@@ -253,10 +253,10 @@ public final class Database extends BaseStore implements PermanentStore {
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
      */
-    private final Cache<Composite, TableRecord> cpc = buildCache();
-    private final Cache<Composite, TableRecord> cppc = buildCache();
-    private final Cache<Composite, IndexRecord> csc = buildCache();
-    private final Cache<Composite, CorpusRecord> ccc = ENABLE_SEARCH_CACHE
+    private final Cache<Composite, TableRecord> tableCache = buildCache();
+    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
+    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+    private final Cache<Composite, CorpusRecord> corpusCache = ENABLE_SEARCH_CACHE
             ? buildCache()
             : new NoOpCache<>();
 
@@ -365,11 +365,11 @@ public final class Database extends BaseStore implements PermanentStore {
                     Logger.debug("Indexed '{}' in {}", write, seg0);
 
                     // Updated cached records
-                    TableRecord cpr = cpc.getIfPresent(
+                    TableRecord cpr = tableCache.getIfPresent(
                             receipt.table().getLocatorComposite());
-                    TableRecord cppr = cppc.getIfPresent(
+                    TableRecord cppr = tablePartialCache.getIfPresent(
                             receipt.table().getLocatorKeyComposite());
-                    IndexRecord csr = csc.getIfPresent(
+                    IndexRecord csr = indexCache.getIfPresent(
                             receipt.index().getLocatorComposite());
                     if(cpr != null) {
                         cpr.append(receipt.table().revision());
@@ -382,7 +382,7 @@ public final class Database extends BaseStore implements PermanentStore {
                     }
                     if(ENABLE_SEARCH_CACHE) {
                         for (CorpusArtifact artifact : receipt.corpus()) {
-                            CorpusRecord ccr = ccc.getIfPresent(
+                            CorpusRecord ccr = corpusCache.getIfPresent(
                                     artifact.getLocatorKeyComposite());
                             if(ccr != null) {
                                 ccr.append(artifact.revision());
@@ -754,7 +754,8 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             writer.shutdown();
             memory = null;
-            for (Cache<Composite, ?> cache : ImmutableList.of(cpc, cppc, csc)) {
+            for (Cache<Composite, ?> cache : ImmutableList.of(tableCache,
+                    tablePartialCache, indexCache, corpusCache)) {
                 cache.invalidateAll();
             }
         }
@@ -802,7 +803,7 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(primaryKey);
-            return cpc.get(composite, () -> {
+            return tableCache.get(composite, () -> {
                 TableRecord $ = TableRecord.create(primaryKey);
                 for (Segment segment : segments) {
                     segment.table().seek(composite, $);
@@ -837,10 +838,11 @@ public final class Database extends BaseStore implements PermanentStore {
         try {
             // Before loading a partial record, see if the full record is
             // present in memory.
-            TableRecord table = cpc.getIfPresent(Composite.create(primaryKey));
+            TableRecord table = tableCache
+                    .getIfPresent(Composite.create(primaryKey));
             if(table == null) {
                 Composite composite = Composite.create(primaryKey, key);
-                table = cppc.get(composite, () -> {
+                table = tablePartialCache.get(composite, () -> {
                     TableRecord $ = TableRecord.createPartial(primaryKey, key);
                     for (Segment segment : segments) {
                         segment.table().seek(composite, $);
@@ -874,7 +876,7 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key, infix);
-            return ccc.get(composite, () -> {
+            return corpusCache.get(composite, () -> {
                 CorpusRecord $ = CorpusRecord.createPartial(key, infix);
                 for (Segment segment : segments) {
                     segment.corpus().seek(composite, $);
@@ -900,7 +902,7 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            return csc.get(composite, () -> {
+            return indexCache.get(composite, () -> {
                 IndexRecord $ = IndexRecord.create(key);
                 for (Segment segment : segments) {
                     segment.index().seek(composite, $);
@@ -1056,20 +1058,21 @@ public final class Database extends BaseStore implements PermanentStore {
         @Override
         public boolean contains(long record) {
             Composite composite = Composite.create(PrimaryKey.wrap(record));
-            return cpc.getIfPresent(composite) != null;
+            return tableCache.getIfPresent(composite) != null;
         }
 
         @Override
         public boolean contains(String key) {
             Composite composite = Composite.create(Text.wrapCached(key));
-            return csc.getIfPresent(composite) != null;
+            return indexCache.getIfPresent(composite) != null;
         }
 
         @Override
         public boolean contains(String key, long record) {
             Composite composite = Composite.create(PrimaryKey.wrap(record),
                     Text.wrapCached(key));
-            return cppc.getIfPresent(composite) != null || contains(record);
+            return tablePartialCache.getIfPresent(composite) != null
+                    || contains(record);
         }
 
     }
