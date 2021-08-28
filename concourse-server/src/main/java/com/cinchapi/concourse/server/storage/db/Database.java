@@ -228,7 +228,7 @@ public final class Database extends BaseStore implements PermanentStore {
     /**
      * Return if {@link #corpusCaches} does not contain a cache for a key.
      */
-    private static final Cache<Composite, CorpusRecord> MISSING_CORPUS_CACHE = new NoOpCache<>();
+    private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
 
     /**
      * The full {@link Path} for the directory where the {@link #segments
@@ -895,8 +895,9 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key, infix);
-            Cache<Composite, CorpusRecord> cache = corpusCaches
-                    .getOrDefault(key, MISSING_CORPUS_CACHE);
+            Cache<Composite, CorpusRecord> cache = ENABLE_SEARCH_CACHE
+                    ? corpusCaches.computeIfAbsent(key, $ -> buildCache())
+                    : DISABLED_CORPUS_CACHE;
             return cache.get(composite, () -> {
                 CorpusRecord $ = CorpusRecord.createPartial(key, infix);
                 for (Segment segment : segments) {
