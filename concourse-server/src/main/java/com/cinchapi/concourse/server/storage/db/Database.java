@@ -478,31 +478,6 @@ public final class Database extends BaseStore implements PermanentStore {
         return !table.isEmpty();
     }
 
-    @Override
-    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Text L = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(L);
-        Value[] Ks = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.findAndGet(timestamp, operator,
-                Ks);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
-                Value::getTObject, Long::compare);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        Text L = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(L);
-        Value[] Ks = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.findAndGet(operator, Ks);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
-                Value::getTObject, Long::compare);
-    }
-
     /**
      * Return dumps for all the blocks identified by {@code id}. This method IS
      * NOT necessarily optimized for performance, so it should be used with
@@ -794,6 +769,31 @@ public final class Database extends BaseStore implements PermanentStore {
         Value V = Value.wrap(value);
         TableRecord table = getTableRecord(L, K);
         return table.contains(K, V, timestamp);
+    }
+    
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.findAndGet(timestamp, operator,
+                Ks);
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.findAndGet(operator, Ks);
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
     }
 
     /**
