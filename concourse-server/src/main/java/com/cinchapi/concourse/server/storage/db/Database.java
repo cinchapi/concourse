@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -85,6 +86,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
@@ -224,6 +226,11 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final boolean ENABLE_SEARCH_CACHE = GlobalState.ENABLE_SEARCH_CACHE;
 
     /**
+     * Return if {@link #corpusCaches} does not contain a cache for a key.
+     */
+    private static final Cache<Composite, CorpusRecord> MISSING_CORPUS_CACHE = new NoOpCache<>();
+
+    /**
      * The full {@link Path} for the directory where the {@link #segments
      * segment} files are stored.
      */
@@ -256,9 +263,17 @@ public final class Database extends BaseStore implements PermanentStore {
     private final Cache<Composite, TableRecord> tableCache = buildCache();
     private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
     private final Cache<Composite, IndexRecord> indexCache = buildCache();
-    private final Cache<Composite, CorpusRecord> corpusCache = ENABLE_SEARCH_CACHE
-            ? buildCache()
-            : new NoOpCache<>();
+
+    /**
+     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
+     * is done in an attempt to avoid attempting cache updates for every infix
+     * of a value when it is known that no search caches exist for the key from
+     * which the value is mapped (e.g. we are indexing a term for a key that
+     * isn't being searched).
+     */
+    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
+            ? new ConcurrentHashMap<>()
+            : ImmutableMap.of();
 
     /**
      * The location where the Database stores data.
@@ -381,11 +396,15 @@ public final class Database extends BaseStore implements PermanentStore {
                         csr.append(receipt.index().revision());
                     }
                     if(ENABLE_SEARCH_CACHE) {
-                        for (CorpusArtifact artifact : receipt.corpus()) {
-                            CorpusRecord ccr = corpusCache.getIfPresent(
-                                    artifact.getLocatorKeyComposite());
-                            if(ccr != null) {
-                                ccr.append(artifact.revision());
+                        Cache<Composite, CorpusRecord> cache = corpusCaches
+                                .get(write.getKey());
+                        if(cache != null) {
+                            for (CorpusArtifact artifact : receipt.corpus()) {
+                                CorpusRecord corpus = cache.getIfPresent(
+                                        artifact.getLocatorKeyComposite());
+                                if(corpus != null) {
+                                    corpus.append(artifact.revision());
+                                }
                             }
                         }
                     }
@@ -739,10 +758,11 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             writer.shutdown();
             memory = null;
-            for (Cache<Composite, ?> cache : ImmutableList.of(tableCache,
-                    tablePartialCache, indexCache, corpusCache)) {
-                cache.invalidateAll();
-            }
+            Streams.concat(ImmutableList
+                    .of(tableCache, tablePartialCache, indexCache).stream(),
+                    corpusCaches.values().stream()).forEach(cache -> {
+                        cache.invalidateAll();
+                    });
         }
     }
 
@@ -872,13 +892,12 @@ public final class Database extends BaseStore implements PermanentStore {
      * @return the CorpusRecord
      */
     private CorpusRecord getCorpusRecord(Text key, Text infix) {
-        // NOTE: We do not cache CorpusRecords because they have the potential
-        // to be VERY large. Holding references to them in a cache would prevent
-        // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key, infix);
-            return corpusCache.get(composite, () -> {
+            Cache<Composite, CorpusRecord> cache = corpusCaches
+                    .getOrDefault(key, MISSING_CORPUS_CACHE);
+            return cache.get(composite, () -> {
                 CorpusRecord $ = CorpusRecord.createPartial(key, infix);
                 for (Segment segment : segments) {
                     segment.corpus().seek(composite, $);
