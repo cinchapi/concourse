@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -303,6 +305,39 @@ public class DatabaseTest extends StoreTest {
         remove("name", Convert.javaToThrift("jeff"), 1L);
         actual = store.search("name", "jeff");
         Assert.assertEquals(ImmutableSet.of(1L), actual);
+    }
+
+    @Test
+    public void testBackgroundManifestLoadConcurrency()
+            throws InterruptedException {
+        Database db = (Database) store;
+        List<Write> writes = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 3; ++i) {
+            String key = TestData.getSimpleString();
+            TObject value = TestData.getTObject();
+            long record = (Math.abs(TestData.getInt()) % 10) + 1;
+            add(key, value, record);
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                writes.add(Write.add(key, value, record));
+            }
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                db.sync();
+            }
+        }
+        db.stop();
+        db.start();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        Iterator<Write> it = writes.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            executor.execute(() -> {
+                Assert.assertTrue(db.verify(write.getKey().toString(),
+                        write.getValue().getTObject(),
+                        write.getRecord().longValue()));
+            });
+        }
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.MINUTES);
     }
 
     @Override

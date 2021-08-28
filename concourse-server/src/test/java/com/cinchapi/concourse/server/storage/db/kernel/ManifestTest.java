@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -38,6 +40,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for
@@ -165,6 +168,73 @@ public class ManifestTest extends ConcourseBaseTest {
             Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = threshold;
         }
 
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testBackgroundLoadEntriesWorksHit() {
+        Set<Composite> composites = Sets.newLinkedHashSet();
+        Manifest manifest = Manifest.create(100000);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            Composite composite = Composite.create(TestData.getText());
+            if(composites.add(composite)) {
+                manifest.putStart(i, composite);
+                manifest.putEnd(i + 1, composite);
+            }
+        }
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        manifest.transfer(file);
+        manifest = Manifest.load(file, 0,
+                FileSystem.getFileSize(file.toString()));
+        Composite composite = composites.iterator().next();
+        Map map = Reflection.call(manifest, "entries", composite);
+        Assert.assertTrue(map.containsKey(composite));
+        Assert.assertEquals(1, map.size());
+        while (Reflection.get("$entries", manifest) == null
+                || Reflection.call(Reflection.get("$entries", manifest),
+                        "get") == null) {/* spin */}
+
+        map = Reflection.call(manifest, "entries", composite);
+        Assert.assertTrue(map.containsKey(composite));
+        Assert.assertEquals(composites.size(), map.size());
+        map = Reflection.call(manifest, "entries");
+        Assert.assertTrue(map.containsKey(composite));
+        Assert.assertEquals(composites.size(), map.size());
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testBackgroundLoadEntriesWorksMiss() {
+        Set<Composite> composites = Sets.newLinkedHashSet();
+        Manifest manifest = Manifest.create(100000);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            Composite composite = Composite.create(TestData.getText());
+            if(composites.add(composite)) {
+                manifest.putStart(i, composite);
+                manifest.putEnd(i + 1, composite);
+            }
+        }
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        manifest.transfer(file);
+        manifest = Manifest.load(file, 0,
+                FileSystem.getFileSize(file.toString()));
+        Composite composite = null;
+        while (composite == null || composites.contains(composite)) {
+            composite = Composite.create(TestData.getText());
+        }
+        Map map = Reflection.call(manifest, "entries", composite);
+        Assert.assertFalse(map.containsKey(composite));
+        Assert.assertTrue(map.isEmpty());
+        while (Reflection.get("$entries", manifest) == null
+                || Reflection.call(Reflection.get("$entries", manifest),
+                        "get") == null) {/* spin */}
+
+        map = Reflection.call(manifest, "entries", composite);
+        Assert.assertFalse(map.containsKey(composite));
+        Assert.assertEquals(composites.size(), map.size());
+        map = Reflection.call(manifest, "entries");
+        Assert.assertFalse(map.containsKey(composite));
+        Assert.assertEquals(composites.size(), map.size());
     }
 
 }
