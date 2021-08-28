@@ -25,6 +25,8 @@ import java.util.Set;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.zaxxer.sparsebits.SparseBitSet;
+
 /**
  * <p>
  * Similar to a {@link BitSet java.util.BitSet}. The only difference is that its
@@ -80,7 +82,8 @@ public class LongBitSet {
      * In most cases it is ok to keep 1M - 64M values in a bit set, so each bit
      * set will occupy 128Kb - 8Mb.
      */
-    private Map<Long, BitSet> m_sets = new HashMap<Long, BitSet>(20);
+    private Map<Long, SparseBitSet> shards = new HashMap<Long, SparseBitSet>(
+            20);
 
     /**
      * Return {@code true} if this set contains an element at {@code index}.
@@ -99,8 +102,8 @@ public class LongBitSet {
      * @return Value associated with a given index
      */
     public boolean get(final long index) {
-        final BitSet bitSet = m_sets.get(getSetIndex(index));
-        return bitSet != null && bitSet.get(getPos(index));
+        final SparseBitSet shard = shards.get(getSetIndex(index));
+        return shard != null && shard.get(getPos(index));
     }
 
     /**
@@ -123,7 +126,7 @@ public class LongBitSet {
      *         not turned on), {@code false} otherwise
      */
     public boolean set(final long index) {
-        BitSet bs = getBitSet(index);
+        SparseBitSet bs = getBitSet(index);
         int pos = getPos(index);
         if(!bs.get(pos)) {
             bs.set(pos, true);
@@ -146,9 +149,9 @@ public class LongBitSet {
         }
         else { // if value shall be cleared, check first if given partition
                // exists
-            final BitSet bitSet = m_sets.get(getSetIndex(index));
-            if(bitSet != null)
-                bitSet.clear(getPos(index));
+            final SparseBitSet shard = shards.get(getSetIndex(index));
+            if(shard != null)
+                shard.clear(getPos(index));
         }
     }
 
@@ -169,14 +172,14 @@ public class LongBitSet {
      * @param index Long index
      * @return A bit set for a given index (always not null)
      */
-    private BitSet getBitSet(final long index) {
+    private SparseBitSet getBitSet(final long index) {
         final Long iIndex = getSetIndex(index);
-        BitSet bitSet = m_sets.get(iIndex);
-        if(bitSet == null) {
-            bitSet = new BitSet(1024);
-            m_sets.put(iIndex, bitSet);
+        SparseBitSet shard = shards.get(iIndex);
+        if(shard == null) {
+            shard = new SparseBitSet(1024);
+            shards.put(iIndex, shard);
         }
-        return bitSet;
+        return shard;
     }
 
     /**
@@ -207,9 +210,9 @@ public class LongBitSet {
     private class InternalIterator extends ReadOnlyIterator<Long> {
 
         private long baseIndex = 0;
-        private Iterator<Map.Entry<Long, BitSet>> bitIt = m_sets.entrySet()
-                .iterator();
-        private BitSet bitSet = null;
+        private Iterator<Map.Entry<Long, SparseBitSet>> bitIt = shards
+                .entrySet().iterator();
+        private SparseBitSet shard = null;
         private int position = -1;
         {
             flip();
@@ -230,7 +233,7 @@ public class LongBitSet {
         public Long next() {
             if(position >= 0) {
                 long next = position + baseIndex;
-                position = bitSet.nextSetBit(position + 1);
+                position = shard.nextSetBit(position + 1);
                 return next;
             }
             else {
@@ -244,10 +247,10 @@ public class LongBitSet {
          */
         private void flip() {
             while (bitIt.hasNext() && position < 0) {
-                Map.Entry<Long, BitSet> entry = bitIt.next();
+                Map.Entry<Long, SparseBitSet> entry = bitIt.next();
                 baseIndex = entry.getKey() << VALUE_BITS;
-                bitSet = entry.getValue();
-                position = bitSet.nextSetBit(0);
+                shard = entry.getValue();
+                position = shard.nextSetBit(0);
             }
         }
 

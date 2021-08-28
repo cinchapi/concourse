@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.nio.ByteBuffer;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -22,6 +23,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
+import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Sets;
 
@@ -123,6 +125,22 @@ public class InventoryTest extends ConcourseBaseTest {
         for (long l : longs) {
             Assert.assertTrue(inventory.contains(l));
         }
+    }
+
+    @Test
+    public void testDeserializeReproA() {
+        String file = Resources.getAbsolutePath("/inventory");
+        Inventory inventory = Inventory.create(file);
+        ByteBuffer bytes = FileSystem.readBytes(file);
+        Set<Long> records = Sets.newHashSet();
+        while (bytes.hasRemaining()) {
+            long record = bytes.getLong();
+            if(record != 0) {
+                Assert.assertTrue(inventory.contains(record));
+                records.add(record);
+            }
+        }
+        Assert.assertEquals(records, inventory.getAll());
     }
 
 }
