@@ -418,13 +418,9 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void accept(Write write, boolean sync) {
-        // NOTE: The functionality to optionally sync when accepting writes is
-        // not really supported in the Database, but is implemented to conform
-        // with the PermanentStore interface.
-        accept(write);
-        if(sync) {
-            sync();
-        }
+        // It is never necessary to sync after each Write since syncing is
+        // coordinated by the Engine when a Buffer page has been depleted.
+        throw new UnsupportedOperationException();
     }
 
     @Override
