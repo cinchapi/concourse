@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.Nullable;
@@ -226,7 +227,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                 String[] toks = string.split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 Collection<CorpusArtifact> artifacts = TRACK_ARTIFACTS
-                        ? Sets.newConcurrentHashSet()
+                        ? new ConcurrentLinkedQueue<>()
                         : new NoOpList<>();
                 CountUpLatch tracker = new CountUpLatch();
                 int pos = 0;
