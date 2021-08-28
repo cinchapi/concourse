@@ -21,6 +21,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -39,8 +41,6 @@ import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * A {@link Manifest} stores and provides the efficient lookup for the start and
@@ -87,7 +87,7 @@ public class Manifest extends TransferableByteSequence {
      */
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
-            .pow(2, 26); // ~67.1mb or 838,860 entries
+            .pow(2, 25); // ~33.5mb or 419,430 entries
 
     /**
      * Represents an entry that has not been recorded.
@@ -155,8 +155,7 @@ public class Manifest extends TransferableByteSequence {
     private Manifest(int expectedInsertions) {
         super();
         this.length = 0;
-        this.entries = Maps
-                .newLinkedHashMapWithExpectedSize(expectedInsertions);
+        this.entries = new HashMap<>(expectedInsertions);
         this.$entries = null;
     }
 
@@ -322,9 +321,8 @@ public class Manifest extends TransferableByteSequence {
                 // The Manifest is small enough to fit comfortably into memory,
                 // so eagerly load all of the entries instead of streaming them
                 // from disk one-by-one (as is done in the OnDiskEntries).
-                Map<Composite, Entry> heapEntries = Maps
-                        .newLinkedHashMapWithExpectedSize(
-                                (int) length / Entry.CONSTANT_SIZE);
+                Map<Composite, Entry> heapEntries = new HashMap<>(
+                        (int) length / Entry.CONSTANT_SIZE);
                 entries.forEach((key, value) -> heapEntries.put(key, value));
                 $entries = new SoftReference<Map<Composite, Entry>>(
                         heapEntries);
@@ -524,8 +522,7 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public Set<Entry<Composite, Manifest.Entry>> entrySet() {
-            Set<Entry<Composite, Manifest.Entry>> entrySet = Sets
-                    .newLinkedHashSet();
+            Set<Entry<Composite, Manifest.Entry>> entrySet = new HashSet<>();
             forEach((composite, entry) -> entrySet
                     .add(new SimpleEntry<>(composite, entry)));
             return entrySet;
@@ -549,25 +546,19 @@ public class Manifest extends TransferableByteSequence {
                 Composite key = (Composite) o;
                 MappedByteBuffer bytes = FileSystem.map(file(),
                         MapMode.READ_ONLY, position(), length);
-                try {
-                    Iterator<ByteBuffer> it = ByteableCollections
-                            .iterator(bytes);
-                    while (it.hasNext()) {
-                        ByteBuffer next = it.next();
-                        if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
-                                .remaining()) {
-                            // Shortcut by only considering ByteBuffers that
-                            // match the expected size of an entry mapped from
-                            // the #key
-                            Manifest.Entry entry = new Manifest.Entry(next);
-                            if(key.equals(entry.key())) {
-                                return entry;
-                            }
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                while (it.hasNext()) {
+                    ByteBuffer next = it.next();
+                    if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
+                            .remaining()) {
+                        // Shortcut by only considering ByteBuffers that
+                        // match the expected size of an entry mapped from
+                        // the #key
+                        Manifest.Entry entry = new Manifest.Entry(next);
+                        if(key.equals(entry.key())) {
+                            return entry;
                         }
                     }
-                }
-                finally {
-                    FileSystem.unmap(bytes);
                 }
             }
             return null;
