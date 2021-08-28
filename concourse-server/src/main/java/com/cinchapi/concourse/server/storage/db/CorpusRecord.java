@@ -39,7 +39,7 @@ import com.google.common.collect.Multiset;
  * @author Jeff Nelson
  */
 @PackagePrivate
-public final class CorpusRecord extends Record<Text, Text, Position> {
+public final class CorpusRecord extends AmnesiaRecord<Text, Text, Position> {
 
     /**
      * Return a {@link CorpusRecord} that holds data for {@code locator}.

@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import org.junit.Test;
+
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.time.Time;
@@ -58,5 +60,18 @@ public class CorpusRecordTest extends RecordTest<Text, Text, Position> {
         return Revision.createCorpusRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }
+
+    @Override
+    @Test
+    public void testBrowseWithTime() {/* historical reads are not supported */}
+    
+    @Override
+    @Test
+    public void testGetWithTime() {/* historical reads are not supported */}
+    
+    @Override
+    @Test
+    public void testDescribeWithTime() {/* historical reads are not supported */}
+    
 
 }
