@@ -542,6 +542,17 @@ public final class Database extends BaseStore implements PermanentStore {
         return memory;
     }
 
+    /**
+     * Rotate the database by adding a new {@link Segment} and setting it as
+     * {@link #seg0} so that it is the destination into which subsequent
+     * {@link Write Writes} are {@link #accept(Write) accepted}. Prior to
+     * rotating, the current {@link #seg0} is durably flushed to disk.
+     */
+    @GuardedBy("rotate(boolean)")
+    public void rotate() {
+        rotate(true);
+    }
+
     @Override
     public Set<Long> search(String key, String query) {
         // NOTE: Locking must happen here since CorpusRecords are not cached and
@@ -720,7 +731,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 }
             }
 
-            triggerSync(false);
+            rotate(false);
             memory = new CacheState();
         }
 
@@ -741,15 +752,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void sync() {
-        triggerSync();
-    }
-
-    /**
-     * Create new blocks and sync the current blocks to disk.
-     */
-    @GuardedBy("triggerSync(boolean)")
-    public void triggerSync() {
-        triggerSync(true);
+        rotate(true);
     }
 
     @Override
@@ -770,7 +773,7 @@ public final class Database extends BaseStore implements PermanentStore {
         TableRecord table = getTableRecord(L, K);
         return table.contains(K, V, timestamp);
     }
-    
+
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
@@ -930,7 +933,21 @@ public final class Database extends BaseStore implements PermanentStore {
      *            data to sync and we just want to create new blocks (e.g. on
      *            initial startup).
      */
-    private void triggerSync(boolean flush) {
+    /**
+     * Rotate the database by adding a new {@link Segment} and setting it as
+     * {@link #seg0} so that it is the destination into which subsequent
+     * {@link Write Writes} are {@link #accept(Write) accepted}.
+     * 
+     * @param flush - a flag that controls whether the current {@link #seg0} is
+     *            durably flushed to disk prior rotating; if this is
+     *            {@code false} the data unflushed data will exist in memory as
+     *            long as the server is running or until it is later flushed.
+     *            Sometimes this method is called when there is no
+     *            data to sync and the a mutable {@link Segment} needs to be
+     *            created to accept {@link Write Writes} (e.g. on
+     *            {@link #start()}).
+     */
+    private void rotate(boolean flush) {
         masterLock.writeLock().lock();
         try {
             if(flush) {
