@@ -38,7 +38,7 @@ final class ByteArraySink implements ByteSink {
      * The destination byte[].
      */
     private final byte[] bytes;
-    
+
     /**
      * The current position for writing
      */
@@ -46,6 +46,7 @@ final class ByteArraySink implements ByteSink {
 
     /**
      * Construct a new instance.
+     * 
      * @param bytes
      */
     ByteArraySink(byte[] bytes) {

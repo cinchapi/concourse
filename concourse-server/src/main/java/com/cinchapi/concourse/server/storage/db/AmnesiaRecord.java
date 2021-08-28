@@ -155,10 +155,6 @@ public abstract class AmnesiaRecord<L extends Byteable & Comparable<L>, K extend
         public String toString() {
             return "[]";
         }
-        
-        
-        
-        
 
     }
 

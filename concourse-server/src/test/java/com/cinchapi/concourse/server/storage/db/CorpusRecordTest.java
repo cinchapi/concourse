@@ -64,14 +64,13 @@ public class CorpusRecordTest extends RecordTest<Text, Text, Position> {
     @Override
     @Test
     public void testBrowseWithTime() {/* historical reads are not supported */}
-    
+
     @Override
     @Test
     public void testGetWithTime() {/* historical reads are not supported */}
-    
+
     @Override
     @Test
     public void testDescribeWithTime() {/* historical reads are not supported */}
-    
 
 }
