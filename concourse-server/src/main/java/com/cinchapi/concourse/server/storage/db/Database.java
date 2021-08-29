@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.ArrayBuilder;
@@ -555,17 +554,6 @@ public final class Database extends BaseStore implements PermanentStore {
         Verify.that(running,
                 "Cannot return the memory of a stopped Database instance");
         return memory;
-    }
-
-    /**
-     * Rotate the database by adding a new {@link Segment} and setting it as
-     * {@link #seg0} so that it is the destination into which subsequent
-     * {@link Write Writes} are {@link #accept(Write) accepted}. Prior to
-     * rotating, the current {@link #seg0} is durably flushed to disk.
-     */
-    @GuardedBy("rotate(boolean)")
-    public void rotate() {
-        rotate(true);
     }
 
     @Override

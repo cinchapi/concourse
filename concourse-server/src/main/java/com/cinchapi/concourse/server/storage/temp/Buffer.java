@@ -805,7 +805,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
                             page.remove();
                         }
                         else {
-                            ((Database) destination).rotate();
+                            ((Database) destination).sync();
                             removePage();
                             break;
                         }

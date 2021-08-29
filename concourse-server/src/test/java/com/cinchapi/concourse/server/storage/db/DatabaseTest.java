@@ -74,7 +74,7 @@ public class DatabaseTest extends StoreTest {
         for (int i = 0; i < expected; ++i) {
             db.accept(Write.add(TestData.getString(), TestData.getTObject(),
                     TestData.getLong()));
-            db.rotate();
+            db.sync();
         }
         List<Segment> segments = Reflection.get("segments", db);
         Assert.assertEquals(expected + 1, segments.size()); // size includes
@@ -184,10 +184,10 @@ public class DatabaseTest extends StoreTest {
             expected.add(revision);
             Variables.register("expected_" + i, revision);
             if(i % 100 == 0) {
-                db.rotate();
+                db.sync();
             }
         }
-        db.rotate();
+        db.sync();
         Iterator<Revision<PrimaryKey, Text, Value>> it = Database
                 .onDiskStreamingIterator(db.getBackingStore());
         Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
@@ -209,7 +209,7 @@ public class DatabaseTest extends StoreTest {
         long record = 1;
         db.accept(Write.add(a, value, record));
         db.accept(Write.add(b, value, record));
-        db.rotate();
+        db.sync();
         db.stop();
         db = new Database(db.getBackingStore()); // TODO: cannot stop/start same
                                                  // Database instance because
@@ -281,7 +281,7 @@ public class DatabaseTest extends StoreTest {
     public void testVerify() {
         add("name", Convert.javaToThrift("jeff"), 1);
         store.stop();
-        ((Database) store).rotate();
+        ((Database) store).sync();
         store.start();
         Assert.assertTrue(
                 store.verify("name", Convert.javaToThrift("jeff"), 1));
@@ -291,7 +291,7 @@ public class DatabaseTest extends StoreTest {
     public void testGetIndexRecordReproCON_674() {
         add("iq", Convert.javaToThrift("u"), 1605548010968002L);
         store.stop();
-        ((Database) store).rotate();
+        ((Database) store).sync();
         store.start();
         Assert.assertTrue(store.browse("iqu").isEmpty());
     }
