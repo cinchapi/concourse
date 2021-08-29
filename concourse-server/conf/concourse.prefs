@@ -46,14 +46,24 @@
 # or writes. The storage engine uses a specific strategy to determine how data files 
 # should be reorganized to improve the performance of read operations. 
 #
-# DEFAULT: true
-#enable_compaction = true
+# DEFAULT: false
+#enable_compaction = false
 
 # Determine whether log messages should also be printed to the console (STDOUT)
 # in addition to the log files.
 #
 # DEFAULT: FALSE
 #enable_console_logging = FALSE
+
+# Maintain and in-memory cache of the data indexes used to respond to search queries.
+# Search indexes tend to be much larger than those used for primary and secondary 
+# lookups, so enabling the search cache may cause memory issues (and overall 
+# performance degradation) if search is heavily used. Furthermore, indexing and 
+# write performance may suffer if cached search indexes must be incrementally kept 
+# current.
+#
+# DEFAULT: false
+#enable_search_cache = false
 
 # The amount of memory that is allocated to the Concourse Server JVM.
 # Concourse requires a minimum heap size of 256MB to start, but much
