@@ -132,7 +132,7 @@ public class EngineTest extends BufferedStoreTest {
                                               // call db.triggerSync()
             buffer.transport(db);
         }
-        db.triggerSync();
+        db.sync();
         engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine

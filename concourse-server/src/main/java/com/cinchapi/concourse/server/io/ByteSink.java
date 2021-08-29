@@ -30,12 +30,14 @@ import com.cinchapi.common.base.CheckedExceptions;
 public interface ByteSink {
 
     /**
-     * The name of the Charset to use for encoding/decoding. We use the name
-     * instead of the charset object because Java caches encoders when
-     * referencing them by name, but creates a new encorder object when
-     * referencing them by Charset object.
+     * Return a {@link ByteSink} that passes through to a {@code byte[]}.
+     * 
+     * @param bytes
+     * @return the {@link ByteSink}
      */
-    public static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
+    public static ByteSink to(byte[] bytes) {
+        return new ByteArraySink(bytes);
+    }
 
     /**
      * Return a {@link ByteSink} that passes through to a {@link ByteBuffer}.
@@ -77,6 +79,19 @@ public interface ByteSink {
     public static ByteSink toDevNull() {
         return new NullByteSink();
     }
+
+    /**
+     * The name of the Charset to use for encoding/decoding. We use the name
+     * instead of the charset object because Java caches encoders when
+     * referencing them by name, but creates a new encorder object when
+     * referencing them by Charset object.
+     */
+    public static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
+
+    /**
+     * If any buffering is done, flush all bytes through the sink.
+     */
+    public default void flush() {}
 
     /**
      * Return the sink's current position.
@@ -183,10 +198,5 @@ public interface ByteSink {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
-
-    /**
-     * If any buffering is done, flush all bytes through the sink.
-     */
-    public default void flush() {}
 
 }

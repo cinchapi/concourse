@@ -30,7 +30,6 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -46,8 +45,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class TableRecord
-        extends BrowsableRecord<PrimaryKey, Text, Value> {
+public final class TableRecord extends Record<PrimaryKey, Text, Value> {
 
     /**
      * Return a {@link TableRecord} that holds data for the {@code locator}.
@@ -187,104 +185,8 @@ public final class TableRecord
         }
     }
 
-    /**
-     * Return the Set of values <em>currently</em> contained in the field mapped
-     * from {@code key}.
-     * 
-     * @param key
-     * @return the Set of contained values
-     */
-    public Set<Value> fetch(Text key) {
-        return fetch(key, false, Versioned.NO_VERSION);
-    }
-
-    /**
-     * Return the Set of values contained in the field mapped from {@code key}
-     * at {@code timestamp}.
-     * 
-     * @param key
-     * @param timestamp
-     * @return the Set of contained values
-     */
-    public Set<Value> fetch(Text key, long timestamp) {
-        return fetch(key, true, timestamp);
-    }
-
-    /**
-     * Return {@code true} if the Record <em>currently</em> contains data.
-     * 
-     * @return {@code true} if {@link #describe()} is not an empty Set
-     */
-    public boolean ping() {
-        return !describe().isEmpty();
-    }
-
-    /**
-     * Return {@code true} if {@code value} <em>currently</em> exists in the
-     * field mapped from {@code key}.
-     * 
-     * @param key
-     * @param value
-     * @return {@code true} if {@code key} as {@code value} is a valid mapping
-     */
-    public boolean verify(Text key, Value value) {
-        return verify(key, value, false, Versioned.NO_VERSION);
-    }
-
-    /**
-     * Return {@code true} if {@code value} existed in the field mapped from
-     * {@code key} at {@code timestamp}
-     * 
-     * @param key
-     * @param value
-     * @param timestamp
-     * @return {@code true} if {@code key} as {@code value} is a valid mapping
-     */
-    public boolean verify(Text key, Value value, long timestamp) {
-        return verify(key, value, true, timestamp);
-    }
-
     @Override
-    protected Map<Text, Set<Value>> mapType() {
+    protected Map<Text, Set<Value>> $createDataMap() {
         return Maps.newHashMap();
-    }
-
-    /**
-     * Return an unmodifiable view of the Set of values <em>currently</em>
-     * contained in the field mapped from {@code key} or contained at
-     * {@code timestamp} if {@code historical} is {@code true}.
-     * 
-     * @param key
-     * @param historical - if {@code true}, read from the history, otherwise
-     *            read from the present state
-     * @param timestamp - this value is ignored if {@code historical} is set to
-     *            false, otherwise this value is the historical timestamp at
-     *            which to read
-     * @return the Set of contained values
-     */
-    private Set<Value> fetch(Text key, boolean historical, long timestamp) {
-        // NOTE: locking happens in super.get() methods
-        return historical ? get(key, timestamp) : get(key);
-    }
-
-    /**
-     * Return {@code true} if {@code value} <em>currently</em> exists in the
-     * field mapped from {@code key} or existed in that field at
-     * {@code timestamp} if {@code historical} is {@code true}.
-     * 
-     * @param key
-     * @param value
-     * @param historical - if {@code true}, read from the history, otherwise
-     *            read from the present state
-     * @param timestamp - this value is ignored if {@code historical} is set to
-     *            false, otherwise this value is the historical timestamp at
-     *            which to read
-     * @return {@code true} if {@code key} as {@code value} is a valid mapping
-     */
-    private boolean verify(Text key, Value value, boolean historical,
-            long timestamp) {
-        // NOTE: locking happens in super.get() methods
-        return historical ? get(key, timestamp).contains(value)
-                : get(key).contains(value);
     }
 }

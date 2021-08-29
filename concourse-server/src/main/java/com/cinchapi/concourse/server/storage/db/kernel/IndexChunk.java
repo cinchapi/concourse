@@ -19,6 +19,7 @@ import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -114,10 +115,16 @@ public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
     }
 
     @Override
-    public final IndexRevision insert(Text locator, Value key, PrimaryKey value,
-            long version, Action type) {
-        return (IndexRevision) super.insert(locator, Value.optimize(key), value,
-                version, type);
+    public IndexArtifact insert(Text locator, Value key, PrimaryKey value,
+            long version, Action type) throws IllegalStateException {
+        return (IndexArtifact) super.insert(locator, key, value, version, type);
+    }
+
+    @Override
+    protected IndexArtifact makeArtifact(
+            Revision<Text, Value, PrimaryKey> revision,
+            Composite[] composites) {
+        return new IndexArtifact((IndexRevision) revision, composites);
     }
 
     @Override

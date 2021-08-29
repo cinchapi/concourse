@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.db.search;
 
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -83,11 +84,13 @@ public final class SearchIndexer {
      * @param position
      * @param version
      * @param type
+     * @param artifacts
      */
-    public void enqueue(SearchIndex index, CountUpLatch tracker, Text key,
-            Text term, Position position, long version, Action type) {
+    public <T> void enqueue(SearchIndex index, CountUpLatch tracker, Text key,
+            Text term, Position position, long version, Action type,
+            Collection<T> artifacts) {
         workers.execute(() -> {
-            index.index(key, term, position, version, type);
+            index.index(key, term, position, version, type, artifacts);
             tracker.countUp();
         });
     }

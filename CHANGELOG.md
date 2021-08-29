@@ -7,12 +7,19 @@
 * The new storage format should reduce the number of data file corruptions because there are fewer moving parts.
 * An upgrade task has been added to automatically copy data from each Block file to a corresponding Segment file.
 	* The upgrade task will not delete the old Block files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the Block files after the upgrade. If the Block files remain, a future version of Concourse may automatically delete them for you.
+* In addition to improved data integrity, the new storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
 
 ##### Optimizations
 * The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
+* Implemented a more compact representation of the `Inventory` in-memory representing a reduction of heap space usage by up to **97.9%**. This has an indirect benefit to overall performance and throughput by reducing memory contention that could lead to frequence JVM garbage collection cycles.
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
+* Search is drastically faster as a result of the improved memory management that comes wth the new storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **XX.X%** faster on real-world data.
+
+##### Search Caching
+* Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
+  * The search cache can be enabled by setting the `enable_search_cache` preference to `true`
 
 ##### New Functionality
 * Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.

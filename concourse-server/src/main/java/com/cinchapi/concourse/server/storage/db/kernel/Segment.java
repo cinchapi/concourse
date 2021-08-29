@@ -20,6 +20,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,7 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
+import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
@@ -498,20 +500,17 @@ public final class Segment extends TransferableByteSequence implements
             Action type       = write.getType();            
             Receipt.Builder receipt = Receipt.builder();
             Runnable[] tasks = Array.containing(() -> {
-                TableRevision revision = table.insert(
+                TableArtifact artifact = table.insert(
                         record, key, value, version, type);
-                receipt.itemize(revision);
+                receipt.itemize(artifact);
             }, () -> {
-                IndexRevision revision = index.insert(
+                IndexArtifact artifact = index.insert(
                         key, value, record, version, type);
-                receipt.itemize(revision);
+                receipt.itemize(artifact);
             }, () -> {
-                corpus.insert(key, value, record, version, type);
-                // NOTE: We do not itemize a CorpusRevision within the receipt
-                // because the database does not cache CorpusRecords since they
-                // have the potential to be VERY large. Holding references to
-                // them in a database's cache would prevent them from being
-                // garbage collected resulting in more OOMs.
+                Collection<CorpusArtifact> artifacts = corpus.insert(
+                        key, value, record, version, type);
+                receipt.itemize(artifacts);
             });
             // @formatter:on
             executor.await((task, error) -> Logger.error(
@@ -759,19 +758,22 @@ public final class Segment extends TransferableByteSequence implements
             return new Builder();
         }
 
-        private final IndexRevision indexRevision;
-        private final TableRevision tableRevision;
+        private final IndexArtifact index;
+        private final TableArtifact table;
+        private final Collection<CorpusArtifact> corpus;
 
         /**
          * Construct a new instance.
          * 
-         * @param primaryRevision
-         * @param secondaryRevision
+         * @param table
+         * @param index
+         * @param corpus
          */
-        Receipt(TableRevision primaryRevision,
-                IndexRevision secondaryRevision) {
-            this.tableRevision = primaryRevision;
-            this.indexRevision = secondaryRevision;
+        Receipt(TableArtifact table, IndexArtifact index,
+                Collection<CorpusArtifact> corpus) {
+            this.table = table;
+            this.index = index;
+            this.corpus = corpus;
         }
 
         /**
@@ -780,8 +782,8 @@ public final class Segment extends TransferableByteSequence implements
          * 
          * @return the {@link IndexRevision}
          */
-        public IndexRevision indexRevision() {
-            return indexRevision;
+        public IndexArtifact index() {
+            return index;
         }
 
         /**
@@ -790,8 +792,18 @@ public final class Segment extends TransferableByteSequence implements
          * 
          * @return the {@link TableRevision}
          */
-        public TableRevision tableRevision() {
-            return tableRevision;
+        public TableArtifact table() {
+            return table;
+        }
+
+        /**
+         * Return the {@link CorpusRevision CorpusRevisions} included with this
+         * {@link Receipt}.
+         * 
+         * @return the {@link CorpusRevision CorpusRevisions}
+         */
+        public Collection<CorpusArtifact> corpus() {
+            return corpus;
         }
 
         /**
@@ -799,8 +811,9 @@ public final class Segment extends TransferableByteSequence implements
          */
         static class Builder {
 
-            IndexRevision indexRevision;
-            TableRevision tableRevision;
+            IndexArtifact index;
+            TableArtifact table;
+            Collection<CorpusArtifact> corpus;
 
             /**
              * Build and return the {@link Receipt}.
@@ -808,28 +821,39 @@ public final class Segment extends TransferableByteSequence implements
              * @return the built {@link Receipt}
              */
             Receipt build() {
-                return new Receipt(tableRevision, indexRevision);
+                return new Receipt(table, index, corpus);
             }
 
             /**
-             * Add the {@code revision} to the {@link Receipt}.
+             * Add the {@code artifact} to the {@link Receipt}.
              * 
-             * @param revision
+             * @param artifact
              * @return this
              */
-            Builder itemize(IndexRevision revision) {
-                indexRevision = revision;
+            Builder itemize(IndexArtifact artifact) {
+                index = artifact;
                 return this;
             }
 
             /**
-             * Add the {@code revision} to the {@link Receipt}.
+             * Add the {@code artifact} to the {@link Receipt}.
              * 
-             * @param revision
+             * @param artifact
              * @return this
              */
-            Builder itemize(TableRevision revision) {
-                tableRevision = revision;
+            Builder itemize(TableArtifact artifact) {
+                table = artifact;
+                return this;
+            }
+
+            /**
+             * Add the {@code artifacts} to the {@link Receipt}.
+             * 
+             * @param artifacts
+             * @return this
+             */
+            Builder itemize(Collection<CorpusArtifact> artifacts) {
+                corpus = artifacts;
                 return this;
             }
         }

@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.Array;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.io.ByteSink;
@@ -62,7 +63,8 @@ import com.google.common.collect.Lists;
  * <p>
  * When initially {@link Chunk#Chunk(BloomFilter) created}, a {@link Chunk}
  * resides solely in memory and is able to
- * {@link #insert(Byteable, Byteable, Byteable, long, Action) insert} new
+ * {@link #insert(Byteable, Byteable, Byteable, long, Action) insert}
+ * new
  * {@link Revision revisions} (this corresponds to the
  * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
  * functionality), which are sorted on the fly. Once the {@link Chunk} is
@@ -115,7 +117,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * if the {@link #length} is less than {@link Integer#MAX_VALUE}.
      * <p>
      * If this value is not {@code null}, it is cleared when new data is
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted}.
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)
+     * inserted}.
      * </p>
      */
     @Nullable
@@ -148,8 +151,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * A running count of the number of {@link #revisions} that have been
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
-     * a {@link #mutable} {@link Chunk}.
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)
+     * inserted} into a {@link #mutable} {@link Chunk}.
      * <p>
      * This value is {@code null} when this {@link Chunk} is no longer
      * {@link #mutable}.
@@ -160,9 +163,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * A collection that contains all the Revisions that have been
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action) inserted} into
-     * the {@link Chunk}. This collection is sorted on the fly as elements are
-     * inserted.
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)
+     * inserted} into the {@link Chunk}. This collection is sorted on the fly as
+     * elements are inserted.
      * <p>
      * This collection is only maintained for a {@link #mutable} {@link Chunk}.
      * A {@link Chunk} that is {@link #freeze() frozen} and subsequently reads
@@ -192,7 +195,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * A reference to the {@link Segment Segment's} read lock that is necessary
      * to prevent inconsistent reads across the various {@link Chunk chunks} due
      * to the non-atomic asynchronous
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action) writes}
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)
+     * writes}
      * triggered by a
      * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
      * Segment transfer}
@@ -324,7 +328,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * Insert a revision for {@code key} as {@code value} in {@code locator} at
-     * {@code version} into this {@link Chunk}.
+     * {@code version} to this {@link Chunk}.
      * 
      * @param locator
      * @param key
@@ -333,7 +337,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @param type
      * @throws IllegalStateException if the {@link Chunk} is not mutable
      */
-    public Revision<L, K, V> insert(L locator, K key, V value, long version,
+    public Artifact<L, K, V> insert(L locator, K key, V value, long version,
             Action type) throws IllegalStateException {
         boolean mutable = isMutable();
         Locks.lockIfCondition(write, mutable);
@@ -439,21 +443,14 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         MappedByteBuffer bytes = FileSystem.map(file(),
                                 MapMode.READ_ONLY, position() + start, length);
-                        try {
-                            Iterator<ByteBuffer> it = ByteableCollections
-                                    .iterator(bytes);
-                            while (it.hasNext()) {
-                                Revision<L, K, V> revision = Byteables
-                                        .read(it.next(), xRevisionClass());
-                                Logger.debug(
-                                        "Attempting to append {} from {} to "
-                                                + "{}",
-                                        revision, this, record);
-                                record.append(revision);
-                            }
-                        }
-                        finally {
-                            FileSystem.unmapAsync(bytes);
+                        Iterator<ByteBuffer> it = ByteableCollections
+                                .iterator(bytes);
+                        while (it.hasNext()) {
+                            Revision<L, K, V> revision = Byteables
+                                    .read(it.next(), xRevisionClass());
+                            Logger.debug("Attempting to append {} from {} to "
+                                    + "{}", revision, this, record);
+                            record.append(revision);
                         }
                     }
                 }
@@ -473,9 +470,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * Return the backing store to hold revisions that are placed in this
-     * {@link Chunk}.
-     * This is only relevant to use when the {@link Chunk} is {@link #mutable}
-     * and not yet persisted to disk.
+     * {@link Chunk}. This is only relevant to use when the {@link Chunk} is
+     * {@link #mutable} and not yet persisted to disk.
      * <p>
      * If this {@link Chunk} is to be {@link #concurrent} then override this
      * method and return a Concurrent Multiset.
@@ -548,8 +544,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     protected abstract void incrementLengthBy(int delta);
 
     /**
-     * {@link #insert(Byteable, Byteable, Byteable, long, Action)} without
-     * locking. Only call this method directly if the {@link Chunk} is
+     * {@link #insert(Byteable, Byteable, Byteable, long, Action)}
+     * without locking. Only call this method directly if the {@link Chunk} is
      * {@link #concurrent}.
      * 
      * @param locator
@@ -560,7 +556,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the inserted {@link Revision}
      * @throws IllegalStateException
      */
-    protected final Revision<L, K, V> insertUnsafe(L locator, K key, V value,
+    protected final Artifact<L, K, V> insertUnsafe(L locator, K key, V value,
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(isMutable(),
                 "Cannot modify an immutable chunk");
@@ -573,19 +569,26 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 type);
         revisions.add(revision);
         revisionCount.incrementAndGet();
-        filter.put(Composite.create(revision.getLocator()));
-        filter.put(Composite.create(revision.getLocator(), revision.getKey()));
-        filter.put(Composite.create(revision.getLocator(), revision.getKey(),
-                revision.getValue())); // NOTE: The entire revision is added
-                                       // to the filter so that we can
-                                       // quickly verify that a revision
-                                       // DOES NOT exist using
-                                       // #mightContain(L,K,V) without
-                                       // seeking
+        // @formatter:off
+        Composite[] composites = Array.containing(
+                Composite.create(revision.getLocator()),
+                Composite.create(revision.getLocator(), revision.getKey()),
+                Composite.create(revision.getLocator(), revision.getKey(),
+                        revision.getValue()) // NOTE: The entire revision is added
+                                             // to the filter so that we can
+                                             // quickly verify that a revision
+                                             // DOES NOT exist using
+                                             // #mightContain(L,K,V) without
+                                             // seeking
+        );
+        // @formatter:on
+        for (Composite composite : composites) {
+            filter.put(composite);
+        }
         incrementLengthBy(revision.size() + 4);
         manifest = null;
         bytes = null;
-        return revision;
+        return makeArtifact(revision, composites);
     }
 
     /**
@@ -595,6 +598,17 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the length
      */
     protected abstract long lengthUnsafe();
+
+    /**
+     * Return an {@link Artifact} that contains {@code revision} and
+     * {@code composites}.
+     * 
+     * @param revision
+     * @param composites
+     * @return the {@link Artifact}
+     */
+    protected abstract Artifact<L, K, V> makeArtifact(
+            Revision<L, K, V> revision, Composite[] composites);
 
     /**
      * Return a {@link Revision} for {@code key} as {@code value} in

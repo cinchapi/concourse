@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.ArrayBuilder;
@@ -60,6 +60,8 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.cache.NoOpCache;
+import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
 import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
@@ -83,6 +85,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
@@ -216,6 +219,17 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final String SEGMENTS_SUBDIRECTORY = "segments";
 
     /**
+     * Global flag that indicates if search data is cached.
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_SEARCH_CACHE = GlobalState.ENABLE_SEARCH_CACHE;
+
+    /**
+     * Return if {@link #corpusCaches} does not contain a cache for a key.
+     */
+    private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
+
+    /**
      * The full {@link Path} for the directory where the {@link #segments
      * segment} files are stored.
      */
@@ -245,9 +259,20 @@ public final class Database extends BaseStore implements PermanentStore {
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
      */
-    private final Cache<Composite, TableRecord> cpc = buildCache();
-    private final Cache<Composite, TableRecord> cppc = buildCache();
-    private final Cache<Composite, IndexRecord> csc = buildCache();
+    private final Cache<Composite, TableRecord> tableCache = buildCache();
+    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
+    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+
+    /**
+     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
+     * is done in an attempt to avoid attempting cache updates for every infix
+     * of a value when it is known that no search caches exist for the key from
+     * which the value is mapped (e.g. we are indexing a term for a key that
+     * isn't being searched).
+     */
+    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
+            ? new ConcurrentHashMap<>()
+            : ImmutableMap.of();
 
     /**
      * The location where the Database stores data.
@@ -354,20 +379,33 @@ public final class Database extends BaseStore implements PermanentStore {
                     Logger.debug("Indexed '{}' in {}", write, seg0);
 
                     // Updated cached records
-                    TableRecord cpr = cpc
-                            .getIfPresent(Composite.create(write.getRecord()));
-                    TableRecord cppr = cppc.getIfPresent(Composite
-                            .create(write.getRecord(), write.getKey()));
-                    IndexRecord csr = csc
-                            .getIfPresent(Composite.create(write.getKey()));
+                    TableRecord cpr = tableCache.getIfPresent(
+                            receipt.table().getLocatorComposite());
+                    TableRecord cppr = tablePartialCache.getIfPresent(
+                            receipt.table().getLocatorKeyComposite());
+                    IndexRecord csr = indexCache.getIfPresent(
+                            receipt.index().getLocatorComposite());
                     if(cpr != null) {
-                        cpr.append(receipt.tableRevision());
+                        cpr.append(receipt.table().revision());
                     }
                     if(cppr != null) {
-                        cppr.append(receipt.tableRevision());
+                        cppr.append(receipt.table().revision());
                     }
                     if(csr != null) {
-                        csr.append(receipt.indexRevision());
+                        csr.append(receipt.index().revision());
+                    }
+                    if(ENABLE_SEARCH_CACHE) {
+                        Cache<Composite, CorpusRecord> cache = corpusCaches
+                                .get(write.getKey());
+                        if(cache != null) {
+                            for (CorpusArtifact artifact : receipt.corpus()) {
+                                CorpusRecord corpus = cache.getIfPresent(
+                                        artifact.getLocatorKeyComposite());
+                                if(corpus != null) {
+                                    corpus.append(artifact.revision());
+                                }
+                            }
+                        }
                     }
                 }
                 catch (InterruptedException e) {
@@ -398,89 +436,60 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void accept(Write write, boolean sync) {
-        // NOTE: The functionality to optionally sync when accepting writes is
-        // not really supported in the Database, but is implemented to conform
-        // with the PermanentStore interface.
-        accept(write);
-        if(sync) {
-            sync();
-        }
+        // It is never necessary to sync after each Write since syncing is
+        // coordinated by the Engine when a Buffer page has been depleted.
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Map<Long, String> audit(long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTableRecord(_locator);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(L);
         return table.audit();
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        TableRecord table = getTableRecord(_locator);
-        return table.audit(_key);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        TableRecord table = getTableRecord(L, K);
+        return table.audit(K);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(_locator);
-        return Transformers.transformTreeMapSet(index.browse(),
-                Value::getTObject, PrimaryKey::longValue,
-                TObjectSorter.INSTANCE);
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Map<Value, Set<PrimaryKey>> data = index.getAll();
+        return Transformers.transformTreeMapSet(data, Value::getTObject,
+                PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(_locator);
-        return Transformers.transformTreeMapSet(index.browse(timestamp),
-                Value::getTObject, PrimaryKey::longValue,
-                TObjectSorter.INSTANCE);
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Map<Value, Set<PrimaryKey>> data = index.getAll(timestamp);
+        return Transformers.transformTreeMapSet(data, Value::getTObject,
+                PrimaryKey::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        TableRecord table = getTableRecord(_locator);
-        return Transformers.transformMapSet(
-                table.chronologize(_key, start, end), Functions.identity(),
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        TableRecord table = getTableRecord(L);
+        Map<Long, Set<Value>> data = table.chronologize(K, start, end);
+        return Transformers.transformMapSet(data, Functions.identity(),
                 Value::getTObject);
     }
 
     @Override
     public boolean contains(long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTableRecord(_locator);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(L);
         return !table.isEmpty();
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(_locator);
-        Value[] _keys = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.explore(timestamp, operator,
-                _keys);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
-                Value::getTObject, Long::compare);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        Text _locator = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(_locator);
-        Value[] _keys = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.explore(operator, _keys);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
-                Value::getTObject, Long::compare);
     }
 
     /**
@@ -504,20 +513,20 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        Text _locator = Text.wrapCached(key);
-        PrimaryKey _value = PrimaryKey.wrap(record);
-        IndexRecord index = getIndexRecord(_locator);
-        Set<Value> _keys = index.gather(_value);
-        return Transformers.transformSet(_keys, Value::getTObject);
+        Text L = Text.wrapCached(key);
+        PrimaryKey V = PrimaryKey.wrap(record);
+        IndexRecord index = getIndexRecord(L);
+        Set<Value> Ks = index.gather(V);
+        return Transformers.transformSet(Ks, Value::getTObject);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        Text _locator = Text.wrapCached(key);
-        PrimaryKey _value = PrimaryKey.wrap(record);
-        IndexRecord index = getIndexRecord(_locator);
-        Set<Value> _keys = index.gather(_value, timestamp);
-        return Transformers.transformSet(_keys, Value::getTObject);
+        Text L = Text.wrapCached(key);
+        PrimaryKey V = PrimaryKey.wrap(record);
+        IndexRecord index = getIndexRecord(L);
+        Set<Value> Ks = index.gather(V, timestamp);
+        return Transformers.transformSet(Ks, Value::getTObject);
     }
 
     /**
@@ -572,7 +581,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
-                Set<Position> positions = corpus.locate(K);
+                Set<Position> positions = corpus.get(K);
                 for (Position position : positions) {
                     PrimaryKey record = position.getPrimaryKey();
                     int pos = position.getIndex();
@@ -616,37 +625,40 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTableRecord(_locator);
-        return Transformers.transformTreeMapSet(table.browse(), Text::toString,
+        PrimaryKey L = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(L);
+        Map<Text, Set<Value>> data = table.getAll();
+        return Transformers.transformTreeMapSet(data, Text::toString,
                 Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        TableRecord table = getTableRecord(_locator);
-        return Transformers.transformTreeMapSet(table.browse(timestamp),
-                Text::toString, Value::getTObject,
+        PrimaryKey L = PrimaryKey.wrap(record);
+        TableRecord table = getTableRecord(L);
+        Map<Text, Set<Value>> data = table.getAll(timestamp);
+        return Transformers.transformTreeMapSet(data, Text::toString,
+                Value::getTObject,
                 Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Set<TObject> select(String key, long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        TableRecord table = getTableRecord(_locator, _key);
-        return Transformers.transformSet(table.fetch(_key), Value::getTObject);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        TableRecord table = getTableRecord(L, K);
+        Set<Value> data = table.get(K);
+        return Transformers.transformSet(data, Value::getTObject);
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        TableRecord table = getTableRecord(_locator, _key);
-        return Transformers.transformSet(table.fetch(_key, timestamp),
-                Value::getTObject);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        TableRecord table = getTableRecord(L, K);
+        Set<Value> data = table.get(K, timestamp);
+        return Transformers.transformSet(data, Value::getTObject);
     }
 
     @Override
@@ -722,7 +734,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 }
             }
 
-            triggerSync(false);
+            rotate(false);
             memory = new CacheState();
         }
 
@@ -734,42 +746,61 @@ public final class Database extends BaseStore implements PermanentStore {
             running = false;
             writer.shutdown();
             memory = null;
-            for (Cache<Composite, ?> cache : ImmutableList.of(cpc, cppc, csc)) {
-                cache.invalidateAll();
-            }
+            Streams.concat(ImmutableList
+                    .of(tableCache, tablePartialCache, indexCache).stream(),
+                    corpusCaches.values().stream()).forEach(cache -> {
+                        cache.invalidateAll();
+                    });
         }
     }
 
     @Override
     public void sync() {
-        triggerSync();
-    }
-
-    /**
-     * Create new blocks and sync the current blocks to disk.
-     */
-    @GuardedBy("triggerSync(boolean)")
-    public void triggerSync() {
-        triggerSync(true);
+        rotate(true);
     }
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        Value _value = Value.wrap(value);
-        TableRecord table = getTableRecord(_locator, _key);
-        return table.verify(_key, _value);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        Value V = Value.wrap(value);
+        TableRecord table = getTableRecord(L, K);
+        return table.contains(K, V);
     }
 
     @Override
     public boolean verify(String key, TObject value, long record,
             long timestamp) {
-        PrimaryKey _locator = PrimaryKey.wrap(record);
-        Text _key = Text.wrapCached(key);
-        Value _value = Value.wrap(value);
-        TableRecord table = getTableRecord(_locator, _key);
-        return table.verify(_key, _value, timestamp);
+        PrimaryKey L = PrimaryKey.wrap(record);
+        Text K = Text.wrapCached(key);
+        Value V = Value.wrap(value);
+        TableRecord table = getTableRecord(L, K);
+        return table.contains(K, V, timestamp);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.findAndGet(timestamp, operator,
+                Ks);
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(values, Value::wrap,
+                Value.class);
+        Map<PrimaryKey, Set<Value>> map = index.findAndGet(operator, Ks);
+        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+                Value::getTObject, Long::compare);
     }
 
     /**
@@ -782,7 +813,7 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(primaryKey);
-            return cpc.get(composite, () -> {
+            return tableCache.get(composite, () -> {
                 TableRecord $ = TableRecord.create(primaryKey);
                 for (Segment segment : segments) {
                     segment.table().seek(composite, $);
@@ -817,10 +848,11 @@ public final class Database extends BaseStore implements PermanentStore {
         try {
             // Before loading a partial record, see if the full record is
             // present in memory.
-            TableRecord table = cpc.getIfPresent(Composite.create(primaryKey));
+            TableRecord table = tableCache
+                    .getIfPresent(Composite.create(primaryKey));
             if(table == null) {
                 Composite composite = Composite.create(primaryKey, key);
-                table = cppc.get(composite, () -> {
+                table = tablePartialCache.get(composite, () -> {
                     TableRecord $ = TableRecord.createPartial(primaryKey, key);
                     for (Segment segment : segments) {
                         segment.table().seek(composite, $);
@@ -848,17 +880,22 @@ public final class Database extends BaseStore implements PermanentStore {
      * @return the CorpusRecord
      */
     private CorpusRecord getCorpusRecord(Text key, Text infix) {
-        // NOTE: We do not cache CorpusRecords because they have the potential
-        // to be VERY large. Holding references to them in a cache would prevent
-        // them from being garbage collected resulting in more OOMs.
         masterLock.readLock().lock();
         try {
-            CorpusRecord record = CorpusRecord.createPartial(key, infix);
             Composite composite = Composite.create(key, infix);
-            for (Segment segment : segments) {
-                segment.corpus().seek(composite, record);
-            }
-            return record;
+            Cache<Composite, CorpusRecord> cache = ENABLE_SEARCH_CACHE
+                    ? corpusCaches.computeIfAbsent(key, $ -> buildCache())
+                    : DISABLED_CORPUS_CACHE;
+            return cache.get(composite, () -> {
+                CorpusRecord $ = CorpusRecord.createPartial(key, infix);
+                for (Segment segment : segments) {
+                    segment.corpus().seek(composite, $);
+                }
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -875,7 +912,7 @@ public final class Database extends BaseStore implements PermanentStore {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            return csc.get(composite, () -> {
+            return indexCache.get(composite, () -> {
                 IndexRecord $ = IndexRecord.create(key);
                 for (Segment segment : segments) {
                     segment.index().seek(composite, $);
@@ -900,7 +937,21 @@ public final class Database extends BaseStore implements PermanentStore {
      *            data to sync and we just want to create new blocks (e.g. on
      *            initial startup).
      */
-    private void triggerSync(boolean flush) {
+    /**
+     * Rotate the database by adding a new {@link Segment} and setting it as
+     * {@link #seg0} so that it is the destination into which subsequent
+     * {@link Write Writes} are {@link #accept(Write) accepted}.
+     * 
+     * @param flush - a flag that controls whether the current {@link #seg0} is
+     *            durably flushed to disk prior rotating; if this is
+     *            {@code false} the data unflushed data will exist in memory as
+     *            long as the server is running or until it is later flushed.
+     *            Sometimes this method is called when there is no
+     *            data to sync and the a mutable {@link Segment} needs to be
+     *            created to accept {@link Write Writes} (e.g. on
+     *            {@link #start()}).
+     */
+    private void rotate(boolean flush) {
         masterLock.writeLock().lock();
         try {
             if(flush) {
@@ -1031,20 +1082,21 @@ public final class Database extends BaseStore implements PermanentStore {
         @Override
         public boolean contains(long record) {
             Composite composite = Composite.create(PrimaryKey.wrap(record));
-            return cpc.getIfPresent(composite) != null;
+            return tableCache.getIfPresent(composite) != null;
         }
 
         @Override
         public boolean contains(String key) {
             Composite composite = Composite.create(Text.wrapCached(key));
-            return csc.getIfPresent(composite) != null;
+            return indexCache.getIfPresent(composite) != null;
         }
 
         @Override
         public boolean contains(String key, long record) {
             Composite composite = Composite.create(PrimaryKey.wrap(record),
                     Text.wrapCached(key));
-            return cppc.getIfPresent(composite) != null || contains(record);
+            return tablePartialCache.getIfPresent(composite) != null
+                    || contains(record);
         }
 
     }

@@ -109,7 +109,7 @@ public final class Composite implements Byteable {
     /**
      * The composite bytes.
      */
-    private final ByteBuffer bytes;
+    private final byte[] bytes;
 
     /**
      * The input parts. This is generally not available when the
@@ -129,7 +129,7 @@ public final class Composite implements Byteable {
             size += part.getCanonicalLength() + 4;
         }
         RetrievableByteSink sink = size < MAX_SIZE
-                ? new WrappedByteBufferSink(size)
+                ? new WrappedByteArraySink(size)
                 : new HasherByteSink(Hashing.sha256().newHasher(size));
         int pos = 0;
         for (Byteable part : parts) {
@@ -147,32 +147,32 @@ public final class Composite implements Byteable {
      * @param bytes
      */
     private Composite(ByteBuffer bytes) {
-        this.bytes = bytes;
+        this.bytes = ByteBuffers.getByteArray(bytes);
         this.parts = null;
     }
 
     @Override
     public void copyTo(ByteSink sink) {
-        ByteSinks.copyAndRewindSource(bytes, sink);
+        sink.put(bytes);
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Composite) {
             Composite other = (Composite) obj;
-            return bytes.equals(other.bytes);
+            return Arrays.equals(bytes, other.bytes);
         }
         return false;
     }
 
     @Override
     public ByteBuffer getBytes() {
-        return ByteBuffers.asReadOnlyBuffer(bytes);
+        return ByteBuffer.wrap(bytes);
     }
 
     @Override
     public int hashCode() {
-        return bytes.hashCode();
+        return Arrays.hashCode(bytes);
     }
 
     /**
@@ -199,7 +199,7 @@ public final class Composite implements Byteable {
 
     @Override
     public int size() {
-        return bytes.capacity();
+        return bytes.length;
     }
 
     @Override
@@ -290,8 +290,8 @@ public final class Composite implements Byteable {
         }
 
         @Override
-        protected ByteBuffer retrieve() {
-            return ByteBuffer.wrap(hasher.hash().asBytes());
+        protected byte[] retrieve() {
+            return hasher.hash().asBytes();
         }
 
     }
@@ -306,12 +306,12 @@ public final class Composite implements Byteable {
 
         /**
          * Return all the bytes written to this {@link ByteSink sink} as a
-         * {@link ByteBuffer} that is ready for reading.
+         * {@code byte[]}.
          * 
-         * @return a {@link ByteBuffer} with the content of this {@link ByteSink
+         * @return a {@code byte} with the content of this {@link ByteSink
          *         sink}
          */
-        protected abstract ByteBuffer retrieve();
+        protected abstract byte[] retrieve();
     }
 
     /**
@@ -321,13 +321,13 @@ public final class Composite implements Byteable {
      *
      * @author Jeff Nelson
      */
-    private static final class WrappedByteBufferSink
+    private static final class WrappedByteArraySink
             extends RetrievableByteSink {
 
         /**
          * The source to which {@link #sink} writes.
          */
-        private final ByteBuffer buffer;
+        private final byte[] bytes;
 
         /**
          * The wrapped {@link ByteSink}.
@@ -339,9 +339,9 @@ public final class Composite implements Byteable {
          * 
          * @param size
          */
-        private WrappedByteBufferSink(int size) {
-            this.buffer = ByteBuffer.allocate(size);
-            this.sink = ByteSink.to(buffer);
+        private WrappedByteArraySink(int size) {
+            this.bytes = new byte[size];
+            this.sink = ByteSink.to(bytes);
         }
 
         @Override
@@ -404,8 +404,8 @@ public final class Composite implements Byteable {
         }
 
         @Override
-        protected ByteBuffer retrieve() {
-            return ByteBuffers.asReadOnlyBuffer(this.buffer);
+        protected byte[] retrieve() {
+            return bytes;
         }
     }
 

@@ -24,10 +24,13 @@ import org.junit.Test;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -157,7 +160,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
             keys.add(key);
             populateRecord(record, locator, key);
         }
-        Assert.assertEquals(keys, record.describe());
+        Assert.assertEquals(keys, record.keys());
     }
 
     @Test
@@ -175,7 +178,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
             K key = getKey();
             populateRecord(record, locator, key);
         }
-        Assert.assertEquals(keys, record.describe(timestamp));
+        Assert.assertEquals(keys, record.keys(timestamp));
     }
 
     @SuppressWarnings("unchecked")
@@ -258,7 +261,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         record.append(getRevision(locator, key, value));
         Assert.assertFalse(record.isEmpty());
         record.append(getRevision(locator, key, value));
-        Assert.assertTrue(record.describe().isEmpty());
+        Assert.assertTrue(record.keys().isEmpty());
         Assert.assertFalse(record.isEmpty());
     }
 
@@ -275,6 +278,38 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
             keys.add(key);
         }
         Assert.assertEquals(keys.size(), record.cardinality());
+    }
+
+    @Test
+    public void testBrowse() {
+        Multimap<K, V> expected = HashMultimap.create();
+        L locator = getLocator();
+        record = getRecord(locator);
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            K key = getKey();
+            Set<V> values = populateRecord(record, locator, key);
+            expected.putAll(key, values);
+        }
+        Assert.assertEquals(expected.asMap(), record.getAll());
+    }
+
+    @Test
+    public void testBrowseWithTime() {
+        Multimap<K, V> expected = HashMultimap.create();
+        L locator = Variables.register("locator", getLocator());
+        record = Variables.register("record", getRecord(locator));
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            K key = Variables.register("key", getKey());
+            Set<V> values = populateRecord(record, locator, key);
+            Variables.register("values", values);
+            expected.putAll(key, values);
+        }
+        long timestamp = Time.now();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            K key = getKey();
+            populateRecord(record, locator, key);
+        }
+        Assert.assertEquals(expected.asMap(), record.getAll(timestamp));
     }
 
     protected abstract K getKey();

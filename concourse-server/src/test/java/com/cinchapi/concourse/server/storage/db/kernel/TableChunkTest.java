@@ -77,7 +77,7 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
         chunk.transfer(file);
         chunk = load(file, filter, chunk.manifest());
         chunk.seek(Composite.create(locator, key), record);
-        Assert.assertTrue(record.fetch(key).contains(value));
+        Assert.assertTrue(record.get(key).contains(value));
     }
 
 }

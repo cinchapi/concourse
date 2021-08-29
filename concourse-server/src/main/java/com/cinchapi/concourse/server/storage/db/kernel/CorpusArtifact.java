@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.search;
+package com.cinchapi.concourse.server.storage.db.kernel;
 
-import java.util.Collection;
-
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 
 /**
- * A {@link SearchIndex} stores indices to support fulltext search.
+ * An {@link Artifact} containing a {@link CorpusRevision}
  *
  * @author Jeff Nelson
  */
-public interface SearchIndex {
+public final class CorpusArtifact extends Artifact<Text, Text, Position> {
 
     /**
-     * Insert an entry to support a search lookup for {@code term} as
-     * {@code position} for {@code key}.
+     * Construct a new instance.
      * 
-     * @param key
-     * @param term
-     * @param position
-     * @param version
-     * @param type
-     * @param artifacts
+     * @param revision
+     * @param composites
      */
-    public <T> void index(Text key, Text term, Position position, long version,
-            Action type, Collection<T> artifacts);
+    CorpusArtifact(CorpusRevision revision, Composite[] composites) {
+        super(revision, composites);
+    }
+
+    @Override
+    public CorpusRevision revision() {
+        return (CorpusRevision) super.revision();
+    }
 
 }

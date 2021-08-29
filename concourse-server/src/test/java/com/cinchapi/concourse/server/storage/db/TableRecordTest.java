@@ -36,8 +36,7 @@ import com.google.common.collect.Sets;
  *
  * @author Jeff Nelson
  */
-public class TableRecordTest
-        extends BrowsableRecordTest<PrimaryKey, Text, Value> {
+public class TableRecordTest extends RecordTest<PrimaryKey, Text, Value> {
 
     @Override
     protected Text getKey() {

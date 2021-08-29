@@ -38,6 +38,7 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
@@ -57,8 +58,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class IndexRecord
-        extends BrowsableRecord<Text, Value, PrimaryKey> {
+public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
 
     /**
      * Return an {@link IndexRecord} that holds data for {@code locator}.
@@ -124,9 +124,9 @@ public final class IndexRecord
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    public Map<PrimaryKey, Set<Value>> explore(long timestamp,
+    public Map<PrimaryKey, Set<Value>> findAndGet(long timestamp,
             Operator operator, Value... values) {
-        return explore(true, timestamp, operator, values);
+        return findAndGet(true, timestamp, operator, values);
     }
 
     /**
@@ -139,9 +139,9 @@ public final class IndexRecord
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    public Map<PrimaryKey, Set<Value>> explore(Operator operator,
+    public Map<PrimaryKey, Set<Value>> findAndGet(Operator operator,
             Value... values) {
-        return explore(false, 0, operator, values);
+        return findAndGet(false, Versioned.NO_VERSION, operator, values);
     }
 
     /**
@@ -155,7 +155,7 @@ public final class IndexRecord
      */
     public Set<PrimaryKey> find(long timestamp, Operator operator,
             Value... values) {
-        return explore(true, timestamp, operator, values).keySet();
+        return findAndGet(true, timestamp, operator, values).keySet();
     }
 
     /**
@@ -167,7 +167,7 @@ public final class IndexRecord
      * @return they Set of PrimaryKeys that match the query
      */
     public Set<PrimaryKey> find(Operator operator, Value... values) {
-        return explore(false, 0, operator, values).keySet();
+        return findAndGet(false, 0, operator, values).keySet();
     }
 
     /**
@@ -175,8 +175,8 @@ public final class IndexRecord
      * <p>
      * In the broader {@link Database} sense, this method can be used to return
      * all the data "values" that are stored within a data "record" under a data
-     * "key" that is equivalent to this {@link IndexRecord
-     * SecondaryRecord's} locator (similar to {@link Database#select(long)}).
+     * "key" that is equivalent to this {@link IndexRecord IndexRecords's}
+     * locator (similar to {@link Database#select(long)}).
      * </p>
      * <p>
      * NOTE: The order of the items in the returned {@link Set} are not
@@ -256,12 +256,12 @@ public final class IndexRecord
     }
 
     @Override
-    protected Map<Value, List<CompactRevision<PrimaryKey>>> historyMapType() {
+    protected Map<Value, List<CompactRevision<PrimaryKey>>> $createHistoryMap() {
         return new CoalescableTreeMap<>();
     }
 
     @Override
-    protected Map<Value, Set<PrimaryKey>> mapType() {
+    protected Map<Value, Set<PrimaryKey>> $createDataMap() {
         return new CoalescableTreeMap<>();
     }
 
@@ -352,7 +352,7 @@ public final class IndexRecord
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    private Map<PrimaryKey, Set<Value>> explore(boolean historical,
+    private Map<PrimaryKey, Set<Value>> findAndGet(boolean historical,
             long timestamp, Operator operator,
             Value... values) { /* Authorized */
         // CON-667: Value ordering for Strings is such that uppercase characters

@@ -90,7 +90,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                                         revision.getVersion()); // (authorized)
                                 db.accept(write);
                             }
-                            db.triggerSync();
+                            db.sync();
                             logInfoMessage(
                                     "Finished transferring data from Block {} to new Segment format",
                                     file.getFileName());

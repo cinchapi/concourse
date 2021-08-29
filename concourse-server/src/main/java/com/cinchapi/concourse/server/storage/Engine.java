@@ -508,7 +508,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browseUnsafe(long record) {
+    public Map<String, Set<TObject>> selectUnsafe(long record) {
         transportLock.readLock().lock();
         try {
             return super.select(record);

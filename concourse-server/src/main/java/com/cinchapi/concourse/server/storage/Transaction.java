@@ -187,7 +187,7 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browseUnsafe(long record) {
+    public Map<String, Set<TObject>> selectUnsafe(long record) {
         return select(record);
     }
 

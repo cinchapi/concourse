@@ -19,6 +19,7 @@ import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -114,10 +115,16 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
     }
 
     @Override
-    public final TableRevision insert(PrimaryKey locator, Text key, Value value,
-            long version, Action type) {
-        return (TableRevision) super.insert(locator, key, Value.optimize(value),
-                version, type);
+    public TableArtifact insert(PrimaryKey locator, Text key, Value value,
+            long version, Action type) throws IllegalStateException {
+        return (TableArtifact) super.insert(locator, key, value, version, type);
+    }
+
+    @Override
+    protected Artifact<PrimaryKey, Text, Value> makeArtifact(
+            Revision<PrimaryKey, Text, Value> revision,
+            Composite[] composites) {
+        return new TableArtifact((TableRevision) revision, composites);
     }
 
     @Override

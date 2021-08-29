@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -46,6 +48,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -71,7 +74,7 @@ public class DatabaseTest extends StoreTest {
         for (int i = 0; i < expected; ++i) {
             db.accept(Write.add(TestData.getString(), TestData.getTObject(),
                     TestData.getLong()));
-            db.triggerSync();
+            db.sync();
         }
         List<Segment> segments = Reflection.get("segments", db);
         Assert.assertEquals(expected + 1, segments.size()); // size includes
@@ -181,10 +184,10 @@ public class DatabaseTest extends StoreTest {
             expected.add(revision);
             Variables.register("expected_" + i, revision);
             if(i % 100 == 0) {
-                db.triggerSync();
+                db.sync();
             }
         }
-        db.triggerSync();
+        db.sync();
         Iterator<Revision<PrimaryKey, Text, Value>> it = Database
                 .onDiskStreamingIterator(db.getBackingStore());
         Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
@@ -206,7 +209,7 @@ public class DatabaseTest extends StoreTest {
         long record = 1;
         db.accept(Write.add(a, value, record));
         db.accept(Write.add(b, value, record));
-        db.triggerSync();
+        db.sync();
         db.stop();
         db = new Database(db.getBackingStore()); // TODO: cannot stop/start same
                                                  // Database instance because
@@ -278,7 +281,7 @@ public class DatabaseTest extends StoreTest {
     public void testVerify() {
         add("name", Convert.javaToThrift("jeff"), 1);
         store.stop();
-        ((Database) store).triggerSync();
+        ((Database) store).sync();
         store.start();
         Assert.assertTrue(
                 store.verify("name", Convert.javaToThrift("jeff"), 1));
@@ -288,9 +291,53 @@ public class DatabaseTest extends StoreTest {
     public void testGetIndexRecordReproCON_674() {
         add("iq", Convert.javaToThrift("u"), 1605548010968002L);
         store.stop();
-        ((Database) store).triggerSync();
+        ((Database) store).sync();
         store.start();
         Assert.assertTrue(store.browse("iqu").isEmpty());
+    }
+
+    @Test
+    public void testSearchMultiValuedAfterRemove() {
+        add("name", Convert.javaToThrift("jeff"), 1L);
+        add("name", Convert.javaToThrift("jeffery"), 1L);
+        Set<Long> actual = store.search("name", "jeff");
+        Assert.assertEquals(ImmutableSet.of(1L), actual);
+        remove("name", Convert.javaToThrift("jeff"), 1L);
+        actual = store.search("name", "jeff");
+        Assert.assertEquals(ImmutableSet.of(1L), actual);
+    }
+
+    @Test
+    public void testBackgroundManifestLoadConcurrency()
+            throws InterruptedException {
+        Database db = (Database) store;
+        List<Write> writes = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 3; ++i) {
+            String key = TestData.getSimpleString();
+            TObject value = TestData.getTObject();
+            long record = (Math.abs(TestData.getInt()) % 10) + 1;
+            add(key, value, record);
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                writes.add(Write.add(key, value, record));
+            }
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                db.sync();
+            }
+        }
+        db.stop();
+        db.start();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        Iterator<Write> it = writes.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            executor.execute(() -> {
+                Assert.assertTrue(db.verify(write.getKey().toString(),
+                        write.getValue().getTObject(),
+                        write.getRecord().longValue()));
+            });
+        }
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.MINUTES);
     }
 
     @Override

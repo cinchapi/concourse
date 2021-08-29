@@ -35,8 +35,7 @@ import com.cinchapi.concourse.util.TestData;
  *
  * @author Jeff Nelson
  */
-public class IndexRecordTest
-        extends BrowsableRecordTest<Text, Value, PrimaryKey> {
+public class IndexRecordTest extends RecordTest<Text, Value, PrimaryKey> {
 
     @Override
     protected Value getKey() {
@@ -81,7 +80,7 @@ public class IndexRecordTest
                         PrimaryKey.wrap(i)));
             }
         }
-        Map<PrimaryKey, Set<Value>> data = ((IndexRecord) record).explore(
+        Map<PrimaryKey, Set<Value>> data = ((IndexRecord) record).findAndGet(
                 Operator.GREATER_THAN, Value.wrap(Convert.javaToThrift(50)));
         for (int i = 0; i < 100; i++) {
             PrimaryKey pk = PrimaryKey.wrap(i);
@@ -111,7 +110,7 @@ public class IndexRecordTest
                 Value.wrap(Convert.javaToThrift("business management")),
                 PrimaryKey.wrap(2)));
         IndexRecord index = (IndexRecord) record;
-        Map<PrimaryKey, Set<Value>> data = index.explore(Operator.REGEX,
+        Map<PrimaryKey, Set<Value>> data = index.findAndGet(Operator.REGEX,
                 Value.wrap(Convert.javaToThrift(".*business.*")));
         Assert.assertFalse(data.isEmpty());
     }

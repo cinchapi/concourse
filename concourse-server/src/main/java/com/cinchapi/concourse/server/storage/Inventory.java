@@ -66,7 +66,7 @@ public class Inventory {
      * The bitset that contains the read-efficient version of the data in the
      * inventory.
      */
-    private final LongBitSet bitSet;
+    private final LongBitSet bits;
 
     /**
      * A memory mapped buffer that is used to handle writes to the backing
@@ -93,7 +93,7 @@ public class Inventory {
      */
     private Inventory(String backingStore) {
         this.backingStore = backingStore;
-        this.bitSet = LongBitSet.create();
+        this.bits = LongBitSet.create();
         this.content = FileSystem.map(backingStore, MapMode.READ_ONLY, 0,
                 FileSystem.getFileSize(backingStore));
         while (content.position() < content.capacity()) {
@@ -108,7 +108,7 @@ public class Inventory {
                 break;
             }
             else {
-                bitSet.set(record);
+                bits.set(record);
             }
         }
         map0(content.position(), MEMORY_MAPPING_SIZE);
@@ -122,7 +122,7 @@ public class Inventory {
     public void add(long record) {
         long stamp = lock.writeLock();
         try {
-            if(bitSet.set(record)) {
+            if(bits.set(record)) {
                 dirty.add(record);
             }
         }
@@ -139,14 +139,14 @@ public class Inventory {
      */
     public boolean contains(long record) {
         long stamp = lock.tryOptimisticRead();
-        boolean result = bitSet.get(record);
+        boolean result = bits.get(record);
         if(lock.validate(stamp)) {
             return result;
         }
         else {
             stamp = lock.readLock();
             try {
-                return bitSet.get(record);
+                return bits.get(record);
             }
             finally {
                 lock.unlockRead(stamp);
@@ -160,7 +160,7 @@ public class Inventory {
      * @return {@code Set<Long>}
      */
     public Set<Long> getAll() {
-        return (Set<Long>) bitSet.toIterable();
+        return (Set<Long>) bits.toIterable();
     }
 
     /**

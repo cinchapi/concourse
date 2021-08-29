@@ -279,6 +279,19 @@ public final class GlobalState extends Constants {
      */
     public static boolean ENABLE_COMPACTION = true;
 
+    /**
+     * Maintain and in-memory cache the data indexes used to respond to
+     * {@link com.cinchapi.concourse.Concourse#search(String, String)} queries.
+     * <p>
+     * Search indexes tend to be much larger than those used for primary and
+     * secondary lookups, so enabling the search cache may cause
+     * memory issues if search is heavily used. Furthermore, write performance
+     * will also suffer if cached search indexes must be incrementally kept
+     * current.
+     * </p>
+     */
+    public static boolean ENABLE_SEARCH_CACHE = false;
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",

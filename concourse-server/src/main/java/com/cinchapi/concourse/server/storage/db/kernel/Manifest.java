@@ -21,26 +21,37 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * A {@link Manifest} stores and provides the efficient lookup for the start and
@@ -87,12 +98,28 @@ public class Manifest extends TransferableByteSequence {
      */
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
-            .pow(2, 20); // ~1.04mb
+            .pow(2, 25); // ~33.5mb or 419,430 entries
 
     /**
      * Represents an entry that has not been recorded.
      */
     public static final int NO_ENTRY = -1;
+
+    /**
+     * The number of worker threads to reserve for the {@link SearchIndexer}.
+     */
+    private static int ASYNC_BACKGROUND_LOADER_NUM_THREADS = Math.max(3,
+            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
+
+    /**
+     * An {@link ExecutorService} that asynchronously loads manifest entries in
+     * the background without blocking a search for a specific
+     * {@link #entries(Composite) entry}.
+     */
+    private static ExecutorService ASYNC_BACKGROUND_LOADER = Executors
+            .newFixedThreadPool(ASYNC_BACKGROUND_LOADER_NUM_THREADS,
+                    new ThreadFactoryBuilder().setDaemon(true)
+                            .setNameFormat("Manifest Loader" + " %d").build());
 
     /**
      * Returned from {@link #lookup(Composite)} when an associated entry does
@@ -141,6 +168,13 @@ public class Manifest extends TransferableByteSequence {
     private long length = 0;
 
     /**
+     * Final reference to {@link #MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD}
+     * (which is accessible for testing) in hopes of getting a little
+     * performance gain...
+     */
+    private final transient int streamingThreshold = MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD;
+
+    /**
      * Construct a new instance.
      * 
      * @param expectedInsertions
@@ -148,8 +182,7 @@ public class Manifest extends TransferableByteSequence {
     private Manifest(int expectedInsertions) {
         super();
         this.length = 0;
-        this.entries = Maps
-                .newLinkedHashMapWithExpectedSize(expectedInsertions);
+        this.entries = new HashMap<>(expectedInsertions);
         this.$entries = null;
     }
 
@@ -211,7 +244,7 @@ public class Manifest extends TransferableByteSequence {
      * @return the {@link Entry} containing the start and end positions
      */
     public Range lookup(Composite composite) {
-        Entry entry = entries().get(composite);
+        Entry entry = entries(composite).get(composite);
         return entry != null ? new EntryRange(entry) : NULL_RANGE;
     }
 
@@ -303,6 +336,29 @@ public class Manifest extends TransferableByteSequence {
      * @return the entries
      */
     private synchronized Map<Composite, Entry> entries() {
+        return entries(null);
+    }
+
+    /**
+     * Return the entries in this index with a hint that {@code composite} will
+     * be subsequently used in a {@link Map#get(Object)} call.
+     * <p>
+     * If necessary, this method will lazily load the entries on demand if they
+     * do not currently exist in memory. If the entries are loaded on-demand and
+     * {@code composite} is not null, the returned {@link Map} is only
+     * guaranteed to have a mapping from {@code composite} if it exists in the
+     * {@link Manifest} or be {@link Map#isEmpty() empty} if it does not.
+     * Therefore, only use the value returned from this method to called
+     * {@link Map#get(Object)} using {@code composite} or there will be
+     * undefined behaviour. If the full set of entries is required, use
+     * {@link #entries()}
+     * 
+     * @param the {@link Composite} that will be sought on a subsequent call to
+     *            {@link Map#get(Object)}
+     * @return the entries
+     */
+    private synchronized Map<Composite, Entry> entries(
+            @Nullable Composite composite) {
         if(entries != null) {
             return entries;
         }
@@ -311,19 +367,44 @@ public class Manifest extends TransferableByteSequence {
         }
         else {
             Map<Composite, Entry> entries = new StreamedEntries();
-            if(length < MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
-                // The Manifest is small enough to fit comfortably into memory,
-                // so eagerly load all of the entries instead of streaming them
-                // from disk one-by-one (as is done in the OnDiskEntries).
-                Map<Composite, Entry> heapEntries = Maps
-                        .newLinkedHashMapWithExpectedSize(
-                                (int) length / Entry.CONSTANT_SIZE);
-                entries.forEach((key, value) -> heapEntries.put(key, value));
-                $entries = new SoftReference<Map<Composite, Entry>>(
-                        heapEntries);
-                entries = heapEntries;
+            // If the Manifest is small enough to fit comfortably into memory,
+            // eagerly load all of the entries instead of streaming them from
+            // disk one-by-one (as is done in the StreamedEntries).
+            if(length < streamingThreshold) {
+                // If #composite != null, shortcut the loading process by
+                // forking the job to a background thread and listening for the
+                // sought #composite to be found and returned immediately
+                BlockingQueue<Map<Composite, Entry>> queue = new ArrayBlockingQueue<>(
+                        1);
+                // @formatter:off
+                Executor executor = composite != null 
+                        ? ASYNC_BACKGROUND_LOADER
+                        : MoreExecutors.directExecutor();
+                // @formatter:on
+                Map<Composite, Entry> heapEntries = new HashMap<>(
+                        (int) length / Entry.CONSTANT_SIZE);
+                executor.execute(() -> {
+                    entries.forEach((key, value) -> {
+                        heapEntries.put(key, value);
+                        if(composite != null && key.equals(composite)) {
+                            queue.add(ImmutableMap.of(key, value));
+                        }
+                    });
+                    queue.offer(composite != null ? Collections.emptyMap()
+                            : heapEntries);
+                    $entries = new SoftReference<Map<Composite, Entry>>(
+                            heapEntries);
+                });
+                try {
+                    return queue.take();
+                }
+                catch (InterruptedException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
             }
-            return entries;
+            else {
+                return entries;
+            }
         }
     }
 
@@ -517,8 +598,7 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public Set<Entry<Composite, Manifest.Entry>> entrySet() {
-            Set<Entry<Composite, Manifest.Entry>> entrySet = Sets
-                    .newLinkedHashSet();
+            Set<Entry<Composite, Manifest.Entry>> entrySet = new HashSet<>();
             forEach((composite, entry) -> entrySet
                     .add(new SimpleEntry<>(composite, entry)));
             return entrySet;
@@ -529,15 +609,10 @@ public class Manifest extends TransferableByteSequence {
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
             MappedByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
                     position(), length);
-            try {
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-                while (it.hasNext()) {
-                    Manifest.Entry entry = new Manifest.Entry(it.next());
-                    action.accept(entry.key(), entry);
-                }
-            }
-            finally {
-                FileSystem.unmapAsync(bytes);
+            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            while (it.hasNext()) {
+                Manifest.Entry entry = new Manifest.Entry(it.next());
+                action.accept(entry.key(), entry);
             }
         }
 
@@ -547,25 +622,19 @@ public class Manifest extends TransferableByteSequence {
                 Composite key = (Composite) o;
                 MappedByteBuffer bytes = FileSystem.map(file(),
                         MapMode.READ_ONLY, position(), length);
-                try {
-                    Iterator<ByteBuffer> it = ByteableCollections
-                            .iterator(bytes);
-                    while (it.hasNext()) {
-                        ByteBuffer next = it.next();
-                        if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
-                                .remaining()) {
-                            // Shortcut by only considering ByteBuffers that
-                            // match the expected size of an entry mapped from
-                            // the #key
-                            Manifest.Entry entry = new Manifest.Entry(next);
-                            if(key.equals(entry.key())) {
-                                return entry;
-                            }
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                while (it.hasNext()) {
+                    ByteBuffer next = it.next();
+                    if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
+                            .remaining()) {
+                        // Shortcut by only considering ByteBuffers that
+                        // match the expected size of an entry mapped from
+                        // the #key
+                        Manifest.Entry entry = new Manifest.Entry(next);
+                        if(key.equals(entry.key())) {
+                            return entry;
                         }
                     }
-                }
-                finally {
-                    FileSystem.unmap(bytes);
                 }
             }
             return null;

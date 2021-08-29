@@ -631,7 +631,7 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * currently exists using {@code exists} as prior context.
      * <p>
      * <strong>This method is called from
-     * {@link BufferedStore#verify(String, TObject, long)}.</strong>
+     * {@link BufferedStore#contains(String, TObject, long)}.</strong>
      * </p>
      * 
      * @param write
