@@ -17,17 +17,19 @@ package com.cinchapi.concourse.server.upgrade.task;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
-import com.cinchapi.concourse.server.storage.db.legacy.StorageFormatV2;
-import com.cinchapi.concourse.server.storage.db.legacy.StorageFormatV2.Block;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV2;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV2.Block;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV3;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
 import com.cinchapi.concourse.util.Environments;
@@ -92,9 +94,12 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                         GlobalState.DATABASE_DIRECTORY)
                 .forEachRemaining(environment -> {
                     Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
-                            .resolve(environment);
-                    Path segments = directory.resolve("segments");
-                    FileSystem.deleteDirectory(segments.toString());
+                            .resolve(environment).resolve("segments");
+                    Iterable<Segment> segments = StorageFormatV3
+                            .load(directory);
+                    for (Segment segment : segments) {
+                        segment.discard();
+                    }
                 });
 
     }

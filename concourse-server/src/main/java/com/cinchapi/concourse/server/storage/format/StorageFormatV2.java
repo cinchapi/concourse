@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.legacy;
+package com.cinchapi.concourse.server.storage.format;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  *
  * @author Jeff Nelson
  */
-public class StorageFormatV2 {
+public final class StorageFormatV2 {
 
     /**
      * Load the {@link Block Blocks} from {@code directory}.
