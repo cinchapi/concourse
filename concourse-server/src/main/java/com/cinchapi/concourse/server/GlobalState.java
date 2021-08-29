@@ -280,14 +280,14 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_COMPACTION = true;
 
     /**
-     * Cache data used to respond to
-     * {@link com.cinchapi.concourse.Concourse#search(String, String)} queries
-     * in memory.
+     * Maintain and in-memory cache the data indexes used to respond to
+     * {@link com.cinchapi.concourse.Concourse#search(String, String)} queries.
      * <p>
-     * Records that facilitate search tend to be much larger than those for
-     * primary and secondary lookups, so enable the search cache may cause
+     * Search indexes tend to be much larger than those used for primary and
+     * secondary lookups, so enabling the search cache may cause
      * memory issues if search is heavily used. Furthermore, write performance
-     * will also suffer if cached search data must be maintained.
+     * will also suffer if cached search indexes must be incrementally kept
+     * current.
      * </p>
      */
     public static boolean ENABLE_SEARCH_CACHE = false;
