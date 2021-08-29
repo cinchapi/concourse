@@ -617,6 +617,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 FileChannel channel = FileSystem.getFileChannel(file);
                 ByteSink sink = ByteSink.to(channel);
                 copyTo(sink);
+                sink.flush();
                 channel.force(true);
                 filter.sync($filter);
                 index.sync($index);
@@ -859,9 +860,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             index.putEnd(position, locator, key);
         }
         if(sink != s) {
+            Logger.warn("Syncing {} requires more than {} bytes", this,
+                    Integer.MAX_VALUE);
             for (Revision<L, K, V> revision : revisions) {
-                Logger.warn("Syncing {} requires more than {} bytes", this,
-                        Integer.MAX_VALUE);
                 s.putInt(revision.size());
                 revision.copyTo(s);
             }

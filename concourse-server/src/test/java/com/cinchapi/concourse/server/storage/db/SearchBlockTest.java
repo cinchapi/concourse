@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-// import java.util.Iterator;
-// import java.util.Set;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
