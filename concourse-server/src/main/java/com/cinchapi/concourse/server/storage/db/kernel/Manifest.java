@@ -17,8 +17,6 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -41,11 +39,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -596,6 +594,13 @@ public class Manifest extends TransferableByteSequence {
      */
     private final class StreamedEntries extends AbstractMap<Composite, Entry> {
 
+        /**
+         * The number of bytes to buffer in memory when streaming.
+         */
+        private final int streamingBufferSize = Math.min(
+                GlobalState.BUFFER_PAGE_SIZE,
+                length > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) length);
+
         @Override
         public Set<Entry<Composite, Manifest.Entry>> entrySet() {
             Set<Entry<Composite, Manifest.Entry>> entrySet = new HashSet<>();
@@ -607,9 +612,8 @@ public class Manifest extends TransferableByteSequence {
         @Override
         public void forEach(
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
-            MappedByteBuffer bytes = FileSystem.map(file(), MapMode.READ_ONLY,
-                    position(), length);
-            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            Iterator<ByteBuffer> it = ByteableCollections.streamingIterator(
+                    file(), position(), length, streamingBufferSize);
             while (it.hasNext()) {
                 Manifest.Entry entry = new Manifest.Entry(it.next());
                 action.accept(entry.key(), entry);
@@ -620,9 +624,8 @@ public class Manifest extends TransferableByteSequence {
         public Manifest.Entry get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
-                MappedByteBuffer bytes = FileSystem.map(file(),
-                        MapMode.READ_ONLY, position(), length);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                Iterator<ByteBuffer> it = ByteableCollections.streamingIterator(
+                        file(), position(), length, streamingBufferSize);
                 while (it.hasNext()) {
                     ByteBuffer next = it.next();
                     if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
