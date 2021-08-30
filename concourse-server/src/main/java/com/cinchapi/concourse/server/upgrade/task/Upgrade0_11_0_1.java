@@ -81,7 +81,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                             db.sync();
                             logInfoMessage(
                                     "Finished transferring v2 data Block {} to v3 Segment format",
-                                    block);
+                                    block.getId());
                         }
                     }
                     finally {
