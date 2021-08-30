@@ -19,13 +19,16 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -55,7 +58,6 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -87,11 +89,11 @@ import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
- * The {@link Database} is the {@link PermanentStore} for data. The
- * Database accepts {@link Write} objects that are initially stored in a
- * {@link Buffer} and converts them {@link Revision Revisions} that are stored
- * within distinct {@link Segment Segments}. Each {@link Segment} is broken up
- * into {@link Chunk Chunks} that provided optimized read-views.
+ * The {@link Database} is the {@link Engine Engine's} {@link PermanentStore}
+ * for data. The Database accepts {@link Write} objects that are initially
+ * stored in a {@link Buffer} and converts them {@link Revision Revisions} that
+ * are stored within distinct {@link Segment Segments}. Each {@link Segment} is
+ * broken up into {@link Chunk Chunks} that provided optimized read-views.
  * <p>
  * Conceptually, the {@link Database} is a collection of three sparse, but
  * contiguous data repositories:
@@ -167,17 +169,6 @@ public final class Database extends BaseStore implements PermanentStore {
      * segment} files are stored.
      */
     private final transient Path $segments;
-
-    /**
-     * A flag to indicate if the Database has verified the data it is seeing is
-     * acceptable. We use this flag to handle the case where the server
-     * unexpectedly crashes before removing a Buffer page and tries to transport
-     * Writes that have already been accepted. The SLA for this flag is that the
-     * Database will assume no Writes are acceptable (and will therefore
-     * manually verify) until it sees one, at which point it will assume all
-     * subsequent Writes are acceptable.
-     */
-    private transient boolean acceptable = false;
 
     /*
      * RECORD CACHES
@@ -290,80 +281,60 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void accept(Write write) {
-        // CON-83: Keeping manually verifying writes until we find one that is
-        // acceptable, after which assume all subsequent writes are acceptable.
-        if(!acceptable && ((write.getType() == Action.ADD
-                && !verify(write.getKey().toString(),
-                        write.getValue().getTObject(),
-                        write.getRecord().longValue()))
-                || (write.getType() == Action.REMOVE
-                        && verify(write.getKey().toString(),
-                                write.getValue().getTObject(),
-                                write.getRecord().longValue())))) {
-            acceptable = true;
-        }
-        if(acceptable) {
-            // NOTE: This approach is thread safe because write locking happens
-            // in each of #seg0's individual Blocks, and furthermore this method
-            // is only called from the Buffer, which transports data serially.
-            if(running) {
-                try {
-                    Receipt receipt = seg0.acquire(write, writer);
-                    Logger.debug("Indexed '{}' in {}", write, seg0);
+        // NOTE: This approach is thread safe because write locking happens
+        // in each of #seg0's individual Blocks, and furthermore this method
+        // is only called from the Buffer, which transports data serially.
+        if(running) {
+            try {
+                Receipt receipt = seg0.acquire(write, writer);
+                Logger.debug("Indexed '{}' in {}", write, seg0);
 
-                    // Updated cached records
-                    TableRecord cpr = tableCache.getIfPresent(
-                            receipt.table().getLocatorComposite());
-                    TableRecord cppr = tablePartialCache.getIfPresent(
-                            receipt.table().getLocatorKeyComposite());
-                    IndexRecord csr = indexCache.getIfPresent(
-                            receipt.index().getLocatorComposite());
-                    if(cpr != null) {
-                        cpr.append(receipt.table().revision());
-                    }
-                    if(cppr != null) {
-                        cppr.append(receipt.table().revision());
-                    }
-                    if(csr != null) {
-                        csr.append(receipt.index().revision());
-                    }
-                    if(ENABLE_SEARCH_CACHE) {
-                        Cache<Composite, CorpusRecord> cache = corpusCaches
-                                .get(write.getKey());
-                        if(cache != null) {
-                            for (CorpusArtifact artifact : receipt.corpus()) {
-                                CorpusRecord corpus = cache.getIfPresent(
-                                        artifact.getLocatorKeyComposite());
-                                if(corpus != null) {
-                                    corpus.append(artifact.revision());
-                                }
+                // Updated cached records
+                TableRecord cpr = tableCache
+                        .getIfPresent(receipt.table().getLocatorComposite());
+                TableRecord cppr = tablePartialCache
+                        .getIfPresent(receipt.table().getLocatorKeyComposite());
+                IndexRecord csr = indexCache
+                        .getIfPresent(receipt.index().getLocatorComposite());
+                if(cpr != null) {
+                    cpr.append(receipt.table().revision());
+                }
+                if(cppr != null) {
+                    cppr.append(receipt.table().revision());
+                }
+                if(csr != null) {
+                    csr.append(receipt.index().revision());
+                }
+                if(ENABLE_SEARCH_CACHE) {
+                    Cache<Composite, CorpusRecord> cache = corpusCaches
+                            .get(write.getKey());
+                    if(cache != null) {
+                        for (CorpusArtifact artifact : receipt.corpus()) {
+                            CorpusRecord corpus = cache.getIfPresent(
+                                    artifact.getLocatorKeyComposite());
+                            if(corpus != null) {
+                                corpus.append(artifact.revision());
                             }
                         }
                     }
                 }
-                catch (InterruptedException e) {
-                    Logger.warn(
-                            "The database was interrupted while trying to accept {}. "
-                                    + "If the write could not be fully accepted, it will "
-                                    + "remain in the buffer and re-tried when the Database is able to accept writes.",
-                            write);
-                    Thread.currentThread().interrupt();
-                    return;
-                }
             }
-            else {
-                // The #accept method may be called when the database is stopped
-                // during test cases
+            catch (InterruptedException e) {
                 Logger.warn(
-                        "The database is being asked to accept a Write, even though it is not running.");
-                seg0.acquire(write);
+                        "The database was interrupted while trying to accept {}. "
+                                + "If the write could not be fully accepted, it will "
+                                + "remain in the buffer and re-tried when the Database is able to accept writes.",
+                        write);
+                Thread.currentThread().interrupt();
+                return;
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
-                    write);
+            // The #accept method may be called when the database is stopped
+            // during test cases
+            Logger.warn(
+                    "The database is being asked to accept a Write, even though it is not running.");
+            seg0.acquire(write);
         }
     }
 
@@ -482,11 +453,40 @@ public final class Database extends BaseStore implements PermanentStore {
         return segments.stream().map(Segment::id).collect(Collectors.toList());
     }
 
+    /**
+     * Return an {@link Iterator} that provides access to all the
+     * {@link Write Writes} that have been {@link #accept(Write)
+     * accepted}.
+     * 
+     * @return an {@link Iterator} over accepted {@link Write Writes}.
+     */
+    public Iterator<Write> iterator() {
+        return new AcceptedWriteIterator();
+    }
+
     @Override
     public Memory memory() {
         Verify.that(running,
                 "Cannot return the memory of a stopped Database instance");
         return memory;
+    }
+
+    @Override
+    public void reconcile(Set<Long> versions) {
+        Logger.debug("Reconciling the states of the Database and Buffer...");
+        // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
+        // partially generated Segment files based on Write versions that are
+        // all still in the buffer.
+        if(segments.size() > 1) {
+            int index = segments.size() - 2;
+            Segment seg1 = segments.get(index);
+            if(versions.containsAll(seg1.verions())) {
+                Logger.warn(
+                        "The data in {} is still completely in the BUFFER so it is being discarded",
+                        seg1);
+                segments.remove(index);
+            }
+        }
     }
 
     @Override
@@ -898,6 +898,75 @@ public final class Database extends BaseStore implements PermanentStore {
         finally {
             masterLock.writeLock().unlock();
         }
+    }
+
+    /**
+     * A "snapshot" iterator (e.g. changes to the {@link #segments} are not
+     * visible) over {@link Write Writes} that have been accepted by the
+     * {@link Database}.
+     *
+     *
+     * @author Jeff Nelson
+     */
+    private final class AcceptedWriteIterator implements Iterator<Write> {
+
+        /**
+         * Iterator over a snapshot of the {@link #segments}.
+         */
+        private final Iterator<Segment> segIt;
+
+        /**
+         * Current {@link Segment} {@link Segment#writes() write} iterator.
+         */
+        private Iterator<Write> it;
+
+        /**
+         * The next {@link Write} to return from {@link #next()}.
+         */
+        private Write next;
+
+        /**
+         * Construct a new instance.
+         */
+        private AcceptedWriteIterator() {
+            segIt = new ArrayList<>(segments).iterator();
+            it = null;
+            next = findNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public Write next() {
+            Write current = next;
+            if(current != null) {
+                next = findNext();
+                return current;
+            }
+            else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        /**
+         * Flip to the next {@link Segment} iterator.
+         */
+        private Write findNext() {
+            if(it != null && it.hasNext()) {
+                return it.next();
+            }
+            else if(segIt.hasNext()) { // flip
+                it = segIt.next().writes().iterator();
+                return findNext();
+            }
+            else {
+                return null;
+            }
+        }
+
     }
 
     /**
