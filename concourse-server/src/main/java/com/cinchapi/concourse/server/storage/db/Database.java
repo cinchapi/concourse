@@ -764,8 +764,8 @@ public final class Database extends BaseStore implements PermanentStore {
         PrimaryKey L = PrimaryKey.wrap(record);
         Text K = Text.wrapCached(key);
         Value V = Value.wrap(value);
-        TableRecord table = getTableRecord(L, K);
-        return table.contains(K, V);
+        Record<PrimaryKey, Text, Value> lookup = getLookupRecord(L, K, V);
+        return lookup.contains(K, V);
     }
 
     @Override
@@ -865,6 +865,63 @@ public final class Database extends BaseStore implements PermanentStore {
         }
         catch (ExecutionException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return a {@link Record} that is guaranteed to have the present state for
+     * whether {@code value} is contained for {@code key} in {@code record}. The
+     * truth of this query can be obtained using the
+     * {@link Record#contains(com.cinchapi.concourse.server.io.Byteable, com.cinchapi.concourse.server.io.Byteable)}
+     * method on the returned {@link Record}.
+     * <p>
+     * The query answered by this {@link Record} can also be answered by that
+     * returned from {@link #getTableRecord(PrimaryKey)}
+     * and {@link #getTableRecord(PrimaryKey, Text)}, but this method will
+     * attempt to short circuit by not loading {@link Revisions} that don't
+     * involve {@code record}, {@code key} and {@code value}. As a result, the
+     * returned {@link Record} is not cached and cannot be reliably used for
+     * other queries.
+     * </p>
+     * 
+     * @param record
+     * @param key
+     * @param value
+     * @return the {@link Record}
+     */
+    private Record<PrimaryKey, Text, Value> getLookupRecord(PrimaryKey record,
+            Text key, Value value) {
+        masterLock.readLock().lock();
+        try {
+            // First, see if there is a cached full or partial Record that can
+            // allow a lookup to be performed.
+            Composite c1 = Composite.create(record);
+            Composite c2 = null;
+            Composite c3 = null;
+            Record<PrimaryKey, Text, Value> lookup = tableCache
+                    .getIfPresent(c1);
+            if(lookup == null) {
+                c2 = Composite.create(record, key);
+                lookup = tablePartialCache.getIfPresent(c2);
+            }
+            if(lookup == null) {
+                // Create a LookupRecord to handle this, but DO NOT cache it
+                // since it has no other utility.
+                c3 = Composite.create(record, key, value);
+                lookup = new LookupRecord(record, key);
+                for (Segment segment : segments) {
+                    if(segment.table().mightContain(c3)) {
+                        // Whenever it is possible that the LKV exists, we must
+                        // gather Revisions for LK within a Record so the
+                        // current state of LKV can be determined.
+                        segment.table().seek(c2, lookup);
+                    }
+                }
+            }
+            return lookup;
         }
         finally {
             masterLock.readLock().unlock();
