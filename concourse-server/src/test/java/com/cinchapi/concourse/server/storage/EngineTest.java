@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -151,6 +153,86 @@ public class EngineTest extends BufferedStoreTest {
                     .find("count", Operator.EQUALS, Convert.javaToThrift(i))
                     .contains(Integer.valueOf(i).longValue()));
         }
+    }
+
+    @Test
+    public void testReproGH_441() throws Exception {
+        // Unexpected shutdown should not allow duplicate Write versions to by
+        // transferred
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.buffer;
+        Database db = (Database) engine.destination;
+        Method method = buffer.getClass().getDeclaredMethod("canTransport");
+        method.setAccessible(true);
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 1));
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
+        buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 2));
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
+        buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 2));
+        while (!(boolean) method.invoke(buffer)) { // Fill the page so the
+                                                   // buffer can transport
+            engine.add("count", Convert.javaToThrift(Time.now()), Time.now());
+        }
+        for (int i = 0; i < 6; ++i) {
+            buffer.transport(db);
+        }
+        db.triggerSync();
+        engine.stop();
+        engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
+        engine.start(); // Simulate unexpected shutdown by "restarting" the
+                        // Engine
+        db = (Database) engine.destination;
+        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
+                                                         // page in the buffer
+                                                         // (which contains the
+                                                         // same data that was
+                                                         // previously
+                                                         // transported) is done
+                                                         // transporting again
+            Random.sleep();
+        }
+        Iterator<Write> it = db.iterator();
+        Set<Long> versions = new HashSet<>();
+        while (it.hasNext()) {
+            Assert.assertTrue(versions.add(it.next().getVersion()));
+        }
+    }
+
+    @Test
+    public void testReproGH_442() throws Exception {
+        // Unexpected shutdown should not allow consecutive Writes that are not
+        // properly offset
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.buffer;
+        Database db = (Database) engine.destination;
+        Method method = buffer.getClass().getDeclaredMethod("canTransport");
+        method.setAccessible(true);
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 1));
+        buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 1));
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
+        buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 2));
+        buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
+        while (!(boolean) method.invoke(buffer)) { // Fill the page so the
+                                                   // buffer can transport
+            engine.add("count", Convert.javaToThrift(Time.now()), Time.now());
+        }
+        for (int i = 0; i < 4; ++i) {
+            buffer.transport(db);
+        }
+        db.triggerSync();
+        engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
+        engine.start(); // Simulate unexpected shutdown by "restarting" the
+                        // Engine
+        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
+                                                         // page in the buffer
+                                                         // (which contains the
+                                                         // same data that was
+                                                         // previously
+                                                         // transported) is done
+                                                         // transporting again
+            Random.sleep();
+        }
+        engine.find("name", Operator.EQUALS, Convert.javaToThrift("jeff"));
     }
 
     @Test
