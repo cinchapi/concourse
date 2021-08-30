@@ -490,7 +490,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             Locks.unlockIfCondition(write, mutable);
         }
     }
-    
+
     /**
      * Return {@code true} if the {@link Revision#getVersion() version} of the
      * {@link Revision Revisions} in this {@link Block} are a subset of
