@@ -20,10 +20,12 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
@@ -526,6 +528,52 @@ public final class Database extends BaseStore implements PermanentStore {
             }
 
         };
+    }
+
+    @Override
+    public void reconcile(Set<Long> versions) {
+        Logger.debug("Reconciling the states of the Database and Buffer...");
+        // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
+        // partially generated Block files with Revision versions that are all
+        // still in the buffer.
+        Preconditions.checkState(running,
+                "The database must be running to perform reconciliation");
+        Map<Block<?, ?, ?>, List<? extends Block<?, ?, ?>>> dirty = new IdentityHashMap<>(
+                3);
+        if(cpb.size() > 1) {
+            PrimaryBlock cpb1 = cpb.get(cpb.size() - 2);
+            if(cpb1.isSubsetOfVersions(versions)) {
+                SecondaryBlock csb1 = findBlock(csb, cpb1.getId());
+                SearchBlock ctb1 = findBlock(ctb, cpb1.getId());
+                dirty.put(cpb1, cpb);
+                dirty.put(csb1, csb);
+                if(ctb1 != null) {
+                    dirty.put(ctb1, ctb);
+                }
+            }
+        }
+        if(dirty.isEmpty() && csb.size() > 1) {
+            SecondaryBlock csb1 = csb.get(csb.size() - 2);
+            if(csb1.isSubsetOfVersions(versions)) {
+                PrimaryBlock cpb1 = findBlock(cpb, csb1.getId());
+                SearchBlock ctb1 = findBlock(ctb, csb1.getId());
+                dirty.put(cpb1, cpb);
+                dirty.put(csb1, csb);
+                if(ctb1 != null) {
+                    dirty.put(ctb1, ctb);
+                }
+            }
+        }
+        for (Entry<Block<?, ?, ?>, List<? extends Block<?, ?, ?>>> entry : dirty
+                .entrySet()) {
+            Block<?, ?, ?> block = entry.getKey();
+            List<? extends Block<?, ?, ?>> collection = entry.getValue();
+            Logger.warn(
+                    "The data in {} is still completely in the BUFFER so it is being discarded",
+                    block);
+            collection.remove(block);
+        }
+
     }
 
     @Override
