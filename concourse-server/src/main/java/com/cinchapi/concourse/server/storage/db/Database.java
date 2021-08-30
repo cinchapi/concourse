@@ -504,6 +504,24 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
+    public void reconcile(Set<Long> versions) {
+        Logger.debug("Reconciling the states of the Database and Buffer...");
+        // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
+        // partially generated Segment files based on Write versions that are
+        // all still in the buffer.
+        if(segments.size() > 1) {
+            int index = segments.size() - 2;
+            Segment seg1 = segments.get(index);
+            if(versions.containsAll(seg1.verions())) {
+                Logger.warn(
+                        "The data in {} is still completely in the BUFFER so it is being discarded",
+                        seg1);
+                segments.remove(index);
+            }
+        }
+    }
+
+    @Override
     public Set<Long> search(String key, String query) {
         // NOTE: Locking must happen here since CorpusRecords are not cached and
         // search potentially works across multiple ones.
