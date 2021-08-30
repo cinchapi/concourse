@@ -78,6 +78,10 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                                         revision.getVersion()); // (authorized)
                                 db.accept(write);
                             }
+                            db.sync();
+                            logInfoMessage(
+                                    "Finished transferring v2 data Block {} to v3 Segment format",
+                                    block);
                         }
                     }
                     finally {
