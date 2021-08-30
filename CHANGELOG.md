@@ -2,20 +2,20 @@
 
 #### Version 0.11.0 (TBD) 
 
-##### New Storage Format
-* This version introduces a new, more concise storage format for Concourse data where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of data (primary, index, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data before. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
-* The new storage format should reduce the number of data file corruptions because there are fewer moving parts.
-* An upgrade task has been added to automatically copy data from each Block file to a corresponding Segment file.
-	* The upgrade task will not delete the old Block files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the Block files after the upgrade. If the Block files remain, a future version of Concourse may automatically delete them for you.
-* In addition to improved data integrity, the new storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
+##### Storage Format Version 3
+* This version introduces a new, more concise storage format where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of indexed data (primary, secondary, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data in the v2 storage format. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
+* The v3 storage format should reduce the number of data file corruptions because there are fewer moving parts.
+* An upgrade task has been added to automatically copy data to the v3 storage format.
+	* The upgrade task will not delete v2 data files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the v2 files after the upgrade. If the v2 files remain, a future version of Concourse may automatically delete them for you.
+* In addition to improved data integrity, the v3 storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
 
 ##### Optimizations
 * The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
-* Implemented a more compact in-memory representation of the `Inventory`, representing a reduction of heap space usage by up to **97.9%**. This has an indirect benefit to overall performance and throughput by reducing memory contention that could lead to frequence JVM garbage collection cycles.
+* We switched to a more compact in-memory representation of the `Inventory`, resulting in a reduction of its heap space usage by up to **97.9%**. This has an indirect benefit to overall performance and throughput by reducing memory contention that could lead to frequence JVM garbage collection cycles.
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
-* Search is drastically faster as a result of the improved memory management that comes wth the new storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **XX.X%** faster on real-world data.
+* Search is drastically faster as a result of the improved memory management that comes wth the v3 storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **XX.X%** faster on real-world data.
 
 ##### Search Caching
 * Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
@@ -50,6 +50,9 @@
   * If a mutable `Block` exceeded the previous limit in memory it was not synced to disk and the storage engine didn't provide an error or warning, so indexing continued as normal. As a result, there was the potential for permanent data loss. 
   * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completed in memory, resulting in a memory leak.
 * To accommodate the possibility of larger Block files, the `BlockIndex` now records position pointers using 8 bytes instead of 4. As a result, all Block files must be reindexed, which is automatically done when Concourse Server starts are new installation or upgrade.
+
+##### Eliminated risks of data inconsistency caused by premature shutdown
+* Fixed the logic that prevents duplicate data indexing when Concourse Server prematurely shuts down or the background indexing job terminates because of an unexpected error. The logic was previously implemented to address [CON-83](https://cinchapi.atlassian.net/browse/CON-83), but it relied on data values instead of data versions and was therefore not robust enough to handle corner cases descried in [GH-441](https://github.com/cinchapi/concourse/issues/441) and [GH-442](https://github.com/cinchapi/concourse/issues/442).
  
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
@@ -708,7 +711,7 @@ Concourse Server now (finally) has the ability to page through results!
 * Improved build infrastructure.
 
 #### Version 0.2.0 (December 28, 2013)
-* Changed database storage model from one record per file to several revisions across blocks.
+* Changed database storage format from one record per file to several revisions across blocks (Storage Format Version 2).
 * Added CLI to dump buffer and block contents.
 * Added Concourse Action SHeLL (CaSH)
 * Added publishing of artifacts to maven central repo.

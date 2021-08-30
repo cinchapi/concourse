@@ -827,6 +827,7 @@ public final class Engine extends BufferedStore implements
             running = true;
             destination.start();
             buffer.start();
+            destination.reconcile(buffer.versions());
             doTransactionRecovery();
             scheduler.scheduleAtFixedRate(new TimerTask() {
 

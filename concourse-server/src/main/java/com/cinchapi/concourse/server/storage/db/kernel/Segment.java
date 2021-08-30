@@ -22,11 +22,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -703,6 +706,18 @@ public final class Segment extends TransferableByteSequence implements
                         revision.getType(), revision.getKey(),
                         revision.getValue(), revision.getLocator(),
                         revision.getVersion()));
+    }
+
+    /**
+     * Return a {@link Set} (not necessarily sorted) of all the
+     * {@link Write#getVersion() versions} represented by the data
+     * {@link #acquire(Write) acquired} by this {@link Segment}.
+     * 
+     * @return the contained data {@link Write#getVersion() versions}
+     */
+    public Set<Long> verions() {
+        return writes().mapToLong(Write::getVersion).boxed()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Nullable
