@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -488,6 +489,26 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         finally {
             Locks.unlockIfCondition(write, mutable);
         }
+    }
+
+    /**
+     * Return {@code true} if the {@link Revision#getVersion() version} of the
+     * {@link Revision Revisions} in this {@link Block} are a subset of
+     * {@code versions}.
+     * 
+     * @param versions
+     * @return {@code true} if every {@link Revision}
+     *         {@link Revision#getVersion() version} in this {@link Block} is in
+     *         {@code versions}
+     */
+    public boolean isSubsetOfVersions(Set<Long> versions) {
+        int matched = 0;
+        int total = 0;
+        for (Revision<L, K, V> revision : revisions()) {
+            ++total;
+            matched += versions.contains(revision.getVersion()) ? 1 : 0;
+        }
+        return matched == total;
     }
 
     /**

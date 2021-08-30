@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.Set;
+
+import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 
 /**
@@ -42,6 +45,21 @@ public interface PermanentStore extends Store {
      * @param sync
      */
     public void accept(Write write, boolean sync);
+
+    /**
+     * If necessary, reconcile the state of this store and prepare it to
+     * {@link #accept(Write) accept} all the {@link Write writes} represented by
+     * each of the {@code versions}.
+     * <p>
+     * This exact behaviour of this method is undefined, but the implementing
+     * class is expected to prepare itself in such a way that inserting
+     * a {@link Write Writes} at each of the {@code versions} does not alter
+     * overall data consistency or durability.
+     * </p>
+     * 
+     * @param versions
+     */
+    public default void reconcile(Set<Long> versions) {/* no-op */}
 
     /**
      * Force the store to sync all of its writes to disk to guarantee that they

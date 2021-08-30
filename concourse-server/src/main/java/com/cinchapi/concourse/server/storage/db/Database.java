@@ -20,9 +20,12 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
@@ -47,7 +50,6 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
@@ -196,17 +198,6 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 
     /**
-     * A flag to indicate if the Database has verified the data it is seeing is
-     * acceptable. We use this flag to handle the case where the server
-     * unexpectedly crashes before removing a Buffer page and tries to transport
-     * Writes that have already been accepted. The SLA for this flag is that the
-     * Database will assume no Writes are acceptable (and will therefore
-     * manually verify) until it sees one, at which point it will assume all
-     * subsequent Writes are acceptable.
-     */
-    private transient boolean acceptable = false;
-
-    /**
      * The location where the Database stores data.
      */
     private final transient String backingStore;
@@ -289,55 +280,35 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void accept(Write write) {
-        // CON-83: Keeping manually verifying writes until we find one that is
-        // acceptable, after which assume all subsequent writes are acceptable.
-        if(!acceptable && ((write.getType() == Action.ADD
-                && !verify(write.getKey().toString(),
-                        write.getValue().getTObject(),
-                        write.getRecord().longValue()))
-                || (write.getType() == Action.REMOVE
-                        && verify(write.getKey().toString(),
-                                write.getValue().getTObject(),
-                                write.getRecord().longValue())))) {
-            acceptable = true;
-        }
-        if(acceptable) {
-            // NOTE: Write locking happens in each individual Block, and
-            // furthermore this method is only called from the Buffer, which
-            // transports data serially.
-            Runnable[] tasks = Array.containing(new BlockWriter(cpb0, write),
-                    new BlockWriter(csb0, write), new BlockWriter(ctb0, write));
-            if(running) {
-                try {
-                    writer.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to accept the following Write: {}",
-                            write, error), tasks);
-                }
-                catch (InterruptedException e) {
-                    Logger.warn(
-                            "The database was interrupted while trying to accept {}. "
-                                    + "If the write could not be fully accepted, it will "
-                                    + "remain in the buffer and re-tried when the Database is able to accept writes.",
-                            write);
-                    Thread.currentThread().interrupt();
-                    return;
-                }
+        // NOTE: Write locking happens in each individual Block, and
+        // furthermore this method is only called from the Buffer, which
+        // transports data serially.
+        Runnable[] tasks = Array.containing(new BlockWriter(cpb0, write),
+                new BlockWriter(csb0, write), new BlockWriter(ctb0, write));
+        if(running) {
+            try {
+                writer.await((task, error) -> Logger.error(
+                        "Unexpected error when trying to accept the following Write: {}",
+                        write, error), tasks);
             }
-            else {
-                // The #accept method may be called when the database is stopped
-                // during test cases
+            catch (InterruptedException e) {
                 Logger.warn(
-                        "The database is being asked to accept a Write, even though it is not running.");
-                for (Runnable task : tasks) {
-                    task.run();
-                }
+                        "The database was interrupted while trying to accept {}. "
+                                + "If the write could not be fully accepted, it will "
+                                + "remain in the buffer and re-tried when the Database is able to accept writes.",
+                        write);
+                Thread.currentThread().interrupt();
+                return;
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
-                    write);
+            // The #accept method may be called when the database is stopped
+            // during test cases
+            Logger.warn(
+                    "The database is being asked to accept a Write, even though it is not running.");
+            for (Runnable task : tasks) {
+                task.run();
+            }
         }
     }
 
@@ -459,6 +430,118 @@ public final class Database extends BaseStore implements PermanentStore {
             ids.add(block.getId());
         }
         return ids;
+    }
+
+    /**
+     * Return an {@link Iterator} that provides access to all the
+     * {@link Write Writes} that have been {@link #accept(Write)
+     * accepted}.
+     * 
+     * @return an {@link Iterator} over accepted {@link Write Writes}.
+     */
+    public Iterator<Write> iterator() {
+        return new Iterator<Write>() {
+
+            private final Iterator<PrimaryBlock> blockIt = cpb.iterator();
+            private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
+            {
+                flip();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if(it == null) {
+                    return false;
+                }
+                else if(!it.hasNext() && blockIt.hasNext()) {
+                    flip();
+                    return hasNext();
+                }
+                else if(!it.hasNext()) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            @Override
+            public Write next() {
+                if(hasNext()) {
+                    Revision<PrimaryKey, Text, Value> revision = it.next();
+                    return Reflection.newInstance(Write.class,
+                            revision.getType(), revision.getKey(),
+                            revision.getValue(), revision.getLocator(),
+                            revision.getVersion()); // (authorized)
+                }
+                else {
+                    throw new NoSuchElementException();
+                }
+            }
+
+            private void flip() {
+                if(blockIt.hasNext()) {
+                    PrimaryBlock block = blockIt.next();
+                    if(block.mutable) {
+                        // NOTE: This provides a live-view of the mutable
+                        // revision store :/
+                        Iterable<Revision<PrimaryKey, Text, Value>> iterable = Reflection
+                                .get("revisions", block);
+                        it = iterable.iterator();
+                    }
+                    else {
+                        it = block.iterator();
+                    }
+                }
+            }
+
+        };
+    }
+
+    @Override
+    public void reconcile(Set<Long> versions) {
+        Logger.debug("Reconciling the states of the Database and Buffer...");
+        // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
+        // partially generated Block files with Revision versions that are all
+        // still in the buffer.
+        Preconditions.checkState(running,
+                "The database must be running to perform reconciliation");
+        Map<Block<?, ?, ?>, List<? extends Block<?, ?, ?>>> dirty = new IdentityHashMap<>(
+                3);
+        if(cpb.size() > 1) {
+            PrimaryBlock cpb1 = cpb.get(cpb.size() - 2);
+            if(cpb1.isSubsetOfVersions(versions)) {
+                SecondaryBlock csb1 = findBlock(csb, cpb1.getId());
+                SearchBlock ctb1 = findBlock(ctb, cpb1.getId());
+                dirty.put(cpb1, cpb);
+                dirty.put(csb1, csb);
+                if(ctb1 != null) {
+                    dirty.put(ctb1, ctb);
+                }
+            }
+        }
+        if(dirty.isEmpty() && csb.size() > 1) {
+            SecondaryBlock csb1 = csb.get(csb.size() - 2);
+            if(csb1.isSubsetOfVersions(versions)) {
+                PrimaryBlock cpb1 = findBlock(cpb, csb1.getId());
+                SearchBlock ctb1 = findBlock(ctb, csb1.getId());
+                dirty.put(cpb1, cpb);
+                dirty.put(csb1, csb);
+                if(ctb1 != null) {
+                    dirty.put(ctb1, ctb);
+                }
+            }
+        }
+        for (Entry<Block<?, ?, ?>, List<? extends Block<?, ?, ?>>> entry : dirty
+                .entrySet()) {
+            Block<?, ?, ?> block = entry.getKey();
+            List<? extends Block<?, ?, ?>> collection = entry.getValue();
+            Logger.warn(
+                    "The data in {} is still completely in the BUFFER so it is being discarded",
+                    block);
+            collection.remove(block);
+        }
+
     }
 
     @Override
