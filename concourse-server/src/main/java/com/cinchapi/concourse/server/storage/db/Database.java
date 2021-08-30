@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutorService;
@@ -459,6 +460,72 @@ public final class Database extends BaseStore implements PermanentStore {
             ids.add(block.getId());
         }
         return ids;
+    }
+
+    /**
+     * Return an {@link Iterator} that provides access to all the
+     * {@link Write Writes} that have been {@link #accept(Write)
+     * accepted}.
+     * 
+     * @return an {@link Iterator} over accepted {@link Write Writes}.
+     */
+    public Iterator<Write> iterator() {
+        return new Iterator<Write>() {
+
+            private final Iterator<PrimaryBlock> blockIt = cpb.iterator();
+            private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
+            {
+                flip();
+            }
+
+            @Override
+            public boolean hasNext() {
+                if(it == null) {
+                    return false;
+                }
+                else if(!it.hasNext() && blockIt.hasNext()) {
+                    flip();
+                    return hasNext();
+                }
+                else if(!it.hasNext()) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            @Override
+            public Write next() {
+                if(hasNext()) {
+                    Revision<PrimaryKey, Text, Value> revision = it.next();
+                    return Reflection.newInstance(Write.class,
+                            revision.getType(), revision.getKey(),
+                            revision.getValue(), revision.getLocator(),
+                            revision.getVersion()); // (authorized)
+                }
+                else {
+                    throw new NoSuchElementException();
+                }
+            }
+
+            private void flip() {
+                if(blockIt.hasNext()) {
+                    PrimaryBlock block = blockIt.next();
+                    if(block.mutable) {
+                        // NOTE: This provides a live-view of the mutable
+                        // revision store :/
+                        Iterable<Revision<PrimaryKey, Text, Value>> iterable = Reflection
+                                .get("revisions", block);
+                        it = iterable.iterator();
+                    }
+                    else {
+                        it = block.iterator();
+                    }
+                }
+            }
+
+        };
     }
 
     @Override
