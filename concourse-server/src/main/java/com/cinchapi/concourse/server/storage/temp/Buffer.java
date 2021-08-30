@@ -55,7 +55,6 @@ import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
-import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
@@ -77,7 +76,6 @@ import com.cinchapi.concourse.util.Integers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.NaturalSorter;
-import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.ThreadFactories;
 import com.google.common.annotations.VisibleForTesting;
@@ -145,17 +143,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
      */
     private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE
             / 10;
-
-    /**
-     * Assuming {@code location} is a valid bufferStore, return an
-     * {@link Iterator} to traverse the writes in the Buffer directly from disk
-     * without loading the entire Buffer into memory.
-     * 
-     * @return the iterator
-     */
-    public static Iterator<Write> onDiskIterator(String location) {
-        return new OnDiskIterator(location);
-    }
 
     /**
      * The multiplier that is used when increasing the rate of transport.
@@ -1147,76 +1134,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
             return page.mightContain(key);
-        }
-
-    }
-
-    /**
-     * An {@link Iterator} that can traverse Writes directly from disk for a
-     * Buffer that uses {@code location} as a store. Call
-     * {@link Buffer#onDiskIterator(String)} to instantiate one of these. This
-     * should only be used in cases where it is necessary (and safe) to iterate
-     * through a Buffer's writes while the Buffer is offline.
-     * 
-     * @author Jeff Nelson
-     */
-    private static class OnDiskIterator extends ReadOnlyIterator<Write> {
-
-        /**
-         * An {@link Iterator} over all the files in the input directory.
-         */
-        private final Iterator<String> fileIt;
-
-        /**
-         * An {@link Iterator} over the data chunks in the current file.
-         */
-        private Iterator<ByteBuffer> it = null;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param location
-         */
-        private OnDiskIterator(String location) {
-            this.fileIt = FileSystem.fileOnlyIterator(location);
-            flip();
-        }
-
-        @Override
-        public boolean hasNext() {
-            if(it == null) {
-                return false;
-            }
-            else if(!it.hasNext() && fileIt.hasNext()) {
-                flip();
-                return hasNext();
-            }
-            else if(!it.hasNext()) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-
-        @Override
-        public Write next() {
-            if(hasNext()) {
-                return Byteables.readStatic(it.next(), Write.class);
-            }
-            else {
-                return null;
-            }
-        }
-
-        /**
-         * Flip to the next page in the iterator.
-         */
-        private void flip() {
-            if(fileIt.hasNext()) {
-                ByteBuffer bytes = FileSystem.readBytes(fileIt.next());
-                it = ByteableCollections.iterator(bytes);
-            }
         }
 
     }
