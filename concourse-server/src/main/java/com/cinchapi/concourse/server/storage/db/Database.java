@@ -58,7 +58,6 @@ import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.PermanentStore;
@@ -171,17 +170,6 @@ public final class Database extends BaseStore implements PermanentStore {
      */
     private final transient Path $segments;
 
-    /**
-     * A flag to indicate if the Database has verified the data it is seeing is
-     * acceptable. We use this flag to handle the case where the server
-     * unexpectedly crashes before removing a Buffer page and tries to transport
-     * Writes that have already been accepted. The SLA for this flag is that the
-     * Database will assume no Writes are acceptable (and will therefore
-     * manually verify) until it sees one, at which point it will assume all
-     * subsequent Writes are acceptable.
-     */
-    private transient boolean acceptable = false;
-
     /*
      * RECORD CACHES
      * -------------
@@ -293,80 +281,60 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public void accept(Write write) {
-        // CON-83: Keeping manually verifying writes until we find one that is
-        // acceptable, after which assume all subsequent writes are acceptable.
-        if(!acceptable && ((write.getType() == Action.ADD
-                && !verify(write.getKey().toString(),
-                        write.getValue().getTObject(),
-                        write.getRecord().longValue()))
-                || (write.getType() == Action.REMOVE
-                        && verify(write.getKey().toString(),
-                                write.getValue().getTObject(),
-                                write.getRecord().longValue())))) {
-            acceptable = true;
-        }
-        if(acceptable) {
-            // NOTE: This approach is thread safe because write locking happens
-            // in each of #seg0's individual Blocks, and furthermore this method
-            // is only called from the Buffer, which transports data serially.
-            if(running) {
-                try {
-                    Receipt receipt = seg0.acquire(write, writer);
-                    Logger.debug("Indexed '{}' in {}", write, seg0);
+        // NOTE: This approach is thread safe because write locking happens
+        // in each of #seg0's individual Blocks, and furthermore this method
+        // is only called from the Buffer, which transports data serially.
+        if(running) {
+            try {
+                Receipt receipt = seg0.acquire(write, writer);
+                Logger.debug("Indexed '{}' in {}", write, seg0);
 
-                    // Updated cached records
-                    TableRecord cpr = tableCache.getIfPresent(
-                            receipt.table().getLocatorComposite());
-                    TableRecord cppr = tablePartialCache.getIfPresent(
-                            receipt.table().getLocatorKeyComposite());
-                    IndexRecord csr = indexCache.getIfPresent(
-                            receipt.index().getLocatorComposite());
-                    if(cpr != null) {
-                        cpr.append(receipt.table().revision());
-                    }
-                    if(cppr != null) {
-                        cppr.append(receipt.table().revision());
-                    }
-                    if(csr != null) {
-                        csr.append(receipt.index().revision());
-                    }
-                    if(ENABLE_SEARCH_CACHE) {
-                        Cache<Composite, CorpusRecord> cache = corpusCaches
-                                .get(write.getKey());
-                        if(cache != null) {
-                            for (CorpusArtifact artifact : receipt.corpus()) {
-                                CorpusRecord corpus = cache.getIfPresent(
-                                        artifact.getLocatorKeyComposite());
-                                if(corpus != null) {
-                                    corpus.append(artifact.revision());
-                                }
+                // Updated cached records
+                TableRecord cpr = tableCache
+                        .getIfPresent(receipt.table().getLocatorComposite());
+                TableRecord cppr = tablePartialCache
+                        .getIfPresent(receipt.table().getLocatorKeyComposite());
+                IndexRecord csr = indexCache
+                        .getIfPresent(receipt.index().getLocatorComposite());
+                if(cpr != null) {
+                    cpr.append(receipt.table().revision());
+                }
+                if(cppr != null) {
+                    cppr.append(receipt.table().revision());
+                }
+                if(csr != null) {
+                    csr.append(receipt.index().revision());
+                }
+                if(ENABLE_SEARCH_CACHE) {
+                    Cache<Composite, CorpusRecord> cache = corpusCaches
+                            .get(write.getKey());
+                    if(cache != null) {
+                        for (CorpusArtifact artifact : receipt.corpus()) {
+                            CorpusRecord corpus = cache.getIfPresent(
+                                    artifact.getLocatorKeyComposite());
+                            if(corpus != null) {
+                                corpus.append(artifact.revision());
                             }
                         }
                     }
                 }
-                catch (InterruptedException e) {
-                    Logger.warn(
-                            "The database was interrupted while trying to accept {}. "
-                                    + "If the write could not be fully accepted, it will "
-                                    + "remain in the buffer and re-tried when the Database is able to accept writes.",
-                            write);
-                    Thread.currentThread().interrupt();
-                    return;
-                }
             }
-            else {
-                // The #accept method may be called when the database is stopped
-                // during test cases
+            catch (InterruptedException e) {
                 Logger.warn(
-                        "The database is being asked to accept a Write, even though it is not running.");
-                seg0.acquire(write);
+                        "The database was interrupted while trying to accept {}. "
+                                + "If the write could not be fully accepted, it will "
+                                + "remain in the buffer and re-tried when the Database is able to accept writes.",
+                        write);
+                Thread.currentThread().interrupt();
+                return;
             }
         }
         else {
-            Logger.warn("The Engine refused to accept {} because "
-                    + "it appears that the data was already transported. "
-                    + "This indicates that the server shutdown prematurely.",
-                    write);
+            // The #accept method may be called when the database is stopped
+            // during test cases
+            Logger.warn(
+                    "The database is being asked to accept a Write, even though it is not running.");
+            seg0.acquire(write);
         }
     }
 
