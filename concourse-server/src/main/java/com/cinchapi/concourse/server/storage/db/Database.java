@@ -475,8 +475,8 @@ public final class Database extends BaseStore implements PermanentStore {
     public void reconcile(Set<Long> versions) {
         Logger.debug("Reconciling the states of the Database and Buffer...");
         // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
-        // partially generated Segment files based on Write versions that are
-        // all still in the buffer.
+        // regenerated Segment files based on Write versions that are all still
+        // in the buffer.
         if(segments.size() > 1) {
             int index = segments.size() - 2;
             Segment seg1 = segments.get(index);
