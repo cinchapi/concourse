@@ -22,7 +22,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -73,7 +72,6 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.concourse.util.ReadOnlyIterator;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.base.Functions;
@@ -118,71 +116,6 @@ import com.google.common.collect.TreeMultimap;
  */
 @ThreadSafe
 public final class Database extends BaseStore implements PermanentStore {
-
-    /**
-     * Return an {@link Iterator} that will iterate over all of the
-     * {@link TableRevision PrimaryRevisions} that are stored in the
-     * {@code dbStore}. The iterator streams the revisions directly from disk
-     * using a buffer size that is equal to {@link GlobalState#BUFFER_PAGE_SIZE}
-     * so it should have a predictable memory footprint.
-     * 
-     * @param dbStore
-     * @return the iterator
-     */
-    public static Iterator<Revision<PrimaryKey, Text, Value>> onDiskStreamingIterator(
-            final String dbStore) {
-        return new ReadOnlyIterator<Revision<PrimaryKey, Text, Value>>() {
-
-            private final String directory = FileSystem.makePath(dbStore,
-                    SEGMENTS_SUBDIRECTORY);
-            private final Iterator<String> fileIt = FileSystem
-                    .fileOnlyIterator(directory);
-            private Iterator<Revision<PrimaryKey, Text, Value>> it = null;
-            {
-                flip();
-            }
-
-            @Override
-            public boolean hasNext() {
-                if(it == null) {
-                    return false;
-                }
-                else if(!it.hasNext() && fileIt.hasNext()) {
-                    flip();
-                    return hasNext();
-                }
-                else if(!it.hasNext()) {
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            }
-
-            @Override
-            public Revision<PrimaryKey, Text, Value> next() {
-                if(hasNext()) {
-                    return it.next();
-                }
-                else {
-                    return null;
-                }
-            }
-
-            private void flip() {
-                if(fileIt.hasNext()) {
-                    Path file = Paths.get(fileIt.next());
-                    try {
-                        it = Segment.load(file).table().iterator();
-                    }
-                    catch (SegmentLoadingException e) {
-                        flip();
-                    }
-                }
-            }
-
-        };
-    }
 
     /**
      * Return a cache for records of type {@code T}.

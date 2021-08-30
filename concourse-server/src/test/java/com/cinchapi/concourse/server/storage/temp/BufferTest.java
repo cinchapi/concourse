@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -182,32 +181,6 @@ public class BufferTest extends LimboTest {
     }
 
     @Test
-    @Ignore
-    public void testOnDiskIterator() {
-        Buffer buffer = (Buffer) store;
-        int count = TestData.getScaleCount();
-        List<Write> expected = Lists.newArrayList();
-        for (int i = 0; i < count; ++i) {
-            Write write = Write.add(TestData.getSimpleString(),
-                    TestData.getTObject(), i);
-            buffer.insert(write);
-            expected.add(write);
-            Variables.register("expected_" + i, write);
-        }
-        buffer.stop();
-        Iterator<Write> it = Buffer.onDiskIterator(buffer.getBackingStore());
-        List<Write> stored = Lists.newArrayList();
-        int i = 0;
-        while (it.hasNext()) {
-            Write write = it.next();
-            stored.add(write);
-            Variables.register("actual_" + i, write);
-            ++i;
-        }
-        Assert.assertEquals(expected, stored);
-    }
-
-    @Test
     public void testVerifyFastTrue() {
         Buffer buffer = (Buffer) store;
         Write write = Write.add("foo", Convert.javaToThrift("bar"), 1);
@@ -241,13 +214,6 @@ public class BufferTest extends LimboTest {
         }
         buffer.transport(MOCK_DESTINATION);
         Assert.assertEquals(TernaryTruth.UNSURE, buffer.verifyFast(write));
-    }
-
-    @Test
-    public void testOnDiskIteratorEmptyDirectory() {
-        Buffer buffer = (Buffer) store;
-        Buffer.onDiskIterator(buffer.getBackingStore() + "/foo").hasNext();
-        Assert.assertTrue(true); // lack of exception means test passes
     }
 
     @Test
