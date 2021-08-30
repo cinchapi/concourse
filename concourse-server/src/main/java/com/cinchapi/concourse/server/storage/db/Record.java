@@ -236,8 +236,8 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Lazily retrieve an unmodifiable view of the current set of values mapped
-     * from {@code key}.
+     * Return a live view of the current set of values mapped from
+     * {@code key}.
      * 
      * @param key
      * @return the set of mapped values for {@code key}
@@ -246,7 +246,8 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
         read.lock();
         try {
             Set<V> values = present.get(key);
-            return values != null ? values : emptyValues;
+            return values != null ? Collections.unmodifiableSet(values)
+                    : emptyValues;
         }
         finally {
             read.unlock();
@@ -254,8 +255,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Lazily retrieve the historical set of values for {@code key} at
-     * {@code timestamp}.
+     * Return the historical set of values for {@code key} at {@code timestamp}.
      * 
      * @param key
      * @param timestamp
@@ -292,18 +292,15 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Return a view of all the data that is presently contained in this record.
+     * Return a live view of all the data that is presently contained in this
+     * record.
      * 
      * @return the data
      */
     public Map<K, Set<V>> getAll() {
         read.lock();
         try {
-            Map<K, Set<V>> data = Maps.newLinkedHashMap();
-            for (K key : keys()) {
-                data.put(key, get(key));
-            }
-            return data;
+            return Collections.unmodifiableMap(present);
         }
         finally {
             read.unlock();
@@ -363,16 +360,15 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Return the Set of {@code keys} that map to fields which
-     * <em>currently</em> contain values.
+     * Return a live view of the keys that map to fields which
+     * <em>presently</em> contain values.
      * 
      * @return the Set of non-empty field keys
      */
     public Set<K> keys() {
         read.lock();
         try {
-            return Collections
-                    .unmodifiableSet(present.keySet()); /* Authorized */
+            return Collections.unmodifiableSet(present.keySet());
         }
         finally {
             read.unlock();
