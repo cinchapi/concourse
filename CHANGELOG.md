@@ -52,7 +52,7 @@
 * To accommodate the possibility of larger Block files, the `BlockIndex` now records position pointers using 8 bytes instead of 4. As a result, all Block files must be reindexed, which is automatically done when Concourse Server starts are new installation or upgrade.
 
 ##### Eliminated risk of data consistency loss on premature shutdown
-* Fixed the logic that prevents duplicate data indexing when Concourse Server prematurely shuts down or the background indexing job terminates because of an unexpected error. The logic was previously implemented to address [https://cinchapi.atlassian.net/browse/CON-83](CON-83), but it relied on data values instead of data versions and was therefore not robust enough to handle corner cases descried in [https://github.com/cinchapi/concourse/issues/441](GH-441) and [https://github.com/cinchapi/concourse/issues/442](GH-442).
+* Fixed the logic that prevents duplicate data indexing when Concourse Server prematurely shuts down or the background indexing job terminates because of an unexpected error. The logic was previously implemented to address [CON-83](https://cinchapi.atlassian.net/browse/CON-83), but it relied on data values instead of data versions and was therefore not robust enough to handle corner cases descried in [GH-441](https://github.com/cinchapi/concourse/issues/441) and [GH-442](https://github.com/cinchapi/concourse/issues/442).
  
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
