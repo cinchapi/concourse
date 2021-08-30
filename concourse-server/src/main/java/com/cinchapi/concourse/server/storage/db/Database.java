@@ -19,6 +19,7 @@ import static com.cinchapi.concourse.server.GlobalState.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -549,6 +551,17 @@ public final class Database extends BaseStore implements PermanentStore {
         return segments.stream().map(Segment::id).collect(Collectors.toList());
     }
 
+    /**
+     * Return an {@link Iterator} that provides access to all the
+     * {@link Write Writes} that have been {@link #accept(Write)
+     * accepted}.
+     * 
+     * @return an {@link Iterator} over accepted {@link Write Writes}.
+     */
+    public Iterator<Write> iterator() {
+        return new AcceptedWriteIterator();
+    }
+
     @Override
     public Memory memory() {
         Verify.that(running,
@@ -965,6 +978,75 @@ public final class Database extends BaseStore implements PermanentStore {
         finally {
             masterLock.writeLock().unlock();
         }
+    }
+
+    /**
+     * A "snapshot" iterator (e.g. changes to the {@link #segments} are not
+     * visible) over {@link Write Writes} that have been accepted by the
+     * {@link Database}.
+     *
+     *
+     * @author Jeff Nelson
+     */
+    private final class AcceptedWriteIterator implements Iterator<Write> {
+
+        /**
+         * Iterator over a snapshot of the {@link #segments}.
+         */
+        private final Iterator<Segment> segIt;
+
+        /**
+         * Current {@link Segment} {@link Segment#writes() write} iterator.
+         */
+        private Iterator<Write> it;
+
+        /**
+         * The next {@link Write} to return from {@link #next()}.
+         */
+        private Write next;
+
+        /**
+         * Construct a new instance.
+         */
+        private AcceptedWriteIterator() {
+            segIt = new ArrayList<>(segments).iterator();
+            it = null;
+            next = findNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public Write next() {
+            Write current = next;
+            if(current != null) {
+                next = findNext();
+                return current;
+            }
+            else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        /**
+         * Flip to the next {@link Segment} iterator.
+         */
+        private Write findNext() {
+            if(it != null && it.hasNext()) {
+                return it.next();
+            }
+            else if(segIt.hasNext()) { // flip
+                it = segIt.next().writes().iterator();
+                return findNext();
+            }
+            else {
+                return null;
+            }
+        }
+
     }
 
     /**
