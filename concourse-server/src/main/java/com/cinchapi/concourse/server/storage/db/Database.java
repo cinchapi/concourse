@@ -89,11 +89,11 @@ import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
- * The {@link Database} is the {@link PermanentStore} for data. The
- * Database accepts {@link Write} objects that are initially stored in a
- * {@link Buffer} and converts them {@link Revision Revisions} that are stored
- * within distinct {@link Segment Segments}. Each {@link Segment} is broken up
- * into {@link Chunk Chunks} that provided optimized read-views.
+ * The {@link Database} is the {@link Engine Engine's} {@link PermanentStore}
+ * for data. The Database accepts {@link Write} objects that are initially
+ * stored in a {@link Buffer} and converts them {@link Revision Revisions} that
+ * are stored within distinct {@link Segment Segments}. Each {@link Segment} is
+ * broken up into {@link Chunk Chunks} that provided optimized read-views.
  * <p>
  * Conceptually, the {@link Database} is a collection of three sparse, but
  * contiguous data repositories:
