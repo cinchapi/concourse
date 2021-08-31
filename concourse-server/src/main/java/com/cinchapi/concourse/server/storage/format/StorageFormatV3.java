@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.format;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.commons.compress.utils.Lists;
 
@@ -48,7 +49,8 @@ public final class StorageFormatV3 {
          * 2) Overlapping Segments are not removed
          */
         List<Segment> segments = Lists.newArrayList();
-        FileSystem.ls(directory).forEach(file -> {
+        Stream<Path> files = FileSystem.ls(directory);
+        files.forEach(file -> {
             try {
                 Segment segment = Segment.load(file);
                 segments.add(segment);
@@ -58,6 +60,7 @@ public final class StorageFormatV3 {
                 Logger.error("", e);
             }
         });
+        files.close();
 
         // Sort the segments in chronological order
         Collections.sort(segments, Segment.TEMPORAL_COMPARATOR);

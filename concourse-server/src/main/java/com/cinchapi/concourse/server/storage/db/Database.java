@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -607,7 +608,8 @@ public final class Database extends BaseStore implements PermanentStore {
             FileSystem.mkdirs($segments);
             List<Segment> segments = Collections
                     .synchronizedList(this.segments);
-            FileSystem.ls($segments).forEach(file -> tasks.add(() -> {
+            Stream<Path> files = FileSystem.ls($segments);
+            files.forEach(file -> tasks.add(() -> {
                 try {
                     Segment segment = Segment.load(file);
                     segments.add(segment);
@@ -617,6 +619,7 @@ public final class Database extends BaseStore implements PermanentStore {
                     Logger.error("", e);
                 }
             }));
+            files.close();
             if(tasks.length() > 0) {
                 AwaitableExecutorService loader = new AwaitableExecutorService(
                         Executors.newCachedThreadPool(ThreadFactories
