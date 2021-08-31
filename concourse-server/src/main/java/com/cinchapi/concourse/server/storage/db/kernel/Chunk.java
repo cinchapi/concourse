@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -779,9 +780,10 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
                 return new Iterator<Revision<L, K, V>>() {
 
-                    private final Iterator<ByteBuffer> it = ByteableCollections
-                            .stream(file(), position(), length,
-                                    GlobalState.DISK_READ_BUFFER_SIZE);
+                    private final Iterator<ByteBuffer> it = length > 0
+                            ? ByteableCollections.stream(file(), position(),
+                                    length, GlobalState.DISK_READ_BUFFER_SIZE)
+                            : Collections.emptyIterator();
 
                     @Override
                     public boolean hasNext() {

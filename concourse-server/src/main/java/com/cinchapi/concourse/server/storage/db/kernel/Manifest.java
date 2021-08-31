@@ -605,8 +605,10 @@ public class Manifest extends TransferableByteSequence {
         @Override
         public void forEach(
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
-            Iterator<ByteBuffer> it = ByteableCollections.stream(file(),
-                    position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
+            Iterator<ByteBuffer> it = length > 0
+                    ? ByteableCollections.stream(file(), position(), length,
+                            GlobalState.DISK_READ_BUFFER_SIZE)
+                    : Collections.emptyIterator();
 
             while (it.hasNext()) {
                 Manifest.Entry entry = new Manifest.Entry(it.next());
@@ -619,8 +621,10 @@ public class Manifest extends TransferableByteSequence {
         public Manifest.Entry get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
-                Iterator<ByteBuffer> it = ByteableCollections.stream(file(),
-                        position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
+                Iterator<ByteBuffer> it = length > 0
+                        ? ByteableCollections.stream(file(), position(), length,
+                                GlobalState.DISK_READ_BUFFER_SIZE)
+                        : Collections.emptyIterator();
                 while (it.hasNext()) {
                     ByteBuffer next = it.next();
                     if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
