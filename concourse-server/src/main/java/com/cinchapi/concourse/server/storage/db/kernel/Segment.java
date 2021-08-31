@@ -199,7 +199,8 @@ public final class Segment extends TransferableByteSequence implements
      * bloom filter, but no larger than necessary since we must keep all bloom
      * filters in memory.
      */
-    private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
+    private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE
+            / Write.MINIMUM_SIZE;
 
     /**
      * Multiplied times the number of expected insertions in an attempt to size
@@ -351,11 +352,11 @@ public final class Segment extends TransferableByteSequence implements
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
         this.table = TableChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter.create(3 * expectedInsertions));
         this.index = IndexChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter.create(3 * expectedInsertions));
         this.corpus = CorpusChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter.create(10 * expectedInsertions));
         this.version = SCHEMA_VERSION;
     }
 
