@@ -84,6 +84,7 @@ public final class StorageFormatV2 {
                 Logger.error("", e);
             }
         });
+        files.close();
         blocks.addAll(sorted.values());
 
         // Remove duplicate Blocks. Block duplication can occur when the server
