@@ -138,6 +138,11 @@ class ByteableCollectionStreamIterator implements
         return next;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        this.closeQuietly();
+    }
+
     /**
      * Set the {@link #next} element and update the {@link #position}
      * accordingly. If necessary, the contents of the {@link #buffer} may change
@@ -166,7 +171,7 @@ class ByteableCollectionStreamIterator implements
             // but try to keep the buffer sized as a power of two to maximize
             // I/O efficiency
             position -= buffer.remaining();
-            read(Integers.nextPowerOfTwo(size));
+            read(size);
         }
         next = buffer.slice();
         next.limit(size);
@@ -181,12 +186,14 @@ class ByteableCollectionStreamIterator implements
      */
     private void read(int size) {
         try {
-            buffer = channel.map(MapMode.READ_ONLY, position, size).load();
+            buffer = channel.map(MapMode.READ_ONLY, position, size);
             position += buffer.capacity();
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
+    
+    
 
 }
