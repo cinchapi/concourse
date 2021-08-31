@@ -209,7 +209,7 @@ public class ByteableCollections {
      * @param bufferSize - must be large enough to accommodate the largest
      *            element that will be returned by the iterator
      * @return the iterator
-     * @deprecated use {@link #stream(Path, int)} instead 
+     * @deprecated use {@link #stream(Path, int)} instead
      */
     @Deprecated
     public static Iterator<ByteBuffer> streamingIterator(final String file,

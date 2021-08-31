@@ -104,8 +104,8 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
 
             @Override
             public void action() {
-                CloseableIterator<ByteBuffer> it = ByteableCollections.stream(file,
-                        bufferSize);
+                CloseableIterator<ByteBuffer> it = ByteableCollections
+                        .stream(file, bufferSize);
                 while (it.hasNext()) {
                     Value.fromByteBuffer(it.next());
                 }
@@ -147,7 +147,7 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
         });
         List<Thread> threads = Lists.newArrayList(t1, t2);
         Collections.shuffle(threads);
-        for(Thread thread : threads) {
+        for (Thread thread : threads) {
             thread.start();
         }
         latch.await(2);

@@ -608,7 +608,7 @@ public class Manifest extends TransferableByteSequence {
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
             Iterator<ByteBuffer> it = ByteableCollections.stream(file(),
                     position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
-            
+
             while (it.hasNext()) {
                 Manifest.Entry entry = new Manifest.Entry(it.next());
                 action.accept(entry.key(), entry);

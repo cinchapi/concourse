@@ -104,7 +104,7 @@ class ByteableCollectionStreamIterator implements
      */
     private ByteableCollectionStreamIterator(Path file, long position,
             long length, int bufferSize) {
-//        Preconditions.checkArgument(length >= 4);
+        // Preconditions.checkArgument(length >= 4);
         Preconditions.checkArgument(bufferSize >= 0);
         this.channel = FileSystem.getFileChannel(file);
         this.position = position;
@@ -193,7 +193,5 @@ class ByteableCollectionStreamIterator implements
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
-    
-    
 
 }
