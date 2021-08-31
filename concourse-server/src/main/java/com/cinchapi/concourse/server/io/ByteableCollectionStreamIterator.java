@@ -113,7 +113,6 @@ class ByteableCollectionStreamIterator implements
                 ? Integers.nextPowerOfTwo(bufferSize)
                 : (int) length;
         read(bufferSize); // instantiates #buffer
-        findNext(); // instantiates #next
     }
 
     @Override
@@ -123,19 +122,20 @@ class ByteableCollectionStreamIterator implements
 
     @Override
     public boolean hasNext() {
+        findNext();
         return next != null;
     }
 
     @Override
     public ByteBuffer next() {
-        if(next != null) {
-            ByteBuffer current = next;
+        if(next == null) {
+            // In case there wasn't a prior call to #hasNext()
             findNext();
-            return current;
+            if(next == null) {
+                throw new NoSuchElementException();
+            }
         }
-        else {
-            throw new NoSuchElementException();
-        }
+        return next;
     }
 
     /**
@@ -181,7 +181,7 @@ class ByteableCollectionStreamIterator implements
      */
     private void read(int size) {
         try {
-            buffer = channel.map(MapMode.READ_ONLY, position, size);
+            buffer = channel.map(MapMode.READ_ONLY, position, size).load();
             position += buffer.capacity();
         }
         catch (IOException e) {
