@@ -25,7 +25,6 @@ import java.util.NoSuchElementException;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.collect.CloseableIterator;
-import com.cinchapi.concourse.util.Integers;
 import com.google.common.base.Preconditions;
 
 /**
@@ -109,9 +108,8 @@ class ByteableCollectionStreamIterator implements
         this.channel = FileSystem.getFileChannel(file);
         this.position = position;
         this.limit = this.position + length;
-        this.bufferSize = length < Integer.MAX_VALUE && length > bufferSize
-                ? Integers.nextPowerOfTwo(bufferSize)
-                : (int) length;
+        this.bufferSize = Math.min(bufferSize,
+                length > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) length);
         read(bufferSize); // instantiates #buffer
     }
 
