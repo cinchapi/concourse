@@ -15,22 +15,21 @@
  */
 package com.cinchapi.concourse.server.upgrade.task;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
-import com.cinchapi.concourse.server.storage.db.legacy.Block;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV2;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV2.Block;
+import com.cinchapi.concourse.server.storage.format.StorageFormatV3;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.server.upgrade.SmartUpgradeTask;
 import com.cinchapi.concourse.util.Environments;
@@ -53,7 +52,6 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
         return "Migrate Database data from Blocks to Segments";
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected void doTask() {
         Environments
@@ -61,7 +59,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                         GlobalState.DATABASE_DIRECTORY)
                 .forEachRemaining(environment -> {
                     logInfoMessage(
-                            "Upgrading Block data to new Segment format in environment {}",
+                            "Upgrading Storage Format v2 data files to Storage Format v3 in environment {}",
                             environment);
                     Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
                             .resolve(environment);
@@ -69,19 +67,9 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                     db.start();
                     try {
                         Path cpb = directory.resolve("cpb");
-                        Collection<Path> files = FileSystem.ls(cpb)
-                                .filter(file -> file.toString()
-                                        .endsWith(".blk"))
-                                .map(Path::toFile)
-                                .filter(file -> file.length() > 0)
-                                .map(File::getAbsolutePath).map(Paths::get)
-                                .collect(Collectors.toList());
-                        for (Path file : files) {
-                            Block<PrimaryKey, Text, Value> block = new Block(
-                                    file, TableRevision.class);
-                            logInfoMessage(
-                                    "Transferring data from Block {} to new Segment format",
-                                    file.getFileName());
+                        Iterable<Block<PrimaryKey, Text, Value>> blocks = StorageFormatV2
+                                .load(cpb, TableRevision.class);
+                        for (Block<PrimaryKey, Text, Value> block : blocks) {
                             for (Revision<PrimaryKey, Text, Value> revision : block) {
                                 Write write = Reflection.newInstance(
                                         Write.class, revision.getType(),
@@ -92,8 +80,8 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                             }
                             db.sync();
                             logInfoMessage(
-                                    "Finished transferring data from Block {} to new Segment format",
-                                    file.getFileName());
+                                    "Finished transferring v2 data Block {} to v3 Segment format",
+                                    block.getId());
                         }
                     }
                     finally {
@@ -110,9 +98,12 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                         GlobalState.DATABASE_DIRECTORY)
                 .forEachRemaining(environment -> {
                     Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
-                            .resolve(environment);
-                    Path segments = directory.resolve("segments");
-                    FileSystem.deleteDirectory(segments.toString());
+                            .resolve(environment).resolve("segments");
+                    Iterable<Segment> segments = StorageFormatV3
+                            .load(directory);
+                    for (Segment segment : segments) {
+                        segment.discard();
+                    }
                 });
 
     }
