@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.google.common.base.Preconditions;
 
 /**
@@ -69,13 +70,53 @@ public class ByteableCollections {
      * infeasible to read the entire file into memory at once.
      * 
      * @param file
+     * @param bufferSize
+     * @return the {@link Iterator}
+     */
+    public static CloseableIterator<ByteBuffer> stream(Path file,
+            int bufferSize) {
+        return ByteableCollectionStreamIterator.from(file, 0,
+                FileSystem.getFileSize(file.toString()), bufferSize);
+    }
+
+    /**
+     * Return an {@link Iterator} that will traverse the bytes in {@code file}
+     * and return a series of {@link ByteBuffer byte buffers}, each of which can
+     * be used to reconstruct a {@link Byteable} object. Unlike the
+     * {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * @param file
+     * @param position the file index from which to start reading
+     * @param length
+     * @param bufferSize
+     * @return the {@link Iterator}
+     */
+    public static CloseableIterator<ByteBuffer> stream(Path file, long position,
+            long length, int bufferSize) {
+        return ByteableCollectionStreamIterator.from(file, position, length,
+                bufferSize);
+    }
+
+    /**
+     * Return an {@link Iterator} that will traverse the bytes in {@code file}
+     * and return a series of {@link ByteBuffer byte buffers}, each of which can
+     * be used to reconstruct a {@link Byteable} object. Unlike the
+     * {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * @param file
      * @param position the file index from which to start reading
      * @param length the total number of bytes to read before determining that
      *            there are no more elements
      * @param bufferSize - must be large enough to accommodate the largest
      *            element that will be returned by the iterator
      * @return the iterator
+     * @deprecated use {@link #stream(Path, long, long, int)} instead
      */
+    @Deprecated
     public static Iterator<ByteBuffer> streamingIterator(Path file,
             long position, long length, int bufferSize) {
         return new Iterator<ByteBuffer>() {
@@ -168,7 +209,9 @@ public class ByteableCollections {
      * @param bufferSize - must be large enough to accommodate the largest
      *            element that will be returned by the iterator
      * @return the iterator
+     * @deprecated use {@link #stream(Path, int)} instead
      */
+    @Deprecated
     public static Iterator<ByteBuffer> streamingIterator(final String file,
             final int bufferSize) {
         return streamingIterator(Paths.get(file), 0,

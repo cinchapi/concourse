@@ -124,7 +124,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     protected Record(L locator, @Nullable K key) {
         this.locator = locator;
         this.key = key;
-        this.partial = key == null ? false : true;
+        this.partial = key != null;
     }
 
     /**

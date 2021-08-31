@@ -189,8 +189,7 @@ public final class StorageFormatV2 {
             return new Iterator<Revision<L, K, V>>() {
 
                 private final Iterator<ByteBuffer> it = ByteableCollections
-                        .streamingIterator(file.toString(),
-                                GlobalState.BUFFER_PAGE_SIZE);
+                        .stream(file, GlobalState.DISK_READ_BUFFER_SIZE);
 
                 @Override
                 public boolean hasNext() {

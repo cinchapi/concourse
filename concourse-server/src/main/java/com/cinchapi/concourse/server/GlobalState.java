@@ -469,6 +469,13 @@ public final class GlobalState extends Constants {
     public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "com.cinchapi.concourse.server.http.TransactionTokenAttribute";
 
     /**
+     * The number of bytes to read from disk at a time.
+     */
+    @NonPreference
+    public static final int DISK_READ_BUFFER_SIZE = (int) Math.pow(2, 20); // 1048567
+                                                                           // (1MiB)
+
+    /**
      * The path to the underlying file from which the preferences are extracted.
      * This value is set in the static initialization block.
      */
