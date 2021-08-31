@@ -545,6 +545,30 @@ public final class Segment extends TransferableByteSequence implements
         return isMutable() ? index.count() : count;
     }
 
+    /**
+     * Permanently delete an immutable {@link Segment} by clearing its contents
+     * from both memory and disk.
+     * <p>
+     * This is an irreversible and potentially catastrophic operation. It should
+     * only be used instances when the caller can be certain that the
+     * {@link Segment} is no longer needed.
+     * </p>
+     * <p>
+     * A discarded {@link Segment} should not be subsequently used. Operating on
+     * a discarded {@link Segment} has undefined behaviour.
+     * </p>
+     */
+    public final void discard() {
+        Preconditions.checkState(!isMutable(),
+                "A mutable segment cannot be deleted");
+        Logger.warn("Permanently deleting Segment {}", this);
+        Reflection.set("table", null, this); /* (authorized) */
+        Reflection.set("index", null, this); /* (authorized) */
+        Reflection.set("corpus", null, this); /* (authorized) */
+        free();
+        FileSystem.deleteFile(file().toString());
+    }
+
     @Override
     public boolean equals(Object other) {
         if(other instanceof Segment) {
