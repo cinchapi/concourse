@@ -103,14 +103,24 @@ class ByteableCollectionStreamIterator implements
      */
     private ByteableCollectionStreamIterator(Path file, long position,
             long length, int bufferSize) {
-        Preconditions.checkArgument(length >= 4);
-        Preconditions.checkArgument(bufferSize >= 0);
-        this.channel = FileSystem.getFileChannel(file);
-        this.position = position;
-        this.limit = this.position + length;
-        this.bufferSize = Math.min(bufferSize,
-                length > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) length);
-        read(bufferSize); // instantiates #buffer
+        Preconditions.checkArgument(bufferSize >= 1);
+        if(length <= 0) {
+            this.channel = null;
+            this.position = 0;
+            this.limit = 0;
+            this.bufferSize = 0;
+            this.buffer = ByteBuffer.allocate(0);
+            this.next = null;
+        }
+        else {
+            this.channel = FileSystem.getFileChannel(file);
+            this.position = position;
+            this.limit = this.position + length;
+            this.bufferSize = Math.min(bufferSize,
+                    length > Integer.MAX_VALUE ? Integer.MAX_VALUE
+                            : (int) length);
+            read(bufferSize); // instantiates #buffer
+        }
     }
 
     @Override
