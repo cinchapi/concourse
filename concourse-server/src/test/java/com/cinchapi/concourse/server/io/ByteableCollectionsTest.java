@@ -31,6 +31,7 @@ import org.junit.Test;
 import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.profile.Benchmark;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -103,11 +104,12 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
 
             @Override
             public void action() {
-                Iterator<ByteBuffer> it = ByteableCollections.stream(file,
+                CloseableIterator<ByteBuffer> it = ByteableCollections.stream(file,
                         bufferSize);
                 while (it.hasNext()) {
                     Value.fromByteBuffer(it.next());
                 }
+                it.closeQuietly();
             }
 
         };

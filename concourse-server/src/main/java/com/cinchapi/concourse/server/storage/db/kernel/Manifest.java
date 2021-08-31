@@ -22,7 +22,6 @@ import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -39,6 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -612,11 +612,16 @@ public class Manifest extends TransferableByteSequence {
         @Override
         public void forEach(
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
-            Iterator<ByteBuffer> it = ByteableCollections.streamingIterator(
-                    file(), position(), length, streamingBufferSize);
-            while (it.hasNext()) {
-                Manifest.Entry entry = new Manifest.Entry(it.next());
-                action.accept(entry.key(), entry);
+            CloseableIterator<ByteBuffer> it = ByteableCollections
+                    .stream(file(), position(), length, streamingBufferSize);
+            try {
+                while (it.hasNext()) {
+                    Manifest.Entry entry = new Manifest.Entry(it.next());
+                    action.accept(entry.key(), entry);
+                }
+            }
+            finally {
+                it.closeQuietly();
             }
         }
 
@@ -624,20 +629,25 @@ public class Manifest extends TransferableByteSequence {
         public Manifest.Entry get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
-                Iterator<ByteBuffer> it = ByteableCollections.streamingIterator(
-                        file(), position(), length, streamingBufferSize);
-                while (it.hasNext()) {
-                    ByteBuffer next = it.next();
-                    if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
-                            .remaining()) {
-                        // Shortcut by only considering ByteBuffers that
-                        // match the expected size of an entry mapped from
-                        // the #key
-                        Manifest.Entry entry = new Manifest.Entry(next);
-                        if(key.equals(entry.key())) {
-                            return entry;
+                CloseableIterator<ByteBuffer> it = ByteableCollections.stream(file(),
+                        position(), length, streamingBufferSize);
+                try {
+                    while (it.hasNext()) {
+                        ByteBuffer next = it.next();
+                        if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
+                                .remaining()) {
+                            // Shortcut by only considering ByteBuffers that
+                            // match the expected size of an entry mapped from
+                            // the #key
+                            Manifest.Entry entry = new Manifest.Entry(next);
+                            if(key.equals(entry.key())) {
+                                return entry;
+                            }
                         }
                     }
+                }
+                finally {
+                    it.closeQuietly();
                 }
             }
             return null;

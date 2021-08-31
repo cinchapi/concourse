@@ -35,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.io.ByteSink;
@@ -779,13 +780,19 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
                 return new Iterator<Revision<L, K, V>>() {
 
-                    private final Iterator<ByteBuffer> it = ByteableCollections
-                            .streamingIterator(file(), position(), length,
+                    private final CloseableIterator<ByteBuffer> it = ByteableCollections
+                            .stream(file(), position(), length,
                                     GlobalState.BUFFER_PAGE_SIZE);
 
                     @Override
                     public boolean hasNext() {
-                        return it.hasNext();
+                        if(it.hasNext()) {
+                            return true;
+                        }
+                        else {
+                            it.closeQuietly();
+                            return false;
+                        }
                     }
 
                     @Override
