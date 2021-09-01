@@ -42,11 +42,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
     /**
      * Return the Position encoded in {@code bytes} so long as those bytes
-     * adhere to the format specified by the {@link #getBytes()} method. This
-     * method assumes that all the bytes in the {@code bytes} belong to the
-     * Position. In general, it is necessary to get the appropriate Position
-     * slice from the parent ByteBuffer using
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * adhere to the format specified by the {@link #getBytes()} method.
      * 
      * @param bytes
      * @return the Position

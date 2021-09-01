@@ -740,17 +740,17 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     /**
-     * Return the TableRecord identifier by {@code primaryKey}.
+     * Return the TableRecord identifier by {@code identifier}.
      * 
-     * @param primaryKey
+     * @param identifier
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(Identifier primaryKey) {
+    private TableRecord getTableRecord(Identifier identifier) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(primaryKey);
+            Composite composite = Composite.create(identifier);
             return tableCache.get(composite, () -> {
-                TableRecord $ = TableRecord.create(primaryKey);
+                TableRecord $ = TableRecord.create(identifier);
                 for (Segment segment : segments) {
                     segment.table().seek(composite, $);
                 }
@@ -767,7 +767,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     /**
      * Return the potentially partial TableRecord identified by {@code key} in
-     * {@code primaryKey}.
+     * {@code identifier}.
      * <p>
      * While the returned {@link TableRecord} may not be
      * {@link TableRecord#isPartial() partial}, the caller should interact
@@ -775,21 +775,21 @@ public final class Database extends BaseStore implements PermanentStore {
      * {@code key}.
      * </p>
      * 
-     * @param primaryKey
+     * @param identifier
      * @param key
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(Identifier primaryKey, Text key) {
+    private TableRecord getTableRecord(Identifier identifier, Text key) {
         masterLock.readLock().lock();
         try {
             // Before loading a partial record, see if the full record is
             // present in memory.
             TableRecord table = tableCache
-                    .getIfPresent(Composite.create(primaryKey));
+                    .getIfPresent(Composite.create(identifier));
             if(table == null) {
-                Composite composite = Composite.create(primaryKey, key);
+                Composite composite = Composite.create(identifier, key);
                 table = tablePartialCache.get(composite, () -> {
-                    TableRecord $ = TableRecord.createPartial(primaryKey, key);
+                    TableRecord $ = TableRecord.createPartial(identifier, key);
                     for (Segment segment : segments) {
                         segment.table().seek(composite, $);
                     }
