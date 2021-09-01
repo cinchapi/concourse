@@ -84,7 +84,7 @@ public final class TestData extends Random {
      * @return a Position
      */
     public static Position getPosition() {
-        return Position.of(getIdentifier(), Math.abs(getInt()));
+        return Position.wrap(getIdentifier(), Math.abs(getInt()));
     }
 
     public static Identifier getIdentifier() {

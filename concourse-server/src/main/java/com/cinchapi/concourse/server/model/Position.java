@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.io.ByteBuffers;
@@ -61,12 +62,12 @@ public final class Position implements Byteable, Comparable<Position> {
     /**
      * Return a Position that is backed by {@code primaryKey} and {@code index}.
      * 
-     * @param identifier
+     * @param primaryKey
      * @param index
      * @return the Position
      */
-    public static Position of(Identifier identifier, int index) {
-        return new Position(identifier, index);
+    public static Position wrap(Identifier primaryKey, int index) {
+        return new Position(primaryKey, index);
     }
 
     /**
@@ -83,26 +84,38 @@ public final class Position implements Byteable, Comparable<Position> {
     /**
      * The PrimaryKey of the record that this Position represents.
      */
-    private final Identifier identifier;
+    private final Identifier primaryKey;
 
     /**
      * Construct a new instance.
      * 
-     * @param identifier
+     * @param primaryKey
      * @param index
      */
-    private Position(Identifier identifier, int index) {
+    private Position(Identifier primaryKey, int index) {
+        this(primaryKey, index, null);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param primaryKey
+     * @param index
+     * @param bytes;
+     */
+    private Position(Identifier primaryKey, int index,
+            @Nullable ByteBuffer bytes) {
         Preconditions.checkArgument(index >= 0,
                 "Cannot have an negative index");
-        this.identifier = identifier;
+        this.primaryKey = primaryKey;
         this.index = index;
-        this.bytes = null;
+        this.bytes = bytes;
     }
 
     @Override
     public int compareTo(Position other) {
         int comparison;
-        return (comparison = identifier.compareTo(other.identifier)) != 0
+        return (comparison = primaryKey.compareTo(other.primaryKey)) != 0
                 ? comparison
                 : Integer.compare(index, other.index);
     }
@@ -118,7 +131,7 @@ public final class Position implements Byteable, Comparable<Position> {
         // Position is constant so we won't need to store the overall size
         // prior to the Position to deserialize it, which is actually more
         // space efficient.
-        identifier.copyTo(sink);
+        primaryKey.copyTo(sink);
         sink.putInt(index);
     }
 
@@ -126,7 +139,7 @@ public final class Position implements Byteable, Comparable<Position> {
     public boolean equals(Object obj) {
         if(obj instanceof Position) {
             Position other = (Position) obj;
-            return identifier.equals(other.identifier) && index == other.index;
+            return primaryKey.equals(other.primaryKey) && index == other.index;
         }
         return false;
     }
@@ -159,17 +172,17 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     /**
-     * Return the associated {@link #identifier}.
+     * Return the associated {@code primaryKey}.
      * 
      * @return the primaryKey
      */
-    public Identifier getIdentifier() {
-        return identifier;
+    public Identifier getPrimaryKey() {
+        return primaryKey;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(identifier, index);
+        return Objects.hash(primaryKey, index);
     }
 
     @Override
@@ -179,7 +192,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
     @Override
     public String toString() {
-        return "Position " + index + " in Record " + identifier;
+        return "Position " + index + " in Record " + primaryKey;
     }
 
 }

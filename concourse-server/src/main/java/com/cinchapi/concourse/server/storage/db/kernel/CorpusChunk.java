@@ -312,7 +312,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             Collection<CorpusArtifact> artifacts) {
         int count = 0;
         if(!STOPWORDS.contains(term)) {
-            Position pos = Position.of(record, position);
+            Position pos = Position.wrap(record, position);
             int length = term.length();
             int upperBound = (int) Math.pow(length, 2);
 
