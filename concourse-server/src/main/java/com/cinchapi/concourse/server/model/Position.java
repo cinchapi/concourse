@@ -53,10 +53,9 @@ public final class Position implements Byteable, Comparable<Position> {
      * @return the Position
      */
     public static Position fromByteBuffer(ByteBuffer bytes) {
-        Identifier primaryKey = Identifier
-                .fromByteBuffer(ByteBuffers.get(bytes, Identifier.SIZE));
+        Identifier identifier = Identifier.fromByteBuffer(bytes);
         int index = bytes.getInt();
-        return new Position(primaryKey, index);
+        return new Position(identifier, index);
     }
 
     /**
