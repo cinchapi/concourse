@@ -644,7 +644,7 @@ public class Manifest extends TransferableByteSequence {
             if(key.remaining() + Manifest.Entry.CONSTANT_SIZE == next
                     .remaining()) {
                 next.mark();
-                next.position(Manifest.Entry.CONSTANT_SIZE);
+                next.position(next.position() + Manifest.Entry.CONSTANT_SIZE);
                 if(key.equals(next)) {
                     next.reset();
                     return true;
