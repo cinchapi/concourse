@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 
 /**
  * A Position is an abstraction for the association between a
- * relative location and a {@link PrimaryKey} that is used in a
+ * relative location and a {@link Identifier} that is used in a
  * {@link CorpusRecord} to specify the location of a term in a record.
  * 
  * @author Jeff Nelson
@@ -39,7 +39,7 @@ public final class Position implements Byteable, Comparable<Position> {
     /**
      * The total number of bytes used to store each Position
      */
-    public static final int SIZE = PrimaryKey.SIZE + 4; // index
+    public static final int SIZE = Identifier.SIZE + 4; // index
 
     /**
      * Return the Position encoded in {@code bytes} so long as those bytes
@@ -53,8 +53,8 @@ public final class Position implements Byteable, Comparable<Position> {
      * @return the Position
      */
     public static Position fromByteBuffer(ByteBuffer bytes) {
-        PrimaryKey primaryKey = PrimaryKey
-                .fromByteBuffer(ByteBuffers.get(bytes, PrimaryKey.SIZE));
+        Identifier primaryKey = Identifier
+                .fromByteBuffer(ByteBuffers.get(bytes, Identifier.SIZE));
         int index = bytes.getInt();
         return new Position(primaryKey, index);
     }
@@ -66,7 +66,7 @@ public final class Position implements Byteable, Comparable<Position> {
      * @param index
      * @return the Position
      */
-    public static Position wrap(PrimaryKey primaryKey, int index) {
+    public static Position wrap(Identifier primaryKey, int index) {
         return new Position(primaryKey, index);
     }
 
@@ -84,7 +84,7 @@ public final class Position implements Byteable, Comparable<Position> {
     /**
      * The PrimaryKey of the record that this Position represents.
      */
-    private final PrimaryKey primaryKey;
+    private final Identifier primaryKey;
 
     /**
      * Construct a new instance.
@@ -92,7 +92,7 @@ public final class Position implements Byteable, Comparable<Position> {
      * @param primaryKey
      * @param index
      */
-    private Position(PrimaryKey primaryKey, int index) {
+    private Position(Identifier primaryKey, int index) {
         this(primaryKey, index, null);
     }
 
@@ -103,7 +103,7 @@ public final class Position implements Byteable, Comparable<Position> {
      * @param index
      * @param bytes;
      */
-    private Position(PrimaryKey primaryKey, int index,
+    private Position(Identifier primaryKey, int index,
             @Nullable ByteBuffer bytes) {
         Preconditions.checkArgument(index >= 0,
                 "Cannot have an negative index");
@@ -176,7 +176,7 @@ public final class Position implements Byteable, Comparable<Position> {
      * 
      * @return the primaryKey
      */
-    public PrimaryKey getPrimaryKey() {
+    public Identifier getPrimaryKey() {
         return primaryKey;
     }
 

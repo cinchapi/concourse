@@ -29,8 +29,8 @@ import org.junit.Test;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -85,7 +85,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
     public void testCannotInsertInImmutableChunk() {
         Text locator = Variables.register("locator", getLocator());
         Value value = Variables.register("value", getStringValue());
-        PrimaryKey record = Variables.register("record", getRecord());
+        Identifier record = Variables.register("record", getRecord());
         ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
         if(chunk.length() <= 0) {
@@ -102,7 +102,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         return Value.wrap(Convert.javaToThrift(TestData.getString()));
     }
 
-    private PrimaryKey getRecord() {
+    private Identifier getRecord() {
         return TestData.getPrimaryKey();
     }
 
@@ -138,7 +138,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                 Text.wrap("eqcicldw12dsowa7it4vi0pnqgewxci4c3ihyzf"),
                 Value.wrap(Convert.javaToThrift(
                         "w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
-                Text.wrap("w"), PrimaryKey.wrap(52259011321627880L), 0);
+                Text.wrap("w"), Identifier.of(52259011321627880L), 0);
     }
 
     @Test
@@ -174,14 +174,14 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                         "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t")),
                 Text.wrap(
                         "mo48j2dgtkky48y5notzi8z6rhw6pio1rmmlptr0vcwfq8vzvwmvpawrfuo7d2t"),
-                PrimaryKey.wrap(5481930143744767354L), 0);
+                Identifier.of(5481930143744767354L), 0);
     }
 
     @Test
     public void testReproCON_4() {
         // TODO file this in jira
         Text key = Variables.register("key", Text.wrap("strings"));
-        PrimaryKey record = Variables.register("record", getRecord());
+        Identifier record = Variables.register("record", getRecord());
         Value value = Variables.register("value",
                 Value.wrap(Convert.javaToThrift(
                         "aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
@@ -205,14 +205,14 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         final Value aValue = Variables.register("aValue",
                 Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
                                                                          // string
-        final PrimaryKey aRecord = Variables.register("aRecord", getRecord());
+        final Identifier aRecord = Variables.register("aRecord", getRecord());
         final long aTimestamp = Time.now();
 
         final Text bKey = Variables.register("bKey", TestData.getText());
         final Value bValue = Variables.register("bValue",
                 Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
                                                                          // string
-        final PrimaryKey bRecord = Variables.register("bRecord", getRecord());
+        final Identifier bRecord = Variables.register("bRecord", getRecord());
         final long bTimestamp = Time.now();
 
         CorpusChunk serial = (CorpusChunk) create(BloomFilter.create(100));
@@ -260,8 +260,8 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         Text locator2 = Text.wrap("name");
         Value key1 = Value.wrap(Convert.javaToThrift("Fonamey"));
         Value key2 = Value.wrap(Convert.javaToThrift("Fonamey"));
-        PrimaryKey value1 = PrimaryKey.wrap(1);
-        PrimaryKey value2 = PrimaryKey.wrap(1);
+        Identifier value1 = Identifier.of(1);
+        Identifier value2 = Identifier.of(1);
         CorpusChunk corpus = (CorpusChunk) chunk;
         corpus.insert(locator2, key2, value2, Time.now(), Action.ADD);
         corpus.insert(locator1, key1, value1, Time.now(), Action.ADD);
@@ -321,7 +321,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
      * @param position
      */
     private void doTestMightContainLocatorKeyValue(Text locator, Value value,
-            Text term, PrimaryKey record, int position) {
+            Text term, Identifier record, int position) {
         Preconditions.checkArgument(
                 !GlobalState.STOPWORDS.contains(term.toString()));
         Variables.register("locator", locator);

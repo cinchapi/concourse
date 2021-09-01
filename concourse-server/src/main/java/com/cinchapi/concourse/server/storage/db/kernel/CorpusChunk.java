@@ -41,8 +41,8 @@ import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -196,7 +196,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     }
 
     /**
-     * DO NOT CALL. Use {@link #insert(Text, Value, PrimaryKey)} instead.
+     * DO NOT CALL. Use {@link #insert(Text, Value, Identifier)} instead.
      */
     @Override
     @DoNotInvoke
@@ -217,7 +217,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * @param type
      */
     public final Collection<CorpusArtifact> insert(Text key, Value value,
-            PrimaryKey record, long version, Action type) {
+            Identifier record, long version, Action type) {
         Preconditions.checkState(isMutable(),
                 "Cannot modify a chunk that is immutable");
         if(value.getType() == Type.STRING) {
@@ -308,7 +308,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      *         to finish.
      */
     private int prepare(CountUpLatch tracker, Text key, String term,
-            PrimaryKey record, int position, long version, Action type,
+            Identifier record, int position, long version, Action type,
             Collection<CorpusArtifact> artifacts) {
         int count = 0;
         if(!STOPWORDS.contains(term)) {

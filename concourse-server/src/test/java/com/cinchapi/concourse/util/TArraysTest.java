@@ -21,7 +21,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -42,7 +42,7 @@ public class TArraysTest extends ConcourseBaseTest {
                 -104, 0, 67, 101, -107, 115, 59, 73, 102, 0, 0, 0, 1, -39, 33,
                 58, 40);
         Object[] data = { Text.wrap("foo"),
-                Value.wrap(Convert.javaToThrift("bar")), PrimaryKey.wrap(1) };
+                Value.wrap(Convert.javaToThrift("bar")), Identifier.of(1) };
         ByteBuffer buf = TArrays.hash(data);
         System.out.println(buf);
         for (int i = 0; i < buf.capacity(); i++) {

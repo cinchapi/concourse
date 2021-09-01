@@ -34,7 +34,7 @@ import com.cinchapi.common.collect.CoalescableTreeMap;
 import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -58,7 +58,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
+public final class IndexRecord extends Record<Text, Value, Identifier> {
 
     /**
      * Return an {@link IndexRecord} that holds data for {@code locator}.
@@ -95,7 +95,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                     .equalsIgnoreCase(v2.getObject().toString());
 
     /**
-     * A {@link Cube} that supports efficient {@link #gather(PrimaryKey)
+     * A {@link Cube} that supports efficient {@link #gather(Identifier)
      * gathering}.
      */
     private final transient Cube cube = new Cube();
@@ -124,7 +124,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    public Map<PrimaryKey, Set<Value>> findAndGet(long timestamp,
+    public Map<Identifier, Set<Value>> findAndGet(long timestamp,
             Operator operator, Value... values) {
         return findAndGet(true, timestamp, operator, values);
     }
@@ -139,7 +139,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    public Map<PrimaryKey, Set<Value>> findAndGet(Operator operator,
+    public Map<Identifier, Set<Value>> findAndGet(Operator operator,
             Value... values) {
         return findAndGet(false, Versioned.NO_VERSION, operator, values);
     }
@@ -153,7 +153,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @param values
      * @return the Set of PrimaryKeys that match the query
      */
-    public Set<PrimaryKey> find(long timestamp, Operator operator,
+    public Set<Identifier> find(long timestamp, Operator operator,
             Value... values) {
         return findAndGet(true, timestamp, operator, values).keySet();
     }
@@ -166,7 +166,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @param values
      * @return they Set of PrimaryKeys that match the query
      */
-    public Set<PrimaryKey> find(Operator operator, Value... values) {
+    public Set<Identifier> find(Operator operator, Value... values) {
         return findAndGet(false, 0, operator, values).keySet();
     }
 
@@ -188,7 +188,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @return a {@link Set} containing all the keys that map to the
      *         {@code value}
      */
-    public Set<Value> gather(PrimaryKey record) {
+    public Set<Value> gather(Identifier record) {
         read.lock();
         try {
             return gather(record, Time.NONE);
@@ -218,26 +218,26 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @return a {@link Set} containing all the keys that map to the
      *         {@code value}
      */
-    public Set<Value> gather(PrimaryKey record, long timestamp) {
+    public Set<Value> gather(Identifier record, long timestamp) {
         Preconditions.checkState(!isPartial(),
                 "Cannot gather from a partial Secondary Record.");
         read.lock();
         try {
-            Map<PrimaryKey, Set<Value>> slice = cube.slice(timestamp);
+            Map<Identifier, Set<Value>> slice = cube.slice(timestamp);
             if(slice == null) {
                 Set<Value> values = Sets.newHashSet();
-                Set<Entry<Value, Set<PrimaryKey>>> entries = timestamp != Time.NONE
+                Set<Entry<Value, Set<Identifier>>> entries = timestamp != Time.NONE
                         ? LazyTransformSet.of(history.keySet(),
                                 key -> new AbstractMap.SimpleImmutableEntry<>(
                                         key, get(key, timestamp)))
                         : present.entrySet();
-                for (Entry<Value, Set<PrimaryKey>> entry : entries) {
+                for (Entry<Value, Set<Identifier>> entry : entries) {
                     Value value = entry.getKey();
-                    Set<PrimaryKey> records = entry.getValue();
+                    Set<Identifier> records = entry.getValue();
                     if(records.contains(record)) {
                         values.add(value);
                     }
-                    for (PrimaryKey $record : records) {
+                    for (Identifier $record : records) {
                         if($record.equals(record)) {
                             values.add(value);
                         }
@@ -256,17 +256,17 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected Map<Value, List<CompactRevision<PrimaryKey>>> $createHistoryMap() {
+    protected Map<Value, List<CompactRevision<Identifier>>> $createHistoryMap() {
         return new CoalescableTreeMap<>();
     }
 
     @Override
-    protected Map<Value, Set<PrimaryKey>> $createDataMap() {
+    protected Map<Value, Set<Identifier>> $createDataMap() {
         return new CoalescableTreeMap<>();
     }
 
     @Override
-    protected void onAppend(Revision<Text, Value, PrimaryKey> revision) {
+    protected void onAppend(Revision<Text, Value, Identifier> revision) {
         cube.clear();
     }
 
@@ -277,11 +277,11 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @param key
      * @return the matching entries
      */
-    private final Map<Value, Set<PrimaryKey>> coalesce(Value key) {
+    private final Map<Value, Set<Identifier>> coalesce(Value key) {
         read.lock();
         try {
             if(key.isCharSequenceType()) {
-                return ((CoalescableTreeMap<Value, Set<PrimaryKey>>) present)
+                return ((CoalescableTreeMap<Value, Set<Identifier>>) present)
                         .coalesce(key, CASE_INSENSITIVE_COALESCER);
             }
             else {
@@ -301,20 +301,20 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @param timestamp
      * @return the matching entries
      */
-    private Map<Value, Set<PrimaryKey>> coalesce(Value key, long timestamp) {
+    private Map<Value, Set<Identifier>> coalesce(Value key, long timestamp) {
         read.lock();
         try {
-            Map<Value, Set<PrimaryKey>> data = Maps.newLinkedHashMap();
-            Map<Value, List<CompactRevision<PrimaryKey>>> coalesced = ((CoalescableTreeMap<Value, List<CompactRevision<PrimaryKey>>>) history)
+            Map<Value, Set<Identifier>> data = Maps.newLinkedHashMap();
+            Map<Value, List<CompactRevision<Identifier>>> coalesced = ((CoalescableTreeMap<Value, List<CompactRevision<Identifier>>>) history)
                     .coalesce(key, CASE_INSENSITIVE_COALESCER);
-            for (Entry<Value, List<CompactRevision<PrimaryKey>>> entry : coalesced
+            for (Entry<Value, List<CompactRevision<Identifier>>> entry : coalesced
                     .entrySet()) {
                 Value stored = entry.getKey();
-                List<CompactRevision<PrimaryKey>> revisions = entry.getValue();
-                Set<PrimaryKey> values = Sets.newLinkedHashSet();
-                Iterator<CompactRevision<PrimaryKey>> it = revisions.iterator();
+                List<CompactRevision<Identifier>> revisions = entry.getValue();
+                Set<Identifier> values = Sets.newLinkedHashSet();
+                Iterator<CompactRevision<Identifier>> it = revisions.iterator();
                 while (it.hasNext()) {
-                    CompactRevision<PrimaryKey> revision = it.next();
+                    CompactRevision<Identifier> revision = it.next();
                     if(revision.getVersion() <= timestamp) {
                         if(revision.getType() == Action.ADD) {
                             values.add(revision.getValue());
@@ -352,7 +352,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
      * @return the relevant data that causes the matching records to satisfy the
      *         criteria
      */
-    private Map<PrimaryKey, Set<Value>> findAndGet(boolean historical,
+    private Map<Identifier, Set<Value>> findAndGet(boolean historical,
             long timestamp, Operator operator,
             Value... values) { /* Authorized */
         // CON-667: Value ordering for Strings is such that uppercase characters
@@ -362,14 +362,14 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
         // necessary.
         read.lock();
         try {
-            Map<PrimaryKey, Set<Value>> data = Maps.newHashMap();
+            Map<Identifier, Set<Value>> data = Maps.newHashMap();
             Value value = values[0];
             if(operator == Operator.EQUALS) {
-                for (Entry<Value, Set<PrimaryKey>> entry : (historical
+                for (Entry<Value, Set<Identifier>> entry : (historical
                         ? coalesce(value, timestamp)
                         : coalesce(value)).entrySet()) {
                     Value stored = entry.getKey();
-                    for (PrimaryKey record : entry.getValue()) {
+                    for (Identifier record : entry.getValue()) {
                         MultimapViews.put(data, record, stored);
                     }
                 }
@@ -378,7 +378,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                 for (Value stored : historical ? history.keySet()
                         : present.keySet()) {
                     if(!value.equalsIgnoreCase(stored)) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -392,7 +392,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : ((NavigableSet<Value>) present.keySet())
                                 .tailSet(value, false)) {
                     if(!historical || stored.compareToIgnoreCase(value) > 0) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -406,7 +406,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : ((NavigableSet<Value>) present.keySet())
                                 .tailSet(value, true)) {
                     if(!historical || stored.compareToIgnoreCase(value) >= 0) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -420,7 +420,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : ((NavigableSet<Value>) present.keySet())
                                 .headSet(value, false)) {
                     if(!historical || stored.compareToIgnoreCase(value) < 0) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -434,7 +434,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : ((NavigableSet<Value>) present.keySet())
                                 .headSet(value, true)) {
                     if(!historical || stored.compareToIgnoreCase(value) <= 0) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -452,7 +452,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                                 true, value2, false)) {
                     if(!historical || (stored.compareTo(value) >= 0
                             && stored.compareTo(value2) < 0)) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -466,7 +466,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -480,7 +480,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
                         : present.keySet()) {
                     Matcher m = p.matcher(stored.getObject().toString());
                     if(!m.matches()) {
-                        for (PrimaryKey record : historical
+                        for (Identifier record : historical
                                 ? get(stored, timestamp)
                                 : get(stored)) {
                             MultimapViews.put(data, record, stored);
@@ -499,9 +499,9 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
     }
 
     /**
-     * A {@link Cube} maps a {@link PrimaryKey value} to the set of {@link Value
+     * A {@link Cube} maps a {@link Identifier value} to the set of {@link Value
      * keys} that contain it at a specific timestamp. A {@link Cube} is used to
-     * facilitate efficient {@link #gather(PrimaryKey) gathering} of keys that
+     * facilitate efficient {@link #gather(Identifier) gathering} of keys that
      * contain values.
      * <p>
      * The {@link #slice(long)} method can be used to get a partition of the
@@ -519,7 +519,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
         /**
          * The slice of present data.
          */
-        private transient SoftReference<Map<PrimaryKey, Set<Value>>> slice = new SoftReference<>(
+        private transient SoftReference<Map<Identifier, Set<Value>>> slice = new SoftReference<>(
                 null);
 
         /**
@@ -537,7 +537,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
          * @param value
          * @param timestamp
          */
-        public void put(PrimaryKey record, Value value, long timestamp) {
+        public void put(Identifier record, Value value, long timestamp) {
             if(timestamp == Time.NONE) {
                 if(slice.get() == null) {
                     slice = new SoftReference<>(Maps.newHashMap());
@@ -553,7 +553,7 @@ public final class IndexRecord extends Record<Text, Value, PrimaryKey> {
          * @return the cubed data, if it exists, otherwise {@code null}.
          */
         @Nullable
-        public Map<PrimaryKey, Set<Value>> slice(long timestamp) {
+        public Map<Identifier, Set<Value>> slice(long timestamp) {
             if(timestamp == Time.NONE) {
                 return slice.get();
             }

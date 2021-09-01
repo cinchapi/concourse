@@ -54,8 +54,8 @@ import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -348,14 +348,14 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<Long, String> audit(long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         TableRecord table = getTableRecord(L);
         return table.audit();
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         TableRecord table = getTableRecord(L, K);
         return table.audit(K);
@@ -365,24 +365,24 @@ public final class Database extends BaseStore implements PermanentStore {
     public Map<TObject, Set<Long>> browse(String key) {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
-        Map<Value, Set<PrimaryKey>> data = index.getAll();
+        Map<Value, Set<Identifier>> data = index.getAll();
         return Transformers.transformTreeMapSet(data, Value::getTObject,
-                PrimaryKey::longValue, TObjectSorter.INSTANCE);
+                Identifier::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
-        Map<Value, Set<PrimaryKey>> data = index.getAll(timestamp);
+        Map<Value, Set<Identifier>> data = index.getAll(timestamp);
         return Transformers.transformTreeMapSet(data, Value::getTObject,
-                PrimaryKey::longValue, TObjectSorter.INSTANCE);
+                Identifier::longValue, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         TableRecord table = getTableRecord(L);
         Map<Long, Set<Value>> data = table.chronologize(K, start, end);
@@ -392,7 +392,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public boolean contains(long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         TableRecord table = getTableRecord(L);
         return !table.isEmpty();
     }
@@ -419,7 +419,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Set<TObject> gather(String key, long record) {
         Text L = Text.wrapCached(key);
-        PrimaryKey V = PrimaryKey.wrap(record);
+        Identifier V = Identifier.of(record);
         IndexRecord index = getIndexRecord(L);
         Set<Value> Ks = index.gather(V);
         return Transformers.transformSet(Ks, Value::getTObject);
@@ -428,7 +428,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
         Text L = Text.wrapCached(key);
-        PrimaryKey V = PrimaryKey.wrap(record);
+        Identifier V = Identifier.of(record);
         IndexRecord index = getIndexRecord(L);
         Set<Value> Ks = index.gather(V, timestamp);
         return Transformers.transformSet(Ks, Value::getTObject);
@@ -501,11 +501,11 @@ public final class Database extends BaseStore implements PermanentStore {
             // search works.
             String[] words = query.toString().toLowerCase().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
+            Multimap<Identifier, Integer> reference = HashMultimap.create();
             boolean initial = true;
             int offset = 0;
             for (String word : words) {
-                Multimap<PrimaryKey, Integer> temp = HashMultimap.create();
+                Multimap<Identifier, Integer> temp = HashMultimap.create();
                 if(GlobalState.STOPWORDS.contains(word)) {
                     // When skipping a stop word, we must record an offset to
                     // correctly determine if the next term match is in the
@@ -517,7 +517,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 CorpusRecord corpus = getCorpusRecord(L, K);
                 Set<Position> positions = corpus.get(K);
                 for (Position position : positions) {
-                    PrimaryKey record = position.getPrimaryKey();
+                    Identifier record = position.getPrimaryKey();
                     int pos = position.getIndex();
                     if(initial) {
                         temp.put(record, pos);
@@ -540,15 +540,15 @@ public final class Database extends BaseStore implements PermanentStore {
             // key: #reference.get(key).size()]. The total number of positions
             // in #reference is equal to the total number of times a document
             // appears in the corpus [e.g. reference.asMap().values().size()].
-            Multimap<Integer, PrimaryKey> sorted = TreeMultimap.create(
+            Multimap<Integer, Identifier> sorted = TreeMultimap.create(
                     Collections.<Integer> reverseOrder(),
-                    PrimaryKey.Sorter.INSTANCE);
-            for (Entry<PrimaryKey, Collection<Integer>> entry : reference
+                    Identifier.Sorter.INSTANCE);
+            for (Entry<Identifier, Collection<Integer>> entry : reference
                     .asMap().entrySet()) {
                 sorted.put(entry.getValue().size(), entry.getKey());
             }
             Set<Long> results = sorted.values().stream()
-                    .map(PrimaryKey::longValue)
+                    .map(Identifier::longValue)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             return results;
         }
@@ -559,7 +559,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         TableRecord table = getTableRecord(L);
         Map<Text, Set<Value>> data = table.getAll();
         return Transformers.transformTreeMapSet(data, Text::toString,
@@ -569,7 +569,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         TableRecord table = getTableRecord(L);
         Map<Text, Set<Value>> data = table.getAll(timestamp);
         return Transformers.transformTreeMapSet(data, Text::toString,
@@ -579,7 +579,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<TObject> select(String key, long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         TableRecord table = getTableRecord(L, K);
         Set<Value> data = table.get(K);
@@ -588,7 +588,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         TableRecord table = getTableRecord(L, K);
         Set<Value> data = table.get(K, timestamp);
@@ -697,7 +697,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         Value V = Value.wrap(value);
         TableRecord table = getTableRecord(L, K);
@@ -707,7 +707,7 @@ public final class Database extends BaseStore implements PermanentStore {
     @Override
     public boolean verify(String key, TObject value, long record,
             long timestamp) {
-        PrimaryKey L = PrimaryKey.wrap(record);
+        Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         Value V = Value.wrap(value);
         TableRecord table = getTableRecord(L, K);
@@ -721,9 +721,9 @@ public final class Database extends BaseStore implements PermanentStore {
         IndexRecord index = getIndexRecord(L);
         Value[] Ks = Transformers.transformArray(values, Value::wrap,
                 Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.findAndGet(timestamp, operator,
+        Map<Identifier, Set<Value>> map = index.findAndGet(timestamp, operator,
                 Ks);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+        return Transformers.transformTreeMapSet(map, Identifier::longValue,
                 Value::getTObject, Long::compare);
     }
 
@@ -734,8 +734,8 @@ public final class Database extends BaseStore implements PermanentStore {
         IndexRecord index = getIndexRecord(L);
         Value[] Ks = Transformers.transformArray(values, Value::wrap,
                 Value.class);
-        Map<PrimaryKey, Set<Value>> map = index.findAndGet(operator, Ks);
-        return Transformers.transformTreeMapSet(map, PrimaryKey::longValue,
+        Map<Identifier, Set<Value>> map = index.findAndGet(operator, Ks);
+        return Transformers.transformTreeMapSet(map, Identifier::longValue,
                 Value::getTObject, Long::compare);
     }
 
@@ -745,7 +745,7 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param primaryKey
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(PrimaryKey primaryKey) {
+    private TableRecord getTableRecord(Identifier primaryKey) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(primaryKey);
@@ -779,7 +779,7 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param key
      * @return the TableRecord
      */
-    private TableRecord getTableRecord(PrimaryKey primaryKey, Text key) {
+    private TableRecord getTableRecord(Identifier primaryKey, Text key) {
         masterLock.readLock().lock();
         try {
             // Before loading a partial record, see if the full record is
@@ -1086,7 +1086,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
         @Override
         public boolean contains(long record) {
-            Composite composite = Composite.create(PrimaryKey.wrap(record));
+            Composite composite = Composite.create(Identifier.of(record));
             return tableCache.getIfPresent(composite) != null;
         }
 
@@ -1098,7 +1098,7 @@ public final class Database extends BaseStore implements PermanentStore {
 
         @Override
         public boolean contains(String key, long record) {
-            Composite composite = Composite.create(PrimaryKey.wrap(record),
+            Composite composite = Composite.create(Identifier.of(record),
                     Text.wrapCached(key));
             return tablePartialCache.getIfPresent(composite) != null
                     || contains(record);
