@@ -66,7 +66,7 @@ public final class Position implements Byteable, Comparable<Position> {
      * @param index
      * @return the Position
      */
-    public static Position wrap(Identifier primaryKey, int index) {
+    public static Position of(Identifier primaryKey, int index) {
         return new Position(primaryKey, index);
     }
 
@@ -84,30 +84,30 @@ public final class Position implements Byteable, Comparable<Position> {
     /**
      * The PrimaryKey of the record that this Position represents.
      */
-    private final Identifier primaryKey;
+    private final Identifier identifier;
 
     /**
      * Construct a new instance.
      * 
-     * @param primaryKey
+     * @param identifier
      * @param index
      */
-    private Position(Identifier primaryKey, int index) {
-        this(primaryKey, index, null);
+    private Position(Identifier identifier, int index) {
+        this(identifier, index, null);
     }
 
     /**
      * Construct a new instance.
      * 
-     * @param primaryKey
+     * @param identifier
      * @param index
      * @param bytes;
      */
-    private Position(Identifier primaryKey, int index,
+    private Position(Identifier identifier, int index,
             @Nullable ByteBuffer bytes) {
         Preconditions.checkArgument(index >= 0,
                 "Cannot have an negative index");
-        this.primaryKey = primaryKey;
+        this.identifier = identifier;
         this.index = index;
         this.bytes = bytes;
     }
@@ -115,7 +115,7 @@ public final class Position implements Byteable, Comparable<Position> {
     @Override
     public int compareTo(Position other) {
         int comparison;
-        return (comparison = primaryKey.compareTo(other.primaryKey)) != 0
+        return (comparison = identifier.compareTo(other.identifier)) != 0
                 ? comparison
                 : Integer.compare(index, other.index);
     }
@@ -131,7 +131,7 @@ public final class Position implements Byteable, Comparable<Position> {
         // Position is constant so we won't need to store the overall size
         // prior to the Position to deserialize it, which is actually more
         // space efficient.
-        primaryKey.copyTo(sink);
+        identifier.copyTo(sink);
         sink.putInt(index);
     }
 
@@ -139,7 +139,7 @@ public final class Position implements Byteable, Comparable<Position> {
     public boolean equals(Object obj) {
         if(obj instanceof Position) {
             Position other = (Position) obj;
-            return primaryKey.equals(other.primaryKey) && index == other.index;
+            return identifier.equals(other.identifier) && index == other.index;
         }
         return false;
     }
@@ -176,13 +176,13 @@ public final class Position implements Byteable, Comparable<Position> {
      * 
      * @return the primaryKey
      */
-    public Identifier getPrimaryKey() {
-        return primaryKey;
+    public Identifier getIdentifier() {
+        return identifier;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(primaryKey, index);
+        return Objects.hash(identifier, index);
     }
 
     @Override
@@ -192,7 +192,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
     @Override
     public String toString() {
-        return "Position " + index + " in Record " + primaryKey;
+        return "Position " + index + " in Record " + identifier;
     }
 
 }
