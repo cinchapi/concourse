@@ -192,7 +192,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         CorpusRecord searchRecord = CorpusRecord.createPartial(key, term);
         ((CorpusChunk) chunk).seek(Composite.create(key, term), searchRecord);
         Assert.assertTrue(
-                searchRecord.get(term).stream().map(Position::getPrimaryKey)
+                searchRecord.get(term).stream().map(Position::getIdentifier)
                         .collect(Collectors.toCollection(LinkedHashSet::new))
                         .contains(record));
     }
@@ -330,11 +330,11 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
         Variables.register("record", record);
         Variables.register("position", position);
         Assert.assertFalse(chunk.mightContain(Composite.create(locator, term,
-                Position.wrap(record, position))));
+                Position.of(record, position))));
         ((CorpusChunk) chunk).insert(locator, value, record, Time.now(),
                 Action.ADD);
         Assert.assertTrue(chunk.mightContain(Composite.create(locator, term,
-                Position.wrap(record, position))));
+                Position.of(record, position))));
     }
 
 }
