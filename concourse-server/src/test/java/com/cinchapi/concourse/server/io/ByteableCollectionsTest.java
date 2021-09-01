@@ -105,7 +105,7 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
         }
         Assert.assertEquals(values, newValues);
     }
-    
+
     @Test
     public void testHashNextNotRequired() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
@@ -118,7 +118,7 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
         FileSystem.writeBytes(bytes, file.toString());
         int bufferSize = 64;
         Iterator<ByteBuffer> it = ByteableCollections.stream(file, bufferSize);
-        for(int i = 0; i< count; ++i) {
+        for (int i = 0; i < count; ++i) {
             it.next();
         }
         Assert.assertFalse(it.hasNext());

@@ -54,7 +54,7 @@ public final class Position implements Byteable, Comparable<Position> {
      */
     public static Position fromByteBuffer(ByteBuffer bytes) {
         PrimaryKey primaryKey = PrimaryKey
-                .fromByteBuffer(ByteBuffers.get(bytes, PrimaryKey.SIZE));
+                .fromByteBuffer(ByteBuffers.share(bytes, PrimaryKey.SIZE));
         int index = bytes.getInt();
         return new Position(primaryKey, index);
     }
