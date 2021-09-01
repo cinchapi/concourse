@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -34,7 +34,7 @@ import com.cinchapi.concourse.server.storage.db.TableRevision;
  *
  * @author Jeff Nelson
  */
-public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
+public class TableChunk extends SerialChunk<Identifier, Text, Value> {
 
     /**
      * Return a new {@link TableChunk}.
@@ -115,20 +115,20 @@ public class TableChunk extends SerialChunk<PrimaryKey, Text, Value> {
     }
 
     @Override
-    public TableArtifact insert(PrimaryKey locator, Text key, Value value,
+    public TableArtifact insert(Identifier locator, Text key, Value value,
             long version, Action type) throws IllegalStateException {
         return (TableArtifact) super.insert(locator, key, value, version, type);
     }
 
     @Override
-    protected Artifact<PrimaryKey, Text, Value> makeArtifact(
-            Revision<PrimaryKey, Text, Value> revision,
+    protected Artifact<Identifier, Text, Value> makeArtifact(
+            Revision<Identifier, Text, Value> revision,
             Composite[] composites) {
         return new TableArtifact((TableRevision) revision, composites);
     }
 
     @Override
-    protected TableRevision makeRevision(PrimaryKey locator, Text key,
+    protected TableRevision makeRevision(Identifier locator, Text key,
             Value value, long version, Action type) {
         return Revision.createTableRevision(locator, key, value, version, type);
     }

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -32,7 +32,7 @@ import com.cinchapi.concourse.server.storage.Action;
  * @author Jeff Nelson
  */
 @Immutable
-public final class IndexRevision extends Revision<Text, Value, PrimaryKey> {
+public final class IndexRevision extends Revision<Text, Value, Identifier> {
 
     /**
      * Construct an instance that represents an existing SecondaryRevision
@@ -54,7 +54,7 @@ public final class IndexRevision extends Revision<Text, Value, PrimaryKey> {
      * @param value
      * @param version
      */
-    IndexRevision(Text locator, Value key, PrimaryKey value, long version,
+    IndexRevision(Text locator, Value key, Identifier value, long version,
             Action type) {
         super(locator, key, value, version, type);
     }
@@ -80,8 +80,8 @@ public final class IndexRevision extends Revision<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected Class<PrimaryKey> xValueClass() {
-        return PrimaryKey.class;
+    protected Class<Identifier> xValueClass() {
+        return Identifier.class;
     }
 
 }

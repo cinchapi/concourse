@@ -20,7 +20,7 @@ import java.nio.file.Paths;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.Database;
@@ -67,10 +67,10 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                     db.start();
                     try {
                         Path cpb = directory.resolve("cpb");
-                        Iterable<Block<PrimaryKey, Text, Value>> blocks = StorageFormatV2
+                        Iterable<Block<Identifier, Text, Value>> blocks = StorageFormatV2
                                 .load(cpb, TableRevision.class);
-                        for (Block<PrimaryKey, Text, Value> block : blocks) {
-                            for (Revision<PrimaryKey, Text, Value> revision : block) {
+                        for (Block<Identifier, Text, Value> block : blocks) {
+                            for (Revision<Identifier, Text, Value> revision : block) {
                                 Write write = Reflection.newInstance(
                                         Write.class, revision.getType(),
                                         revision.getKey(), revision.getValue(),

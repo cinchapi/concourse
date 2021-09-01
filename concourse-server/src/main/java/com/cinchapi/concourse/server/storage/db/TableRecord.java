@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -45,7 +45,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class TableRecord extends Record<PrimaryKey, Text, Value> {
+public final class TableRecord extends Record<Identifier, Text, Value> {
 
     /**
      * Return a {@link TableRecord} that holds data for the {@code locator}.
@@ -53,7 +53,7 @@ public final class TableRecord extends Record<PrimaryKey, Text, Value> {
      * @param locator
      * @return the {@link TableRecord}
      */
-    public static TableRecord create(PrimaryKey locator) {
+    public static TableRecord create(Identifier locator) {
         return new TableRecord(locator, null);
     }
 
@@ -65,20 +65,20 @@ public final class TableRecord extends Record<PrimaryKey, Text, Value> {
      * @param key
      * @return the {@link TableRecord}
      */
-    public static TableRecord createPartial(PrimaryKey locator, Text key) {
+    public static TableRecord createPartial(Identifier locator, Text key) {
         return new TableRecord(locator, key);
     }
 
     /**
-     * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(PrimaryKey)} or
-     * {@link Record#createPrimaryRecordPartial(PrimaryKey, Text)} instead.
+     * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(Identifier)} or
+     * {@link Record#createPrimaryRecordPartial(Identifier, Text)} instead.
      * 
      * @param locator
      * @param key
      */
     @PackagePrivate
     @DoNotInvoke
-    protected TableRecord(PrimaryKey locator, @Nullable Text key) {
+    protected TableRecord(Identifier locator, @Nullable Text key) {
         super(locator, key);
     }
 

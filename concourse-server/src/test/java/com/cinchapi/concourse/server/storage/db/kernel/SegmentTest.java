@@ -28,8 +28,8 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
@@ -191,7 +191,7 @@ public class SegmentTest extends ConcourseBaseTest {
                 String key = Long.toString(record);
                 TObject value = Convert.javaToThrift(Long.toString(record));
                 Write write = Write.add(key, value, record);
-                PrimaryKey pk = PrimaryKey.wrap(record);
+                Identifier pk = Identifier.of(record);
                 Text text = Text.wrap(key);
 
                 Thread reader = new Thread(() -> {
@@ -299,12 +299,12 @@ public class SegmentTest extends ConcourseBaseTest {
         }
         Text name = null;
         Value fonamey = null;
-        PrimaryKey one = null;
+        Identifier one = null;
         Position position = null;
-        Iterator<Revision<PrimaryKey, Text, Value>> tit = segment.table()
+        Iterator<Revision<Identifier, Text, Value>> tit = segment.table()
                 .iterator();
         while (tit.hasNext()) {
-            Revision<PrimaryKey, Text, Value> revision = tit.next();
+            Revision<Identifier, Text, Value> revision = tit.next();
             if(one == null) {
                 one = revision.getLocator();
             }
@@ -318,10 +318,10 @@ public class SegmentTest extends ConcourseBaseTest {
             Assert.assertSame(name, revision.getKey());
             Assert.assertSame(fonamey, revision.getValue());
         }
-        Iterator<Revision<Text, Value, PrimaryKey>> iit = segment.index()
+        Iterator<Revision<Text, Value, Identifier>> iit = segment.index()
                 .iterator();
         while (iit.hasNext()) {
-            Revision<Text, Value, PrimaryKey> revision = iit.next();
+            Revision<Text, Value, Identifier> revision = iit.next();
             if(one == null) {
                 one = revision.getValue();
             }

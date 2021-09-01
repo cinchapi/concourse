@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -38,10 +38,10 @@ import com.cinchapi.concourse.util.TestData;
  *
  * @author Jeff Nelson
  */
-public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
+public class TableChunkTest extends ChunkTest<Identifier, Text, Value> {
 
     @Override
-    protected PrimaryKey getLocator() {
+    protected Identifier getLocator() {
         return TestData.getPrimaryKey();
     }
 
@@ -56,12 +56,12 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
     }
 
     @Override
-    protected Chunk<PrimaryKey, Text, Value> create(BloomFilter filter) {
+    protected Chunk<Identifier, Text, Value> create(BloomFilter filter) {
         return TableChunk.create(filter);
     }
 
     @Override
-    protected Chunk<PrimaryKey, Text, Value> load(Path file, BloomFilter filter,
+    protected Chunk<Identifier, Text, Value> load(Path file, BloomFilter filter,
             Manifest manifest) {
         return TableChunk.load(file, 0, FileSystem.getFileSize(file.toString()),
                 filter, manifest);
@@ -69,7 +69,7 @@ public class TableChunkTest extends ChunkTest<PrimaryKey, Text, Value> {
 
     @Test
     public void testInsertLocatorWithTrailingWhiteSpace() {
-        PrimaryKey locator = PrimaryKey.wrap(1);
+        Identifier locator = Identifier.of(1);
         Text key = Text.wrap("Youtube Embed Link ");
         Value value = Value.wrap(Convert.javaToThrift("http://youtube.com"));
         chunk.insert(locator, key, value, Time.now(), Action.ADD);

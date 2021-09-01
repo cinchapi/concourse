@@ -22,7 +22,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.time.Time;
@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
  *
  * @author Jeff Nelson
  */
-public class TableRecordTest extends RecordTest<PrimaryKey, Text, Value> {
+public class TableRecordTest extends RecordTest<Identifier, Text, Value> {
 
     @Override
     protected Text getKey() {
@@ -44,23 +44,23 @@ public class TableRecordTest extends RecordTest<PrimaryKey, Text, Value> {
     }
 
     @Override
-    protected PrimaryKey getLocator() {
+    protected Identifier getLocator() {
         return TestData.getPrimaryKey();
     }
 
     @Override
-    protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator) {
+    protected Record<Identifier, Text, Value> getRecord(Identifier locator) {
         return TableRecord.create(locator);
     }
 
     @Override
-    protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator,
+    protected Record<Identifier, Text, Value> getRecord(Identifier locator,
             Text key) {
         return TableRecord.createPartial(locator, key);
     }
 
     @Override
-    protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
+    protected Revision<Identifier, Text, Value> getRevision(Identifier locator,
             Text key, Value value) {
         return Revision.createTableRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
@@ -77,7 +77,7 @@ public class TableRecordTest extends RecordTest<PrimaryKey, Text, Value> {
         Set<Value> set = Sets.newLinkedHashSet();
         Set<Value> allValues = Sets.newLinkedHashSet();
         long recordId = TestData.getLong();
-        PrimaryKey primaryKey = PrimaryKey.wrap(recordId);
+        Identifier primaryKey = Identifier.of(recordId);
         TableRecord record = TableRecord.create(primaryKey);
         for (long i = 30; i <= 35; i++) {
             Value value = null;

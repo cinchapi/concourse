@@ -48,7 +48,7 @@ import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -496,7 +496,7 @@ public final class Segment extends TransferableByteSequence implements
         writeLock.lock();
         try {
             // @formatter:off
-            PrimaryKey record = write.getRecord();
+            Identifier record = write.getRecord();
             Text key          = write.getKey();
             Value value       = write.getValue();
             long version      = write.getVersion();

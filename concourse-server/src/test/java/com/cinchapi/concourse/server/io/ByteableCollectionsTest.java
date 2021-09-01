@@ -32,7 +32,7 @@ import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.collect.CloseableIterator;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.util.TestData;
@@ -50,18 +50,18 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
     @Test
     public void testStreamIterator() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        List<PrimaryKey> values = Lists.newArrayList();
+        List<Identifier> values = Lists.newArrayList();
         int count = 10;
         for (int i = 0; i < count; ++i) {
-            values.add(PrimaryKey.wrap(i));
+            values.add(Identifier.of(i));
         }
         ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
         FileSystem.writeBytes(bytes, file.toString());
         int bufferSize = 64;
         Iterator<ByteBuffer> it = ByteableCollections.stream(file, bufferSize);
-        List<PrimaryKey> newValues = Lists.newArrayList();
+        List<Identifier> newValues = Lists.newArrayList();
         while (it.hasNext()) {
-            newValues.add(PrimaryKey.fromByteBuffer(it.next()));
+            newValues.add(Identifier.fromByteBuffer(it.next()));
         }
         Assert.assertEquals(values, newValues);
     }
@@ -69,19 +69,19 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
     @Test
     public void testStreamIteratorMultipleHasNext() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        List<PrimaryKey> values = Lists.newArrayList();
+        List<Identifier> values = Lists.newArrayList();
         int count = 10;
         for (int i = 0; i < count; ++i) {
-            values.add(PrimaryKey.wrap(i));
+            values.add(Identifier.of(i));
         }
         ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
         FileSystem.writeBytes(bytes, file.toString());
         int bufferSize = 64;
         Iterator<ByteBuffer> it = ByteableCollections.stream(file, bufferSize);
-        List<PrimaryKey> newValues = Lists.newArrayList();
+        List<Identifier> newValues = Lists.newArrayList();
         while (it.hasNext()) {
             if(it.hasNext()) {
-                newValues.add(PrimaryKey.fromByteBuffer(it.next()));
+                newValues.add(Identifier.fromByteBuffer(it.next()));
             }
         }
         Assert.assertEquals(values, newValues);
@@ -109,10 +109,10 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
     @Test
     public void testHashNextNotRequired() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
-        List<PrimaryKey> values = Lists.newArrayList();
+        List<Identifier> values = Lists.newArrayList();
         int count = 10;
         for (int i = 0; i < count; ++i) {
-            values.add(PrimaryKey.wrap(i));
+            values.add(Identifier.of(i));
         }
         ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
         FileSystem.writeBytes(bytes, file.toString());

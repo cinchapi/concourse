@@ -24,7 +24,7 @@ import org.junit.Test;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -39,7 +39,7 @@ import com.cinchapi.concourse.util.TestData;
  *
  * @author Jeff Nelson
  */
-public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
+public class IndexChunkTest extends ChunkTest<Text, Value, Identifier> {
 
     @Override
     protected Text getLocator() {
@@ -52,17 +52,17 @@ public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected PrimaryKey getValue() {
+    protected Identifier getValue() {
         return TestData.getPrimaryKey();
     }
 
     @Override
-    protected Chunk<Text, Value, PrimaryKey> create(BloomFilter filter) {
+    protected Chunk<Text, Value, Identifier> create(BloomFilter filter) {
         return IndexChunk.create(filter);
     }
 
     @Override
-    protected Chunk<Text, Value, PrimaryKey> load(Path file, BloomFilter filter,
+    protected Chunk<Text, Value, Identifier> load(Path file, BloomFilter filter,
             Manifest manifest) {
         return IndexChunk.load(file, 0, FileSystem.getFileSize(file.toString()),
                 filter, manifest);
@@ -71,24 +71,24 @@ public class IndexChunkTest extends ChunkTest<Text, Value, PrimaryKey> {
     @Test
     public void testGenerateManifestWithEqualValuesOfDifferentTypes() {
         chunk.insert(Text.wrapCached("payRangeMax"),
-                Value.wrap(Convert.javaToThrift(18)), PrimaryKey.wrap(1),
+                Value.wrap(Convert.javaToThrift(18)), Identifier.of(1),
                 Time.now(), Action.ADD);
         chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(18.0))),
-                PrimaryKey.wrap(1), Time.now(), Action.ADD);
+                Identifier.of(1), Time.now(), Action.ADD);
         chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(625))),
-                PrimaryKey.wrap(1), Time.now(), Action.ADD);
+                Identifier.of(1), Time.now(), Action.ADD);
 
         chunk.insert(Text.wrapCached("payRangeMax"),
-                Value.wrap(Convert.javaToThrift("foo")), PrimaryKey.wrap(1),
+                Value.wrap(Convert.javaToThrift("foo")), Identifier.of(1),
                 Time.now(), Action.ADD);
         chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(Tag.create("foo"))),
-                PrimaryKey.wrap(1), Time.now(), Action.ADD);
+                Identifier.of(1), Time.now(), Action.ADD);
         chunk.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(new Double(626))),
-                PrimaryKey.wrap(1), Time.now(), Action.ADD);
+                Identifier.of(1), Time.now(), Action.ADD);
         Map<?, ?> entries = Reflection.call(chunk.manifest(), "entries"); // authorized
         // Ensure 18.0 and 18 as well as `foo` and foo are treated as equal when
         // generating the index. That means there should be 5 entires (e.g. an

@@ -37,7 +37,7 @@ public class ModelBenchmark extends AbstractBenchmark {
     @Test
     @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
     public void benchmarkPrimaryKey() {
-        PrimaryKey.wrap(TestData.getLong());
+        Identifier.of(TestData.getLong());
     }
 
     @Test

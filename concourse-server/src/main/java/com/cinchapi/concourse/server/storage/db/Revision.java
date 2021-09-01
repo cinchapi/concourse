@@ -25,8 +25,8 @@ import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -63,7 +63,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * 
      * @return the PrimaryRevision
      */
-    public static TableRevision createTableRevision(PrimaryKey record, Text key,
+    public static TableRevision createTableRevision(Identifier record, Text key,
             Value value, long version, Action type) {
         return new TableRevision(record, key, value, version, type);
     }
@@ -96,7 +96,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @return the SecondaryRevision
      */
     public static IndexRevision createIndexRevision(Text key, Value value,
-            PrimaryKey record, long version, Action type) {
+            Identifier record, long version, Action type) {
         return new IndexRevision(key, value, record, version, type);
     }
 

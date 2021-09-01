@@ -22,32 +22,32 @@ import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link com.cinchapi.concourse.server.model.PrimaryKey}.
+ * Unit tests for {@link com.cinchapi.concourse.server.model.Identifier}.
  *
  * @author Jeff Nelson
  */
-public class PrimaryKeyTest extends ByteableTest {
+public class IdentifierTest extends ByteableTest {
 
     @Test
     public void testCompareTo() {
         long value1 = TestData.getLong();
         value1 = value1 == Long.MAX_VALUE ? value1 - 1 : value1;
         long value2 = value1 + 1;
-        PrimaryKey key1 = PrimaryKey.wrap(value1);
-        PrimaryKey key2 = PrimaryKey.wrap(value2);
+        Identifier key1 = Identifier.of(value1);
+        Identifier key2 = Identifier.of(value2);
         Assert.assertTrue(key1.compareTo(key2) < 0);
     }
 
     @Test
     public void testSize() {
-        PrimaryKey key = TestData.getPrimaryKey();
-        Assert.assertEquals(PrimaryKey.SIZE, key.size());
-        Assert.assertEquals(PrimaryKey.SIZE, key.getBytes().capacity());
+        Identifier key = TestData.getPrimaryKey();
+        Assert.assertEquals(Identifier.SIZE, key.size());
+        Assert.assertEquals(Identifier.SIZE, key.getBytes().capacity());
     }
 
     @Override
-    protected Class<PrimaryKey> getTestClass() {
-        return PrimaryKey.class;
+    protected Class<Identifier> getTestClass() {
+        return Identifier.class;
     }
 
 }

@@ -23,8 +23,8 @@ import java.util.List;
 
 import com.beust.jcommander.internal.Lists;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -87,8 +87,8 @@ public final class TestData extends Random {
         return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
     }
 
-    public static PrimaryKey getPrimaryKey() {
-        return PrimaryKey.wrap(getLong());
+    public static Identifier getPrimaryKey() {
+        return Identifier.of(getLong());
     }
 
     /**

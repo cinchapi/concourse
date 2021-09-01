@@ -33,7 +33,7 @@ import org.junit.Test;
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
@@ -179,10 +179,10 @@ public class DatabaseTest extends StoreTest {
                                                  // state isn't reset...
         db.start();
         TableRecord rec = Reflection.call(db, "getTableRecord",
-                PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
+                Identifier.of(record), Text.wrap(a)); // (authorized)
         Assert.assertTrue(rec.isPartial());
         db.select(record);
-        rec = Reflection.call(db, "getTableRecord", PrimaryKey.wrap(record),
+        rec = Reflection.call(db, "getTableRecord", Identifier.of(record),
                 Text.wrap(b)); // (authorized)
         Assert.assertFalse(rec.isPartial());
     }

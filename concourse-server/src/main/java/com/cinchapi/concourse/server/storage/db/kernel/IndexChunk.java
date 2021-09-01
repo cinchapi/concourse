@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -34,7 +34,7 @@ import com.cinchapi.concourse.server.storage.db.Revision;
  *
  * @author Jeff Nelson
  */
-public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
+public class IndexChunk extends SerialChunk<Text, Value, Identifier> {
 
     /**
      * Return a new {@link IndexChunk}.
@@ -115,21 +115,21 @@ public class IndexChunk extends SerialChunk<Text, Value, PrimaryKey> {
     }
 
     @Override
-    public IndexArtifact insert(Text locator, Value key, PrimaryKey value,
+    public IndexArtifact insert(Text locator, Value key, Identifier value,
             long version, Action type) throws IllegalStateException {
         return (IndexArtifact) super.insert(locator, key, value, version, type);
     }
 
     @Override
     protected IndexArtifact makeArtifact(
-            Revision<Text, Value, PrimaryKey> revision,
+            Revision<Text, Value, Identifier> revision,
             Composite[] composites) {
         return new IndexArtifact((IndexRevision) revision, composites);
     }
 
     @Override
     protected IndexRevision makeRevision(Text locator, Value key,
-            PrimaryKey value, long version, Action type) {
+            Identifier value, long version, Action type) {
         return Revision.createIndexRevision(locator, key, value, version, type);
     }
 

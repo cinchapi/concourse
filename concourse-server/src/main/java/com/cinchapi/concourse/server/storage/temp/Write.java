@@ -24,7 +24,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -45,7 +45,7 @@ public final class Write implements Byteable, Versioned {
     /**
      * The minimum number of bytes needed to encode every Write.
      */
-    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
+    private static final int CONSTANT_SIZE = Identifier.SIZE + 13; // type(1),
                                                                    // version(8),
                                                                    // keySize(4)
 
@@ -72,7 +72,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write add(String key, TObject value, long record) {
         return new Write(Action.ADD, Text.wrapCached(key), Value.wrap(value),
-                PrimaryKey.wrap(record), Time.now());
+                Identifier.of(record), Time.now());
     }
 
     /**
@@ -89,8 +89,8 @@ public final class Write implements Byteable, Versioned {
         int keySize = bytes.getInt();
         Action type = Action.values()[bytes.get()];
         long version = bytes.getLong();
-        PrimaryKey record = PrimaryKey
-                .fromByteBuffer(ByteBuffers.get(bytes, PrimaryKey.SIZE));
+        Identifier record = Identifier
+                .fromByteBuffer(ByteBuffers.get(bytes, Identifier.SIZE));
         Text key = Text.fromByteBuffer(ByteBuffers.get(bytes, keySize));
         Value value = Value
                 .fromByteBuffer(ByteBuffers.get(bytes, bytes.remaining()));
@@ -108,7 +108,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write notStorable(String key, TObject value, long record) {
         return new Write(Action.COMPARE, Text.wrapCached(key),
-                Value.wrap(value), PrimaryKey.wrap(record), NO_VERSION);
+                Value.wrap(value), Identifier.of(record), NO_VERSION);
     }
 
     /**
@@ -122,7 +122,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write remove(String key, TObject value, long record) {
         return new Write(Action.REMOVE, Text.wrapCached(key), Value.wrap(value),
-                PrimaryKey.wrap(record), Time.now());
+                Identifier.of(record), Time.now());
     }
 
     /**
@@ -132,7 +132,7 @@ public final class Write implements Byteable, Versioned {
     @Nullable
     private transient ByteBuffer bytes = null;
     private final Text key;
-    private final PrimaryKey record;
+    private final Identifier record;
     /**
      * Indicates the action that generated the Write. The type information is
      * recorded so that the Database knows how to apply the Write when accepting
@@ -152,7 +152,7 @@ public final class Write implements Byteable, Versioned {
      * @param record
      * @param version
      */
-    private Write(Action type, Text key, Value value, PrimaryKey record,
+    private Write(Action type, Text key, Value value, Identifier record,
             long version) {
         this(type, key, value, record, version, null);
     }
@@ -167,7 +167,7 @@ public final class Write implements Byteable, Versioned {
      * @param version
      * @param bytes
      */
-    private Write(Action type, Text key, Value value, PrimaryKey record,
+    private Write(Action type, Text key, Value value, Identifier record,
             long version, @Nullable ByteBuffer bytes) {
         this.type = type;
         this.key = key;
@@ -243,7 +243,7 @@ public final class Write implements Byteable, Versioned {
      * 
      * @return the record
      */
-    public PrimaryKey getRecord() {
+    public Identifier getRecord() {
         return record;
     }
 

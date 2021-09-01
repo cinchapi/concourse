@@ -56,7 +56,7 @@ import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
@@ -1074,7 +1074,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
         /**
          * The relevant record.
          */
-        private final PrimaryKey record;
+        private final Identifier record;
 
         /**
          * Construct a new instance.
@@ -1085,7 +1085,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
                 long timestamp) {
             super(timestamp);
             this.key = Text.wrapCached(key);
-            this.record = PrimaryKey.wrap(record);
+            this.record = Identifier.of(record);
             init();
         }
 
@@ -1451,7 +1451,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * @param record
          * @return {@code true} if a write within {@code record} possibly exists
          */
-        public boolean mightContain(PrimaryKey record) {
+        public boolean mightContain(Identifier record) {
             return recordCache[slotify(record.hashCode())];
         }
 
@@ -1479,7 +1479,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
          * @return {@code true} if a write for {@code key} in {@code record}
          *         possibly exists
          */
-        public boolean mightContain(Text key, PrimaryKey record) {
+        public boolean mightContain(Text key, Identifier record) {
             return keyRecordCache[slotify(key.hashCode(), record.hashCode())];
         }
 
@@ -1691,7 +1691,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
         /**
          * The relevant record.
          */
-        private final PrimaryKey record;
+        private final Identifier record;
 
         /**
          * Construct a new instance.
@@ -1706,7 +1706,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
          */
         protected RecordSeekingIterator(long record, long timestamp) {
             super(timestamp);
-            this.record = PrimaryKey.wrap(record);
+            this.record = Identifier.of(record);
             init();
         }
 
