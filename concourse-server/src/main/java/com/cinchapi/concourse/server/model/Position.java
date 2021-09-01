@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.io.ByteBuffers;
@@ -53,21 +52,20 @@ public final class Position implements Byteable, Comparable<Position> {
      * @return the Position
      */
     public static Position fromByteBuffer(ByteBuffer bytes) {
-        Identifier primaryKey = Identifier
-                .fromByteBuffer(ByteBuffers.get(bytes, Identifier.SIZE));
+        Identifier identifier = Identifier.fromByteBuffer(bytes);
         int index = bytes.getInt();
-        return new Position(primaryKey, index);
+        return new Position(identifier, index);
     }
 
     /**
      * Return a Position that is backed by {@code primaryKey} and {@code index}.
      * 
-     * @param primaryKey
+     * @param identifier
      * @param index
      * @return the Position
      */
-    public static Position of(Identifier primaryKey, int index) {
-        return new Position(primaryKey, index);
+    public static Position of(Identifier identifier, int index) {
+        return new Position(identifier, index);
     }
 
     /**
@@ -93,23 +91,11 @@ public final class Position implements Byteable, Comparable<Position> {
      * @param index
      */
     private Position(Identifier identifier, int index) {
-        this(identifier, index, null);
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param identifier
-     * @param index
-     * @param bytes;
-     */
-    private Position(Identifier identifier, int index,
-            @Nullable ByteBuffer bytes) {
         Preconditions.checkArgument(index >= 0,
                 "Cannot have an negative index");
         this.identifier = identifier;
         this.index = index;
-        this.bytes = bytes;
+        this.bytes = null;
     }
 
     @Override
@@ -172,7 +158,7 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     /**
-     * Return the associated {@code primaryKey}.
+     * Return the associated {@link #identifier}.
      * 
      * @return the primaryKey
      */

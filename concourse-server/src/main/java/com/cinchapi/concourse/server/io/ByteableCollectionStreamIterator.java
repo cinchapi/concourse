@@ -32,6 +32,15 @@ import com.google.common.base.Preconditions;
  * the assumption that they represent a {@link ByteableCollections
  * ByteableCollection} and returns a series of {ByteBuffer ByteBuffers} that can
  * be used to deserialize a {@link Byteable} object.
+ * 
+ * <p>
+ * <strong>Warning:</strong> {@link ByteBuffer ByteBuffers} that are returned
+ * from {@link #next()} should <strong>not</strong> be stored in memory or
+ * assumed to be long-lived (e.g. each call to {@link #next()} may invalidate or
+ * change the state of the previously returned {@link ByteBuffer}. If streamed
+ * {@link ByteBuffer ByteBuffers} need to be accessed after processing, make a
+ * copy of the value returned from {@link #next()}.
+ * </p>
  *
  * @author Jeff Nelson
  */
@@ -100,6 +109,14 @@ class ByteableCollectionStreamIterator implements
      * </p>
      */
     private long position;
+
+    /**
+     * A {@link ByteBuffer#duplicate() duplicate} of the current {@link #buffer}
+     * that is {@link ByteBuffer#slice() sliced}, {@link ByteBuffer#limit(int)
+     * limited} and returned from {@link #next()} in an effort to prevent the
+     * creation of temporary objects during the course of the stream.
+     */
+    private ByteBuffer slice;
 
     /**
      * Construct a new instance.
@@ -183,15 +200,16 @@ class ByteableCollectionStreamIterator implements
             if(size > buffer.remaining()) {
                 // There aren't enough bytes in the buffer (e.g. the size of the
                 // next item > bufferSize), so backtrack and (re)read enough
-                // bytes,
-                // but try to keep the buffer sized as a power of two to
-                // maximize
-                // I/O efficiency
+                // bytes, but try to keep the buffer sized as a power of two to
+                // maximize I/O efficiency
                 position -= buffer.remaining();
                 read(size);
             }
-            next = buffer.slice();
-            next.limit(size);
+            slice.rewind();
+            slice.limit(slice.capacity());
+            slice.position(buffer.position());
+            slice.limit(buffer.position() + size);
+            next = slice;
             buffer.position(buffer.position() + size);
             found = true;
         }
@@ -206,6 +224,7 @@ class ByteableCollectionStreamIterator implements
     private void read(int size) {
         try {
             buffer = channel.map(MapMode.READ_ONLY, position, size);
+            slice = buffer.duplicate();
             position += buffer.capacity();
         }
         catch (IOException e) {

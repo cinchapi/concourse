@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.ByteableTest;
 import com.cinchapi.concourse.server.io.Composite;
@@ -210,13 +211,14 @@ public class TextTest extends ByteableTest {
         String string = Random.getString();
         Text text = Text.wrap(string);
         ByteBuffer bytes = text.getBytes();
-        Text t1 = Text.fromByteBufferCached(bytes);
+        Text t1 = Text
+                .fromByteBufferCached(ByteBuffers.asReadOnlyBuffer(bytes));
         Text t2 = null;
         Text t3 = null;
         while (t2 != t1 || t3 != t2) {
             // Wait for lazy cache to kick in...
-            t1 = Text.fromByteBufferCached(bytes);
-            t2 = Text.fromByteBufferCached(bytes);
+            t1 = Text.fromByteBufferCached(ByteBuffers.asReadOnlyBuffer(bytes));
+            t2 = Text.fromByteBufferCached(ByteBuffers.asReadOnlyBuffer(bytes));
             t3 = Text.wrapCached(string);
         }
         Assert.assertSame(t1, t2);

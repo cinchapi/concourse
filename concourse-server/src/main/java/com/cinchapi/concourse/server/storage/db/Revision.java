@@ -188,18 +188,28 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     @DoNotInvoke
     public Revision(ByteBuffer bytes) {
         this.bytes = bytes;
+        this.size = bytes.remaining();
         this.type = Action.values()[bytes.get()];
         this.version = bytes.getLong();
-        this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
-                xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
-                        : xLocatorSize()),
-                xLocatorClass());
-        this.key = Byteables.readStatic(ByteBuffers.get(bytes,
-                xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
-                xKeyClass());
-        this.value = Byteables.readStatic(
-                ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
-        this.size = bytes.capacity();
+        int limit = bytes.limit();
+
+        // Locator
+        int locatorSize = xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
+                : xLocatorSize();
+        bytes.limit(bytes.position() + locatorSize);
+        this.locator = Byteables.readStatic(bytes, xLocatorClass());
+        bytes.limit(limit);
+
+        // Key
+        int keySize = xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize();
+        bytes.limit(bytes.position() + keySize);
+        this.key = Byteables.readStatic(bytes, xKeyClass());
+        bytes.limit(limit);
+
+        // Locator
+        this.value = Byteables.readStatic(bytes, xValueClass());
+        bytes.limit(limit);
+
     }
 
     /**
