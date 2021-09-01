@@ -19,9 +19,9 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -381,12 +381,18 @@ public class Manifest extends TransferableByteSequence {
                 Map<Composite, Entry> heapEntries = new HashMap<>(
                         (int) length / Entry.CONSTANT_SIZE);
                 executor.execute(() -> {
-                    entries.forEach((key, value) -> {
+                    boolean found = false;
+                    for (Map.Entry<Composite, Entry> entry : entries
+                            .entrySet()) {
+                        Composite key = entry.getKey();
+                        Entry value = entry.getValue();
                         heapEntries.put(key, value);
-                        if(composite != null && key.equals(composite)) {
+                        if(composite != null && !found
+                                && key.equals(composite)) {
                             queue.add(ImmutableMap.of(key, value));
+                            found = true;
                         }
-                    });
+                    }
                     queue.offer(composite != null ? Collections.emptyMap()
                             : heapEntries);
                     $entries = new SoftReference<Map<Composite, Entry>>(
@@ -584,6 +590,45 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
+     * A {@link Map#Entry} where both the {@link #getKey()} and
+     * {@link #getValue()} can be updated. An instance of this is returned from
+     * the {@link Map#entrySet()} of the {@link StreamedEntries} in an effort to
+     * prevent temporary object creation.
+     *
+     * @author Jeff Nelson
+     */
+    private static final class ReusableMapEntry<K, V> implements
+            Map.Entry<K, V> {
+
+        private K key;
+        private V value;
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            V old = value;
+            this.value = value;
+            return old;
+        }
+
+        public K setKey(K key) {
+            K old = key;
+            this.key = key;
+            return old;
+        }
+
+    }
+
+    /**
      * A {@link Map} that reads the {@link Entry entries} from disk one-by-one.
      * This should be used for an immutable {@link Manifest} that is larger than
      * {@link #MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD}.
@@ -594,23 +639,57 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public Set<Entry<Composite, Manifest.Entry>> entrySet() {
-            Set<Entry<Composite, Manifest.Entry>> entrySet = new HashSet<>();
-            forEach((composite, entry) -> entrySet
-                    .add(new SimpleEntry<>(composite, entry)));
-            return entrySet;
+            // It is assumed that the return #entrySet is only used to
+            // facilitate streaming all the entries, so it is not appropriate to
+            // perform query operations (e.g. get()) directly on it.
+            return new AbstractSet<Entry<Composite, Manifest.Entry>>() {
+
+                @Override
+                public Iterator<Entry<Composite, Manifest.Entry>> iterator() {
+                    return new Iterator<Entry<Composite, Manifest.Entry>>() {
+
+                        Iterator<ByteBuffer> it = ByteableCollections.stream(
+                                file(), position(), length,
+                                GlobalState.DISK_READ_BUFFER_SIZE);
+
+                        /**
+                         * A {@link ReusableMapEntry} that is updated and
+                         * returned on each call to {@link #next()} so that we
+                         * don't create unnecessary temporary objects.
+                         */
+                        ReusableMapEntry<Composite, Manifest.Entry> reusable = new ReusableMapEntry<>();
+
+                        @Override
+                        public boolean hasNext() {
+                            return it.hasNext();
+                        }
+
+                        @Override
+                        public Entry<Composite, Manifest.Entry> next() {
+                            Manifest.Entry entry = new Manifest.Entry(
+                                    it.next());
+                            reusable.setKey(entry.key());
+                            reusable.setValue(entry);
+                            return reusable;
+                        }
+
+                    };
+                }
+
+                @Override
+                public int size() {
+                    throw new UnsupportedOperationException();
+                }
+
+            };
         }
 
         @Override
         public void forEach(
                 BiConsumer<? super Composite, ? super Manifest.Entry> action) {
-            Iterator<ByteBuffer> it = ByteableCollections.stream(file(),
-                    position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
-
-            while (it.hasNext()) {
-                Manifest.Entry entry = new Manifest.Entry(it.next());
-                action.accept(entry.key(), entry);
+            for (Entry<Composite, Manifest.Entry> entry : entrySet()) {
+                action.accept(entry.getKey(), entry.getValue());
             }
-
         }
 
         @Override
