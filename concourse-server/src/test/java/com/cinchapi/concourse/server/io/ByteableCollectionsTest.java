@@ -67,6 +67,27 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testStreamIteratorMultipleHasNext() {
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        List<PrimaryKey> values = Lists.newArrayList();
+        int count = 10;
+        for (int i = 0; i < count; ++i) {
+            values.add(PrimaryKey.wrap(i));
+        }
+        ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
+        FileSystem.writeBytes(bytes, file.toString());
+        int bufferSize = 64;
+        Iterator<ByteBuffer> it = ByteableCollections.stream(file, bufferSize);
+        List<PrimaryKey> newValues = Lists.newArrayList();
+        while (it.hasNext()) {
+            if(it.hasNext()) {
+                newValues.add(PrimaryKey.fromByteBuffer(it.next()));
+            }
+        }
+        Assert.assertEquals(values, newValues);
+    }
+
+    @Test
     public void testStreamingIterator() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
         List<Value> values = Lists.newArrayList();
@@ -83,6 +104,24 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
             newValues.add(Value.fromByteBuffer(it.next()));
         }
         Assert.assertEquals(values, newValues);
+    }
+
+    @Test
+    public void testHashNextNotRequired() {
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        List<PrimaryKey> values = Lists.newArrayList();
+        int count = 10;
+        for (int i = 0; i < count; ++i) {
+            values.add(PrimaryKey.wrap(i));
+        }
+        ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
+        FileSystem.writeBytes(bytes, file.toString());
+        int bufferSize = 64;
+        Iterator<ByteBuffer> it = ByteableCollections.stream(file, bufferSize);
+        for (int i = 0; i < count; ++i) {
+            it.next();
+        }
+        Assert.assertFalse(it.hasNext());
     }
 
     @Test

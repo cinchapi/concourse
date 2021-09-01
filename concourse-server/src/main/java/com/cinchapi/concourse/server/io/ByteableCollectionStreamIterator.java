@@ -72,6 +72,14 @@ class ByteableCollectionStreamIterator implements
     private final FileChannel channel;
 
     /**
+     * A flag that is set to {@code true} when {@link #findNext()} is run and
+     * set to {@code false} after the {@link #next() next} element is consumed.
+     * This ensure that multiple calls to {@link #hasNext()} don't advance the
+     * iterator unless a call to {@link #next()} is made.
+     */
+    private boolean found = false;
+
+    /**
      * The boundary after which no bytes should be read in {@link #channel}.
      */
     private final long limit;
@@ -136,12 +144,10 @@ class ByteableCollectionStreamIterator implements
 
     @Override
     public ByteBuffer next() {
+        findNext();
+        found = false;
         if(next == null) {
-            // In case there wasn't a prior call to #hasNext()
-            findNext();
-            if(next == null) {
-                throw new NoSuchElementException();
-            }
+            throw new NoSuchElementException();
         }
         return next;
     }
@@ -157,33 +163,38 @@ class ByteableCollectionStreamIterator implements
      * to fully read {@link #next} into memory.
      */
     private void findNext() {
-        long at = position - buffer.remaining();
-        if(at >= limit) {
-            next = null;
-            return;
+        if(!found) {
+            long at = position - buffer.remaining();
+            if(at >= limit) {
+                next = null;
+                return;
+            }
+            if(buffer.remaining() <= 4) {
+                // There aren't enough bytes in the buffer to read the next size
+                // and element, so refresh the buffer's content.
+                position -= buffer.remaining();
+                read(bufferSize);
+            }
+            int size = buffer.getInt();
+            if(size <= 0) {
+                next = null;
+                return;
+            }
+            if(size > buffer.remaining()) {
+                // There aren't enough bytes in the buffer (e.g. the size of the
+                // next item > bufferSize), so backtrack and (re)read enough
+                // bytes,
+                // but try to keep the buffer sized as a power of two to
+                // maximize
+                // I/O efficiency
+                position -= buffer.remaining();
+                read(size);
+            }
+            next = buffer.slice();
+            next.limit(size);
+            buffer.position(buffer.position() + size);
+            found = true;
         }
-        if(buffer.remaining() <= 4) {
-            // There aren't enough bytes in the buffer to read the next size
-            // and element, so refresh the buffer's content.
-            position -= buffer.remaining();
-            read(bufferSize);
-        }
-        int size = buffer.getInt();
-        if(size <= 0) {
-            next = null;
-            return;
-        }
-        if(size > buffer.remaining()) {
-            // There aren't enough bytes in the buffer (e.g. the size of the
-            // next item > bufferSize), so backtrack and (re)read enough bytes,
-            // but try to keep the buffer sized as a power of two to maximize
-            // I/O efficiency
-            position -= buffer.remaining();
-            read(size);
-        }
-        next = buffer.slice();
-        next.limit(size);
-        buffer.position(buffer.position() + size);
     }
 
     /**
