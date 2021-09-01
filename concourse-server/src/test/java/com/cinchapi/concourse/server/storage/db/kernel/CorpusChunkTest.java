@@ -103,7 +103,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
     }
 
     private Identifier getRecord() {
-        return TestData.getPrimaryKey();
+        return TestData.getIdentifier();
     }
 
     @Override

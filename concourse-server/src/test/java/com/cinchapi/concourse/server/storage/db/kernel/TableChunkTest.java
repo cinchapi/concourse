@@ -42,7 +42,7 @@ public class TableChunkTest extends ChunkTest<Identifier, Text, Value> {
 
     @Override
     protected Identifier getLocator() {
-        return TestData.getPrimaryKey();
+        return TestData.getIdentifier();
     }
 
     @Override

@@ -27,9 +27,9 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
- * A {@link Identifier} is an abstraction for an 8 byte long that represents the
- * canonical identifier for a normalized {@link Record}. The pool of possible
- * keys ranges from 0 to 2^64 1 inclusive.
+ * An {@link Identifier} is an abstraction for an 8 byte long that represents
+ * the canonical identifier for a normalized {@link Record}. The pool of
+ * possible keys ranges from 0 to 2^64 - 1 inclusive.
  * 
  * @author Jeff Nelson
  */
