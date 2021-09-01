@@ -89,11 +89,6 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Represents an entry that has not been recorded.
-     */
-    public static final int NO_ENTRY = -1;
-
-    /**
      * If the (byte) length of a flushed {@link Manifest} exceeds, this value,
      * the entries will be streamed into memory one-by-one using
      * {@link StreamedEntries} instead of loading them all into memory.
@@ -101,6 +96,17 @@ public class Manifest extends TransferableByteSequence {
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
             .pow(2, 25); // ~33.5mb or 419,430 entries
+
+    /**
+     * Represents an entry that has not been recorded.
+     */
+    public static final int NO_ENTRY = -1;
+
+    /**
+     * The number of worker threads to reserve for the {@link SearchIndexer}.
+     */
+    private static int ASYNC_BACKGROUND_LOADER_NUM_THREADS = Math.max(3,
+            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
 
     /**
      * An {@link ExecutorService} that asynchronously loads manifest entries in
@@ -111,12 +117,6 @@ public class Manifest extends TransferableByteSequence {
             .newFixedThreadPool(ASYNC_BACKGROUND_LOADER_NUM_THREADS,
                     new ThreadFactoryBuilder().setDaemon(true)
                             .setNameFormat("Manifest Loader" + " %d").build());
-
-    /**
-     * The number of worker threads to reserve for the {@link SearchIndexer}.
-     */
-    private static int ASYNC_BACKGROUND_LOADER_NUM_THREADS = Math.max(3,
-            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
 
     /**
      * Returned from {@link #lookup(Composite)} when an associated entry does
