@@ -119,11 +119,6 @@ class ByteableCollectionStreamIterator implements
     private ByteBuffer slice;
 
     /**
-     * The {@link Strategy} to use for streaming bytes.
-     */
-    private final Strategy strategy = Strategy.NO_COPY;
-
-    /**
      * Construct a new instance.
      * 
      * @param file
@@ -229,50 +224,12 @@ class ByteableCollectionStreamIterator implements
     private void read(int size) {
         try {
             buffer = channel.map(MapMode.READ_ONLY, position, size);
-            if(strategy == Strategy.NO_COPY) {
-                slice = buffer.duplicate();
-            }
-            else {
-                slice = strategy == Strategy.NATIVE_COPY
-                        ? ByteBuffer.allocateDirect(buffer.capacity())
-                        : ByteBuffer.allocate(buffer.capacity());
-                slice.put(buffer);
-                slice.rewind();
-                buffer.rewind();
-            }
+            slice = buffer.duplicate();
             position += buffer.capacity();
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
-    }
-
-    /**
-     * Various approaches that can be used for reading bytes from disk.
-     *
-     * @author Jeff Nelson
-     */
-    private enum Strategy {
-
-        // This is currently not configurable, but may be useful in the
-        // future...
-
-        /**
-         * Copy bytes into a non-direct (e.g. heap) {@link ByteBuffer} and
-         * stream.
-         */
-        HEAP_COPY,
-
-        /**
-         * Copy bytes in a {@link DirectByteBuffer} and stream.
-         */
-        NATIVE_COPY,
-
-        /**
-         * Stream bytes directly from the {@link MappedByteBuffer} of the
-         * underlying file without a prior copy.
-         */
-        NO_COPY
     }
 
 }
