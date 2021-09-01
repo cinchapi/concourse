@@ -38,13 +38,20 @@ public abstract class Text implements Byteable, Comparable<Text> {
 
     /**
      * Return the {@link Text} encoded in {@code bytes} so long as those bytes
-     * adhere to the format specified by the {@link #getBytes()} method.
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * Text. In general, it is necessary to get the appropriate Text slice from
+     * the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
      * 
      * @param bytes
      * @return the {@link Text}
      */
     public static Text fromByteBuffer(ByteBuffer bytes) {
-        return new StringText(ByteBuffers.getUtf8String(bytes));
+        return new StringText(
+                ByteBuffers.getString(ByteBuffers.asReadOnlyBuffer(bytes),
+                        StandardCharsets.UTF_8),
+                ByteBuffers.asReadOnlyBuffer(bytes));
     }
 
     /**
@@ -64,10 +71,11 @@ public abstract class Text implements Byteable, Comparable<Text> {
      * @return the {@link Text}
      */
     public static Text fromByteBufferCached(ByteBuffer bytes) {
-        String value = ByteBuffers.getUtf8String(bytes);
+        String value = ByteBuffers.getString(
+                ByteBuffers.asReadOnlyBuffer(bytes), StandardCharsets.UTF_8);
         Text text = cache.get(value);
         if(text == null) {
-            text = new StringText(value);
+            text = new StringText(value, bytes);
             cache.put(value, text);
         }
         return text;
@@ -383,11 +391,21 @@ public abstract class Text implements Byteable, Comparable<Text> {
         /**
          * Construct an instance that wraps the {@code text} string.
          * 
-         * @param value
+         * @param text
          */
-        private StringText(String value) {
-            this.value = value;
-            this.bytes = null;
+        private StringText(String text) {
+            this(text, null);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param text
+         * @param bytes
+         */
+        private StringText(String text, @Nullable ByteBuffer bytes) {
+            this.value = text;
+            this.bytes = bytes;
         }
 
         @Override

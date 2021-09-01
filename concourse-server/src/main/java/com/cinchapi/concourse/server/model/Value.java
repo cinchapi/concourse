@@ -93,7 +93,10 @@ public final class Value implements Byteable, Comparable<Value> {
 
     /**
      * Return the Value encoded in {@code bytes} so long as those bytes adhere
-     * to the format specified by the {@link #getBytes()} method.
+     * to the format specified by the {@link #getBytes()} method. This method
+     * assumes that all the bytes in the {@code bytes} belong to the Value. In
+     * general, it is necessary to get the appropriate Value slice from the
+     * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
      * 
      * @param bytes
      * @return the Value
