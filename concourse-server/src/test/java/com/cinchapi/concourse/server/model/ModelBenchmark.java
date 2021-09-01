@@ -49,7 +49,7 @@ public class ModelBenchmark extends AbstractBenchmark {
     @Test
     @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
     public void benchmarkPosition() {
-        Position.of(TestData.getIdentifier(), Math.abs(TestData.getInt()));
+        Position.wrap(TestData.getIdentifier(), Math.abs(TestData.getInt()));
     }
 
 }

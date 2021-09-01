@@ -188,7 +188,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     @DoNotInvoke
     public Revision(ByteBuffer bytes) {
         this.bytes = bytes;
-        this.size = bytes.remaining();
         this.type = Action.values()[bytes.get()];
         this.version = bytes.getLong();
         this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
@@ -200,6 +199,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
                 xKeyClass());
         this.value = Byteables.readStatic(
                 ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
+        this.size = bytes.capacity();
     }
 
     /**
