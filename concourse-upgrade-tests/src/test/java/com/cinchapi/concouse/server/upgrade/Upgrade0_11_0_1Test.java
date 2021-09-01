@@ -87,7 +87,6 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
                         Assert.assertEquals(expected, con.browse(key));
                     }
                 });
-
             }
             finally {
                 concourse.close();
