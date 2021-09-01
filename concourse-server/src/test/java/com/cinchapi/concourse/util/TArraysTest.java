@@ -53,7 +53,7 @@ public class TArraysTest extends ConcourseBaseTest {
     @Test
     public void testEqualObjectsHaveEqualHash() {
         Object[] data = { TestData.getText(), TestData.getValue(),
-                TestData.getPrimaryKey() };
+                TestData.getIdentifier() };
         ByteBuffer a = TArrays.hash(data);
         ByteBuffer b = TArrays.hash(data);
         Assert.assertEquals(a, b);

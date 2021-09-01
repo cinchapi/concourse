@@ -30,7 +30,7 @@ public class PositionTest extends ByteableTest {
 
     @Test
     public void testCompareToSamePrimaryKeyAndSameIndex() {
-        Identifier key = TestData.getPrimaryKey();
+        Identifier key = TestData.getIdentifier();
         int index = Math.abs(TestData.getInt());
         Position p1 = Position.wrap(key, index);
         Position p2 = Position.wrap(key, index);
@@ -39,7 +39,7 @@ public class PositionTest extends ByteableTest {
 
     @Test
     public void testCompareToSamePrimaryKeyAndDiffIndex() {
-        Identifier key = TestData.getPrimaryKey();
+        Identifier key = TestData.getIdentifier();
         int index1 = Math.abs(TestData.getInt());
         index1 = index1 == Integer.MAX_VALUE ? index1 - 1 : index1;
         int index2 = index1 + 1;
@@ -62,14 +62,14 @@ public class PositionTest extends ByteableTest {
 
     @Test
     public void testSizeForByteSizeIndex() {
-        Position p = Position.wrap(TestData.getPrimaryKey(),
+        Position p = Position.wrap(TestData.getIdentifier(),
                 Math.abs(TestData.getInt()) % Byte.MAX_VALUE);
         Assert.assertEquals(Position.SIZE, p.size());
     }
 
     @Test
     public void testSizeForShortSizeIndex() {
-        Position p = Position.wrap(TestData.getPrimaryKey(),
+        Position p = Position.wrap(TestData.getIdentifier(),
                 (Math.abs(TestData.getInt()) % Short.MAX_VALUE)
                         + Byte.MAX_VALUE);
         Assert.assertEquals(Position.SIZE, p.size());
@@ -77,7 +77,7 @@ public class PositionTest extends ByteableTest {
 
     @Test
     public void testSizeForIntSizeIndex() {
-        Position p = Position.wrap(TestData.getPrimaryKey(),
+        Position p = Position.wrap(TestData.getIdentifier(),
                 (Math.abs(TestData.getInt()) % Integer.MAX_VALUE)
                         + Short.MAX_VALUE);
         Assert.assertEquals(Position.SIZE, p.size());

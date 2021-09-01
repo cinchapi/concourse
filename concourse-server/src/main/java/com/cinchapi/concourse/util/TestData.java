@@ -64,7 +64,7 @@ public final class TestData extends Random {
     }
 
     public static TableRevision getPrimaryRevision() {
-        return Revision.createTableRevision(getPrimaryKey(), getText(),
+        return Revision.createTableRevision(getIdentifier(), getText(),
                 getValue(), Time.now(), Action.ADD);
     }
 
@@ -75,7 +75,7 @@ public final class TestData extends Random {
 
     public static IndexRevision getSecondaryRevision() {
         return Revision.createIndexRevision(getText(), getValue(),
-                getPrimaryKey(), Time.now(), Action.ADD);
+                getIdentifier(), Time.now(), Action.ADD);
     }
 
     /**
@@ -84,10 +84,10 @@ public final class TestData extends Random {
      * @return a Position
      */
     public static Position getPosition() {
-        return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
+        return Position.wrap(getIdentifier(), Math.abs(getInt()));
     }
 
-    public static Identifier getPrimaryKey() {
+    public static Identifier getIdentifier() {
         return Identifier.of(getLong());
     }
 

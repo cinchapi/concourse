@@ -45,7 +45,7 @@ public class TableRecordTest extends RecordTest<Identifier, Text, Value> {
 
     @Override
     protected Identifier getLocator() {
-        return TestData.getPrimaryKey();
+        return TestData.getIdentifier();
     }
 
     @Override

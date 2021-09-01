@@ -66,7 +66,7 @@ public class IndexRecordTest extends RecordTest<Text, Value, Identifier> {
 
     @Override
     protected Identifier getValue() {
-        return TestData.getPrimaryKey();
+        return TestData.getIdentifier();
     }
 
     @Test

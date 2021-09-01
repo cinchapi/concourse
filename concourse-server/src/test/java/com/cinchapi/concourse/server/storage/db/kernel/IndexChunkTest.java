@@ -53,7 +53,7 @@ public class IndexChunkTest extends ChunkTest<Text, Value, Identifier> {
 
     @Override
     protected Identifier getValue() {
-        return TestData.getPrimaryKey();
+        return TestData.getIdentifier();
     }
 
     @Override

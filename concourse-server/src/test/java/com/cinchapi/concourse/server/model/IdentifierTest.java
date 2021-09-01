@@ -40,7 +40,7 @@ public class IdentifierTest extends ByteableTest {
 
     @Test
     public void testSize() {
-        Identifier key = TestData.getPrimaryKey();
+        Identifier key = TestData.getIdentifier();
         Assert.assertEquals(Identifier.SIZE, key.size());
         Assert.assertEquals(Identifier.SIZE, key.getBytes().capacity());
     }
