@@ -38,7 +38,6 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -90,6 +89,11 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
+     * Represents an entry that has not been recorded.
+     */
+    public static final int NO_ENTRY = -1;
+
+    /**
      * If the (byte) length of a flushed {@link Manifest} exceeds, this value,
      * the entries will be streamed into memory one-by-one using
      * {@link StreamedEntries} instead of loading them all into memory.
@@ -97,17 +101,6 @@ public class Manifest extends TransferableByteSequence {
     @VisibleForTesting
     protected static int MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD = (int) Math
             .pow(2, 25); // ~33.5mb or 419,430 entries
-
-    /**
-     * Represents an entry that has not been recorded.
-     */
-    public static final int NO_ENTRY = -1;
-
-    /**
-     * The number of worker threads to reserve for the {@link SearchIndexer}.
-     */
-    private static int ASYNC_BACKGROUND_LOADER_NUM_THREADS = Math.max(3,
-            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
 
     /**
      * An {@link ExecutorService} that asynchronously loads manifest entries in
@@ -118,6 +111,12 @@ public class Manifest extends TransferableByteSequence {
             .newFixedThreadPool(ASYNC_BACKGROUND_LOADER_NUM_THREADS,
                     new ThreadFactoryBuilder().setDaemon(true)
                             .setNameFormat("Manifest Loader" + " %d").build());
+
+    /**
+     * The number of worker threads to reserve for the {@link SearchIndexer}.
+     */
+    private static int ASYNC_BACKGROUND_LOADER_NUM_THREADS = Math.max(3,
+            (int) Math.round(0.5 * Runtime.getRuntime().availableProcessors()));
 
     /**
      * Returned from {@link #lookup(Composite)} when an associated entry does
@@ -461,8 +460,7 @@ public class Manifest extends TransferableByteSequence {
         public Entry(ByteBuffer bytes) {
             this.start = bytes.getLong();
             this.end = bytes.getLong();
-            this.key = Composite
-                    .load(ByteBuffers.get(bytes, bytes.remaining()));
+            this.key = Composite.load(bytes);
         }
 
         /**
@@ -621,22 +619,38 @@ public class Manifest extends TransferableByteSequence {
                 Composite key = (Composite) o;
                 Iterator<ByteBuffer> it = ByteableCollections.stream(file(),
                         position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
+                ByteBuffer keyBytes = key.getBytes();
                 while (it.hasNext()) {
                     ByteBuffer next = it.next();
-                    if(key.size() + Manifest.Entry.CONSTANT_SIZE == next
-                            .remaining()) {
-                        // Shortcut by only considering ByteBuffers that
-                        // match the expected size of an entry mapped from
-                        // the #key
-                        Manifest.Entry entry = new Manifest.Entry(next);
-                        if(key.equals(entry.key())) {
-                            return entry;
-                        }
+                    if(equals(keyBytes, next)) {
+                        return new Manifest.Entry(next);
                     }
                 }
 
             }
             return null;
+        }
+
+        /**
+         * Assuming {@code key} is the {@link Composite#getBytes() byte buffer}
+         * of a {@link Composite}, return {@code true} if the {@link Composite}
+         * encoded in the {@code next} {@link ByteBuffer} is equal.
+         * 
+         * @param key
+         * @param next
+         * @return {@code true} if there is a match
+         */
+        private boolean equals(ByteBuffer key, ByteBuffer next) {
+            if(key.remaining() + Manifest.Entry.CONSTANT_SIZE == next
+                    .remaining()) {
+                next.mark();
+                next.position(Manifest.Entry.CONSTANT_SIZE);
+                if(key.equals(next)) {
+                    next.reset();
+                    return true;
+                }
+            }
+            return false;
         }
 
     }

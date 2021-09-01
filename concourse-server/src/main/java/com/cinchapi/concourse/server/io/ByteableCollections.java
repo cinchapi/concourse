@@ -69,6 +69,16 @@ public class ByteableCollections {
      * {@link bufferSize} bytes from disk at a time, which is necessary when its
      * infeasible to read the entire file into memory at once.
      * 
+     * <p>
+     * <strong>Warning:</strong> {@link ByteBuffer ByteBuffers} that are
+     * returned from {@link #next()} should <strong>not</strong> be stored in
+     * memory or assumed to be long-lived (e.g. each call to {@link #next()} may
+     * invalidate or change the state of the previously returned
+     * {@link ByteBuffer}. If streamed {@link ByteBuffer ByteBuffers} need to be
+     * accessed after processing, make a copy of the value returned from
+     * {@link #next()}.
+     * </p>
+     * 
      * @param file
      * @param bufferSize
      * @return the {@link Iterator}
@@ -86,6 +96,16 @@ public class ByteableCollections {
      * {@link #iterator(ByteBuffer)} method, this one only reads
      * {@link bufferSize} bytes from disk at a time, which is necessary when its
      * infeasible to read the entire file into memory at once.
+     * 
+     * <p>
+     * <strong>Warning:</strong> {@link ByteBuffer ByteBuffers} that are
+     * returned from {@link #next()} should <strong>not</strong> be stored in
+     * memory or assumed to be long-lived (e.g. each call to {@link #next()} may
+     * invalidate or change the state of the previously returned
+     * {@link ByteBuffer}. If streamed {@link ByteBuffer ByteBuffers} need to be
+     * accessed after processing, make a copy of the value returned from
+     * {@link #next()}.
+     * </p>
      * 
      * @param file
      * @param position the file index from which to start reading
