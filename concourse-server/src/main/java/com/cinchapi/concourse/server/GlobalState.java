@@ -338,7 +338,8 @@ public final class GlobalState extends Constants {
                 "http_cors_default_allow_methods",
                 HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
-        LOG_LEVEL = config.get("log_level", Interpreters.logLevel());
+        LOG_LEVEL = config.getOrDefault("log_level", Interpreters.logLevel(),
+                LOG_LEVEL);
 
         ENABLE_CONSOLE_LOGGING = config.getOrDefault("enable_console_logging",
                 ENABLE_CONSOLE_LOGGING);
