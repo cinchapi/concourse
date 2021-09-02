@@ -283,7 +283,7 @@ public final class GlobalState extends Constants {
 
     /**
      * Maintain and in-memory cache of the data indexes used to respond to
-     * {@link com.cinchapi.concourse.Concourse#search(String, String)} queries.
+     * {@link com.cinchapi.concourse.Concourse#search(String, String)} commands.
      * <p>
      * Search indexes tend to be much larger than those used for primary and
      * secondary lookups, so enabling the search cache may cause
@@ -296,15 +296,15 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_SEARCH_CACHE = false;
 
     /**
-     * Attempt to optimize attempts to
+     * Attempt to optimize
      * {@link com.cinchapi.concourse.Concourse#verify(String, Object, long)
-     * verify} the existence of a data element by using special lookup records.
+     * verify} commands by using special lookup records.
      * <p>
      * The database does not cache lookup records, so, while generating one is
      * theoretically faster than generating a full or partial record, repeated
      * attempts to verify data in the same slot (e.g. a counter whose value is
-     * stored against a single locator/key) may be slower due to lack of
-     * caching.
+     * stored against a single locator/key) or record may be slower due to lack
+     * of caching.
      * </p>
      */
     @Experimental
@@ -381,6 +381,9 @@ public final class GlobalState extends Constants {
 
         ENABLE_SEARCH_CACHE = config.getOrDefault("enable_search_cache",
                 ENABLE_SEARCH_CACHE);
+
+        ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
+                ENABLE_VERIFY_BY_LOOKUP);
         // =================== PREF READING BLOCK ====================
     }
 
