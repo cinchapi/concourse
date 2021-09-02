@@ -700,7 +700,7 @@ public final class Database extends BaseStore implements PermanentStore {
         Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         Value V = Value.wrap(value);
-        Record<PrimaryKey, Text, Value> lookup = getLookupRecord(L, K, V);
+        Record<Identifier, Text, Value> lookup = getLookupRecord(L, K, V);
         return lookup.contains(K, V);
     }
 
@@ -815,8 +815,8 @@ public final class Database extends BaseStore implements PermanentStore {
      * method on the returned {@link Record}.
      * <p>
      * The query answered by this {@link Record} can also be answered by that
-     * returned from {@link #getTableRecord(PrimaryKey)}
-     * and {@link #getTableRecord(PrimaryKey, Text)}, but this method will
+     * returned from {@link #getTableRecord(Identifier)}
+     * and {@link #getTableRecord(Identifier, Text)}, but this method will
      * attempt to short circuit by not loading {@link Revisions} that don't
      * involve {@code record}, {@code key} and {@code value}. As a result, the
      * returned {@link Record} is not cached and cannot be reliably used for
@@ -828,7 +828,7 @@ public final class Database extends BaseStore implements PermanentStore {
      * @param value
      * @return the {@link Record}
      */
-    private Record<PrimaryKey, Text, Value> getLookupRecord(PrimaryKey record,
+    private Record<Identifier, Text, Value> getLookupRecord(Identifier record,
             Text key, Value value) {
         masterLock.readLock().lock();
         try {
@@ -837,7 +837,7 @@ public final class Database extends BaseStore implements PermanentStore {
             Composite c1 = Composite.create(record);
             Composite c2 = null;
             Composite c3 = null;
-            Record<PrimaryKey, Text, Value> lookup = tableCache
+            Record<Identifier, Text, Value> lookup = tableCache
                     .getIfPresent(c1);
             if(lookup == null) {
                 c2 = Composite.create(record, key);

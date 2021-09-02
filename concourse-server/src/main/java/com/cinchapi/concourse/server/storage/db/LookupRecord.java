@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 
@@ -29,7 +29,7 @@ import com.cinchapi.concourse.server.model.Value;
  *
  * @author Jeff Nelson
  */
-final class LookupRecord extends AmnesiaRecord<PrimaryKey, Text, Value> {
+final class LookupRecord extends AmnesiaRecord<Identifier, Text, Value> {
 
     /**
      * Construct a new instance.
@@ -37,7 +37,7 @@ final class LookupRecord extends AmnesiaRecord<PrimaryKey, Text, Value> {
      * @param locator
      * @param key
      */
-    protected LookupRecord(PrimaryKey locator, Text key) {
+    protected LookupRecord(Identifier locator, Text key) {
         super(locator, key);
     }
 
