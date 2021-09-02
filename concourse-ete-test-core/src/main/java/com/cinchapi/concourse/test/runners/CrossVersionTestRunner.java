@@ -34,6 +34,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.test.CrossVersionTest;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.google.common.collect.Lists;
@@ -58,12 +59,19 @@ public class CrossVersionTestRunner extends ParentRunner<Runner> {
     private static String[] getAnnotatedVersions(Class<?> klass)
             throws InitializationError {
         Versions annotation = klass.getAnnotation(Versions.class);
-        if(annotation == null) {
+        String[] versions = annotation != null ? annotation.value() : null;
+        if(versions == null) {
+            try {
+                versions = Reflection.callStatic(klass, "versions");
+            }
+            catch (Exception e) {} ;
+        }
+        if(versions == null) {
             throw new InitializationError(
                     String.format("class '%s' must have a Versions annotation",
                             klass.getName()));
         }
-        return annotation.value();
+        return versions;
     }
 
     /**
