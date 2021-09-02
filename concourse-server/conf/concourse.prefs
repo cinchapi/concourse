@@ -39,31 +39,11 @@
 # DEFAULT: default
 #default_environment = default
 
-# Automatically use a combination of defragmentation, garbage collection and load 
-# balancing within the data files to optimize storage for read performance.
-#
-# The compaction process runs continuously in the background without disrupting reads 
-# or writes. The storage engine uses a specific strategy to determine how data files 
-# should be reorganized to improve the performance of read operations. 
-#
-# DEFAULT: false
-#enable_compaction = false
-
 # Determine whether log messages should also be printed to the console (STDOUT)
 # in addition to the log files.
 #
 # DEFAULT: FALSE
 #enable_console_logging = FALSE
-
-# Maintain and in-memory cache of the data indexes used to respond to search queries.
-# Search indexes tend to be much larger than those used for primary and secondary 
-# lookups, so enabling the search cache may cause memory issues (and overall 
-# performance degradation) if search is heavily used. Furthermore, indexing and 
-# write performance may suffer if cached search indexes must be incrementally kept 
-# current.
-#
-# DEFAULT: false
-#enable_search_cache = false
 
 # The amount of memory that is allocated to the Concourse Server JVM.
 # Concourse requires a minimum heap size of 256MB to start, but much
@@ -194,3 +174,37 @@
 #
 # DEFAULT: 0
 #remote_debugger_port = 0
+
+#######################################################
+###  EXPERIMENTAL PREFERENCES FOR CONCOURSE SERVER  ###
+#######################################################
+
+# Automatically use a combination of defragmentation, garbage collection and load 
+# balancing within the data files to optimize storage for read performance.
+#
+# The compaction process may run continuously in the background without disrupting 
+# reads or writes. The storage engine uses a specific strategy to determine how 
+# data files should be reorganized to improve the performance of read operations. 
+#
+# DEFAULT: false
+#enable_compaction = false
+
+# Maintain and in-memory cache of the data indexes used to respond to search commands.
+# Search indexes tend to be much larger than those used for primary and secondary 
+# lookups, so enabling the search cache may cause memory issues (and overall 
+# performance degradation) if search is heavily used. Furthermore, indexing and 
+# write performance may suffer if cached search indexes must be incrementally kept 
+# current.
+#
+# DEFAULT: false
+#enable_search_cache = false
+
+# Attempt to optimize verify commands by using special lookup records.
+#
+# The database does not cache lookup records, so, while generating one is 
+# theoretically faster than generating a full or partial record, repeated attempts 
+# to verify data in the same slot (e.g. a counter whose value is stored against a 
+# single locator/key) or record may be slower due to lack of caching.
+#
+# DEFAULT: false
+#enable_verify_by_lookup = false
