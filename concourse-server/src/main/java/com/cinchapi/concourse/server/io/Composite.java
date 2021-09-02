@@ -170,6 +170,15 @@ public final class Composite implements Byteable {
         return ByteBuffer.wrap(bytes);
     }
 
+    /**
+     * Return the value of {@link #getBytes()} as a {@code byte[]}.
+     * 
+     * @return the {@link #getBytes() bytes}
+     */
+    public byte[] bytes() {
+        return bytes;
+    }
+
     @Override
     public int hashCode() {
         return Arrays.hashCode(bytes);

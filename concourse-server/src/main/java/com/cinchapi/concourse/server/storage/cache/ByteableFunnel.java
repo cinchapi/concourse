@@ -30,6 +30,6 @@ public enum ByteableFunnel implements Funnel<Composite> {
 
     @Override
     public void funnel(Composite from, PrimitiveSink into) {
-        into.putBytes(from.getBytes());
+        into.putBytes(from.bytes());
     }
 }
