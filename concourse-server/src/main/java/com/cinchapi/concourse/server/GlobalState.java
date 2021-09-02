@@ -38,6 +38,7 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
+import com.cinchapi.concourse.annotate.Experimental;
 import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -277,6 +278,7 @@ public final class GlobalState extends Constants {
      * performance of read operations.
      * </p>
      */
+    @Experimental
     public static boolean ENABLE_COMPACTION = false;
 
     /**
@@ -290,7 +292,23 @@ public final class GlobalState extends Constants {
      * cached search indexes must be incrementally kept current.
      * </p>
      */
+    @Experimental
     public static boolean ENABLE_SEARCH_CACHE = false;
+
+    /**
+     * Attempt to optimize attempts to
+     * {@link com.cinchapi.concourse.Concourse#verify(String, Object, long)
+     * verify} the existence of a data element by using special lookup records.
+     * <p>
+     * The database does not cache lookup records, so, while generating one is
+     * theoretically faster than generating a full or partial record, repeated
+     * attempts to verify data in the same slot (e.g. a counter whose value is
+     * stored against a single locator/key) may be slower due to lack of
+     * caching.
+     * </p>
+     */
+    @Experimental
+    public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
     static {
         List<String> files = ImmutableList.of(

@@ -161,6 +161,13 @@ public final class Database extends BaseStore implements PermanentStore {
     private static final boolean ENABLE_SEARCH_CACHE = GlobalState.ENABLE_SEARCH_CACHE;
 
     /**
+     * Global flag that indicates if {@link #verify(String, TObject, long)} uses
+     * {@link #getLookupRecord(Identifier, Text, Value) lookup records}.
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_VERIFY_BY_LOOKUP = GlobalState.ENABLE_VERIFY_BY_LOOKUP;
+
+    /**
      * Return if {@link #corpusCaches} does not contain a cache for a key.
      */
     private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
@@ -700,8 +707,10 @@ public final class Database extends BaseStore implements PermanentStore {
         Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         Value V = Value.wrap(value);
-        Record<Identifier, Text, Value> lookup = getLookupRecord(L, K, V);
-        return lookup.contains(K, V);
+        Record<Identifier, Text, Value> table = ENABLE_VERIFY_BY_LOOKUP
+                ? getLookupRecord(L, K, V)
+                : getTableRecord(L, K);
+        return table.contains(K, V);
     }
 
     @Override
