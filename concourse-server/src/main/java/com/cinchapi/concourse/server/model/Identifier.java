@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.io.ByteBuffers;
@@ -28,105 +27,91 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
- * A PrimaryKey is an abstraction for an 8 byte long that represents the
- * canonical identifier for a normalized {@link Record}. The pool of possible
- * keys ranges from 0 to 2^64 1 inclusive.
+ * An {@link Identifier} is an abstraction for an 8 byte long that represents
+ * the canonical identifier for a normalized {@link Record}. The pool of
+ * possible keys ranges from 0 to 2^64 - 1 inclusive.
  * 
  * @author Jeff Nelson
  */
 @Immutable
-public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
+public final class Identifier implements Byteable, Comparable<Identifier> {
 
     /**
-     * The total number of bytes used to encode a PrimaryKey.
+     * The total number of bytes used to encode a {@link Identifier}.
      */
     public static final int SIZE = 8;
 
     /**
-     * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
-     * adhere to the format specified by the {@link #getBytes()} method. This
-     * method assumes that all the bytes in the {@code bytes} belong to the
-     * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey
-     * slice
-     * from the parent ByteBuffer using
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * Return the {@link Identifier} encoded in {@code bytes} so long as those
+     * bytes adhere to the format specified by the {@link #getBytes()} method.
      * 
      * @param bytes
-     * @return the PrimaryKey
+     * @return the {@link Identifier}
      */
-    public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
-        long data = bytes.getLong();
-        return new PrimaryKey(data, bytes);
+    public static Identifier fromByteBuffer(ByteBuffer bytes) {
+        long value = bytes.getLong();
+        return new Identifier(value);
     }
 
     /**
-     * Return a PrimaryKey that is backed by {@code data}.
+     * Return a {@link Identifier} that is backed by {@code data}.
      * 
-     * @param data
-     * @return the PrimaryKey
+     * @param value
+     * @return the {@link Identifier}
      */
-    public static PrimaryKey wrap(long data) {
-        return new PrimaryKey(data);
+    public static Identifier of(long value) {
+        return new Identifier(value);
     }
 
     /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
-    private transient ByteBuffer bytes = null;
+    private transient ByteBuffer bytes;
 
     /**
-     * The underlying data that represents this PrimaryKey.
+     * The underlying data that represents this {@link Identifier}.
      */
-    private final long data;
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param data
-     */
-    private PrimaryKey(long data) {
-        this(data, null);
-    }
+    private final long value;
 
     /**
      * Construct a new instance.
      * 
      * @param data
-     * @param bytes
      */
-    private PrimaryKey(long data, @Nullable ByteBuffer bytes) {
-        this.data = data;
-        this.bytes = bytes;
+    private Identifier(long data) {
+        this.value = data;
+        this.bytes = null;
     }
 
     /**
      * Compares keys such that they are sorted in ascending order.
      */
     @Override
-    public int compareTo(PrimaryKey other) {
-        return UnsignedLongs.compare(data, other.data);
+    public int compareTo(Identifier other) {
+        return UnsignedLongs.compare(value, other.value);
     }
 
     @Override
     public void copyTo(ByteSink sink) {
-        sink.putLong(data);
+        sink.putLong(value);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof PrimaryKey) {
-            final PrimaryKey other = (PrimaryKey) obj;
-            return Longs.compare(data, other.data) == 0;
+        if(obj instanceof Identifier) {
+            final Identifier other = (Identifier) obj;
+            return Longs.compare(value, other.value) == 0;
         }
         return false;
     }
 
     /**
-     * Return a byte buffer that represents this PrimaryKey with the following
+     * Return a byte buffer that represents this {@link Identifier} with the
+     * following
      * order:
      * <ol>
-     * <li><strong>data</strong> - position 0</li>
+     * <li><strong>value</strong> - position 0</li>
      * </ol>
      * 
      * @return the ByteBuffer representation
@@ -141,16 +126,16 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 
     @Override
     public int hashCode() {
-        return Longs.hashCode(data);
+        return Longs.hashCode(value);
     }
 
     /**
-     * Return the long representation of this PrimaryKey.
+     * Return the long representation of this {@link Identifier}.
      * 
      * @return the long value
      */
     public long longValue() {
-        return data;
+        return value;
     }
 
     @Override
@@ -160,19 +145,19 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 
     @Override
     public String toString() {
-        return UnsignedLongs.toString(data);
+        return UnsignedLongs.toString(value);
     }
 
     /**
-     * A {@link Comparator} that is used to sort PrimaryKey objects.
+     * A {@link Comparator} that is used to sort {@link Identifier} objects.
      * 
      * @author Jeff Nelson
      */
-    public static enum Sorter implements Comparator<PrimaryKey> {
+    public static enum Sorter implements Comparator<Identifier> {
         INSTANCE;
 
         @Override
-        public int compare(PrimaryKey o1, PrimaryKey o2) {
+        public int compare(Identifier o1, Identifier o2) {
             return o1.compareTo(o2);
         }
 

@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
@@ -26,7 +26,7 @@ import com.cinchapi.concourse.server.storage.db.IndexRevision;
  *
  * @author Jeff Nelson
  */
-public final class IndexArtifact extends Artifact<Text, Value, PrimaryKey> {
+public final class IndexArtifact extends Artifact<Text, Value, Identifier> {
 
     /**
      * Construct a new instance.

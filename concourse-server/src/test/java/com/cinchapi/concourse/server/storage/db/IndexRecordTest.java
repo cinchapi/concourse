@@ -21,7 +21,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
@@ -35,7 +35,7 @@ import com.cinchapi.concourse.util.TestData;
  *
  * @author Jeff Nelson
  */
-public class IndexRecordTest extends RecordTest<Text, Value, PrimaryKey> {
+public class IndexRecordTest extends RecordTest<Text, Value, Identifier> {
 
     @Override
     protected Value getKey() {
@@ -59,14 +59,14 @@ public class IndexRecordTest extends RecordTest<Text, Value, PrimaryKey> {
 
     @Override
     protected IndexRevision getRevision(Text locator, Value key,
-            PrimaryKey value) {
+            Identifier value) {
         return Revision.createIndexRevision(locator, key, value, Time.now(),
                 getAction(locator, key, value));
     }
 
     @Override
-    protected PrimaryKey getValue() {
-        return TestData.getPrimaryKey();
+    protected Identifier getValue() {
+        return TestData.getIdentifier();
     }
 
     @Test
@@ -76,14 +76,13 @@ public class IndexRecordTest extends RecordTest<Text, Value, PrimaryKey> {
         for (int i = 0; i < 100; i++) {
             for (int j = 0; j <= i; j++) {
                 record.append(getRevision(locator,
-                        Value.wrap(Convert.javaToThrift(j)),
-                        PrimaryKey.wrap(i)));
+                        Value.wrap(Convert.javaToThrift(j)), Identifier.of(i)));
             }
         }
-        Map<PrimaryKey, Set<Value>> data = ((IndexRecord) record).findAndGet(
+        Map<Identifier, Set<Value>> data = ((IndexRecord) record).findAndGet(
                 Operator.GREATER_THAN, Value.wrap(Convert.javaToThrift(50)));
         for (int i = 0; i < 100; i++) {
-            PrimaryKey pk = PrimaryKey.wrap(i);
+            Identifier pk = Identifier.of(i);
             if(i > 50) {
                 Assert.assertTrue(data.containsKey(pk));
                 Assert.assertEquals(i - 50, data.get(pk).size());
@@ -105,12 +104,12 @@ public class IndexRecordTest extends RecordTest<Text, Value, PrimaryKey> {
         record = getRecord(locator);
         record.append(getRevision(locator,
                 Value.wrap(Convert.javaToThrift("Business Management")),
-                PrimaryKey.wrap(1)));
+                Identifier.of(1)));
         record.append(getRevision(locator,
                 Value.wrap(Convert.javaToThrift("business management")),
-                PrimaryKey.wrap(2)));
+                Identifier.of(2)));
         IndexRecord index = (IndexRecord) record;
-        Map<PrimaryKey, Set<Value>> data = index.findAndGet(Operator.REGEX,
+        Map<Identifier, Set<Value>> data = index.findAndGet(Operator.REGEX,
                 Value.wrap(Convert.javaToThrift(".*business.*")));
         Assert.assertFalse(data.isEmpty());
     }

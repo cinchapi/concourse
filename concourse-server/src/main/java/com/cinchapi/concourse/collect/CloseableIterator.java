@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.collect;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -23,4 +24,15 @@ import java.util.Iterator;
  *
  * @author Jeff Nelson
  */
-public interface CloseableIterator<T> extends Iterator<T>, Closeable {}
+public interface CloseableIterator<T> extends Iterator<T>, Closeable {
+
+    /**
+     * Perform a {@link #close()} and ignore any thrown exceptions.
+     */
+    public default void closeQuietly() {
+        try {
+            close();
+        }
+        catch (IOException ignore) {/**/}
+    }
+}

@@ -22,11 +22,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -45,7 +48,7 @@ import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -493,7 +496,7 @@ public final class Segment extends TransferableByteSequence implements
         writeLock.lock();
         try {
             // @formatter:off
-            PrimaryKey record = write.getRecord();
+            Identifier record = write.getRecord();
             Text key          = write.getKey();
             Value value       = write.getValue();
             long version      = write.getVersion();
@@ -540,6 +543,30 @@ public final class Segment extends TransferableByteSequence implements
     @Override
     public long count() {
         return isMutable() ? index.count() : count;
+    }
+
+    /**
+     * Permanently delete an immutable {@link Segment} by clearing its contents
+     * from both memory and disk.
+     * <p>
+     * This is an irreversible and potentially catastrophic operation. It should
+     * only be used instances when the caller can be certain that the
+     * {@link Segment} is no longer needed.
+     * </p>
+     * <p>
+     * A discarded {@link Segment} should not be subsequently used. Operating on
+     * a discarded {@link Segment} has undefined behaviour.
+     * </p>
+     */
+    public final void discard() {
+        Preconditions.checkState(!isMutable(),
+                "A mutable segment cannot be deleted");
+        Logger.warn("Permanently deleting Segment {}", this);
+        Reflection.set("table", null, this); /* (authorized) */
+        Reflection.set("index", null, this); /* (authorized) */
+        Reflection.set("corpus", null, this); /* (authorized) */
+        free();
+        FileSystem.deleteFile(file().toString());
     }
 
     @Override
@@ -679,6 +706,18 @@ public final class Segment extends TransferableByteSequence implements
                         revision.getType(), revision.getKey(),
                         revision.getValue(), revision.getLocator(),
                         revision.getVersion()));
+    }
+
+    /**
+     * Return a {@link Set} (not necessarily sorted) of all the
+     * {@link Write#getVersion() versions} represented by the data
+     * {@link #acquire(Write) acquired} by this {@link Segment}.
+     * 
+     * @return the contained data {@link Write#getVersion() versions}
+     */
+    public Set<Long> verions() {
+        return writes().mapToLong(Write::getVersion).boxed()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Nullable

@@ -17,6 +17,7 @@ package com.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 
 /**
@@ -50,16 +51,21 @@ public final class TArrays {
             // object's class.
             bytes.putInt(object.hashCode());
 
-            Class<?> clazz;
+            String clazz;
             if(object instanceof Text) {
                 // Backwards compatibility for versions prior to 0.10.6 that
                 // didn't have multiple kinds of Text
-                clazz = Text.class;
+                clazz = Text.class.getName();
+            }
+            else if(object instanceof Identifier) {
+                // Backwards compatibility for versions prior to 0.11.0 when
+                // Identifier was named PrimaryKey
+                clazz = "com.cinchapi.concourse.server.model.PrimaryKey";
             }
             else {
-                clazz = object.getClass();
+                clazz = object.getClass().getName();
             }
-            bytes.putInt(clazz.getName().hashCode());
+            bytes.putInt(clazz.hashCode());
         }
         bytes.rewind();
         return bytes;

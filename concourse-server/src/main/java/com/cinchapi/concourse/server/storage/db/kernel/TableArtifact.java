@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
@@ -26,7 +26,7 @@ import com.cinchapi.concourse.server.storage.db.TableRevision;
  *
  * @author Jeff Nelson
  */
-public final class TableArtifact extends Artifact<PrimaryKey, Text, Value> {
+public final class TableArtifact extends Artifact<Identifier, Text, Value> {
 
     /**
      * Construct a new instance.

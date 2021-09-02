@@ -32,7 +32,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
@@ -83,7 +83,7 @@ public class ManifestTest extends ConcourseBaseTest {
         Manifest manifest = Manifest.create(count);
         Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
-            PrimaryKey key = PrimaryKey.wrap(count);
+            Identifier key = Identifier.of(count);
             manifest.putStart(count, key);
             manifest.putEnd(count * 2, key);
         }
@@ -93,10 +93,10 @@ public class ManifestTest extends ConcourseBaseTest {
         FileSystem.writeBytes(bytes, file.toString());
         manifest = Manifest.load(file, 0, bytes.capacity());
         Assert.assertFalse(manifest.isLoaded());
-        manifest.lookup(PrimaryKey.wrap(1));
+        manifest.lookup(Identifier.of(1));
         Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
-            PrimaryKey key = PrimaryKey.wrap(count);
+            Identifier key = Identifier.of(count);
             Range range = manifest.lookup(key);
             Assert.assertEquals(count, range.start());
             Assert.assertEquals(count * 2, range.end());
@@ -107,7 +107,7 @@ public class ManifestTest extends ConcourseBaseTest {
     public void testManifestWorksAfterBeingFlushed() {
         int count = TestData.getScaleCount() * 2;
         Manifest manifest = Manifest.create(count);
-        PrimaryKey key = PrimaryKey.wrap(count);
+        Identifier key = Identifier.of(count);
         manifest.putStart(count, key);
         manifest.putEnd(count * 2, key);
         Range range = manifest.lookup(key);
@@ -132,7 +132,7 @@ public class ManifestTest extends ConcourseBaseTest {
             Map<Composite, Range> expected = Maps.newHashMap();
             while (manifest
                     .length() < Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
-                PrimaryKey record = PrimaryKey.wrap(count);
+                Identifier record = Identifier.of(count);
                 int $start = start;
                 int end = start + TestData.getScaleCount();
                 Range range = new Manifest.Range() {

@@ -25,8 +25,8 @@ import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Byteables;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Position;
-import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
@@ -63,7 +63,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * 
      * @return the PrimaryRevision
      */
-    public static TableRevision createTableRevision(PrimaryKey record, Text key,
+    public static TableRevision createTableRevision(Identifier record, Text key,
             Value value, long version, Action type) {
         return new TableRevision(record, key, value, version, type);
     }
@@ -96,7 +96,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @return the SecondaryRevision
      */
     public static IndexRevision createIndexRevision(Text key, Value value,
-            PrimaryKey record, long version, Action type) {
+            Identifier record, long version, Action type) {
         return new IndexRevision(key, value, record, version, type);
     }
 
@@ -188,18 +188,28 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     @DoNotInvoke
     public Revision(ByteBuffer bytes) {
         this.bytes = bytes;
+        this.size = bytes.remaining();
         this.type = Action.values()[bytes.get()];
         this.version = bytes.getLong();
-        this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
-                xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
-                        : xLocatorSize()),
-                xLocatorClass());
-        this.key = Byteables.readStatic(ByteBuffers.get(bytes,
-                xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
-                xKeyClass());
-        this.value = Byteables.readStatic(
-                ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
-        this.size = bytes.capacity();
+        int limit = bytes.limit();
+
+        // Locator
+        int locatorSize = xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
+                : xLocatorSize();
+        bytes.limit(bytes.position() + locatorSize);
+        this.locator = Byteables.readStatic(bytes, xLocatorClass());
+        bytes.limit(limit);
+
+        // Key
+        int keySize = xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize();
+        bytes.limit(bytes.position() + keySize);
+        this.key = Byteables.readStatic(bytes, xKeyClass());
+        bytes.limit(limit);
+
+        // Locator
+        this.value = Byteables.readStatic(bytes, xValueClass());
+        bytes.limit(limit);
+
     }
 
     /**

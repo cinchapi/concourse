@@ -338,7 +338,8 @@ public final class GlobalState extends Constants {
                 "http_cors_default_allow_methods",
                 HTTP_CORS_DEFAULT_ALLOW_METHODS);
 
-        LOG_LEVEL = config.get("log_level", Interpreters.logLevel());
+        LOG_LEVEL = config.getOrDefault("log_level", Interpreters.logLevel(),
+                LOG_LEVEL);
 
         ENABLE_CONSOLE_LOGGING = config.getOrDefault("enable_console_logging",
                 ENABLE_CONSOLE_LOGGING);
@@ -467,6 +468,13 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "com.cinchapi.concourse.server.http.TransactionTokenAttribute";
+
+    /**
+     * The number of bytes to read from disk at a time.
+     */
+    @NonPreference
+    public static final int DISK_READ_BUFFER_SIZE = (int) Math.pow(2, 20); // 1048567
+                                                                           // (1MiB)
 
     /**
      * The path to the underlying file from which the preferences are extracted.

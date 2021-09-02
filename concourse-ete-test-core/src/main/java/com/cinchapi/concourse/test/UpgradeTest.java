@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.server.ManagedConcourseServer;
 import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.cinchapi.concourse.util.Processes;
 import com.google.common.io.Files;
@@ -64,8 +63,6 @@ public abstract class UpgradeTest extends ClientServerTest {
             for (String line : Processes.getStdOut(proc)) {
                 log.info(line);
             }
-            server = ManagedConcourseServer
-                    .manageExistingServer(server.getInstallDirectory());
             server.start();
             client = server.connect();
         }

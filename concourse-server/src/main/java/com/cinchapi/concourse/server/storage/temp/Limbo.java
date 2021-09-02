@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage.temp;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.TernaryTruth;
+import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -847,6 +849,28 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return; // do nothing because Limbo is assumed to always be
                 // transportable. But the Buffer will override this method with
                 // the appropriate conditions.
+    }
+
+    /**
+     * Return a snapshot {@link Iterable} that contains the
+     * {@link Write#getVersion() version} of every {@link Write} in the
+     * {@link Store}.
+     * 
+     * @return all the contained {@link Write} {@link Write#getVersion()
+     *         versions}
+     */
+    public Set<Long> versions() {
+        Set<Long> versions = new HashSet<>();
+        Iterator<Write> it = iterator();
+        try {
+            while (it.hasNext()) {
+                versions.add(it.next().getVersion());
+            }
+        }
+        finally {
+            Iterators.close(it);
+        }
+        return versions;
     }
 
     @Override

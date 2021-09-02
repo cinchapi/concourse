@@ -967,7 +967,7 @@ public class ManagedConcourseServer {
                         // get around that by retrying the connection a handful
                         // of times before failing.
                         try {
-                            Thread.sleep(2000);
+                            Thread.sleep(5000);
                             continue;
                         }
                         catch (InterruptedException t) {/* ignore */}

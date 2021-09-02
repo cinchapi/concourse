@@ -780,8 +780,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 return new Iterator<Revision<L, K, V>>() {
 
                     private final Iterator<ByteBuffer> it = ByteableCollections
-                            .streamingIterator(file(), position(), length,
-                                    GlobalState.BUFFER_PAGE_SIZE);
+                            .stream(file(), position(), length,
+                                    GlobalState.DISK_READ_BUFFER_SIZE);
 
                     @Override
                     public boolean hasNext() {

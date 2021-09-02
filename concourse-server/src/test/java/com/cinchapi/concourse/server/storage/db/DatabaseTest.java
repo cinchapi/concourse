@@ -28,20 +28,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.model.PrimaryKey;
+import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
@@ -167,40 +164,6 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
-    @Ignore
-    public void testOnDiskStreamingIterator() {
-        Database db = (Database) store;
-        int count = TestData.getScaleCount() * 5;
-        Set<Revision<PrimaryKey, Text, Value>> expected = Sets
-                .newLinkedHashSetWithExpectedSize(count);
-        for (int i = 0; i < count; ++i) {
-            Write write = Write.add(TestData.getSimpleString(),
-                    TestData.getTObject(), i);
-            db.accept(write);
-            Revision<PrimaryKey, Text, Value> revision = Revision
-                    .createTableRevision(write.getRecord(), write.getKey(),
-                            write.getValue(), write.getVersion(),
-                            write.getType());
-            expected.add(revision);
-            Variables.register("expected_" + i, revision);
-            if(i % 100 == 0) {
-                db.sync();
-            }
-        }
-        db.sync();
-        Iterator<Revision<PrimaryKey, Text, Value>> it = Database
-                .onDiskStreamingIterator(db.getBackingStore());
-        Iterator<Revision<PrimaryKey, Text, Value>> it2 = expected.iterator();
-        int i = 0;
-        while (it.hasNext()) {
-            Revision<PrimaryKey, Text, Value> actual = it.next();
-            Assert.assertEquals(it2.next(), actual);
-            Variables.register("actual_" + i, actual);
-            ++i;
-        }
-    }
-
-    @Test
     public void testLoadPrimaryRecordUsesFullRecordIfItMemory() {
         Database db = (Database) store;
         String a = "a";
@@ -216,10 +179,10 @@ public class DatabaseTest extends StoreTest {
                                                  // state isn't reset...
         db.start();
         TableRecord rec = Reflection.call(db, "getTableRecord",
-                PrimaryKey.wrap(record), Text.wrap(a)); // (authorized)
+                Identifier.of(record), Text.wrap(a)); // (authorized)
         Assert.assertTrue(rec.isPartial());
         db.select(record);
-        rec = Reflection.call(db, "getTableRecord", PrimaryKey.wrap(record),
+        rec = Reflection.call(db, "getTableRecord", Identifier.of(record),
                 Text.wrap(b)); // (authorized)
         Assert.assertFalse(rec.isPartial());
     }
