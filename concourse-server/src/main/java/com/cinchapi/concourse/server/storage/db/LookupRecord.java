@@ -36,9 +36,12 @@ final class LookupRecord extends AmnesiaRecord<Identifier, Text, Value> {
      * 
      * @param locator
      * @param key
+     * @param value
      */
-    protected LookupRecord(Identifier locator, Text key) {
+    protected LookupRecord(Identifier locator, Text key, Value value) {
         super(locator, key);
+        // #value is not used, but expected for semantic clarity and
+        // future-proofing
     }
 
     @Override

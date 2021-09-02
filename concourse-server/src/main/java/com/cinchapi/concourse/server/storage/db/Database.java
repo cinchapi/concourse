@@ -856,7 +856,7 @@ public final class Database extends BaseStore implements PermanentStore {
                 // Create a LookupRecord to handle this, but DO NOT cache it
                 // since it has no other utility.
                 c3 = Composite.create(record, key, value);
-                lookup = new LookupRecord(record, key);
+                lookup = new LookupRecord(record, key, value);
                 for (Segment segment : segments) {
                     if(segment.table().mightContain(c3)) {
                         // Whenever it is possible that the LKV exists, we must
