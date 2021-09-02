@@ -17,8 +17,6 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -42,7 +40,6 @@ import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.Byteables;
 import com.cinchapi.concourse.server.io.Composite;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.io.Itemizable;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
@@ -441,10 +438,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     long start = range.start();
                     long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
-                        MappedByteBuffer bytes = FileSystem.map(file(),
-                                MapMode.READ_ONLY, position() + start, length);
-                        Iterator<ByteBuffer> it = ByteableCollections
-                                .iterator(bytes);
+                        Iterator<ByteBuffer> it = ByteableCollections.stream(
+                                file(), position() + start, length,
+                                GlobalState.DISK_READ_BUFFER_SIZE);
                         while (it.hasNext()) {
                             Revision<L, K, V> revision = Byteables
                                     .read(it.next(), xRevisionClass());
