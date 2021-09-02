@@ -141,9 +141,8 @@ public class Manifest extends TransferableByteSequence {
      * that is used to reduce memory overhead.
      * 
      * <p>
-     * It is {@code null} until the
-     * {@link Manifest} is {@link #freeze(Path, long) frozen} or the
-     * {@link #entries()} are loaded
+     * It is {@code null} until the {@link Manifest} is {@link #flush(ByteSink)
+     * flushed} or the {@link #entries()} are loaded.
      * </p>
      */
     @Nullable
