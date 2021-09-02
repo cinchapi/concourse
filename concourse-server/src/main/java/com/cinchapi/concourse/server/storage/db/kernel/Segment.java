@@ -199,7 +199,8 @@ public final class Segment extends TransferableByteSequence implements
      * bloom filter, but no larger than necessary since we must keep all bloom
      * filters in memory.
      */
-    private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
+    private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE
+            / Write.MINIMUM_SIZE;
 
     /**
      * Multiplied times the number of expected insertions in an attempt to size
@@ -222,6 +223,12 @@ public final class Segment extends TransferableByteSequence implements
             + (GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
                     ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
                     : 100);
+
+    /**
+     * Multiplied times the number of expected insertions in an attempt to size
+     * the {@link Chunk#filter() bloom filter} of each {@link Chunk} correctly.
+     */
+    private static final int BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE = 3;
 
     /**
      * The expected bytes at the beginning of a {@link Segment} file to properly
@@ -351,11 +358,15 @@ public final class Segment extends TransferableByteSequence implements
         this.minTs = Long.MAX_VALUE;
         this.syncTs = 0;
         this.table = TableChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter.create(BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE
+                        * expectedInsertions));
         this.index = IndexChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter.create(BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE
+                        * expectedInsertions));
         this.corpus = CorpusChunk.create(this,
-                BloomFilter.create(expectedInsertions));
+                BloomFilter
+                        .create(10 * BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE
+                                * expectedInsertions));
         this.version = SCHEMA_VERSION;
     }
 
