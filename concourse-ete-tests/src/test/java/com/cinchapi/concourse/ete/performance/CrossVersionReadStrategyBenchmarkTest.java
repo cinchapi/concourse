@@ -15,33 +15,43 @@
  */
 package com.cinchapi.concourse.ete.performance;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.sort.Order;
-import com.cinchapi.concourse.test.CrossVersionTest;
-import com.cinchapi.concourse.test.runners.CrossVersionTestRunner.Versions;
 import com.cinchapi.concourse.thrift.Operator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for various lookup scenarios across versions.
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.10.5", "latest" })
-public class CrossVersionStrategyLookupPerformanceTest
-        extends CrossVersionTest {
+public class CrossVersionReadStrategyBenchmarkTest
+        extends CrossVersionBenchmarkTest {
+
+    public static String[] versions() {
+        String[] versions = CrossVersionBenchmarkTests.VERSIONS;
+        Set<String> $versions = Sets.newHashSet(versions);
+        $versions.remove("0.9.6"); // sorting not supported
+        versions = $versions.toArray(Array.containing());
+        return versions;
+
+    }
 
     @Test
     public void testFindSortKeyAndConditionKey() {
-        init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -59,7 +69,6 @@ public class CrossVersionStrategyLookupPerformanceTest
 
     @Test
     public void testSelectSortKeyAndConditionKey() {
-        init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -77,7 +86,6 @@ public class CrossVersionStrategyLookupPerformanceTest
 
     @Test
     public void testSelectManyKeysSortKey() {
-        init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -93,7 +101,6 @@ public class CrossVersionStrategyLookupPerformanceTest
 
     @Test
     public void testSelectAllKeysSortKey() {
-        init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -108,7 +115,6 @@ public class CrossVersionStrategyLookupPerformanceTest
 
     @Test
     public void testSelectDiffKeyFromSortKey() {
-        init();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -122,10 +128,8 @@ public class CrossVersionStrategyLookupPerformanceTest
         record("testSelectDiffKeyFromSortKey", avg);
     }
 
-    /**
-     * Setup test data and restart the server (to flush cache).
-     */
-    private void init() {
+    private static List<Map<String, Object>> data = new ArrayList<>(20000);
+    static {
         int count = 20000;
         List<Integer> counts = Lists.newArrayList();
         for (int i = 0; i < count; ++i) {
@@ -133,8 +137,15 @@ public class CrossVersionStrategyLookupPerformanceTest
         }
         Collections.shuffle(counts);
         counts.forEach(c -> {
-            client.insert(
+            data.add(
                     ImmutableMap.of("name", c, "count", c, "foo", "c", "b", c));
+        });
+    }
+
+    @Override
+    protected void beforeEachBenchmarkRuns() {
+        data.forEach(map -> {
+            client.insert(map);
         });
         while (server.hasWritesToTransport()) {
             try {
@@ -143,6 +154,7 @@ public class CrossVersionStrategyLookupPerformanceTest
             catch (InterruptedException e) {/* ignore */}
             continue;
         }
+        client.close();
         server.stop();
         server.start();
         client = server.connect();

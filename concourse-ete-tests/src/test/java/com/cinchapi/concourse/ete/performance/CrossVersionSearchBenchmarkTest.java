@@ -21,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
-import com.cinchapi.concourse.test.CrossVersionTest;
-import com.cinchapi.concourse.test.runners.CrossVersionTestRunner.Versions;
 import com.cinchapi.concourse.util.Random;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -32,12 +30,11 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.9.6", "0.10.5", "latest" })
-public class CrossVersionSearchBenchmarkTest extends CrossVersionTest {
+public class CrossVersionSearchBenchmarkTest extends CrossVersionBenchmarkTest {
 
+    static String key;
     static String query;
     static List<String> values;
-    static String key;
     static {
         key = Random.getSimpleString();
         values = Lists.newArrayList();
@@ -61,10 +58,7 @@ public class CrossVersionSearchBenchmarkTest extends CrossVersionTest {
 
     @Test
     public void testColdSearchPerformance() {
-        for (int i = 0; i < values.size(); ++i) {
-            String value = values.get(i);
-            client.add(key, value, i);
-        }
+        client.close();
         server.stop();
         server.start();
         client = server.connect();
@@ -82,11 +76,6 @@ public class CrossVersionSearchBenchmarkTest extends CrossVersionTest {
 
     @Test
     public void testWarmSearchPerformance() {
-        for (int i = 0; i < values.size(); ++i) {
-            String value = values.get(i);
-            client.add(key, value, i);
-        }
-        client = server.connect();
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
@@ -97,6 +86,14 @@ public class CrossVersionSearchBenchmarkTest extends CrossVersionTest {
         };
         double avg = benchmark.average(10);
         record("warm", avg);
+    }
+
+    @Override
+    protected void beforeEachBenchmarkRuns() {
+        for (int i = 0; i < values.size(); ++i) {
+            String value = values.get(i);
+            client.add(key, value, i);
+        }
     }
 
 }

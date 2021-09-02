@@ -15,72 +15,60 @@
  */
 package com.cinchapi.concourse.ete.performance;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.concourse.Tag;
-import com.cinchapi.concourse.test.CrossVersionTest;
-import com.cinchapi.concourse.test.runners.CrossVersionTestRunner.Versions;
 import com.cinchapi.concourse.time.Time;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Unit test for performance across versions.
+ * Benchmark
+ * {@link com.cinchapi.concourse.Concourse#verify(String, Object, long) verify}
+ * performance across versions.
  *
  * @author Jeff Nelson
  */
-@Versions({ "0.9.6", "0.10.5", "latest" })
-public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
+public class CrossVersionVerifyBenchmarkTest extends CrossVersionBenchmarkTest {
 
-    @Test
-    public void testWrite() {
-        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
-
-            @Override
-            public void action() {
-                for (int i = 0; i < 10000; ++i) {
-                    client.add("foo", Time.now(), i);
-                }
-            }
-
-        };
-        double avg = benchmark.run(10) / 10;
-        record("write", avg);
+    /**
+     * Data to use in each verion's test. Defined statically to prevent GC
+     * between test runs.
+     */
+    static List<Map<String, Object>> data = new ArrayList<>(10000);
+    static Tag tag = Tag.create("mafia");
+    static {
+        for (int i = 0; i < 10000; ++i) {
+            data.add(ImmutableMap.of("foo", Time.now(), "bar", true, "baz",
+                    "hello", "bang", tag));
+        }
     }
 
-    @Test
-    public void testRead() {
-        for (int i = 0; i < 10000; ++i) {
-            client.insert(ImmutableMap.of("foo", Time.now(), "bar", true, "baz",
-                    "hello", "bang", Tag.create("mafia")));
+    @Override
+    protected void beforeEachBenchmarkRuns() {
+        for (int i = 0; i < data.size(); ++i) {
+            Map<String, Object> map = data.get(i);
+            client.insert(map, i + 1);
         }
-        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
-
-            @Override
-            public void action() {
-                client.select("foo < " + Time.now());
-            }
-
-        };
-        double avg = benchmark.run(10) / 10;
-        record("read", avg);
     }
 
     @Test
     public void testVerify() {
-        for (int i = 0; i < 10000; ++i) {
-            client.insert(ImmutableMap.of("foo", Time.now(), "bar", true, "baz",
-                    "hello", "bang", Tag.create("mafia")), i + 1);
-        }
         Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
 
             @Override
             public void action() {
                 for (int i = 0; i < 10000; ++i) {
+                    // Verify known hits
                     client.verify("baz", "hello", i + 1);
-                    client.verify("bang", Tag.create("mafia"), i + 1);
+                    client.verify("bang", tag, i + 1);
+
+                    // Verify known miss
                     client.verify("foo", Time.now(), i + 1);
                 }
             }
@@ -89,4 +77,5 @@ public class CrossVersionPerformanceBenchmarkTest extends CrossVersionTest {
         double avg = benchmark.average(10);
         record("verify", avg);
     }
+
 }
