@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * 
  * @author Jeff Nelson
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Experimental {
 
