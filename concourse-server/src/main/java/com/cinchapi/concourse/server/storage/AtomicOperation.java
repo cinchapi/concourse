@@ -65,17 +65,8 @@ public class AtomicOperation extends BufferedStore implements
     // place.
 
     /**
-     * The initial capacity
-     */
-    protected static final int INITIAL_CAPACITY = 10;
-
-    /**
-     * Start a new AtomicOperation that will commit to {@code store}.
-     * <p>
-     * Always use the {@link AtomicSupport#startAtomicOperation()} method over
-     * this one because each store <em>may</em> may do some customization to the
-     * AtomicOperation before it is returned to the caller.
-     * </p>
+     * Start a new {@link AtomicOperation} that will {@link #commit() commit} to
+     * {@code store}.
      * 
      * @param store
      * @return the AtomicOperation
@@ -83,6 +74,11 @@ public class AtomicOperation extends BufferedStore implements
     protected static AtomicOperation start(AtomicSupport store) {
         return new AtomicOperation(store);
     }
+
+    /**
+     * The initial capacity
+     */
+    protected static final int INITIAL_CAPACITY = 10;
 
     /**
      * The {@link RangeToken range read tokens} that represent any queries in
@@ -147,9 +143,20 @@ public class AtomicOperation extends BufferedStore implements
     private boolean notifiedAboutVersionChange = false;
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    protected final LockService lockService;
+
+    /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    protected final RangeLockService rangeLockService;
+
+    /**
      * Construct a new instance.
      * 
-     * @param destination - must be a {@link AtomicSupport}
+     * @param destination
      */
     protected AtomicOperation(AtomicSupport destination) {
         this(new Queue(INITIAL_CAPACITY), destination);
@@ -159,11 +166,14 @@ public class AtomicOperation extends BufferedStore implements
      * Construct a new instance.
      * 
      * @param buffer
-     * @param destination - must be a {@link AtomicSupport}
+     * @param destination
+     * @param lockService
+     * @param rangeLockService
      */
     protected AtomicOperation(Queue buffer, AtomicSupport destination) {
-        super(buffer, destination, ((BufferedStore) destination).lockService,
-                ((BufferedStore) destination).rangeLockService);
+        super(buffer, destination);
+        this.lockService = destination.$atomicLockService();
+        this.rangeLockService = destination.$atomicRangeLockService();
         this.source = (AtomicSupport) this.durable;
     }
 

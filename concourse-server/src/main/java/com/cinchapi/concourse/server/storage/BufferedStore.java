@@ -23,8 +23,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -131,30 +129,14 @@ public abstract class BufferedStore extends BaseStore {
     protected final DurableStore durable;
 
     /**
-     * The {@link LockService} that is used to coordinate concurrent operations.
-     */
-    protected LockService lockService;
-
-    /**
-     * The {@link RangeLockService} that is used to coordinate concurrent
-     * operations.
-     */
-    protected RangeLockService rangeLockService;
-
-    /**
      * Construct a new instance.
      * 
-     * @param transportable
-     * @param destination
-     * @param lockService
-     * @param rangeLockService
+     * @param limbo
+     * @param durable
      */
-    protected BufferedStore(Limbo transportable, DurableStore destination,
-            LockService lockService, RangeLockService rangeLockService) {
-        this.limbo = transportable;
-        this.durable = destination;
-        this.lockService = lockService;
-        this.rangeLockService = rangeLockService;
+    protected BufferedStore(Limbo limbo, DurableStore durable) {
+        this.limbo = limbo;
+        this.durable = durable;
     }
 
     /**

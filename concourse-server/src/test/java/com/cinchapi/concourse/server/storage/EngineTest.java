@@ -139,12 +139,12 @@ public class EngineTest extends BufferedStoreTest {
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
         while ((boolean) method.invoke(engine.limbo)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         for (int i = 0; i < count; i++) {
@@ -182,12 +182,12 @@ public class EngineTest extends BufferedStoreTest {
                         // Engine
         db = (Database) engine.durable;
         while ((boolean) method.invoke(engine.limbo)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         Iterator<Write> it = db.iterator();
@@ -223,12 +223,12 @@ public class EngineTest extends BufferedStoreTest {
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
         while ((boolean) method.invoke(engine.limbo)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         engine.find("name", Operator.EQUALS, Convert.javaToThrift("jeff"));

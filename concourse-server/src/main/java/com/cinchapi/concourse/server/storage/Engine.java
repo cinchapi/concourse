@@ -261,6 +261,17 @@ public final class Engine extends BufferedStore implements
     private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMap<Token, WeakHashMap<VersionChangeListener, Boolean>>();
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    private final LockService lockService;
+
+    /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    private final RangeLockService rangeLockService;
+
+    /**
      * Construct an Engine that is made up of a {@link Buffer} and
      * {@link Database} in the default locations.
      * 
@@ -305,8 +316,9 @@ public final class Engine extends BufferedStore implements
      */
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
-        super(buffer, database, LockService.create(),
-                RangeLockService.create());
+        super(buffer, database);
+        this.lockService = LockService.create();
+        this.rangeLockService = RangeLockService.create();
         this.environment = environment;
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
@@ -922,6 +934,16 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public LockService $atomicLockService() {
+        return lockService;
+    }
+
+    @Override
+    public RangeLockService $atomicRangeLockService() {
+        return rangeLockService;
+    }
+
+    @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
@@ -1006,7 +1028,8 @@ public final class Engine extends BufferedStore implements
     private void doTransactionRecovery() {
         FileSystem.mkdirs(transactionStore);
         for (File file : new File(transactionStore).listFiles()) {
-            Transaction.recover(this, file.getAbsolutePath());
+            Transaction.recover(this, file.getAbsolutePath(), lockService,
+                    rangeLockService);
             Logger.info("Restored Transaction from {}", file.getName());
         }
     }

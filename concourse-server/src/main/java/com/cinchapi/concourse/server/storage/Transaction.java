@@ -50,7 +50,7 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public final class Transaction extends AtomicOperation implements 
+public final class Transaction extends AtomicOperation implements
         AtomicSupport {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
     // the safe counterparts in the super class (AtomicOperation) because those
@@ -63,13 +63,16 @@ public final class Transaction extends AtomicOperation implements
      * 
      * @param destination
      * @param file
+     * @param lockService
+     * @param rangeLockService
      * @return The restored Transaction
      */
-    public static void recover(Engine destination, String file) {
+    public static void recover(Engine destination, String file,
+            LockService lockService, RangeLockService rangeLockService) {
         try {
-            Transaction transaction = new Transaction(destination,
-                    FileSystem.map(file, MapMode.READ_ONLY, 0,
-                            FileSystem.getFileSize(file)));
+            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                    FileSystem.getFileSize(file));
+            Transaction transaction = new Transaction(destination, bytes);
             transaction.invokeSuperDoCommit(true); // recovering transaction
                                                    // must always syncAndVerify
                                                    // to prevent possible data
@@ -100,6 +103,11 @@ public final class Transaction extends AtomicOperation implements
     }
 
     /**
+     * The unique Transaction id.
+     */
+    private final String id;
+
+    /**
      * The Transaction "manages" the version change listeners for each of its
      * Atomic Operations. Since the Transaction is registered with the Engine
      * for version change notifications for each action of each of its atomic
@@ -108,21 +116,6 @@ public final class Transaction extends AtomicOperation implements
      */
     private Multimap<AtomicOperation, Token> managedVersionChangeListeners = HashMultimap
             .create();
-
-    /**
-     * The unique Transaction id.
-     */
-    private final String id;
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param destination
-     */
-    private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination);
-        this.id = Long.toString(Time.now());
-    }
 
     /**
      * Construct a new instance.
@@ -134,6 +127,34 @@ public final class Transaction extends AtomicOperation implements
         this(destination);
         deserialize(bytes);
         open.set(false);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     */
+    private Transaction(Engine destination) {
+        super(new Queue(INITIAL_CAPACITY), destination);
+        this.id = Long.toString(Time.now());
+    }
+
+    @Override
+    public LockService $atomicLockService() {
+        // Transaction is, itself, an AtomicOperation that must adhere to the
+        // JIT Locking guarantee with respect to the Engine's lock services, so
+        // if it births an AtomicOperation, it should inherit but defer any
+        // locks needed therewithin
+        return LockService.noOp();
+    }
+
+    @Override
+    public RangeLockService $atomicRangeLockService() {
+        // Transaction is, itself, an AtomicOperation that must adhere to the
+        // JIT Locking guarantee with respect to the Engine's lock services, so
+        // if it births an AtomicOperation, it should inherit but defer any
+        // locks needed therewithin
+        return RangeLockService.noOp();
     }
 
     @Override
@@ -184,11 +205,6 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public Map<Long, String> auditUnsafe(String key, long record) {
         return audit(key, record);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> selectUnsafe(long record) {
-        return select(record);
     }
 
     @Override
@@ -249,6 +265,11 @@ public final class Transaction extends AtomicOperation implements
             VersionChangeListener listener) {}
 
     @Override
+    public Map<String, Set<TObject>> selectUnsafe(long record) {
+        return select(record);
+    }
+
+    @Override
     public Set<TObject> selectUnsafe(String key, long record) {
         return select(key, record);
     }
@@ -256,10 +277,7 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public AtomicOperation startAtomicOperation() {
         checkState();
-        AtomicOperation operation = AtomicOperation.start(this);
-        operation.lockService = LockService.noOp();
-        operation.rangeLockService = RangeLockService.noOp();
-        return operation;
+        return AtomicOperation.start(this);
     }
 
     @Override
@@ -273,6 +291,53 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public boolean verifyUnsafe(String key, TObject value, long record) {
         return verify(key, value, record);
+    }
+
+    @Override
+    protected void checkState() throws AtomicStateException {
+        try {
+            super.checkState();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
+    }
+
+    @Override
+    protected void doCommit() {
+        if(isReadOnly()) {
+            invokeSuperDoCommit(false);
+        }
+        else {
+            String file = ((Engine) durable).transactionStore + File.separator
+                    + id + ".txn";
+            FileChannel channel = FileSystem.getFileChannel(file);
+            try {
+                channel.write(serialize());
+                channel.force(true);
+                Logger.info("Created backup for transaction {} at '{}'", this,
+                        file);
+                invokeSuperDoCommit(false);
+                FileSystem.deleteFile(file);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+            finally {
+                FileSystem.closeFileChannel(channel);
+            }
+        }
+    }
+
+    /**
+     * Perform cleanup for the atomic {@code operation} that was birthed from
+     * this transaction and has successfully committed.
+     * 
+     * @param operation an AtomicOperation, birthed from this Transaction,
+     *            that has committed successfully
+     */
+    protected void onCommit(AtomicOperation operation) {
+        managedVersionChangeListeners.removeAll(operation);
     }
 
     /**
@@ -331,53 +396,6 @@ public final class Transaction extends AtomicOperation implements
         bytes.put(_writes);
         bytes.rewind();
         return bytes;
-    }
-
-    @Override
-    protected void checkState() throws AtomicStateException {
-        try {
-            super.checkState();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void doCommit() {
-        if(isReadOnly()) {
-            invokeSuperDoCommit(false);
-        }
-        else {
-            String file = ((Engine) durable).transactionStore
-                    + File.separator + id + ".txn";
-            FileChannel channel = FileSystem.getFileChannel(file);
-            try {
-                channel.write(serialize());
-                channel.force(true);
-                Logger.info("Created backup for transaction {} at '{}'", this,
-                        file);
-                invokeSuperDoCommit(false);
-                FileSystem.deleteFile(file);
-            }
-            catch (IOException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
-            }
-            finally {
-                FileSystem.closeFileChannel(channel);
-            }
-        }
-    }
-
-    /**
-     * Perform cleanup for the atomic {@code operation} that was birthed from
-     * this transaction and has successfully committed.
-     * 
-     * @param operation an AtomicOperation, birthed from this Transaction,
-     *            that has committed successfully
-     */
-    protected void onCommit(AtomicOperation operation) {
-        managedVersionChangeListeners.removeAll(operation);
     }
 
 }
