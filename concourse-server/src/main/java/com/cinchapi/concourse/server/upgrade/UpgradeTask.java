@@ -417,7 +417,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the minimum required version
      */
     protected int requiresVersion() {
-        return (int) Versions.toLongRepresentation("0.10.2.1", 2);
+        return (int) Versions.toLongRepresentation("0.10.6.2", 2);
     }
 
     /**
