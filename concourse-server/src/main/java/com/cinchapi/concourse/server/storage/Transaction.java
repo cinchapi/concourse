@@ -63,12 +63,9 @@ public final class Transaction extends AtomicOperation implements
      * 
      * @param destination
      * @param file
-     * @param lockService
-     * @param rangeLockService
-     * @return The restored Transaction
+     * @return The restored {@link Transaction}
      */
-    public static void recover(Engine destination, String file,
-            LockService lockService, RangeLockService rangeLockService) {
+    public static void recover(Engine destination, String file) {
         try {
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
@@ -135,26 +132,9 @@ public final class Transaction extends AtomicOperation implements
      * @param destination
      */
     private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination);
+        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
+                destination.rangeLockService);
         this.id = Long.toString(Time.now());
-    }
-
-    @Override
-    public LockService $atomicLockService() {
-        // Transaction is, itself, an AtomicOperation that must adhere to the
-        // JIT Locking guarantee with respect to the Engine's lock services, so
-        // if it births an AtomicOperation, it should inherit but defer any
-        // locks needed therewithin
-        return LockService.noOp();
-    }
-
-    @Override
-    public RangeLockService $atomicRangeLockService() {
-        // Transaction is, itself, an AtomicOperation that must adhere to the
-        // JIT Locking guarantee with respect to the Engine's lock services, so
-        // if it births an AtomicOperation, it should inherit but defer any
-        // locks needed therewithin
-        return RangeLockService.noOp();
     }
 
     @Override
@@ -277,7 +257,13 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public AtomicOperation startAtomicOperation() {
         checkState();
-        return AtomicOperation.start(this);
+        // A Transaction is, itself, an AtomicOperation that must adhere to the
+        // JIT Locking guarantee with respect to the Engine's lock services, so
+        // if it births an AtomicOperation, it should just inherit but defer any
+        // locks needed therewithin instead of passing the Engine's lock service
+        // on
+        return AtomicOperation.start(this, LockService.noOp(),
+                RangeLockService.noOp());
     }
 
     @Override

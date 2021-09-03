@@ -59,6 +59,7 @@ import com.google.common.collect.TreeRangeSet;
  */
 public class AtomicOperation extends BufferedStore implements
         VersionChangeListener {
+
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in
@@ -69,10 +70,13 @@ public class AtomicOperation extends BufferedStore implements
      * {@code store}.
      * 
      * @param store
+     * @param lockService
+     * @param rangeLockService
      * @return the AtomicOperation
      */
-    protected static AtomicOperation start(AtomicSupport store) {
-        return new AtomicOperation(store);
+    protected static AtomicOperation start(AtomicSupport store,
+            LockService lockService, RangeLockService rangeLockService) {
+        return new AtomicOperation(store, lockService, rangeLockService);
     }
 
     /**
@@ -136,13 +140,6 @@ public class AtomicOperation extends BufferedStore implements
     protected AtomicBoolean open = new AtomicBoolean(true);
 
     /**
-     * A flag that is set when the atomic operation must fail because it is
-     * notified about a version change. Each operation checks this flag so it
-     * can know whether it needs to perform an abort (to clean up resources).
-     */
-    private boolean notifiedAboutVersionChange = false;
-
-    /**
      * The {@link LockService} that is used to coordinate concurrent operations.
      */
     protected final LockService lockService;
@@ -154,12 +151,21 @@ public class AtomicOperation extends BufferedStore implements
     protected final RangeLockService rangeLockService;
 
     /**
+     * A flag that is set when the atomic operation must fail because it is
+     * notified about a version change. Each operation checks this flag so it
+     * can know whether it needs to perform an abort (to clean up resources).
+     */
+    private boolean notifiedAboutVersionChange = false;
+
+    /**
      * Construct a new instance.
      * 
      * @param destination
      */
-    protected AtomicOperation(AtomicSupport destination) {
-        this(new Queue(INITIAL_CAPACITY), destination);
+    protected AtomicOperation(AtomicSupport destination,
+            LockService lockService, RangeLockService rangeLockService) {
+        this(new Queue(INITIAL_CAPACITY), destination, lockService,
+                rangeLockService);
     }
 
     /**
@@ -170,10 +176,11 @@ public class AtomicOperation extends BufferedStore implements
      * @param lockService
      * @param rangeLockService
      */
-    protected AtomicOperation(Queue buffer, AtomicSupport destination) {
+    protected AtomicOperation(Queue buffer, AtomicSupport destination,
+            LockService lockService, RangeLockService rangeLockService) {
         super(buffer, destination);
-        this.lockService = destination.$atomicLockService();
-        this.rangeLockService = destination.$atomicRangeLockService();
+        this.lockService = lockService;
+        this.rangeLockService = rangeLockService;
         this.source = (AtomicSupport) this.durable;
     }
 

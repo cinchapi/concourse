@@ -18,8 +18,6 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -173,37 +171,5 @@ public interface AtomicSupport extends DurableStore, VersionChangeNotifier {
      * @return {@code boolean}
      */
     public boolean verifyUnsafe(String key, TObject value, long record);
-
-    /**
-     * Return the {@link LockService} that each {@link AtomicOperation}
-     * should use prior to {@link AtomicOperation#commit() committing} so that
-     * serializable isolation is guaranteed.
-     * <p>
-     * The value returned from should never be {@code null}, but it does not
-     * necessarily need to be the same {@link LockService} that this
-     * {@link AtomicSupport store} uses to coordinate its internal operations.
-     * </p>
-     * 
-     * @return the {@link LockService} for {@link AtomicOperation
-     *         AtomicOperations} {@link #startAtomicOperation() started} from
-     *         this {@link AtomicSupport store} to use
-     */
-    public LockService $atomicLockService();
-
-    /**
-     * Return the {@link RangeLockService} that each {@link AtomicOperation}
-     * should use prior to {@link AtomicOperation#commit() committing} so that
-     * serializable isolation is guaranteed.
-     * <p>
-     * The value returned from should never be {@code null}, but it does not
-     * necessarily need to be the same {@link RangeLockService} that this
-     * {@link AtomicSupport store} uses to coordinate its internal operations.
-     * </p>
-     * 
-     * @return the {@link RangeLockService} for {@link AtomicOperation
-     *         AtomicOperations} {@link #startAtomicOperation() started} from
-     *         this {@link AtomicSupport store} to use
-     */
-    public RangeLockService $atomicRangeLockService();
 
 }

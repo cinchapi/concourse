@@ -184,6 +184,17 @@ public final class Engine extends BufferedStore implements
     protected final Inventory inventory; // visible for testing
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    protected final LockService lockService; // exposed for Transaction
+
+    /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    protected final RangeLockService rangeLockService; // exposed for Transction
+
+    /**
      * The location where transaction backups are stored.
      */
     protected final String transactionStore; // exposed for Transaction backup
@@ -259,17 +270,6 @@ public final class Engine extends BufferedStore implements
      * a given token.
      */
     private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMap<Token, WeakHashMap<VersionChangeListener, Boolean>>();
-
-    /**
-     * The {@link LockService} that is used to coordinate concurrent operations.
-     */
-    private final LockService lockService;
-
-    /**
-     * The {@link RangeLockService} that is used to coordinate concurrent
-     * operations.
-     */
-    private final RangeLockService rangeLockService;
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -866,7 +866,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public AtomicOperation startAtomicOperation() {
-        return AtomicOperation.start(this);
+        return AtomicOperation.start(this, lockService, rangeLockService);
     }
 
     @Override
@@ -931,16 +931,6 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
-    }
-
-    @Override
-    public LockService $atomicLockService() {
-        return lockService;
-    }
-
-    @Override
-    public RangeLockService $atomicRangeLockService() {
-        return rangeLockService;
     }
 
     @Override
@@ -1028,8 +1018,7 @@ public final class Engine extends BufferedStore implements
     private void doTransactionRecovery() {
         FileSystem.mkdirs(transactionStore);
         for (File file : new File(transactionStore).listFiles()) {
-            Transaction.recover(this, file.getAbsolutePath(), lockService,
-                    rangeLockService);
+            Transaction.recover(this, file.getAbsolutePath());
             Logger.info("Restored Transaction from {}", file.getName());
         }
     }
