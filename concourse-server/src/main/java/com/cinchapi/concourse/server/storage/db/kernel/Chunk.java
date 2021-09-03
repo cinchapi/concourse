@@ -385,7 +385,20 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         boolean mutable = isMutable();
         Locks.lockIfCondition(read, mutable);
         try {
-            return filter.mightContain(composite);
+            SortedSet<Revision<L, K, V>> heapRevisions = revisions != null
+                    ? revisions
+                    : ($revisions != null ? $revisions.get() : null);
+            if(heapRevisions != null) {
+                // If all the revisions are in memory, there's no benefit to
+                // testing membership with the bloom filter (e.g. the cost of
+                // hashing is probably as or more expensive than the cost of
+                // iterating through the sorted set), so just assume that
+                // #composite might exist and perform a #seek to be sure.
+                return !heapRevisions.isEmpty();
+            }
+            else {
+                return filter.mightContain(composite);
+            }
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
