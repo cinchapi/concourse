@@ -528,11 +528,11 @@ public abstract class BufferedStoreTest extends StoreTest {
         for (int i = 0; i < numForDestination; i++) {
             Data d = it.next();
             if(d.type == Action.ADD) {
-                ((BufferedStore) store).destination
+                ((BufferedStore) store).durable
                         .accept(Write.add(d.key, d.value, d.record));
             }
             else {
-                ((BufferedStore) store).destination
+                ((BufferedStore) store).durable
                         .accept(Write.remove(d.key, d.value, d.record));
             }
             if(store instanceof Engine) { // The Engine uses the inventory to
@@ -548,11 +548,11 @@ public abstract class BufferedStoreTest extends StoreTest {
         while (it.hasNext()) {
             Data d = it.next();
             if(d.type == Action.ADD) {
-                ((BufferedStore) store).buffer
+                ((BufferedStore) store).limbo
                         .insert(Write.add(d.key, d.value, d.record));
             }
             else {
-                ((BufferedStore) store).buffer
+                ((BufferedStore) store).limbo
                         .insert(Write.remove(d.key, d.value, d.record));
             }
         }

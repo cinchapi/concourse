@@ -116,7 +116,7 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select(1);
-        transaction.destination
+        transaction.durable
                 .accept(Write.add("foo", Convert.javaToThrift(1), 1));
         try {
             Assert.assertFalse(operation.commit());
@@ -133,7 +133,7 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select("foo", 1);
-        transaction.destination
+        transaction.durable
                 .accept(Write.add("foo", Convert.javaToThrift(1), 1));
         try {
             operation.select(2);
@@ -149,13 +149,13 @@ public class TransactionTest extends AtomicOperationTest {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
         operation.select("foo", 1);
-        transaction.destination
+        transaction.durable
                 .accept(Write.add("foo", Convert.javaToThrift(1), 1));
-        transaction.destination
+        transaction.durable
                 .accept(Write.add("foo", Convert.javaToThrift(2), 1));
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
-            transaction.destination
+            transaction.durable
                     .accept(Write.add("foo", Convert.javaToThrift(i), 1));
         }
         Assert.assertTrue(transaction.commit());

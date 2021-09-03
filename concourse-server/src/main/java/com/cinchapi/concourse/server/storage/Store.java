@@ -28,7 +28,7 @@ import com.cinchapi.concourse.thrift.TObject;
  * </p>
  * <p>
  * A {@code Store} can acquire data in one of two ways: directly if it is a
- * {@link Limbo} or <em>eventually</em> if it is a {@link PermanentStore}.
+ * {@link Limbo} or <em>eventually</em> if it is a {@link DurableStore}.
  * </p>
  * <p>
  * In general, a {@code Limbo} and {@code PermanentStore} work together in a

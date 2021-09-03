@@ -582,9 +582,9 @@ public final class Engine extends BufferedStore implements
     @ManagedOperation
     public String dump(String id) {
         if(id.equalsIgnoreCase(BUFFER_DUMP_ID)) {
-            return ((Buffer) buffer).dump();
+            return ((Buffer) limbo).dump();
         }
-        return ((Database) destination).dump(id);
+        return ((Database) durable).dump(id);
     }
 
     @Override
@@ -635,7 +635,7 @@ public final class Engine extends BufferedStore implements
      */
     @ManagedOperation
     public String getDumpList() {
-        List<String> ids = ((Database) destination).getDumpList();
+        List<String> ids = ((Database) durable).getDumpList();
         ids.add("BUFFER");
         ListIterator<String> it = ids.listIterator(ids.size());
         StringBuilder sb = new StringBuilder();
@@ -825,9 +825,9 @@ public final class Engine extends BufferedStore implements
         if(!running) {
             Logger.info("Starting the '{}' Engine...", environment);
             running = true;
-            destination.start();
-            buffer.start();
-            destination.reconcile(buffer.versions());
+            durable.start();
+            limbo.start();
+            durable.reconcile(limbo.versions());
             doTransactionRecovery();
             scheduler.scheduleAtFixedRate(new TimerTask() {
 
@@ -867,9 +867,9 @@ public final class Engine extends BufferedStore implements
         if(running) {
             running = false;
             scheduler.cancel();
-            buffer.stop();
+            limbo.stop();
             bufferTransportThread.interrupt();
-            destination.stop();
+            durable.stop();
             lockService.shutdown();
             rangeLockService.shutdown();
         }
@@ -877,7 +877,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public void sync() {
-        buffer.sync();
+        limbo.sync();
     }
 
     @Override
@@ -1019,7 +1019,7 @@ public final class Engine extends BufferedStore implements
      */
     private long getBufferTransportThreadIdleTimeInMs() {
         return TimeUnit.MILLISECONDS.convert(
-                Time.now() - ((Buffer) buffer).getTimeOfLastTransport(),
+                Time.now() - ((Buffer) limbo).getTimeOfLastTransport(),
                 TimeUnit.MICROSECONDS);
     }
 
@@ -1070,7 +1070,7 @@ public final class Engine extends BufferedStore implements
 
     /**
      * A thread that is responsible for transporting content from
-     * {@link #buffer} to {@link #destination}.
+     * {@link #limbo} to {@link #durable}.
      * 
      * @author Jeff Nelson
      */
@@ -1111,7 +1111,7 @@ public final class Engine extends BufferedStore implements
                             "Paused the background data transport thread because "
                                     + "it has been inactive for at least {} milliseconds",
                             BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS);
-                    buffer.waitUntilTransportable();
+                    limbo.waitUntilTransportable();
                     if(Thread.interrupted()) { // the thread has been
                                                // interrupted from the Engine
                                                // stopping
@@ -1124,7 +1124,7 @@ public final class Engine extends BufferedStore implements
                     // time to avoid thrashing
                     int sleep = bufferTransportThreadSleepInMs > 0
                             ? bufferTransportThreadSleepInMs
-                            : buffer.getDesiredTransportSleepTimeInMs();
+                            : limbo.getDesiredTransportSleepTimeInMs();
                     Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                 }
@@ -1154,7 +1154,7 @@ public final class Engine extends BufferedStore implements
                 try {
                     bufferTransportThreadIsPaused.compareAndSet(true, false);
                     bufferTransportThreadIsDoingWork.set(true);
-                    buffer.transport(destination);
+                    limbo.transport(durable);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                     bufferTransportThreadIsDoingWork.set(false);
                 }

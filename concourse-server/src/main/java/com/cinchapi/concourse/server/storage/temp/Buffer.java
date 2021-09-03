@@ -64,7 +64,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
@@ -88,7 +88,7 @@ import com.google.common.collect.Sets;
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
  * quickly accumulate writes in memory before performing a batch flush into some
- * {@link PermanentStore}.
+ * {@link DurableStore}.
  * <p>
  * A Buffer enforces the durability guarantee because all writes are also
  * immediately flushed to disk. Even though there is some disk I/O, the overhead
@@ -778,7 +778,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * </p>
      */
     @Override
-    public void transport(PermanentStore destination, boolean sync) {
+    public void transport(DurableStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
         if(pages.size() > 1) {

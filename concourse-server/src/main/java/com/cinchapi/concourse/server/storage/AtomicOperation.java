@@ -164,12 +164,12 @@ public class AtomicOperation extends BufferedStore implements
     protected AtomicOperation(Queue buffer, AtomicSupport destination) {
         super(buffer, destination, ((BufferedStore) destination).lockService,
                 ((BufferedStore) destination).rangeLockService);
-        this.source = (AtomicSupport) this.destination;
+        this.source = (AtomicSupport) this.durable;
     }
 
     /**
      * Close this operation and release all of the held locks without applying
-     * any of the changes to the {@link #destination} store.
+     * any of the changes to the {@link #durable} store.
      */
     public void abort() {
         open.set(false);
@@ -282,8 +282,8 @@ public class AtomicOperation extends BufferedStore implements
                     && finalizing.compareAndSet(false, true)) {
                 doCommit();
                 releaseLocks();
-                if(destination instanceof Transaction) {
-                    ((Transaction) destination).onCommit(this);
+                if(durable instanceof Transaction) {
+                    ((Transaction) durable).onCommit(this);
                 }
                 return true;
             }
@@ -491,7 +491,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * Check each one of the {@link #intentions} against the
-     * {@link #destination} and grab the appropriate locks along the way. This
+     * {@link #durable} and grab the appropriate locks along the way. This
      * method will return {@code true} if all expectations are met and all
      * necessary locks are grabbed. Otherwise it will return {@code false}, in
      * which case this operation should be aborted immediately.
@@ -638,7 +638,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Transport the written data to the {@link #destination} store. The
+     * Transport the written data to the {@link #durable} store. The
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
      */
@@ -647,7 +647,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Transport the written data to the {@link #destination} store. The
+     * Transport the written data to the {@link #durable} store. The
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
      * 
@@ -683,9 +683,9 @@ public class AtomicOperation extends BufferedStore implements
         // technically not a violation of "all or nothing" if the entire
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
-        buffer.transport(destination, syncAndVerify);
+        limbo.transport(durable, syncAndVerify);
         if(!syncAndVerify) {
-            destination.sync();
+            durable.sync();
         }
     }
 
@@ -723,7 +723,7 @@ public class AtomicOperation extends BufferedStore implements
      *         <em>read-only</em>
      */
     protected boolean isReadOnly() {
-        return ((Queue) buffer).size() == 0;
+        return ((Queue) limbo).size() == 0;
     }
 
     /**

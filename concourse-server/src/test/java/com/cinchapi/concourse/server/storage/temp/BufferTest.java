@@ -31,7 +31,7 @@ import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
@@ -47,8 +47,8 @@ import com.google.common.collect.Sets;
  */
 public class BufferTest extends LimboTest {
 
-    private static PermanentStore MOCK_DESTINATION = Mockito
-            .mock(PermanentStore.class);
+    private static DurableStore MOCK_DESTINATION = Mockito
+            .mock(DurableStore.class);
     static {
         // NOTE: The Buffer assumes it is transporting to a Database, but we
         // cannot mock that class with Mockito since it is final. Mocking the

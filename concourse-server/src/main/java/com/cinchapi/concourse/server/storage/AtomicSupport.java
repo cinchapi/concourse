@@ -29,7 +29,7 @@ import com.cinchapi.concourse.thrift.TObject;
  * 
  * @author Jeff Nelson
  */
-public interface AtomicSupport extends PermanentStore, VersionChangeNotifier {
+public interface AtomicSupport extends DurableStore, VersionChangeNotifier {
 
     /**
      * This method returns a log of revisions in {@code record} as

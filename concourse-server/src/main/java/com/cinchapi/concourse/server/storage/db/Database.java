@@ -61,7 +61,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Memory;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -90,7 +90,7 @@ import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
- * The {@link Database} is the {@link Engine Engine's} {@link PermanentStore}
+ * The {@link Database} is the {@link Engine Engine's} {@link DurableStore}
  * for data. The Database accepts {@link Write} objects that are initially
  * stored in a {@link Buffer} and converts them {@link Revision Revisions} that
  * are stored within distinct {@link Segment Segments}. Each {@link Segment} is
@@ -116,7 +116,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements PermanentStore {
+public final class Database extends BaseStore implements DurableStore {
 
     /**
      * Return a cache for records of type {@code T}.

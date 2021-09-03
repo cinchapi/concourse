@@ -34,7 +34,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.BaseStore;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.Memory;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
  * or fast, albeit temporary, store for data that will eventually be persisted
- * to a {@link PermanentStore}.
+ * to a {@link DurableStore}.
  * <p>
  * The store is designed to write data very quickly <strong>
  * <em>at the expense of much slower read time.</em></strong> {@code Limbo} does
@@ -596,21 +596,21 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * 
      * @param destination
      */
-    public final void transport(PermanentStore destination) {
+    public final void transport(DurableStore destination) {
         transport(destination, true);
     }
 
     /**
      * Transport the content of this store to {@code destination} with the
      * directive to {@code sync} or not. A sync guarantees that the transported
-     * data is durably persisted within the {@link PermanentStore}.
+     * data is durably persisted within the {@link DurableStore}.
      * 
      * @param destination - the recipient store for the data
      * @param syncAfterEach - a flag that controls whether a call is always made
      *            to durably persist (i.e. fsync) in the {@code destination}
      *            after each write is transported
      */
-    public void transport(PermanentStore destination, boolean syncAfterEach) {
+    public void transport(DurableStore destination, boolean syncAfterEach) {
         for (Iterator<Write> it = iterator(); it.hasNext();) {
             destination.accept(it.next(), syncAfterEach);
             it.remove();

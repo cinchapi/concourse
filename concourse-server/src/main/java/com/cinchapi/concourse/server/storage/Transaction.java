@@ -50,7 +50,7 @@ import com.google.common.collect.Multimap;
  * 
  * @author Jeff Nelson
  */
-public final class Transaction extends AtomicOperation implements
+public final class Transaction extends AtomicOperation implements 
         AtomicSupport {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
     // the safe counterparts in the super class (AtomicOperation) because those
@@ -292,7 +292,7 @@ public final class Transaction extends AtomicOperation implements
         it = ByteableCollections.iterator(bytes);
         while (it.hasNext()) {
             Write write = Write.fromByteBuffer(it.next());
-            buffer.insert(write);
+            limbo.insert(write);
         }
     }
 
@@ -323,7 +323,7 @@ public final class Transaction extends AtomicOperation implements
     private ByteBuffer serialize() {
         ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
         ByteBuffer _writes = ByteableCollections
-                .toByteBuffer(((Queue) buffer).getWrites());
+                .toByteBuffer(((Queue) limbo).getWrites());
         ByteBuffer bytes = ByteBuffer
                 .allocate(4 + _locks.capacity() + _writes.capacity());
         bytes.putInt(_locks.capacity());
@@ -349,7 +349,7 @@ public final class Transaction extends AtomicOperation implements
             invokeSuperDoCommit(false);
         }
         else {
-            String file = ((Engine) destination).transactionStore
+            String file = ((Engine) durable).transactionStore
                     + File.separator + id + ".txn";
             FileChannel channel = FileSystem.getFileChannel(file);
             try {

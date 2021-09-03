@@ -18,6 +18,8 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Link;
@@ -35,29 +37,53 @@ import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link BufferedStore} holds data in {@link Limbo} buffer before
- * making batch commits to some other {@link PermanentStore}.
+ * A {@link BufferedStore} holds {@link Write Writes} in {@link Limbo} before
+ * {@link Limbo#transport(DurableStore) transporting} them to a
+ * {@link DurableStore}.
  * <p>
- * Data is written to the buffer until the buffer is full, at which point the
- * BufferingStore will flush the data to the destination store. Reads are
- * handled by taking the XOR (see {@link Sets#symmetricDifference(Set, Set)} or
+ * A {@link BufferedStore} is used when it is necessary (e.g. atomic operation
+ * where {@link Write Writes} are not guaranteed to succeed) or convenient (e.g.
+ * rich indexing that would slow down writes in real time, so must be done in
+ * the background) to buffer {@link Write Writes} in {@link Limbo} before
+ * incorporating them in a {@link DurableStore}.
+ * </p>
+ * <p>
+ * In a {@link BufferedStore}, {@link Write Writes} are
+ * {@link Limbo#insert(Write) inserted} in {@link Limbo} and later
+ * {@link Limbo#transport(DurableStore) transported}. The rate of
+ * {@link Limbo#transport(DurableStore) transport} is externally controlled and
+ * the {@link Limbo} type defines how many {@link Write Writes} are included in
+ * each {@link Limbo#transport(DurableStore) transport}. Furthermore,
+ * {@link Limbo} determines how/when it wants the {@link DurableStore} to
+ * {@link DurableStore#sync() sync} the {@link Writes} when
+ * {@link DurableStore#accept(Write) accepting} the
+ * {@link Limbo#transport(DurableStore) transported} {@link Write Writes}.
+ * </p>
+ * <p>
+ * Reads are handled by taking the XOR (see
+ * {@link Sets#symmetricDifference(Set, Set)}) or
  * XOR truth (see <a
  * href="http://en.wikipedia.org/wiki/Exclusive_or#Truth_table"
  * >http://en.wikipedia.org/wiki/Exclusive_or#Truth_table</a>) of the values
- * read from the buffer and the destination.
+ * read from the {@link #limbo} and {@link #durable} {@link Store stores}.
+ * </p>
+ * <p>
+ * <h2>Concurrency</h2>
+ * The {@link BufferedStore} framework does not perform any locking within or
+ * across the {@link #limbo} or {@link #durable} {@link Store stores}
+ * because it is assumed that each {@link Store} defines its own local
+ * concurrency controls and that concurrency across the stores is highly
+ * variable among implementations (e.g. An {@link AtomicOperation} does not grab
+ * any coordinating locks until it is {@link AtomicOperation#commit() committed}
+ * so that it does not do any unnecessary blocking. So, each extending class
+ * should ensure that the necessary concurrency controls are in place if thread
+ * safety must be guaranteed.
  * </p>
  * 
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public abstract class BufferedStore extends BaseStore {
-
-    // NOTE ON LOCKING:
-    // ================
-    // We can't do any global locking to coordinate the #buffer and #destination
-    // in this class because we cannot make assumptions about how the
-    // implementing class actually wants to handle concurrency (i.e. an
-    // AtomicOperation does not grab any coordinating locks until it goes to
-    // commit so that it doesn't do any unnecessary blocking).
 
     // NOTE ON HISTORICAL READS
     // ========================
@@ -94,19 +120,15 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
-     * The {@code buffer} is the place where data is initially stored. The
-     * contained data is eventually moved to the {@link #destination} when the
-     * {@link Limbo#transport(PermanentStore)} method is called.
+     * The {@link Limbo store} where {@link Write writes} are initially stored.
      */
-    protected final Limbo buffer;
+    protected final Limbo limbo;
 
     /**
-     * The {@code destination} is the place where data is stored when it is
-     * transferred from the {@link #buffer}. The {@code destination} defines its
-     * protocol for accepting data in the {@link PermanentStore#accept(Write)}
-     * method.
+     * The {@link DurableStore store} where {@link Write writes} in
+     * {@link #limbo} can be {@link Limbo#transport(DurableStore) transported}.
      */
-    protected final PermanentStore destination;
+    protected final DurableStore durable;
 
     /**
      * The {@link LockService} that is used to coordinate concurrent operations.
@@ -127,10 +149,10 @@ public abstract class BufferedStore extends BaseStore {
      * @param lockService
      * @param rangeLockService
      */
-    protected BufferedStore(Limbo transportable, PermanentStore destination,
+    protected BufferedStore(Limbo transportable, DurableStore destination,
             LockService lockService, RangeLockService rangeLockService) {
-        this.buffer = transportable;
-        this.destination = destination;
+        this.limbo = transportable;
+        this.durable = destination;
         this.lockService = lockService;
         this.rangeLockService = rangeLockService;
     }
@@ -172,8 +194,8 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
-        return buffer.browse(key, timestamp, context);
+        Map<TObject, Set<Long>> context = durable.browse(key, timestamp);
+        return limbo.browse(key, timestamp, context);
     }
 
     @Override
@@ -184,7 +206,7 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public boolean contains(long record) {
-        return destination.contains(record) || buffer.contains(record);
+        return durable.contains(record) || limbo.contains(record);
     }
 
     @Override
@@ -194,13 +216,13 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        Set<TObject> context = destination.gather(key, record, timestamp);
-        return buffer.gather(key, record, timestamp, context);
+        Set<TObject> context = durable.gather(key, record, timestamp);
+        return limbo.gather(key, record, timestamp, context);
     }
 
     @Override
     public Set<Long> getAllRecords() {
-        return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
+        return TSets.union(durable.getAllRecords(), limbo.getAllRecords());
     }
 
     @Override
@@ -209,20 +231,20 @@ public abstract class BufferedStore extends BaseStore {
 
             @Override
             public boolean contains(long record) {
-                return destination.memory().contains(record)
-                        && buffer.memory().contains(record);
+                return durable.memory().contains(record)
+                        && limbo.memory().contains(record);
             }
 
             @Override
             public boolean contains(String key) {
-                return destination.memory().contains(key)
-                        && buffer.memory().contains(key);
+                return durable.memory().contains(key)
+                        && limbo.memory().contains(key);
             }
 
             @Override
             public boolean contains(String key, long record) {
-                return destination.memory().contains(key, record)
-                        && buffer.memory().contains(key, record);
+                return durable.memory().contains(key, record)
+                        && limbo.memory().contains(key, record);
             }
 
         };
@@ -249,8 +271,8 @@ public abstract class BufferedStore extends BaseStore {
     @Override
     public Set<Long> search(String key, String query) {
         // FIXME: should this be implemented using a context instead?
-        return Sets.symmetricDifference(buffer.search(key, query),
-                destination.search(key, query));
+        return Sets.symmetricDifference(limbo.search(key, query),
+                durable.search(key, query));
     }
 
     @Override
@@ -260,9 +282,8 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        Map<String, Set<TObject>> context = destination.select(record,
-                timestamp);
-        return buffer.select(record, timestamp, context);
+        Map<String, Set<TObject>> context = durable.select(record, timestamp);
+        return limbo.select(record, timestamp, context);
     }
 
     @Override
@@ -272,8 +293,8 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        Set<TObject> context = destination.select(key, record, timestamp);
-        return buffer.select(key, record, timestamp, context);
+        Set<TObject> context = durable.select(key, record, timestamp);
+        return limbo.select(key, record, timestamp, context);
     }
 
     /**
@@ -293,9 +314,9 @@ public abstract class BufferedStore extends BaseStore {
             ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record);
             for (TObject val : values) {
-                buffer.insert(Write.remove(key, val, record)); /* Authorized */
+                limbo.insert(Write.remove(key, val, record)); /* Authorized */
             }
-            buffer.insert(Write.add(key, value, record)); /* Authorized */
+            limbo.insert(Write.add(key, value, record)); /* Authorized */
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -311,14 +332,14 @@ public abstract class BufferedStore extends BaseStore {
     @Override
     public boolean verify(String key, TObject value, long record,
             long timestamp) {
-        return buffer.verify(Write.notStorable(key, value, record), timestamp,
-                destination.verify(key, value, record, timestamp));
+        return limbo.verify(Write.notStorable(key, value, record), timestamp,
+                durable.verify(key, value, record, timestamp));
     }
 
     /**
      * Add {@code key} as {@code value} to {@code record} with the directive to
      * {@code sync} the data or not. Depending upon the implementation of the
-     * {@link #buffer}, a sync may guarantee that the data is durably stored.
+     * {@link #limbo}, a sync may guarantee that the data is durably stored.
      * <p>
      * This method maps {@code key} to {@code value} in {@code record}, if and
      * only if that mapping does not <em>currently</em> exist (i.e.
@@ -333,7 +354,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @param sync - a flag that controls whether the data is durably persisted,
      *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #buffer}
+     *            {@link #limbo}
      * @param doVerify - a flag that controls whether an attempt is made to
      *            verify that removing the data is legal. This should always be
      *            set to {@code true} unless it is being called from a context
@@ -354,7 +375,7 @@ public abstract class BufferedStore extends BaseStore {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
             if(!doVerify || !verify(write, lockOnVerify)) {
-                return buffer.insert(write, sync); /* Authorized */
+                return limbo.insert(write, sync); /* Authorized */
             }
             return false;
         }
@@ -384,13 +405,13 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<Long, String> audit(long record, boolean unsafe) {
         Map<Long, String> result;
-        if(unsafe && destination instanceof AtomicSupport) {
-            result = ((AtomicSupport) (destination)).auditUnsafe(record);
+        if(unsafe && durable instanceof AtomicSupport) {
+            result = ((AtomicSupport) (durable)).auditUnsafe(record);
         }
         else {
-            result = destination.audit(record);
+            result = durable.audit(record);
         }
-        result.putAll(buffer.audit(record));
+        result.putAll(limbo.audit(record));
         return result;
     }
 
@@ -417,13 +438,13 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<Long, String> audit(String key, long record, boolean unsafe) {
         Map<Long, String> result;
-        if(unsafe && destination instanceof AtomicSupport) {
-            result = ((AtomicSupport) (destination)).auditUnsafe(key, record);
+        if(unsafe && durable instanceof AtomicSupport) {
+            result = ((AtomicSupport) (durable)).auditUnsafe(key, record);
         }
         else {
-            result = destination.audit(key, record);
+            result = durable.audit(key, record);
         }
-        result.putAll(buffer.audit(key, record));
+        result.putAll(limbo.audit(key, record));
         return result;
     }
 
@@ -442,13 +463,13 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<TObject, Set<Long>> browse(String key, boolean unsafe) {
         Map<TObject, Set<Long>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).browseUnsafe(key);
+        if(unsafe && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).browseUnsafe(key);
         }
         else {
-            context = destination.browse(key);
+            context = durable.browse(key);
         }
-        return buffer.browse(key, Time.now(), context);
+        return limbo.browse(key, Time.now(), context);
     }
 
     /**
@@ -462,7 +483,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param end the end timestamp
      * @param unsafe a flag that indicates whether to use the
      *            {@link AtomicSupport#chronologizeUnsafe(String, long, long, long)
-     *            unsafe chronologize} read in the {@link #destination}; this
+     *            unsafe chronologize} read in the {@link #durable}; this
      *            should be {@code true} doing an atomic operation
      * @return a possibly empty Map from each revision timestamp to the Set of
      *         objects that were contained in the field at the time of the
@@ -471,22 +492,22 @@ public abstract class BufferedStore extends BaseStore {
     protected Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end, boolean unsafe) {
         Map<Long, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).chronologizeUnsafe(key,
+        if(unsafe && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).chronologizeUnsafe(key,
                     record, start, end);
         }
         else {
-            context = destination.chronologize(key, record, start, end);
+            context = durable.chronologize(key, record, start, end);
         }
-        return buffer.chronologize(key, record, start, end, context);
+        return limbo.chronologize(key, record, start, end, context);
     }
 
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
+        Map<Long, Set<TObject>> context = durable.explore(timestamp, key,
                 operator, values);
-        return buffer.explore(context, timestamp, key, operator, values);
+        return limbo.explore(context, timestamp, key, operator, values);
     }
 
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
@@ -507,14 +528,14 @@ public abstract class BufferedStore extends BaseStore {
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject[] values, boolean unsafe) {
         Map<Long, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).doExploreUnsafe(key,
-                    operator, values);
+        if(unsafe && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).doExploreUnsafe(key, operator,
+                    values);
         }
         else {
-            context = destination.explore(key, operator, values);
+            context = durable.explore(key, operator, values);
         }
-        return buffer.explore(context, Time.now(), key, operator, values);
+        return limbo.explore(context, Time.now(), key, operator, values);
     }
 
     /**
@@ -533,19 +554,19 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Set<TObject> gather(String key, long record, boolean lock) {
         Set<TObject> context;
-        if(!lock && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).gatherUnsafe(key, record);
+        if(!lock && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).gatherUnsafe(key, record);
         }
         else {
-            context = destination.gather(key, record);
+            context = durable.gather(key, record);
         }
-        return buffer.gather(key, record, Time.now(), context);
+        return limbo.gather(key, record, Time.now(), context);
     }
 
     /**
      * Remove {@code key} as {@code value} from {@code record} with the
      * directive to {@code sync} the data or not. Depending upon the
-     * implementation of the {@link #buffer}, a sync may guarantee that the data
+     * implementation of the {@link #limbo}, a sync may guarantee that the data
      * is durably stored.
      * <p>
      * This method deletes the mapping from {@code key} to {@code value} in
@@ -559,7 +580,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @param sync - a flag that controls whether the data is durably persisted,
      *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #buffer}
+     *            {@link #limbo}
      * @param doVerify - a flag that controls whether an attempt is made to
      *            verify that removing the data is legal. This should always be
      *            set to {@code true} unless it is being called from a context
@@ -580,7 +601,7 @@ public abstract class BufferedStore extends BaseStore {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
             if(!doVerify || verify(write, lockOnVerify)) {
-                return buffer.insert(write, sync); /* Authorized */
+                return limbo.insert(write, sync); /* Authorized */
             }
             return false;
         }
@@ -603,13 +624,13 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Map<String, Set<TObject>> select(long record, boolean unsafe) {
         Map<String, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).selectUnsafe(record);
+        if(unsafe && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).selectUnsafe(record);
         }
         else {
-            context = destination.select(record);
+            context = durable.select(record);
         }
-        return buffer.select(record, Time.now(), context);
+        return limbo.select(record, Time.now(), context);
     }
 
     /**
@@ -628,13 +649,13 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected Set<TObject> select(String key, long record, boolean lock) {
         Set<TObject> context;
-        if(!lock && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).selectUnsafe(key, record);
+        if(!lock && durable instanceof AtomicSupport) {
+            context = ((AtomicSupport) (durable)).selectUnsafe(key, record);
         }
         else {
-            context = destination.select(key, record);
+            context = durable.select(key, record);
         }
-        return buffer.select(key, record, Time.now(), context);
+        return limbo.select(key, record, Time.now(), context);
     }
 
     /**
@@ -656,9 +677,9 @@ public abstract class BufferedStore extends BaseStore {
             ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record, lockOnRead);
             for (TObject val : values) {
-                buffer.insert(Write.remove(key, val, record)); /* Authorized */
+                limbo.insert(Write.remove(key, val, record)); /* Authorized */
             }
-            buffer.insert(Write.add(key, value, record)); /* Authorized */
+            limbo.insert(Write.add(key, value, record)); /* Authorized */
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -684,14 +705,14 @@ public abstract class BufferedStore extends BaseStore {
     protected boolean verify(String key, TObject value, long record,
             boolean unsafe) {
         boolean destResult;
-        if(unsafe && destination instanceof AtomicSupport) {
-            destResult = ((AtomicSupport) (destination)).verifyUnsafe(key,
-                    value, record);
+        if(unsafe && durable instanceof AtomicSupport) {
+            destResult = ((AtomicSupport) (durable)).verifyUnsafe(key, value,
+                    record);
         }
         else {
-            destResult = destination.verify(key, value, record);
+            destResult = durable.verify(key, value, record);
         }
-        return buffer.verify(Write.notStorable(key, value, record), destResult);
+        return limbo.verify(Write.notStorable(key, value, record), destResult);
     }
 
     /**
@@ -723,25 +744,25 @@ public abstract class BufferedStore extends BaseStore {
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        TernaryTruth exists = buffer.verifyFast(write);
+        TernaryTruth exists = limbo.verifyFast(write);
         if(exists != TernaryTruth.UNSURE) {
             return exists.boolValue();
         }
         else {
-            if((!(buffer instanceof InventoryTracker)
-                    && destination instanceof InventoryTracker)
-                    && !((InventoryTracker) destination).getInventory()
+            if((!(limbo instanceof InventoryTracker)
+                    && durable instanceof InventoryTracker)
+                    && !((InventoryTracker) durable).getInventory()
                             .contains(write.getRecord().longValue())) {
                 return false; // This is basically a special case for atomic
                               // operations
 
             }
-            else if(!lock && destination instanceof AtomicSupport) {
-                return ((AtomicSupport) destination).verifyUnsafe(key, value,
+            else if(!lock && durable instanceof AtomicSupport) {
+                return ((AtomicSupport) durable).verifyUnsafe(key, value,
                         record);
             }
             else {
-                return destination.verify(key, value, record);
+                return durable.verify(key, value, record);
             }
         }
     }
