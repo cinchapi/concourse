@@ -565,11 +565,11 @@ public final class Segment extends TransferableByteSequence implements
      * {@link Segment} is no longer needed.
      * </p>
      * <p>
-     * A discarded {@link Segment} should not be subsequently used. Operating on
-     * a discarded {@link Segment} has undefined behaviour.
+     * A deleted {@link Segment} should not be subsequently used. Operating on a
+     * deleted {@link Segment} has undefined behaviour.
      * </p>
      */
-    public final void discard() {
+    public final void delete() {
         Preconditions.checkState(!isMutable(),
                 "A mutable segment cannot be deleted");
         Logger.warn("Permanently deleting Segment {}", this);

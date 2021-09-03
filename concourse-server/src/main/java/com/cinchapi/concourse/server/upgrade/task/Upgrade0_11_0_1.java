@@ -102,7 +102,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                     Iterable<Segment> segments = StorageFormatV3
                             .load(directory);
                     for (Segment segment : segments) {
-                        segment.discard();
+                        segment.delete();
                     }
                 });
 
