@@ -158,14 +158,14 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public boolean verify(Write write, long timestamp, boolean exists) {
+    public boolean verify(Write write, long timestamp) {
         if(filter == null
                 || (filter != null && filter.mightContainCached(write.getKey(),
                         write.getValue(), write.getRecord()))) {
-            return super.verify(write, timestamp, exists);
+            return super.verify(write, timestamp);
         }
         else {
-            return exists;
+            return false;
         }
     }
 

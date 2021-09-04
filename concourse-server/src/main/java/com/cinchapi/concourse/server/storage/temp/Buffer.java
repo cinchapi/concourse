@@ -817,19 +817,16 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    public boolean verify(Write write, long timestamp, boolean context) {
-        // No attempt to fast track by checking inventory here because the
-        // presence of #context implies that it has already been checked and
-        // determined that the Write#getRecord().longValue() exists in the
-        // #inventory.
+    public boolean verify(Write write, long timestamp) {
         numVerifyRequests.incrementAndGet();
+        boolean exists = false;
         Iterator<Write> it = iterator(write, timestamp);
         try {
             while (it.hasNext()) {
                 it.next();
-                context ^= true; // toggle boolean
+                exists ^= true; // toggle boolean
             }
-            return context;
+            return exists;
         }
         finally {
             Iterators.close(it);

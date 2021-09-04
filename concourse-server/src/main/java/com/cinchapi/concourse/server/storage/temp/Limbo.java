@@ -723,53 +723,9 @@ public abstract class Limbo implements Store, Iterable<Write> {
         return verify(write, Time.NONE);
     }
 
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * currently exists using {@code exists} as prior context.
-     * <p>
-     * <strong>This method is called from
-     * {@link BufferedStore#contains(String, TObject, long)}.</strong>
-     * </p>
-     * 
-     * @param write
-     * @return {@code true} if {@code write} currently appears an odd number of
-     *         times
-     */
-    public boolean verify(Write write, boolean exists) {
-        return verify(write, Time.NONE, exists);
-    }
-
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * exists at {@code timestamp}.
-     * <p>
-     * <strong>This method is called from
-     * {@link BufferedStore#verify(String, TObject, long, long)}.</strong>
-     * </p>
-     * 
-     * @param write
-     * @param timestamp
-     * @return {@code true} if {@code write} appears an odd number of times at
-     *         {@code timestamp}
-     */
+    @Override
     public boolean verify(Write write, long timestamp) {
-        return verify(write, timestamp, false);
-    }
-
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * exists at {@code timestamp}, using {@code exists} as prior context.
-     * <p>
-     * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
-     * </p>
-     * 
-     * @param write
-     * @param timestamp
-     * @param exists
-     * @return {@code true} if {@code write} appears an odd number of times at
-     *         {@code timestamp}
-     */
-    public boolean verify(Write write, long timestamp, boolean exists) {
+        boolean exists = false;
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();

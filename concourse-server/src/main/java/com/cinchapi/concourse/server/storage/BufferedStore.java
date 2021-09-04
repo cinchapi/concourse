@@ -352,8 +352,7 @@ public abstract class BufferedStore implements Store {
     public boolean verify(Write write, long timestamp) {
         TernaryTruth truth = limbo.verifyFast(write, timestamp);
         if(truth == TernaryTruth.UNSURE) {
-            boolean context = durable.verify(write, timestamp);
-            return limbo.verify(write, timestamp, context);
+            return durable.verify(write, timestamp);
         }
         else {
             return truth.boolValue();
