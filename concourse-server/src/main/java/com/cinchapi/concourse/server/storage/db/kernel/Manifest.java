@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -86,6 +87,19 @@ public class Manifest extends TransferableByteSequence {
      */
     public static Manifest load(Path file, long position, long length) {
         return new Manifest(file, position, length);
+    }
+
+    /**
+     * Load an existing {@link Manifest} from {@code segment}.
+     * 
+     * @param segment
+     * @param position
+     * @param length
+     * @return the loaded {@link Manifest}
+     */
+    public static Manifest load(Segment segment, long position, long length) {
+        return new Manifest(segment.file(), segment.channel(), position,
+                length);
     }
 
     /**
@@ -186,14 +200,27 @@ public class Manifest extends TransferableByteSequence {
      * Load an existing instance.
      * 
      * @param file
+     * @param channel
+     * @param position
+     * @param length
+     */
+    private Manifest(Path file, FileChannel channel, long position,
+            long length) {
+        super(file, channel, position, length);
+        this.length = length;
+        this.entries = null;
+        this.$entries = null;
+    }
+
+    /**
+     * Load an existing instance.
+     * 
+     * @param file
      * @param position
      * @param length
      */
     private Manifest(Path file, long position, long length) {
-        super(file, position, length);
-        this.length = length;
-        this.entries = null;
-        this.$entries = null;
+        this(file, null, position, length);
     }
 
     @Override

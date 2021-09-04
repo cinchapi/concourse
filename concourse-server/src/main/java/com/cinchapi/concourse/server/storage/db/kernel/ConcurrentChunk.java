@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -47,8 +48,9 @@ abstract class ConcurrentChunk<L extends Byteable & Comparable<L>, K extends Byt
      * @param manifest
      */
     protected ConcurrentChunk(@Nullable Segment segment, Path file,
-            long position, long size, BloomFilter filter, Manifest manifest) {
-        super(segment, file, position, size, filter, manifest);
+            FileChannel channel, long position, long size, BloomFilter filter,
+            Manifest manifest) {
+        super(segment, file, channel, position, size, filter, manifest);
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 
 import javax.annotation.Nullable;
@@ -40,14 +41,16 @@ abstract class SerialChunk<L extends Byteable & Comparable<L>, K extends Byteabl
      * 
      * @param segment
      * @param file
+     * @param channel
      * @param position
      * @param size
      * @param filter
      * @param manifest
      */
-    protected SerialChunk(@Nullable Segment segment, Path file, long position,
-            long size, BloomFilter filter, Manifest manifest) {
-        super(segment, file, position, size, filter, manifest);
+    protected SerialChunk(@Nullable Segment segment, Path file,
+            FileChannel channel, long position, long size, BloomFilter filter,
+            Manifest manifest) {
+        super(segment, file, channel, position, size, filter, manifest);
     }
 
     /**

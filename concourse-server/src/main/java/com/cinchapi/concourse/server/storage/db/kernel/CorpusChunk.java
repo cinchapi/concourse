@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.Collection;
@@ -26,6 +27,7 @@ import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.openhft.chronicle.core.Jvm;
@@ -114,23 +116,24 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      */
     public static CorpusChunk load(Path file, long position, long size,
             BloomFilter filter, Manifest manifest) {
-        return load(null, file, position, size, filter, manifest);
+        return new CorpusChunk(null, file, null, position, size, filter,
+                manifest);
     }
 
     /**
      * Load an existing {@link CorpusChunk}.
      * 
      * @param segment
-     * @param file
      * @param position
      * @param size
      * @param filter
      * @param manifest
      * @return the loaded {@link Chunk}
      */
-    public static CorpusChunk load(@Nullable Segment segment, Path file,
-            long position, long size, BloomFilter filter, Manifest manifest) {
-        return new CorpusChunk(segment, file, position, size, filter, manifest);
+    public static CorpusChunk load(@Nonnull Segment segment, long position,
+            long size, BloomFilter filter, Manifest manifest) {
+        return new CorpusChunk(segment, segment.file(), segment.channel(),
+                position, size, filter, manifest);
     }
 
     /**
@@ -170,14 +173,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * 
      * @param segment
      * @param file
+     * @param channel
      * @param position
      * @param size
      * @param filter
      * @param manifest
      */
-    private CorpusChunk(@Nullable Segment segment, Path file, long position,
-            long size, BloomFilter filter, Manifest manifest) {
-        super(segment, file, position, size, filter, manifest);
+    private CorpusChunk(@Nullable Segment segment, Path file,
+            FileChannel channel, long position, long size, BloomFilter filter,
+            Manifest manifest) {
+        super(segment, file, channel, position, size, filter, manifest);
     }
 
     /**

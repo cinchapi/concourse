@@ -426,33 +426,33 @@ public final class Segment extends TransferableByteSequence implements
                                 (int) corpusFilterLength));
 
                 // Table Manifest
-                Manifest tableManifest = Manifest.load(file, position,
+                Manifest tableManifest = Manifest.load(this, position,
                         tableManifestLength);
                 position += tableManifestLength;
 
                 // Index Manifest
-                Manifest indexManifest = Manifest.load(file, position,
+                Manifest indexManifest = Manifest.load(this, position,
                         indexManifestLength);
                 position += indexManifestLength;
 
                 // Corpus Manifest
-                Manifest corpusManifest = Manifest.load(file, position,
+                Manifest corpusManifest = Manifest.load(this, position,
                         corpusManifestLength);
                 position += corpusManifestLength;
 
                 // Table
-                this.table = TableChunk.load(this, file, position, tableLength,
+                this.table = TableChunk.load(this, position, tableLength,
                         tableFilter, tableManifest);
                 position += tableLength;
 
                 // Index
-                this.index = IndexChunk.load(this, file, position, indexLength,
+                this.index = IndexChunk.load(this, position, indexLength,
                         indexFilter, indexManifest);
                 position += indexLength;
 
                 // Corpus
-                this.corpus = CorpusChunk.load(this, file, position,
-                        corpusLength, corpusFilter, corpusManifest);
+                this.corpus = CorpusChunk.load(this, position, corpusLength,
+                        corpusFilter, corpusManifest);
             }
             else {
                 throw new SegmentLoadingException(

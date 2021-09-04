@@ -145,8 +145,21 @@ abstract class TransferableByteSequence implements Closeable {
      * @param length
      */
     protected TransferableByteSequence(Path file, long position, long length) {
+        this(file, null, position, length);
+    }
+
+    /**
+     * Load an existing sequence from {@code file}, starting at {@code position}
+     * for {@code length} bytes.
+     * 
+     * @param file
+     * @param position
+     * @param length
+     */
+    protected TransferableByteSequence(Path file, FileChannel channel,
+            long position, long length) {
         this.file = file;
-        this.channel = null; // lazy load
+        this.channel = channel;
         this.mutable = false;
         this.position = position;
     }
