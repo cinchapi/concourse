@@ -430,9 +430,7 @@ abstract class TransferableByteSequence {
                 FileSystem.closeFileChannel((FileChannel) resource);
             }
             else if(resource instanceof MappedByteBuffer) {
-                // Assume that the mapping should stay in memory for subsequent
-                // reads. Also, It is unsafe to force unmap the buffer in Java.
-                // But hold space for future possibility?
+                FileSystem.unmap((MappedByteBuffer) resource);
             }
             else {
                 throw new IllegalStateException();
