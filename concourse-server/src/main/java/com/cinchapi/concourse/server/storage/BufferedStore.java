@@ -340,11 +340,11 @@ public abstract class BufferedStore implements Store {
     @Override
     public boolean verify(Write write) {
         TernaryTruth truth = limbo.verifyFast(write);
-        if(truth != TernaryTruth.UNSURE) {
-            return truth.boolValue();
+        if(truth == TernaryTruth.UNSURE) {
+            return $verify(write);
         }
         else {
-            return $verify(write);
+            return truth.boolValue();
         }
     }
 
