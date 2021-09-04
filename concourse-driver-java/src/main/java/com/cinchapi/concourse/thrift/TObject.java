@@ -448,13 +448,13 @@ public class TObject implements
         if(this == NULL || type == Type.NULL) {
             return true;
         }
-        else if(data.capacity() == 0) {
+        else if(data.remaining() == 0) {
             return true;
         }
         else if(type == Type.STRING || type == Type.TAG) {
-            byte[] bytes = ByteBuffers.getByteArray(data);
-            for (int i = 0; i < bytes.length; ++i) {
-                if(bytes[i] != WHITESPACE) {
+            for (int i = 0; i < data.remaining(); ++i) {
+                byte b = data.get(data.position() + i);
+                if(b != WHITESPACE) {
                     return false;
                 }
             }
