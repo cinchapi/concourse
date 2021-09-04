@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.validate;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -62,7 +64,18 @@ public final class Keys {
      * @return {@code true} if the provided {@code key} is valid for writing
      */
     public static boolean isWritable(String key) {
-        return key.length() > 0 && KEY_VALIDATION_REGEX.matcher(key).matches();
+        if(WRITABLE_KEY_CACHE.contains(key)) {
+            return true;
+        }
+        else {
+            boolean writable = key.length() > 0
+                    && KEY_VALIDATION_REGEX.matcher(key).matches();
+            if(writable) {
+                WRITABLE_KEY_CACHE.add(key);
+            }
+            return writable;
+        }
+
     }
 
     /**
@@ -97,6 +110,15 @@ public final class Keys {
      */
     private static final Pattern KEY_VALIDATION_REGEX = Pattern
             .compile("^[a-zA-Z0-9_]+$");
+
+    /**
+     * A global set of all {@link String Strings} known to be
+     * {@link #isWritable(String) writable} keys.
+     */
+    // We aren't concerned about thread safety here because items are never
+    // removed from the cache and spurious lookup failure would merely trigger
+    // manual validation.
+    private static final Set<String> WRITABLE_KEY_CACHE = new HashSet<>(100);
 
     private Keys() {/* no-init */}
 }
