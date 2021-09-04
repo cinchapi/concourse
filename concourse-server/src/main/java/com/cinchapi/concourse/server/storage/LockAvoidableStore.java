@@ -162,7 +162,8 @@ public interface LockAvoidableStore extends Store {
      * @param record
      * @return {@code boolean}
      */
-    public default boolean verifyUnlocked(String key, TObject value, long record) {
+    public default boolean verifyUnlocked(String key, TObject value,
+            long record) {
         return verifyUnlocked(Write.notStorable(key, value, record));
     }
 

@@ -80,7 +80,7 @@ import com.google.common.collect.Sets;
  * the possibility that {@link #durable} may be a {@link LockAvoidableStore} and
  * the overall performance of the {@link BufferedStore} may depend on the
  * ability to internal locking. So, methods are exposed to subclasses that
- * accept a {@link LockingAdvisory} parameter that can instruct the
+ * accept a {@link Locking} parameter that can instruct the
  * buffered resolution logic to use the unlocked versions of a
  * {@link LockAvoidableStore} if they are available.
  * </p>
@@ -163,22 +163,22 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, true, true, LockingAdvisory.DEFAULT);
+        return add(key, value, record, Sync.YES, true, Locking.DEFAULT);
     }
 
     @Override
     public Map<Long, String> audit(long record) {
-        return audit(record, LockingAdvisory.DEFAULT);
+        return audit(record, Locking.DEFAULT);
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        return audit(key, record, LockingAdvisory.DEFAULT);
+        return audit(key, record, Locking.DEFAULT);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return browse(key, LockingAdvisory.DEFAULT);
+        return browse(key, Locking.DEFAULT);
     }
 
     @Override
@@ -190,7 +190,7 @@ public abstract class BufferedStore extends AbstractStore {
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        return chronologize(key, record, start, end, LockingAdvisory.DEFAULT);
+        return chronologize(key, record, start, end, Locking.DEFAULT);
     }
 
     @Override
@@ -200,7 +200,7 @@ public abstract class BufferedStore extends AbstractStore {
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        return gather(key, record, LockingAdvisory.DEFAULT);
+        return gather(key, record, Locking.DEFAULT);
     }
 
     @Override
@@ -254,7 +254,7 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, true, true, LockingAdvisory.DEFAULT);
+        return remove(key, value, record, Sync.YES, true, Locking.DEFAULT);
     }
 
     @Override
@@ -266,7 +266,7 @@ public abstract class BufferedStore extends AbstractStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return select(record, LockingAdvisory.DEFAULT);
+        return select(record, Locking.DEFAULT);
     }
 
     @Override
@@ -277,7 +277,7 @@ public abstract class BufferedStore extends AbstractStore {
 
     @Override
     public Set<TObject> select(String key, long record) {
-        return select(key, record, LockingAdvisory.DEFAULT);
+        return select(key, record, Locking.DEFAULT);
     }
 
     @Override
@@ -299,12 +299,12 @@ public abstract class BufferedStore extends AbstractStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        set(key, value, record, LockingAdvisory.DEFAULT);
+        set(key, value, record, Locking.DEFAULT);
     }
 
     @Override
     public boolean verify(Write write) {
-        return verify(write, LockingAdvisory.DEFAULT);
+        return verify(write, Locking.DEFAULT);
     }
 
     @Override
@@ -335,25 +335,26 @@ public abstract class BufferedStore extends AbstractStore {
      * @param key
      * @param value
      * @param record
-     * @param sync - a flag that controls whether the data is durably persisted,
-     *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #limbo}
+     * @param sync
      * @param doVerify - a flag that controls whether an attempt is made to
      *            verify that removing the data is legal. This should always be
      *            set to {@code true} unless it is being called from a context
      *            where the operation has been previously verified (i.e.
      *            committing writes from an atomic operation or transaction)
-     * @param verifyLockingAdvisory
+     * @param locking
      * @return {@code true} if the mapping is added
      */
     protected final boolean add(String key, TObject value, long record,
-            boolean sync, boolean doVerify,
-            LockingAdvisory verifyLockingAdvisory) {
+            Sync sync, boolean doVerify, Locking locking) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
-            if(!doVerify || !verify(write, verifyLockingAdvisory)) {
-                return limbo.insert(write, sync); /* Authorized */
+            if(!doVerify || !verify(write, locking)) {
+                // NOTE: #sync ends up being NO when the Engine accepts
+                // Writes that are transported from a committing AtomicOperation
+                // or Transaction, in which case passing this boolean along to
+                // the Buffer allows group sync to happen
+                return limbo.insert(write, sync == Sync.YES);
             }
             else {
                 return false;
@@ -380,14 +381,12 @@ public abstract class BufferedStore extends AbstractStore {
      * </pre>
      * 
      * @param record
-     * @param advisory
+     * @param locking
      * @return the the revision log
      */
-    protected final Map<Long, String> audit(long record,
-            LockingAdvisory advisory) {
+    protected final Map<Long, String> audit(long record, Locking locking) {
         Map<Long, String> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).auditUnlocked(record);
         }
         else {
@@ -419,10 +418,9 @@ public abstract class BufferedStore extends AbstractStore {
      * @return the revision log
      */
     protected final Map<Long, String> audit(String key, long record,
-            LockingAdvisory advisory) {
+            Locking locking) {
         Map<Long, String> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).auditUnlocked(key,
                     record);
         }
@@ -443,14 +441,13 @@ public abstract class BufferedStore extends AbstractStore {
      * </p>
      * 
      * @param key
-     * @param advisory
+     * @param locking
      * @return a possibly empty Map of data
      */
     protected final Map<TObject, Set<Long>> browse(String key,
-            LockingAdvisory advisory) {
+            Locking locking) {
         Map<TObject, Set<Long>> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).browseUnlocked(key);
         }
         else {
@@ -468,16 +465,15 @@ public abstract class BufferedStore extends AbstractStore {
      * @param record the record id
      * @param start the start timestamp
      * @param end the end timestamp
-     * @param advisory
+     * @param locking
      * @return a possibly empty Map from each revision timestamp to the Set of
      *         objects that were contained in the field at the time of the
      *         revision
      */
     protected final Map<Long, Set<TObject>> chronologize(String key,
-            long record, long start, long end, LockingAdvisory advisory) {
+            long record, long start, long end, Locking locking) {
         Map<Long, Set<TObject>> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).chronologizeUnlocked(key,
                     record, start, end);
         }
@@ -498,7 +494,7 @@ public abstract class BufferedStore extends AbstractStore {
     @Override
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        return doExplore(key, operator, values, LockingAdvisory.DEFAULT);
+        return doExplore(key, operator, values, Locking.DEFAULT);
     }
 
     /**
@@ -509,14 +505,13 @@ public abstract class BufferedStore extends AbstractStore {
      * @param key
      * @param operator
      * @param values
-     * @param advisory
+     * @param locking
      * @return {@code Map}
      */
-    protected final Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject[] values, LockingAdvisory advisory) {
+    protected final Map<Long, Set<TObject>> doExplore(String key,
+            Operator operator, TObject[] values, Locking locking) {
         Map<Long, Set<TObject>> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).doExploreUnlocked(key,
                     operator, values);
         }
@@ -541,10 +536,9 @@ public abstract class BufferedStore extends AbstractStore {
      * @return a possibly empty Set of values
      */
     protected final Set<TObject> gather(String key, long record,
-            LockingAdvisory advisory) {
+            Locking locking) {
         Set<TObject> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).gatherUnlocked(key,
                     record);
         }
@@ -569,25 +563,26 @@ public abstract class BufferedStore extends AbstractStore {
      * @param key
      * @param value
      * @param record
-     * @param sync - a flag that controls whether the data is durably persisted,
-     *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #limbo}
+     * @param sync
      * @param doVerify - a flag that controls whether an attempt is made to
      *            verify that removing the data is legal. This should always be
      *            set to {@code true} unless it is being called from a context
      *            where the operation has been previously verified (i.e.
      *            committing writes from an atomic operation or transaction)
-     * @param verifyLockingAdvisory
+     * @param locking
      * @return {@code true} if the mapping is removed
      */
     protected final boolean remove(String key, TObject value, long record,
-            boolean sync, boolean doVerify,
-            LockingAdvisory verifyLockingAdvisory) {
+            Sync sync, boolean doVerify, Locking locking) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
-            if(!doVerify || verify(write, verifyLockingAdvisory)) {
-                return limbo.insert(write, sync); /* Authorized */
+            if(!doVerify || verify(write, locking)) {
+                // NOTE: #sync ends up being NO when the Engine accepts
+                // Writes that are transported from a committing AtomicOperation
+                // or Transaction, in which case passing this boolean along to
+                // the Buffer allows group sync to happen
+                return limbo.insert(write, sync == Sync.YES);
             }
             else {
                 return false;
@@ -599,17 +594,16 @@ public abstract class BufferedStore extends AbstractStore {
     }
 
     /**
-     * Buffered {@link #select(long)} with configurable {@link LockingAdvisory}.
+     * Buffered {@link #select(long)} with configurable {@link Locking}.
      * 
      * @param record
-     * @param advisory
+     * @param locking
      * @return the buffered read result
      */
     protected final Map<String, Set<TObject>> select(long record,
-            LockingAdvisory advisory) {
+            Locking locking) {
         Map<String, Set<TObject>> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).selectUnlocked(record);
         }
         else {
@@ -620,18 +614,17 @@ public abstract class BufferedStore extends AbstractStore {
 
     /**
      * Buffered {@link #select(String, long)} with configurable
-     * {@link LockingAdvisory}.
+     * {@link Locking}.
      * 
      * @param key
      * @param record
-     * @param advisory
+     * @param locking
      * @return the buffered read result
      */
     protected final Set<TObject> select(String key, long record,
-            LockingAdvisory advisory) {
+            Locking locking) {
         Set<TObject> context;
-        if(advisory == LockingAdvisory.SKIP
-                && durable instanceof LockAvoidableStore) {
+        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
             context = ((LockAvoidableStore) (durable)).selectUnlocked(key,
                     record);
         }
@@ -652,17 +645,17 @@ public abstract class BufferedStore extends AbstractStore {
      * @param key
      * @param value
      * @param record
-     * @param advisory
+     * @param locking
      */
     protected final void set(String key, TObject value, long record,
-            LockingAdvisory advisory) {
+            Locking locking) {
         try {
             ensureWriteIntegrity(key, value, record);
-            Set<TObject> values = select(key, record, advisory);
+            Set<TObject> values = select(key, record, locking);
             for (TObject val : values) {
-                limbo.insert(Write.remove(key, val, record)); /* Authorized */
+                limbo.insert(Write.remove(key, val, record));
             }
-            limbo.insert(Write.add(key, value, record)); /* Authorized */
+            limbo.insert(Write.add(key, value, record));
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -676,17 +669,17 @@ public abstract class BufferedStore extends AbstractStore {
      * duplicate Write.
      * 
      * @param write the comparison {@link Write} to verify
-     * @param advisory
+     * @param locking
      * @return {@code true} if {@code write} currently exists
      */
-    protected final boolean verify(Write write, LockingAdvisory advisory) {
+    protected final boolean verify(Write write, Locking locking) {
         // TODO: look in the memory to determine whether it would be faster to
         // look in #limbo or #durable first...
         TernaryTruth truth = limbo.verifyFast(write);
         if(truth != TernaryTruth.UNSURE) {
             return truth.boolValue();
         }
-        else if(advisory == LockingAdvisory.SKIP
+        else if(locking == Locking.AVOID
                 && durable instanceof LockAvoidableStore) {
             return ((LockAvoidableStore) durable).verifyUnlocked(write);
         }
@@ -701,8 +694,12 @@ public abstract class BufferedStore extends AbstractStore {
      *
      * @author Jeff Nelson
      */
-    protected enum LockingAdvisory {
-        DEFAULT, SKIP
+    protected enum Locking {
+        DEFAULT, AVOID
+    }
+
+    protected enum Sync {
+        YES, NO
     }
 
 }

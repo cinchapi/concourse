@@ -218,7 +218,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record, true, true, LockingAdvisory.SKIP);
+        return super.add(key, value, record, Sync.NO, true, Locking.AVOID);
     }
 
     @Override
@@ -229,7 +229,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.audit(record, LockingAdvisory.SKIP);
+        return super.audit(record, Locking.AVOID);
     }
 
     @Override
@@ -239,7 +239,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.audit(key, record, LockingAdvisory.SKIP);
+        return super.audit(key, record, Locking.AVOID);
     }
 
     @Override
@@ -254,7 +254,7 @@ public class AtomicOperation extends BufferedStore implements
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
-        return super.browse(key, LockingAdvisory.SKIP);
+        return super.browse(key, Locking.AVOID);
     }
 
     @Override
@@ -280,8 +280,7 @@ public class AtomicOperation extends BufferedStore implements
             Token token = Token.wrap(key, record);
             source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
-            return super.chronologize(key, record, start, end,
-                    LockingAdvisory.SKIP);
+            return super.chronologize(key, record, start, end, Locking.AVOID);
         }
         else {
             return super.chronologize(key, record, start, end);
@@ -345,7 +344,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.gather(key, record, LockingAdvisory.SKIP);
+        return super.gather(key, record, Locking.AVOID);
     }
 
     @Override
@@ -388,8 +387,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record, true, true,
-                LockingAdvisory.SKIP);
+        return super.remove(key, value, record, Sync.NO, true, Locking.AVOID);
     }
 
     @Override
@@ -407,7 +405,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.select(record, LockingAdvisory.SKIP);
+        return super.select(record, Locking.AVOID);
     }
 
     @Override
@@ -429,7 +427,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.select(key, record, LockingAdvisory.SKIP);
+        return super.select(key, record, Locking.AVOID);
     }
 
     @Override
@@ -465,7 +463,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        super.set(key, value, record, LockingAdvisory.SKIP);
+        super.set(key, value, record, Locking.AVOID);
     }
 
     @Override
@@ -495,7 +493,7 @@ public class AtomicOperation extends BufferedStore implements
                 write.getRecord().longValue());
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.verify(write, LockingAdvisory.SKIP);
+        return super.verify(write, Locking.AVOID);
     }
 
     @Override
@@ -734,7 +732,7 @@ public class AtomicOperation extends BufferedStore implements
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
-        return super.doExplore(key, operator, values, LockingAdvisory.SKIP);
+        return super.doExplore(key, operator, values, Locking.AVOID);
     }
 
     /**

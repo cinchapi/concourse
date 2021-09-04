@@ -366,8 +366,8 @@ public final class Engine extends BufferedStore implements
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD
-                ? addUnlocked(key, value, record, sync)
-                : removeUnlocked(key, value, record, sync);
+                ? addUnlocked(key, value, record, sync ? Sync.YES : Sync.NO)
+                : removeUnlocked(key, value, record, sync ? Sync.YES : Sync.NO);
         if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
@@ -396,7 +396,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return addUnlocked(key, value, record, true, sharedToken,
+            return addUnlocked(key, value, record, Sync.YES, sharedToken,
                     writeToken, rangeToken);
         }
         finally {
@@ -713,7 +713,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return removeUnlocked(key, value, record, true, sharedToken,
+            return removeUnlocked(key, value, record, Sync.YES, sharedToken,
                     writeToken, rangeToken);
         }
         finally {
@@ -968,9 +968,9 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean addUnlocked(String key, TObject value, long record,
-            boolean sync) {
-        return addUnlocked(key, value, record, sync, Token.wrap(record),
-                Token.wrap(key, record),
+            Sync writeSyncAdvisory) {
+        return addUnlocked(key, value, record, writeSyncAdvisory,
+                Token.wrap(record), Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
     }
 
@@ -990,8 +990,13 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean addUnlocked(String key, TObject value, long record,
-            boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.add(key, value, record, sync, sync, LockingAdvisory.SKIP)) {
+            Sync sync, Token shared, Token write, RangeToken range) {
+        // NOTE: #sync ends up being NO when the Engine accepts
+        // Writes that are transported from a committing AtomicOperation
+        // or Transaction, in which case passing this boolean along to
+        // the Buffer allows group sync to happen
+        boolean verify = sync == Sync.YES;
+        if(super.add(key, value, record, sync, verify, Locking.AVOID)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1036,9 +1041,9 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean removeUnlocked(String key, TObject value, long record,
-            boolean sync) {
-        return removeUnlocked(key, value, record, sync, Token.wrap(record),
-                Token.wrap(key, record),
+            Sync writeSyncAdvisory) {
+        return removeUnlocked(key, value, record, writeSyncAdvisory,
+                Token.wrap(record), Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
 
     }
@@ -1059,8 +1064,13 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the remove was successful
      */
     private boolean removeUnlocked(String key, TObject value, long record,
-            boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.remove(key, value, record, sync, sync, LockingAdvisory.SKIP)) {
+            Sync sync, Token shared, Token write, RangeToken range) {
+        // NOTE: #sync ends up being NO when the Engine accepts
+        // Writes that are transported from a committing AtomicOperation
+        // or Transaction, in which case passing this boolean along to
+        // the Buffer allows group sync to happen
+        boolean verify = sync == Sync.YES;
+        if(super.remove(key, value, record, sync, verify, Locking.AVOID)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);

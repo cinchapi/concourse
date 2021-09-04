@@ -20,7 +20,8 @@ package com.cinchapi.concourse.server.storage;
  * destination for an {@link AtomicOperation}.
  * <p>
  * {@link AtomicOperation AtomicOperations} use <strong>Just-in-Time
- * Locking</strong>, so initiating {@link LockAvoidableStore stores} must be able to
+ * Locking</strong>, so initiating {@link LockAvoidableStore stores} must be
+ * able to
  * perform operations without grabbing locks because the {@link AtomicOperation}
  * will do so in bulk prior to {@link AtomicOperation#commit() committing}.
  * </p>
