@@ -164,7 +164,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * @param segment
      * @param filter
      */
-    protected CorpusChunk(@Nullable Segment segment, BloomFilter filter) {
+    private CorpusChunk(@Nullable Segment segment, BloomFilter filter) {
         super(segment, filter);
     }
 
