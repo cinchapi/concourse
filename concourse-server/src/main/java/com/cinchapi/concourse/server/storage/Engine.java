@@ -994,8 +994,10 @@ public final class Engine extends BufferedStore implements
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
-        // the Buffer allows group sync to happen
-        boolean verify = sync == Sync.YES;
+        // the Buffer allows group sync to happen. Similarly, #verify should
+        // also be NO during group sync because the Writes have already been
+        // verified prior to commit.
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
         if(super.add(key, value, record, sync, verify, Locking.AVOID)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
@@ -1068,8 +1070,10 @@ public final class Engine extends BufferedStore implements
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
-        // the Buffer allows group sync to happen
-        boolean verify = sync == Sync.YES;
+        // the Buffer allows group sync to happen. Similarly, #verify should
+        // also be NO during group sync because the Writes have already been
+        // verified prior to commit.
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
         if(super.remove(key, value, record, sync, verify, Locking.AVOID)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);

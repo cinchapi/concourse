@@ -163,7 +163,7 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, Sync.YES, true, Locking.DEFAULT);
+        return add(key, value, record, Sync.YES, Verify.YES, Locking.DEFAULT);
     }
 
     @Override
@@ -254,7 +254,8 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, Sync.YES, true, Locking.DEFAULT);
+        return remove(key, value, record, Sync.YES, Verify.YES,
+                Locking.DEFAULT);
     }
 
     @Override
@@ -336,20 +337,19 @@ public abstract class BufferedStore extends AbstractStore {
      * @param value
      * @param record
      * @param sync
-     * @param doVerify - a flag that controls whether an attempt is made to
-     *            verify that removing the data is legal. This should always be
-     *            set to {@code true} unless it is being called from a context
-     *            where the operation has been previously verified (i.e.
-     *            committing writes from an atomic operation or transaction)
+     * @param verify
      * @param locking
      * @return {@code true} if the mapping is added
      */
     protected final boolean add(String key, TObject value, long record,
-            Sync sync, boolean doVerify, Locking locking) {
+            Sync sync, Verify verify, Locking locking) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
-            if(!doVerify || !verify(write, locking)) {
+            // NOTE: #verify ends up being NO when the Engine accepts Writes
+            // that are transported from a committing AtomicOperation or
+            // Transaction
+            if(verify == Verify.NO || !verify(write, locking)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -573,11 +573,14 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is removed
      */
     protected final boolean remove(String key, TObject value, long record,
-            Sync sync, boolean doVerify, Locking locking) {
+            Sync sync, Verify verify, Locking locking) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
-            if(!doVerify || verify(write, locking)) {
+            // NOTE: #verify ends up being NO when the Engine accepts Writes
+            // that are transported from a committing AtomicOperation or
+            // Transaction
+            if(verify == Verify.NO || verify(write, locking)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -689,17 +692,55 @@ public abstract class BufferedStore extends AbstractStore {
     }
 
     /**
-     * If {@link #durable} is a {@link LockAvoidableStore}, describes the
-     * appropriate internal methods to use in the course of buffered read logic.
-     *
-     * @author Jeff Nelson
+     * A semantic enum to track whether the "unlocked" versions of methods
+     * should be dispatched in a {@link LockAvoidableStore}.
      */
     protected enum Locking {
-        DEFAULT, AVOID
+
+        /**
+         * Defer to the stores internal locking.
+         */
+        DEFAULT,
+
+        /**
+         * Dispatch to methods that will avoid internal locking, if possible.
+         */
+        AVOID
     }
 
+    /**
+     * A semantic enum to track whether the {@link Write} from an add or remove
+     * should be immediately synced.
+     */
     protected enum Sync {
-        YES, NO
+
+        /**
+         * Instruct {@link #limbo} to sync the write.
+         */
+        YES,
+
+        /**
+         * Instruct {@link #limbo} NOT to sync the write.
+         */
+        NO
+    }
+
+    /**
+     * A semantic enum to track whether the {@link Write} from an add or remove
+     * should be verified.
+     *
+     */
+    protected enum Verify {
+
+        /**
+         * Do the verify.
+         */
+        YES,
+
+        /**
+         * Skip the verify.
+         */
+        NO
     }
 
 }
