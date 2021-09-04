@@ -683,6 +683,14 @@ public final class Engine extends BufferedStore implements
         // manual cleanup because the GC will take care of it.
     }
 
+    /**
+     * Public interface to the {@link Database#repair() method}.
+     */
+    @ManagedOperation
+    public void repair() {
+        ((Database) destination).repair();
+    }
+
     @Override
     public Set<Long> search(String key, String query) {
         // NOTE: Range locking for a search query requires too much overhead, so
