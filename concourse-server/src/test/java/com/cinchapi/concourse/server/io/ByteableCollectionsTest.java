@@ -107,7 +107,7 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testHashNextNotRequired() {
+    public void testHasNextNotRequired() {
         Path file = Paths.get(TestData.getTemporaryTestFile());
         List<Identifier> values = Lists.newArrayList();
         int count = 10;

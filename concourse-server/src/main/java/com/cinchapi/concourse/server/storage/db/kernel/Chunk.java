@@ -33,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.io.ByteSink;
@@ -438,15 +439,21 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     long start = range.start();
                     long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
-                        Iterator<ByteBuffer> it = ByteableCollections.stream(
-                                file(), position() + start, length,
-                                GlobalState.DISK_READ_BUFFER_SIZE);
-                        while (it.hasNext()) {
-                            Revision<L, K, V> revision = Byteables
-                                    .read(it.next(), xRevisionClass());
-                            Logger.debug("Attempting to append {} from {} to "
-                                    + "{}", revision, this, record);
-                            record.append(revision);
+                        CloseableIterator<ByteBuffer> it = ByteableCollections
+                                .stream(file(), position() + start, length,
+                                        GlobalState.DISK_READ_BUFFER_SIZE);
+                        try {
+                            while (it.hasNext()) {
+                                Revision<L, K, V> revision = Byteables
+                                        .read(it.next(), xRevisionClass());
+                                Logger.debug(
+                                        "Attempting to append {} from {} to {}",
+                                        revision, this, record);
+                                record.append(revision);
+                            }
+                        }
+                        finally {
+                            it.closeQuietly();
                         }
                     }
                 }

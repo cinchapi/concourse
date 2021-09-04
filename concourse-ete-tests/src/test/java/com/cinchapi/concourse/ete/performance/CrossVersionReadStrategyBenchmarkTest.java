@@ -45,6 +45,7 @@ public class CrossVersionReadStrategyBenchmarkTest
         String[] versions = CrossVersionBenchmarkTests.VERSIONS;
         Set<String> $versions = Sets.newHashSet(versions);
         $versions.remove("0.9.6"); // sorting not supported
+        $versions.remove("0.10.5");
         versions = $versions.toArray(Array.containing());
         return versions;
 

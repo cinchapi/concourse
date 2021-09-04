@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.Array;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.ByteableCollections;
@@ -188,12 +189,18 @@ public final class StorageFormatV2 {
         public Iterator<Revision<L, K, V>> iterator() {
             return new Iterator<Revision<L, K, V>>() {
 
-                private final Iterator<ByteBuffer> it = ByteableCollections
+                private final CloseableIterator<ByteBuffer> it = ByteableCollections
                         .stream(file, GlobalState.DISK_READ_BUFFER_SIZE);
 
                 @Override
                 public boolean hasNext() {
-                    return it.hasNext();
+                    if(it.hasNext()) {
+                        return true;
+                    }
+                    else {
+                        it.closeQuietly();
+                        return false;
+                    }
                 }
 
                 @Override
