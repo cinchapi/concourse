@@ -520,17 +520,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> selectUnlocked(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.select(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browseUnlocked(String key) {
         transportLock.readLock().lock();
         try {
@@ -797,6 +786,17 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public Set<TObject> selectUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
@@ -893,6 +893,21 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public boolean verify(Write write) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(write.getKey().toString(),
+                write.getRecord().longValue());
+        read.lock();
+        try {
+            return super.verify(write);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public boolean verify(Write write, long timestamp) {
         transportLock.readLock().lock();
         try {
@@ -904,16 +919,12 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(Write write) {
+    public boolean verifyUnlocked(Write write) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(write.getKey().toString(),
-                write.getRecord().longValue());
-        read.lock();
         try {
             return super.verify(write);
         }
         finally {
-            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -945,17 +956,6 @@ public final class Engine extends BufferedStore implements
         }
     }
 
-    @Override
-    public boolean verifyUnlocked(Write write) {
-        transportLock.readLock().lock();
-        try {
-            return super.verify(write);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
@@ -968,9 +968,9 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean addUnlocked(String key, TObject value, long record,
-            Sync writeSyncAdvisory) {
-        return addUnlocked(key, value, record, writeSyncAdvisory,
-                Token.wrap(record), Token.wrap(key, record),
+            Sync sync) {
+        return addUnlocked(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
     }
 
@@ -1043,9 +1043,9 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean removeUnlocked(String key, TObject value, long record,
-            Sync writeSyncAdvisory) {
-        return removeUnlocked(key, value, record, writeSyncAdvisory,
-                Token.wrap(record), Token.wrap(key, record),
+            Sync sync) {
+        return removeUnlocked(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
 
     }
