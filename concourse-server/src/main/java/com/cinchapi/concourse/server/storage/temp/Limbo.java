@@ -31,13 +31,13 @@ import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.BaseStore;
-import com.cinchapi.concourse.server.storage.Inventory;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.TMaps;
@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
  * or fast, albeit temporary, store for data that will eventually be persisted
- * to a {@link PermanentStore}.
+ * to a {@link DurableStore}.
  * <p>
  * The store is designed to write data very quickly <strong>
  * <em>at the expense of much slower read time.</em></strong> {@code Limbo} does
@@ -69,13 +69,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Limbo extends BaseStore implements Iterable<Write> {
-
-    /**
-     * A Predicate that is used to filter out empty sets.
-     */
-    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
-            && !set.isEmpty();
+public abstract class Limbo implements Store, Iterable<Write> {
 
     /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
@@ -90,6 +84,12 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
             TObject... values) {
         return input.getTObject().isIgnoreCase(operator, values);
     }
+
+    /**
+     * A Predicate that is used to filter out empty sets.
+     */
+    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
+            && !set.isEmpty();
 
     /**
      * Constant {@link Memory} that is always returned by a {@link Limbo} store.
@@ -193,8 +193,21 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
     }
 
+    /**
+     * Calculate the browsable view of {@code key} at {@code timestamp} using
+     * prior {@code context} as if it were also a part of the Buffer.
+     * 
+     * @param key
+     * @param context
+     * @return a possibly empty Map of data
+     */
+    public final Map<TObject, Set<Long>> browse(String key,
+            Map<TObject, Set<Long>> context) {
+        return browse(key, Time.NONE, context);
+    }
+
     @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
+    public final Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         return chronologize(key, record, start, end, context);
@@ -303,11 +316,31 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * This is an implementation of the {@code findAndBrowse} routine that takes
-     * in a prior {@code context}. Find and browse will return a mapping from
+     * This is an implementation of the
+     * {@link #explore(String, Operator, TObject...)} routine that takes
+     * in a prior {@code context} and will return a mapping from
      * records that match a criteria (expressed as {@code key} filtered by
      * {@code operator} in relation to one or more {@code values}) to the set of
      * values that cause that record to match the criteria.
+     * 
+     * @param context
+     * @param key
+     * @param operator
+     * @param values
+     * @return the relevant data for the records that satisfy the find query
+     */
+    public final Map<Long, Set<TObject>> explore(
+            Map<Long, Set<TObject>> context, String key, Aliases aliases) {
+        return explore(context, key, aliases, Time.NONE);
+    }
+
+    /**
+     * This is an implementation of the
+     * {@link #explore(long, String, Operator, TObject...)} routine that takes
+     * in a prior {@code context} and will return a mapping from
+     * records that match a criteria (expressed as {@code key} filtered by
+     * {@code operator} in relation to one or more {@code values}) to the set of
+     * values that caused that record to match the criteria {@code timestamp}.
      * 
      * @param context
      * @param timestamp
@@ -317,8 +350,10 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * @return the relevant data for the records that satisfy the find query
      */
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
-            long timestamp, String key, Operator operator, TObject... values) {
+            String key, Aliases aliases, long timestamp) {
         if(timestamp >= getOldestWriteTimestamp()) {
+            Operator operator = aliases.operator();
+            TObject[] values = aliases.values();
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 long record = write.getRecord().longValue();
@@ -343,6 +378,17 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return TMaps.asSortedMap(context);
     }
 
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        return explore(key, aliases, Time.NONE);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        return explore(Maps.newLinkedHashMap(), key, aliases, timestamp);
+    }
+
     /**
      * Gather the values mapped from {@code key} in {@code record} at
      * {@code timestamp} using prior {@code context} as if it were also a part
@@ -357,6 +403,21 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     public final Set<TObject> gather(String key, long record, long timestamp,
             Set<TObject> context) {
         return select(key, record, timestamp, context);
+    }
+
+    /**
+     * Gather the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using prior {@code context} as if it were also a part
+     * of the Buffer.
+     * 
+     * @param key
+     * @param record
+     * @param context
+     * @return the values
+     */
+    public final Set<TObject> gather(String key, long record,
+            Set<TObject> context) {
+        return select(key, record, context);
     }
 
     @Override
@@ -498,13 +559,14 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * Calculate the browsable view of {@code record} at {@code timestamp} using
-     * prior {@code context} as if it were also a part of the Buffer.
+     * Select all the data from {@code record} using prior {@code context} as if
+     * it were also contained in {@link Limbo}.
      * 
-     * @param key
+     * @param record
      * @param timestamp
      * @param context
-     * @return a possibly empty Map of data
+     * @return a mapping from each key to contained values in {@code record} at
+     *         {@code timestamp}
      */
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
@@ -538,6 +600,20 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 (SortedMap<String, Set<TObject>>) context, emptySetFilter));
     }
 
+    /**
+     * Select all the data from {@code record} at {@code timestamp} using
+     * prior {@code context} as if it were also contained in {@link Limbo}.
+     * 
+     * @param record
+     * @param context
+     * @return a mapping from each key to contained values in {@code record} at
+     *         {@code timestamp}
+     */
+    public final Map<String, Set<TObject>> select(long record,
+            Map<String, Set<TObject>> context) {
+        return select(record, Time.NONE, context);
+    }
+
     @Override
     public Set<TObject> select(String key, long record) {
         return select(key, record, Time.NONE);
@@ -550,9 +626,9 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * Fetch the values mapped from {@code key} in {@code record} at
-     * {@code timestamp} using prior {@code context} as if it were also a part
-     * of the Buffer.
+     * Select the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using prior {@code context} as if it were also
+     * contained in {@link Limbo}.
      * 
      * @param key
      * @param record
@@ -585,6 +661,20 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
+     * Select the values mapped from {@code key} in {@code record} using prior
+     * {@code context} as if it were also contained in {@link Limbo}.
+     * 
+     * @param key
+     * @param record
+     * @param context
+     * @return the values
+     */
+    public final Set<TObject> select(String key, long record,
+            Set<TObject> context) {
+        return select(key, record, Time.NONE, context);
+    }
+
+    /**
      * If the implementation supports durable storage, this method guarantees
      * that all the data contained here-within is durably persisted. Otherwise,
      * this method is meaningless and returns immediately.
@@ -596,21 +686,21 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      * 
      * @param destination
      */
-    public final void transport(PermanentStore destination) {
+    public final void transport(DurableStore destination) {
         transport(destination, true);
     }
 
     /**
      * Transport the content of this store to {@code destination} with the
      * directive to {@code sync} or not. A sync guarantees that the transported
-     * data is durably persisted within the {@link PermanentStore}.
+     * data is durably persisted within the {@link DurableStore}.
      * 
      * @param destination - the recipient store for the data
      * @param syncAfterEach - a flag that controls whether a call is always made
      *            to durably persist (i.e. fsync) in the {@code destination}
      *            after each write is transported
      */
-    public void transport(PermanentStore destination, boolean syncAfterEach) {
+    public void transport(DurableStore destination, boolean syncAfterEach) {
         for (Iterator<Write> it = iterator(); it.hasNext();) {
             destination.accept(it.next(), syncAfterEach);
             it.remove();
@@ -628,53 +718,14 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return verify(Write.notStorable(key, value, record), timestamp);
     }
 
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * currently exists using {@code exists} as prior context.
-     * <p>
-     * <strong>This method is called from
-     * {@link BufferedStore#contains(String, TObject, long)}.</strong>
-     * </p>
-     * 
-     * @param write
-     * @return {@code true} if {@code write} currently appears an odd number of
-     *         times
-     */
-    public boolean verify(Write write, boolean exists) {
-        return verify(write, Time.NONE, exists);
+    @Override
+    public boolean verify(Write write) {
+        return verify(write, Time.NONE);
     }
 
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * exists at {@code timestamp}.
-     * <p>
-     * <strong>This method is called from
-     * {@link BufferedStore#verify(String, TObject, long, long)}.</strong>
-     * </p>
-     * 
-     * @param write
-     * @param timestamp
-     * @return {@code true} if {@code write} appears an odd number of times at
-     *         {@code timestamp}
-     */
+    @Override
     public boolean verify(Write write, long timestamp) {
-        return verify(write, timestamp, false);
-    }
-
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * exists at {@code timestamp}, using {@code exists} as prior context.
-     * <p>
-     * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
-     * </p>
-     * 
-     * @param write
-     * @param timestamp
-     * @param exists
-     * @return {@code true} if {@code write} appears an odd number of times at
-     *         {@code timestamp}
-     */
-    public boolean verify(Write write, long timestamp, boolean exists) {
+        boolean exists = false;
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write stored = it.next();
@@ -718,37 +769,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
      */
     public final TernaryTruth verifyFast(Write write) {
         return verifyFast(write, Time.NONE);
-    }
-
-    /**
-     * A specialized implementation to possibly verify the existence of
-     * {@code write} using three-valued logic. This routine allows the caller to
-     * get a potentially definitive answer by only consulting this store instead
-     * of having to gather prior context beforehand.
-     * <p>
-     * This method will respond in one of three ways when verifying the
-     * existence of {@code write}:
-     * <ul>
-     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}
-     * appears in this store at least once and the most recent appearance is the
-     * result of an {@link Action#ADD add} operation.</li>
-     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}
-     * appears in the Buffer at least once and the most recent appearance is the
-     * result of a {@link Action#REMOVE remove} operation.</li>
-     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
-     * {@link Write#getRecord()} appears is in the inventory AND the
-     * {@code write} does not appear in the Buffer.</li>
-     * </ul>
-     * </p>
-     * 
-     * @param write the {@link Write} to verify
-     * @param inventory an {@link Inventory} instance to possibly speed up the
-     *            verify process
-     * @return the appropriate {@link TernaryTruth} value that corresponds to
-     *         the Buffer's ability to verify the existence of {@code write}
-     */
-    public final TernaryTruth verifyFast(Write write, Inventory inventory) {
-        return verifyFast(write, Time.NONE, inventory);
     }
 
     /**
@@ -797,61 +817,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
     }
 
     /**
-     * A specialized implementation to possibly verify the existence of
-     * {@code write} at {@code timestamp} using three-valued logic.
-     * This routine allows the caller to get a potentially definitive answer by
-     * only consulting the Buffer instead of having to gather prior context
-     * beforehand.
-     * <p>
-     * This method will respond in one of three ways when verifying the
-     * existence of {@code write} at {@code timestamp}:
-     * <ul>
-     * <li>Definitively {@link TernaryTruth#TRUE true} if the {@code write}'s
-     * {@link Write#getRecord record} is in the {@link #inventory} AND the
-     * {@code write} appears in the Buffer at least once on or before timestamp
-     * and the appearance most recent to {@code timestamp} is the result of an
-     * {@link Action#ADD add} operation.</li>
-     * <li>Definitively {@link TernaryTruth#TRUE false} if the {@code write}'s
-     * {@link Write#getRecord record} is NOT in the {@link #inventory} OR the
-     * {@code write} appears in the Buffer at least once on or before timestamp
-     * and the appearance most recent to {@code timestamp} is the result of a
-     * {@link Action#REMOVE remove} operation.</li>
-     * <li>{@link TernaryTruth#UNSURE} if the {@code write}'s
-     * {@link Write#getRecord()} does not appear in this store at
-     * {@code timestamp}</li>
-     * </ul>
-     * </p>
-     * 
-     * @param write the {@link Write} to verify
-     * @param timestamp the timestamp at which the verification should happen
-     * @param inventory an {@link Inventory} instance to possibly speed up the
-     *            verify process
-     * @return the appropriate {@link TernaryTruth} value that corresponds to
-     *         the store's ability to verify the existence of {@code write} at
-     *         {@code timestamp}
-     */
-    public TernaryTruth verifyFast(Write write, long timestamp,
-            Inventory inventory) {
-        if(inventory.contains(write.getRecord().longValue())) {
-            return verifyFast(write, timestamp);
-        }
-        else {
-            return TernaryTruth.FALSE;
-        }
-    }
-
-    /**
-     * Wait (block) until the Buffer has enough data to complete a transport.
-     * This method should be called from the external service to avoid busy
-     * waiting if continuously transporting data in the background.
-     */
-    public void waitUntilTransportable() {
-        return; // do nothing because Limbo is assumed to always be
-                // transportable. But the Buffer will override this method with
-                // the appropriate conditions.
-    }
-
-    /**
      * Return a snapshot {@link Iterable} that contains the
      * {@link Write#getVersion() version} of every {@link Write} in the
      * {@link Store}.
@@ -873,17 +838,15 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         return versions;
     }
 
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        return explore(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
-                key, operator, values);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        return explore(Time.NONE, key, operator, values);
+    /**
+     * Wait (block) until the Buffer has enough data to complete a transport.
+     * This method should be called from the external service to avoid busy
+     * waiting if continuously transporting data in the background.
+     */
+    public void waitUntilTransportable() {
+        return; // do nothing because Limbo is assumed to always be
+                // transportable. But the Buffer will override this method with
+                // the appropriate conditions.
     }
 
     /**

@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
-import com.cinchapi.concourse.server.storage.PermanentStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.EagerProducer;
@@ -142,7 +142,7 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public void transport(PermanentStore destination, boolean sync) {
+    public void transport(DurableStore destination, boolean sync) {
         // For transactions, this method will only be called once, so we can
         // optimize it by not using the services of an Iterator (e.g. hasNext(),
         // remove(), etc) and, if the number of writes in the Queue is large
@@ -158,14 +158,14 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public boolean verify(Write write, long timestamp, boolean exists) {
+    public boolean verify(Write write, long timestamp) {
         if(filter == null
                 || (filter != null && filter.mightContainCached(write.getKey(),
                         write.getValue(), write.getRecord()))) {
-            return super.verify(write, timestamp, exists);
+            return super.verify(write, timestamp);
         }
         else {
-            return exists;
+            return false;
         }
     }
 

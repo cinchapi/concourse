@@ -234,7 +234,7 @@ public class ByteableCollections {
             }
 
             /**
-             * Fill the {@link #buffer} with the smaller of the remaining bytes
+             * Fill the {@link #limbo} with the smaller of the remaining bytes
              * in the file of {@code bufferSize} bytes from the current
              * {@code position}.
              */

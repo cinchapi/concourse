@@ -1813,65 +1813,58 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testGather() {
-        if(store instanceof Gatherable) {
-            java.util.Random rand = new java.util.Random();
-            Gatherable store = (Gatherable) this.store;
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L);
-            List<String> keys = ImmutableList.of(Random.getSimpleString(),
-                    Random.getSimpleString(), Random.getSimpleString(),
-                    Random.getSimpleString(), Random.getSimpleString());
-            for (int i = 0; i < TestData.getScaleCount(); ++i) {
-                String key = keys.get(rand.nextInt(keys.size()));
-                long record = records.get(rand.nextInt(records.size()));
-                TObject value = Convert.javaToThrift(Random.getObject());
-                add(key, value, record);
-                if(rand.nextInt() % 6 == 0) {
-                    remove(key, value, record);
-                }
-            }
-            for (long record : records) {
-                for (String key : keys) {
-                    Assert.assertEquals(store.select(key, record),
-                            store.gather(key, record));
-                }
+        java.util.Random rand = new java.util.Random();
+        List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L);
+        List<String> keys = ImmutableList.of(Random.getSimpleString(),
+                Random.getSimpleString(), Random.getSimpleString(),
+                Random.getSimpleString(), Random.getSimpleString());
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            String key = keys.get(rand.nextInt(keys.size()));
+            long record = records.get(rand.nextInt(records.size()));
+            TObject value = Convert.javaToThrift(Random.getObject());
+            add(key, value, record);
+            if(rand.nextInt() % 6 == 0) {
+                remove(key, value, record);
             }
         }
-
+        for (long record : records) {
+            for (String key : keys) {
+                Assert.assertEquals(store.select(key, record),
+                        store.gather(key, record));
+            }
+        }
     }
 
     @Test
     public void testGatherTime() {
-        if(store instanceof Gatherable) {
-            java.util.Random rand = new java.util.Random();
-            Gatherable store = (Gatherable) this.store;
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L);
-            List<String> keys = ImmutableList.of(Random.getSimpleString(),
-                    Random.getSimpleString(), Random.getSimpleString(),
-                    Random.getSimpleString(), Random.getSimpleString());
-            for (int i = 0; i < TestData.getScaleCount(); ++i) {
-                String key = keys.get(rand.nextInt(keys.size()));
-                long record = records.get(rand.nextInt(records.size()));
-                TObject value = Convert.javaToThrift(Random.getObject());
-                add(key, value, record);
-                if(rand.nextInt() % 6 == 0) {
-                    remove(key, value, record);
-                }
+        java.util.Random rand = new java.util.Random();
+        List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L);
+        List<String> keys = ImmutableList.of(Random.getSimpleString(),
+                Random.getSimpleString(), Random.getSimpleString(),
+                Random.getSimpleString(), Random.getSimpleString());
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            String key = keys.get(rand.nextInt(keys.size()));
+            long record = records.get(rand.nextInt(records.size()));
+            TObject value = Convert.javaToThrift(Random.getObject());
+            add(key, value, record);
+            if(rand.nextInt() % 6 == 0) {
+                remove(key, value, record);
             }
-            long ts = Time.now();
-            for (int i = 0; i < TestData.getScaleCount(); ++i) {
-                String key = keys.get(rand.nextInt(keys.size()));
-                long record = records.get(rand.nextInt(records.size()));
-                TObject value = Convert.javaToThrift(Random.getObject());
-                add(key, value, record);
-                if(rand.nextInt() % 6 == 0) {
-                    remove(key, value, record);
-                }
+        }
+        long ts = Time.now();
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            String key = keys.get(rand.nextInt(keys.size()));
+            long record = records.get(rand.nextInt(records.size()));
+            TObject value = Convert.javaToThrift(Random.getObject());
+            add(key, value, record);
+            if(rand.nextInt() % 6 == 0) {
+                remove(key, value, record);
             }
-            for (long record : records) {
-                for (String key : keys) {
-                    Assert.assertEquals(store.select(key, record, ts),
-                            store.gather(key, record, ts));
-                }
+        }
+        for (long record : records) {
+            for (String key : keys) {
+                Assert.assertEquals(store.select(key, record, ts),
+                        store.gather(key, record, ts));
             }
         }
 

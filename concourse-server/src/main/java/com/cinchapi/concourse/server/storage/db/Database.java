@@ -60,9 +60,8 @@ import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.BaseStore;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
-import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -70,8 +69,8 @@ import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
 import com.cinchapi.concourse.server.storage.db.kernel.SegmentLoadingException;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TStrings;
@@ -91,7 +90,7 @@ import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 
 /**
- * The {@link Database} is the {@link Engine Engine's} {@link PermanentStore}
+ * The {@link Database} is the {@link Engine Engine's} {@link DurableStore}
  * for data. The Database accepts {@link Write} objects that are initially
  * stored in a {@link Buffer} and converts them {@link Revision Revisions} that
  * are stored within distinct {@link Segment Segments}. Each {@link Segment} is
@@ -117,7 +116,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements PermanentStore {
+public final class Database implements DurableStore {
 
     /**
      * Return a cache for records of type {@code T}.
@@ -425,6 +424,31 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(aliases.values(), Value::wrap,
+                Value.class);
+        Map<Identifier, Set<Value>> map = index.findAndGet(timestamp,
+                aliases.operator(), Ks);
+        return Transformers.transformTreeMapSet(map, Identifier::longValue,
+                Value::getTObject, Long::compare);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(aliases.values(), Value::wrap,
+                Value.class);
+        Map<Identifier, Set<Value>> map = index.findAndGet(aliases.operator(),
+                Ks);
+        return Transformers.transformTreeMapSet(map, Identifier::longValue,
+                Value::getTObject, Long::compare);
+    }
+
+    @Override
     public Set<TObject> gather(String key, long record) {
         Text L = Text.wrapCached(key);
         Identifier V = Identifier.of(record);
@@ -712,10 +736,10 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
-        Identifier L = Identifier.of(record);
-        Text K = Text.wrapCached(key);
-        Value V = Value.wrap(value);
+    public boolean verify(Write write) {
+        Identifier L = write.getRecord();
+        Text K = write.getKey();
+        Value V = write.getValue();
         Record<Identifier, Text, Value> table = ENABLE_VERIFY_BY_LOOKUP
                 ? getLookupRecord(L, K, V)
                 : getTableRecord(L, K);
@@ -723,38 +747,12 @@ public final class Database extends BaseStore implements PermanentStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
-        Identifier L = Identifier.of(record);
-        Text K = Text.wrapCached(key);
-        Value V = Value.wrap(value);
+    public boolean verify(Write write, long timestamp) {
+        Identifier L = write.getRecord();
+        Text K = write.getKey();
+        Value V = write.getValue();
         TableRecord table = getTableRecord(L, K);
         return table.contains(K, V, timestamp);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Text L = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(L);
-        Value[] Ks = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<Identifier, Set<Value>> map = index.findAndGet(timestamp, operator,
-                Ks);
-        return Transformers.transformTreeMapSet(map, Identifier::longValue,
-                Value::getTObject, Long::compare);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        Text L = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(L);
-        Value[] Ks = Transformers.transformArray(values, Value::wrap,
-                Value.class);
-        Map<Identifier, Set<Value>> map = index.findAndGet(operator, Ks);
-        return Transformers.transformTreeMapSet(map, Identifier::longValue,
-                Value::getTObject, Long::compare);
     }
 
     /**

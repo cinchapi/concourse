@@ -38,8 +38,10 @@ import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.collect.Maps;
@@ -59,63 +61,30 @@ import com.google.common.collect.TreeRangeSet;
  */
 public class AtomicOperation extends BufferedStore implements
         VersionChangeListener {
+
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in
     // place.
 
     /**
-     * The initial capacity
-     */
-    protected static final int INITIAL_CAPACITY = 10;
-
-    /**
-     * Start a new AtomicOperation that will commit to {@code store}.
-     * <p>
-     * Always use the {@link AtomicSupport#startAtomicOperation()} method over
-     * this one because each store <em>may</em> may do some customization to the
-     * AtomicOperation before it is returned to the caller.
-     * </p>
+     * Start a new {@link AtomicOperation} that will {@link #commit() commit} to
+     * {@code store}.
      * 
      * @param store
+     * @param lockService
+     * @param rangeLockService
      * @return the AtomicOperation
      */
-    protected static AtomicOperation start(AtomicSupport store) {
-        return new AtomicOperation(store);
+    protected static AtomicOperation start(AtomicSupport store,
+            LockService lockService, RangeLockService rangeLockService) {
+        return new AtomicOperation(store, lockService, rangeLockService);
     }
 
     /**
-     * The {@link RangeToken range read tokens} that represent any queries in
-     * this operation that we must grab locks for at commit time.
+     * The initial capacity
      */
-    private final RangeHolder rangeReads2Lock = new RangeHolder();
-
-    /**
-     * The read {@link Token tokens} that represent any record based reads in
-     * this operation that we must grab locks for at commit time.
-     */
-    private final Set<Token> reads2Lock = Sets.newHashSet();
-
-    /**
-     * This map contains all the records in which a "wide read" (e.g. a read
-     * that touches every field in the record) was performed. This data is used
-     * to determine if lock coarsening can be performed at commit time.
-     */
-    private final Map<Long, Token> wideReads = Maps.newHashMap();
-
-    /**
-     * A casted pointer to the destination store, which is the source from which
-     * this Atomic Operation stems.
-     */
-    private final AtomicSupport source;
-
-    /**
-     * The write {@link Token tokens} or {@link RangeToken range write tokens}
-     * that represent the writes in this operation that we must grab locks for
-     * at commit time. Both write and range write tokens are stored in the same
-     * collection for efficiency reasons.
-     */
-    private final Set<Token> writes2Lock = Sets.newHashSet();
+    protected static final int INITIAL_CAPACITY = 10;
 
     /**
      * A flag that indicates this atomic operation has successfully grabbed all
@@ -135,9 +104,20 @@ public class AtomicOperation extends BufferedStore implements
     protected Map<Token, LockDescription> locks = null;
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    protected final LockService lockService;
+
+    /**
      * The AtomicOperation is open until it is committed or aborted.
      */
     protected AtomicBoolean open = new AtomicBoolean(true);
+
+    /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    protected final RangeLockService rangeLockService;
 
     /**
      * A flag that is set when the atomic operation must fail because it is
@@ -147,29 +127,68 @@ public class AtomicOperation extends BufferedStore implements
     private boolean notifiedAboutVersionChange = false;
 
     /**
+     * The {@link RangeToken range read tokens} that represent any queries in
+     * this operation that we must grab locks for at commit time.
+     */
+    private final RangeHolder rangeReads2Lock = new RangeHolder();
+
+    /**
+     * The read {@link Token tokens} that represent any record based reads in
+     * this operation that we must grab locks for at commit time.
+     */
+    private final Set<Token> reads2Lock = Sets.newHashSet();
+
+    /**
+     * A casted pointer to the destination store, which is the source from which
+     * this Atomic Operation stems.
+     */
+    private final AtomicSupport source;
+
+    /**
+     * This map contains all the records in which a "wide read" (e.g. a read
+     * that touches every field in the record) was performed. This data is used
+     * to determine if lock coarsening can be performed at commit time.
+     */
+    private final Map<Long, Token> wideReads = Maps.newHashMap();
+
+    /**
+     * The write {@link Token tokens} or {@link RangeToken range write tokens}
+     * that represent the writes in this operation that we must grab locks for
+     * at commit time. Both write and range write tokens are stored in the same
+     * collection for efficiency reasons.
+     */
+    private final Set<Token> writes2Lock = Sets.newHashSet();
+
+    /**
      * Construct a new instance.
      * 
-     * @param destination - must be a {@link AtomicSupport}
+     * @param destination
      */
-    protected AtomicOperation(AtomicSupport destination) {
-        this(new Queue(INITIAL_CAPACITY), destination);
+    protected AtomicOperation(AtomicSupport destination,
+            LockService lockService, RangeLockService rangeLockService) {
+        this(new Queue(INITIAL_CAPACITY), destination, lockService,
+                rangeLockService);
     }
 
     /**
      * Construct a new instance.
      * 
      * @param buffer
-     * @param destination - must be a {@link AtomicSupport}
+     * @param destination
+     * @param lockService
+     * @param rangeLockService
      */
-    protected AtomicOperation(Queue buffer, AtomicSupport destination) {
-        super(buffer, destination, ((BufferedStore) destination).lockService,
-                ((BufferedStore) destination).rangeLockService);
-        this.source = (AtomicSupport) this.destination;
+    protected AtomicOperation(Queue buffer, AtomicSupport destination,
+            LockService lockService, RangeLockService rangeLockService) {
+        super(buffer, destination);
+        this.lockService = lockService;
+        this.rangeLockService = rangeLockService;
+        this.source = (AtomicSupport) this.durable;
     }
 
     /**
      * Close this operation and release all of the held locks without applying
-     * any of the changes to the {@link #destination} store.
+     * any of the changes to the {@link #durable} store.
      */
     public void abort() {
         open.set(false);
@@ -180,7 +199,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record)
+    public final boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -200,31 +219,32 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record, true, true, false);
+        return super.add(key, value, record, Sync.NO, Verify.YES);
     }
 
     @Override
-    public Map<Long, String> audit(long record) throws AtomicStateException {
+    public final Map<Long, String> audit(long record)
+            throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.audit(record, true);
+        return super.audit(record);
     }
 
     @Override
-    public Map<Long, String> audit(String key, long record)
+    public final Map<Long, String> audit(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.audit(key, record, true);
+        return super.audit(key, record);
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key)
+    public final Map<TObject, Set<Long>> browse(String key)
             throws AtomicStateException {
         checkState();
         Text key0 = Text.wrapCached(key);
@@ -235,11 +255,11 @@ public class AtomicOperation extends BufferedStore implements
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
-        return super.browse(key, true);
+        return super.browse(key);
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key, long timestamp)
+    public final Map<TObject, Set<Long>> browse(String key, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return browse(key);
@@ -251,7 +271,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
+    public final Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) throws AtomicStateException {
         checkState();
         long now = Time.now();
@@ -261,7 +281,7 @@ public class AtomicOperation extends BufferedStore implements
             Token token = Token.wrap(key, record);
             source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
-            return super.chronologize(key, record, start, end, true);
+            return super.chronologize(key, record, start, end);
         }
         else {
             return super.chronologize(key, record, start, end);
@@ -282,8 +302,8 @@ public class AtomicOperation extends BufferedStore implements
                     && finalizing.compareAndSet(false, true)) {
                 doCommit();
                 releaseLocks();
-                if(destination instanceof Transaction) {
-                    ((Transaction) destination).onCommit(this);
+                if(durable instanceof Transaction) {
+                    ((Transaction) durable).onCommit(this);
                 }
                 return true;
             }
@@ -309,7 +329,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean contains(long record) {
+    public final boolean contains(long record) {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
@@ -319,17 +339,45 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> gather(String key, long record)
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        checkState();
+        Operator operator = aliases.operator();
+        TObject[] values = aliases.values();
+        Text key0 = Text.wrapCached(key);
+        RangeToken rangeToken = RangeToken.forReading(key0, operator,
+                Transformers.transformArray(values, Value::wrap, Value.class));
+        source.addVersionChangeListener(rangeToken, this);
+        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
+        for (Range<Value> range : ranges) {
+            rangeReads2Lock.put(key0, range);
+        }
+        return super.explore(key, aliases);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        if(timestamp > Time.now()) {
+            return explore(key, aliases);
+        }
+        else {
+            checkState();
+            return super.explore(key, aliases, timestamp);
+        }
+    }
+
+    @Override
+    public final Set<TObject> gather(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.gather(key, record, true);
+        return super.gather(key, record);
     }
 
     @Override
-    public Set<TObject> gather(String key, long record, long timestamp)
+    public final Set<TObject> gather(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return gather(key, record);
@@ -348,7 +396,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record)
+    public final boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -368,29 +416,29 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record, true, true, false);
+        return super.remove(key, value, record, Sync.NO, Verify.YES);
     }
 
     @Override
-    public Set<Long> search(String key, String query)
+    public final Set<Long> search(String key, String query)
             throws AtomicStateException {
         checkState();
         return super.search(key, query);
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record)
+    public final Map<String, Set<TObject>> select(long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.select(record, true);
+        return super.select(record);
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp)
+    public final Map<String, Set<TObject>> select(long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return select(record);
@@ -402,17 +450,17 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> select(String key, long record)
+    public final Set<TObject> select(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.select(key, record, true);
+        return super.select(key, record);
     }
 
     @Override
-    public Set<TObject> select(String key, long record, long timestamp)
+    public final Set<TObject> select(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return select(key, record);
@@ -424,7 +472,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public void set(String key, TObject value, long record)
+    public final void set(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -444,7 +492,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        super.set(key, value, record, false);
+        super.set(key, value, record);
     }
 
     @Override
@@ -468,17 +516,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record)
-            throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(key, record);
-        source.addVersionChangeListener(token, this);
-        reads2Lock.add(token);
-        return super.verify(key, value, record, true);
-    }
-
-    @Override
-    public boolean verify(String key, TObject value, long record,
+    public final boolean verify(String key, TObject value, long record,
             long timestamp) throws AtomicStateException {
         if(timestamp > Time.now()) {
             return verify(key, value, record);
@@ -489,9 +527,142 @@ public class AtomicOperation extends BufferedStore implements
         }
     }
 
+    @Override
+    public final boolean verify(Write write) throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(write.getKey().toString(),
+                write.getRecord().longValue());
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        return super.verify(write);
+    }
+
+    @Override
+    protected Map<Long, String> $audit(long record) {
+        return source.auditUnlocked(record);
+    }
+
+    @Override
+    protected Map<Long, String> $audit(String key, long record) {
+        return source.auditUnlocked(key, record);
+    }
+
+    @Override
+    protected Map<TObject, Set<Long>> $browse(String key) {
+        return source.browseUnlocked(key);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> $chronologize(String key, long record,
+            long start, long end) {
+        return source.chronologizeUnlocked(key, record, start, end);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> $explore(String key, Aliases aliases) {
+        return source.exploreUnlocked(key, aliases);
+    }
+
+    @Override
+    protected Set<TObject> $gather(String key, long record) {
+        return source.gatherUnlocked(key, record);
+    }
+
+    @Override
+    protected Map<String, Set<TObject>> $select(long record) {
+        return source.selectUnlocked(record);
+    }
+
+    @Override
+    protected Set<TObject> $select(String key, long record) {
+        return source.selectUnlocked(key, record);
+    }
+
+    @Override
+    protected boolean $verify(Write write) {
+        return source.verifyUnlocked(write);
+    }
+
+    /**
+     * Check that this AtomicOperation is open and throw an
+     * AtomicStateException if it is not.
+     * 
+     * @throws AtomicStateException
+     */
+    protected void checkState() throws AtomicStateException {
+        if(notifiedAboutVersionChange) {
+            abort();
+        }
+        if(!open.get()) {
+            throw new AtomicStateException();
+        }
+    }
+
+    /**
+     * Transport the written data to the {@link #durable} store. The
+     * subclass may override this method to do additional things (i.e. backup
+     * the data, etc) if necessary.
+     */
+    protected void doCommit() {
+        doCommit(false);
+    }
+
+    /**
+     * Transport the written data to the {@link #durable} store. The
+     * subclass may override this method to do additional things (i.e. backup
+     * the data, etc) if necessary.
+     * 
+     * @param syncAndVerify a flag that controls whether this operation will
+     *            cause the {@code destination} to always perform a sync and
+     *            verify for each write that is transported. If this value is
+     *            set to {@code false}, this operation will transport all the
+     *            writes without instructing the destination to sync and verify.
+     *            Once all the writes have been transported, the destination
+     *            will be instructed to sync the writes as a group (GROUP SYNC),
+     *            but no verification will occur for any of the writes (which is
+     *            okay as long as this operation implicitly verifies each write
+     *            prior to commit, see CON-246).
+     *            <p>
+     *            NOTE: This parameter is eventually passed from the
+     *            {@code verify} parameter in a call to
+     *            {@link BufferedStore#add(String, TObject, long, boolean, boolean, boolean)}
+     *            or
+     *            {@link BufferedStore#remove(String, TObject, long, boolean, boolean, boolean)}
+     *            . Generally speaking, this coupling between optional syncing
+     *            and optional verifying is okay because it doesn't make sense
+     *            to sync but not verify or verify but not sync.
+     *            </p>
+     */
+    protected void doCommit(boolean syncAndVerify) {
+        // Since we don't take a backup, it is possible that we can end up
+        // in a situation where the server crashes in the middle of the data
+        // transport, which means that the atomic operation would be partially
+        // committed on server restart, which would appear to violate the
+        // "all or nothing" guarantee. We are willing to live with that risk
+        // because the occurrence of that happening seems low and atomic
+        // operations don't guarantee consistency or durability, so it is
+        // technically not a violation of "all or nothing" if the entire
+        // operation succeeds but isn't durable on crash and leaves the database
+        // in an inconsistent state.
+        limbo.transport(durable, syncAndVerify);
+        if(!syncAndVerify) {
+            durable.sync();
+        }
+    }
+
+    /**
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) limbo).size() == 0;
+    }
+
     /**
      * Check each one of the {@link #intentions} against the
-     * {@link #destination} and grab the appropriate locks along the way. This
+     * {@link #durable} and grab the appropriate locks along the way. This
      * method will return {@code true} if all expectations are met and all
      * necessary locks are grabbed. Otherwise it will return {@code false}, in
      * which case this operation should be aborted immediately.
@@ -620,185 +791,6 @@ public class AtomicOperation extends BufferedStore implements
                                          // locked.
             }
         }
-    }
-
-    /**
-     * Check that this AtomicOperation is open and throw an
-     * AtomicStateException if it is not.
-     * 
-     * @throws AtomicStateException
-     */
-    protected void checkState() throws AtomicStateException {
-        if(notifiedAboutVersionChange) {
-            abort();
-        }
-        if(!open.get()) {
-            throw new AtomicStateException();
-        }
-    }
-
-    /**
-     * Transport the written data to the {@link #destination} store. The
-     * subclass may override this method to do additional things (i.e. backup
-     * the data, etc) if necessary.
-     */
-    protected void doCommit() {
-        doCommit(false);
-    }
-
-    /**
-     * Transport the written data to the {@link #destination} store. The
-     * subclass may override this method to do additional things (i.e. backup
-     * the data, etc) if necessary.
-     * 
-     * @param syncAndVerify a flag that controls whether this operation will
-     *            cause the {@code destination} to always perform a sync and
-     *            verify for each write that is transported. If this value is
-     *            set to {@code false}, this operation will transport all the
-     *            writes without instructing the destination to sync and verify.
-     *            Once all the writes have been transported, the destination
-     *            will be instructed to sync the writes as a group (GROUP SYNC),
-     *            but no verification will occur for any of the writes (which is
-     *            okay as long as this operation implicitly verifies each write
-     *            prior to commit, see CON-246).
-     *            <p>
-     *            NOTE: This parameter is eventually passed from the
-     *            {@code verify} parameter in a call to
-     *            {@link BufferedStore#add(String, TObject, long, boolean, boolean, boolean)}
-     *            or
-     *            {@link BufferedStore#remove(String, TObject, long, boolean, boolean, boolean)}
-     *            . Generally speaking, this coupling between optional syncing
-     *            and optional verifying is okay because it doesn't make sense
-     *            to sync but not verify or verify but not sync.
-     *            </p>
-     */
-    protected void doCommit(boolean syncAndVerify) {
-        // Since we don't take a backup, it is possible that we can end up
-        // in a situation where the server crashes in the middle of the data
-        // transport, which means that the atomic operation would be partially
-        // committed on server restart, which would appear to violate the
-        // "all or nothing" guarantee. We are willing to live with that risk
-        // because the occurrence of that happening seems low and atomic
-        // operations don't guarantee consistency or durability, so it is
-        // technically not a violation of "all or nothing" if the entire
-        // operation succeeds but isn't durable on crash and leaves the database
-        // in an inconsistent state.
-        buffer.transport(destination, syncAndVerify);
-        if(!syncAndVerify) {
-            destination.sync();
-        }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        if(timestamp > Time.now()) {
-            return doExplore(key, operator, values);
-        }
-        else {
-            checkState();
-            return super.doExplore(timestamp, key, operator, values);
-        }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        checkState();
-        Text key0 = Text.wrapCached(key);
-        RangeToken rangeToken = RangeToken.forReading(key0, operator,
-                Transformers.transformArray(values, Value::wrap, Value.class));
-        source.addVersionChangeListener(rangeToken, this);
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
-        for (Range<Value> range : ranges) {
-            rangeReads2Lock.put(key0, range);
-        }
-        return super.doExplore(key, operator, values, true);
-    }
-
-    /**
-     * Return {@code true} if this Atomic Operation has 0 writes.
-     * 
-     * @return {@code true} if this atomic operation is considered
-     *         <em>read-only</em>
-     */
-    protected boolean isReadOnly() {
-        return ((Queue) buffer).size() == 0;
-    }
-
-    /**
-     * Encapsulates the logic to efficiently associate keys with ranges for the
-     * purposes of JIT range locking.
-     * 
-     * @author Jeff Nelson
-     */
-    private class RangeHolder {
-
-        /**
-         * A mapping from each key to the ranges we need to lock for that key.
-         */
-        final Map<Text, RangeSet<Value>> ranges = Maps.newHashMap(); // accessible
-                                                                     // to outer
-                                                                     // class
-
-        /**
-         * Return the unique range for {@code key} that contains {@code value}
-         * or {@code null} if it does not exist.
-         * 
-         * @param key
-         * @param value
-         * @return the range containing {@code value} for {@code key}
-         */
-        public Range<Value> get(Text key, Value value) {
-            RangeSet<Value> set = ranges.get(key);
-            if(set != null) {
-                return set.rangeContaining(value);
-            }
-            else {
-                return null;
-            }
-        }
-
-        /**
-         * Return {@code true} if there are no ranges for {@code key}.
-         * 
-         * @param key
-         * @return {@code true} if the mapped range set is empty
-         */
-        public boolean isEmpty(Text key) {
-            RangeSet<Value> set = ranges.get(key);
-            return set == null || set.isEmpty();
-        }
-
-        /**
-         * Add {@code range} for {@code key}.
-         * 
-         * @param key
-         * @param range
-         */
-        public void put(Text key, Range<Value> range) {
-            RangeSet<Value> set = ranges.get(key);
-            if(set == null) {
-                set = TreeRangeSet.create();
-                ranges.put(key, set);
-            }
-            set.add(range);
-        }
-
-        /**
-         * Remove the {@code range} from {@code key}.
-         * 
-         * @param key
-         * @param range
-         */
-        public void remove(Text key, Range<Value> range) {
-            RangeSet<Value> set = ranges.get(key);
-            set.remove(range);
-            if(set.isEmpty()) {
-                ranges.remove(key);
-            }
-        }
-
     }
 
     /**
@@ -951,6 +943,81 @@ public class AtomicOperation extends BufferedStore implements
         @Override
         public int size() {
             return token.size() + 1; // token + type(1)
+        }
+
+    }
+
+    /**
+     * Encapsulates the logic to efficiently associate keys with ranges for the
+     * purposes of JIT range locking.
+     * 
+     * @author Jeff Nelson
+     */
+    private class RangeHolder {
+
+        /**
+         * A mapping from each key to the ranges we need to lock for that key.
+         */
+        final Map<Text, RangeSet<Value>> ranges = Maps.newHashMap(); // accessible
+                                                                     // to outer
+                                                                     // class
+
+        /**
+         * Return the unique range for {@code key} that contains {@code value}
+         * or {@code null} if it does not exist.
+         * 
+         * @param key
+         * @param value
+         * @return the range containing {@code value} for {@code key}
+         */
+        public Range<Value> get(Text key, Value value) {
+            RangeSet<Value> set = ranges.get(key);
+            if(set != null) {
+                return set.rangeContaining(value);
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * Return {@code true} if there are no ranges for {@code key}.
+         * 
+         * @param key
+         * @return {@code true} if the mapped range set is empty
+         */
+        public boolean isEmpty(Text key) {
+            RangeSet<Value> set = ranges.get(key);
+            return set == null || set.isEmpty();
+        }
+
+        /**
+         * Add {@code range} for {@code key}.
+         * 
+         * @param key
+         * @param range
+         */
+        public void put(Text key, Range<Value> range) {
+            RangeSet<Value> set = ranges.get(key);
+            if(set == null) {
+                set = TreeRangeSet.create();
+                ranges.put(key, set);
+            }
+            set.add(range);
+        }
+
+        /**
+         * Remove the {@code range} from {@code key}.
+         * 
+         * @param key
+         * @param range
+         */
+        public void remove(Text key, Range<Value> range) {
+            RangeSet<Value> set = ranges.get(key);
+            set.remove(range);
+            if(set.isEmpty()) {
+                ranges.remove(key);
+            }
         }
 
     }

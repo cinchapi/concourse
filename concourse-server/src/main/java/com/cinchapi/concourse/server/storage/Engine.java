@@ -57,6 +57,7 @@ import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
@@ -184,6 +185,17 @@ public final class Engine extends BufferedStore implements
     protected final Inventory inventory; // visible for testing
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    protected final LockService lockService; // exposed for Transaction
+
+    /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    protected final RangeLockService rangeLockService; // exposed for Transction
+
+    /**
      * The location where transaction backups are stored.
      */
     protected final String transactionStore; // exposed for Transaction backup
@@ -305,8 +317,9 @@ public final class Engine extends BufferedStore implements
      */
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
-        super(buffer, database, LockService.create(),
-                RangeLockService.create());
+        super(buffer, database);
+        this.lockService = LockService.create();
+        this.rangeLockService = RangeLockService.create();
         this.environment = environment;
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
@@ -354,8 +367,8 @@ public final class Engine extends BufferedStore implements
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD
-                ? addUnsafe(key, value, record, sync)
-                : removeUnsafe(key, value, record, sync);
+                ? addUnlocked(key, value, record, sync ? Sync.YES : Sync.NO)
+                : removeUnlocked(key, value, record, sync ? Sync.YES : Sync.NO);
         if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
@@ -384,8 +397,8 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record, true, sharedToken, writeToken,
-                    rangeToken);
+            return addUnlocked(key, value, record, Sync.YES, sharedToken,
+                    writeToken, rangeToken);
         }
         finally {
             shared.unlock();
@@ -459,7 +472,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(long record) {
+    public Map<Long, String> auditUnlocked(long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(record);
@@ -470,7 +483,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    public Map<Long, String> auditUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(key, record);
@@ -508,18 +521,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> selectUnsafe(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.select(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    public Map<TObject, Set<Long>> browseUnlocked(String key) {
         transportLock.readLock().lock();
         try {
             return super.browse(key);
@@ -545,7 +547,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
             long start, long end) {
         transportLock.readLock().lock();
         try {
@@ -561,18 +563,6 @@ public final class Engine extends BufferedStore implements
         return inventory.contains(record);
     }
 
-    @Override
-    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * Public interface for the {@link Database#dump(String)} method.
      * 
@@ -582,9 +572,48 @@ public final class Engine extends BufferedStore implements
     @ManagedOperation
     public String dump(String id) {
         if(id.equalsIgnoreCase(BUFFER_DUMP_ID)) {
-            return ((Buffer) buffer).dump();
+            return ((Buffer) limbo).dump();
         }
-        return ((Database) destination).dump(id);
+        return ((Database) durable).dump(id);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        transportLock.readLock().lock();
+        Lock range = rangeLockService.getReadLock(key, aliases.operator(),
+                aliases.values());
+        range.lock();
+        try {
+            return super.explore(key, aliases);
+        }
+        finally {
+            range.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.explore(key, aliases, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> exploreUnlocked(String key,
+            Aliases aliases) {
+        transportLock.readLock().lock();
+        try {
+            return super.explore(key, aliases);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -613,7 +642,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> gatherUnsafe(String key, long record) {
+    public Set<TObject> gatherUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.gather(key, record);
@@ -635,7 +664,7 @@ public final class Engine extends BufferedStore implements
      */
     @ManagedOperation
     public String getDumpList() {
-        List<String> ids = ((Database) destination).getDumpList();
+        List<String> ids = ((Database) durable).getDumpList();
         ids.add("BUFFER");
         ListIterator<String> it = ids.listIterator(ids.size());
         StringBuilder sb = new StringBuilder();
@@ -701,7 +730,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record, true, sharedToken,
+            return removeUnlocked(key, value, record, Sync.YES, sharedToken,
                     writeToken, rangeToken);
         }
         finally {
@@ -785,7 +814,18 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> selectUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.select(key, record);
@@ -825,9 +865,9 @@ public final class Engine extends BufferedStore implements
         if(!running) {
             Logger.info("Starting the '{}' Engine...", environment);
             running = true;
-            destination.start();
-            buffer.start();
-            destination.reconcile(buffer.versions());
+            durable.start();
+            limbo.start();
+            durable.reconcile(limbo.versions());
             doTransactionRecovery();
             scheduler.scheduleAtFixedRate(new TimerTask() {
 
@@ -854,7 +894,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public AtomicOperation startAtomicOperation() {
-        return AtomicOperation.start(this);
+        return AtomicOperation.start(this, lockService, rangeLockService);
     }
 
     @Override
@@ -867,9 +907,9 @@ public final class Engine extends BufferedStore implements
         if(running) {
             running = false;
             scheduler.cancel();
-            buffer.stop();
+            limbo.stop();
             bufferTransportThread.interrupt();
-            destination.stop();
+            durable.stop();
             lockService.shutdown();
             rangeLockService.shutdown();
         }
@@ -877,17 +917,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public void sync() {
-        buffer.sync();
+        limbo.sync();
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
+    public boolean verify(Write write) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
+        Lock read = lockService.getReadLock(write.getKey().toString(),
+                write.getRecord().longValue());
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return super.verify(write);
         }
         finally {
             read.unlock();
@@ -896,13 +936,10 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
+    public boolean verify(Write write, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record)
-                    ? super.verify(key, value, record, timestamp)
-                    : false;
+            return super.verify(write, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -910,49 +947,14 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
+    public boolean verifyUnlocked(Write write) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return super.verify(write);
         }
         finally {
             transportLock.readLock().unlock();
         }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        transportLock.readLock().lock();
-        Lock range = rangeLockService.getReadLock(key, operator, values);
-        range.lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            range.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    protected boolean verify(Write write, boolean lock) {
-        return inventory.contains(write.getRecord().longValue())
-                ? super.verify(write, lock)
-                : false;
     }
 
     /**
@@ -966,9 +968,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record,
-            boolean sync) {
-        return addUnsafe(key, value, record, sync, Token.wrap(record),
+    private boolean addUnlocked(String key, TObject value, long record,
+            Sync sync) {
+        return addUnlocked(key, value, record, sync, Token.wrap(record),
                 Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
     }
@@ -988,9 +990,16 @@ public final class Engine extends BufferedStore implements
      * @param range - {@link RangeToken} for writing value to key
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record,
-            boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.add(key, value, record, sync, sync, false)) {
+    private boolean addUnlocked(String key, TObject value, long record,
+            Sync sync, Token shared, Token write, RangeToken range) {
+        // NOTE: #sync ends up being NO when the Engine accepts
+        // Writes that are transported from a committing AtomicOperation
+        // or Transaction, in which case passing this boolean along to
+        // the Buffer allows group sync to happen. Similarly, #verify should
+        // also be NO during group sync because the Writes have already been
+        // verified prior to commit.
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+        if(super.add(key, value, record, sync, verify)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1019,7 +1028,7 @@ public final class Engine extends BufferedStore implements
      */
     private long getBufferTransportThreadIdleTimeInMs() {
         return TimeUnit.MILLISECONDS.convert(
-                Time.now() - ((Buffer) buffer).getTimeOfLastTransport(),
+                Time.now() - ((Buffer) limbo).getTimeOfLastTransport(),
                 TimeUnit.MICROSECONDS);
     }
 
@@ -1034,9 +1043,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record,
-            boolean sync) {
-        return removeUnsafe(key, value, record, sync, Token.wrap(record),
+    private boolean removeUnlocked(String key, TObject value, long record,
+            Sync sync) {
+        return removeUnlocked(key, value, record, sync, Token.wrap(record),
                 Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
 
@@ -1057,9 +1066,16 @@ public final class Engine extends BufferedStore implements
      * @param range - {@link RangeToken} for writing value to key
      * @return {@code true} if the remove was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record,
-            boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.remove(key, value, record, sync, sync, false)) {
+    private boolean removeUnlocked(String key, TObject value, long record,
+            Sync sync, Token shared, Token write, RangeToken range) {
+        // NOTE: #sync ends up being NO when the Engine accepts
+        // Writes that are transported from a committing AtomicOperation
+        // or Transaction, in which case passing this boolean along to
+        // the Buffer allows group sync to happen. Similarly, #verify should
+        // also be NO during group sync because the Writes have already been
+        // verified prior to commit.
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+        if(super.remove(key, value, record, sync, verify)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1070,7 +1086,7 @@ public final class Engine extends BufferedStore implements
 
     /**
      * A thread that is responsible for transporting content from
-     * {@link #buffer} to {@link #destination}.
+     * {@link #limbo} to {@link #durable}.
      * 
      * @author Jeff Nelson
      */
@@ -1111,7 +1127,7 @@ public final class Engine extends BufferedStore implements
                             "Paused the background data transport thread because "
                                     + "it has been inactive for at least {} milliseconds",
                             BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS);
-                    buffer.waitUntilTransportable();
+                    limbo.waitUntilTransportable();
                     if(Thread.interrupted()) { // the thread has been
                                                // interrupted from the Engine
                                                // stopping
@@ -1124,7 +1140,7 @@ public final class Engine extends BufferedStore implements
                     // time to avoid thrashing
                     int sleep = bufferTransportThreadSleepInMs > 0
                             ? bufferTransportThreadSleepInMs
-                            : buffer.getDesiredTransportSleepTimeInMs();
+                            : limbo.getDesiredTransportSleepTimeInMs();
                     Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                 }
@@ -1154,7 +1170,7 @@ public final class Engine extends BufferedStore implements
                 try {
                     bufferTransportThreadIsPaused.compareAndSet(true, false);
                     bufferTransportThreadIsDoingWork.set(true);
-                    buffer.transport(destination);
+                    limbo.transport(durable);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                     bufferTransportThreadIsDoingWork.set(false);
                 }

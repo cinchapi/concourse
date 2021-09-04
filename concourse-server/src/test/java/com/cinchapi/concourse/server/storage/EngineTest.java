@@ -118,9 +118,9 @@ public class EngineTest extends BufferedStoreTest {
     public void testNoDuplicateDataIfUnexpectedShutdownOccurs()
             throws Exception {
         Engine engine = (Engine) store;
-        Buffer buffer = (Buffer) engine.buffer;
+        Buffer buffer = (Buffer) engine.limbo;
         Reflection.set("transportRateMultiplier", 1, buffer); // (authorized)
-        Database db = (Database) engine.destination;
+        Database db = (Database) engine.durable;
         Method method = buffer.getClass().getDeclaredMethod("canTransport");
         method.setAccessible(true);
         int count = 0;
@@ -138,13 +138,13 @@ public class EngineTest extends BufferedStoreTest {
         engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
-        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+        while ((boolean) method.invoke(engine.limbo)) { // wait until the first
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         for (int i = 0; i < count; i++) {
@@ -159,8 +159,8 @@ public class EngineTest extends BufferedStoreTest {
         // Unexpected shutdown should not allow duplicate Write versions to by
         // transferred
         Engine engine = (Engine) store;
-        Buffer buffer = (Buffer) engine.buffer;
-        Database db = (Database) engine.destination;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
         Method method = buffer.getClass().getDeclaredMethod("canTransport");
         method.setAccessible(true);
         buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 1));
@@ -180,14 +180,14 @@ public class EngineTest extends BufferedStoreTest {
         engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
-        db = (Database) engine.destination;
-        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+        db = (Database) engine.durable;
+        while ((boolean) method.invoke(engine.limbo)) { // wait until the first
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         Iterator<Write> it = db.iterator();
@@ -202,8 +202,8 @@ public class EngineTest extends BufferedStoreTest {
         // Unexpected shutdown should not allow consecutive Writes that are not
         // properly offset
         Engine engine = (Engine) store;
-        Buffer buffer = (Buffer) engine.buffer;
-        Database db = (Database) engine.destination;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
         Method method = buffer.getClass().getDeclaredMethod("canTransport");
         method.setAccessible(true);
         buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 1));
@@ -222,13 +222,13 @@ public class EngineTest extends BufferedStoreTest {
         engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
         engine.start(); // Simulate unexpected shutdown by "restarting" the
                         // Engine
-        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
-                                                         // page in the buffer
-                                                         // (which contains the
-                                                         // same data that was
-                                                         // previously
-                                                         // transported) is done
-                                                         // transporting again
+        while ((boolean) method.invoke(engine.limbo)) { // wait until the first
+                                                        // page in the buffer
+                                                        // (which contains the
+                                                        // same data that was
+                                                        // previously
+                                                        // transported) is done
+                                                        // transporting again
             Random.sleep();
         }
         engine.find("name", Operator.EQUALS, Convert.javaToThrift("jeff"));
@@ -258,10 +258,10 @@ public class EngineTest extends BufferedStoreTest {
         List<String> colleges = Lists.newArrayList("Boston College",
                 "Yale University", "Harvard University");
         for (String college : colleges) {
-            engine.destination.accept(Write.add("name",
+            engine.durable.accept(Write.add("name",
                     Convert.javaToThrift(college), Time.now()));
         }
-        engine.buffer.insert(
+        engine.limbo.insert(
                 Write.add("name", Convert.javaToThrift("jeffery"), Time.now()));
         Set<TObject> keys = engine.browse("name").keySet();
         Assert.assertEquals(Convert.javaToThrift("Boston College"),
@@ -442,13 +442,13 @@ public class EngineTest extends BufferedStoreTest {
     @Test
     public void reproCON_516() {
         Engine engine = (Engine) store;
-        Buffer buffer = (Buffer) engine.buffer;
+        Buffer buffer = (Buffer) engine.limbo;
         int count = 0;
         while (!(boolean) Reflection.call(buffer, "canTransport")) {
             add("name", Convert.javaToThrift("Jeff"), Time.now());
             count++;
         }
-        buffer.transport(engine.destination);
+        buffer.transport(engine.durable);
         add("name", Convert.javaToThrift("Jeff"), Time.now());
         count++;
         Set<Long> matches = engine.find("name", Operator.EQUALS,
@@ -512,11 +512,11 @@ public class EngineTest extends BufferedStoreTest {
         add("major", Convert.javaToThrift("Business"), 1);
         add("major", Convert.javaToThrift("business"), 2);
         Engine engine = (Engine) store;
-        while (!Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+        while (!Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
             add("foo", Convert.javaToThrift(Time.now()), Time.now());
         }
-        while (Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
-            engine.buffer.transport(engine.destination);
+        while (Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
+            engine.limbo.transport(engine.durable);
         }
         remove("major", Convert.javaToThrift("business"), 2);
         add("major", Convert.javaToThrift("business"), 3);
@@ -540,11 +540,11 @@ public class EngineTest extends BufferedStoreTest {
         add("major", Convert.javaToThrift("Business"), 1);
         add("major", Convert.javaToThrift("business"), 2);
         Engine engine = (Engine) store;
-        while (!Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
+        while (!Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
             add("foo", Convert.javaToThrift(Time.now()), Time.now());
         }
-        while (Reflection.<Boolean> call(engine.buffer, "canTransport")) { // authorized
-            engine.buffer.transport(engine.destination);
+        while (Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
+            engine.limbo.transport(engine.durable);
         }
         remove("major", Convert.javaToThrift("business"), 2);
         add("major", Convert.javaToThrift("business"), 3);

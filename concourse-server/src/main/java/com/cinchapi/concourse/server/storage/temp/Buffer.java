@@ -61,14 +61,15 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.InventoryTracker;
-import com.cinchapi.concourse.server.storage.PermanentStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -88,7 +89,7 @@ import com.google.common.collect.Sets;
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
  * quickly accumulate writes in memory before performing a batch flush into some
- * {@link PermanentStore}.
+ * {@link DurableStore}.
  * <p>
  * A Buffer enforces the durability guarantee because all writes are also
  * immediately flushed to disk. Even though there is some disk I/O, the overhead
@@ -525,9 +526,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
-            long timestamp, String key, Operator operator, TObject... values) {
+            String key, Aliases aliases, long timestamp) {
         Iterator<Write> it = iterator(key, timestamp);
         try {
+            Operator operator = aliases.operator();
+            TObject[] values = aliases.values();
             while (it.hasNext()) {
                 Write write = it.next();
                 long record = write.getRecord().longValue();
@@ -778,7 +781,7 @@ public final class Buffer extends Limbo implements InventoryTracker {
      * </p>
      */
     @Override
-    public void transport(PermanentStore destination, boolean sync) {
+    public void transport(DurableStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
         if(pages.size() > 1) {
@@ -814,8 +817,9 @@ public final class Buffer extends Limbo implements InventoryTracker {
     }
 
     @Override
-    public boolean verify(Write write, long timestamp, boolean exists) {
+    public boolean verify(Write write, long timestamp) {
         numVerifyRequests.incrementAndGet();
+        boolean exists = false;
         Iterator<Write> it = iterator(write, timestamp);
         try {
             while (it.hasNext()) {

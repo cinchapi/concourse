@@ -18,46 +18,78 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.Link;
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.thrift.Type;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
 import com.cinchapi.concourse.validate.Keys;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link BufferedStore} holds data in {@link Limbo} buffer before
- * making batch commits to some other {@link PermanentStore}.
+ * A {@link BufferedStore} holds {@link Write Writes} in {@link Limbo} before
+ * {@link Limbo#transport(DurableStore) transporting} them to a
+ * {@link DurableStore}.
  * <p>
- * Data is written to the buffer until the buffer is full, at which point the
- * BufferingStore will flush the data to the destination store. Reads are
- * handled by taking the XOR (see {@link Sets#symmetricDifference(Set, Set)} or
+ * A {@link BufferedStore} is used when it is necessary (e.g. atomic operation
+ * where {@link Write Writes} are not guaranteed to succeed) or convenient (e.g.
+ * rich indexing that would slow down writes in real time, so must be done in
+ * the background) to buffer {@link Write Writes} in {@link Limbo} before
+ * incorporating them in a {@link DurableStore}.
+ * </p>
+ * <p>
+ * In a {@link BufferedStore}, {@link Write Writes} are
+ * {@link Limbo#insert(Write) inserted} in {@link Limbo} and later
+ * {@link Limbo#transport(DurableStore) transported}. The rate of
+ * {@link Limbo#transport(DurableStore) transport} is externally controlled and
+ * the {@link Limbo} type defines how many {@link Write Writes} are included in
+ * each {@link Limbo#transport(DurableStore) transport}. Furthermore,
+ * {@link Limbo} determines how/when it wants the {@link DurableStore} to
+ * {@link DurableStore#sync() sync} the {@link Writes} when
+ * {@link DurableStore#accept(Write) accepting} the
+ * {@link Limbo#transport(DurableStore) transported} {@link Write Writes}.
+ * </p>
+ * <p>
+ * Reads are handled by taking the XOR (see
+ * {@link Sets#symmetricDifference(Set, Set)}) or
  * XOR truth (see <a
  * href="http://en.wikipedia.org/wiki/Exclusive_or#Truth_table"
  * >http://en.wikipedia.org/wiki/Exclusive_or#Truth_table</a>) of the values
- * read from the buffer and the destination.
+ * read from the {@link #limbo} and {@link #durable} {@link Store stores}.
+ * </p>
+ * <h2>Concurrency</h2>
+ * <h3>BETWEEN the {@link #limbo} and {@link #durable} {@link Store stores}</h3>
+ * <p>
+ * The {@link BufferedStore} framework does not provide concurrency controls to
+ * ensure that the state of the {@link Store stores} remains consistent in the
+ * middle of an operation. If such coordination is required, the extending class
+ * must implement them.
+ * </p>
+ * <h3>WITHIN each of the {@link #limbo} and {@link #durable} {@link Store
+ * stores}</h3>
+ * <p>
+ * It is assumed that each {@link Store} defines its own local concurrency
+ * controls (if needed), but the {@link BufferedStore} framework does recognize
+ * the possibility that {@link #durable} may be a {@link LockFreeStore} and
+ * the overall performance of the {@link BufferedStore} may depend on the
+ * ability to control the timing of logical locking. So, methods are exposed to
+ * subclasses (e.g. those prefixed with {@code $}) that allow it to instruct
+ * buffered resolution logic on how to dispatch methods to the {@link #durable}
+ * {@link Store sore}.
  * </p>
  * 
  * @author Jeff Nelson
  */
-public abstract class BufferedStore extends BaseStore {
-
-    // NOTE ON LOCKING:
-    // ================
-    // We can't do any global locking to coordinate the #buffer and #destination
-    // in this class because we cannot make assumptions about how the
-    // implementing class actually wants to handle concurrency (i.e. an
-    // AtomicOperation does not grab any coordinating locks until it goes to
-    // commit so that it doesn't do any unnecessary blocking).
+@NotThreadSafe
+public abstract class BufferedStore implements Store {
 
     // NOTE ON HISTORICAL READS
     // ========================
@@ -94,45 +126,25 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
-     * The {@code buffer} is the place where data is initially stored. The
-     * contained data is eventually moved to the {@link #destination} when the
-     * {@link Limbo#transport(PermanentStore)} method is called.
+     * The {@link DurableStore store} where {@link Write writes} in
+     * {@link #limbo} can be {@link Limbo#transport(DurableStore) transported}.
      */
-    protected final Limbo buffer;
+    protected final DurableStore durable;
 
     /**
-     * The {@code destination} is the place where data is stored when it is
-     * transferred from the {@link #buffer}. The {@code destination} defines its
-     * protocol for accepting data in the {@link PermanentStore#accept(Write)}
-     * method.
+     * The {@link Limbo store} where {@link Write writes} are initially stored.
      */
-    protected final PermanentStore destination;
-
-    /**
-     * The {@link LockService} that is used to coordinate concurrent operations.
-     */
-    protected LockService lockService;
-
-    /**
-     * The {@link RangeLockService} that is used to coordinate concurrent
-     * operations.
-     */
-    protected RangeLockService rangeLockService;
+    protected final Limbo limbo;
 
     /**
      * Construct a new instance.
      * 
-     * @param transportable
-     * @param destination
-     * @param lockService
-     * @param rangeLockService
+     * @param limbo
+     * @param durable
      */
-    protected BufferedStore(Limbo transportable, PermanentStore destination,
-            LockService lockService, RangeLockService rangeLockService) {
-        this.buffer = transportable;
-        this.destination = destination;
-        this.lockService = lockService;
-        this.rangeLockService = rangeLockService;
+    protected BufferedStore(Limbo limbo, DurableStore durable) {
+        this.limbo = limbo;
+        this.durable = durable;
     }
 
     /**
@@ -152,55 +164,77 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, true, true, true);
+        return add(key, value, record, Sync.YES, Verify.YES);
     }
 
     @Override
     public Map<Long, String> audit(long record) {
-        return audit(record, false);
+        Map<Long, String> context = $audit(record);
+        context.putAll(limbo.audit(record));
+        return context;
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        return audit(key, record, false);
+        Map<Long, String> context = $audit(key, record);
+        context.putAll(limbo.audit(key, record));
+        return context;
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return browse(key, false);
+        Map<TObject, Set<Long>> context = $browse(key);
+        return limbo.browse(key, context);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
-        return buffer.browse(key, timestamp, context);
+        Map<TObject, Set<Long>> context = durable.browse(key, timestamp);
+        return limbo.browse(key, timestamp, context);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        return chronologize(key, record, start, end, false);
+        Map<Long, Set<TObject>> context = $chronologize(key, record, start,
+                end);
+        return limbo.chronologize(key, record, start, end, context);
     }
 
     @Override
     public boolean contains(long record) {
-        return destination.contains(record) || buffer.contains(record);
+        return durable.contains(record) || limbo.contains(record);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        Map<Long, Set<TObject>> context = $explore(key, aliases);
+        return limbo.explore(context, key, aliases);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        Map<Long, Set<TObject>> context = durable.explore(key, aliases,
+                timestamp);
+        return limbo.explore(context, key, aliases, timestamp);
     }
 
     @Override
     public Set<TObject> gather(String key, long record) {
-        return gather(key, record, false);
+        Set<TObject> context = $gather(key, record);
+        return limbo.gather(key, record, context);
     }
 
     @Override
     public Set<TObject> gather(String key, long record, long timestamp) {
-        Set<TObject> context = destination.gather(key, record, timestamp);
-        return buffer.gather(key, record, timestamp, context);
+        Set<TObject> context = durable.gather(key, record, timestamp);
+        return limbo.gather(key, record, timestamp, context);
     }
 
     @Override
     public Set<Long> getAllRecords() {
-        return TSets.union(destination.getAllRecords(), buffer.getAllRecords());
+        return TSets.union(durable.getAllRecords(), limbo.getAllRecords());
     }
 
     @Override
@@ -209,20 +243,20 @@ public abstract class BufferedStore extends BaseStore {
 
             @Override
             public boolean contains(long record) {
-                return destination.memory().contains(record)
-                        && buffer.memory().contains(record);
+                return durable.memory().contains(record)
+                        && limbo.memory().contains(record);
             }
 
             @Override
             public boolean contains(String key) {
-                return destination.memory().contains(key)
-                        && buffer.memory().contains(key);
+                return durable.memory().contains(key)
+                        && limbo.memory().contains(key);
             }
 
             @Override
             public boolean contains(String key, long record) {
-                return destination.memory().contains(key, record)
-                        && buffer.memory().contains(key, record);
+                return durable.memory().contains(key, record)
+                        && limbo.memory().contains(key, record);
             }
 
         };
@@ -243,37 +277,38 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, true, true, true);
+        return remove(key, value, record, Sync.YES, Verify.YES);
     }
 
     @Override
     public Set<Long> search(String key, String query) {
         // FIXME: should this be implemented using a context instead?
-        return Sets.symmetricDifference(buffer.search(key, query),
-                destination.search(key, query));
+        return Sets.symmetricDifference(limbo.search(key, query),
+                durable.search(key, query));
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return select(record, false);
+        Map<String, Set<TObject>> context = $select(record);
+        return limbo.select(record, context);
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
-        Map<String, Set<TObject>> context = destination.select(record,
-                timestamp);
-        return buffer.select(record, timestamp, context);
+        Map<String, Set<TObject>> context = durable.select(record, timestamp);
+        return limbo.select(record, timestamp, context);
     }
 
     @Override
     public Set<TObject> select(String key, long record) {
-        return select(key, record, false);
+        Set<TObject> context = $select(key, record);
+        return limbo.select(key, record, context);
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        Set<TObject> context = destination.select(key, record, timestamp);
-        return buffer.select(key, record, timestamp, context);
+        Set<TObject> context = durable.select(key, record, timestamp);
+        return limbo.select(key, record, timestamp, context);
     }
 
     /**
@@ -293,9 +328,9 @@ public abstract class BufferedStore extends BaseStore {
             ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record);
             for (TObject val : values) {
-                buffer.insert(Write.remove(key, val, record)); /* Authorized */
+                limbo.insert(Write.remove(key, val, record));
             }
-            buffer.insert(Write.add(key, value, record)); /* Authorized */
+            limbo.insert(Write.add(key, value, record));
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -303,22 +338,202 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
-        return verify(key, value, record, false);
-
+    public boolean verify(Write write) {
+        TernaryTruth truth = limbo.verifyFast(write);
+        if(truth == TernaryTruth.UNSURE) {
+            return $verify(write);
+        }
+        else {
+            return truth.boolValue();
+        }
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
-        return buffer.verify(Write.notStorable(key, value, record), timestamp,
-                destination.verify(key, value, record, timestamp));
+    public boolean verify(Write write, long timestamp) {
+        TernaryTruth truth = limbo.verifyFast(write, timestamp);
+        if(truth == TernaryTruth.UNSURE) {
+            return durable.verify(write, timestamp);
+        }
+        else {
+            return truth.boolValue();
+        }
+    }
+
+    /**
+     * Audit {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#audit(long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the revision log
+     */
+    protected Map<Long, String> $audit(long record) {
+        return durable.audit(record);
+    }
+
+    /**
+     * Audit {@code key} in {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#audit(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the revision log
+     */
+    protected Map<Long, String> $audit(String key, long record) {
+        return durable.audit(key, record);
+    }
+
+    /**
+     * Browse {@code key} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#browse(String)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} of each value stored from {@code key} mapped to
+     *         every record where that value is contained for {@code key} within
+     *         the {@link #durable} {@link Store store}
+     */
+    protected Map<TObject, Set<Long>> $browse(String key) {
+        return durable.browse(key);
+    }
+
+    /**
+     * Chronologize {@code key} in {@code record} within the {@link #durable}
+     * store.
+     * <p>
+     * By default, a call is made to
+     * {@link DurableStore#chronologize(String, long, long, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} from modification timestamp to a non-empty Set of
+     *         values that were contained at that timestamp
+     */
+    protected Map<Long, Set<TObject>> $chronologize(String key, long record,
+            long start, long end) {
+        return durable.chronologize(key, record, start, end);
+    }
+
+    /**
+     * Return a {@link Map} of all the records that satisfy {@code operator}
+     * in relation to the {@code values} stored for {@code key} mapped to each
+     * of their values that cause it to satisfy
+     * 
+     * <p>
+     * By default, a call is made to
+     * {@link DurableStore#doExplore(String, Operator, TObject[])},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param aliases
+     * @return a {@link Map} of all the records that satisfy {@code operator}
+     *         in relation to the {@code values} stored for {@code key} mapped
+     *         to each
+     *         of their values that cause it to satisfy
+     */
+    protected Map<Long, Set<TObject>> $explore(String key, Aliases aliases) {
+        return durable.explore(key, aliases);
+    }
+
+    /**
+     * Gather {@code key} as {@code value} from {@code record} in the
+     * {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#gather(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the values currently stored from {@code key} in {@code record}
+     *         within the {@link #durable} {@link Store store}
+     */
+    protected Set<TObject> $gather(String key, long record) {
+        return durable.gather(key, record);
+    }
+
+    /**
+     * Select all the data from {@code record} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#select(long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} from each key to its contained values that are
+     *         currently stored in {@code record} within the {@link #durable}
+     *         {@link Store store}
+     */
+    protected Map<String, Set<TObject>> $select(long record) {
+        return durable.select(record);
+    }
+
+    /**
+     * Select {@code key} as {@code value} from {@code record} in the
+     * {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#select(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the values currently stored from {@code key} in {@code record}
+     *         within the {@link #durable} {@link Store store}
+     */
+    protected Set<TObject> $select(String key, long record) {
+        return durable.select(key, record);
+    }
+
+    /**
+     * Verify the {@code write} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#verify(Write)}, but the
+     * subclass can override this method to route differently if necessary (e.g.
+     * an {@link AtomicOperation} routing to lock free implementations).
+     * </p>
+     * 
+     * @param write
+     * @return {@code} true if the {@link Write Write's} element currently
+     *         exists in the {@link #durable} {@link Store store}.
+     */
+    protected boolean $verify(Write write) {
+        return durable.verify(write);
     }
 
     /**
      * Add {@code key} as {@code value} to {@code record} with the directive to
      * {@code sync} the data or not. Depending upon the implementation of the
-     * {@link #buffer}, a sync may guarantee that the data is durably stored.
+     * {@link #limbo}, a sync may guarantee that the data is durably stored.
      * <p>
      * This method maps {@code key} to {@code value} in {@code record}, if and
      * only if that mapping does not <em>currently</em> exist (i.e.
@@ -331,32 +546,28 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
-     * @param sync - a flag that controls whether the data is durably persisted,
-     *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #buffer}
-     * @param doVerify - a flag that controls whether an attempt is made to
-     *            verify that removing the data is legal. This should always be
-     *            set to {@code true} unless it is being called from a context
-     *            where the operation has been previously verified (i.e.
-     *            committing writes from an atomic operation or transaction)
-     * @param lockOnVerify - a flag that controls whether a lock is grabbed when
-     *            verifying the write (if {@code doVerify} is {@code true} and
-     *            its possible to verify without locking (which is only possible
-     *            in a {@link AtomicSupport} store)). This should generally be
-     *            set to {@code true} unless its being called from the context
-     *            of an atomic operation or transaction that uses Just-In-Time
-     *            locking
+     * @param sync
+     * @param verify
      * @return {@code true} if the mapping is added
      */
-    protected boolean add(String key, TObject value, long record, boolean sync,
-            boolean doVerify, boolean lockOnVerify) {
+    protected final boolean add(String key, TObject value, long record,
+            Sync sync, Verify verify) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
-            if(!doVerify || !verify(write, lockOnVerify)) {
-                return buffer.insert(write, sync); /* Authorized */
+            // NOTE: #verify ends up being NO when the Engine accepts Writes
+            // that are transported from a committing AtomicOperation or
+            // Transaction
+            if(verify == Verify.NO || !verify(write)) {
+                // NOTE: #sync ends up being NO when the Engine accepts
+                // Writes that are transported from a committing AtomicOperation
+                // or Transaction, in which case passing this boolean along to
+                // the Buffer allows group sync to happen
+                return limbo.insert(write, sync == Sync.YES);
             }
-            return false;
+            else {
+                return false;
+            }
         }
         catch (ReferentialIntegrityException e) {
             return false;
@@ -364,188 +575,9 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
-     * Audit {@code record} either using safe methods or unsafe methods..
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param record
-     * @param boolean
-     * @return the the revision log
-     */
-    protected Map<Long, String> audit(long record, boolean unsafe) {
-        Map<Long, String> result;
-        if(unsafe && destination instanceof AtomicSupport) {
-            result = ((AtomicSupport) (destination)).auditUnsafe(record);
-        }
-        else {
-            result = destination.audit(record);
-        }
-        result.putAll(buffer.audit(record));
-        return result;
-    }
-
-    /**
-     * Audit {@code key} in {@code record} either using safe methods or unsafe
-     * methods.
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param key
-     * @param record
-     * @param unsafe
-     * @return the revision log
-     */
-    protected Map<Long, String> audit(String key, long record, boolean unsafe) {
-        Map<Long, String> result;
-        if(unsafe && destination instanceof AtomicSupport) {
-            result = ((AtomicSupport) (destination)).auditUnsafe(key, record);
-        }
-        else {
-            result = destination.audit(key, record);
-        }
-        result.putAll(buffer.audit(key, record));
-        return result;
-    }
-
-    /**
-     * Browse {@code key} either using safe or unsafe methods.
-     * <p>
-     * This method returns a mapping from each of the values that is currently
-     * indexed to {@code key} to a Set the records that contain {@code key} as
-     * the associated value. If there are no such values, an empty Map is
-     * returned.
-     * </p>
-     * 
-     * @param key
-     * @param unsafe
-     * @return a possibly empty Map of data
-     */
-    protected Map<TObject, Set<Long>> browse(String key, boolean unsafe) {
-        Map<TObject, Set<Long>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).browseUnsafe(key);
-        }
-        else {
-            context = destination.browse(key);
-        }
-        return buffer.browse(key, Time.now(), context);
-    }
-
-    /**
-     * Execute the {@code chronologize} function for {@code key} in
-     * {@code record} between {@code start} and {@code end} with the option to
-     * perform an {@code unsafe} read.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param start the start timestamp
-     * @param end the end timestamp
-     * @param unsafe a flag that indicates whether to use the
-     *            {@link AtomicSupport#chronologizeUnsafe(String, long, long, long)
-     *            unsafe chronologize} read in the {@link #destination}; this
-     *            should be {@code true} doing an atomic operation
-     * @return a possibly empty Map from each revision timestamp to the Set of
-     *         objects that were contained in the field at the time of the
-     *         revision
-     */
-    protected Map<Long, Set<TObject>> chronologize(String key, long record,
-            long start, long end, boolean unsafe) {
-        Map<Long, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).chronologizeUnsafe(key,
-                    record, start, end);
-        }
-        else {
-            context = destination.chronologize(key, record, start, end);
-        }
-        return buffer.chronologize(key, record, start, end, context);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
-                operator, values);
-        return buffer.explore(context, timestamp, key, operator, values);
-    }
-
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        return doExplore(key, operator, values, false);
-    }
-
-    /**
-     * Do the work to explore {@code key} {@code operator} {@code values}
-     * without worry about normalizing the {@code operator} or {@code values}
-     * either using safe or unsafe methods.
-     * 
-     * @param key
-     * @param operator
-     * @param values
-     * @return {@code Map}
-     */
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject[] values, boolean unsafe) {
-        Map<Long, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).doExploreUnsafe(key,
-                    operator, values);
-        }
-        else {
-            context = destination.explore(key, operator, values);
-        }
-        return buffer.explore(context, Time.now(), key, operator, values);
-    }
-
-    /**
-     * Gather {@code key} from {@code record} either using safe or unsafe
-     * methods.
-     * <p>
-     * This method returns the values currently mapped from {@code key} in
-     * {@code record}. The returned Set is nonempty if and only if {@code key}
-     * is a member of the Set returned from {@link #describe(long)}.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param lock
-     * @return a possibly empty Set of values
-     */
-    protected Set<TObject> gather(String key, long record, boolean lock) {
-        Set<TObject> context;
-        if(!lock && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).gatherUnsafe(key, record);
-        }
-        else {
-            context = destination.gather(key, record);
-        }
-        return buffer.gather(key, record, Time.now(), context);
-    }
-
-    /**
      * Remove {@code key} as {@code value} from {@code record} with the
      * directive to {@code sync} the data or not. Depending upon the
-     * implementation of the {@link #buffer}, a sync may guarantee that the data
+     * implementation of the {@link #limbo}, a sync may guarantee that the data
      * is durably stored.
      * <p>
      * This method deletes the mapping from {@code key} to {@code value} in
@@ -557,193 +589,67 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
-     * @param sync - a flag that controls whether the data is durably persisted,
-     *            if possible (i.e. fsynced) when it is inserted into the
-     *            {@link #buffer}
-     * @param doVerify - a flag that controls whether an attempt is made to
-     *            verify that removing the data is legal. This should always be
-     *            set to {@code true} unless it is being called from a context
-     *            where the operation has been previously verified (i.e.
-     *            committing writes from an atomic operation or transaction)
-     * @param lockOnVerify - a flag that controls whether a lock is grabbed when
-     *            verifying the write (if {@code doVerify} is {@code true} and
-     *            its possible to verify without locking (which is only possible
-     *            in a {@link AtomicSupport} store)). This should generally be
-     *            set to {@code true} unless its being called from the context
-     *            of an atomic operation or transaction that uses Just-In-Time
-     *            locking
+     * @param sync
+     * @param verify
      * @return {@code true} if the mapping is removed
      */
-    protected boolean remove(String key, TObject value, long record,
-            boolean sync, boolean doVerify, boolean lockOnVerify) {
+    protected final boolean remove(String key, TObject value, long record,
+            Sync sync, Verify verify) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
-            if(!doVerify || verify(write, lockOnVerify)) {
-                return buffer.insert(write, sync); /* Authorized */
-            }
-            return false;
-        }
-        catch (ReferentialIntegrityException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Select {@code record} either using safe or unsafe methods.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} to a Set of associated values. If there are no such keys,
-     * an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @param unsafe
-     * @return a possibly empty Map of data.
-     */
-    protected Map<String, Set<TObject>> select(long record, boolean unsafe) {
-        Map<String, Set<TObject>> context;
-        if(unsafe && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).selectUnsafe(record);
-        }
-        else {
-            context = destination.select(record);
-        }
-        return buffer.select(record, Time.now(), context);
-    }
-
-    /**
-     * Select {@code key} from {@code record} either using safe or unsafe
-     * methods.
-     * <p>
-     * This method returns the values currently mapped from {@code key} in
-     * {@code record}. The returned Set is nonempty if and only if {@code key}
-     * is a member of the Set returned from {@link #describe(long)}.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param lock
-     * @return a possibly empty Set of values
-     */
-    protected Set<TObject> select(String key, long record, boolean lock) {
-        Set<TObject> context;
-        if(!lock && destination instanceof AtomicSupport) {
-            context = ((AtomicSupport) (destination)).selectUnsafe(key, record);
-        }
-        else {
-            context = destination.select(key, record);
-        }
-        return buffer.select(key, record, Time.now(), context);
-    }
-
-    /**
-     * Set {@code key} as {@code value} in {@code record}.
-     * <p>
-     * This method will remove all the values currently mapped from {@code key}
-     * in {@code record} and add {@code value} without performing any validity
-     * checks.
-     * </p>
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @param lockOnRead
-     */
-    protected void set(String key, TObject value, long record,
-            boolean lockOnRead) {
-        try {
-            ensureWriteIntegrity(key, value, record);
-            Set<TObject> values = select(key, record, lockOnRead);
-            for (TObject val : values) {
-                buffer.insert(Write.remove(key, val, record)); /* Authorized */
-            }
-            buffer.insert(Write.add(key, value, record)); /* Authorized */
-        }
-        catch (ReferentialIntegrityException e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
-    }
-
-    /**
-     * Verify {@code key} equals {@code value} in {@code record} either using
-     * safe or unsafe method.
-     * <p>
-     * This method checks that there is <em>currently</em> a mapping from
-     * {@code key} to {@code value} in {@code record}. This method has the same
-     * affect as calling {@link #select(String, long)}
-     * {@link Set#contains(Object)}.
-     * </p>
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @return {@code true} if there is a an association from {@code key} to
-     *         {@code value} in {@code record}
-     */
-    protected boolean verify(String key, TObject value, long record,
-            boolean unsafe) {
-        boolean destResult;
-        if(unsafe && destination instanceof AtomicSupport) {
-            destResult = ((AtomicSupport) (destination)).verifyUnsafe(key,
-                    value, record);
-        }
-        else {
-            destResult = destination.verify(key, value, record);
-        }
-        return buffer.verify(Write.notStorable(key, value, record), destResult);
-    }
-
-    /**
-     * Shortcut method to verify {@code write}. This method is called from
-     * {@link #add(String, TObject, long)} and
-     * {@link #remove(String, TObject, long)} so that we can avoid creating a
-     * duplicate Write.
-     * 
-     * @param write
-     * @return {@code true} if {@code write} currently exists
-     */
-    protected final boolean verify(Write write) {
-        return verify(write, true);
-    }
-
-    /**
-     * Shortcut method to verify {@code write}. This method is called from
-     * {@link #add(String, TObject, long)} and
-     * {@link #remove(String, TObject, long)} so that we can avoid creating a
-     * duplicate Write.
-     * 
-     * @param write the comparison {@link Write} to verify
-     * @param lock a flag that controls whether an {@link AtomicSupport} store
-     *            should or should not grab a lock when performing this
-     *            operation
-     * @return {@code true} if {@code write} currently exists
-     */
-    protected boolean verify(Write write, boolean lock) {
-        String key = write.getKey().toString();
-        TObject value = write.getValue().getTObject();
-        long record = write.getRecord().longValue();
-        TernaryTruth exists = buffer.verifyFast(write);
-        if(exists != TernaryTruth.UNSURE) {
-            return exists.boolValue();
-        }
-        else {
-            if((!(buffer instanceof InventoryTracker)
-                    && destination instanceof InventoryTracker)
-                    && !((InventoryTracker) destination).getInventory()
-                            .contains(write.getRecord().longValue())) {
-                return false; // This is basically a special case for atomic
-                              // operations
-
-            }
-            else if(!lock && destination instanceof AtomicSupport) {
-                return ((AtomicSupport) destination).verifyUnsafe(key, value,
-                        record);
+            // NOTE: #verify ends up being NO when the Engine accepts Writes
+            // that are transported from a committing AtomicOperation or
+            // Transaction
+            if(verify == Verify.NO || verify(write)) {
+                // NOTE: #sync ends up being NO when the Engine accepts
+                // Writes that are transported from a committing AtomicOperation
+                // or Transaction, in which case passing this boolean along to
+                // the Buffer allows group sync to happen
+                return limbo.insert(write, sync == Sync.YES);
             }
             else {
-                return destination.verify(key, value, record);
+                return false;
             }
         }
+        catch (ReferentialIntegrityException e) {
+            return false;
+        }
+    }
+
+    /**
+     * A semantic enum to track whether the {@link Write} from an add or remove
+     * should be immediately synced.
+     */
+    protected enum Sync {
+
+        /**
+         * Instruct {@link #limbo} NOT to sync the write.
+         */
+        NO,
+
+        /**
+         * Instruct {@link #limbo} to sync the write.
+         */
+        YES
+    }
+
+    /**
+     * A semantic enum to track whether the {@link Write} from an add or remove
+     * should be verified.
+     *
+     */
+    protected enum Verify {
+
+        /**
+         * Skip the verify.
+         */
+        NO,
+
+        /**
+         * Do the verify.
+         */
+        YES
     }
 
 }

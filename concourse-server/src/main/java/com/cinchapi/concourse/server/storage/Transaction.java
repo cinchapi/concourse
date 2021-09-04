@@ -36,8 +36,8 @@ import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.collect.HashMultimap;
@@ -63,13 +63,13 @@ public final class Transaction extends AtomicOperation implements
      * 
      * @param destination
      * @param file
-     * @return The restored Transaction
+     * @return The restored {@link Transaction}
      */
     public static void recover(Engine destination, String file) {
         try {
-            Transaction transaction = new Transaction(destination,
-                    FileSystem.map(file, MapMode.READ_ONLY, 0,
-                            FileSystem.getFileSize(file)));
+            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                    FileSystem.getFileSize(file));
+            Transaction transaction = new Transaction(destination, bytes);
             transaction.invokeSuperDoCommit(true); // recovering transaction
                                                    // must always syncAndVerify
                                                    // to prevent possible data
@@ -100,6 +100,11 @@ public final class Transaction extends AtomicOperation implements
     }
 
     /**
+     * The unique Transaction id.
+     */
+    private final String id;
+
+    /**
      * The Transaction "manages" the version change listeners for each of its
      * Atomic Operations. Since the Transaction is registered with the Engine
      * for version change notifications for each action of each of its atomic
@@ -110,17 +115,13 @@ public final class Transaction extends AtomicOperation implements
             .create();
 
     /**
-     * The unique Transaction id.
-     */
-    private final String id;
-
-    /**
      * Construct a new instance.
      * 
      * @param destination
      */
     private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination);
+        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
+                destination.rangeLockService);
         this.id = Long.toString(Time.now());
     }
 
@@ -177,39 +178,64 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(long record) {
+    public Map<Long, String> auditUnlocked(long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return audit(record);
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    public Map<Long, String> auditUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return audit(key, record);
     }
 
     @Override
-    public Map<String, Set<TObject>> selectUnsafe(long record) {
-        return select(record);
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    public Map<TObject, Set<Long>> browseUnlocked(String key) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return browse(key);
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
             long start, long end) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return chronologize(key, record, start, end);
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
-            Operator operator, TObject... values) {
-        return doExplore(key, operator, values);
+    public Map<Long, Set<TObject>> exploreUnlocked(String key,
+            Aliases aliases) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return explore(key, aliases);
     }
 
     @Override
-    public Set<TObject> gatherUnsafe(String key, long record) {
+    public Set<TObject> gatherUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return gather(key, record);
     }
 
@@ -249,17 +275,35 @@ public final class Transaction extends AtomicOperation implements
             VersionChangeListener listener) {}
 
     @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return select(record);
+    }
+
+    @Override
+    public Set<TObject> selectUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return select(key, record);
     }
 
     @Override
     public AtomicOperation startAtomicOperation() {
         checkState();
-        AtomicOperation operation = AtomicOperation.start(this);
-        operation.lockService = LockService.noOp();
-        operation.rangeLockService = RangeLockService.noOp();
-        return operation;
+        // A Transaction is, itself, an AtomicOperation that must adhere to the
+        // JIT Locking guarantee with respect to the Engine's lock services, so
+        // if it births an AtomicOperation, it should just inherit but defer any
+        // locks needed therewithin instead of passing the Engine's lock service
+        // on
+        return AtomicOperation.start(this, LockService.noOp(),
+                RangeLockService.noOp());
     }
 
     @Override
@@ -271,8 +315,70 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
+    public boolean verifyUnlocked(String key, TObject value, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return verify(key, value, record);
+    }
+
+    @Override
+    public boolean verifyUnlocked(Write write) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return verify(write);
+    }
+
+    @Override
+    protected void checkState() throws AtomicStateException {
+        try {
+            super.checkState();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
+    }
+
+    @Override
+    protected void doCommit() {
+        if(isReadOnly()) {
+            invokeSuperDoCommit(false);
+        }
+        else {
+            String file = ((Engine) durable).transactionStore + File.separator
+                    + id + ".txn";
+            FileChannel channel = FileSystem.getFileChannel(file);
+            try {
+                channel.write(serialize());
+                channel.force(true);
+                Logger.info("Created backup for transaction {} at '{}'", this,
+                        file);
+                invokeSuperDoCommit(false);
+                FileSystem.deleteFile(file);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+            finally {
+                FileSystem.closeFileChannel(channel);
+            }
+        }
+    }
+
+    /**
+     * Perform cleanup for the atomic {@code operation} that was birthed from
+     * this transaction and has successfully committed.
+     * 
+     * @param operation an AtomicOperation, birthed from this Transaction,
+     *            that has committed successfully
+     */
+    protected void onCommit(AtomicOperation operation) {
+        managedVersionChangeListeners.removeAll(operation);
     }
 
     /**
@@ -292,7 +398,7 @@ public final class Transaction extends AtomicOperation implements
         it = ByteableCollections.iterator(bytes);
         while (it.hasNext()) {
             Write write = Write.fromByteBuffer(it.next());
-            buffer.insert(write);
+            limbo.insert(write);
         }
     }
 
@@ -323,7 +429,7 @@ public final class Transaction extends AtomicOperation implements
     private ByteBuffer serialize() {
         ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
         ByteBuffer _writes = ByteableCollections
-                .toByteBuffer(((Queue) buffer).getWrites());
+                .toByteBuffer(((Queue) limbo).getWrites());
         ByteBuffer bytes = ByteBuffer
                 .allocate(4 + _locks.capacity() + _writes.capacity());
         bytes.putInt(_locks.capacity());
@@ -331,53 +437,6 @@ public final class Transaction extends AtomicOperation implements
         bytes.put(_writes);
         bytes.rewind();
         return bytes;
-    }
-
-    @Override
-    protected void checkState() throws AtomicStateException {
-        try {
-            super.checkState();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void doCommit() {
-        if(isReadOnly()) {
-            invokeSuperDoCommit(false);
-        }
-        else {
-            String file = ((Engine) destination).transactionStore
-                    + File.separator + id + ".txn";
-            FileChannel channel = FileSystem.getFileChannel(file);
-            try {
-                channel.write(serialize());
-                channel.force(true);
-                Logger.info("Created backup for transaction {} at '{}'", this,
-                        file);
-                invokeSuperDoCommit(false);
-                FileSystem.deleteFile(file);
-            }
-            catch (IOException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
-            }
-            finally {
-                FileSystem.closeFileChannel(channel);
-            }
-        }
-    }
-
-    /**
-     * Perform cleanup for the atomic {@code operation} that was birthed from
-     * this transaction and has successfully committed.
-     * 
-     * @param operation an AtomicOperation, birthed from this Transaction,
-     *            that has committed successfully
-     */
-    protected void onCommit(AtomicOperation operation) {
-        managedVersionChangeListeners.removeAll(operation);
     }
 
 }
