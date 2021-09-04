@@ -219,7 +219,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record, Sync.NO, Verify.YES);
+        return super.add(Write.add(key, value, record), Sync.NO, Verify.YES);
     }
 
     @Override
@@ -416,7 +416,8 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record, Sync.NO, Verify.YES);
+        return super.remove(Write.remove(key, value, record), Sync.NO,
+                Verify.YES);
     }
 
     @Override

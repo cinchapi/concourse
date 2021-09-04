@@ -104,8 +104,10 @@ public abstract class BufferedStore implements Store {
      * @param key
      * @param value
      */
-    private static void ensureWriteIntegrity(String key, TObject value,
-            long record) { // CON-21
+    private static void ensureWriteIntegrity(Write write) { // CON-21
+        String key = write.getKey().toString();
+        TObject value = write.getValue().getTObject();
+        long record = write.getRecord().longValue();
         if(!Keys.isWritable(key)) {
             throw new IllegalArgumentException(
                     AnyStrings.joinWithSpace(key, "is not a valid key"));
@@ -164,7 +166,7 @@ public abstract class BufferedStore implements Store {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, Sync.YES, Verify.YES);
+        return add(Write.add(key, value, record), Sync.YES, Verify.YES);
     }
 
     @Override
@@ -277,7 +279,7 @@ public abstract class BufferedStore implements Store {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, Sync.YES, Verify.YES);
+        return remove(Write.remove(key, value, record), Sync.YES, Verify.YES);
     }
 
     @Override
@@ -325,12 +327,13 @@ public abstract class BufferedStore implements Store {
      */
     public void set(String key, TObject value, long record) {
         try {
-            ensureWriteIntegrity(key, value, record);
+            Write write = Write.add(key, value, record);
+            ensureWriteIntegrity(write);
             Set<TObject> values = select(key, record);
             for (TObject val : values) {
                 limbo.insert(Write.remove(key, val, record));
             }
-            limbo.insert(Write.add(key, value, record));
+            limbo.insert(write);
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -543,18 +546,14 @@ public abstract class BufferedStore implements Store {
      * distinct values.
      * </p>
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param write
      * @param sync
      * @param verify
      * @return {@code true} if the mapping is added
      */
-    protected final boolean add(String key, TObject value, long record,
-            Sync sync, Verify verify) {
+    protected final boolean add(Write write, Sync sync, Verify verify) {
         try {
-            ensureWriteIntegrity(key, value, record);
-            Write write = Write.add(key, value, record);
+            ensureWriteIntegrity(write);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
@@ -586,18 +585,14 @@ public abstract class BufferedStore implements Store {
      * from {@code key} in {@code record} are affected.
      * </p>
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param write
      * @param sync
      * @param verify
      * @return {@code true} if the mapping is removed
      */
-    protected final boolean remove(String key, TObject value, long record,
-            Sync sync, Verify verify) {
+    protected final boolean remove(Write write, Sync sync, Verify verify) {
         try {
-            ensureWriteIntegrity(key, value, record);
-            Write write = Write.remove(key, value, record);
+            ensureWriteIntegrity(write);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
