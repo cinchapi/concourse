@@ -225,7 +225,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      *         {@link Revision Revisions} have been removed
      */
     public static <L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> Map<Block<L, K, V>, Block<L, K, V>> deduplicate(
-            Iterable<Block<L, K, V>> blocks,
+            Iterable<? extends Block<L, K, V>> blocks,
             Function<String, Block<L, K, V>> factory) {
         LongBitSet bits = LongBitSet.create();
         Map<Block<L, K, V>, Block<L, K, V>> modified = Maps.newLinkedHashMap();
