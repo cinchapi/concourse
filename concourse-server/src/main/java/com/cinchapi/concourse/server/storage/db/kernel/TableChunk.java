@@ -93,31 +93,12 @@ public class TableChunk extends SerialChunk<Identifier, Text, Value> {
     }
 
     /**
-     * Load an existing {@link TableChunk}.
-     * 
-     * @param segment
-     * @param file
-     * @param channel
-     * @param position
-     * @param size
-     * @param filter
-     * @param manifest
-     * @return the loaded {@link Chunk}
-     */
-    public static TableChunk load(@Nullable Segment segment, Path file,
-            FileChannel channel, long position, long size, BloomFilter filter,
-            Manifest manifest) {
-        return new TableChunk(segment, file, channel, position, size, filter,
-                manifest);
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param segment
      * @param filter
      */
-    protected TableChunk(@Nullable Segment segment, BloomFilter filter) {
+    private TableChunk(@Nullable Segment segment, BloomFilter filter) {
         super(segment, filter);
     }
 
