@@ -59,7 +59,7 @@ import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.BaseStore;
+import com.cinchapi.concourse.server.storage.AbstractStore;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
@@ -116,7 +116,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements DurableStore {
+public final class Database extends AbstractStore implements DurableStore {
 
     /**
      * Return a cache for records of type {@code T}.
@@ -703,10 +703,10 @@ public final class Database extends BaseStore implements DurableStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
-        Identifier L = Identifier.of(record);
-        Text K = Text.wrapCached(key);
-        Value V = Value.wrap(value);
+    public boolean verify(Write write) {
+        Identifier L = write.getRecord();
+        Text K = write.getKey();
+        Value V = write.getValue();
         Record<Identifier, Text, Value> table = ENABLE_VERIFY_BY_LOOKUP
                 ? getLookupRecord(L, K, V)
                 : getTableRecord(L, K);
@@ -714,11 +714,10 @@ public final class Database extends BaseStore implements DurableStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
-        Identifier L = Identifier.of(record);
-        Text K = Text.wrapCached(key);
-        Value V = Value.wrap(value);
+    public boolean verify(Write write, long timestamp) {
+        Identifier L = write.getRecord();
+        Text K = write.getKey();
+        Value V = write.getValue();
         TableRecord table = getTableRecord(L, K);
         return table.contains(K, V, timestamp);
     }

@@ -38,6 +38,7 @@ import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
@@ -197,7 +198,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record)
+    public final boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -217,31 +218,32 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record, true, true, false);
+        return super.add(key, value, record, true, true, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Map<Long, String> audit(long record) throws AtomicStateException {
+    public final Map<Long, String> audit(long record)
+            throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.audit(record, true);
+        return super.audit(record, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Map<Long, String> audit(String key, long record)
+    public final Map<Long, String> audit(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.audit(key, record, true);
+        return super.audit(key, record, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key)
+    public final Map<TObject, Set<Long>> browse(String key)
             throws AtomicStateException {
         checkState();
         Text key0 = Text.wrapCached(key);
@@ -252,11 +254,11 @@ public class AtomicOperation extends BufferedStore implements
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
-        return super.browse(key, true);
+        return super.browse(key, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key, long timestamp)
+    public final Map<TObject, Set<Long>> browse(String key, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return browse(key);
@@ -268,7 +270,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologize(String key, long record,
+    public final Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) throws AtomicStateException {
         checkState();
         long now = Time.now();
@@ -278,7 +280,8 @@ public class AtomicOperation extends BufferedStore implements
             Token token = Token.wrap(key, record);
             source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
-            return super.chronologize(key, record, start, end, true);
+            return super.chronologize(key, record, start, end,
+                    LockingAdvisory.SKIP);
         }
         else {
             return super.chronologize(key, record, start, end);
@@ -326,7 +329,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean contains(long record) {
+    public final boolean contains(long record) {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
@@ -336,17 +339,17 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> gather(String key, long record)
+    public final Set<TObject> gather(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.gather(key, record, true);
+        return super.gather(key, record, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Set<TObject> gather(String key, long record, long timestamp)
+    public final Set<TObject> gather(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return gather(key, record);
@@ -365,7 +368,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record)
+    public final boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -385,29 +388,30 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record, true, true, false);
+        return super.remove(key, value, record, true, true,
+                LockingAdvisory.SKIP);
     }
 
     @Override
-    public Set<Long> search(String key, String query)
+    public final Set<Long> search(String key, String query)
             throws AtomicStateException {
         checkState();
         return super.search(key, query);
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record)
+    public final Map<String, Set<TObject>> select(long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
-        return super.select(record, true);
+        return super.select(record, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp)
+    public final Map<String, Set<TObject>> select(long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return select(record);
@@ -419,17 +423,17 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> select(String key, long record)
+    public final Set<TObject> select(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.select(key, record, true);
+        return super.select(key, record, LockingAdvisory.SKIP);
     }
 
     @Override
-    public Set<TObject> select(String key, long record, long timestamp)
+    public final Set<TObject> select(String key, long record, long timestamp)
             throws AtomicStateException {
         if(timestamp > Time.now()) {
             return select(key, record);
@@ -441,7 +445,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public void set(String key, TObject value, long record)
+    public final void set(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -461,7 +465,7 @@ public class AtomicOperation extends BufferedStore implements
                                                       // wide version change
         }
         writes2Lock.add(rangeToken);
-        super.set(key, value, record, false);
+        super.set(key, value, record, LockingAdvisory.SKIP);
     }
 
     @Override
@@ -485,17 +489,17 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record)
-            throws AtomicStateException {
+    public final boolean verify(Write write) throws AtomicStateException {
         checkState();
-        Token token = Token.wrap(key, record);
+        Token token = Token.wrap(write.getKey().toString(),
+                write.getRecord().longValue());
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.verify(key, value, record, true);
+        return super.verify(write, LockingAdvisory.SKIP);
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record,
+    public final boolean verify(String key, TObject value, long record,
             long timestamp) throws AtomicStateException {
         if(timestamp > Time.now()) {
             return verify(key, value, record);
@@ -730,7 +734,7 @@ public class AtomicOperation extends BufferedStore implements
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
-        return super.doExplore(key, operator, values, true);
+        return super.doExplore(key, operator, values, LockingAdvisory.SKIP);
     }
 
     /**

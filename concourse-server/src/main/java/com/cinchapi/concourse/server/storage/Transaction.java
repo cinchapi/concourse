@@ -178,34 +178,64 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(long record) {
+    public Map<Long, String> auditUnlocked(long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return audit(record);
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    public Map<Long, String> auditUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return audit(key, record);
     }
 
     @Override
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    public Map<TObject, Set<Long>> browseUnlocked(String key) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return browse(key);
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
             long start, long end) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return chronologize(key, record, start, end);
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
+    public Map<Long, Set<TObject>> doExploreUnlocked(String key,
             Operator operator, TObject... values) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return doExplore(key, operator, values);
     }
 
     @Override
-    public Set<TObject> gatherUnsafe(String key, long record) {
+    public Set<TObject> gatherUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return gather(key, record);
     }
 
@@ -245,12 +275,22 @@ public final class Transaction extends AtomicOperation implements
             VersionChangeListener listener) {}
 
     @Override
-    public Map<String, Set<TObject>> selectUnsafe(long record) {
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return select(record);
     }
 
     @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
+    public Set<TObject> selectUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return select(key, record);
     }
 
@@ -275,8 +315,23 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
+    public boolean verifyUnlocked(String key, TObject value, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
         return verify(key, value, record);
+    }
+
+    @Override
+    public boolean verifyUnlocked(Write write) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return verify(write);
     }
 
     @Override

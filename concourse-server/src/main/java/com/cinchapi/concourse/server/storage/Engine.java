@@ -366,8 +366,8 @@ public final class Engine extends BufferedStore implements
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD
-                ? addUnsafe(key, value, record, sync)
-                : removeUnsafe(key, value, record, sync);
+                ? addUnlocked(key, value, record, sync)
+                : removeUnlocked(key, value, record, sync);
         if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
@@ -396,8 +396,8 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record, true, sharedToken, writeToken,
-                    rangeToken);
+            return addUnlocked(key, value, record, true, sharedToken,
+                    writeToken, rangeToken);
         }
         finally {
             shared.unlock();
@@ -471,7 +471,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(long record) {
+    public Map<Long, String> auditUnlocked(long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(record);
@@ -482,7 +482,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    public Map<Long, String> auditUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(key, record);
@@ -520,7 +520,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> selectUnsafe(long record) {
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
         transportLock.readLock().lock();
         try {
             return super.select(record);
@@ -531,7 +531,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    public Map<TObject, Set<Long>> browseUnlocked(String key) {
         transportLock.readLock().lock();
         try {
             return super.browse(key);
@@ -557,7 +557,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> chronologizeUnsafe(String key, long record,
+    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
             long start, long end) {
         transportLock.readLock().lock();
         try {
@@ -574,7 +574,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
+    public Map<Long, Set<TObject>> doExploreUnlocked(String key,
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
@@ -625,7 +625,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> gatherUnsafe(String key, long record) {
+    public Set<TObject> gatherUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.gather(key, record);
@@ -713,7 +713,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record, true, sharedToken,
+            return removeUnlocked(key, value, record, true, sharedToken,
                     writeToken, rangeToken);
         }
         finally {
@@ -797,7 +797,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
+    public Set<TObject> selectUnlocked(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.select(key, record);
@@ -893,42 +893,27 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
+    public boolean verify(Write write, long timestamp) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
+        try {
+            return super.verify(write, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean verify(Write write) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(write.getKey().toString(),
+                write.getRecord().longValue());
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return super.verify(write);
         }
         finally {
             read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return inventory.contains(record)
-                    ? super.verify(key, value, record, timestamp)
-                    : false;
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
-        transportLock.readLock().lock();
-        try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
-        }
-        finally {
             transportLock.readLock().unlock();
         }
     }
@@ -961,10 +946,14 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    protected boolean verify(Write write, boolean lock) {
-        return inventory.contains(write.getRecord().longValue())
-                ? super.verify(write, lock)
-                : false;
+    public boolean verifyUnlocked(Write write) {
+        transportLock.readLock().lock();
+        try {
+            return super.verify(write);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
@@ -978,9 +967,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record,
+    private boolean addUnlocked(String key, TObject value, long record,
             boolean sync) {
-        return addUnsafe(key, value, record, sync, Token.wrap(record),
+        return addUnlocked(key, value, record, sync, Token.wrap(record),
                 Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
     }
@@ -1000,9 +989,9 @@ public final class Engine extends BufferedStore implements
      * @param range - {@link RangeToken} for writing value to key
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record,
+    private boolean addUnlocked(String key, TObject value, long record,
             boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.add(key, value, record, sync, sync, false)) {
+        if(super.add(key, value, record, sync, sync, LockingAdvisory.SKIP)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1046,9 +1035,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record,
+    private boolean removeUnlocked(String key, TObject value, long record,
             boolean sync) {
-        return removeUnsafe(key, value, record, sync, Token.wrap(record),
+        return removeUnlocked(key, value, record, sync, Token.wrap(record),
                 Token.wrap(key, record),
                 RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
 
@@ -1069,9 +1058,9 @@ public final class Engine extends BufferedStore implements
      * @param range - {@link RangeToken} for writing value to key
      * @return {@code true} if the remove was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record,
+    private boolean removeUnlocked(String key, TObject value, long record,
             boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.remove(key, value, record, sync, sync, false)) {
+        if(super.remove(key, value, record, sync, sync, LockingAdvisory.SKIP)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);

@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 
@@ -342,7 +343,34 @@ public interface Store {
      * @return {@code true} if there is a an association from {@code key} to
      *         {@code value} in {@code record}
      */
-    public boolean verify(String key, TObject value, long record);
+    public default boolean verify(String key, TObject value, long record) {
+        return verify(Write.notStorable(key, value, record));
+    }
+
+    /**
+     * Verify that {@link Write#getKey()} equals {@link Write#getValue()} in
+     * {@link Write#getRecord()}.
+     * <p>
+     * This method checks that the element described in the {@link Write}
+     * <em>currently</em> exists.
+     * </p>
+     * <p>
+     * This method is intended to prevent the creation of a duplicate in
+     * contexts where a {@link Write} was already generated (e.g. adding or
+     * removing data) and therefore ignores the {@link Write#getType() action}
+     * associated with the {@link Write}. It only considers the element (e.g.
+     * {@link Write#getKey() key}/{@link Write#getValue()
+     * value}/{@link Write#getRecord() record}.). It is possible to use this
+     * method for a straight up verify, in which case it is customary to provide
+     * a {@link Write#notStorable(String, TObject, long) comparison Write}, but
+     * not required.
+     * </p>
+     * 
+     * @param write
+     * @return {@code true} if the {@link Write Write's} element currently
+     *         exists
+     */
+    public boolean verify(Write write);
 
     /**
      * Verify {@code key} equals {@code value} in {@code record} at
@@ -361,7 +389,36 @@ public interface Store {
      * @return {@code true} if there is an association from {@code key} to
      *         {@code value} in {@code record} at {@code timestamp}
      */
-    public boolean verify(String key, TObject value, long record,
-            long timestamp);
+    public default boolean verify(String key, TObject value, long record,
+            long timestamp) {
+        return verify(Write.notStorable(key, value, record), timestamp);
+    }
+
+    /**
+     * Verify that {@link Write#getKey()} equals {@link Write#getValue()} in
+     * {@link Write#getRecord()} at {@code timestamp}.
+     * <p>
+     * This method checks that the element described in the {@link Write}
+     * existed at {@code timestamp}.
+     * </p>
+     * <p>
+     * This method is intended to prevent the creation of a duplicate in
+     * contexts where a {@link Write} was already generated (e.g. adding or
+     * removing data) and therefore ignores both the {@link Write#getType()
+     * action} associated with the {@link Write} and the
+     * {@link Write#getVersion()}. It only considers the element (e.g.
+     * {@link Write#getKey() key}/{@link Write#getValue()
+     * value}/{@link Write#getRecord() record}.). It is possible to use this
+     * method for a straight up verify, in which case it is customary to provide
+     * a {@link Write#notStorable(String, TObject, long) comparison Write}, but
+     * not required.
+     * </p>
+     * 
+     * @param write
+     * @param timestamp
+     * @return {@code true} if the {@link Write Write's} element existed at
+     *         {@code timestamp}
+     */
+    public boolean verify(Write write, long timestamp);
 
 }
