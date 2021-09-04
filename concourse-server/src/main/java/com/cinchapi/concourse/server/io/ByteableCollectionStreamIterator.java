@@ -49,18 +49,18 @@ class ByteableCollectionStreamIterator implements
 
     /**
      * Return a {@link ByteableCollectionStreamIterator} with a buffer size of
-     * {@code bufferSize} for the bytes in {@code file}, start {@code position}
-     * and running for {@code length}.
+     * {@code bufferSize} for the bytes in {@code channel}, start
+     * {@code position} and running for {@code length}.
      * 
-     * @param file
+     * @param channel
      * @param position
      * @param length
      * @param bufferSize
      * @return the {@link CloseableIterator}
      */
-    public static ByteableCollectionStreamIterator from(Path file,
+    public static ByteableCollectionStreamIterator from(FileChannel channel,
             long position, long length, int bufferSize) {
-        return new ByteableCollectionStreamIterator(file, position, length,
+        return new ByteableCollectionStreamIterator(channel, position, length,
                 bufferSize);
     }
 
@@ -126,7 +126,7 @@ class ByteableCollectionStreamIterator implements
      * @param length
      * @param bufferSize
      */
-    private ByteableCollectionStreamIterator(Path file, long position,
+    private ByteableCollectionStreamIterator(FileChannel channel, long position,
             long length, int bufferSize) {
         Preconditions.checkArgument(bufferSize >= 1);
         if(length <= 0) {
@@ -138,7 +138,7 @@ class ByteableCollectionStreamIterator implements
             this.next = null;
         }
         else {
-            this.channel = FileSystem.getFileChannel(file);
+            this.channel = channel;
             this.position = position;
             this.limit = this.position + length;
             this.bufferSize = Math.min(bufferSize,
@@ -150,7 +150,7 @@ class ByteableCollectionStreamIterator implements
 
     @Override
     public void close() throws IOException {
-        FileSystem.closeFileChannel(channel);
+        channel.close();
     }
 
     @Override
@@ -167,11 +167,6 @@ class ByteableCollectionStreamIterator implements
             throw new NoSuchElementException();
         }
         return next;
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        this.closeQuietly();
     }
 
     /**

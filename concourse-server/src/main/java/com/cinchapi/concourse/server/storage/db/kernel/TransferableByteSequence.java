@@ -15,12 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -57,7 +59,7 @@ import com.google.common.collect.Lists;
  * @author Jeff Nelson
  */
 @ThreadSafe
-abstract class TransferableByteSequence {
+abstract class TransferableByteSequence implements Closeable {
 
     /**
      * The upper limit when there is performance stagnation or degradation when
@@ -87,6 +89,12 @@ abstract class TransferableByteSequence {
     protected final WriteLock write = master.writeLock();
 
     /**
+     * A {@link FileChannel} for {@link #file}.
+     */
+    @Nullable
+    private FileChannel channel;
+
+    /**
      * The file where the sequence was {@link #transfer(Path, long)
      * transferred}. If the sequence is {@link #mutable}, this value is
      * {@code null}
@@ -114,6 +122,7 @@ abstract class TransferableByteSequence {
      */
     protected TransferableByteSequence() {
         this.file = null;
+        this.channel = null;
         this.mutable = true;
         this.position = -1;
     }
@@ -137,8 +146,16 @@ abstract class TransferableByteSequence {
      */
     protected TransferableByteSequence(Path file, long position, long length) {
         this.file = file;
+        this.channel = null; // lazy load
         this.mutable = false;
         this.position = position;
+    }
+
+    @Override
+    public void close() throws IOException {
+        if(channel != null) {
+            channel.close();
+        }
     }
 
     /**
@@ -230,6 +247,38 @@ abstract class TransferableByteSequence {
     }
 
     /**
+     * If a backing {@link #file} is available, return a {@link FileChannel} to
+     * it that is {@link StandardOpenOption#READ read only}.
+     * 
+     * @return the backing {@link FileChannel}, if available
+     */
+    @Nullable
+    protected final FileChannel channel() {
+        if(file != null && channel == null) {
+            try {
+                channel = FileChannel.open(file, StandardOpenOption.READ,
+                        StandardOpenOption.WRITE);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
+        return channel;
+    }
+
+    /**
+     * Return the file where the sequence was {@link #transfer(Path, long)
+     * transferred}. If the sequence is {@link #mutable}, this value is
+     * {@code null}.
+     * 
+     * @return the backing file, if available
+     */
+    @Nullable
+    protected final Path file() {
+        return file;
+    }
+
+    /**
      * Write the bytes in this sequence to {@code sink}.
      * 
      * <p>
@@ -243,18 +292,6 @@ abstract class TransferableByteSequence {
      * @param sink
      */
     protected abstract void flush(ByteSink sink);
-
-    /**
-     * Return the file where the sequence was {@link #transfer(Path, long)
-     * transferred}. If the sequence is {@link #mutable}, this value is
-     * {@code null}.
-     * 
-     * @return the backing file, if available
-     */
-    @Nullable
-    protected final Path file() {
-        return file;
-    }
 
     /**
      * Free memory that was being used to hold this sequence's data while it was
@@ -317,11 +354,6 @@ abstract class TransferableByteSequence {
     private final static class CloseableByteSink implements ByteSink {
 
         /**
-         * The {@link ByteSink} that is wrapped.
-         */
-        private final ByteSink sink;
-
-        /**
          * The associated file.
          */
         private final Path file;
@@ -340,16 +372,9 @@ abstract class TransferableByteSequence {
                 .newArrayListWithCapacity(7);
 
         /**
-         * Construct a new instance.
-         * 
-         * @param file
-         * @param buffer
+         * The {@link ByteSink} that is wrapped.
          */
-        private CloseableByteSink(Path file, MappedByteBuffer buffer) {
-            this.sink = ByteSink.to(buffer);
-            this.file = file;
-            this.resource = buffer;
-        }
+        private final ByteSink sink;
 
         /**
          * Construct a new instance.
@@ -361,6 +386,18 @@ abstract class TransferableByteSequence {
             this.sink = ByteSink.to(channel);
             this.file = file;
             this.resource = channel;
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param file
+         * @param buffer
+         */
+        private CloseableByteSink(Path file, MappedByteBuffer buffer) {
+            this.sink = ByteSink.to(buffer);
+            this.file = file;
+            this.resource = buffer;
         }
 
         @Override

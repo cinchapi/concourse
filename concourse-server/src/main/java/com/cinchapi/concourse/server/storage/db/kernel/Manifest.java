@@ -38,7 +38,6 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -648,9 +647,9 @@ public class Manifest extends TransferableByteSequence {
                 public Iterator<Entry<Composite, Manifest.Entry>> iterator() {
                     return new Iterator<Entry<Composite, Manifest.Entry>>() {
 
-                        CloseableIterator<ByteBuffer> it = ByteableCollections
-                                .stream(file(), position(), length,
-                                        GlobalState.DISK_READ_BUFFER_SIZE);
+                        Iterator<ByteBuffer> it = ByteableCollections.stream(
+                                channel(), position(), length,
+                                GlobalState.DISK_READ_BUFFER_SIZE);
 
                         /**
                          * A {@link ReusableMapEntry} that is updated and
@@ -661,13 +660,7 @@ public class Manifest extends TransferableByteSequence {
 
                         @Override
                         public boolean hasNext() {
-                            if(it.hasNext()) {
-                                return true;
-                            }
-                            else {
-                                it.closeQuietly();
-                                return false;
-                            }
+                            return it.hasNext();
                         }
 
                         @Override
@@ -702,20 +695,14 @@ public class Manifest extends TransferableByteSequence {
         public Manifest.Entry get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
-                CloseableIterator<ByteBuffer> it = ByteableCollections.stream(
-                        file(), position(), length,
-                        GlobalState.DISK_READ_BUFFER_SIZE);
-                try {
-                    ByteBuffer keyBytes = key.getBytes();
-                    while (it.hasNext()) {
-                        ByteBuffer next = it.next();
-                        if(equals(keyBytes, next)) {
-                            return new Manifest.Entry(next);
-                        }
+                Iterator<ByteBuffer> it = ByteableCollections.stream(channel(),
+                        position(), length, GlobalState.DISK_READ_BUFFER_SIZE);
+                ByteBuffer keyBytes = key.getBytes();
+                while (it.hasNext()) {
+                    ByteBuffer next = it.next();
+                    if(equals(keyBytes, next)) {
+                        return new Manifest.Entry(next);
                     }
-                }
-                finally {
-                    it.closeQuietly();
                 }
 
             }

@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -694,6 +695,14 @@ public final class Database extends BaseStore implements PermanentStore {
                     corpusCaches.values().stream()).forEach(cache -> {
                         cache.invalidateAll();
                     });
+            for (Segment segment : segments) {
+                try {
+                    segment.close();
+                }
+                catch (IOException e) {
+                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                }
+            }
         }
     }
 

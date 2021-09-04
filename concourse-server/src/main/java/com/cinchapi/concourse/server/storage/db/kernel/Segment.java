@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -379,10 +378,9 @@ public final class Segment extends TransferableByteSequence implements
     private Segment(Path file) throws SegmentLoadingException {
         super(file);
         this.objects = null;
-        FileChannel channel = FileSystem.getFileChannel(file);
         try {
             ByteBuffer metadata = ByteBuffer.allocate(METADATA_LENGTH);
-            channel.read(metadata);
+            channel().read(metadata);
             metadata.flip();
             byte[] signature = new byte[FILE_SIGNATURE.length];
             metadata.get(signature);
@@ -407,7 +405,7 @@ public final class Segment extends TransferableByteSequence implements
                 long corpusLength = metadata.getLong();
                 long position = METADATA_LENGTH;
 
-                ByteBuffer filterBytes = channel.map(MapMode.READ_ONLY,
+                ByteBuffer filterBytes = channel().map(MapMode.READ_ONLY,
                         position, tableFilterLength + indexFilterLength
                                 + corpusFilterLength);
                 position += filterBytes.capacity();
@@ -463,9 +461,6 @@ public final class Segment extends TransferableByteSequence implements
         }
         catch (Exception e) {
             throw new SegmentLoadingException(e.getMessage(), e);
-        }
-        finally {
-            FileSystem.closeFileChannel(channel);
         }
     }
 

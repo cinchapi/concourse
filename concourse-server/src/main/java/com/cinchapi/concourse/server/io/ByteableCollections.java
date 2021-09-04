@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.io;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,6 +63,36 @@ public class ByteableCollections {
     }
 
     /**
+     * Return an {@link Iterator} that will traverse the bytes in
+     * {@code channel} and return a series of {@link ByteBuffer byte buffers},
+     * each of which can be used to reconstruct a {@link Byteable} object.
+     * Unlike the {@link #iterator(ByteBuffer)} method, this one only reads
+     * {@link bufferSize} bytes from disk at a time, which is necessary when its
+     * infeasible to read the entire file into memory at once.
+     * 
+     * <p>
+     * <strong>Warning:</strong> {@link ByteBuffer ByteBuffers} that are
+     * returned from {@link #next()} should <strong>not</strong> be stored in
+     * memory or assumed to be long-lived (e.g. each call to {@link #next()} may
+     * invalidate or change the state of the previously returned
+     * {@link ByteBuffer}. If streamed {@link ByteBuffer ByteBuffers} need to be
+     * accessed after processing, make a copy of the value returned from
+     * {@link #next()}.
+     * </p>
+     * 
+     * @param channel
+     * @param position the channel index from which to start reading
+     * @param length
+     * @param bufferSize
+     * @return the {@link Iterator}
+     */
+    public static CloseableIterator<ByteBuffer> stream(FileChannel channel,
+            long position, long length, int bufferSize) {
+        return ByteableCollectionStreamIterator.from(channel, position, length,
+                bufferSize);
+    }
+
+    /**
      * Return an {@link Iterator} that will traverse the bytes in {@code file}
      * and return a series of {@link ByteBuffer byte buffers}, each of which can
      * be used to reconstruct a {@link Byteable} object. Unlike the
@@ -85,7 +116,8 @@ public class ByteableCollections {
      */
     public static CloseableIterator<ByteBuffer> stream(Path file,
             int bufferSize) {
-        return ByteableCollectionStreamIterator.from(file, 0,
+        return ByteableCollectionStreamIterator.from(
+                FileSystem.getFileChannel(file), 0,
                 FileSystem.getFileSize(file.toString()), bufferSize);
     }
 
@@ -115,8 +147,8 @@ public class ByteableCollections {
      */
     public static CloseableIterator<ByteBuffer> stream(Path file, long position,
             long length, int bufferSize) {
-        return ByteableCollectionStreamIterator.from(file, position, length,
-                bufferSize);
+        return ByteableCollectionStreamIterator.from(
+                FileSystem.getFileChannel(file), position, length, bufferSize);
     }
 
     /**
@@ -143,8 +175,8 @@ public class ByteableCollections {
 
             private long bufSize = bufferSize;
             private boolean expandBuffer = false;
-            private Iterator<ByteBuffer> it = null;
             private long index = position;
+            private Iterator<ByteBuffer> it = null;
             private long limit = index + length;
 
             {
