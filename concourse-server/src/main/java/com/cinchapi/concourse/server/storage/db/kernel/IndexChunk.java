@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.io.Composite;
@@ -70,23 +72,24 @@ public class IndexChunk extends SerialChunk<Text, Value, Identifier> {
      */
     public static IndexChunk load(Path file, long position, long size,
             BloomFilter filter, Manifest manifest) {
-        return load(null, file, position, size, filter, manifest);
+        return new IndexChunk(null, file, null, position, size, filter,
+                manifest);
     }
 
     /**
      * Load an existing {@link TableChunk}.
      * 
      * @param segment
-     * @param file
      * @param position
      * @param size
      * @param filter
      * @param manifest
      * @return the loaded {@link Chunk}
      */
-    public static IndexChunk load(@Nullable Segment segment, Path file,
-            long position, long size, BloomFilter filter, Manifest manifest) {
-        return new IndexChunk(segment, file, position, size, filter, manifest);
+    public static IndexChunk load(@Nonnull Segment segment, long position,
+            long size, BloomFilter filter, Manifest manifest) {
+        return new IndexChunk(segment, segment.file(), segment.channel(),
+                position, size, filter, manifest);
     }
 
     /**
@@ -104,14 +107,16 @@ public class IndexChunk extends SerialChunk<Text, Value, Identifier> {
      * 
      * @param segment
      * @param file
+     * @param channel
      * @param position
      * @param size
      * @param filter
      * @param manifest
      */
-    private IndexChunk(@Nullable Segment segment, Path file, long position,
-            long size, BloomFilter filter, Manifest manifest) {
-        super(segment, file, position, size, filter, manifest);
+    private IndexChunk(@Nullable Segment segment, Path file,
+            FileChannel channel, long position, long size, BloomFilter filter,
+            Manifest manifest) {
+        super(segment, file, channel, position, size, filter, manifest);
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -239,14 +240,15 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * 
      * @param segment
      * @param file
+     * @param channel
      * @param position
      * @param length
      * @param filter
      * @param manifest
      */
-    protected Chunk(@Nullable Segment segment, Path file, long position,
-            long length, BloomFilter filter, Manifest manifest) {
-        super(file, position, length);
+    protected Chunk(@Nullable Segment segment, Path file, FileChannel channel,
+            long position, long length, BloomFilter filter, Manifest manifest) {
+        super(file, channel, position, length);
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(manifest);
         this.segment = segment;
@@ -439,13 +441,14 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
                         Iterator<ByteBuffer> it = ByteableCollections.stream(
-                                file(), position() + start, length,
+                                channel(), position() + start, length,
                                 GlobalState.DISK_READ_BUFFER_SIZE);
                         while (it.hasNext()) {
                             Revision<L, K, V> revision = Byteables
                                     .read(it.next(), xRevisionClass());
-                            Logger.debug("Attempting to append {} from {} to "
-                                    + "{}", revision, this, record);
+                            Logger.debug(
+                                    "Attempting to append {} from {} to {}",
+                                    revision, this, record);
                             record.append(revision);
                         }
                     }
