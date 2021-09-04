@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.ops;
 
 import com.cinchapi.concourse.server.ConcourseServer;
-import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
 
@@ -39,11 +38,6 @@ public class Strategy {
     private final Store store;
 
     /**
-     * A boolean that tracks if the {@link #store} is {@link Gatherable}.
-     */
-    private final boolean gatherable;
-
-    /**
      * Construct a new instance.
      * 
      * @param command
@@ -52,7 +46,6 @@ public class Strategy {
     public Strategy(Command command, Store store) {
         this.command = command;
         this.store = store;
-        this.gatherable = store instanceof Gatherable;
     }
 
     /**
@@ -75,14 +68,14 @@ public class Strategy {
         boolean isOrderKey = command.orderKeys().contains(key);
         Source source;
         if((isConditionKey || isOrderKey)
-                && command.operationRecords().size() != 1 && gatherable) {
-            // The SecondaryRecord must be loaded to evaluate the condition, so
+                && command.operationRecords().size() != 1) {
+            // The IndexRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record
             source = Source.INDEX;
         }
         else if(isWideOperation) {
             // The entire record is involved in the operation, so force the full
-            // PrimaryRecord to be loaded.
+            // TableRecord to be loaded.
             source = Source.RECORD;
         }
         else if(memory.contains(record)) {

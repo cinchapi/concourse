@@ -16,11 +16,11 @@
 package com.cinchapi.concourse.server.storage;
 
 /**
- * A {@link LockAvoidableStore} that can initiate and therefore serve as the
+ * A {@link LockFreeStore} that can initiate and therefore serve as the
  * destination for an {@link AtomicOperation}.
  * <p>
  * {@link AtomicOperation AtomicOperations} use <strong>Just-in-Time
- * Locking</strong>, so initiating {@link LockAvoidableStore stores} must be
+ * Locking</strong>, so initiating {@link LockFreeStore stores} must be
  * able to
  * perform operations without grabbing locks because the {@link AtomicOperation}
  * will do so in bulk prior to {@link AtomicOperation#commit() committing}.
@@ -30,7 +30,7 @@ package com.cinchapi.concourse.server.storage;
  */
 public interface AtomicSupport extends
         DurableStore,
-        LockAvoidableStore,
+        LockFreeStore,
         VersionChangeNotifier {
 
     /**

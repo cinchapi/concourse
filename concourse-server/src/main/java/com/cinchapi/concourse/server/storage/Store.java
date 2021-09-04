@@ -18,9 +18,11 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 
 /**
  * <p>
@@ -151,7 +153,9 @@ public interface Store {
      * @param record
      * @return a possibly empty Set of keys
      */
-    public Set<String> describe(long record);
+    public default Set<String> describe(long record) {
+        return select(record).keySet();
+    }
 
     /**
      * Describe {@code record} at {@code timestamp}.
@@ -166,7 +170,9 @@ public interface Store {
      * @param timestamp
      * @return a possibly empty Set of keys
      */
-    public Set<String> describe(long record, long timestamp);
+    public default Set<String> describe(long record, long timestamp) {
+        return select(record, timestamp).keySet();
+    }
 
     /**
      * Explore {@code key} {@code operator} {@code values} at {@code timestamp}.
@@ -181,8 +187,48 @@ public interface Store {
      * @param values
      * @return the relevant data for all matching records
      */
-    public Map<Long, Set<TObject>> explore(long timestamp, String key,
-            Operator operator, TObject... values);
+    public default Map<Long, Set<TObject>> explore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        Aliases aliases = TObject.alias(operator, values);
+        return explore(key, aliases, timestamp);
+    }
+
+    /**
+     * Explore {@code key} using an {@link TObject#alias(Operator, TObject...)
+     * aliased} {@link Operator} and {@link TObject values}.
+     * 
+     * <p>
+     * This method should only be used with aliased values. Call
+     * {@link #explore(String, Operator, TObject...)} during the normal
+     * course of operations.
+     * </p>
+     * 
+     * @param key
+     * @param aliases
+     * @return the relevant data for all matching records
+     */
+    @DoNotInvoke
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases);
+
+    /**
+     * Explore {@code key} using an {@link TObject#alias(Operator, TObject...)
+     * aliased} {@link Operator} and {@link TObject values} at
+     * {@code timestamp}.
+     * 
+     * <p>
+     * This method should only be used with aliased values. Call
+     * {@link #explore(long, String, Operator, TObject...)} during the normal
+     * course of operations.
+     * </p>
+     * 
+     * @param key
+     * @param aliases
+     * @param timestamp
+     * @return the relevant data for all matching records
+     */
+    @DoNotInvoke
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp);
 
     /**
      * Explore {@code key} {@code operator} {@code values}.
@@ -197,8 +243,11 @@ public interface Store {
      * @param values
      * @return the relevant data for all matching records
      */
-    public Map<Long, Set<TObject>> explore(String key, Operator operator,
-            TObject... values);
+    public default Map<Long, Set<TObject>> explore(String key,
+            Operator operator, TObject... values) {
+        Aliases aliases = TObject.alias(operator, values);
+        return explore(key, aliases);
+    }
 
     /**
      * Find {@code key} {@code operator} {@code values} at {@code timestamp}.
@@ -214,8 +263,10 @@ public interface Store {
      * @param values
      * @return a possibly empty Set of primary keys
      */
-    public Set<Long> find(long timestamp, String key, Operator operator,
-            TObject... values);
+    public default Set<Long> find(long timestamp, String key, Operator operator,
+            TObject... values) {
+        return explore(timestamp, key, operator, values).keySet();
+    }
 
     /**
      * Find {@code key} {@code operator} {@code values}
@@ -231,7 +282,63 @@ public interface Store {
      * @return a possibly empty Set of primary keys
      * @see {@link Operator}
      */
-    public Set<Long> find(String key, Operator operator, TObject... values);
+    public default Set<Long> find(String key, Operator operator,
+            TObject... values) {
+        return explore(key, operator, values).keySet();
+    }
+
+    /**
+     * Gather the values that are stored for {@code key} in {@code record}.
+     * <p>
+     * This method is slightly similar to {@link #select(String, long)}. All the
+     * values that would be returned from the {@link #select(String, long)
+     * select} method are returned here, but the order of the values returned
+     * from this method are not necessarily in insertion order.
+     * </p>
+     * <p>
+     * This performance of this method for a single gather is not likely to be
+     * better than the performance of a single {@link #select(String, long)
+     * selection}; especially, if a normalized index for the record in which the
+     * key is held in memory. On the other hand, this method may perform better
+     * when gathering one or a few keys across <strong>many</strong> records.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a possibly empty Set of values
+     */
+    public default Set<TObject> gather(String key, long record) {
+        return select(key, record);
+    }
+
+    /**
+     * Gather the values that are stored for {@code key} in {@code record} at
+     * {@code timestamp}.
+     * <p>
+     * This method is slightly similar to {@link #select(String, long, long)}.
+     * All the values that would be returned from the
+     * {@link #select(String, long) select} method are returned here, but the
+     * order of the values returned from this method are not necessarily in
+     * insertion order.
+     * </p>
+     * <p>
+     * This performance of this method for a single gather is not likely to be
+     * better than the performance of a single
+     * {@link #select(String, long, long) selection}; especially, if a
+     * normalized index for the record in which the key is held in memory. On
+     * the other hand, this method may perform better when gathering one or a
+     * few keys across <strong>many</strong> records.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return a possibly empty Set of values
+     */
+    public default Set<TObject> gather(String key, long record,
+            long timestamp) {
+        return select(key, record, timestamp);
+    }
 
     /**
      * Return a {@link Set} which contains the ids of every record that has ever
@@ -239,7 +346,16 @@ public interface Store {
      *
      * @return the {@link Set} of record ids
      */
-    public Set<Long> getAllRecords();
+    public default Set<Long> getAllRecords() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Return the {@link Memory} of this {@link Store}.
+     * 
+     * @return the {@link Store} {@link Memory state}
+     */
+    public Memory memory();
 
     /**
      * Search {@code key} for {@code query}.
@@ -317,13 +433,6 @@ public interface Store {
     public void start();
 
     /**
-     * Return the {@link Memory} of this {@link Store}.
-     * 
-     * @return the {@link Store} {@link Memory state}
-     */
-    public Memory memory();
-
-    /**
      * Stop the service.
      */
     public void stop();
@@ -345,6 +454,28 @@ public interface Store {
      */
     public default boolean verify(String key, TObject value, long record) {
         return verify(Write.notStorable(key, value, record));
+    }
+
+    /**
+     * Verify {@code key} equals {@code value} in {@code record} at
+     * {@code timestamp}.
+     * <p>
+     * This method checks that there was a mapping from {@code key} to
+     * {@code value} in {@code record} at {@code timestamp}. This method has the
+     * same affect as calling {@link #select(String, long, long)}
+     * {@link Set#contains(Object)}.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param timestamp
+     * @return {@code true} if there is an association from {@code key} to
+     *         {@code value} in {@code record} at {@code timestamp}
+     */
+    public default boolean verify(String key, TObject value, long record,
+            long timestamp) {
+        return verify(Write.notStorable(key, value, record), timestamp);
     }
 
     /**
@@ -371,28 +502,6 @@ public interface Store {
      *         exists
      */
     public boolean verify(Write write);
-
-    /**
-     * Verify {@code key} equals {@code value} in {@code record} at
-     * {@code timestamp}.
-     * <p>
-     * This method checks that there was a mapping from {@code key} to
-     * {@code value} in {@code record} at {@code timestamp}. This method has the
-     * same affect as calling {@link #select(String, long, long)}
-     * {@link Set#contains(Object)}.
-     * </p>
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @param timestamp
-     * @return {@code true} if there is an association from {@code key} to
-     *         {@code value} in {@code record} at {@code timestamp}
-     */
-    public default boolean verify(String key, TObject value, long record,
-            long timestamp) {
-        return verify(Write.notStorable(key, value, record), timestamp);
-    }
 
     /**
      * Verify that {@link Write#getKey()} equals {@link Write#getValue()} in

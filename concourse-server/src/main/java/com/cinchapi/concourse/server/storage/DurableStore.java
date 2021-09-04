@@ -26,7 +26,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
  * 
  * @author Jeff Nelson
  */
-public interface DurableStore extends Store, Gatherable {
+public interface DurableStore extends Store {
 
     /**
      * Insert {@code write} into this {@link Store}.

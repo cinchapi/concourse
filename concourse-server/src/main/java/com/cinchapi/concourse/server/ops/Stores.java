@@ -34,7 +34,6 @@ import com.cinchapi.concourse.server.ops.Strategy.Source;
 import com.cinchapi.concourse.server.query.Finder;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
-import com.cinchapi.concourse.server.storage.Gatherable;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -329,11 +328,10 @@ public final class Stores {
                 // @formatter:on
             }
             else { // source == Source.INDEX
-                Gatherable $store = (Gatherable) store;
                 // @formatter:off
                 values = timestamp == Time.NONE 
-                        ? $store.gather(key, record)
-                        : $store.gather(key, record, timestamp);
+                        ? store.gather(key, record)
+                        : store.gather(key, record, timestamp);
                 // @formatter:on
             }
             return values;

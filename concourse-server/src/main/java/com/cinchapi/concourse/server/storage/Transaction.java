@@ -36,8 +36,8 @@ import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.collect.HashMultimap;
@@ -118,23 +118,23 @@ public final class Transaction extends AtomicOperation implements
      * Construct a new instance.
      * 
      * @param destination
-     * @param bytes
      */
-    private Transaction(Engine destination, ByteBuffer bytes) {
-        this(destination);
-        deserialize(bytes);
-        open.set(false);
+    private Transaction(Engine destination) {
+        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
+                destination.rangeLockService);
+        this.id = Long.toString(Time.now());
     }
 
     /**
      * Construct a new instance.
      * 
      * @param destination
+     * @param bytes
      */
-    private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
-                destination.rangeLockService);
-        this.id = Long.toString(Time.now());
+    private Transaction(Engine destination, ByteBuffer bytes) {
+        this(destination);
+        deserialize(bytes);
+        open.set(false);
     }
 
     @Override
@@ -219,14 +219,14 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExploreUnlocked(String key,
-            Operator operator, TObject... values) {
+    public Map<Long, Set<TObject>> exploreUnlocked(String key,
+            Aliases aliases) {
         // The call below inherits from AtomicOperation, which grabs the
         // appropriate lock intentions and instructs the Transaction's
         // #destination to perform the work unlocked. This all has the affect of
         // making it such that the Transaction inherits the lock intentions of
         // any of its offspring AtomicOperations.
-        return doExplore(key, operator, values);
+        return explore(key, aliases);
     }
 
     @Override

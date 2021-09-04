@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 
 /**
  * A {@link Store} that provides versions of each present state read method that
@@ -31,7 +31,7 @@ import com.cinchapi.concourse.thrift.TObject;
  *
  * @author Jeff Nelson
  */
-public interface LockAvoidableStore extends Store {
+public interface LockFreeStore extends Store {
 
     /**
      * This method returns a log of revisions in {@code record} as
@@ -98,12 +98,10 @@ public interface LockAvoidableStore extends Store {
      * {@link #Lock} is not required.
      * 
      * @param key
-     * @param operator
-     * @param values
+     * @param aliases
      * @return {@code Map}
      */
-    public Map<Long, Set<TObject>> doExploreUnlocked(String key,
-            Operator operator, TObject... values);
+    public Map<Long, Set<TObject>> exploreUnlocked(String key, Aliases aliases);
 
     /**
      * Gather {@code key} from {@code record}.

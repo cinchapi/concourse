@@ -27,6 +27,7 @@ import com.cinchapi.concourse.server.storage.temp.Limbo;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TSets;
@@ -77,18 +78,18 @@ import com.google.common.collect.Sets;
  * <p>
  * It is assumed that each {@link Store} defines its own local concurrency
  * controls (if needed), but the {@link BufferedStore} framework does recognize
- * the possibility that {@link #durable} may be a {@link LockAvoidableStore} and
+ * the possibility that {@link #durable} may be a {@link LockFreeStore} and
  * the overall performance of the {@link BufferedStore} may depend on the
- * ability to internal locking. So, methods are exposed to subclasses that
- * accept a {@link Locking} parameter that can instruct the
- * buffered resolution logic to use the unlocked versions of a
- * {@link LockAvoidableStore} if they are available.
+ * ability to control the timing of logical locking. So, methods are exposed to
+ * subclasses (e.g. those prefixed with {@code $}) that allow it to instruct
+ * buffered resolution logic on how to dispatch methods to the {@link #durable}
+ * {@link Store sore}.
  * </p>
  * 
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class BufferedStore extends AbstractStore {
+public abstract class BufferedStore implements Store {
 
     // NOTE ON HISTORICAL READS
     // ========================
@@ -163,22 +164,27 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, Sync.YES, Verify.YES, Locking.DEFAULT);
+        return add(key, value, record, Sync.YES, Verify.YES);
     }
 
     @Override
     public Map<Long, String> audit(long record) {
-        return audit(record, Locking.DEFAULT);
+        Map<Long, String> context = $audit(record);
+        context.putAll(limbo.audit(record));
+        return context;
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        return audit(key, record, Locking.DEFAULT);
+        Map<Long, String> context = $audit(key, record);
+        context.putAll(limbo.audit(key, record));
+        return context;
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return browse(key, Locking.DEFAULT);
+        Map<TObject, Set<Long>> context = $browse(key);
+        return limbo.browse(key, context);
     }
 
     @Override
@@ -190,7 +196,9 @@ public abstract class BufferedStore extends AbstractStore {
     @Override
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
-        return chronologize(key, record, start, end, Locking.DEFAULT);
+        Map<Long, Set<TObject>> context = $chronologize(key, record, start,
+                end);
+        return limbo.chronologize(key, record, start, end, context);
     }
 
     @Override
@@ -199,8 +207,23 @@ public abstract class BufferedStore extends AbstractStore {
     }
 
     @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        Map<Long, Set<TObject>> context = $explore(key, aliases);
+        return limbo.explore(context, key, aliases);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        Map<Long, Set<TObject>> context = durable.explore(key, aliases,
+                timestamp);
+        return limbo.explore(context, key, aliases, timestamp);
+    }
+
+    @Override
     public Set<TObject> gather(String key, long record) {
-        return gather(key, record, Locking.DEFAULT);
+        Set<TObject> context = $gather(key, record);
+        return limbo.gather(key, record, context);
     }
 
     @Override
@@ -254,8 +277,7 @@ public abstract class BufferedStore extends AbstractStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, Sync.YES, Verify.YES,
-                Locking.DEFAULT);
+        return remove(key, value, record, Sync.YES, Verify.YES);
     }
 
     @Override
@@ -267,7 +289,8 @@ public abstract class BufferedStore extends AbstractStore {
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return select(record, Locking.DEFAULT);
+        Map<String, Set<TObject>> context = $select(record);
+        return limbo.select(record, context);
     }
 
     @Override
@@ -278,7 +301,8 @@ public abstract class BufferedStore extends AbstractStore {
 
     @Override
     public Set<TObject> select(String key, long record) {
-        return select(key, record, Locking.DEFAULT);
+        Set<TObject> context = $select(key, record);
+        return limbo.select(key, record, context);
     }
 
     @Override
@@ -300,12 +324,28 @@ public abstract class BufferedStore extends AbstractStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        set(key, value, record, Locking.DEFAULT);
+        try {
+            ensureWriteIntegrity(key, value, record);
+            Set<TObject> values = select(key, record);
+            for (TObject val : values) {
+                limbo.insert(Write.remove(key, val, record));
+            }
+            limbo.insert(Write.add(key, value, record));
+        }
+        catch (ReferentialIntegrityException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     @Override
     public boolean verify(Write write) {
-        return verify(write, Locking.DEFAULT);
+        TernaryTruth truth = limbo.verifyFast(write);
+        if(truth != TernaryTruth.UNSURE) {
+            return truth.boolValue();
+        }
+        else {
+            return $verify(write);
+        }
     }
 
     @Override
@@ -318,6 +358,177 @@ public abstract class BufferedStore extends AbstractStore {
         else {
             return truth.boolValue();
         }
+    }
+
+    /**
+     * Audit {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#audit(long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the revision log
+     */
+    protected Map<Long, String> $audit(long record) {
+        return durable.audit(record);
+    }
+
+    /**
+     * Audit {@code key} in {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#audit(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the revision log
+     */
+    protected Map<Long, String> $audit(String key, long record) {
+        return durable.audit(key, record);
+    }
+
+    /**
+     * Browse {@code key} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#browse(String)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} of each value stored from {@code key} mapped to
+     *         every record where that value is contained for {@code key} within
+     *         the {@link #durable} {@link Store store}
+     */
+    protected Map<TObject, Set<Long>> $browse(String key) {
+        return durable.browse(key);
+    }
+
+    /**
+     * Chronologize {@code key} in {@code record} within the {@link #durable}
+     * store.
+     * <p>
+     * By default, a call is made to
+     * {@link DurableStore#chronologize(String, long, long, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} from modification timestamp to a non-empty Set of
+     *         values that were contained at that timestamp
+     */
+    protected Map<Long, Set<TObject>> $chronologize(String key, long record,
+            long start, long end) {
+        return durable.chronologize(key, record, start, end);
+    }
+
+    /**
+     * Return a {@link Map} of all the records that satisfy {@code operator}
+     * in relation to the {@code values} stored for {@code key} mapped to each
+     * of their values that cause it to satisfy
+     * 
+     * <p>
+     * By default, a call is made to
+     * {@link DurableStore#doExplore(String, Operator, TObject[])},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param aliases
+     * @return a {@link Map} of all the records that satisfy {@code operator}
+     *         in relation to the {@code values} stored for {@code key} mapped
+     *         to each
+     *         of their values that cause it to satisfy
+     */
+    protected Map<Long, Set<TObject>> $explore(String key, Aliases aliases) {
+        return durable.explore(key, aliases);
+    }
+
+    /**
+     * Gather {@code key} as {@code value} from {@code record} in the
+     * {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#gather(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the values currently stored from {@code key} in {@code record}
+     *         within the {@link #durable} {@link Store store}
+     */
+    protected Set<TObject> $gather(String key, long record) {
+        return durable.gather(key, record);
+    }
+
+    /**
+     * Select all the data from {@code record} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#select(long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return a {@link Map} from each key to its contained values that are
+     *         currently stored in {@code record} within the {@link #durable}
+     *         {@link Store store}
+     */
+    protected Map<String, Set<TObject>> $select(long record) {
+        return durable.select(record);
+    }
+
+    /**
+     * Select {@code key} as {@code value} from {@code record} in the
+     * {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#select(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the values currently stored from {@code key} in {@code record}
+     *         within the {@link #durable} {@link Store store}
+     */
+    protected Set<TObject> $select(String key, long record) {
+        return durable.select(key, record);
+    }
+
+    /**
+     * Verify the {@code write} in the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#verify(Write)}, but the
+     * subclass can override this method to route differently if necessary (e.g.
+     * an {@link AtomicOperation} routing to lock free implementations).
+     * </p>
+     * 
+     * @param write
+     * @return {@code} true if the {@link Write Write's} element currently
+     *         exists in the {@link #durable} {@link Store store}.
+     */
+    protected boolean $verify(Write write) {
+        return durable.verify(write);
     }
 
     /**
@@ -338,18 +549,17 @@ public abstract class BufferedStore extends AbstractStore {
      * @param record
      * @param sync
      * @param verify
-     * @param locking
      * @return {@code true} if the mapping is added
      */
     protected final boolean add(String key, TObject value, long record,
-            Sync sync, Verify verify, Locking locking) {
+            Sync sync, Verify verify) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.add(key, value, record);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
-            if(verify == Verify.NO || !verify(write, locking)) {
+            if(verify == Verify.NO || !verify(write)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -363,189 +573,6 @@ public abstract class BufferedStore extends AbstractStore {
         catch (ReferentialIntegrityException e) {
             return false;
         }
-    }
-
-    /**
-     * Audit {@code record} either using safe methods or unsafe methods..
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param record
-     * @param locking
-     * @return the the revision log
-     */
-    protected final Map<Long, String> audit(long record, Locking locking) {
-        Map<Long, String> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).auditUnlocked(record);
-        }
-        else {
-            context = durable.audit(record);
-        }
-        context.putAll(limbo.audit(record));
-        return context;
-    }
-
-    /**
-     * Audit {@code key} in {@code record} either using safe methods or unsafe
-     * methods.
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param key
-     * @param record
-     * @param advisrory
-     * @return the revision log
-     */
-    protected final Map<Long, String> audit(String key, long record,
-            Locking locking) {
-        Map<Long, String> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).auditUnlocked(key,
-                    record);
-        }
-        else {
-            context = durable.audit(key, record);
-        }
-        context.putAll(limbo.audit(key, record));
-        return context;
-    }
-
-    /**
-     * Browse {@code key} either using safe or unsafe methods.
-     * <p>
-     * This method returns a mapping from each of the values that is currently
-     * indexed to {@code key} to a Set the records that contain {@code key} as
-     * the associated value. If there are no such values, an empty Map is
-     * returned.
-     * </p>
-     * 
-     * @param key
-     * @param locking
-     * @return a possibly empty Map of data
-     */
-    protected final Map<TObject, Set<Long>> browse(String key,
-            Locking locking) {
-        Map<TObject, Set<Long>> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).browseUnlocked(key);
-        }
-        else {
-            context = durable.browse(key);
-        }
-        return limbo.browse(key, context);
-    }
-
-    /**
-     * Execute the {@code chronologize} function for {@code key} in
-     * {@code record} between {@code start} and {@code end} with the option to
-     * perform an {@code unsafe} read.
-     * 
-     * @param key the field name
-     * @param record the record id
-     * @param start the start timestamp
-     * @param end the end timestamp
-     * @param locking
-     * @return a possibly empty Map from each revision timestamp to the Set of
-     *         objects that were contained in the field at the time of the
-     *         revision
-     */
-    protected final Map<Long, Set<TObject>> chronologize(String key,
-            long record, long start, long end, Locking locking) {
-        Map<Long, Set<TObject>> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).chronologizeUnlocked(key,
-                    record, start, end);
-        }
-        else {
-            context = durable.chronologize(key, record, start, end);
-        }
-        return limbo.chronologize(key, record, start, end, context);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = durable.explore(timestamp, key,
-                operator, values);
-        return limbo.explore(context, timestamp, key, operator, values);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        return doExplore(key, operator, values, Locking.DEFAULT);
-    }
-
-    /**
-     * Do the work to explore {@code key} {@code operator} {@code values}
-     * without worry about normalizing the {@code operator} or {@code values}
-     * either using safe or unsafe methods.
-     * 
-     * @param key
-     * @param operator
-     * @param values
-     * @param locking
-     * @return {@code Map}
-     */
-    protected final Map<Long, Set<TObject>> doExplore(String key,
-            Operator operator, TObject[] values, Locking locking) {
-        Map<Long, Set<TObject>> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).doExploreUnlocked(key,
-                    operator, values);
-        }
-        else {
-            context = durable.explore(key, operator, values);
-        }
-        return limbo.explore(context, key, operator, values);
-    }
-
-    /**
-     * Gather {@code key} from {@code record} either using safe or unsafe
-     * methods.
-     * <p>
-     * This method returns the values currently mapped from {@code key} in
-     * {@code record}. The returned Set is nonempty if and only if {@code key}
-     * is a member of the Set returned from {@link #describe(long)}.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param lock
-     * @return a possibly empty Set of values
-     */
-    protected final Set<TObject> gather(String key, long record,
-            Locking locking) {
-        Set<TObject> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).gatherUnlocked(key,
-                    record);
-        }
-        else {
-            context = durable.gather(key, record);
-        }
-        return limbo.gather(key, record, context);
     }
 
     /**
@@ -564,23 +591,18 @@ public abstract class BufferedStore extends AbstractStore {
      * @param value
      * @param record
      * @param sync
-     * @param doVerify - a flag that controls whether an attempt is made to
-     *            verify that removing the data is legal. This should always be
-     *            set to {@code true} unless it is being called from a context
-     *            where the operation has been previously verified (i.e.
-     *            committing writes from an atomic operation or transaction)
-     * @param locking
+     * @param verify
      * @return {@code true} if the mapping is removed
      */
     protected final boolean remove(String key, TObject value, long record,
-            Sync sync, Verify verify, Locking locking) {
+            Sync sync, Verify verify) {
         try {
             ensureWriteIntegrity(key, value, record);
             Write write = Write.remove(key, value, record);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
-            if(verify == Verify.NO || verify(write, locking)) {
+            if(verify == Verify.NO || verify(write)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -597,132 +619,20 @@ public abstract class BufferedStore extends AbstractStore {
     }
 
     /**
-     * Buffered {@link #select(long)} with configurable {@link Locking}.
-     * 
-     * @param record
-     * @param locking
-     * @return the buffered read result
-     */
-    protected final Map<String, Set<TObject>> select(long record,
-            Locking locking) {
-        Map<String, Set<TObject>> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).selectUnlocked(record);
-        }
-        else {
-            context = durable.select(record);
-        }
-        return limbo.select(record, context);
-    }
-
-    /**
-     * Buffered {@link #select(String, long)} with configurable
-     * {@link Locking}.
-     * 
-     * @param key
-     * @param record
-     * @param locking
-     * @return the buffered read result
-     */
-    protected final Set<TObject> select(String key, long record,
-            Locking locking) {
-        Set<TObject> context;
-        if(locking == Locking.AVOID && durable instanceof LockAvoidableStore) {
-            context = ((LockAvoidableStore) (durable)).selectUnlocked(key,
-                    record);
-        }
-        else {
-            context = durable.select(key, record);
-        }
-        return limbo.select(key, record, context);
-    }
-
-    /**
-     * Set {@code key} as {@code value} in {@code record}.
-     * <p>
-     * This method will remove all the values currently mapped from {@code key}
-     * in {@code record} and add {@code value} without performing any validity
-     * checks.
-     * </p>
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @param locking
-     */
-    protected final void set(String key, TObject value, long record,
-            Locking locking) {
-        try {
-            ensureWriteIntegrity(key, value, record);
-            Set<TObject> values = select(key, record, locking);
-            for (TObject val : values) {
-                limbo.insert(Write.remove(key, val, record));
-            }
-            limbo.insert(Write.add(key, value, record));
-        }
-        catch (ReferentialIntegrityException e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
-    }
-
-    /**
-     * Shortcut method to verify {@code write}. This method is called from
-     * {@link #add(String, TObject, long)} and
-     * {@link #remove(String, TObject, long)} so that we can avoid creating a
-     * duplicate Write.
-     * 
-     * @param write the comparison {@link Write} to verify
-     * @param locking
-     * @return {@code true} if {@code write} currently exists
-     */
-    protected final boolean verify(Write write, Locking locking) {
-        // TODO: look in the memory to determine whether it would be faster to
-        // look in #limbo or #durable first...
-        TernaryTruth truth = limbo.verifyFast(write);
-        if(truth != TernaryTruth.UNSURE) {
-            return truth.boolValue();
-        }
-        else if(locking == Locking.AVOID
-                && durable instanceof LockAvoidableStore) {
-            return ((LockAvoidableStore) durable).verifyUnlocked(write);
-        }
-        else {
-            return durable.verify(write);
-        }
-    }
-
-    /**
-     * A semantic enum to track whether the "unlocked" versions of methods
-     * should be dispatched in a {@link LockAvoidableStore}.
-     */
-    protected enum Locking {
-
-        /**
-         * Defer to the stores internal locking.
-         */
-        DEFAULT,
-
-        /**
-         * Dispatch to methods that will avoid internal locking, if possible.
-         */
-        AVOID
-    }
-
-    /**
      * A semantic enum to track whether the {@link Write} from an add or remove
      * should be immediately synced.
      */
     protected enum Sync {
 
         /**
-         * Instruct {@link #limbo} to sync the write.
-         */
-        YES,
-
-        /**
          * Instruct {@link #limbo} NOT to sync the write.
          */
-        NO
+        NO,
+
+        /**
+         * Instruct {@link #limbo} to sync the write.
+         */
+        YES
     }
 
     /**
@@ -733,14 +643,14 @@ public abstract class BufferedStore extends AbstractStore {
     protected enum Verify {
 
         /**
-         * Do the verify.
-         */
-        YES,
-
-        /**
          * Skip the verify.
          */
-        NO
+        NO,
+
+        /**
+         * Do the verify.
+         */
+        YES
     }
 
 }

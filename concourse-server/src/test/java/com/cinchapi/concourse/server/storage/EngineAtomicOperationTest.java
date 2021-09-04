@@ -195,10 +195,10 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         long record = Variables.register("record", TestData.getLong());
 
         AtomicOperation atomicOp = (AtomicOperation) store;
-        atomicOp.doExplore(aheadOfTime, key, Operator.BETWEEN,
+        atomicOp.explore(aheadOfTime, key, Operator.BETWEEN,
                 Convert.javaToThrift(0), Convert.javaToThrift(100));
         destination.accept(Write.add(key, value, record));
-        atomicOp.doExplore(aheadOfTime, key, Operator.BETWEEN,
+        atomicOp.explore(aheadOfTime, key, Operator.BETWEEN,
                 Convert.javaToThrift(0), Convert.javaToThrift(100));
     }
 

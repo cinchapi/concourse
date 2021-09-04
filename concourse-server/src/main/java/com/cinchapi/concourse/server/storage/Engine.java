@@ -57,6 +57,7 @@ import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
@@ -562,18 +563,6 @@ public final class Engine extends BufferedStore implements
         return inventory.contains(record);
     }
 
-    @Override
-    public Map<Long, Set<TObject>> doExploreUnlocked(String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * Public interface for the {@link Database#dump(String)} method.
      * 
@@ -586,6 +575,45 @@ public final class Engine extends BufferedStore implements
             return ((Buffer) limbo).dump();
         }
         return ((Database) durable).dump(id);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        transportLock.readLock().lock();
+        Lock range = rangeLockService.getReadLock(key, aliases.operator(),
+                aliases.values());
+        range.lock();
+        try {
+            return super.explore(key, aliases);
+        }
+        finally {
+            range.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.explore(key, aliases, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> exploreUnlocked(String key,
+            Aliases aliases) {
+        transportLock.readLock().lock();
+        try {
+            return super.explore(key, aliases);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -929,33 +957,6 @@ public final class Engine extends BufferedStore implements
         }
     }
 
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        transportLock.readLock().lock();
-        Lock range = rangeLockService.getReadLock(key, operator, values);
-        range.lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            range.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
@@ -998,7 +999,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.add(key, value, record, sync, verify, Locking.AVOID)) {
+        if(super.add(key, value, record, sync, verify)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1074,7 +1075,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.remove(key, value, record, sync, verify, Locking.AVOID)) {
+        if(super.remove(key, value, record, sync, verify)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);

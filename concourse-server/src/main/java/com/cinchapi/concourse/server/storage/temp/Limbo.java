@@ -30,13 +30,14 @@ import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.AbstractStore;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
+import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.TMaps;
@@ -68,13 +69,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Limbo extends AbstractStore implements Iterable<Write> {
-
-    /**
-     * A Predicate that is used to filter out empty sets.
-     */
-    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
-            && !set.isEmpty();
+public abstract class Limbo implements Store, Iterable<Write> {
 
     /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
@@ -89,6 +84,12 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
             TObject... values) {
         return input.getTObject().isIgnoreCase(operator, values);
     }
+
+    /**
+     * A Predicate that is used to filter out empty sets.
+     */
+    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
+            && !set.isEmpty();
 
     /**
      * Constant {@link Memory} that is always returned by a {@link Limbo} store.
@@ -156,19 +157,6 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
      * prior {@code context} as if it were also a part of the Buffer.
      * 
      * @param key
-     * @param context
-     * @return a possibly empty Map of data
-     */
-    public final Map<TObject, Set<Long>> browse(String key,
-            Map<TObject, Set<Long>> context) {
-        return browse(key, Time.NONE, context);
-    }
-
-    /**
-     * Calculate the browsable view of {@code key} at {@code timestamp} using
-     * prior {@code context} as if it were also a part of the Buffer.
-     * 
-     * @param key
      * @param timestamp
      * @param context
      * @return a possibly empty Map of data
@@ -203,6 +191,19 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
         }
         return Maps.newTreeMap(Maps.filterValues(
                 (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
+    }
+
+    /**
+     * Calculate the browsable view of {@code key} at {@code timestamp} using
+     * prior {@code context} as if it were also a part of the Buffer.
+     * 
+     * @param key
+     * @param context
+     * @return a possibly empty Map of data
+     */
+    public final Map<TObject, Set<Long>> browse(String key,
+            Map<TObject, Set<Long>> context) {
+        return browse(key, Time.NONE, context);
     }
 
     @Override
@@ -315,31 +316,31 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
     }
 
     /**
-     * This is an implementation of the {@code findAndBrowse} routine that takes
-     * in a prior {@code context}. Find and browse will return a mapping from
+     * This is an implementation of the
+     * {@link #explore(String, Operator, TObject...)} routine that takes
+     * in a prior {@code context} and will return a mapping from
      * records that match a criteria (expressed as {@code key} filtered by
      * {@code operator} in relation to one or more {@code values}) to the set of
      * values that cause that record to match the criteria.
      * 
      * @param context
-     * @param timestamp
      * @param key
      * @param operator
      * @param values
      * @return the relevant data for the records that satisfy the find query
      */
     public final Map<Long, Set<TObject>> explore(
-            Map<Long, Set<TObject>> context, String key, Operator operator,
-            TObject... values) {
-        return explore(context, Time.NONE, key, operator, values);
+            Map<Long, Set<TObject>> context, String key, Aliases aliases) {
+        return explore(context, key, aliases, Time.NONE);
     }
 
     /**
-     * This is an implementation of the {@code findAndBrowse} routine that takes
-     * in a prior {@code context}. Find and browse will return a mapping from
+     * This is an implementation of the
+     * {@link #explore(long, String, Operator, TObject...)} routine that takes
+     * in a prior {@code context} and will return a mapping from
      * records that match a criteria (expressed as {@code key} filtered by
      * {@code operator} in relation to one or more {@code values}) to the set of
-     * values that cause that record to match the criteria.
+     * values that caused that record to match the criteria {@code timestamp}.
      * 
      * @param context
      * @param timestamp
@@ -349,8 +350,10 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
      * @return the relevant data for the records that satisfy the find query
      */
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
-            long timestamp, String key, Operator operator, TObject... values) {
+            String key, Aliases aliases, long timestamp) {
         if(timestamp >= getOldestWriteTimestamp()) {
+            Operator operator = aliases.operator();
+            TObject[] values = aliases.values();
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 long record = write.getRecord().longValue();
@@ -375,19 +378,15 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
         return TMaps.asSortedMap(context);
     }
 
-    /**
-     * Gather the values mapped from {@code key} in {@code record} at
-     * {@code timestamp} using prior {@code context} as if it were also a part
-     * of the Buffer.
-     * 
-     * @param key
-     * @param record
-     * @param context
-     * @return the values
-     */
-    public final Set<TObject> gather(String key, long record,
-            Set<TObject> context) {
-        return select(key, record, context);
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        return explore(key, aliases, Time.NONE);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
+            long timestamp) {
+        return explore(Maps.newLinkedHashMap(), key, aliases, timestamp);
     }
 
     /**
@@ -404,6 +403,21 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
     public final Set<TObject> gather(String key, long record, long timestamp,
             Set<TObject> context) {
         return select(key, record, timestamp, context);
+    }
+
+    /**
+     * Gather the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using prior {@code context} as if it were also a part
+     * of the Buffer.
+     * 
+     * @param key
+     * @param record
+     * @param context
+     * @return the values
+     */
+    public final Set<TObject> gather(String key, long record,
+            Set<TObject> context) {
+        return select(key, record, context);
     }
 
     @Override
@@ -545,20 +559,6 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
     }
 
     /**
-     * Select all the data from {@code record} at {@code timestamp} using
-     * prior {@code context} as if it were also contained in {@link Limbo}.
-     * 
-     * @param record
-     * @param context
-     * @return a mapping from each key to contained values in {@code record} at
-     *         {@code timestamp}
-     */
-    public final Map<String, Set<TObject>> select(long record,
-            Map<String, Set<TObject>> context) {
-        return select(record, Time.NONE, context);
-    }
-
-    /**
      * Select all the data from {@code record} using prior {@code context} as if
      * it were also contained in {@link Limbo}.
      * 
@@ -600,6 +600,20 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
                 (SortedMap<String, Set<TObject>>) context, emptySetFilter));
     }
 
+    /**
+     * Select all the data from {@code record} at {@code timestamp} using
+     * prior {@code context} as if it were also contained in {@link Limbo}.
+     * 
+     * @param record
+     * @param context
+     * @return a mapping from each key to contained values in {@code record} at
+     *         {@code timestamp}
+     */
+    public final Map<String, Set<TObject>> select(long record,
+            Map<String, Set<TObject>> context) {
+        return select(record, Time.NONE, context);
+    }
+
     @Override
     public Set<TObject> select(String key, long record) {
         return select(key, record, Time.NONE);
@@ -609,20 +623,6 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
     public Set<TObject> select(String key, long record, long timestamp) {
         return select(key, record, timestamp,
                 Sets.<TObject> newLinkedHashSet());
-    }
-
-    /**
-     * Select the values mapped from {@code key} in {@code record} using prior
-     * {@code context} as if it were also contained in {@link Limbo}.
-     * 
-     * @param key
-     * @param record
-     * @param context
-     * @return the values
-     */
-    public final Set<TObject> select(String key, long record,
-            Set<TObject> context) {
-        return select(key, record, Time.NONE, context);
     }
 
     /**
@@ -658,6 +658,20 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
             }
         }
         return context;
+    }
+
+    /**
+     * Select the values mapped from {@code key} in {@code record} using prior
+     * {@code context} as if it were also contained in {@link Limbo}.
+     * 
+     * @param key
+     * @param record
+     * @param context
+     * @return the values
+     */
+    public final Set<TObject> select(String key, long record,
+            Set<TObject> context) {
+        return select(key, record, Time.NONE, context);
     }
 
     /**
@@ -847,17 +861,6 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
     }
 
     /**
-     * Wait (block) until the Buffer has enough data to complete a transport.
-     * This method should be called from the external service to avoid busy
-     * waiting if continuously transporting data in the background.
-     */
-    public void waitUntilTransportable() {
-        return; // do nothing because Limbo is assumed to always be
-                // transportable. But the Buffer will override this method with
-                // the appropriate conditions.
-    }
-
-    /**
      * Return a snapshot {@link Iterable} that contains the
      * {@link Write#getVersion() version} of every {@link Write} in the
      * {@link Store}.
@@ -879,17 +882,15 @@ public abstract class Limbo extends AbstractStore implements Iterable<Write> {
         return versions;
     }
 
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        return explore(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
-                key, operator, values);
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        return explore(Time.NONE, key, operator, values);
+    /**
+     * Wait (block) until the Buffer has enough data to complete a transport.
+     * This method should be called from the external service to avoid busy
+     * waiting if continuously transporting data in the background.
+     */
+    public void waitUntilTransportable() {
+        return; // do nothing because Limbo is assumed to always be
+                // transportable. But the Buffer will override this method with
+                // the appropriate conditions.
     }
 
     /**

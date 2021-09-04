@@ -69,6 +69,7 @@ import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -525,9 +526,11 @@ public final class Buffer extends Limbo implements InventoryTracker {
 
     @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
-            long timestamp, String key, Operator operator, TObject... values) {
+            String key, Aliases aliases, long timestamp) {
         Iterator<Write> it = iterator(key, timestamp);
         try {
+            Operator operator = aliases.operator();
+            TObject[] values = aliases.values();
             while (it.hasNext()) {
                 Write write = it.next();
                 long record = write.getRecord().longValue();
