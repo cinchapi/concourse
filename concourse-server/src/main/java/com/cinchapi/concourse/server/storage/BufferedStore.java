@@ -103,11 +103,10 @@ public abstract class BufferedStore implements Store {
      * 
      * @param key
      * @param value
+     * @param record
      */
-    private static void ensureWriteIntegrity(Write write) { // CON-21
-        String key = write.getKey().toString();
-        TObject value = write.getValue().getTObject();
-        long record = write.getRecord().longValue();
+    private static void ensureWriteIntegrity(String key, TObject value,
+            long record) { // CON-21
         if(!Keys.isWritable(key)) {
             throw new IllegalArgumentException(
                     AnyStrings.joinWithSpace(key, "is not a valid key"));
@@ -125,6 +124,20 @@ public abstract class BufferedStore implements Store {
             throw new ReferentialIntegrityException(
                     "A record cannot link to itself");
         }
+    }
+
+    /**
+     * Perform validation on {@code write} and throw an exception if necessary.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     */
+    private static void ensureWriteIntegrity(Write write) {
+        String key = write.getKey().toString();
+        TObject value = write.getValue().getTObject();
+        long record = write.getRecord().longValue();
+        ensureWriteIntegrity(key, value, record);
     }
 
     /**
@@ -333,13 +346,12 @@ public abstract class BufferedStore implements Store {
      */
     public void set(String key, TObject value, long record) {
         try {
-            Write write = Write.add(key, value, record);
-            ensureWriteIntegrity(write);
+            ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record);
             for (TObject val : values) {
                 limbo.insert(Write.remove(key, val, record));
             }
-            limbo.insert(write);
+            limbo.insert(Write.add(key, value, record));
         }
         catch (ReferentialIntegrityException e) {
             throw new IllegalArgumentException(e.getMessage());
