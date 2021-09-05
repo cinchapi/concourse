@@ -127,20 +127,6 @@ public abstract class BufferedStore implements Store {
     }
 
     /**
-     * Perform validation on {@code write} and throw an exception if necessary.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     */
-    private static void ensureWriteIntegrity(Write write) {
-        String key = write.getKey().toString();
-        TObject value = write.getValue().getTObject();
-        long record = write.getRecord().longValue();
-        ensureWriteIntegrity(key, value, record);
-    }
-
-    /**
      * The {@link DurableStore store} where {@link Write writes} in
      * {@link #limbo} can be {@link Limbo#transport(DurableStore) transported}.
      */
@@ -571,7 +557,10 @@ public abstract class BufferedStore implements Store {
      */
     protected final boolean add(Write write, Sync sync, Verify verify) {
         try {
-            ensureWriteIntegrity(write);
+            String key = write.getKey().toString();
+            TObject value = write.getValue().getTObject();
+            long record = write.getRecord().longValue();
+            ensureWriteIntegrity(key, value, record);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
@@ -610,7 +599,10 @@ public abstract class BufferedStore implements Store {
      */
     protected final boolean remove(Write write, Sync sync, Verify verify) {
         try {
-            ensureWriteIntegrity(write);
+            String key = write.getKey().toString();
+            TObject value = write.getValue().getTObject();
+            long record = write.getRecord().longValue();
+            ensureWriteIntegrity(key, value, record);
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
