@@ -24,7 +24,7 @@ import com.cinchapi.concourse.server.upgrade.util.Storage.Database;
  *
  * @author Jeff Nelson
  */
-public class Upgrade0_10_2_2 extends SmartUpgradeTask {
+public class Upgrade0_10_6_2 extends SmartUpgradeTask {
 
     @Override
     public String getDescription() {
