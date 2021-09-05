@@ -16,7 +16,11 @@
 package com.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -32,9 +36,12 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.BlockStats.Attribute;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -285,12 +292,144 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         // TODO: check stats
     }
 
+    @Test
+    public void testDeduplicateDuplicateRevisionsInBlocks() {
+        String directory = TestData.getTemporaryTestDir();
+        Set<Write> duplicates = Sets.newHashSet();
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            duplicates.add(
+                    Write.add(TestData.getSimpleString(), TestData.getTObject(),
+                            TestData.getPrimaryKey().longValue()));
+        }
+        List<Block<L, K, V>> blocks = Lists.newArrayList();
+        Set<Block<L, K, V>> expected = Sets.newLinkedHashSet();
+        Block<L, K, V> block = getMutableBlock(directory);
+        blocks.add(block);
+        for (Write write : duplicates) {
+            block.insertUnsafe(extractLocator(write), extractKey(write),
+                    extractValue(write), write.getVersion(), write.getType());
+        }
+        block.sync();
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block = getMutableBlock(directory);
+            blocks.add(block);
+            boolean addDuplicates = TestData.getScaleCount() % 3 == 0;
+            for (int j = 0; j < TestData.getScaleCount(); ++j) {
+                Write write = null;
+                if(addDuplicates && TestData.getScaleCount() % 5 == 0) {
+                    write = Iterables.get(duplicates,
+                            Math.abs(TestData.getInt()) % duplicates.size());
+                    expected.add(block);
+                }
+                else {
+                    while (write == null || duplicates.contains(write)) {
+                        write = TestData.getWriteAdd();
+                    }
+                }
+                block.insertUnsafe(extractLocator(write), extractKey(write),
+                        extractValue(write), write.getVersion(),
+                        write.getType());
+            }
+            block.sync();
+        }
+        String temp = TestData.getTemporaryTestDir();
+        Map<Block<L, K, V>, Block<L, K, V>> results = Block.deduplicate(blocks,
+                id -> getMutableBlock(id, temp));
+        Assert.assertEquals(expected, results.keySet());
+        Path temp2 = Paths.get(TestData.getTemporaryTestDir());
+        for (int i = 0; i < blocks.size(); ++i) {
+            Block<L, K, V> b = blocks.get(i);
+            Block<L, K, V> clean = results.get(b);
+            if(clean != null) {
+                clean.sync();
+                if(b.backup(temp2)) {
+                    b.delete();
+                    if(clean.backup(Paths.get(directory))) {
+                        b = loadBlock(b.getId(), directory);
+                        blocks.set(i, b);
+                        results.remove(b);
+                    }
+                }
+            }
+        }
+        Assert.assertTrue(results.isEmpty());
+        String temp3 = TestData.getTemporaryTestDir();
+        results = Block.deduplicate(blocks, id -> getMutableBlock(id, temp3));
+        Assert.assertTrue(results.isEmpty());
+        List<Block<L, K, V>> loaded = Lists.newArrayList();
+        FileSystem.ls(Paths.get(directory)).filter(
+                file -> file.toString().endsWith(Block.BLOCK_NAME_EXTENSION))
+                .forEach(file -> {
+                    String id = Block.getId(file.toString());
+                    loaded.add(loadBlock(id, directory));
+                });
+        Assert.assertEquals(Sets.newHashSet(blocks), Sets.newHashSet(loaded));
+        String temp4 = TestData.getTemporaryTestDir();
+        results = Block.deduplicate(blocks, id -> getMutableBlock(id, temp4));
+        Assert.assertTrue(results.isEmpty());
+    }
+
+    @Test
+    public void testBackupMutableBlock() {
+        String dir1 = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(dir1);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        Path dir2 = Paths.get(TestData.getTemporaryTestDir());
+        Assert.assertFalse(block.backup(dir2));
+    }
+
+    @Test
+    public void testBackupImmutableBlock() {
+        String dir1 = TestData.getTemporaryTestDir();
+        Block<L, K, V> block = getMutableBlock(dir1);
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            block.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
+        }
+        Path dir2 = Paths.get(TestData.getTemporaryTestDir());
+        block.sync();
+        Assert.assertTrue(block.backup(dir2));
+        Block<L, K, V> backup = loadBlock(block.getId(), dir2.toString());
+        Assert.assertEquals(block.size(), backup.size());
+        Assert.assertEquals(
+                (long) block.stats().get(Attribute.MIN_REVISION_VERSION),
+                (long) backup.stats().get(Attribute.MIN_REVISION_VERSION));
+        Assert.assertEquals(
+                (long) block.stats().get(Attribute.MAX_REVISION_VERSION),
+                (long) backup.stats().get(Attribute.MAX_REVISION_VERSION));
+        Assert.assertEquals((int) block.stats().get(Attribute.SCHEMA_VERSION),
+                (int) backup.stats().get(Attribute.SCHEMA_VERSION));
+        Iterator<Revision<L, K, V>> it = block.iterator();
+        Iterator<Revision<L, K, V>> it2 = backup.iterator();
+        while (it.hasNext()) {
+            Revision<L, K, V> expected = it.next();
+            Revision<L, K, V> actual = it2.next();
+            Assert.assertEquals(expected, actual);
+        }
+    }
+
+    protected abstract Block<L, K, V> loadBlock(String id, String directory);
+
     protected abstract L getLocator();
+
+    protected abstract L extractLocator(Write write);
 
     protected abstract K getKey();
 
+    protected abstract K extractKey(Write write);
+
     protected abstract V getValue();
 
-    protected abstract Block<L, K, V> getMutableBlock(String directory);
+    protected abstract V extractValue(Write write);
+
+    protected Block<L, K, V> getMutableBlock(String directory) {
+        return getMutableBlock(Long.toString(Time.now()), directory);
+    }
+
+    protected abstract Block<L, K, V> getMutableBlock(String id,
+            String directory);
 
 }

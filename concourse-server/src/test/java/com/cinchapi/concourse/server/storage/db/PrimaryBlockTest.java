@@ -18,10 +18,12 @@ package com.cinchapi.concourse.server.storage.db;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -62,8 +64,29 @@ public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value> {
     }
 
     @Override
-    protected PrimaryBlock getMutableBlock(String directory) {
-        return Block.createPrimaryBlock(Long.toString(Time.now()), directory);
+    protected PrimaryBlock getMutableBlock(String id, String directory) {
+        return Block.createPrimaryBlock(id, directory);
+    }
+
+    @Override
+    protected PrimaryKey extractLocator(Write write) {
+        return write.getRecord();
+    }
+
+    @Override
+    protected Text extractKey(Write write) {
+        return write.getKey();
+    }
+
+    @Override
+    protected Value extractValue(Write write) {
+        return write.getValue();
+    }
+
+    @Override
+    protected Block<PrimaryKey, Text, Value> loadBlock(String id,
+            String directory) {
+        return Reflection.newInstance(PrimaryBlock.class, id, directory, true);
     }
 
 }

@@ -235,6 +235,16 @@ public abstract class BaseConcourseServer implements
         plugins().uninstallBundle(name);
     }
 
+    @Override
+    @PluginRestricted
+    @ThrowsManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void repairData(String environment, AccessToken creds)
+            throws TException {
+        getEngine(environment).repair();
+    }
+
     /**
      * Return the location where the server store's contents in the buffer.
      * 

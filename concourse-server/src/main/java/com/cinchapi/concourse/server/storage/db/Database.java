@@ -498,6 +498,85 @@ public final class Database extends BaseStore implements PermanentStore {
         };
     }
 
+    /**
+     * If the {@link Database} is in a corrupt state attempt a repair.
+     * <p>
+     * This is an expensive operation that blocks all other operations.
+     * </p>
+     */
+    public final void repair() {
+        masterLock.writeLock().lock();
+        try {
+            Logger.info("Attempting to repair the Database");
+            Path backups = Paths.get(backingStore).resolve("backups");
+            String staging = Paths.get(backingStore).resolve("staging")
+                    .toString();
+
+            Path directory;
+            // cpb
+            directory = Paths.get(backingStore).resolve("cpb");
+            Logger.info("Searching for duplicate data in cpb");
+            FileSystem.mkdirs(staging);
+            FileSystem.mkdirs(backups.toString());
+            Map<Block<PrimaryKey, Text, Value>, Block<PrimaryKey, Text, Value>> res1 = Block
+                    .deduplicate(cpb,
+                            id -> Block.createPrimaryBlock(id, staging));
+            if(!res1.isEmpty()) {
+                for (int i = 0; i < cpb.size(); ++i) {
+                    Block<PrimaryKey, Text, Value> block = cpb.get(i);
+                    Block<PrimaryKey, Text, Value> clean = res1.get(block);
+                    if(clean != null) {
+                        clean.sync();
+                        if(block.backup(backups)) {
+                            block.delete();
+                            if(clean.backup(directory)) {
+                                block = Reflection.newInstance(
+                                        PrimaryBlock.class, block.getId(),
+                                        directory.toString(), true);
+                                cpb.set(i, (PrimaryBlock) block);
+                                res1.remove(block);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // csb
+            directory = Paths.get(backingStore).resolve("csb");
+            Logger.info("Searching for duplicate data in csb");
+            FileSystem.deleteDirectory(staging);
+            FileSystem.deleteDirectory(backups.toString());
+            FileSystem.mkdirs(staging);
+            FileSystem.mkdirs(backups.toString());
+            Map<Block<Text, Value, PrimaryKey>, Block<Text, Value, PrimaryKey>> res2 = Block
+                    .deduplicate(csb,
+                            id -> Block.createSecondaryBlock(id, staging));
+            if(!res2.isEmpty()) {
+                for (int i = 0; i < csb.size(); ++i) {
+                    Block<Text, Value, PrimaryKey> block = csb.get(i);
+                    Block<Text, Value, PrimaryKey> clean = res2.get(block);
+                    if(clean != null) {
+                        clean.sync();
+                        if(block.backup(backups)) {
+                            block.delete();
+                            if(clean.backup(directory)) {
+                                block = Reflection.newInstance(
+                                        SecondaryBlock.class, block.getId(),
+                                        directory.toString(), true);
+                                csb.set(i, (SecondaryBlock) block);
+                                res2.remove(block);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+
+    }
+
     @Override
     public void reconcile(Set<Long> versions) {
         Logger.debug("Reconciling the states of the Database and Buffer...");
