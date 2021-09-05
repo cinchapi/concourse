@@ -199,7 +199,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     public boolean contains(K key, V value) {
         read.lock();
         try {
-            return $get(key).contains(value);
+            return get(key).contains(value);
         }
         finally {
             read.unlock();
@@ -245,9 +245,9 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     public Set<V> get(K key) {
         read.lock();
         try {
-            Set<V> values = $get(key);
-            return values == emptyValues ? emptyValues
-                    : Collections.unmodifiableSet(values);
+            Set<V> values = present.get(key);
+            return values != null ? Collections.unmodifiableSet(values)
+                    : emptyValues;
         }
         finally {
             read.unlock();
@@ -483,20 +483,6 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
-     * Implementation of {@link #get(Byteable)} for internal use.
-     * <p>
-     * Does not grab the {@link #read read lock} or create an unmodifiable view
-     * of the returned values.
-     * </p>
-     * 
-     * @param key
-     * @return the set of mapped values for {@code key}
-     */
-    private Set<V> $get(K key) {
-        return present.getOrDefault(key, emptyValues);
-    }
-
-    /**
      * Return {@code true} if the action associated with {@code revision}
      * offsets the last action for an equal revision.
      * 
@@ -504,10 +490,11 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * @return {@code true} if the revision if offset.
      */
     private boolean isOffset(Revision<L, K, V> revision) {
-        boolean contained = $get(revision.getKey())
+        boolean contained = get(revision.getKey())
                 .contains(revision.getValue());
         return ((revision.getType() == Action.ADD && !contained)
-                || (revision.getType() == Action.REMOVE && contained));
+                || (revision.getType() == Action.REMOVE && contained)) ? true
+                        : false;
     }
 
     /**
