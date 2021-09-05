@@ -62,7 +62,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
-import com.cinchapi.concourse.server.storage.WriteDeduper;
+import com.cinchapi.concourse.server.storage.WriteStreamProfiler;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -528,9 +528,10 @@ public final class Database implements DurableStore {
         masterLock.writeLock().lock();
         try {
             Logger.info("Attempting to repair the Database");
-            WriteDeduper<Segment> deduper = new WriteDeduper<>(segments,
-                    () -> Segment.create());
-            Map<Segment, Segment> deduped = deduper.run();
+            WriteStreamProfiler<Segment> profiler = new WriteStreamProfiler<>(
+                    segments);
+            Map<Segment, Segment> deduped = profiler
+                    .deduplicate(() -> Segment.create());
             if(!deduped.isEmpty()) {
                 for (int i = 0; i < segments.size(); ++i) {
                     Segment segment = segments.get(i);
@@ -542,6 +543,10 @@ public final class Database implements DurableStore {
                         segment.delete();
                     }
                 }
+                int total = profiler.duplicates().size();
+                Logger.warn(
+                        "Replaced {} Segments that contained duplicate data. In total, across all Segments, there were {} Write{} duplicated.",
+                        deduped.size(), total, total != 1 ? "s" : "");
             }
         }
         finally {
