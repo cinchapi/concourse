@@ -291,7 +291,7 @@ public final class Database implements DurableStore {
     @Override
     public void accept(Write write) {
         // NOTE: This approach is thread safe because write locking happens
-        // in each of #seg0's individual Blocks, and furthermore this method
+        // in each of #seg0's individual Chunks, and furthermore this method
         // is only called from the Buffer, which transports data serially.
         if(running) {
             try {
