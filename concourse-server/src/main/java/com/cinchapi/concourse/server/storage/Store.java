@@ -358,6 +358,23 @@ public interface Store {
     public Memory memory();
 
     /**
+     * If necessary, detect and repair corruption within this {@link Store}.
+     * <p>
+     * The default implementation is a no-op, but {@link Store stores} that
+     * write data to disk may occasionally need to repair file corruption or
+     * logical errors that render cause the {@link Store} to return unexpected
+     * results.
+     * </p>
+     * <p>
+     * This method should be available while the {@link Store} is
+     * {@link #start() running}, while providing a consistent view of data.
+     * Therefore, the implementing class should take care to perform any
+     * necessary coordinating locking.
+     * </p>
+     */
+    public default void repair() {/* no-op */}
+
+    /**
      * Search {@code key} for {@code query}.
      * <p>
      * This method performs a fulltext search for {@code query} in all data

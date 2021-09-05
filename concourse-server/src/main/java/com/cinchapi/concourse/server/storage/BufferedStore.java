@@ -283,6 +283,12 @@ public abstract class BufferedStore implements Store {
     }
 
     @Override
+    public void repair() {
+        durable.repair();
+        limbo.repair();
+    }
+
+    @Override
     public Set<Long> search(String key, String query) {
         // FIXME: should this be implemented using a context instead?
         return Sets.symmetricDifference(limbo.search(key, query),
