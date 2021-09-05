@@ -44,7 +44,12 @@ public class RepairDataCli extends DataCli {
     protected void doTask(Client client) {
         DataOptions opts = (DataOptions) options;
         try {
+            System.out.println("Attempting to repair any corrupted data in '"
+                    + opts.environment + "' ...");
+            System.out.println("Follow the logs for more details...");
             client.repairData(opts.environment, token);
+            System.out.println("Finished repairing any corrupted data in '"
+                    + opts.environment + "' ...");
         }
         catch (Exception e) {
             die(e.getMessage());

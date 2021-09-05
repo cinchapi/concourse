@@ -688,7 +688,13 @@ public final class Engine extends BufferedStore implements
      */
     @ManagedOperation
     public void repair() {
-        ((Database) destination).repair();
+        transportLock.writeLock().lock();
+        try {
+            ((Database) destination).repair();
+        }
+        finally {
+            transportLock.writeLock().unlock();
+        }
     }
 
     @Override

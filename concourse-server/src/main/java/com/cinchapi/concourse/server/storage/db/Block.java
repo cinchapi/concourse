@@ -26,8 +26,11 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +71,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
+import com.google.common.hash.Funnels;
 
 /**
  * <p>
@@ -225,16 +229,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      *         {@link Revision Revisions} have been removed
      */
     public static <L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> Map<Block<L, K, V>, Block<L, K, V>> deduplicate(
-            Iterable<? extends Block<L, K, V>> blocks,
+            Collection<? extends Block<L, K, V>> blocks,
             Function<String, Block<L, K, V>> factory) {
-        LongBitSet bits = LongBitSet.create();
+        VersionSet bits = new VersionSet(blocks.size());
         Map<Block<L, K, V>, Block<L, K, V>> modified = Maps.newLinkedHashMap();
         for (Block<L, K, V> block : blocks) {
+            Logger.debug("Examining {}", block);
             Block<L, K, V> staging = factory.apply(block.getId());
             boolean changed = false;
             for (Revision<L, K, V> revision : block.revisions()) {
                 long version = revision.getVersion();
-                if(bits.set(version)) {
+                if(bits.add(version)) {
                     staging.insertUnsafe(revision.getLocator(),
                             revision.getKey(), revision.getValue(), version,
                             revision.getType());
@@ -1204,6 +1209,71 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
                     .compare(o1.getValue(), o2.getValue()).result();
+        }
+
+    }
+
+    /**
+     * A {@link Set} that can efficiently store a range of {@link Revision}
+     * {@link Revision#getVersion() versions}.
+     * <p>
+     * Because versions correspond to timestamps, the {@link VersionSet} does
+     * not contain negative values. Furthermore, the first version is largely
+     * offset from {@code 0}, so a {@link VersionSet} is more efficient than a
+     * {@link LongBitSet}.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    private static class VersionSet extends AbstractSet<Long> {
+
+        private final LinkedList<Long> versions;
+        private final com.google.common.hash.BloomFilter<Long> filter;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param numBlocks
+         */
+        public VersionSet(int numBlocks) {
+            this.versions = new LinkedList<>();
+            this.filter = com.google.common.hash.BloomFilter.create(
+                    Funnels.longFunnel(),
+                    GlobalState.BUFFER_PAGE_SIZE * numBlocks);
+
+        }
+
+        @Override
+        public Iterator<Long> iterator() {
+            return versions.iterator();
+        }
+
+        @Override
+        public int size() {
+            return versions.size();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            if(o instanceof Long) {
+                long version = (long) o;
+                if(filter.mightContain(version)) {
+                    return versions.contains(version);
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean add(Long e) {
+            if(!contains(e)) {
+                filter.put(e);
+                versions.add(e);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
     }

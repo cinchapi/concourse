@@ -221,6 +221,14 @@ public class Storage {
         public void stop() {
             db.stop();
         }
+
+        /**
+         * Repair the database.
+         */
+        public void repair() {
+            db.repair();
+
+        }
     }
 
     /**
