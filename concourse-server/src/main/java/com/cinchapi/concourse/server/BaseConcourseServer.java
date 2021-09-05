@@ -33,8 +33,6 @@ import com.cinchapi.concourse.server.plugin.PluginManager;
 import com.cinchapi.concourse.server.plugin.PluginRestricted;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.thrift.AccessToken;
-import com.cinchapi.concourse.thrift.ManagementException;
-import com.cinchapi.concourse.thrift.SecurityException;
 import com.cinchapi.concourse.util.Environments;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TSets;
@@ -243,7 +241,7 @@ public abstract class BaseConcourseServer implements
     @VerifyAccessToken
     @VerifyAdminRole
     public void repairData(String environment, AccessToken creds)
-            throws SecurityException, ManagementException, TException {
+            throws TException {
         getEngine(environment).repair();
     }
 
