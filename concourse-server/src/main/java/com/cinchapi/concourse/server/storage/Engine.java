@@ -757,6 +757,8 @@ public final class Engine extends BufferedStore implements
     public void repair() {
         transportLock.writeLock().lock();
         try {
+            Logger.info("Attempting to repair the '{}' environment",
+                    environment);
             super.repair();
         }
         finally {

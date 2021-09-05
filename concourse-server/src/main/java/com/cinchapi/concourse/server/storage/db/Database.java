@@ -527,7 +527,6 @@ public final class Database implements DurableStore {
     public void repair() {
         masterLock.writeLock().lock();
         try {
-            Logger.info("Attempting to repair the Database");
             WriteStreamProfiler<Segment> profiler = new WriteStreamProfiler<>(
                     segments);
             Map<Segment, Segment> deduped = profiler
