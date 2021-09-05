@@ -30,16 +30,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.openhft.chronicle.core.Jvm;
-import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
-import net.openhft.chronicle.map.VanillaChronicleMap;
-import net.openhft.chronicle.set.ChronicleSet;
-
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
-import com.cinchapi.common.logging.Logging;
-import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
@@ -53,6 +46,7 @@ import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
+import com.cinchapi.concourse.server.storage.db.search.TrieSet;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
@@ -69,12 +63,6 @@ import com.google.common.collect.Sets;
 public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements
         SearchIndex {
-
-    static {
-        Logging.disable(Jvm.class);
-        Logging.disable(InternalAnnouncer.class);
-        Logging.disable(VanillaChronicleMap.class);
-    }
 
     /**
      * Global flag that indicates if artifacts should be recorded when
@@ -341,11 +329,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
             Set<String> indexed = isLargeTerm 
-                    ? ChronicleSet.of(String.class).averageKey(
-                            term.substring(0, shouldLimitSubstringLength
-                                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
-                                    : 100))
-                            .entries(upperBound).create()
+                    ? new TrieSet()
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
             final char[] chars = isLargeTerm ? term.toCharArray() : null;
@@ -371,7 +355,6 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     }
                 }
             }
-            PossibleCloseables.tryCloseQuietly(indexed);
             indexed = null; // make eligible for immediate GC
         }
         return count;
