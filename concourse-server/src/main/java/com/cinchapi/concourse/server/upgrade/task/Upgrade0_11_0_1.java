@@ -49,7 +49,7 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
 
     @Override
     public String getDescription() {
-        return "Migrate Database data from Blocks to Segments";
+        return "Migrate from v2 to v3 Storage Format";
     }
 
     @Override
