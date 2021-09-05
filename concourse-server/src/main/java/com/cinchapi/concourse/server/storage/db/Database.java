@@ -538,8 +538,8 @@ public final class Database implements DurableStore {
                     if(clean != null) {
                         clean.transfer(
                                 $segments.resolve(UUID.randomUUID() + ".seg"));
-                        segment.delete();
                         segments.set(i, clean);
+                        segment.delete();
                     }
                 }
             }

@@ -19,12 +19,18 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.util.Logger;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
@@ -34,18 +40,24 @@ import com.google.common.hash.Funnels;
  *
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public final class WriteDeduper<T extends WriteStream> {
 
     /**
-     * The collection of {@link WriteStream WriteStreams}.
+     * The duplicates found during the {@link #run()}.
      */
-    private final Collection<T> streams;
+    private Set<Write> duplicates;
 
     /**
      * A {@link Supplier factory} used to create a new {@link WriteStream} to
      * stage non-duplicate data.
      */
     private final Supplier<T> factory;
+
+    /**
+     * The collection of {@link WriteStream WriteStreams}.
+     */
+    private final Collection<T> streams;
 
     /**
      * Tracks all the {@link Write#getVersion() versions) that have been seen.
@@ -62,6 +74,17 @@ public final class WriteDeduper<T extends WriteStream> {
         this.streams = streams;
         this.factory = factory;
         this.versions = new VersionTracker(streams.size());
+        this.duplicates = ImmutableSet.of();
+    }
+
+    /**
+     * Return a {@link Set} of all the {@link Write Writes} that are found to be
+     * duplicated on the last {@link #run()}
+     * 
+     * @return the duplicate {@link Write Writes}
+     */
+    public Set<Write> duplicates() {
+        return duplicates;
     }
 
     /**
@@ -83,6 +106,7 @@ public final class WriteDeduper<T extends WriteStream> {
      *         stream where duplicates have been removed
      */
     public Map<T, T> run() {
+        duplicates = new LinkedHashSet<>();
         Map<T, T> deduped = new HashMap<>();
         streams.forEach(stream -> {
             T staging = factory.get();
@@ -94,6 +118,7 @@ public final class WriteDeduper<T extends WriteStream> {
                 }
                 else {
                     changed.set(true);
+                    duplicates.add(write);
                     Logger.warn("Found duplicate Write {} in {}", write,
                             stream);
                 }
@@ -122,14 +147,14 @@ public final class WriteDeduper<T extends WriteStream> {
     private static class VersionTracker extends AbstractSet<Long> {
 
         /**
-         * Each version that has been {@link #add(Long) added}.
-         */
-        private final LinkedList<Long> versions;
-
-        /**
          * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
          */
         private final BloomFilter<Long> filter;
+
+        /**
+         * Each version that has been {@link #add(Long) added}.
+         */
+        private final LinkedList<Long> versions;
 
         /**
          * Construct a new instance.
@@ -144,13 +169,15 @@ public final class WriteDeduper<T extends WriteStream> {
         }
 
         @Override
-        public Iterator<Long> iterator() {
-            return versions.iterator();
-        }
-
-        @Override
-        public int size() {
-            return versions.size();
+        public boolean add(Long e) {
+            if(!contains(e)) {
+                filter.put(e);
+                versions.add(e);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         @Override
@@ -165,15 +192,13 @@ public final class WriteDeduper<T extends WriteStream> {
         }
 
         @Override
-        public boolean add(Long e) {
-            if(!contains(e)) {
-                filter.put(e);
-                versions.add(e);
-                return true;
-            }
-            else {
-                return false;
-            }
+        public Iterator<Long> iterator() {
+            return versions.iterator();
+        }
+
+        @Override
+        public int size() {
+            return versions.size();
         }
     }
 
