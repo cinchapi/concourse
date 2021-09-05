@@ -54,6 +54,8 @@
 
 ##### Eliminated risks of data inconsistency caused by premature shutdown
 * Fixed the logic that prevents duplicate data indexing when Concourse Server prematurely shuts down or the background indexing job terminates because of an unexpected error. The logic was previously implemented to address [CON-83](https://cinchapi.atlassian.net/browse/CON-83), but it relied on data values instead of data versions and was therefore not robust enough to handle corner cases descried in [GH-441](https://github.com/cinchapi/concourse/issues/441) and [GH-442](https://github.com/cinchapi/concourse/issues/442).
+  * A `concourse data repair` CLI has been added to detect and remediate data files that are corrupted because of the abovementioned bugs. The CLI can be run at anytime. If no corrupt data files are detected, the CLI has no effect.
+  * Upon upgrading to this version, as a precuation, the CLIs routine is run for each environment.  
 
 ##### Other
 * Fixed a bug that caused the default `log_level` to be `DEBUG` instead of `INFO`.
