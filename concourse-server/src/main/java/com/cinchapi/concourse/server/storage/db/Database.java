@@ -298,7 +298,7 @@ public final class Database implements DurableStore {
                 Receipt receipt = seg0.acquire(write, writer);
                 Logger.debug("Indexed '{}' in {}", write, seg0);
 
-                // Updated cached records
+                // Update cached records
                 TableRecord cpr = tableCache
                         .getIfPresent(receipt.table().getLocatorComposite());
                 TableRecord cppr = tablePartialCache
