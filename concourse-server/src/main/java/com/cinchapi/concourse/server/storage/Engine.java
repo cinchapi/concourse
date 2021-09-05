@@ -84,8 +84,7 @@ import com.google.common.collect.TreeRangeSet;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
         TransactionSupport,
-        AtomicSupport,
-        InventoryTracker {
+        AtomicSupport {
 
     //
     // NOTES ON LOCKING:
@@ -685,11 +684,6 @@ public final class Engine extends BufferedStore implements
             sb.append(System.getProperty("line.separator"));
         }
         return sb.toString();
-    }
-
-    @Override
-    public Inventory getInventory() {
-        return inventory;
     }
 
     @Override

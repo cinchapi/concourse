@@ -64,7 +64,6 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
-import com.cinchapi.concourse.server.storage.InventoryTracker;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.thrift.Operator;
@@ -100,7 +99,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo implements InventoryTracker {
+public final class Buffer extends Limbo {
 
     /**
      * The average number of bytes used to store an arbitrary Write.
@@ -571,11 +570,6 @@ public final class Buffer extends Limbo implements InventoryTracker {
     @Override
     public int getDesiredTransportSleepTimeInMs() {
         return transportThreadSleepTimeInMs;
-    }
-
-    @Override
-    public Inventory getInventory() {
-        return inventory;
     }
 
     /**
