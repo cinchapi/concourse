@@ -189,6 +189,16 @@ public abstract class BaseConcourseServer implements
     @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    public void repairData(String environment, AccessToken creds)
+            throws TException {
+        getEngine(environment).repair();
+    }
+
+    @Override
+    @PluginRestricted
+    @TranslateManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
     public void revoke(ByteBuffer username, String environment,
             AccessToken creds) throws TException {
         users().revoke(username, Environments.sanitize(environment));

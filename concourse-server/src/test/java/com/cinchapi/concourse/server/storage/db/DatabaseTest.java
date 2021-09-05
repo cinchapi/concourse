@@ -45,7 +45,9 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -301,6 +303,62 @@ public class DatabaseTest extends StoreTest {
         }
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
+    }
+
+    @Test
+    public void testRepairDuplicateData() {
+        Database db = (Database) store;
+        Set<Write> duplicates = Sets.newHashSet();
+        for (int i = 0; i < 10; ++i) {
+            duplicates.add(
+                    Write.add(TestData.getSimpleString(), TestData.getTObject(),
+                            TestData.getIdentifier().longValue()));
+        }
+        for (Write write : duplicates) {
+            db.accept(write);
+        }
+        db.sync();
+        Write duplicate = null;
+        int count = 0;
+        while (count < 5 || duplicate == null) {
+            boolean addDuplicates = TestData.getScaleCount() % 3 == 0;
+            for (int j = 0; j < TestData.getScaleCount(); ++j) {
+                Write write = null;
+                if(addDuplicates && TestData.getScaleCount() % 5 == 0) {
+                    write = Iterables.get(duplicates,
+                            Math.abs(TestData.getInt()) % duplicates.size());
+                    duplicate = MoreObjects.firstNonNull(duplicate, write);
+                }
+                else {
+                    while (write == null || duplicates.contains(write)) {
+                        write = TestData.getWriteAdd();
+                    }
+                }
+                db.accept(write);
+            }
+            db.sync();
+            ++count;
+        }
+        Write write = duplicate;
+        try {
+            db.verify(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
+            Assert.fail("Expected an unoffset Write exception");
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
+        try {
+            db.select(write.getRecord().longValue());
+            Assert.fail("Expected an unoffset Write exception");
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
+        db.repair();
+        db.verify(write.getKey().toString(), write.getValue().getTObject(),
+                write.getRecord().longValue());
+        db.select(write.getRecord().longValue());
     }
 
     @Override

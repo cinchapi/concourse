@@ -421,6 +421,9 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public final void repair() {/* no-op */}
+
+    @Override
     public final Set<Long> search(String key, String query)
             throws AtomicStateException {
         checkState();

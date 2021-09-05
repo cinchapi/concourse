@@ -753,6 +753,20 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    @ManagedOperation
+    public void repair() {
+        transportLock.writeLock().lock();
+        try {
+            Logger.info("Attempting to repair the '{}' environment",
+                    environment);
+            super.repair();
+        }
+        finally {
+            transportLock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public Set<Long> search(String key, String query) {
         // NOTE: Range locking for a search query requires too much overhead, so
         // we must be willing to live with the fact that a search query may

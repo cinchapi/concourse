@@ -51,6 +51,7 @@ import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.WriteStream;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
@@ -128,7 +129,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 @Immutable
 @ThreadSafe
 public final class Segment extends TransferableByteSequence implements
-        Itemizable {
+        Itemizable,
+        WriteStream {
 
     /**
      * Create a new {@link Segment}.
@@ -537,6 +539,11 @@ public final class Segment extends TransferableByteSequence implements
         }
     }
 
+    @Override
+    public void append(Write write) {
+        acquire(write);
+    }
+
     /**
      * Return this {@link Segment Segment's} {@link CorpusChunk}, if it exists.
      * 
@@ -701,11 +708,12 @@ public final class Segment extends TransferableByteSequence implements
 
     /**
      * Return a {@link Stream} containing all the {@link Write Writes} that were
-     * {@link #acquire(Write, AwaitableExecutorService) transferred} to this
+     * {@link #acquire(Write, AwaitableExecutorService) acquired} by this
      * {@link Segment}.
      * 
      * @return the transferred {@link Write Writes}
      */
+    @Override
     public Stream<Write> writes() {
         return StreamSupport.stream(table.spliterator(), false)
                 .map(revision -> Reflection.newInstance(Write.class,

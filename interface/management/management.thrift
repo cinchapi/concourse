@@ -319,4 +319,16 @@ service ConcourseManagementService {
     2: exceptions.ManagementException ex2,
   );
 
+  /**
+   *  Attempt to repair corrupt data files
+   */
+  void repairData (
+    1: string environment
+    2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  )
+
 }
