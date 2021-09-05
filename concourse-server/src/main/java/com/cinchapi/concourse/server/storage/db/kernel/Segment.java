@@ -121,10 +121,10 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 /*
  * NOTE: Segment thread-safety is guaranteed by a #readLock and #writeLock.
- * The Segment is responsibility for asynchronously writing data to each
- * Chunk, so it handles write locking here. On the other hand, it defers all
- * reads to each Chunk individually, so Chunks grab the Segment's #readLock
- * for each read operation.
+ * The Segment is responsible for asynchronously writing data to each Chunk, so
+ * it handles write locking here. On the other hand, it defers all reads to each
+ * Chunk individually, so Chunks grab the Segment's #readLock for each read
+ * operation.
  */
 @Immutable
 @ThreadSafe
