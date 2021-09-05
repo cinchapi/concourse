@@ -62,6 +62,7 @@ import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
+import com.cinchapi.concourse.server.storage.WriteDeduper;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -520,6 +521,33 @@ public final class Database implements DurableStore {
                 segments.remove(index);
             }
         }
+    }
+
+    @Override
+    public void repair() {
+        masterLock.writeLock().lock();
+        try {
+            Logger.info("Attempting to repair the Database");
+            WriteDeduper<Segment> deduper = new WriteDeduper<>(segments,
+                    () -> Segment.create());
+            Map<Segment, Segment> deduped = deduper.run();
+            if(!deduped.isEmpty()) {
+                for (int i = 0; i < segments.size(); ++i) {
+                    Segment segment = segments.get(i);
+                    Segment clean = deduped.get(segment);
+                    if(clean != null) {
+                        clean.transfer(
+                                $segments.resolve(UUID.randomUUID() + ".seg"));
+                        segment.delete();
+                        segments.set(i, clean);
+                    }
+                }
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+
     }
 
     @Override
