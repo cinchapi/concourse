@@ -564,7 +564,7 @@ public abstract class BufferedStore implements Store {
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
-            if(verify == Verify.NO || !verify(write)) {
+            if(verify == Verify.NO || !verifyWithReentrancy(write)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -606,7 +606,7 @@ public abstract class BufferedStore implements Store {
             // NOTE: #verify ends up being NO when the Engine accepts Writes
             // that are transported from a committing AtomicOperation or
             // Transaction
-            if(verify == Verify.NO || verify(write)) {
+            if(verify == Verify.NO || verifyWithReentrancy(write)) {
                 // NOTE: #sync ends up being NO when the Engine accepts
                 // Writes that are transported from a committing AtomicOperation
                 // or Transaction, in which case passing this boolean along to
@@ -621,6 +621,28 @@ public abstract class BufferedStore implements Store {
             return false;
         }
     }
+
+    /**
+     * {@link #verify(Write) Verify} the {@link Write} in a manner that assumes
+     * any related locks have already been grabbed and don't need to be grabbed
+     * again.
+     * <p>
+     * Internally, this method is called when {@link #add(Write, Sync, Verify)
+     * adding} or {@link #remove(Write, Sync, Verify) removing} a {@link Write},
+     * so any locking procedures related to {@link Write} will have already run
+     * as part of those routines.
+     * </p>
+     * <p>
+     * In most cases, it is acceptable to call {@code super.verify(write)} from
+     * this method as that routine defined in this class does not perform any
+     * locking.
+     * </p>
+     * 
+     * @param write
+     * @return {@code} true if the {@link Write Write's} element currently
+     *         exists in the this {@link BufferedStore store}.
+     */
+    protected abstract boolean verifyWithReentrancy(Write write);
 
     /**
      * A semantic enum to track whether the {@link Write} from an add or remove

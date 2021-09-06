@@ -664,6 +664,11 @@ public class AtomicOperation extends BufferedStore implements
         return ((Queue) limbo).size() == 0;
     }
 
+    @Override
+    protected boolean verifyWithReentrancy(Write write) {
+        return super.verify(write);
+    }
+
     /**
      * Check each one of the {@link #intentions} against the
      * {@link #durable} and grab the appropriate locks along the way. This

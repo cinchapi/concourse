@@ -975,6 +975,11 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    protected boolean verifyWithReentrancy(Write write) {
+        return super.verify(write);
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
