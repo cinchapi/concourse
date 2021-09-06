@@ -53,7 +53,9 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Logger;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
@@ -91,9 +93,8 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
             Logger.warn("There isn't enough native memory to deduplicate "
                     + "up to {} search indexes, so the operation must be "
                     + "performed on disk, which is A LOT slower...", e);
-            System.out.println("Out of memory...");
             // This *usually* means that there isn't enough off heap memory
-            // needed for Chronicle, so fallback to storing the entires on disk
+            // needed for Chronicle, so fallback to storing the entries on disk
             // and using a bloom filter to "speed" things up. This will be slow
             // AF, but is a last resort to try to keep things running.
             return new FileTextSet(expectedInsertions);
@@ -140,13 +141,13 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         }
 
         @Override
-        public Iterator<Text> iterator() {
-            return chronicle.iterator();
+        public boolean add(Text text) {
+            return chronicle.add(text);
         }
 
         @Override
-        public int size() {
-            return chronicle.size();
+        public void close() throws IOException {
+            chronicle.close();
         }
 
         @Override
@@ -155,13 +156,13 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         }
 
         @Override
-        public boolean add(Text text) {
-            return chronicle.add(text);
+        public Iterator<Text> iterator() {
+            return chronicle.iterator();
         }
 
         @Override
-        public void close() throws IOException {
-            chronicle.close();
+        public int size() {
+            return chronicle.size();
         }
 
         /**
@@ -179,11 +180,6 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
              */
             static TextBytesMarshaller INSTANCE = new TextBytesMarshaller();
 
-            @Override
-            public @NotNull TextBytesMarshaller readResolve() {
-                return INSTANCE;
-            }
-
             @SuppressWarnings("rawtypes")
             @Override
             public Text read(Bytes in, Text using) {
@@ -192,6 +188,11 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
                 in.read(bytes);
                 bytes.flip();
                 return Text.fromByteBufferCached(bytes);
+            }
+
+            @Override
+            public @NotNull TextBytesMarshaller readResolve() {
+                return INSTANCE;
             }
 
             @SuppressWarnings("rawtypes")
@@ -213,9 +214,14 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
     private static class FileTextSet extends OffHeapTextSet {
 
         /**
-         * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
+         * Known collisions that are stored in an effort to prevent a linear
+         * probe of the underlying file. We only store known collisions here
+         * (e.g. when a call to {@link #contains(byte[])} returns true) so this
+         * does not have the same memory overhead as storing the entire
+         * set of {@link Text}.
          */
-        private final BloomFilter<byte[]> filter;
+        private final Multimap<Integer, byte[]> collisions = HashMultimap
+                .create();
 
         /**
          * {@link FileChannel} used for reading and writing the {@link Text} to
@@ -224,10 +230,14 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         private final FileChannel channel;
 
         /**
-         * A {@link ByteSink} used for abstracting writes to the
-         * {@link #channel}.
+         * The backing file.
          */
-        private final ByteSink sink;
+        private final Path file;
+
+        /**
+         * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
+         */
+        private final BloomFilter<byte[]> filter;
 
         /**
          * The position for writing in {@link FileChannel}.
@@ -235,9 +245,10 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         private long position = 0;
 
         /**
-         * The backing file.
+         * A {@link ByteSink} used for abstracting writes to the
+         * {@link #channel}.
          */
-        private final Path file;
+        private final ByteSink sink;
 
         /**
          * Construct a new instance.
@@ -248,68 +259,6 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
             this.file = Paths.get(FileOps.tempFile());
             this.channel = FileSystem.getFileChannel(file);
             this.sink = ByteSink.to(channel);
-        }
-
-        @Override
-        public Iterator<Text> iterator() {
-            return new CloseableIterator<Text>() {
-
-                MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
-                        0, position);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-
-                @Override
-                public boolean hasNext() {
-                    return it.hasNext();
-                }
-
-                @Override
-                public Text next() {
-                    return Text.fromByteBuffer(it.next());
-                }
-
-                @Override
-                public void close() throws IOException {
-                    FileSystem.unmapAsync(bytes);
-                }
-
-            };
-        }
-
-        @Override
-        public int size() {
-            return Iterators.size(iterator());
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            if(o instanceof Text) {
-                Text text = (Text) o;
-                return contains(ByteBuffers.getByteArray(text.getBytes()));
-            }
-            else {
-                return false;
-            }
-        }
-
-        private boolean contains(byte[] bytes) {
-            if(filter.mightContain(bytes)) {
-                MappedByteBuffer buffer = FileSystem.map(file,
-                        MapMode.READ_ONLY, 0, position);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
-                try {
-                    while (it.hasNext()) {
-                        if(Arrays.equals(bytes,
-                                ByteBuffers.getByteArray(it.next()))) {
-                            return true;
-                        }
-                    }
-                }
-                finally {
-                    FileSystem.unmapAsync(buffer);
-                }
-            }
-            return false;
         }
 
         @Override
@@ -337,6 +286,94 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         @Override
         public void close() throws IOException {
             channel.close();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            if(o instanceof Text) {
+                Text text = (Text) o;
+                return contains(ByteBuffers.getByteArray(text.getBytes()));
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public Iterator<Text> iterator() {
+            return new CloseableIterator<Text>() {
+
+                MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
+                        0, position);
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+
+                @Override
+                public void close() throws IOException {
+                    FileSystem.unmapAsync(bytes);
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Text next() {
+                    return Text.fromByteBuffer(it.next());
+                }
+
+            };
+        }
+
+        @Override
+        public int size() {
+            return Iterators.size(iterator());
+        }
+
+        /**
+         * Return {@code true} if the {@code bytes} have been added to the
+         * {@link #file}.
+         * 
+         * @param bytes
+         * @return {@code true} if the {@link #file} contains the {@code bytes}
+         */
+        private boolean contains(byte[] bytes) {
+            if(filter.mightContain(bytes)) {
+                int hashCode = Arrays.hashCode(bytes);
+                for (byte[] possible : collisions.get(hashCode)) {
+                    if(Arrays.equals(possible, bytes)) {
+                        return true;
+                    }
+                }
+                MappedByteBuffer buffer = FileSystem.map(file,
+                        MapMode.READ_ONLY, 0, position);
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
+                try {
+                    while (it.hasNext()) {
+                        if(Arrays.equals(bytes,
+                                ByteBuffers.getByteArray(it.next()))) {
+                            try {
+                                collisions.put(hashCode, bytes);
+                            }
+                            catch (OutOfMemoryError e) {
+                                // Ignore and keep on trucking. We were using
+                                // this data structure because memory was in
+                                // short supply, but we kept an in-memory of
+                                // known collisions to try to speed things up.
+                                // If we're truly at a point where memory isn't
+                                // available, just suffer the reality of needing
+                                // a linear probe to be aware of any new
+                                // collisions.
+                            }
+                            return true;
+                        }
+                    }
+                }
+                finally {
+                    FileSystem.unmapAsync(buffer);
+                }
+            }
+            return false;
         }
     }
 
