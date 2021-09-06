@@ -99,10 +99,12 @@ public class Upgrade0_11_0_1 extends SmartUpgradeTask {
                 .forEachRemaining(environment -> {
                     Path directory = Paths.get(GlobalState.DATABASE_DIRECTORY)
                             .resolve(environment).resolve("segments");
-                    Iterable<Segment> segments = StorageFormatV3
-                            .load(directory);
-                    for (Segment segment : segments) {
-                        segment.delete();
+                    if(directory.toFile().exists()) {
+                        Iterable<Segment> segments = StorageFormatV3
+                                .load(directory);
+                        for (Segment segment : segments) {
+                            segment.delete();
+                        }
                     }
                 });
 
