@@ -50,6 +50,7 @@ import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -132,6 +133,39 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             long size, BloomFilter filter, Manifest manifest) {
         return new CorpusChunk(segment, segment.file(), segment.channel(),
                 position, size, filter, manifest);
+    }
+
+    /**
+     * Return the upper bound on the number of possible substrings in a
+     * {@code string} while properly handling integer overflow.
+     * 
+     * @param string
+     * @return the upper bound
+     */
+    @VisibleForTesting
+    protected static int upperBoundOfPossibleSubstrings(String string) {
+        return upperBoundOfPossibleSubstrings(string.length());
+    }
+
+    /**
+     * Return the upper bound on the number of possible substrings in a string
+     * with {@code length} characters while properly handling integer overflow.
+     * 
+     * @param length
+     * @return the upper bound
+     */
+    private static int upperBoundOfPossibleSubstrings(int length) {
+        int upperBound;
+        try {
+            // See: https://www.geeksforgeeks.org/number-substrings-string
+            // [length * (length + 1) / 2]
+            upperBound = Math.multiplyExact(length, Math.addExact(length, 1))
+                    / 2;
+        }
+        catch (ArithmeticException e) {
+            upperBound = Integer.MAX_VALUE;
+        }
+        return upperBound;
     }
 
     /**
@@ -317,7 +351,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         if(!GlobalState.STOPWORDS.contains(term)) {
             Position pos = Position.of(record, position);
             int length = term.length();
-            int upperBound = length * (length + 1) / 2; // https://www.geeksforgeeks.org/number-substrings-string/
+            int upperBound = upperBoundOfPossibleSubstrings(length);
 
             // Detect if the #term is large enough to likely cause OOMs when
             // indexing and prepare the appropriate precautions.
@@ -353,7 +387,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     // @formatter:off
                     Text infix = (isLargeTerm 
                             ? Text.wrap(chars, i, j)
-                            : Text.wrapCached(term.substring(i, j))).trim();
+                            : Text.wrap(term.substring(i, j))).trim();
                     // @formatter:on
                     if(!infix.isEmpty() && !STOPWORDS.contains(infix)
                             && indexed.add(infix)) {
