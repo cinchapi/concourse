@@ -339,7 +339,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
             Set<Text> indexed = isLargeTerm 
-                    ? new OffHeapTextSet(upperBound)
+                    ? OffHeapTextSet.create(upperBound)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
             final char[] chars = isLargeTerm ? term.toCharArray() : null;
