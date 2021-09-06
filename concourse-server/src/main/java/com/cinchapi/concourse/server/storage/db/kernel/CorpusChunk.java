@@ -15,17 +15,17 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
-import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
-
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
+import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
@@ -44,13 +45,12 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
+import com.cinchapi.concourse.server.storage.db.search.OffHeapTextSet;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
-import com.cinchapi.concourse.server.storage.db.search.TrieSet;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
@@ -69,6 +69,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
      */
     private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
+
+    /**
+     * {@link GlobalState#STOPWORDS} mapped to {@link Text} so that they can be
+     * used in the
+     * {@link #prepare(CountUpLatch, Text, String, Identifier, int, long, Action, Collection)}
+     * method.
+     */
+    private final static Set<Text> STOPWORDS = GlobalState.STOPWORDS.stream()
+            .map(Text::wrap)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -304,7 +314,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             Identifier record, int position, long version, Action type,
             Collection<CorpusArtifact> artifacts) {
         int count = 0;
-        if(!STOPWORDS.contains(term)) {
+        if(!GlobalState.STOPWORDS.contains(term)) {
             Position pos = Position.of(record, position);
             int length = term.length();
             int upperBound = (int) Math.pow(length, 2);
@@ -328,8 +338,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
-            Set<String> indexed = isLargeTerm 
-                    ? new TrieSet()
+            Set<Text> indexed = isLargeTerm 
+                    ? new OffHeapTextSet(upperBound)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
             final char[] chars = isLargeTerm ? term.toCharArray() : null;
@@ -340,21 +350,20 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;
                 for (int j = start; j < limit; ++j) {
-                    String substring = term.substring(i, j).trim();
                     // @formatter:off
-                    Text infix = isLargeTerm 
-                            ? Text.wrap(chars, i, j).trim()
-                            : Text.wrapCached(substring);
+                    Text infix = (isLargeTerm 
+                            ? Text.wrap(chars, i, j)
+                            : Text.wrapCached(term.substring(i, j))).trim();
                     // @formatter:on
-                    if(!Strings.isNullOrEmpty(substring)
-                            && !STOPWORDS.contains(substring)
-                            && indexed.add(substring)) {
+                    if(!infix.isEmpty() && !STOPWORDS.contains(infix)
+                            && indexed.add(infix)) {
                         INDEXER.enqueue(this, tracker, key, infix, pos, version,
                                 type, artifacts);
                         ++count;
                     }
                 }
             }
+            PossibleCloseables.tryCloseQuietly(indexed);
             indexed = null; // make eligible for immediate GC
         }
         return count;
