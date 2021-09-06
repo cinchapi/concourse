@@ -317,11 +317,11 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         if(!GlobalState.STOPWORDS.contains(term)) {
             Position pos = Position.of(record, position);
             int length = term.length();
-            int upperBound = (int) Math.pow(length, 2);
+            int upperBound = length * (length + 1) / 2; // https://www.geeksforgeeks.org/number-substrings-string/
 
             // Detect if the #term is large enough to likely cause OOMs when
             // indexing and prepare the appropriate precautions.
-            boolean isLargeTerm = upperBound > 10000000;
+            boolean isLargeTerm = upperBound > 5000000;
 
             // A flag that indicates whether the {@link #prepare(CountUpLatch,
             // Text, String, PrimaryKey, int, long, Action) prepare} function
