@@ -56,6 +56,9 @@ public class OffHeapTextSet extends AbstractSet<Text> implements Closeable {
         Logging.disable(VanillaChronicleMap.class);
     }
 
+    /**
+     * The backing store.
+     */
     private final ChronicleSet<Text> chronicle;
 
     /**
