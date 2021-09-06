@@ -102,11 +102,19 @@ public class OffHeapTextSet extends AbstractSet<Text> implements Closeable {
         chronicle.close();
     }
 
+    /**
+     * Used to serialize {@link Text} to/from a {@link ChronicleSet}.
+     *
+     * @author Jeff Nelson
+     */
     private static final class TextBytesMarshaller implements
             BytesWriter<Text>,
             BytesReader<Text>,
             ReadResolvable<TextBytesMarshaller> {
 
+        /**
+         * Singleton.
+         */
         static TextBytesMarshaller INSTANCE = new TextBytesMarshaller();
 
         @Override
