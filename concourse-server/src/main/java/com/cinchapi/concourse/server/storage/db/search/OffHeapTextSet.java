@@ -18,10 +18,13 @@ package com.cinchapi.concourse.server.storage.db.search;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -42,16 +45,17 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.logging.Logging;
 import com.cinchapi.concourse.annotate.Experimental;
+import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Logger;
 import com.google.common.collect.Iterators;
 import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnel;
-import com.google.common.hash.PrimitiveSink;
+import com.google.common.hash.Funnels;
 
 /**
  * A {@link Set} of {@link Text} that is stored off-heap.
@@ -84,6 +88,10 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
             return new ChronicleTextSet(expectedInsertions);
         }
         catch (OutOfMemoryError e) {
+            Logger.warn("There isn't enough native memory to deduplicate "
+                    + "up to {} search indexes, so the operation must be "
+                    + "performed on disk, which is A LOT slower...", e);
+            System.out.println("Out of memory...");
             // This *usually* means that there isn't enough off heap memory
             // needed for Chronicle, so fallback to storing the entires on disk
             // and using a bloom filter to "speed" things up. This will be slow
@@ -123,9 +131,10 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
          * Construct a new instance.
          */
         public ChronicleTextSet(int expectedInsertions) {
-            // TODO: how to size chronicle if we don't know the key in advance?
             this.chronicle = ChronicleSet.of(Text.class)
-                    .averageKeySize(expectedInsertions)
+                    .averageKeySize(GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
+                            ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
+                            : 100)
                     .keyMarshaller(TextBytesMarshaller.INSTANCE)
                     .entries(expectedInsertions).create();
         }
@@ -204,22 +213,9 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
     private static class FileTextSet extends OffHeapTextSet {
 
         /**
-         * The {@link Funnel} to sink {@link Text} into the {@link #filter}.
-         */
-        @SuppressWarnings("serial")
-        private static final Funnel<Text> FUNNEL = new Funnel<Text>() {
-
-            @Override
-            public void funnel(Text from, PrimitiveSink into) {
-                into.putBytes(from.getBytes());
-            }
-
-        };
-
-        /**
          * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
          */
-        private final BloomFilter<Text> filter;
+        private final BloomFilter<byte[]> filter;
 
         /**
          * {@link FileChannel} used for reading and writing the {@link Text} to
@@ -247,19 +243,20 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
          * Construct a new instance.
          */
         public FileTextSet(int expectedInsertions) {
-            this.filter = BloomFilter.create(FUNNEL, expectedInsertions);
+            this.filter = BloomFilter.create(Funnels.byteArrayFunnel(),
+                    expectedInsertions);
             this.file = Paths.get(FileOps.tempFile());
-            channel = FileSystem.getFileChannel(file);
-            sink = ByteSink.to(channel);
+            this.channel = FileSystem.getFileChannel(file);
+            this.sink = ByteSink.to(channel);
         }
 
         @Override
         public Iterator<Text> iterator() {
-            return new Iterator<Text>() {
+            return new CloseableIterator<Text>() {
 
-                @SuppressWarnings("deprecation")
-                Iterator<ByteBuffer> it = ByteableCollections.streamingIterator(
-                        file, 0, position, GlobalState.DISK_READ_BUFFER_SIZE);
+                MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
+                        0, position);
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
 
                 @Override
                 public boolean hasNext() {
@@ -269,6 +266,11 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
                 @Override
                 public Text next() {
                     return Text.fromByteBuffer(it.next());
+                }
+
+                @Override
+                public void close() throws IOException {
+                    FileSystem.unmapAsync(bytes);
                 }
 
             };
@@ -283,14 +285,28 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         public boolean contains(Object o) {
             if(o instanceof Text) {
                 Text text = (Text) o;
-                if(filter.mightContain(text)) {
-                    Iterator<Text> it = iterator();
+                return contains(ByteBuffers.getByteArray(text.getBytes()));
+            }
+            else {
+                return false;
+            }
+        }
+
+        private boolean contains(byte[] bytes) {
+            if(filter.mightContain(bytes)) {
+                MappedByteBuffer buffer = FileSystem.map(file,
+                        MapMode.READ_ONLY, 0, position);
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
+                try {
                     while (it.hasNext()) {
-                        Text next = it.next();
-                        if(text.equals(next)) {
+                        if(Arrays.equals(bytes,
+                                ByteBuffers.getByteArray(it.next()))) {
                             return true;
                         }
                     }
+                }
+                finally {
+                    FileSystem.unmapAsync(buffer);
                 }
             }
             return false;
@@ -298,16 +314,15 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
 
         @Override
         public boolean add(Text text) {
-            if(!contains(text)) {
+            byte[] bytes = ByteBuffers.getByteArray(text.getBytes());
+            if(!contains(bytes)) {
                 try {
-                    filter.put(text);
+                    filter.put(bytes);
                     channel.position(position);
-                    ByteBuffer bytes = text.getBytes();
-                    int size = bytes.remaining();
-                    sink.putInt(size);
+                    sink.putInt(bytes.length);
                     sink.put(bytes);
                     sink.flush();
-                    position += 4 + size;
+                    position += 4 + bytes.length;
                     return true;
                 }
                 catch (IOException e) {
