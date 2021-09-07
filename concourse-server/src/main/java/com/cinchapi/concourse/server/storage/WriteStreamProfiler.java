@@ -16,17 +16,20 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
@@ -78,7 +81,9 @@ public final class WriteStreamProfiler<T extends WriteStream> {
      */
     public WriteStreamProfiler(Collection<T> streams) {
         this.streams = streams;
-        this.versions = new VersionTracker(streams.size());
+        this.versions = new VersionTracker(
+                (GlobalState.BUFFER_PAGE_SIZE / Write.MINIMUM_SIZE)
+                        * streams.size());
         this.duplicates = null;
     }
 
@@ -120,22 +125,37 @@ public final class WriteStreamProfiler<T extends WriteStream> {
         duplicates = LinkedHashMultimap.create();
         Map<T, T> deduped = new HashMap<>();
         streams.forEach(stream -> {
-            T staging = factory.get();
-            AtomicBoolean changed = new AtomicBoolean(false);
+            AtomicReference<T> staging = new AtomicReference<>(null);
+            List<Write> unique = new ArrayList<>();
             stream.writes().forEach(write -> {
                 long version = write.getVersion();
                 if(versions.add(version)) {
-                    staging.append(write);
+                    if(staging.get() != null) {
+                        staging.get().append(write);
+                    }
+                    else {
+                        unique.add(write);
+                    }
                 }
                 else {
-                    changed.set(true);
-                    duplicates.put(write, stream);
                     Logger.warn("Found duplicate Write {} in {}", write,
                             stream);
+                    if(staging.get() == null) {
+                        staging.set(factory.get());
+                        for (Write seen : unique) {
+                            staging.get().append(seen);
+                        }
+                        unique.clear();
+                    }
+                    duplicates.put(write, stream);
+
                 }
             });
-            if(changed.get()) {
-                deduped.put(stream, staging);
+            if(staging.get() != null) {
+                deduped.put(stream, staging.get());
+            }
+            else {
+                Logger.info("No duplicate Writes found in {}", stream);
             }
         });
         return deduped;
