@@ -40,6 +40,8 @@ import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
@@ -309,6 +311,14 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
     @Ignore
     public void testIterator() {
         // Direct insert for CorpusChunk is unsupported
+    }
+
+    @Test
+    public void testLargeUpperBound() {
+        String string = FileOps
+                .read(Resources.getAbsolutePath("/long-string2.txt"));
+        Assert.assertTrue(
+                CorpusChunk.upperBoundOfPossibleSubstrings(string) > 0);
     }
 
     /**

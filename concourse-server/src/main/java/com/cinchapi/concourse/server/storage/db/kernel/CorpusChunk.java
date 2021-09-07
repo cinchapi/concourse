@@ -15,30 +15,24 @@
  */
 package com.cinchapi.concourse.server.storage.db.kernel;
 
-import static com.cinchapi.concourse.server.GlobalState.STOPWORDS;
-
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.openhft.chronicle.core.Jvm;
-import net.openhft.chronicle.core.internal.announcer.InternalAnnouncer;
-import net.openhft.chronicle.map.VanillaChronicleMap;
-import net.openhft.chronicle.set.ChronicleSet;
-
 import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.concurrent.CountUpLatch;
-import com.cinchapi.common.logging.Logging;
 import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.server.GlobalState;
@@ -51,12 +45,13 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
+import com.cinchapi.concourse.server.storage.db.search.OffHeapTextSet;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
@@ -70,17 +65,21 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements
         SearchIndex {
 
-    static {
-        Logging.disable(Jvm.class);
-        Logging.disable(InternalAnnouncer.class);
-        Logging.disable(VanillaChronicleMap.class);
-    }
-
     /**
      * Global flag that indicates if artifacts should be recorded when
      * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
      */
     private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
+
+    /**
+     * {@link GlobalState#STOPWORDS} mapped to {@link Text} so that they can be
+     * used in the
+     * {@link #prepare(CountUpLatch, Text, String, Identifier, int, long, Action, Collection)}
+     * method.
+     */
+    private final static Set<Text> STOPWORDS = GlobalState.STOPWORDS.stream()
+            .map(Text::wrap)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -134,6 +133,39 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             long size, BloomFilter filter, Manifest manifest) {
         return new CorpusChunk(segment, segment.file(), segment.channel(),
                 position, size, filter, manifest);
+    }
+
+    /**
+     * Return the upper bound on the number of possible substrings in a
+     * {@code string} while properly handling integer overflow.
+     * 
+     * @param string
+     * @return the upper bound
+     */
+    @VisibleForTesting
+    protected static int upperBoundOfPossibleSubstrings(String string) {
+        return upperBoundOfPossibleSubstrings(string.length());
+    }
+
+    /**
+     * Return the upper bound on the number of possible substrings in a string
+     * with {@code length} characters while properly handling integer overflow.
+     * 
+     * @param length
+     * @return the upper bound
+     */
+    private static int upperBoundOfPossibleSubstrings(int length) {
+        int upperBound;
+        try {
+            // See: https://www.geeksforgeeks.org/number-substrings-string
+            // [length * (length + 1) / 2]
+            upperBound = Math.multiplyExact(length, Math.addExact(length, 1))
+                    / 2;
+        }
+        catch (ArithmeticException e) {
+            upperBound = Integer.MAX_VALUE;
+        }
+        return upperBound;
     }
 
     /**
@@ -316,14 +348,14 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             Identifier record, int position, long version, Action type,
             Collection<CorpusArtifact> artifacts) {
         int count = 0;
-        if(!STOPWORDS.contains(term)) {
+        if(!GlobalState.STOPWORDS.contains(term)) {
             Position pos = Position.of(record, position);
             int length = term.length();
-            int upperBound = (int) Math.pow(length, 2);
+            int upperBound = upperBoundOfPossibleSubstrings(length);
 
             // Detect if the #term is large enough to likely cause OOMs when
             // indexing and prepare the appropriate precautions.
-            boolean isLargeTerm = upperBound > 10000000;
+            boolean isLargeTerm = upperBound > 5000000;
 
             // A flag that indicates whether the {@link #prepare(CountUpLatch,
             // Text, String, PrimaryKey, int, long, Action) prepare} function
@@ -340,12 +372,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
-            Set<String> indexed = isLargeTerm 
-                    ? ChronicleSet.of(String.class).averageKey(
-                            term.substring(0, shouldLimitSubstringLength
-                                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
-                                    : 100))
-                            .entries(upperBound).create()
+            Set<Text> indexed = isLargeTerm 
+                    ? OffHeapTextSet.create(upperBound)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
             final char[] chars = isLargeTerm ? term.toCharArray() : null;
@@ -356,15 +384,13 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                                 start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
                         : length) + 1;
                 for (int j = start; j < limit; ++j) {
-                    String substring = term.substring(i, j).trim();
                     // @formatter:off
-                    Text infix = isLargeTerm 
-                            ? Text.wrap(chars, i, j).trim()
-                            : Text.wrapCached(substring);
+                    Text infix = (isLargeTerm 
+                            ? Text.wrap(chars, i, j)
+                            : Text.wrap(term.substring(i, j))).trim();
                     // @formatter:on
-                    if(!Strings.isNullOrEmpty(substring)
-                            && !STOPWORDS.contains(substring)
-                            && indexed.add(substring)) {
+                    if(!infix.isEmpty() && !STOPWORDS.contains(infix)
+                            && indexed.add(infix)) {
                         INDEXER.enqueue(this, tracker, key, infix, pos, version,
                                 type, artifacts);
                         ++count;
