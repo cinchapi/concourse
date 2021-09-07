@@ -92,7 +92,8 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         catch (OutOfMemoryError e) {
             Logger.warn("There isn't enough native memory to deduplicate "
                     + "up to {} search indexes, so the operation must be "
-                    + "performed on disk, which is A LOT slower...", e);
+                    + "performed on disk, which is A LOT slower...",
+                    expectedInsertions);
             // This *usually* means that there isn't enough off heap memory
             // needed for Chronicle, so fallback to storing the entries on disk
             // and using a bloom filter to "speed" things up. This will be slow
