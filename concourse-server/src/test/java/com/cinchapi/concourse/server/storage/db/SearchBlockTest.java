@@ -33,6 +33,8 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
@@ -282,6 +284,14 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     @Ignore
     public void testRevisionVersionTrackingPersistence() {
         // Direct insert for SearchBlock is unsupported
+    }
+
+    @Test
+    public void testLargeUpperBound() {
+        String string = FileOps
+                .read(Resources.getAbsolutePath("/long-string2.txt"));
+        Assert.assertTrue(
+                SearchBlock.upperBoundOfPossibleSubstrings(string) > 0);
     }
 
     /**
