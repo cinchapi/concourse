@@ -338,7 +338,7 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
 
         @Override
         public Iterator<Text> iterator() {
-            return null;
+            return tree.findAll().iterator();
         }
 
         @Override
