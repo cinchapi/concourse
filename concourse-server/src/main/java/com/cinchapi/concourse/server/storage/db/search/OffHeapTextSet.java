@@ -18,11 +18,9 @@ package com.cinchapi.concourse.server.storage.db.search;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.Path;
 import java.util.AbstractSet;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -43,17 +41,17 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.logging.Logging;
 import com.cinchapi.concourse.annotate.Experimental;
-import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.io.ByteSink;
-import com.cinchapi.concourse.server.io.ByteableCollections;
-import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Logger;
+import com.github.davidmoten.bplustree.BPlusTree;
+import com.github.davidmoten.bplustree.LargeByteBuffer;
+import com.github.davidmoten.bplustree.Serializer;
 import com.google.common.collect.Iterators;
 import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 
 /**
  * A {@link Set} of {@link Text} that is stored off-heap.
@@ -138,13 +136,13 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         }
 
         @Override
-        public Iterator<Text> iterator() {
-            return chronicle.iterator();
+        public boolean add(Text text) {
+            return chronicle.add(text);
         }
 
         @Override
-        public int size() {
-            return chronicle.size();
+        public void close() throws IOException {
+            chronicle.close();
         }
 
         @Override
@@ -153,13 +151,13 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
         }
 
         @Override
-        public boolean add(Text text) {
-            return chronicle.add(text);
+        public Iterator<Text> iterator() {
+            return chronicle.iterator();
         }
 
         @Override
-        public void close() throws IOException {
-            chronicle.close();
+        public int size() {
+            return chronicle.size();
         }
 
         /**
@@ -177,11 +175,6 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
              */
             static TextBytesMarshaller INSTANCE = new TextBytesMarshaller();
 
-            @Override
-            public @NotNull TextBytesMarshaller readResolve() {
-                return INSTANCE;
-            }
-
             @SuppressWarnings("rawtypes")
             @Override
             public Text read(Bytes in, Text using) {
@@ -190,6 +183,11 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
                 in.read(bytes);
                 bytes.flip();
                 return Text.fromByteBufferCached(bytes);
+            }
+
+            @Override
+            public @NotNull TextBytesMarshaller readResolve() {
+                return INSTANCE;
             }
 
             @SuppressWarnings("rawtypes")
@@ -211,121 +209,79 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
     private static class FileTextSet extends OffHeapTextSet {
 
         /**
+         * {@link Funnel} for {@link #filter}.
+         */
+        @SuppressWarnings("serial")
+        private static Funnel<Text> FUNNEL = new Funnel<Text>() {
+
+            @Override
+            public void funnel(Text from, PrimitiveSink into) {
+                into.putBytes(from.getBytes());
+            }
+
+        };
+
+        /**
+         * Known collisions that are stored in an effort to prevent a linear
+         * probe of the underlying file. We only store known collisions here
+         * (e.g. when a call to {@link #contains(byte[])} returns true) so this
+         * does not have the same memory overhead as storing the entire
+         * set of {@link Text}.
+         */
+        private final Set<Text> collisions = new HashSet<>();
+
+        /**
          * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
          */
-        private final BloomFilter<byte[]> filter;
+        private final BloomFilter<Text> filter;
 
         /**
-         * {@link FileChannel} used for reading and writing the {@link Text} to
-         * disk.
+         * {@link Text} {@link Serializer} for {@link #tree}.
          */
-        private final FileChannel channel;
+        private final Serializer<Text> SERIALIZER = new Serializer<Text>() {
+
+            @Override
+            public int maxSize() {
+                return 0;
+            }
+
+            @Override
+            public Text read(LargeByteBuffer bb) {
+                int size = bb.getVarint();
+                byte[] bytes = new byte[size];
+                bb.get(bytes);
+                return Text.fromByteBuffer(ByteBuffer.wrap(bytes));
+            }
+
+            @Override
+            public void write(LargeByteBuffer bb, Text t) {
+                bb.putVarint(t.size());
+                bb.put(ByteBuffers.getByteArray(t.getBytes()));
+            }
+
+        };
 
         /**
-         * A {@link ByteSink} used for abstracting writes to the
-         * {@link #channel}.
+         * Disk based backing store.
          */
-        private final ByteSink sink;
-
-        /**
-         * The position for writing in {@link FileChannel}.
-         */
-        private long position = 0;
-
-        /**
-         * The backing file.
-         */
-        private final String file;
+        private final BPlusTree<Integer, Text> tree;
 
         /**
          * Construct a new instance.
          */
         public FileTextSet(int expectedInsertions) {
-            this.filter = BloomFilter.create(Funnels.byteArrayFunnel(),
-                    expectedInsertions);
-            this.file = FileOps.tempFile();
-            this.channel = FileSystem.getFileChannel(file);
-            this.sink = ByteSink.to(channel);
-        }
-
-        @Override
-        public Iterator<Text> iterator() {
-            return new CloseableIterator<Text>() {
-
-                MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY,
-                        0, position);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-
-                @Override
-                public boolean hasNext() {
-                    return it.hasNext();
-                }
-
-                @Override
-                public Text next() {
-                    return Text.fromByteBuffer(it.next());
-                }
-
-                @Override
-                public void close() throws IOException {
-                    FileSystem.unmap(bytes);
-                }
-
-            };
-        }
-
-        @Override
-        public int size() {
-            return Iterators.size(iterator());
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            if(o instanceof Text) {
-                Text text = (Text) o;
-                return contains(ByteBuffers.getByteArray(text.getBytes()));
-            }
-            else {
-                return false;
-            }
-        }
-
-        private boolean contains(byte[] bytes) {
-            if(filter.mightContain(bytes)) {
-                MappedByteBuffer buffer = FileSystem.map(file,
-                        MapMode.READ_ONLY, 0, position);
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
-                try {
-                    while (it.hasNext()) {
-                        if(Arrays.equals(bytes,
-                                ByteBuffers.getByteArray(it.next()))) {
-                            return true;
-                        }
-                    }
-                }
-                finally {
-                    FileSystem.unmap(buffer);
-                }
-            }
-            return false;
+            this.filter = BloomFilter.create(FUNNEL, expectedInsertions);
+            this.tree = BPlusTree.file().directory(FileOps.tempDir(""))
+                    .keySerializer(Serializer.INTEGER)
+                    .valueSerializer(SERIALIZER).naturalOrder();
         }
 
         @Override
         public boolean add(Text text) {
-            byte[] bytes = ByteBuffers.getByteArray(text.getBytes());
-            if(!contains(bytes)) {
-                try {
-                    filter.put(bytes);
-                    channel.position(position);
-                    sink.putInt(bytes.length);
-                    sink.put(bytes);
-                    sink.flush();
-                    position += 4 + bytes.length;
-                    return true;
-                }
-                catch (IOException e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
-                }
+            if(!contains(text)) {
+                filter.put(text);
+                tree.insert(text.hashCode(), text);
+                return true;
             }
             else {
                 return false;
@@ -334,7 +290,60 @@ public abstract class OffHeapTextSet extends AbstractSet<Text> implements
 
         @Override
         public void close() throws IOException {
-            channel.close();
+            try {
+                tree.close();
+            }
+            catch (IOException e) {
+                throw e;
+            }
+            catch (Exception e1) {
+                throw CheckedExceptions.wrapAsRuntimeException(e1);
+            }
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            if(o instanceof Text) {
+                Text text = (Text) o;
+                if(filter.mightContain(text)) {
+                    if(collisions.contains(text)) {
+                        return true;
+                    }
+                    else {
+                        Iterator<Text> it = tree.find(text.hashCode())
+                                .iterator();
+                        while (it.hasNext()) {
+                            if(text.equals(it.next())) {
+                                try {
+                                    collisions.add(text);
+                                }
+                                catch (OutOfMemoryError e) {
+                                    // Ignore and keep on trucking. We were
+                                    // using this data structure because memory
+                                    // was in short supply, but we kept an
+                                    // in-memory of known collisions to try to
+                                    // speed things up. If we're truly at a
+                                    // point where memory isn't available, just
+                                    // suffer the reality of needing a linear
+                                    // probe to be aware of any new collisions.
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Iterator<Text> iterator() {
+            return tree.findAll().iterator();
+        }
+
+        @Override
+        public int size() {
+            return Iterators.size(iterator());
         }
     }
 
