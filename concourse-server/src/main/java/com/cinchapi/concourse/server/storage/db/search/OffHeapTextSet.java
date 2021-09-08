@@ -55,6 +55,12 @@ import com.google.common.hash.PrimitiveSink;
 
 /**
  * A {@link Set} of {@link Text} that is stored off-heap.
+ * <p>
+ * This is used to deduplicate substrings during the
+ * {@link com.cinchapi.concourse.server.storage.db.kernel.CorpusChunk#index(Text, Text, com.cinchapi.concourse.server.model.Position, long, com.cinchapi.concourse.server.storage.Action, java.util.Collection)
+ * indexing} preparation when the substrings of a large term would likely cause
+ * an {@link OutOfMemoryError} if maintained on the heap.
+ * </p>
  *
  * @author Jeff Nelson
  */
