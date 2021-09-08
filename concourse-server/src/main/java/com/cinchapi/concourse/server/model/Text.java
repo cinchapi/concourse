@@ -194,6 +194,15 @@ public abstract class Text implements Byteable, Comparable<Text> {
     public abstract boolean isCompact();
 
     /**
+     * Return {@code true} if there are no characters in this {@link Text}.
+     * 
+     * @return {@code true} if the {@link Text} is empty
+     */
+    public boolean isEmpty() {
+        return length() == 0;
+    }
+
+    /**
      * Return the length of this {@link Text}.
      * 
      * @return the length
