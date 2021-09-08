@@ -251,7 +251,7 @@ public class UserService {
                     ByteBuffers.decodeFromHexString(DEFAULT_ADMIN_PASSWORD),
                     Role.ADMIN);
         }
-        Logger.info("Storing user credentials in {}", backingStore);
+        Logger.info("Storing access credentials in {}", backingStore);
     }
 
     /**
