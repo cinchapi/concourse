@@ -342,12 +342,6 @@ public class ConcourseServer extends BaseConcourseServer implements
     }
 
     /**
-     * Contains the credentials used by the {@link #users}. This file is
-     * typically located in the root of the server installation.
-     */
-    private static final String ACCESS_FILE = ".access";
-
-    /**
      * The minimum heap size required to run Concourse Server.
      */
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
@@ -7116,7 +7110,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
-        this.users = UserService.create(ACCESS_FILE);
+        this.users = UserService.create(ACCESS_CREDENTIALS_FILE);
         this.inspector = new Inspector() {
 
             @Override
