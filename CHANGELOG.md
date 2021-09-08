@@ -27,6 +27,7 @@
 * Added the `concourse-export` framework which provides the `Exporter` construct for building tools that print data to an OutputStream in accordance with Concourse's multi-valued data format (e.g. a key mapped to multiple values will have those values printed as a delimited list). The `Exporters` utility class contains built-in exporters for exporting within CSV and Microsoft Excel formats.
 * Added an `export` CLI that uses the `concourse-export` framework to export data from Concourse in CSV format to STDOUT or a file.
 * For `CrossVersionTest`s, as an alternative to using the `Versions` annotation., added the ability to define test versions in a no-arg static method called `versions` that returns a `String[]`. Using the static method makes it possible to centrally define the desired test versions in a static variable that is shared across test classes.
+* The `server` variable in a `ClientServerTest` (from the `concourse-ete-test-core` framework) now exposes the server configuration from the `prefs()` method to facilitate programatic configuration management within tests.
 * Added the ability to configure the location of the access credentials file using the new `access_credentials_file` preference in `concourse.prefs`. This makes it possible to store credentials in a more secure directory that is also protected againist instances when the `concourse-server` installation directory is deleted. Please note that changing the value of `access_credentials_file` does not migrate existing credentials.
 
 ##### CCL Support
