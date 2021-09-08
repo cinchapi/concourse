@@ -18,6 +18,7 @@ package com.cinchapi.concourse.util;
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.server.GlobalState;
@@ -168,7 +169,7 @@ public final class TStrings {
                 toks.add(next);
             }
         }
-        return toks.build();
+        return toks.length() > 0 ? toks.build() : Array.containing();
     }
 
     /**
