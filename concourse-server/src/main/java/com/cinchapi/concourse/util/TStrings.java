@@ -15,14 +15,12 @@
  */
 package com.cinchapi.concourse.util;
 
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.server.GlobalState;
-import com.google.common.collect.Lists;
 
 /**
  * String based utility functions that depend on proprietary information that is
@@ -161,18 +159,16 @@ public final class TStrings {
      * @return the tokens without stopwords
      */
     public static String[] stripStopWordsAndTokenize(String string) {
-        List<String> toks = Lists.newArrayList();
+        ArrayBuilder<String> toks = ArrayBuilder.builder();
         StringSplitter it = new StringSplitter(string, ' ');
-        int size = 0;
         while (it.hasNext()) {
             String next = it.next();
             if(!StringUtils.isBlank(next)
                     && !GlobalState.STOPWORDS.contains(next)) {
                 toks.add(next);
-                ++size;
             }
         }
-        return toks.toArray(new String[size]);
+        return toks.build();
     }
 
     /**

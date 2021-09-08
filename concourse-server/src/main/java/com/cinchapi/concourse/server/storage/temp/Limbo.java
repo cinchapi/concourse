@@ -491,7 +491,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
 
     @Override
     public Set<Long> search(String key, String query) {
-        Map<Long, Set<Value>> rtv = Maps.newHashMap();
+        Map<Long, Set<Value>> matches = Maps.newHashMap();
         String[] needle = TStrings
                 .stripStopWordsAndTokenize(query.toLowerCase());
         if(needle.length > 0) {
@@ -517,18 +517,14 @@ public abstract class Limbo implements Store, Iterable<Write> {
                             .stripStopWordsAndTokenize(stored.toLowerCase());
                     if(haystack.length > 0
                             && TStrings.isInfixSearchMatch(needle, haystack)) {
-                        Set<Value> values = rtv.get(record);
-                        if(values == null) {
-                            values = Sets.newHashSet();
-                            rtv.put(record, values);
-                        }
+                        Set<Value> values = matches.computeIfAbsent(record,
+                                $ -> new HashSet<>());
                         if(write.getType() == Action.REMOVE) {
                             values.remove(value);
                         }
                         else {
                             values.add(value);
                         }
-
                     }
                 }
             }
@@ -536,7 +532,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
         // FIXME sort search results based on frequency (see
         // SearchRecord#search())
         return Sets.newLinkedHashSet(
-                Maps.filterValues(rtv, emptySetFilter).keySet());
+                Maps.filterValues(matches, emptySetFilter).keySet());
     }
 
     @Override
