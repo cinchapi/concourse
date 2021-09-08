@@ -481,26 +481,26 @@ public class UserServiceTest extends ConcourseBaseTest {
 
     @Test
     public void testServiceTokenIsValid() {
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         Assert.assertTrue(service.tokens.isValid(token));
     }
 
     @Test
     public void testServiceTokenInvalidation() {
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         service.tokens.expire(token);
         Assert.assertFalse(service.tokens.isValid(token));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testServiceTokenNotTiedToUser() {
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         service.getUserId(token);
     }
 
     @Test
     public void testServiceTokenUsesInvalidUsername() {
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         ByteBuffer username = service.tokens.identify(token);
         Assert.assertFalse(UserService.isAcceptableUsername(username));
     }
@@ -509,7 +509,7 @@ public class UserServiceTest extends ConcourseBaseTest {
     public void testServerTokenNotAutoExpire() {
         service = UserService.createForTesting(current, 100,
                 TimeUnit.MILLISECONDS);
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         Threads.sleep(100);
         Assert.assertTrue(service.tokens.isValid(token));
     }
@@ -629,7 +629,7 @@ public class UserServiceTest extends ConcourseBaseTest {
 
     @Test
     public void testRoleOfServiceUserTokenIsAlwaysServiceRole() {
-        AccessToken token = service.tokens.serviceIssue();
+        AccessToken token = service.tokens.issueServiceToken();
         ByteBuffer username = service.tokens.identify(token);
         Assert.assertEquals(Role.SERVICE, service.getRole(username));
     }
@@ -709,21 +709,21 @@ public class UserServiceTest extends ConcourseBaseTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCannotRevokePermissionForServiceUser() {
         ByteBuffer username = service.tokens
-                .identify(service.tokens.serviceIssue());
+                .identify(service.tokens.issueServiceToken());
         service.revoke(username, Random.getSimpleString());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCannotGrantPermissionForServiceUser() {
         ByteBuffer username = service.tokens
-                .identify(service.tokens.serviceIssue());
+                .identify(service.tokens.issueServiceToken());
         service.grant(username, Permission.READ, Random.getSimpleString());
     }
 
     @Test
     public void testServiceUserAlwaysHasPermission() {
         ByteBuffer username = service.tokens
-                .identify(service.tokens.serviceIssue());
+                .identify(service.tokens.issueServiceToken());
         Assert.assertTrue(service.can(username, Permission.READ,
                 Random.getSimpleString()));
         Assert.assertTrue(service.can(username, Permission.WRITE,
@@ -743,14 +743,14 @@ public class UserServiceTest extends ConcourseBaseTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCannotCreateUserWithServiceUsername() {
         ByteBuffer username = service.tokens
-                .identify(service.tokens.serviceIssue());
+                .identify(service.tokens.issueServiceToken());
         service.create(username, getSecurePassword(), Role.ADMIN);
     }
 
     @Test
     public void testCannotDeleteUserWithServiceUsername() {
         ByteBuffer username = service.tokens
-                .identify(service.tokens.serviceIssue());
+                .identify(service.tokens.issueServiceToken());
         service.delete(username);
         Assert.assertTrue(service.can(username, Permission.READ,
                 Random.getSimpleString()));

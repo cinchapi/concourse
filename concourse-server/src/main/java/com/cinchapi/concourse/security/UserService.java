@@ -1014,12 +1014,9 @@ public class UserService {
          * 
          * <p>
          * A service token is an {@link AccessToken} that is not associated with
-         * an
-         * actual user, but is instead generated based on the
+         * an actual user, but is instead generated based on the
          * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
-         * service
-         * or
-         * process.
+         * service or process.
          * </p>
          * <p>
          * Service tokens do not expire!
@@ -1027,7 +1024,7 @@ public class UserService {
          * 
          * @return the new service token
          */
-        public AccessToken serviceIssue() {
+        public AccessToken issueServiceToken() {
             return issue(SERVICE_USERNAME_BYTES);
         }
     }

@@ -4663,7 +4663,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @PluginRestricted
     public AccessToken newServiceToken() {
-        return users.tokens.serviceIssue();
+        return users.tokens.issueServiceToken();
     }
 
     @Override
