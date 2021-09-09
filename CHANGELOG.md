@@ -15,7 +15,7 @@
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
-* Search is drastically faster as a result of the improved memory management that comes wth the v3 storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **XX.X%** faster on real-world data.
+* Search is drastically faster as a result of the improved memory management that comes wth the v3 storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **95.52%** faster on real-world data.
 
 ##### New Functionality
 * Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
