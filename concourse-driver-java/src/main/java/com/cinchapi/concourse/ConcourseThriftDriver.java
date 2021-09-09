@@ -275,8 +275,8 @@ class ConcourseThriftDriver extends Concourse {
                     Convert.javaToThrift(value),
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Boolean> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Successful");
+            Map<Long, Boolean> pretty = PrettyLinkedHashMap.create("Record",
+                    "Successful");
             for (long record : records) {
                 pretty.put(record, raw.get(record));
             }
@@ -296,9 +296,10 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, String> audit = core.auditRecord(record, creds,
                     transaction, environment);
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -314,9 +315,10 @@ class ConcourseThriftDriver extends Concourse {
                 audit = core.auditRecordStart(record, start.getMicros(), creds,
                         transaction, environment);
             }
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -333,9 +335,10 @@ class ConcourseThriftDriver extends Concourse {
                 audit = core.auditRecordStartEnd(record, start.getMicros(),
                         end.getMicros(), creds, transaction, environment);
             }
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -344,9 +347,10 @@ class ConcourseThriftDriver extends Concourse {
         return execute(() -> {
             Map<Long, String> audit = core.auditKeyRecord(key, record, creds,
                     transaction, environment);
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -363,9 +367,10 @@ class ConcourseThriftDriver extends Concourse {
                 audit = core.auditKeyRecordStart(key, record, start.getMicros(),
                         creds, transaction, environment);
             }
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -384,9 +389,10 @@ class ConcourseThriftDriver extends Concourse {
                         start.getMicros(), end.getMicros(), creds, transaction,
                         environment);
             }
-            return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
-                    .transformMap(audit, Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(audit,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 
@@ -447,7 +453,7 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<TObject>> raw = core.chronologizeKeyRecord(key,
                     record, creds, transaction, environment);
             Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
+                    .create("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -471,7 +477,7 @@ class ConcourseThriftDriver extends Concourse {
                         start.getMicros(), creds, transaction, environment);
             }
             Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
+                    .create("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -497,7 +503,7 @@ class ConcourseThriftDriver extends Concourse {
                         environment);
             }
             Map<Timestamp, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
+                    .create("DateTime", "Values");
             for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(Timestamp.fromMicros(entry.getKey()),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -594,8 +600,8 @@ class ConcourseThriftDriver extends Concourse {
             Map<Long, Set<String>> raw = core.describeRecords(
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Set<String>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Keys");
+            Map<Long, Set<String>> pretty = PrettyLinkedHashMap.create("Record",
+                    "Keys");
             for (Entry<Long, Set<String>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(), entry.getValue());
             }
@@ -617,8 +623,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.describeRecordsTime(Collections.toLongList(records),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Set<String>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Keys");
+            Map<Long, Set<String>> pretty = PrettyLinkedHashMap.create("Record",
+                    "Keys");
             for (Entry<Long, Set<String>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(), entry.getValue());
             }
@@ -673,9 +679,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffRecordStart(record, start.getMicros(), creds,
                         transaction, environment);
             }
-            PrettyLinkedTableMap<String, Diff, Set<T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            pretty.setRowName("Key");
+            Map<String, Map<Diff, Set<T>>> pretty = PrettyLinkedTableMap
+                    .create("Key");
             for (Entry<String, Map<Diff, Set<TObject>>> entry : raw
                     .entrySet()) {
                 pretty.put(entry.getKey(),
@@ -700,9 +705,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffRecordStartEnd(record, start.getMicros(),
                         end.getMicros(), creds, transaction, environment);
             }
-            PrettyLinkedTableMap<String, Diff, Set<T>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            pretty.setRowName("Key");
+            Map<String, Map<Diff, Set<T>>> pretty = PrettyLinkedTableMap
+                    .create("Key");
             for (Entry<String, Map<Diff, Set<TObject>>> entry : raw
                     .entrySet()) {
                 pretty.put(entry.getKey(),
@@ -727,8 +731,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffKeyRecordStart(key, record, start.getMicros(),
                         creds, transaction, environment);
             }
-            Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Operation", "Value");
+            Map<Diff, Set<T>> pretty = PrettyLinkedHashMap.create("Operation",
+                    "Value");
             for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -752,8 +756,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffKeyRecordStartEnd(key, record, start.getMicros(),
                         end.getMicros(), creds, transaction, environment);
             }
-            Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Operation", "Value");
+            Map<Diff, Set<T>> pretty = PrettyLinkedHashMap.create("Operation",
+                    "Value");
             for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
                 pretty.put(entry.getKey(),
                         Transformers.transformSetLazily(entry.getValue(),
@@ -776,9 +780,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffKeyStart(key, start.getMicros(), creds,
                         transaction, environment);
             }
-            PrettyLinkedTableMap<T, Diff, Set<Long>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            pretty.setRowName("Value");
+            Map<T, Map<Diff, Set<Long>>> pretty = PrettyLinkedTableMap
+                    .create("Value");
             for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw.entrySet()) {
                 pretty.put((T) Convert.thriftToJava(entry.getKey()),
                         entry.getValue());
@@ -801,9 +804,8 @@ class ConcourseThriftDriver extends Concourse {
                 raw = core.diffKeyStartEnd(key, start.getMicros(),
                         end.getMicros(), creds, transaction, environment);
             }
-            PrettyLinkedTableMap<T, Diff, Set<Long>> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            pretty.setRowName("Value");
+            Map<T, Map<Diff, Set<Long>>> pretty = PrettyLinkedTableMap
+                    .create("Value");
             for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw.entrySet()) {
                 pretty.put((T) Convert.thriftToJava(entry.getKey()),
                         entry.getValue());
@@ -2334,8 +2336,8 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Map<Long, Boolean> link(String key, Collection<Long> destinations,
             long source) {
-        Map<Long, Boolean> result = PrettyLinkedHashMap
-                .newPrettyLinkedHashMap("Record", "Result");
+        Map<Long, Boolean> result = PrettyLinkedHashMap.create("Record",
+                "Result");
         for (long destination : destinations) {
             result.put(destination, link(key, destination, source));
         }
@@ -2622,8 +2624,8 @@ class ConcourseThriftDriver extends Concourse {
                     Convert.javaToThrift(value),
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Boolean> pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Result");
+            Map<Long, Boolean> pretty = PrettyLinkedHashMap.create("Record",
+                    "Result");
             for (long record : records) {
                 pretty.put(record, raw.get(record));
             }
@@ -4008,28 +4010,41 @@ class ConcourseThriftDriver extends Concourse {
 
     @Override
     public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records) {
-        return execute(() -> core.traceRecords(Collections.toLongList(records),
-                creds, transaction, environment));
+        return execute(() -> {
+            Map<Long, Map<String, Set<Long>>> data = core.traceRecords(
+                    Collections.toLongList(records), creds, transaction,
+                    environment);
+            return PrettyLinkedTableMap.of(data, "Record");
+        });
     }
 
     @Override
     public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
             Timestamp timestamp) {
-        return execute(() -> core.traceRecordsTime(
-                Collections.toLongList(records), timestamp.getMicros(), creds,
-                transaction, environment));
+        return execute(() -> {
+            Map<Long, Map<String, Set<Long>>> data = core.traceRecordsTime(
+                    Collections.toLongList(records), timestamp.getMicros(),
+                    creds, transaction, environment);
+            return PrettyLinkedTableMap.of(data, "Record");
+        });
     }
 
     @Override
     public Map<String, Set<Long>> trace(long record) {
-        return execute(() -> core.traceRecord(record, creds, transaction,
-                environment));
+        return execute(() -> {
+            Map<String, Set<Long>> data = core.traceRecord(record, creds,
+                    transaction, environment);
+            return PrettyLinkedHashMap.of(data, "Key", "Sources");
+        });
     }
 
     @Override
     public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
-        return execute(() -> core.traceRecordTime(record, timestamp.getMicros(),
-                creds, transaction, environment));
+        return execute(() -> {
+            Map<String, Set<Long>> data = core.traceRecordTime(record,
+                    timestamp.getMicros(), creds, transaction, environment);
+            return PrettyLinkedHashMap.of(data, "Key", "Sources");
+        });
     }
 
     @Override
