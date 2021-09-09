@@ -6883,7 +6883,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, String timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return traceRecordsTime(records, NaturalLanguage.parseMicros(timestamp), creds, transaction, environment);
+        return traceRecordsTime(records, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
@@ -6903,7 +6904,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<String, Set<Long>> traceRecordTimestr(long record,
             String timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return traceRecordTime(record, NaturalLanguage.parseMicros(timestamp), creds, transaction, environment);
+        return traceRecordTime(record, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
