@@ -44,12 +44,12 @@
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
 * Fixed a bug that made it possible for Database operations to unexpectedly fail in the rare cases due to a locator mismatch resulting from faulty indexing logic.
 
-#### Version 0.10.6 (TBD)
+#### Version 0.10.6 (September 9, 2021)
 
 ##### Removed limit on Block file sizes
 * Added support for storing data in `Block` files that are larger than `2147483647` bytes (e.g. ~2.147GB) and fixed bugs that existed because of the previous limitation:
   * If a mutable `Block` exceeded the previous limit in memory it was not synced to disk and the storage engine didn't provide an error or warning, so indexing continued as normal. As a result, there was the potential for permanent data loss. 
-  * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completed in memory, resulting in a memory leak.
+  * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completely in memory, resulting in a memory leak.
 * To accommodate the possibility of larger Block files, the `BlockIndex` now records position pointers using 8 bytes instead of 4. As a result, all Block files must be reindexed, which is automatically done when Concourse Server starts are new installation or upgrade.
 
 ##### Eliminated risks of data inconsistency caused by premature shutdown
