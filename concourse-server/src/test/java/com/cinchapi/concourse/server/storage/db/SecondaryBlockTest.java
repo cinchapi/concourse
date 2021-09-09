@@ -18,11 +18,13 @@ package com.cinchapi.concourse.server.storage.db;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -50,13 +52,14 @@ public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected SecondaryBlock getMutableBlock(String directory) {
-        return Block.createSecondaryBlock(Long.toString(Time.now()), directory);
+    protected SecondaryBlock getMutableBlock(String id, String directory) {
+        return Block.createSecondaryBlock(id, directory);
     }
 
     @Test
     public void testGenerateBlockIndexWithEqualValuesOfDifferentTypes() {
-        SecondaryBlock block = getMutableBlock(TestData.getTemporaryTestDir());
+        SecondaryBlock block = (SecondaryBlock) getMutableBlock(
+                TestData.getTemporaryTestDir());
         block.insert(Text.wrapCached("payRangeMax"),
                 Value.wrap(Convert.javaToThrift(18)), PrimaryKey.wrap(1),
                 Time.now(), Action.ADD);
@@ -78,6 +81,28 @@ public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
                 PrimaryKey.wrap(1), Time.now(), Action.ADD);
         block.sync();
         Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Override
+    protected Text extractLocator(Write write) {
+        return write.getKey();
+    }
+
+    @Override
+    protected Value extractKey(Write write) {
+        return write.getValue();
+    }
+
+    @Override
+    protected PrimaryKey extractValue(Write write) {
+        return write.getRecord();
+    }
+
+    @Override
+    protected Block<Text, Value, PrimaryKey> loadBlock(String id,
+            String directory) {
+        return Reflection.newInstance(SecondaryBlock.class, id, directory,
+                true);
     }
 
 }

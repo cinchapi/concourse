@@ -85,9 +85,9 @@ public final class SearchIndexer {
      * @param type
      */
     public void enqueue(SearchIndex index, CountUpLatch tracker, Text key,
-            String term, Position position, long version, Action type) {
+            Text term, Position position, long version, Action type) {
         workers.execute(() -> {
-            index.index(key, Text.wrapCached(term), position, version, type);
+            index.index(key, term, position, version, type);
             tracker.countUp();
         });
     }

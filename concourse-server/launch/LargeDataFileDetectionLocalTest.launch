@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/concourse-server/src/test/java/com/cinchapi/concourse/server/storage/db/LargeDataFileDetectionLocalTest.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.cinchapi.concourse.server.storage.db.LargeDataFileDetectionLocalTest"/>
+<stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="concourse-server"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="concourse-server"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xms4096m -Xmx4096m"/>
+</launchConfiguration>

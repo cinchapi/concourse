@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.io;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import com.cinchapi.common.base.CheckedExceptions;
@@ -47,6 +48,28 @@ public interface ByteSink {
     }
 
     /**
+     * Return a {@link ByteSink} that passes through to a {@link FileChannel}.
+     * 
+     * @param channel
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink to(FileChannel channel) {
+        return new FileChannelSink(channel);
+    }
+
+    /**
+     * Return a {@link ByteSink} that passes through to a {@link FileChannel}
+     * using an in-memory buffer of {@code bufferSize}.
+     * 
+     * @param channel
+     * @param bufferSize
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink to(FileChannel channel, int bufferSize) {
+        return new FileChannelSink(channel, bufferSize);
+    }
+
+    /**
      * Return a {@link ByteSink} that discards bytes that are written.
      * 
      * @return the {@link ByteSink}
@@ -60,7 +83,7 @@ public interface ByteSink {
      * 
      * @return the position of this sink
      */
-    public int position();
+    public long position();
 
     /**
      * Put the {@code value} in this {@link ByteSink sink}, starting at the
@@ -160,5 +183,10 @@ public interface ByteSink {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
+
+    /**
+     * If any buffering is done, flush all bytes through the sink.
+     */
+    public default void flush() {}
 
 }

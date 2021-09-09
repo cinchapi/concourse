@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
-// import java.util.Iterator;
-// import java.util.Set;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,15 +22,19 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.PrimaryKey;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Preconditions;
@@ -180,7 +181,7 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         final PrimaryKey bRecord = Variables.register("bRecord", getRecord());
         final long bTimestamp = Time.now();
 
-        SearchBlock serial = getMutableBlock(directory);
+        SearchBlock serial = (SearchBlock) getMutableBlock(directory);
         serial.insert(aKey, aValue, aRecord, aTimestamp, Action.ADD);
         serial.insert(bKey, bValue, bRecord, bTimestamp, Action.ADD);
 
@@ -285,6 +286,14 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         // Direct insert for SearchBlock is unsupported
     }
 
+    @Test
+    public void testLargeUpperBound() {
+        String string = FileOps
+                .read(Resources.getAbsolutePath("/long-string2.txt"));
+        Assert.assertTrue(
+                SearchBlock.upperBoundOfPossibleSubstrings(string) > 0);
+    }
+
     /**
      * The implementation of {@link #testMightContainLocatorKeyValue()}.
      * 
@@ -327,8 +336,38 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
     }
 
     @Override
-    protected SearchBlock getMutableBlock(String directory) {
-        return Block.createSearchBlock(Long.toString(Time.now()), directory);
+    protected SearchBlock getMutableBlock(String id, String directory) {
+        return Block.createSearchBlock(id, directory);
+    }
+
+    @Override
+    protected Text extractLocator(Write write) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Text extractKey(Write write) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Position extractValue(Write write) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void testDeduplicateDuplicateRevisionsInBlocks() {/* unsupported */}
+
+    @Override
+    public void testBackupMutableBlock() {/* unsupported */}
+
+    @Override
+    public void testBackupImmutableBlock() {/* unsupported */}
+
+    @Override
+    protected Block<Text, Text, Position> loadBlock(String id,
+            String directory) {
+        return Reflection.newInstance(SearchBlock.class, id, directory, true);
     }
 
 }
