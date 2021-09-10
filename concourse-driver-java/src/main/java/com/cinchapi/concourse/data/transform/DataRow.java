@@ -112,8 +112,8 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
     @Override
     public String toString() {
         if(pretty == null) {
-            Map<String, T> $pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", valueColumnHeader);
+            Map<String, T> $pretty = PrettyLinkedHashMap.create("Key",
+                    valueColumnHeader);
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;

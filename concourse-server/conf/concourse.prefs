@@ -211,7 +211,7 @@
 #
 # The database does not cache lookup records, so, while generating one is 
 # theoretically faster than generating a full or partial record, repeated attempts 
-# to verify data in the same slot (e.g. a counter whose value is stored against a 
+# to verify data in the same field (e.g. a counter whose value is stored against a 
 # single locator/key) or record may be slower due to lack of caching.
 #
 # DEFAULT: false

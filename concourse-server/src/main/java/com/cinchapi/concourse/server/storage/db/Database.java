@@ -84,6 +84,7 @@ import com.google.common.cache.CacheStats;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -565,11 +566,10 @@ public final class Database implements DurableStore {
             // search works.
             String[] words = query.toString().toLowerCase().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            Multimap<Identifier, Integer> reference = HashMultimap.create();
+            Multimap<Identifier, Integer> reference = ImmutableMultimap.of();
             boolean initial = true;
             int offset = 0;
             for (String word : words) {
-                Multimap<Identifier, Integer> temp = HashMultimap.create();
                 if(GlobalState.STOPWORDS.contains(word)) {
                     // When skipping a stop word, we must record an offset to
                     // correctly determine if the next term match is in the
@@ -579,17 +579,18 @@ public final class Database implements DurableStore {
                 }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
-                Set<Position> positions = corpus.get(K);
-                for (Position position : positions) {
-                    Identifier record = position.getIdentifier();
-                    int pos = position.getIndex();
+                Set<Position> appearances = corpus.get(K);
+                Multimap<Identifier, Integer> temp = HashMultimap.create();
+                for (Position appearance : appearances) {
+                    Identifier record = appearance.getIdentifier();
+                    int position = appearance.getIndex();
                     if(initial) {
-                        temp.put(record, pos);
+                        temp.put(record, position);
                     }
                     else {
                         for (int current : reference.get(record)) {
-                            if(pos == current + 1 + offset) {
-                                temp.put(record, pos);
+                            if(position == current + 1 + offset) {
+                                temp.put(record, position);
                             }
                         }
                     }
@@ -604,15 +605,14 @@ public final class Database implements DurableStore {
             // key: #reference.get(key).size()]. The total number of positions
             // in #reference is equal to the total number of times a document
             // appears in the corpus [e.g. reference.asMap().values().size()].
-            Multimap<Integer, Identifier> sorted = TreeMultimap.create(
+            Multimap<Integer, Long> sorted = TreeMultimap.create(
                     Collections.<Integer> reverseOrder(),
-                    Identifier.Sorter.INSTANCE);
+                    Long::compareUnsigned);
             for (Entry<Identifier, Collection<Integer>> entry : reference
                     .asMap().entrySet()) {
-                sorted.put(entry.getValue().size(), entry.getKey());
+                sorted.put(entry.getValue().size(), entry.getKey().longValue());
             }
-            Set<Long> results = sorted.values().stream()
-                    .map(Identifier::longValue)
+            Set<Long> results = (Set<Long>) sorted.values().stream()
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             return results;
         }

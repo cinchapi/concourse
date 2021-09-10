@@ -72,7 +72,8 @@ public final class Transformers {
      */
     public static <K, K2, V> Map<K2, V> transformMap(Map<K, V> original,
             Function<? super K, ? extends K2> function) {
-        Map<K2, V> transformed = PrettyLinkedHashMap.newPrettyLinkedHashMap();
+        Map<K2, V> transformed = Maps
+                .newLinkedHashMapWithExpectedSize(original.size());
         for (Map.Entry<K, V> entry : original.entrySet()) {
             transformed.put(function.apply(entry.getKey()), entry.getValue());
         }
@@ -97,7 +98,8 @@ public final class Transformers {
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformMapSet(
             Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
             Function<? super V, ? extends V2> values) {
-        Map<K2, Set<V2>> transformed = Maps.newLinkedHashMap();
+        Map<K2, Set<V2>> transformed = Maps
+                .newLinkedHashMapWithExpectedSize(original.size());
         for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
             transformed.put(keys.apply(entry.getKey()),
                     transformSet(entry.getValue(), values));
@@ -115,7 +117,8 @@ public final class Transformers {
      */
     public static <K, V, V2> Map<K, V2> transformMapValues(Map<K, V> original,
             Function<V, V2> function) {
-        Map<K, V2> transformed = Maps.newLinkedHashMap();
+        Map<K, V2> transformed = Maps
+                .newLinkedHashMapWithExpectedSize(original.size());
         for (Map.Entry<K, V> entry : original.entrySet()) {
             transformed.put(entry.getKey(), function.apply(entry.getValue()));
         }
@@ -136,7 +139,8 @@ public final class Transformers {
     public static <K1, V1, K2, V2> Map<K2, V2> transformMapEntries(
             Map<K1, V1> original, Function<K1, K2> keyFunction,
             Function<V1, V2> valueFunction) {
-        Map<K2, V2> transformed = Maps.newLinkedHashMap();
+        Map<K2, V2> transformed = Maps
+                .newLinkedHashMapWithExpectedSize(original.size());
         for (Map.Entry<K1, V1> entry : original.entrySet()) {
             transformed.put(keyFunction.apply(entry.getKey()),
                     valueFunction.apply(entry.getValue()));

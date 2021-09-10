@@ -110,8 +110,7 @@ public abstract class DataColumn<F, T> extends AbstractMap<Long, T> implements
     @Override
     public String toString() {
         if(pretty == null) {
-            Map<Long, T> $pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
+            Map<Long, T> $pretty = PrettyLinkedHashMap.create("Record", key);
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;

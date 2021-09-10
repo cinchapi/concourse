@@ -15,11 +15,7 @@
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
-* Search is drastically faster as a result of the improved memory management that comes wth the v3 storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **XX.X%** faster on real-world data.
-
-##### Search Caching
-* Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
-  * The search cache can be enabled by setting the `enable_search_cache` preference to `true`
+* Search is drastically faster as a result of the improved memory management that comes wth the v3 storage format as well as some other changes to the way that search indexes are read from disk and represented in memory. As a result, search performance is up-to **95.52%** faster on real-world data.
 
 ##### New Functionality
 * Added `trace` functionality to atomically locate and return all the incoming links to one or more records. The incoming links are represented as a mapping from `key` to a `set of records` where the key is stored as a `Link` to the record being traced.
@@ -29,29 +25,42 @@
 * For `CrossVersionTest`s, as an alternative to using the `Versions` annotation., added the ability to define test versions in a no-arg static method called `versions` that returns a `String[]`. Using the static method makes it possible to centrally define the desired test versions in a static variable that is shared across test classes.
 * The `server` variable in a `ClientServerTest` (from the `concourse-ete-test-core` framework) now exposes the server configuration from the `prefs()` method to facilitate programatic configuration management within tests.
 * Added the ability to configure the location of the access credentials file using the new `access_credentials_file` preference in `concourse.prefs`. This makes it possible to store credentials in a more secure directory that is also protected againist instances when the `concourse-server` installation directory is deleted. Please note that changing the value of `access_credentials_file` does not migrate existing credentials. By default, credentials are still stored in the `.access` within the root of the `concourse-server` installation directory.
+* Added a separate log file for upgrade tasks (`log/upgrade.log`).
+* Added a mechanism for failed upgrade tasks to automatically perform a rollback that'll reset the system state to be consistent with the state before the task was attempted.
+* Added `PrettyLinkedHashMap.of` and `PrettyLinkedTableMap.of` factory methods that accept an analogous Map as a parameter. The input Map is lazily converted into one with a pretty `toString` format on-demand. In cases where a Map is not expected to be rendered as a String, but should be pretty if it is, these factories return a Map that defers the overhead of prettification until it is necessary. 
 
 ##### CCL Support
 * Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
+
+##### Experimental Features
+
+###### Search Caching 
+* Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
+  * The search cache can be enabled by setting the `enable_search_cache` preference to `true`
+
+###### Verify by Lookup
+* Concourse Server can now be configured to use special **lookup records** when performing a `verify` within the `Database`. In theory, the Database can respond to verifies faster when generating a lookup record because fewer irrelevant revisions are read from disk and processed in memory. However, lookup records are not cached, so repeated attempts to verify data in the same field (e.g. a counter whose value is stored against a single locator/key) or record may be slower.
 
 ##### API Breaks and Deprecations
 * Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
 * It it only possible to upgrade to this version from Concourse `0.10.6+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
 * Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
-
-##### Upgrade Framework
-* Added a separate log file for upgrade tasks (`log/upgrade.log`).
-* Added a mechanism for failed upgrade tasks to automatically perform a rollback that'll reset the system state to be consistent with the state before the task was attempted.
+* Deprecated `PrettyLinkedHashMap.newPrettyLinkedHashMap` factory methods in favor of `PrettyLinkedHashMap.create`.
+* Deprecated `PrettyLinkedHashMap.setKeyName` in favor of `PrettyLinkedHashMap.setKeyColumnHeader`
+* Deprecated `PrettyLinkedHashMap.setValueName` in favor of `PrettyLinkedHashMap.setValueColumnHeader`
+* Deprecated `PrettyLinkedTableMap.setRowName` in favor of `PrettyLinkedHashMap.setIdentifierColumnHeader`
+* Deprecated `PrettyLinkedTableMap.newPrettyLinkedTableMap` factory methods in favor of `PrettyLinkedTableMap.create`
 
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
 * Fixed a bug that made it possible for Database operations to unexpectedly fail in the rare cases due to a locator mismatch resulting from faulty indexing logic.
 
-#### Version 0.10.6 (TBD)
+#### Version 0.10.6 (September 9, 2021)
 
 ##### Removed limit on Block file sizes
 * Added support for storing data in `Block` files that are larger than `2147483647` bytes (e.g. ~2.147GB) and fixed bugs that existed because of the previous limitation:
   * If a mutable `Block` exceeded the previous limit in memory it was not synced to disk and the storage engine didn't provide an error or warning, so indexing continued as normal. As a result, there was the potential for permanent data loss. 
-  * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completed in memory, resulting in a memory leak.
+  * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completely in memory, resulting in a memory leak.
 * To accommodate the possibility of larger Block files, the `BlockIndex` now records position pointers using 8 bytes instead of 4. As a result, all Block files must be reindexed, which is automatically done when Concourse Server starts are new installation or upgrade.
 
 ##### Eliminated risks of data inconsistency caused by premature shutdown

@@ -46,12 +46,8 @@ class PsPluginCli extends PluginCli {
         try {
             Map<Long, Map<String, String>> info = client
                     .runningPluginsInfo(token);
-            PrettyLinkedTableMap<Long, String, String> pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("pid");
-            info.forEach((pid, data) -> {
-                pretty.put(pid, data);
-            });
-            System.out.println(pretty);
+            info = PrettyLinkedTableMap.of(info, "pid");
+            System.out.println(info);
         }
         catch (TException e) {
             die(e.getMessage());
