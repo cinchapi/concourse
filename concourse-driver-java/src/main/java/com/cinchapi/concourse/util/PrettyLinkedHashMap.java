@@ -166,10 +166,10 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> implements
     private PrettyLinkedHashMap(@Nullable String keyColumnHeader,
             @Nullable String valueColumnHeader) {
         if(!Strings.isNullOrEmpty(keyColumnHeader)) {
-            setKeyName(keyColumnHeader);
+            setKeyColumnHeader(keyColumnHeader);
         }
         if(!Strings.isNullOrEmpty(valueColumnHeader)) {
-            setValueName(valueColumnHeader);
+            setValueColumnHeader(valueColumnHeader);
         }
     }
 
@@ -220,6 +220,7 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> implements
      * @return this
      * @deprecated use {@link #setValueColumnHeader(String)} instead
      */
+    @Deprecated
     public PrettyLinkedHashMap<K, V> setValueName(String name) {
         return (PrettyLinkedHashMap<K, V>) setValueColumnHeader(name);
     }

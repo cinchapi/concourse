@@ -168,19 +168,11 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
      */
     private PrettyLinkedTableMap(@Nullable String identifierColumnHeader) {
         if(!Strings.isNullOrEmpty(identifierColumnHeader)) {
-            setRowName(identifierColumnHeader);
+            setIdentifierColumnHeader(identifierColumnHeader);
         }
     }
 
-    /**
-     * Insert {@code value} under {@code column} in {@code row}.
-     * 
-     * @param row
-     * @param column
-     * @param value
-     * @return the previous value located at the intersection of {@code row} and
-     *         {@code column} or {@code null} if one did not previously exist.
-     */
+    @Override
     public V put(R row, C column, V value) {
         Map<C, V> rowdata = super.get(row);
         if(rowdata == null) {
