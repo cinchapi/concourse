@@ -44,6 +44,9 @@
 * It it only possible to upgrade to this version from Concourse `0.10.6+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
 * Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
 * Deprecated `PrettyLinkedHashMap.newPrettyLinkedHashMap` factory methods in favor of `PrettyLinkedHashMap.create`.
+* Deprecated `PrettyLinkedHashMap.setKeyName` in favor of `PrettyLinkedHashMap.setKeyColumnHeader`
+* Deprecated `PrettyLinkedHashMap.setValueName` in favor of `PrettyLinkedHashMap.setValueColumnHeader`
+* Deprecated `PrettyLinkedTableMap.setRowName` in favor of `PrettyLinkedHashMap.setIdentifierColumnHeader`
 * Deprecated `PrettyLinkedTableMap.newPrettyLinkedTableMap` factory methods in favor of `PrettyLinkedTableMap.create`
 
 ##### Bug Fixes
