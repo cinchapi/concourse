@@ -6879,6 +6879,16 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, Map<String, Set<Long>>> traceRecordsTimestr(
+            List<Long> records, String timestamp, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return traceRecordsTime(records, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
     public Map<String, Set<Long>> traceRecordTime(long record, long timestamp,
@@ -6887,6 +6897,15 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> Operations
                 .traceRecordAtomic(record, timestamp, atomic));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<String, Set<Long>> traceRecordTimestr(long record,
+            String timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return traceRecordTime(record, NaturalLanguage.parseMicros(timestamp),
+                creds, transaction, environment);
     }
 
     @Override
