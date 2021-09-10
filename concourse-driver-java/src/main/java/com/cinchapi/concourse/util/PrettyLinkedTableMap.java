@@ -196,7 +196,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
 
     /**
      * <p>
-     * THIS METHOD ALWAYS RETURNS {@code NULL}.
+     * THIS METHOD ALWAYS RETURNS {@code null}.
      * </p>
      * {@inheritDoc}
      */
