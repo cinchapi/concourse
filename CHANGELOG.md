@@ -25,6 +25,7 @@
 * For `CrossVersionTest`s, as an alternative to using the `Versions` annotation., added the ability to define test versions in a no-arg static method called `versions` that returns a `String[]`. Using the static method makes it possible to centrally define the desired test versions in a static variable that is shared across test classes.
 * Added a separate log file for upgrade tasks (`log/upgrade.log`).
 * Added a mechanism for failed upgrade tasks to automatically perform a rollback that'll reset the system state to be consistent with the state before the task was attempted.
+* Added `PrettyLinkedHashMap.of` and `PrettyLinkedTableMap.of` factory methods that accept an analogous Map as a parameter. The input Map is lazily converted into one with a pretty `toString` format on-demand. In cases where a Map is not expected to be rendered as a String, but should be pretty if it is, these factories return a Map that defers the overhead of prettification until it is necessary. 
 
 ##### CCL Support
 * Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
@@ -42,6 +43,11 @@
 * Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
 * It it only possible to upgrade to this version from Concourse `0.10.6+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
 * Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
+* Deprecated `PrettyLinkedHashMap.newPrettyLinkedHashMap` factory methods in favor of `PrettyLinkedHashMap.create`.
+* Deprecated `PrettyLinkedHashMap.setKeyName` in favor of `PrettyLinkedHashMap.setKeyColumnHeader`
+* Deprecated `PrettyLinkedHashMap.setValueName` in favor of `PrettyLinkedHashMap.setValueColumnHeader`
+* Deprecated `PrettyLinkedTableMap.setRowName` in favor of `PrettyLinkedHashMap.setIdentifierColumnHeader`
+* Deprecated `PrettyLinkedTableMap.newPrettyLinkedTableMap` factory methods in favor of `PrettyLinkedTableMap.create`
 
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.

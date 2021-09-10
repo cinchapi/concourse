@@ -89,8 +89,8 @@ public class DataProjection<T> extends AbstractMap<T, Set<Long>> implements
     @Override
     public String toString() {
         if(pretty == null) {
-            Map<T, Set<Long>> $pretty = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Value", "Records");
+            Map<T, Set<Long>> $pretty = PrettyLinkedHashMap.create("Value",
+                    "Records");
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;

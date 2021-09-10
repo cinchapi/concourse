@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.concourse.test.runners.CrossVersionTestRunner;
 import com.cinchapi.concourse.test.runners.CrossVersionTestRunner.Versions;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
+import com.cinchapi.concourse.util.PrettyTableMap;
 
 /**
  * A {@link CrossVersionTest} is one that runs against multiple versions of
@@ -52,8 +53,8 @@ public abstract class CrossVersionTest extends ClientServerTest {
      * version. These stats are printed at the end of the entire test run to
      * provide an easy view of comparative metrics.
      */
-    private static PrettyLinkedTableMap<String, String, Object> stats = PrettyLinkedTableMap
-            .newPrettyLinkedTableMap("Version");
+    private static PrettyTableMap<String, String, Object> stats = PrettyLinkedTableMap
+            .create("Version");
 
     @Override
     protected void beforeEachTest() {

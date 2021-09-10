@@ -94,7 +94,7 @@ public final class DataIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
     public String toString() {
         if(pretty == null) {
             Map<String, Map<T, Set<Long>>> $pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Key");
+                    .create("Key");
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;

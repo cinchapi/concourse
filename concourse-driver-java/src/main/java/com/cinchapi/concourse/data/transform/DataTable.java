@@ -112,7 +112,7 @@ public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
     public String toString() {
         if(pretty == null) {
             Map<Long, Map<String, T>> $pretty = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
+                    .create("Record");
             entrySet().forEach(
                     entry -> $pretty.put(entry.getKey(), entry.getValue()));
             pretty = $pretty;
