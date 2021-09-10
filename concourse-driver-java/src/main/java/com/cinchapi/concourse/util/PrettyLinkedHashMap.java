@@ -44,7 +44,8 @@ import com.google.common.collect.ForwardingMap;
  * 
  * @author Jeff Nelson
  */
-public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
+public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> implements
+        PrettyMap<K, V> {
 
     /**
      * Return an empty {@link Map} with "pretty" {@link #toString()
@@ -52,7 +53,7 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * 
      * @return the new {@link Map}
      */
-    public static <K, V> PrettyLinkedHashMap<K, V> create() {
+    public static <K, V> PrettyMap<K, V> create() {
         return new PrettyLinkedHashMap<>(null, null);
     }
 
@@ -69,54 +70,9 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param valueColumnHeader
      * @return the new {@link Map}
      */
-    public static <K, V> PrettyLinkedHashMap<K, V> create(
-            String keyColumnHeader, String valueColumnHeader) {
-        return new PrettyLinkedHashMap<>(keyColumnHeader, valueColumnHeader);
-    }
-
-    /**
-     * Return a new {@link Map} containing all the entries from {@code data}
-     * that "prettifies" its {@link #toString() string} representation
-     * on-demand.
-     * <p>
-     * The returned {@link Map} copies, but does not "read through" to
-     * {@code data}. It is mutable, but changes made to it are not reflected in
-     * {@code data} and vice versa.
-     * </p>
-     * 
-     * @param data
-     * @return a {@link Map} containing {@code data} that has pretty
-     *         {@link #toString()} output
-     */
-    public static <K, V> Map<K, V> of(Map<K, V> data) {
-        return of(data, null, null);
-    }
-
-    /**
-     * Return a new {@link Map} containing all the entries from {@code data}
-     * that "prettifies" its {@link #toString() string} representation
-     * on-demand.
-     * <p>
-     * The returned {@link Map} copies, but does not "read through" to
-     * {@code data}. It is mutable, but changes made to it are not reflected in
-     * {@code data} and vice versa.
-     * </p>
-     * <p>
-     * {@code keyColumnHeader} is used as the header for the column that
-     * contains the the keys and {@code valueColumnHeader} is used for the
-     * column that contains the values.
-     * </p>
-     * 
-     * @param data
-     * @param keyColumnHeader
-     * @param valueColumnHeader
-     * @return a {@link Map} containing {@code data} that has pretty
-     *         {@link #toString()} output
-     */
-    public static <K, V> Map<K, V> of(Map<K, V> data, String keyColumnHeader,
+    public static <K, V> PrettyMap<K, V> create(String keyColumnHeader,
             String valueColumnHeader) {
-        return new LazyPrettyLinkedHashMap<>(data, keyColumnHeader,
-                valueColumnHeader);
+        return new PrettyLinkedHashMap<>(keyColumnHeader, valueColumnHeader);
     }
 
     /**
@@ -147,13 +103,58 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
                 valueColumnHeader);
     }
 
+    /**
+     * Return a new {@link Map} containing all the entries from {@code data}
+     * that "prettifies" its {@link #toString() string} representation
+     * on-demand.
+     * <p>
+     * The returned {@link Map} copies, but does not "read through" to
+     * {@code data}. It is mutable, but changes made to it are not reflected in
+     * {@code data} and vice versa.
+     * </p>
+     * 
+     * @param data
+     * @return a {@link Map} containing {@code data} that has pretty
+     *         {@link #toString()} output
+     */
+    public static <K, V> PrettyMap<K, V> of(Map<K, V> data) {
+        return of(data, null, null);
+    }
+
+    /**
+     * Return a new {@link Map} containing all the entries from {@code data}
+     * that "prettifies" its {@link #toString() string} representation
+     * on-demand.
+     * <p>
+     * The returned {@link Map} copies, but does not "read through" to
+     * {@code data}. It is mutable, but changes made to it are not reflected in
+     * {@code data} and vice versa.
+     * </p>
+     * <p>
+     * {@code keyColumnHeader} is used as the header for the column that
+     * contains the the keys and {@code valueColumnHeader} is used for the
+     * column that contains the values.
+     * </p>
+     * 
+     * @param data
+     * @param keyColumnHeader
+     * @param valueColumnHeader
+     * @return a {@link Map} containing {@code data} that has pretty
+     *         {@link #toString()} output
+     */
+    public static <K, V> PrettyMap<K, V> of(Map<K, V> data,
+            String keyColumnHeader, String valueColumnHeader) {
+        return new LazyPrettyLinkedHashMap<>(data, keyColumnHeader,
+                valueColumnHeader);
+    }
+
     private static final long serialVersionUID = 1L; // serializability
                                                      // inherited from parent
                                                      // class
 
     private String keyColumnHeader = "Key";
-    private String valueColumnHeader = "Value";
     private int keyColumnLength = keyColumnHeader.length();
+    private String valueColumnHeader = "Value";
     private int valueColumnLength = valueColumnHeader.length();
 
     /**
@@ -186,15 +187,29 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
         map.forEach((key, value) -> put(key, value));
     }
 
+    @Override
+    public PrettyMap<K, V> setKeyColumnHeader(String header) {
+        keyColumnHeader = header;
+        keyColumnLength = Math.max(header.length(), keyColumnLength);
+        return this;
+    }
+
     /**
      * Set the keyColumnHeader to {@code name}.
      * 
      * @param name
      * @return this
+     * @deprecated use {@link #setKeyColumnHeader(String)} instead
      */
+    @Deprecated
     public PrettyLinkedHashMap<K, V> setKeyName(String name) {
-        keyColumnHeader = name;
-        keyColumnLength = Math.max(name.length(), keyColumnLength);
+        return (PrettyLinkedHashMap<K, V>) setKeyColumnHeader(name);
+    }
+
+    @Override
+    public PrettyMap<K, V> setValueColumnHeader(String header) {
+        valueColumnHeader = header;
+        valueColumnLength = Math.max(header.length(), valueColumnLength);
         return this;
     }
 
@@ -203,11 +218,10 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * 
      * @param name
      * @return this
+     * @deprecated use {@link #setValueColumnHeader(String)} instead
      */
     public PrettyLinkedHashMap<K, V> setValueName(String name) {
-        valueColumnHeader = name;
-        valueColumnLength = Math.max(name.length(), valueColumnLength);
-        return this;
+        return (PrettyLinkedHashMap<K, V>) setValueColumnHeader(name);
     }
 
     @Override
@@ -238,18 +252,19 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @author Jeff Nelson
      */
     private static class LazyPrettyLinkedHashMap<K, V>
-            extends ForwardingMap<K, V> {
+            extends ForwardingMap<K, V> implements
+            PrettyMap<K, V> {
+
+        /**
+         * The header to use for the column that contains the keys.
+         */
+        private final String keyColumnHeader;
 
         /**
          * The existing source that it passed in to be {@link #toString()
          * prettified} later.
          */
         private Map<K, V> source;
-
-        /**
-         * The header to use for the column that contains the keys.
-         */
-        private final String keyColumnHeader;
 
         /**
          * The header to use for the column that contains the values.
@@ -296,6 +311,16 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
             // Force generation of pretty map and use it as the #source so the
             // original map isn't mutated
             return pretty().remove(object);
+        }
+
+        @Override
+        public PrettyMap<K, V> setKeyColumnHeader(String header) {
+            return ((PrettyMap<K, V>) pretty()).setKeyColumnHeader(header);
+        }
+
+        @Override
+        public PrettyMap<K, V> setValueColumnHeader(String header) {
+            return ((PrettyMap<K, V>) pretty()).setValueColumnHeader(header);
         }
 
         @Override

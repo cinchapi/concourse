@@ -47,7 +47,9 @@ import com.google.common.collect.Maps;
  * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
-public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
+public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
+        implements
+        PrettyTableMap<R, C, V> {
 
     /**
      * Return an empty {@link Map} with "pretty" {@link #toString()
@@ -55,7 +57,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * 
      * @return the new {@link Map}
      */
-    public static <R, C, V> PrettyLinkedTableMap<R, C, V> create() {
+    public static <R, C, V> PrettyTableMap<R, C, V> create() {
         return new PrettyLinkedTableMap<>(null);
     }
 
@@ -70,7 +72,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @param identifierColumnHeader
      * @return the new {@link Map}
      */
-    public static <R, C, V> PrettyLinkedTableMap<R, C, V> create(
+    public static <R, C, V> PrettyTableMap<R, C, V> create(
             String identifierColumnHeader) {
         return new PrettyLinkedTableMap<>(identifierColumnHeader);
     }
@@ -114,7 +116,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @return a {@link Map} containing {@code data} that has pretty
      *         {@link #toString()} output
      */
-    public static <R, C, V> Map<R, Map<C, V>> of(Map<R, Map<C, V>> data) {
+    public static <R, C, V> PrettyTableMap<R, C, V> of(Map<R, Map<C, V>> data) {
         return of(data, null);
     }
 
@@ -137,7 +139,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @return a {@link Map} containing {@code data} that has pretty
      *         {@link #toString()} output
      */
-    public static <R, C, V> Map<R, Map<C, V>> of(Map<R, Map<C, V>> data,
+    public static <R, C, V> PrettyTableMap<R, C, V> of(Map<R, Map<C, V>> data,
             String identifierColumnHeader) {
         return new LazyPrettyLinkedTableMap<>(data, identifierColumnHeader);
 
@@ -213,17 +215,25 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
         m.forEach((key, value) -> put(key, value));
     }
 
+    @Override
+    public PrettyLinkedTableMap<R, C, V> setIdentifierColumnHeader(
+            String header) {
+        identifierColumnHeader = header;
+        identifierColumnLength = Math.max(header.length(),
+                identifierColumnLength);
+        return this;
+    }
+
     /**
      * Set the identifierColumnHeader to {@code name}.
      * 
      * @param name
      * @return this
+     * @deprecated use {@link #setIdentifierColumnHeader(String)} instead
      */
+    @Deprecated
     public PrettyLinkedTableMap<R, C, V> setRowName(String name) {
-        identifierColumnHeader = name;
-        identifierColumnLength = Math.max(name.length(),
-                identifierColumnLength);
-        return this;
+        return setIdentifierColumnHeader(name);
     }
 
     @Override
@@ -271,7 +281,8 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @author Jeff Nelson
      */
     private static class LazyPrettyLinkedTableMap<R, C, V>
-            extends ForwardingMap<R, Map<C, V>> {
+            extends ForwardingMap<R, Map<C, V>> implements
+            PrettyTableMap<R, C, V> {
 
         /**
          * The header to use for the column that contains the row identifier in
@@ -304,6 +315,12 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             pretty().clear();
         }
 
+        @SuppressWarnings("unchecked")
+        @Override
+        public V put(R row, C column, V value) {
+            return ((PrettyTableMap<R, C, V>) pretty()).put(row, column, value);
+        }
+
         @Override
         public Map<C, V> put(R key, Map<C, V> value) {
             // Force generation of pretty map and use it as the #source so the
@@ -323,6 +340,14 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             // Force generation of pretty map and use it as the #source so the
             // original map isn't mutated
             return pretty().remove(object);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public PrettyTableMap<R, C, V> setIdentifierColumnHeader(
+                String header) {
+            return ((PrettyTableMap<R, C, V>) pretty())
+                    .setIdentifierColumnHeader(header);
         }
 
         @Override
