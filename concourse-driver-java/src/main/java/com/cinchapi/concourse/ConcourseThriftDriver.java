@@ -4022,9 +4022,15 @@ class ConcourseThriftDriver extends Concourse {
     public Map<Long, Map<String, Set<Long>>> trace(Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Map<String, Set<Long>>> data = core.traceRecordsTime(
-                    Collections.toLongList(records), timestamp.getMicros(),
-                    creds, transaction, environment);
+            Map<Long, Map<String, Set<Long>>> data;
+            if(timestamp.isString()) {
+                data = core.traceRecordsTimestr(Collections.toLongList(records),
+                        timestamp.toString(), creds, transaction, environment);
+            }
+            else {
+                data = core.traceRecordsTime(Collections.toLongList(records),
+                        timestamp.getMicros(), creds, transaction, environment);
+            }
             return PrettyLinkedTableMap.of(data, "Record");
         });
     }
@@ -4041,8 +4047,15 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Map<String, Set<Long>> trace(long record, Timestamp timestamp) {
         return execute(() -> {
-            Map<String, Set<Long>> data = core.traceRecordTime(record,
-                    timestamp.getMicros(), creds, transaction, environment);
+            Map<String, Set<Long>> data;
+            if(timestamp.isString()) {
+                data = core.traceRecordTimestr(record, timestamp.toString(),
+                        creds, transaction, environment);
+            }
+            else {
+                data = core.traceRecordTime(record, timestamp.getMicros(),
+                        creds, transaction, environment);
+            }
             return PrettyLinkedHashMap.of(data, "Key", "Sources");
         });
     }
