@@ -2,6 +2,14 @@
 ###  PREFERENCES FOR CONCOURSE SERVER  ###
 ##########################################
 
+# The path to the file where access credentials for Concourse Server are
+# stored. For optimal security, this file should be placed in a separate
+# directory from Concourse Server with more restrictive operating system 
+# permissions
+#
+# DEFAULT {$concourse.home}/.access
+#access_credentials_file = .access
+
 # The absolute path to the directory where the Buffer data is stored. For
 # optimal write performance, the Buffer should be placed on a separate disk
 # partition (ideally a separate physical device) from the database_directory.

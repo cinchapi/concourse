@@ -687,6 +687,16 @@ public class ManagedConcourseServer {
     }
 
     /**
+     * Return the {@link ManagedConcourseServer server's}
+     * {@link ConourseServerPreferences preferences}.
+     * 
+     * @return the {@link ConourseServerPreferences preferences}.
+     */
+    public ConcourseServerPreferences prefs() {
+        return prefs;
+    }
+
+    /**
      * Print the content of the log file with {@code name} to the console.
      * 
      * @param name the name of the log file (i.e. console)
@@ -704,7 +714,6 @@ public class ManagedConcourseServer {
         }
         System.err.println();
         System.err.println(content);
-
     }
 
     /**

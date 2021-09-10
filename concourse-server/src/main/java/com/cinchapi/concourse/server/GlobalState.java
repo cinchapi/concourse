@@ -56,6 +56,17 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 public final class GlobalState extends Constants {
+
+    /**
+     * The absolute path to the root of the directory where Concourse Server is
+     * installed. This value is set by the start script. When running from
+     * Eclipse, this value is set to the launch directory.
+     */
+    @NonPreference
+    public static String CONCOURSE_HOME = MoreObjects.firstNonNull(
+            System.getProperty("com.cinchapi.concourse.server.home"),
+            System.getProperty("user.dir"));
+
     // ========================================================================
     // =========================== SYSTEM METADATA ============================
     /**
@@ -79,6 +90,13 @@ public final class GlobalState extends Constants {
      * 3. Add a placeholder for the new preference to the stock concourse.prefs
      * file in conf/concourse.prefs.
      */
+
+    /**
+     * The path to the file that contains access credentials used to secure
+     * access to {@link com.cinchapi.concourse.server.ConcourseServer Concourse
+     * Server}.
+     */
+    public static String ACCESS_CREDENTIALS_FILE = ".access";
 
     /**
      * The absolute path to the directory where the Database record and index
@@ -321,6 +339,10 @@ public final class GlobalState extends Constants {
                         .toArray(Array.containing()));
 
         // =================== PREF READING BLOCK ====================
+        ACCESS_CREDENTIALS_FILE = FileSystem
+                .expandPath(config.getOrDefault("access_credentials_file",
+                        ACCESS_CREDENTIALS_FILE), CONCOURSE_HOME);
+
         DATABASE_DIRECTORY = config.getOrDefault("database_directory",
                 DATABASE_DIRECTORY);
 
@@ -410,29 +432,11 @@ public final class GlobalState extends Constants {
     }
 
     /**
-     * The file which contains the credentials used by the
-     * {@link com.cinchapi.concourse.security.UserService}.
-     * This file is typically located in the root of the server installation.
-     */
-    @NonPreference
-    public static String ACCESS_FILE = ".access";
-
-    /**
      * A global {@link BlockingQueue} that is populated with {@link WriteEvent
      * write events} within each environment's {@link Buffer}.
      */
     @NonPreference
     public static LinkedBlockingQueue<WriteEvent> BINARY_QUEUE = new LinkedBlockingQueue<WriteEvent>();
-
-    /**
-     * The absolute path to the root of the directory where Concourse Server is
-     * installed. This value is set by the start script. When running from
-     * Eclipse, this value is set to the launch directory.
-     */
-    @NonPreference
-    public static String CONCOURSE_HOME = MoreObjects.firstNonNull(
-            System.getProperty("com.cinchapi.concourse.server.home"),
-            System.getProperty("user.dir"));
 
     /**
      * The name of the cookie where the HTTP auth token is stored.

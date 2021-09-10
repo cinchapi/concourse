@@ -45,6 +45,7 @@ import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.Serializables;
 import com.google.common.annotations.VisibleForTesting;
@@ -250,6 +251,7 @@ public class UserService {
                     ByteBuffers.decodeFromHexString(DEFAULT_ADMIN_PASSWORD),
                     Role.ADMIN);
         }
+        Logger.info("Storing access credentials in {}", backingStore);
     }
 
     /**
@@ -1014,12 +1016,9 @@ public class UserService {
          * 
          * <p>
          * A service token is an {@link AccessToken} that is not associated with
-         * an
-         * actual user, but is instead generated based on the
+         * an actual user, but is instead generated based on the
          * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
-         * service
-         * or
-         * process.
+         * service or process.
          * </p>
          * <p>
          * Service tokens do not expire!
@@ -1027,7 +1026,7 @@ public class UserService {
          * 
          * @return the new service token
          */
-        public AccessToken serviceIssue() {
+        public AccessToken issueServiceToken() {
             return issue(SERVICE_USERNAME_BYTES);
         }
     }
