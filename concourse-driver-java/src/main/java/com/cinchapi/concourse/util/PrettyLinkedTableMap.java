@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 /**
@@ -51,18 +50,18 @@ import com.google.common.collect.Maps;
 public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
 
     /**
-     * Return an empty {@link Map} that "prettifies" its {@link #toString()
-     * string} representation on-demand.
+     * Return an empty {@link Map} with "pretty" {@link #toString()
+     * string} representation, using the default identifier name.
      * 
      * @return the new {@link Map}
      */
-    public static <R, C, V> Map<R, Map<C, V>> create() {
-        return of(ImmutableMap.of(), null);
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> create() {
+        return new PrettyLinkedTableMap<>(null);
     }
 
     /**
-     * Return an empty {@link Map} that "prettifies" its {@link #toString()
-     * string} representation on-demand.
+     * Return an empty {@link Map} with "pretty" {@link #toString()
+     * string} representation.
      * <p>
      * {@code identifierColumnHeader} is used as the header for the column that
      * contains the the identifier for each row in the "table".
@@ -71,9 +70,9 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @param identifierColumnHeader
      * @return the new {@link Map}
      */
-    public static <R, C, V> Map<R, Map<C, V>> create(
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> create(
             String identifierColumnHeader) {
-        return of(ImmutableMap.of(), identifierColumnHeader);
+        return new PrettyLinkedTableMap<>(identifierColumnHeader);
     }
 
     /**

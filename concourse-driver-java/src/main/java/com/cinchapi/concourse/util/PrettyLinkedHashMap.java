@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * A special {@link LinkedHashMap} with a named key and value that returns a
@@ -48,18 +47,18 @@ import com.google.common.collect.ImmutableMap;
 public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
-     * Return an empty {@link Map} that "prettifies" its {@link #toString()
-     * string} representation on-demand.
+     * Return an empty {@link Map} with "pretty" {@link #toString()
+     * string} representation, using default key/value names.
      * 
      * @return the new {@link Map}
      */
-    public static <K, V> Map<K, V> create() {
-        return of(ImmutableMap.of(), null, null);
+    public static <K, V> PrettyLinkedHashMap<K, V> create() {
+        return new PrettyLinkedHashMap<>(null, null);
     }
 
     /**
-     * Return an empty {@link Map} that "prettifies" its {@link #toString()
-     * string} representation on-demand.
+     * Return an empty {@link Map} with "pretty" {@link #toString()
+     * string} representation.
      * <p>
      * {@code keyColumnHeader} is used as the header for the column that
      * contains the the keys and {@code valueColumnHeader} is used for the
@@ -70,9 +69,9 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param valueColumnHeader
      * @return the new {@link Map}
      */
-    public static <K, V> Map<K, V> create(String keyColumnHeader,
-            String valueColumnHeader) {
-        return of(ImmutableMap.of(), keyColumnHeader, valueColumnHeader);
+    public static <K, V> PrettyLinkedHashMap<K, V> create(
+            String keyColumnHeader, String valueColumnHeader) {
+        return new PrettyLinkedHashMap<>(keyColumnHeader, valueColumnHeader);
     }
 
     /**
@@ -257,6 +256,13 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
          */
         private final String valueColumnHeader;
 
+        /**
+         * Construct a new instance.
+         * 
+         * @param source
+         * @param keyColumnHeader
+         * @param valueColumnHeader
+         */
         private LazyPrettyLinkedHashMap(Map<K, V> source,
                 String keyColumnHeader, String valueColumnHeader) {
             this.source = source;

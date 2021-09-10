@@ -53,7 +53,7 @@ public abstract class CrossVersionTest extends ClientServerTest {
      * provide an easy view of comparative metrics.
      */
     private static PrettyLinkedTableMap<String, String, Object> stats = PrettyLinkedTableMap
-            .newPrettyLinkedTableMap("Version");
+            .create("Version");
 
     @Override
     protected void beforeEachTest() {

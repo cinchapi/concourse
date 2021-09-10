@@ -271,16 +271,11 @@ class ConcourseThriftDriver extends Concourse {
     public <T> Map<Long, Boolean> add(String key, T value,
             Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Boolean> raw = core.addKeyValueRecords(key,
+            Map<Long, Boolean> data = core.addKeyValueRecords(key,
                     Convert.javaToThrift(value),
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Boolean> pretty = PrettyLinkedHashMap.create("Record",
-                    "Successful");
-            for (long record : records) {
-                pretty.put(record, raw.get(record));
-            }
-            return pretty;
+            return PrettyLinkedHashMap.of(data, "Record", "Successful");
         });
     }
 
@@ -597,15 +592,10 @@ class ConcourseThriftDriver extends Concourse {
     @Override
     public Map<Long, Set<String>> describe(Collection<Long> records) {
         return execute(() -> {
-            Map<Long, Set<String>> raw = core.describeRecords(
+            Map<Long, Set<String>> data = core.describeRecords(
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Set<String>> pretty = PrettyLinkedHashMap.create("Record",
-                    "Keys");
-            for (Entry<Long, Set<String>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(), entry.getValue());
-            }
-            return pretty;
+            return PrettyLinkedHashMap.of(data, "Record", "Keys");
         });
     }
 
@@ -613,22 +603,17 @@ class ConcourseThriftDriver extends Concourse {
     public Map<Long, Set<String>> describe(Collection<Long> records,
             Timestamp timestamp) {
         return execute(() -> {
-            Map<Long, Set<String>> raw;
+            Map<Long, Set<String>> data;
             if(timestamp.isString()) {
-                raw = core.describeRecordsTimestr(
+                data = core.describeRecordsTimestr(
                         Collections.toLongList(records), timestamp.toString(),
                         creds, transaction, environment);
             }
             else {
-                raw = core.describeRecordsTime(Collections.toLongList(records),
+                data = core.describeRecordsTime(Collections.toLongList(records),
                         timestamp.getMicros(), creds, transaction, environment);
             }
-            Map<Long, Set<String>> pretty = PrettyLinkedHashMap.create("Record",
-                    "Keys");
-            for (Entry<Long, Set<String>> entry : raw.entrySet()) {
-                pretty.put(entry.getKey(), entry.getValue());
-            }
-            return pretty;
+            return PrettyLinkedHashMap.of(data, "Record", "Keys");
         });
     }
 
@@ -2624,12 +2609,7 @@ class ConcourseThriftDriver extends Concourse {
                     Convert.javaToThrift(value),
                     Collections.toLongList(records), creds, transaction,
                     environment);
-            Map<Long, Boolean> pretty = PrettyLinkedHashMap.create("Record",
-                    "Result");
-            for (long record : records) {
-                pretty.put(record, raw.get(record));
-            }
-            return pretty;
+            return PrettyLinkedHashMap.of(raw, "Record", "Result");
         });
     }
 
