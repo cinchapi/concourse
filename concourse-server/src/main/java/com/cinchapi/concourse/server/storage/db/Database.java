@@ -398,6 +398,11 @@ public final class Database implements DurableStore {
         return Transformers.transformMapSet(data, Functions.identity(),
                 Value::getTObject);
     }
+    
+    @Override
+    public void compact() {
+        // TODO: run a minor compaction
+    }
 
     @Override
     public boolean contains(long record) {

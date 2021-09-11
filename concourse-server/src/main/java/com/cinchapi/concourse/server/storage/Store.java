@@ -34,7 +34,7 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
  * {@link Limbo} or <em>eventually</em> if it is a {@link DurableStore}.
  * </p>
  * <p>
- * In general, a {@code Limbo} and {@code PermanentStore} work together in a
+ * In general, a {@code Limbo} and {@link DurableStore} work together in a
  * {@link BufferedStore} to improve write performance by immediately committing
  * writes into a durable buffer before batch indexing them in the background.
  * </p>
@@ -131,6 +131,27 @@ public interface Store {
      */
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end);
+
+    /**
+     * If possible, suggest that this {@link Store} "compact" data by reducing
+     * space usage (in-memory and/or on disk) and grouping related information
+     * in a contiguous manner (e.g. defragmentation).
+     * <p>
+     * The {@link Store} is the best judge of when it can or should compact
+     * data, so calling this method is only a <em>suggestion</em>. When this
+     * method returns, it is only guaranteed that the {@link Store} made a "best
+     * effort".
+     * </p>
+     * <p>
+     * The default implementation is a no-op. For {@link Store Stores} that
+     * do support compaction, the assumption is that the process is
+     * time-intensive and expensive, so adherence to this interface is satisfied
+     * when compaction is done in a manner that does not block other normal
+     * operations (e.g. reads or writes) and does not affect, even temporarily, ACID
+     * guarantees that are normally provided by the {@link Store}.
+     * </p>
+     */
+    public default void compact() {/* no-op */};
 
     /**
      * Return {@code true} if the store contains any data, present or

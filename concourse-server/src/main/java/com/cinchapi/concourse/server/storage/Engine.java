@@ -566,6 +566,12 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
+    
+    @Override
+    public void compact() {
+        durable.compact();
+        limbo.compact();
+    }
 
     @Override
     public boolean contains(long record) {
