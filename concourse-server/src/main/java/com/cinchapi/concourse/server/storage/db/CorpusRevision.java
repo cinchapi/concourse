@@ -34,18 +34,6 @@ import com.cinchapi.concourse.server.storage.Action;
 public final class CorpusRevision extends Revision<Text, Text, Position> {
 
     /**
-     * Construct an instance that represents an existing SearchRevision from
-     * a ByteBuffer. This constructor is public so as to comply with the
-     * {@link Byteable} interface. Calling this constructor directly is not
-     * recommend.
-     * 
-     * @param bytes
-     */
-    private CorpusRevision(ByteBuffer bytes) {
-        super(bytes);
-    }
-
-    /**
      * Construct a new instance.
      * 
      * @param locator
@@ -57,6 +45,25 @@ public final class CorpusRevision extends Revision<Text, Text, Position> {
     CorpusRevision(Text locator, Text key, Position value, long version,
             Action type) {
         super(locator, key, value, version, type);
+    }
+
+    /**
+     * Construct an instance that represents an existing SearchRevision from
+     * a ByteBuffer. This constructor is public so as to comply with the
+     * {@link Byteable} interface. Calling this constructor directly is not
+     * recommend.
+     * 
+     * @param bytes
+     */
+    private CorpusRevision(ByteBuffer bytes) {
+        super(bytes);
+    }
+
+    @Override
+    public CompactRevision<Position> compact() {
+        // Per CorpusRecord's extension of AmnesiRecord, CorpusRevisions are NOT
+        // stored, so there is no point in generating their compact form.
+        return null;
     }
 
     @Override

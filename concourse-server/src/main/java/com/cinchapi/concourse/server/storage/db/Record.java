@@ -144,11 +144,12 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
             checkIsRelevantRevision(revision);
             checkIsOffsetRevision(revision);
 
+            K key = revision.getKey();
             // Update present index
-            Set<V> values = present.get(revision.getKey());
+            Set<V> values = present.get(key);
             if(values == null) {
                 values = setType();
-                present.put(revision.getKey(), values);
+                present.put(key, values);
             }
             if(revision.getType() == Action.ADD) {
                 values.add(revision.getValue());
@@ -156,15 +157,15 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
             else {
                 values.remove(revision.getValue());
                 if(values.isEmpty()) {
-                    present.remove(revision.getKey());
+                    present.remove(key);
                 }
             }
 
             // Update history index
-            List<CompactRevision<V>> revisions = history.get(revision.getKey());
+            List<CompactRevision<V>> revisions = history.get(key);
             if(revisions == null) {
                 revisions = Lists.newArrayList();
-                history.put(revision.getKey(), revisions);
+                history.put(key, revisions);
             }
             revisions.add(revision.compact());
 
