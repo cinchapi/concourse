@@ -202,8 +202,7 @@ public final class Database implements DurableStore {
     /**
      * The number of seconds to wait in between incremental compactions.
      */
-    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
-            .convert(5, TimeUnit.MINUTES);
+    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = 2;
 
     /**
      * The initial number of seconds to wait, after the {@link Database}
@@ -331,6 +330,11 @@ public final class Database implements DurableStore {
      * The underlying {@link Storage}.
      */
     private final transient Storage storage;
+    
+    /**
+     * A "tag" used to identify the Database's affiliations (e.g. environment).
+     */
+    private transient String tag = "";
 
     /**
      * An {@link ExecutorService} that is passed to {@link #seg0} to handle
@@ -840,7 +844,7 @@ public final class Database implements DurableStore {
 
             fullCompaction = ENABLE_COMPACTION
                     ? Executors.newScheduledThreadPool(1,
-                            createCompactionThreadFactory("", "Full"))
+                            createCompactionThreadFactory(tag, "Full"))
                     : new NoOpScheduledExecutorService();
             fullCompaction.scheduleWithFixedDelay(
                     () -> compactor.executeFullCompaction(),
@@ -850,7 +854,7 @@ public final class Database implements DurableStore {
 
             incrementalCompaction = ENABLE_COMPACTION
                     ? Executors.newScheduledThreadPool(1,
-                            createCompactionThreadFactory("", "Incremental"))
+                            createCompactionThreadFactory(tag, "Incremental"))
                     : new NoOpScheduledExecutorService();
             incrementalCompaction.scheduleWithFixedDelay(
                     () -> compactor.tryIncrementalCompaction(),
@@ -891,6 +895,14 @@ public final class Database implements DurableStore {
     @Override
     public void sync() {
         rotate(true);
+    }
+    
+    /**
+     * Set the {@link Database Database's} tag.
+     * @param tag
+     */
+    public void tag(String tag) {
+        this.tag = tag;
     }
 
     @Override

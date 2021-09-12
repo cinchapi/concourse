@@ -328,6 +328,7 @@ public final class Engine extends BufferedStore implements
         buffer.setInventory(inventory);
         buffer.setThreadNamePrefix(environment + "-buffer");
         buffer.setEnvironment(environment);
+        database.tag(environment);
     }
 
     @Override
