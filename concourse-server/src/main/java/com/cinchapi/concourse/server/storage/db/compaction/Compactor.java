@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
+
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;

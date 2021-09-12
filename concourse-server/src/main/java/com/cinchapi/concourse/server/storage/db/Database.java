@@ -39,6 +39,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -47,6 +50,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
@@ -54,6 +58,7 @@ import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
+import com.cinchapi.concourse.server.concurrent.NoOpScheduledExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -66,6 +71,9 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.WriteStreamProfiler;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
+import com.cinchapi.concourse.server.storage.db.compaction.Compactor;
+import com.cinchapi.concourse.server.storage.db.compaction.NoOpCompactor;
+import com.cinchapi.concourse.server.storage.db.compaction.similarity.SimilarityCompactor;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
@@ -92,6 +100,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * The {@link Database} is the {@link Engine Engine's} {@link DurableStore}
@@ -134,6 +143,31 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * Return a {@link ThreadFactory} that produces threads to run compaction
+     * jobs.
+     * 
+     * @param environment
+     * @param compactionType
+     * @return the {@link ThreadFactory}
+     */
+    private static ThreadFactory createCompactionThreadFactory(
+            String environment, String compactionType) {
+        ThreadFactoryBuilder factory = new ThreadFactoryBuilder();
+        factory.setDaemon(true);
+        factory.setNameFormat(AnyStrings.format("{}Compaction [{}]",
+                compactionType, environment));
+        factory.setPriority(Thread.MIN_PRIORITY);
+        factory.setUncaughtExceptionHandler((thread, exception) -> {
+            Logger.error("Uncaught exception in {}:", thread.getName(),
+                    exception);
+            Logger.error(
+                    "{} has STOPPED WORKING due to an unexpected exception. {} compaction is paused until the error is resolved",
+                    thread.getName(), compactionType);
+        });
+        return factory.build();
+    }
+
+    /**
      * Return the {@link Segment} identified by {@code id} if it exists within
      * the collection of {@code segments}. If it doesn't return {@code null}.
      * 
@@ -153,10 +187,41 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * The number of seconds to wait in between full compactions.
+     */
+    private static long FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(7, TimeUnit.DAYS);
+
+    /**
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run a full compaction.
+     */
+    private static long FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(1, TimeUnit.DAYS);
+
+    /**
+     * The number of seconds to wait in between incremental compactions.
+     */
+    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(5, TimeUnit.MINUTES);
+
+    /**
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run an incremental compaction.
+     */
+    private static long INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS = 30;
+
+    /**
      * The subdirectory of {@link #directory} where the {@link Segment} files
      * are stored.
      */
     private static final String SEGMENTS_SUBDIRECTORY = "segments";
+
+    /**
+     * Global flag that indicates if compaction is enabled.
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_COMPACTION = GlobalState.ENABLE_COMPACTION;
 
     /**
      * Global flag that indicates if search data is cached.
@@ -205,9 +270,24 @@ public final class Database implements DurableStore {
             : ImmutableMap.of();
 
     /**
+     * The {@link Compactor} that performs compaction.
+     */
+    private transient Compactor compactor;
+
+    /**
      * The location where the Database stores data.
      */
     private final transient Path directory;
+
+    /**
+     * Runs full compaction in the background.
+     */
+    private transient ScheduledExecutorService fullCompaction;
+
+    /**
+     * Runs incremental compaction in the background.
+     */
+    private transient ScheduledExecutorService incrementalCompaction;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -403,7 +483,7 @@ public final class Database implements DurableStore {
 
     @Override
     public void compact() {
-        // TODO: run a minor compaction
+        compactor.tryIncrementalCompaction();
     }
 
     @Override
@@ -678,7 +758,7 @@ public final class Database implements DurableStore {
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
             List<Segment> segments = Collections
                     .synchronizedList(this.segments);
-            Stream<Path> files = FileSystem.ls(storage.directory());
+            Stream<Path> files = storage.files();
             files.forEach(file -> tasks.add(() -> {
                 try {
                     Segment segment = Segment.load(file);
@@ -742,6 +822,44 @@ public final class Database implements DurableStore {
 
             rotate(false);
             memory = new CacheState();
+
+            /*
+             * If enabled, setup Compaction to run continuously in the
+             * background; trying to perform both "full" and "incremental"
+             * compaction. Incremental compaction is opportunistic; attempting
+             * frequently, but only occurring if no other conflicting work is
+             * happening and only trying to compact one "shift". On the other
+             * hand,full compaction runs less frequently, but is very
+             * aggressive: blocking until any other conflicting work is done
+             * and trying every possible shift.
+             */
+            // @formatter:off
+            compactor = ENABLE_COMPACTION
+                    ? new SimilarityCompactor(storage)
+                    : new NoOpCompactor(storage);
+
+            fullCompaction = ENABLE_COMPACTION
+                    ? Executors.newScheduledThreadPool(1,
+                            createCompactionThreadFactory("", "Full"))
+                    : new NoOpScheduledExecutorService();
+            fullCompaction.scheduleWithFixedDelay(
+                    () -> compactor.executeFullCompaction(),
+                    FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS,
+                    FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS,
+                    TimeUnit.SECONDS);
+
+            incrementalCompaction = ENABLE_COMPACTION
+                    ? Executors.newScheduledThreadPool(1,
+                            createCompactionThreadFactory("", "Incremental"))
+                    : new NoOpScheduledExecutorService();
+            incrementalCompaction.scheduleWithFixedDelay(
+                    () -> compactor.tryIncrementalCompaction(),
+                    INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS,
+                    INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS,
+                    TimeUnit.SECONDS);
+            // @formatter:on
+            Logger.info("Database is running with compaction {}.",
+                    ENABLE_COMPACTION ? "ON" : "OFF");
         }
 
     }
@@ -765,6 +883,8 @@ public final class Database implements DurableStore {
                     throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
+            fullCompaction.shutdownNow();
+            incrementalCompaction.shutdownNow();
         }
     }
 
@@ -1223,6 +1343,8 @@ public final class Database implements DurableStore {
      */
     private static class Storage implements SegmentStorageSystem {
 
+        private static String FILESYSTEM_HOOK_FILE_NAME = ".fs";
+
         /**
          * Used to hook into disk space APIs needed for conformity with
          * {@link SegmentStorageSystem} interface.
@@ -1255,7 +1377,7 @@ public final class Database implements DurableStore {
             FileSystem.mkdirs(directory);
             this.segments = segments;
             this.lock = lock;
-            this.fs = directory.resolve(".fs").toFile();
+            this.fs = directory.resolve(FILESYSTEM_HOOK_FILE_NAME).toFile();
             try {
                 fs.createNewFile(); // File must "exist" in order to
                                     // hook into disk space APIs
@@ -1278,6 +1400,16 @@ public final class Database implements DurableStore {
          */
         public Path directory() {
             return directory;
+        }
+
+        /**
+         * Return a {@link Stream} of all the storage files.
+         * 
+         * @return the storage files
+         */
+        public Stream<Path> files() {
+            return FileSystem.ls(directory).filter(file -> !file.getFileName()
+                    .toString().equals(FILESYSTEM_HOOK_FILE_NAME));
         }
 
         @Override

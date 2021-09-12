@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage.db.compaction.similarity;
 
 import java.util.List;
+
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.compaction.Compactor;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -43,7 +44,7 @@ public class SimilarityCompactor extends Compactor {
      * 
      * @param storage
      */
-    protected SimilarityCompactor(SegmentStorageSystem storage) {
+    public SimilarityCompactor(SegmentStorageSystem storage) {
         super(storage);
     }
 

@@ -147,7 +147,8 @@ public interface Store {
      * do support compaction, the assumption is that the process is
      * time-intensive and expensive, so adherence to this interface is satisfied
      * when compaction is done in a manner that does not block other normal
-     * operations (e.g. reads or writes) and does not affect, even temporarily, ACID
+     * operations (e.g. reads or writes) and does not affect, even temporarily,
+     * ACID
      * guarantees that are normally provided by the {@link Store}.
      * </p>
      */

@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db.compaction;
 
 import java.nio.file.Paths;
 import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
