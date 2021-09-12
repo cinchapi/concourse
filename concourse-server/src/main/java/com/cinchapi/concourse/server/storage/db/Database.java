@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +39,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -174,12 +176,6 @@ public final class Database implements DurableStore {
      */
     private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
 
-    /**
-     * The full {@link Path} for the directory where the {@link #segments
-     * segment} files are stored.
-     */
-    private final transient Path $segments;
-
     /*
      * RECORD CACHES
      * -------------
@@ -252,6 +248,11 @@ public final class Database implements DurableStore {
     private final transient List<Segment> segments = Lists.newArrayList();
 
     /**
+     * The underlying {@link Storage}.
+     */
+    private final transient Storage storage;
+
+    /**
      * An {@link ExecutorService} that is passed to {@link #seg0} to handle
      * writing tasks asynchronously in the background.
      */
@@ -275,7 +276,8 @@ public final class Database implements DurableStore {
      */
     public Database(Path directory) {
         this.directory = directory;
-        this.$segments = directory.resolve(SEGMENTS_SUBDIRECTORY);
+        this.storage = new Storage(directory.resolve(SEGMENTS_SUBDIRECTORY),
+                segments, masterLock.writeLock());
     }
 
     /**
@@ -398,7 +400,7 @@ public final class Database implements DurableStore {
         return Transformers.transformMapSet(data, Functions.identity(),
                 Value::getTObject);
     }
-    
+
     @Override
     public void compact() {
         // TODO: run a minor compaction
@@ -542,8 +544,8 @@ public final class Database implements DurableStore {
                     Segment segment = segments.get(i);
                     Segment clean = deduped.get(segment);
                     if(clean != null) {
-                        clean.transfer(
-                                $segments.resolve(UUID.randomUUID() + ".seg"));
+                        clean.transfer(storage.directory()
+                                .resolve(UUID.randomUUID() + ".seg"));
                         segments.set(i, clean);
                         segment.delete();
                     }
@@ -674,10 +676,9 @@ public final class Database implements DurableStore {
                             .namingThreadFactory("DatabaseWriter")));
             this.segments.clear();
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
-            FileSystem.mkdirs($segments);
             List<Segment> segments = Collections
                     .synchronizedList(this.segments);
-            Stream<Path> files = FileSystem.ls($segments);
+            Stream<Path> files = FileSystem.ls(storage.directory());
             files.forEach(file -> tasks.add(() -> {
                 try {
                     Segment segment = Segment.load(file);
@@ -1001,9 +1002,8 @@ public final class Database implements DurableStore {
         masterLock.writeLock().lock();
         try {
             if(flush) {
-                Path file = $segments.resolve(UUID.randomUUID() + ".seg");
                 String id = seg0.id();
-                seg0.transfer(file);
+                Path file = storage.save(seg0);
                 Logger.debug("Completed sync of {} to disk at {}", id, file);
             }
             segments.add((seg0 = Segment.create()));
@@ -1214,6 +1214,93 @@ public final class Database implements DurableStore {
                     || contains(record);
         }
 
+    }
+
+    /**
+     * The {@link SegmentStorageSystem} for a {@link Database}.
+     *
+     * @author Jeff Nelson
+     */
+    private static class Storage implements SegmentStorageSystem {
+
+        /**
+         * Used to hook into disk space APIs needed for conformity with
+         * {@link SegmentStorageSystem} interface.
+         */
+        private final transient File fs;
+
+        /**
+         * The directory where .{@link Segment seg} files are stored.
+         */
+        private final Path directory;
+
+        /**
+         * Controls concurrent access to modify the {@link #segments()}.
+         */
+        private final Lock lock;
+
+        /**
+         * A live collection of the {@link Segments} in the {@link Database}.
+         */
+        private final List<Segment> segments;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param directory
+         * @param segments
+         */
+        private Storage(Path directory, List<Segment> segments, Lock lock) {
+            this.directory = directory;
+            FileSystem.mkdirs(directory);
+            this.segments = segments;
+            this.lock = lock;
+            this.fs = directory.resolve(".fs").toFile();
+            try {
+                fs.createNewFile(); // File must "exist" in order to
+                                    // hook into disk space APIs
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
+
+        @Override
+        public long availableDiskSpace() {
+            return fs.getUsableSpace();
+        }
+
+        /**
+         * Return the full {@link Path} for the directory where the
+         * {@link #segments segment} files are stored.
+         * 
+         * @return the storage directory
+         */
+        public Path directory() {
+            return directory;
+        }
+
+        @Override
+        public Path save(Segment segment) {
+            Path file = directory.resolve(UUID.randomUUID() + ".seg");
+            segment.transfer(file);
+            return file;
+        }
+
+        @Override
+        public List<Segment> segments() {
+            return segments;
+        }
+
+        @Override
+        public long totalDiskSpace() {
+            return fs.getTotalSpace();
+        }
+
+        @Override
+        public Lock lock() {
+            return lock;
+        }
     }
 
 }
