@@ -1499,48 +1499,49 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> reviewRecord(long record) {
+    public Map<Long, List<String>> reviewRecord(long record) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> reviewRecordStart(long record, long start) {
+    public Map<Long, List<String>> reviewRecordStart(long record, long start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> reviewRecordStartstr(long record, String start) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Map<Long, String> reviewRecordStartEnd(long record, long start,
-            long tend) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Map<Long, String> reviewRecordStartstrEndstr(long record,
-            String start, String tend) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Map<Long, String> reviewKeyRecord(String key, long record) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Map<Long, String> reviewKeyRecordStart(String key, long record,
-            long start) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Map<Long, String> reviewKeyRecordStartstr(String key, long record,
+    public Map<Long, List<String>> reviewRecordStartstr(long record,
             String start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> reviewKeyRecordStartEnd(String key, long record,
-            long start, long tend) {
+    public Map<Long, List<String>> reviewRecordStartEnd(long record, long start,
+            long tend) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> reviewKeyRecordStartstrEndstr(String key,
+    public Map<Long, List<String>> reviewRecordStartstrEndstr(long record,
+            String start, String tend) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, List<String>> reviewKeyRecord(String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, List<String>> reviewKeyRecordStart(String key, long record,
+            long start) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, List<String>> reviewKeyRecordStartstr(String key,
+            long record, String start) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, List<String>> reviewKeyRecordStartEnd(String key,
+            long record, long start, long tend) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Map<Long, List<String>> reviewKeyRecordStartstrEndstr(String key,
             long record, String start, String tend) {
         throw new UnsupportedOperationException();
     }
