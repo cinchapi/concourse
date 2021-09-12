@@ -1499,48 +1499,48 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditRecord(long record) {
+    public Map<Long, String> reviewRecord(long record) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditRecordStart(long record, long start) {
+    public Map<Long, String> reviewRecordStart(long record, long start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditRecordStartstr(long record, String start) {
+    public Map<Long, String> reviewRecordStartstr(long record, String start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditRecordStartEnd(long record, long start,
+    public Map<Long, String> reviewRecordStartEnd(long record, long start,
             long tend) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditRecordStartstrEndstr(long record,
+    public Map<Long, String> reviewRecordStartstrEndstr(long record,
             String start, String tend) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditKeyRecord(String key, long record) {
+    public Map<Long, String> reviewKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditKeyRecordStart(String key, long record,
+    public Map<Long, String> reviewKeyRecordStart(String key, long record,
             long start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditKeyRecordStartstr(String key, long record,
+    public Map<Long, String> reviewKeyRecordStartstr(String key, long record,
             String start) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
+    public Map<Long, String> reviewKeyRecordStartEnd(String key, long record,
             long start, long tend) {
         throw new UnsupportedOperationException();
     }
 
-    public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
+    public Map<Long, String> reviewKeyRecordStartstrEndstr(String key,
             long record, String start, String tend) {
         throw new UnsupportedOperationException();
     }
