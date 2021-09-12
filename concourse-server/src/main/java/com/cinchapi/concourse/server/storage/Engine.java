@@ -568,6 +568,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    @ManagedOperation
     public void compact() {
         durable.compact();
         limbo.compact();

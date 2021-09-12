@@ -56,6 +56,16 @@ public abstract class BaseConcourseServer implements
      * doing so will cause the interception to silently fail. See
      * https://github.com/google/guice/wiki/AOP#limitations for more details.
      */
+    
+    @Override
+    @PluginRestricted
+    @TranslateManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
+    public void compactData(String environment, AccessToken creds)
+            throws TException {
+        getEngine(environment).compact();  
+    }
 
     @Override
     @PluginRestricted
