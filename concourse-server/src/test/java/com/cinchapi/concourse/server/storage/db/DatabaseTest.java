@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,21 +68,57 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    public void testDatabaseRemovesDuplicateSegmentsOnStartupSanityCheck() {
+        Database db = (Database) store;
+        int count = 4;
+        for (int i = 0; i < count; ++i) {
+            db.accept(Write.add(TestData.getString(), TestData.getTObject(),
+                    Time.now()));
+            db.sync();
+        }
+        List<Segment> segments = Reflection.get("segments", db);
+        Segment seg1 = segments.get(1);
+        Segment seg2 = segments.get(2);
+        Segment merged = Segment.create();
+        seg1.writes().forEach(write -> merged.acquire(write));
+        seg2.writes().forEach(write -> merged.acquire(write));
+        merged.transfer(Paths.get(current).resolve("segments")
+                .resolve(UUID.randomUUID() + ".seg"));
+        db.stop();
+        db.start();
+        int expected = 3;
+        segments = Reflection.get("segments", db);
+        Assert.assertEquals(expected + 1, segments.size()); // size includes
+                                                            // seg0
+    }
+
+    @Test
     public void testDatabaseRemovesDuplicateSegmentsOnStartup() {
         Database db = (Database) store;
         int expected = TestData.getScaleCount();
         for (int i = 0; i < expected; ++i) {
             db.accept(Write.add(TestData.getString(), TestData.getTObject(),
-                    TestData.getLong()));
+                    Time.now()));
             db.sync();
         }
         List<Segment> segments = Reflection.get("segments", db);
         Assert.assertEquals(expected + 1, segments.size()); // size includes
                                                             // seg0
+        int a = TestData.getScaleCount() % (segments.size() - 2);
+        int b = a + 1;
+        Segment merged = Segment.create();
+        Segment seg1 = segments.get(a);
+        Segment seg2 = segments.get(b);
+        seg1.writes().forEach(write -> merged.acquire(write));
+        seg2.writes().forEach(write -> merged.acquire(write));
+        merged.transfer(Paths.get(current).resolve("segments")
+                .resolve(UUID.randomUUID() + ".seg"));
+        expected -= 1; // Because #seg1 and #seg2 were merged
         db.stop();
         AtomicInteger duplicates = new AtomicInteger(0);
         FileSystem.ls(Paths.get(current).resolve("segments")).forEach(file -> {
-            if(Random.getInt() % 3 == 0) {
+            if(Random.getInt() % 3 == 0
+                    && !file.toString().endsWith(merged.id())) {
                 FileSystem.copyBytes(file.toString(), file.getParent()
                         .resolve(UUID.randomUUID() + ".seg").toString());
                 duplicates.incrementAndGet();
@@ -92,7 +129,20 @@ public class DatabaseTest extends StoreTest {
         segments = Reflection.get("segments", db);
         Assert.assertEquals(expected + 1, segments.size()); // size includes
                                                             // seg0
-        System.out.println("The database discarded " + duplicates.get()
+        Assert.assertTrue(segments.stream().map(Segment::id)
+                .collect(Collectors.toList()).contains(merged.id()));
+        for (Segment segment : segments) {
+            int count = 0;
+            for (Segment seg : segments) {
+                if(seg != segment && seg.intersects(segment)) {
+                    ++count;
+                }
+            }
+            if(count > 0) {
+                Assert.fail(segment + " has " + count + " duplicates");
+            }
+        }
+        System.out.println("The database discarded " + duplicates.get() + 1
                 + " overlapping segments");
     }
 

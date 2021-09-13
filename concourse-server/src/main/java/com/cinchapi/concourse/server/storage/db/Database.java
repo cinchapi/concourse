@@ -330,7 +330,7 @@ public final class Database implements DurableStore {
      * The underlying {@link Storage}.
      */
     private final transient Storage storage;
-    
+
     /**
      * A "tag" used to identify the Database's affiliations (e.g. environment).
      */
@@ -780,7 +780,7 @@ public final class Database implements DurableStore {
                                 .namingThreadFactory("DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to load Database Segmens: {}",
+                            "Unexpected error when trying to load Database Segments: {}",
                             error), tasks.build());
                 }
                 catch (InterruptedException e) {
@@ -808,14 +808,13 @@ public final class Database implements DurableStore {
                     Segment previous = lit.previous();
                     lit.next();
                     Segment current = lit.next();
-                    if(current.equals(previous)) {
+                    if(current.intersects(previous)) {
                         lit.previous();
                         lit.previous();
                         lit.remove();
                         Logger.warn(
                                 "Segment {} was not loaded because it contains duplicate data. It has been scheduled for garbage collection.",
                                 previous);
-                        lit.next();
                         // TODO: mark #previous for garbage collection
                     }
                 }
@@ -896,9 +895,10 @@ public final class Database implements DurableStore {
     public void sync() {
         rotate(true);
     }
-    
+
     /**
      * Set the {@link Database Database's} tag.
+     * 
      * @param tag
      */
     public void tag(String tag) {

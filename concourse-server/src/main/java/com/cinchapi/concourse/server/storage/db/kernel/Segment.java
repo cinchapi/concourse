@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -64,7 +63,6 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
@@ -183,7 +181,7 @@ public final class Segment extends TransferableByteSequence implements
         else if(!o1.isMutable() && !o2.isMutable()) {
             // The immutable Segments have overlapping timestamps, so sort
             // based on the syncTs so that the newer Segment is "greater"
-            return Longs.compare(o1.syncTs, o2.syncTs);
+            return Long.compare(o1.syncTs, o2.syncTs);
         }
         else if(o1.isMutable()) {
             return 1;
@@ -582,24 +580,6 @@ public final class Segment extends TransferableByteSequence implements
         FileSystem.deleteFile(file().toString());
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if(other instanceof Segment) {
-            Segment seg = (Segment) other;
-            Range<Long> r1 = Range.closed(minTs, maxTs);
-            Range<Long> r2 = Range.closed(seg.minTs, seg.maxTs);
-            return r1.isConnected(r2);
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(minTs, maxTs);
-    }
-
     /**
      * Return the {@code id} of this {@link Segment}.
      * 
@@ -617,6 +597,22 @@ public final class Segment extends TransferableByteSequence implements
      */
     public IndexChunk index() {
         return index;
+    }
+    
+    /**
+     * Return {@code true} if the Set of {@link #verions()} in this
+     * {@link Segment} intersect with those of the {@code other} one.
+     * 
+     * @param other
+     * @return {@code true} if the {@link Segment Segments} intersect
+     */
+    public boolean intersects(Segment other) {
+        Range<Long> r1 = count > 0 ? Range.closed(minTs, maxTs)
+                : Range.greaterThan(Time.now());
+        Range<Long> r2 = other.count > 0
+                ? Range.closed(other.minTs, other.maxTs)
+                : Range.greaterThan(Time.now());
+        return r1.isConnected(r2);
     }
 
     @Override
