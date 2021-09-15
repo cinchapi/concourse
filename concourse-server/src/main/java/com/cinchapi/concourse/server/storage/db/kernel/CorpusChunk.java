@@ -50,6 +50,10 @@ import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
+import com.cinchapi.lib.offheap.collect.ConcurrentOffHeapSortedSet;
+import com.cinchapi.lib.offheap.collect.OffHeapSortedSet;
+import com.cinchapi.lib.offheap.io.Serializer;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -296,6 +300,14 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     protected SortedSet<Revision<Text, Text, Position>> createBackingStore(
             Comparator<Revision> comparator) {
         return new ConcurrentSkipListSet<>(comparator);
+    }
+
+    @Override
+    protected OffHeapSortedSet<Revision<Text, Text, Position>> createOffHeapBackingStore(
+            OffHeapMemory memory,
+            Comparator<Revision<Text, Text, Position>> comparator,
+            Serializer<Revision<Text, Text, Position>> serializer) {
+        return new ConcurrentOffHeapSortedSet<>(memory, comparator, serializer);
     }
 
     @Override

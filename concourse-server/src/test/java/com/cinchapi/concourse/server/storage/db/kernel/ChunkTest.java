@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Byteable;
 import com.cinchapi.concourse.server.io.Composite;
@@ -35,10 +36,12 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Revision;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.TestData;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.collect.Sets;
 
 /**
@@ -154,6 +157,24 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
             stored.add(it.next());
         }
         Assert.assertEquals(revisions, stored);
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testShiftExisting() {
+        int count = TestData.getScaleCount();
+        for(int i = 0; i < count; ++i) {
+            chunk.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        }
+        Iterator<Revision<L,K,V>> expected = ((Iterable<Revision<L,K,V>>) Reflection.get("revisions", chunk)).iterator();
+        OffHeapMemory memory = OffHeapMemory.allocateDirect(count * 3 * Write.MINIMUM_SIZE);
+        chunk.shift(memory);
+        Iterator<Revision<L,K,V>> actual = chunk.iterator();
+        while(expected.hasNext()) {
+            Revision<L,K,V> a = expected.next();
+            Revision<L,K,V> b = actual.next();
+            Assert.assertEquals(a, b);
+        }
     }
 
     protected abstract L getLocator();

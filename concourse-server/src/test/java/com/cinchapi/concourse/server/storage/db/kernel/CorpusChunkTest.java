@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -37,6 +38,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRecord;
 import com.cinchapi.concourse.server.storage.db.Revision;
+import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
@@ -44,6 +46,7 @@ import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -319,6 +322,30 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                 .read(Resources.getAbsolutePath("/long-string2.txt"));
         Assert.assertTrue(
                 CorpusChunk.upperBoundOfPossibleSubstrings(string) > 0);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    @Override
+    public void testShiftExisting() {
+        int count = TestData.getScaleCount();
+        CorpusChunk corpus = (CorpusChunk) chunk;
+        for (int i = 0; i < count; ++i) {
+            corpus.insert(Text.wrap(TestData.getString()),
+                    Value.wrap(Convert.javaToThrift(TestData.getString())),
+                    Identifier.of(Time.now()), Time.now(), Action.ADD);
+        }
+        Iterator<Revision<Text, Text, Position>> expected = ((Iterable<Revision<Text, Text, Position>>) Reflection
+                .get("revisions", chunk)).iterator();
+        OffHeapMemory memory = OffHeapMemory
+                .allocateDirect(count * 3 * Write.MINIMUM_SIZE);
+        chunk.shift(memory);
+        Iterator<Revision<Text, Text, Position>> actual = chunk.iterator();
+        while (expected.hasNext()) {
+            Revision<Text, Text, Position> a = expected.next();
+            Revision<Text, Text, Position> b = actual.next();
+            Assert.assertEquals(a, b);
+        }
     }
 
     /**

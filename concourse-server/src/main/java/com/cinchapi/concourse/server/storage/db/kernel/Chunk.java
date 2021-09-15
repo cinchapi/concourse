@@ -19,6 +19,7 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +49,9 @@ import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.lib.offheap.collect.OffHeapSortedSet;
+import com.cinchapi.lib.offheap.io.Serializer;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
@@ -123,6 +127,12 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     private ByteBuffer bytes;
 
     /**
+     * Additional {@link Runnable actions} that are executed when the
+     * {@link Chunk} is {@link #free() freed}.
+     */
+    private final List<Runnable> cleaners = new ArrayList<>(1);
+
+    /**
      * A fixed size filter that is used to test whether elements are contained
      * in the {@link Chunk} without actually looking through the {@link Chunk}.
      */
@@ -146,6 +156,13 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      */
     @Nullable
     private Manifest manifest;
+
+    /**
+     * A collection that shadows {@link Segment#objects()} to handle
+     * {@link #deduplicate(Byteable) deduplication}.
+     */
+    @Nullable
+    private Map<Byteable, Byteable> objects;
 
     /**
      * A running count of the number of {@link #revisions} that have been
@@ -174,7 +191,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * IMPLEMENTATION NOTE
      * -------------------
      * Even though Revisions with the same locator, key and value are considered
-     * "equals", we use a Set instead of a Multiset because the specially
+     * "equals", we use a Set instead of a Set because the specially
      * designed SORTER leverages the unique version associated with each
      * Revision to determine equality. This technically breaks the contract that
      * Set wants between a comparator and #equals, but it practically works.
@@ -200,13 +217,6 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * Segment transfer}
      */
     private final ReadLock segmentReadLock;
-
-    /**
-     * A collection that shadows {@link Segment#objects()} to handle
-     * {@link #deduplicate(Byteable) deduplication}.
-     */
-    @Nullable
-    private Map<Byteable, Byteable> objects;
 
     /**
      * Construct a new instance.
@@ -473,7 +483,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * {@link #mutable} and not yet persisted to disk.
      * <p>
      * If this {@link Chunk} is to be {@link #concurrent} then override this
-     * method and return a Concurrent Multiset.
+     * method and return a Concurrent Set.
      * </p>
      * 
      * @param comparator
@@ -483,6 +493,27 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     protected SortedSet<Revision<L, K, V>> createBackingStore(
             Comparator<Revision> comparator) {
         return new TreeSet<>(comparator);
+    }
+
+    /**
+     * Return the off heap backing store to hold revisions that are placed in
+     * this {@link Chunk}. This is only relevant to use when the {@link Chunk}
+     * is {@link #mutable}, {@link #shift(OffHeapMemory) shifted} and not yet
+     * persisted to disk.
+     * <p>
+     * If this {@link Chunk} is to be {@link #concurrent} then override this
+     * method and return a Concurrent Set.
+     * </p>
+     * 
+     * @param memory
+     * @param comparator
+     * @param serializer
+     * @return the backing store
+     */
+    protected OffHeapSortedSet<Revision<L, K, V>> createOffHeapBackingStore(
+            OffHeapMemory memory, Comparator<Revision<L, K, V>> comparator,
+            Serializer<Revision<L, K, V>> serializer) {
+        return new OffHeapSortedSet<>(memory, comparator, serializer);
     }
 
     /**
@@ -531,6 +562,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.revisions = null;
         this.revisionCount = null;
         this.bytes = null;
+        for(Runnable cleaner : cleaners) {
+            cleaner.run();
+        }
     }
 
     /**
@@ -729,6 +763,50 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * @return the revision class
      */
     protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
+
+    /**
+     * Shift this {@link Chunk} to store its data in the provided
+     * {@link OffHeapMemory memory} segment, as opposed to the Java heap.
+     * 
+     * @param memory
+     */
+    final void shift(OffHeapMemory memory) {
+        Locks.lockIfCondition(write, isMutable());
+        try {
+            Preconditions.checkState(isMutable(),
+                    "Cannot shift an immutable Chunk to OffHeapMemory");
+            Serializer<Revision<L, K, V>> serializer = new Serializer<Revision<L, K, V>>() {
+
+                @Override
+                public Revision<L, K, V> deserialize(OffHeapMemory memory) {
+                    return Byteables.read(memory, xRevisionClass());
+                }
+
+                @Override
+                public void serialize(Revision<L, K, V> element,
+                        OffHeapMemory memory) {
+                    element.copyTo(ByteSink.to(memory));
+                }
+
+                @Override
+                public int sizeOf(Revision<L, K, V> element) {
+                    return element.size();
+                }
+
+            };
+            OffHeapSortedSet<Revision<L, K, V>> offHeapRevisions = createOffHeapBackingStore(
+                    memory, (rev1, rev2) -> Sorter.INSTANCE.compare(rev1, rev2),
+                    serializer);
+            for (Revision<L, K, V> revision : revisions) {
+                offHeapRevisions.add(revision);
+            }
+            revisions = offHeapRevisions;
+            cleaners.add(() -> memory.free());
+        }
+        finally {
+            Locks.unlockIfCondition(write, isMutable());
+        }
+    }
 
     /**
      * Return an object that is equal to {@code reference} if one has been

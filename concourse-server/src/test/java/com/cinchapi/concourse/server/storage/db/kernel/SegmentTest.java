@@ -18,8 +18,11 @@ package com.cinchapi.concourse.server.storage.db.kernel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -368,6 +371,20 @@ public class SegmentTest extends ConcourseBaseTest {
         Assert.assertEquals(table, segment.table().filter());
         Assert.assertEquals(index, segment.index().filter());
         Assert.assertEquals(corpus, segment.corpus().filter());
+    }
+    
+    @Test
+    public void testOffHeapSegmentEfficacy() {
+        segment = Segment.createOffHeap(100);
+        Set<Write> writes = new LinkedHashSet<>();
+        for (int i = 0; i < 100; ++i) {
+            Write write = TestData.getWriteAdd();
+            writes.add(write);
+            segment.acquire(write);
+        }
+        Set<Write> actual = (Set<Write>) segment.writes()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Assert.assertEquals(writes, actual);
     }
 
 }

@@ -22,9 +22,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Map;
+import java.util.Set;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Contains static factory methods to construct {@link Byteable} objects from
@@ -43,8 +47,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
-     * protocol when using this method:
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
      * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
@@ -86,8 +90,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
-     * protocol when using this method:
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
      * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
@@ -115,6 +119,93 @@ public abstract class Byteables {
     }
 
     /**
+     * Return an instance of {@code clazz} by reading the remaining bytes from
+     * the {@code memory}. This method uses reflection to invoke the single
+     * argument {@link OffHeapMemory} constructor in {@code clazz}.
+     * <p>
+     * <tt>Byteables.read(bytes, Foo.class)</tt>
+     * </p>
+     * It is assumed that the {@link OffHeapMemory#remaining() remaining}
+     * content of the {@code memory} is entirely relevant to the
+     * object being read, so so call {@link OffHeapMemory#slice(long, long)} or
+     * follow this protocol when using this method:
+     * <ul>
+     * <li>Set the position of the parent OffHeapMemory to the index of the
+     * first byte relevant to the object, using
+     * {@link OffHeapMemory#position(long)}.</li>
+     * <li>Set the limit of the OffHeapMemory to the index of its current
+     * position + the size of the object (which is usually stored in the 4 bytes
+     * preceding the object) using {@link OffHeapMemory#limit(int)}.</li>
+     * </ul>
+     * <p>
+     * <strong>NOTE:</strong> If the {@code clazz} does not support reading
+     * objects from {@link OffHeapMemory}, an attempt is made to transfer the
+     * bytes to the Java heap and read using the
+     * {@link #read(ByteBuffer, Class)} method.
+     * </p>
+     * 
+     * @param memory
+     * @param clazz
+     * @return an instance of {@code clazz} read from {@code memory}
+     */
+    public static <T> T read(OffHeapMemory memory, Class<T> clazz) {
+        if(!CANNOT_READ_OFFHEAP.contains(clazz)) {
+            try {
+                return Reflection.newInstance(clazz, memory);
+            }
+            catch (Exception e) {
+                CANNOT_READ_OFFHEAP.add(clazz);
+            }
+        }
+        ByteBuffer buffer = ByteBuffer.allocate((int) memory.remaining());
+        memory.get(buffer);
+        buffer.order(memory.order());
+        buffer.flip();
+        return read(buffer, clazz);
+
+    }
+
+    /**
+     * Return an instance of {@code clazz} by reading the remaining bytes from
+     * the {@code memory}. This method uses reflection to invoke the single
+     * argument {@link OffHeapMemory} constructor in {@code clazz}.
+     * <p>
+     * <tt>Byteables.read(bytes, Foo.class)</tt>
+     * </p>
+     * It is assumed that the {@link OffHeapMemory#remaining() remaining}
+     * content of the {@code memory} is entirely relevant to the
+     * object being read, so so call {@link OffHeapMemory#slice(long, long)} or
+     * follow this protocol when using this method:
+     * <ul>
+     * <li>Set the position of the parent OffHeapMemory to the index of the
+     * first byte relevant to the object, using
+     * {@link OffHeapMemory#position(long)}.</li>
+     * <li>Set the limit of the OffHeapMemory to the index of its current
+     * position + the size of the object (which is usually stored in the 4 bytes
+     * preceding the object) using {@link OffHeapMemory#limit(int)}.</li>
+     * </ul>
+     * <p>
+     * <strong>NOTE:</strong> If the {@code clazz} does not support reading
+     * objects from {@link OffHeapMemory}, an attempt is made to transfer the
+     * bytes to the Java heap and read using the
+     * {@link #read(ByteBuffer, Class)} method.
+     * </p>
+     * 
+     * @param memory
+     * @param clazz
+     * @return an instance of {@code clazz} read from {@code memory}
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T read(OffHeapMemory memory, String clazz) {
+        try {
+            return (T) read(memory, Class.forName(clazz));
+        }
+        catch (ReflectiveOperationException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
      * Return an instance of {@code classObj} by reading {@code bytes}. This
      * method uses reflection to invoke the single argument static method named
      * <strong>fromByteBuffer</strong> in {@code classObj}.
@@ -123,8 +214,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
-     * protocol when using this method:
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
      * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
@@ -164,8 +255,8 @@ public abstract class Byteables {
      * </p>
      * It is assumed that all the contents of {@code bytes} are relevant to the
      * object being read, so so call
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
-     * protocol when using this method:
+     * {@link com.cinchapi.common.io.ByteBuffers#slice(ByteBuffer, int, int)} or
+     * follow this protocol when using this method:
      * <ul>
      * <li>Set the position of the parent ByteBuffer to the index of the first
      * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
@@ -209,8 +300,14 @@ public abstract class Byteables {
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
-
     }
+
+    /**
+     * Classes that are known not to directly support reading
+     * {@link OffHeapMemory}.
+     */
+    private static Set<Class<?>> CANNOT_READ_OFFHEAP = Sets
+            .newIdentityHashSet();
 
     /**
      * Cache of constructors that are captured using reflection.

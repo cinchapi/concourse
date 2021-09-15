@@ -61,6 +61,7 @@ import com.cinchapi.concourse.server.storage.db.TableRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -147,6 +148,27 @@ public final class Segment extends TransferableByteSequence implements
      */
     public static Segment create(int expectedInsertions) {
         return new Segment(expectedInsertions);
+    }
+
+    /**
+     * Return a {@link Segment} where each of its {@link Chunk Chunks} is
+     * {@link Chunk#shift(OffHeapMemory) shifted} to {@link OffHeapMemory}.
+     * 
+     * @param expectedInsertions
+     * @return the {@link Segment}
+     */
+    public static Segment createOffHeap(int expectedInsertions) {
+        Segment segment = create(expectedInsertions);
+        long capacity = expectedInsertions * Write.MINIMUM_SIZE * 3;
+        for (Chunk<? extends Byteable, ? extends Byteable, ? extends Byteable> chunk : Array
+                .containing(segment.table, segment.index, segment.corpus)) {
+            // NOTE: Using DirectMemory because UnsafeMemory causes a segfault
+            // on CircleCI, so it isn't reliable yet. In the future, the kind of
+            // OffHeapMemory to use may be configurable based on tuning.
+            OffHeapMemory memory = OffHeapMemory.allocateDirect(capacity);
+            chunk.shift(memory);
+        }
+        return segment;
     }
 
     /**
@@ -598,7 +620,7 @@ public final class Segment extends TransferableByteSequence implements
     public IndexChunk index() {
         return index;
     }
-    
+
     /**
      * Return {@code true} if the Set of {@link #verions()} in this
      * {@link Segment} intersect with those of the {@code other} one.
