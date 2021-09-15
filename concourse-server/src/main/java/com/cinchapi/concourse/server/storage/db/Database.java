@@ -844,7 +844,7 @@ public final class Database implements DurableStore {
             fullCompaction = ENABLE_COMPACTION
                     ? Executors.newScheduledThreadPool(1,
                             createCompactionThreadFactory(tag, "Full"))
-                    : new NoOpScheduledExecutorService();
+                    : NoOpScheduledExecutorService.instance();
             fullCompaction.scheduleWithFixedDelay(
                     () -> compactor.executeFullCompaction(),
                     FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS,
@@ -854,7 +854,7 @@ public final class Database implements DurableStore {
             incrementalCompaction = ENABLE_COMPACTION
                     ? Executors.newScheduledThreadPool(1,
                             createCompactionThreadFactory(tag, "Incremental"))
-                    : new NoOpScheduledExecutorService();
+                    : NoOpScheduledExecutorService.instance();
             incrementalCompaction.scheduleWithFixedDelay(
                     () -> compactor.tryIncrementalCompaction(),
                     INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS,

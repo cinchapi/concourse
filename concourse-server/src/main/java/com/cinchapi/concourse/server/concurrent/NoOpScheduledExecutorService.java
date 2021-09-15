@@ -38,18 +38,35 @@ public final class NoOpScheduledExecutorService extends AbstractExecutorService
         implements
         ScheduledExecutorService {
 
+    /**
+     * Return a {@link NoOpScheduledExecutorService}.
+     * 
+     * @return {@link NoOpScheduledExecutorService}
+     */
+    public static NoOpScheduledExecutorService instance() {
+        return INSTANCE;
+    }
+
+    /**
+     * Singleton.
+     */
+    private static NoOpScheduledExecutorService INSTANCE = new NoOpScheduledExecutorService();
+
     private volatile boolean shutdown = false;
 
+    /**
+     * Construct a new instance.
+     */
+    private NoOpScheduledExecutorService() {/* no-init */}
+
     @Override
-    public void shutdown() {
-        shutdown = true;
+    public boolean awaitTermination(long timeout, TimeUnit unit)
+            throws InterruptedException {
+        return true;
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
-        shutdown();
-        return ImmutableList.of();
-    }
+    public void execute(Runnable command) {/* no-op */}
 
     @Override
     public boolean isShutdown() {
@@ -62,22 +79,13 @@ public final class NoOpScheduledExecutorService extends AbstractExecutorService
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit)
-            throws InterruptedException {
-        return true;
-    }
-
-    @Override
-    public void execute(Runnable command) {/* no-op */}
-
-    @Override
-    public ScheduledFuture<?> schedule(Runnable command, long delay,
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay,
             TimeUnit unit) {
         return new NeverScheduledFuture<>();
     }
 
     @Override
-    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay,
+    public ScheduledFuture<?> schedule(Runnable command, long delay,
             TimeUnit unit) {
         return new NeverScheduledFuture<>();
     }
@@ -94,6 +102,17 @@ public final class NoOpScheduledExecutorService extends AbstractExecutorService
         return new NeverScheduledFuture<>();
     }
 
+    @Override
+    public void shutdown() {
+        shutdown = true;
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        shutdown();
+        return ImmutableList.of();
+    }
+
     /**
      * Represented a future task that is never actually scheduled.
      *
@@ -104,14 +123,14 @@ public final class NoOpScheduledExecutorService extends AbstractExecutorService
             ScheduledFuture<V> {
 
         @Override
-        public long getDelay(TimeUnit unit) {
-            return Long.MAX_VALUE;
-        }
-
-        @Override
         public int compareTo(Delayed other) {
             return Longs.compare(getDelay(TimeUnit.NANOSECONDS),
                     other.getDelay(TimeUnit.NANOSECONDS));
+        }
+
+        @Override
+        public long getDelay(TimeUnit unit) {
+            return Long.MAX_VALUE;
         }
 
     }
