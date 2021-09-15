@@ -20,6 +20,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 
 /**
  * A {@link ByteSink} is a destination to which bytes can be written, such as a
@@ -69,6 +70,16 @@ public interface ByteSink {
      */
     public static ByteSink to(FileChannel channel, int bufferSize) {
         return new FileChannelSink(channel, bufferSize);
+    }
+
+    /**
+     * Return a {@link ByteSink} that passes through to {@link OffHeapMemory}.
+     * 
+     * @param memory
+     * @return the {@link ByteSink}
+     */
+    public static ByteSink to(OffHeapMemory memory) {
+        return new OffHeapMemoryByteSink(memory);
     }
 
     /**

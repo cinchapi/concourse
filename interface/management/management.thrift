@@ -331,4 +331,16 @@ service ConcourseManagementService {
     2: exceptions.ManagementException ex2,
   )
 
+  /**
+   *  Suggest that Concourse Server compact data files
+   */
+  void compactData (
+    1: string environment
+    2: shared.AccessToken creds
+  )
+  throws (
+    1: exceptions.SecurityException ex,
+    2: exceptions.ManagementException ex2,
+  )
+
 }

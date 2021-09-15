@@ -209,7 +209,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         // Locator
         this.value = Byteables.readStatic(bytes, xValueClass());
         bytes.limit(limit);
-
     }
 
     /**

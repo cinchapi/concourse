@@ -62,6 +62,16 @@ public abstract class BaseConcourseServer implements
     @TranslateManagementExceptions
     @VerifyAccessToken
     @VerifyAdminRole
+    public void compactData(String environment, AccessToken creds)
+            throws TException {
+        getEngine(environment).compact();
+    }
+
+    @Override
+    @PluginRestricted
+    @TranslateManagementExceptions
+    @VerifyAccessToken
+    @VerifyAdminRole
     @ClientInvokable
     public void createUser(ByteBuffer username, ByteBuffer password,
             String role, AccessToken creds) throws TException {

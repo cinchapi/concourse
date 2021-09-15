@@ -15,21 +15,16 @@
  */
 package com.cinchapi.concourse.server.storage.db.compaction;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.storage.db.compaction.Compactor.Shift;
+import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 /**
  * Unit test for internal logic of {@link Compactor}.
@@ -40,59 +35,58 @@ public class CompactorLogicTest {
 
     @Test
     public void testRunMergeShift() {
-        List<Segment> segments = Lists.newArrayList();
+        SegmentStorageSystem storage = CompactorTests.getStorageSystem();
         for (int i = 0; i < 10; ++i) {
-            segments.add(createTestSegment());
+            storage.segments().add(createTestSegment());
         }
-        List<Segment> garbage = Lists.newArrayList();
-        Compactor compactor = Compactor.builder().type(MergeCompactor.class)
-                .environment("test").segments(segments).garbage(garbage)
-                .lock(new ReentrantLock())
-                .fileProvider(() -> Paths.get(TestData.getTemporaryTestFile()))
-                .build();
-        Shift shift;
-        shift = compactor.run(0, 1);
-        Assert.assertEquals(1, shift.index);
-        Assert.assertEquals(1, shift.count);
-        shift = compactor.run(0, 3);
-        Assert.assertEquals(2, shift.index);
-        Assert.assertEquals(3, shift.count);
-        shift = compactor.run(9, 1);
-        Assert.assertEquals(0, shift.index);
-        Assert.assertEquals(2, shift.count);
-        shift = compactor.run(0, 10); // start over
-        Assert.assertEquals(0, shift.index);
-        Assert.assertEquals(1, shift.count);
-        shift = compactor.run(4, 5);
-        Assert.assertEquals(0, shift.index);
-        Assert.assertEquals(6, shift.count);
+        Compactor compactor = new MergeCompactor(storage);
+        compactor.runShift(0, 1);
+        Assert.assertEquals(1, compactor.getShiftIndex());
+        Assert.assertEquals(1, compactor.getShiftCount());
+        compactor.runShift(0, 3);
+        Assert.assertEquals(2, compactor.getShiftIndex());
+        Assert.assertEquals(3, compactor.getShiftCount());
+        compactor.runShift(9, 1);
+        Assert.assertEquals(0, compactor.getShiftIndex());
+        Assert.assertEquals(2, compactor.getShiftCount());
+        compactor.runShift(0, 10); // start over
+        Assert.assertEquals(0, compactor.getShiftIndex());
+        Assert.assertEquals(1, compactor.getShiftCount());
+        compactor.runShift(4, 5);
+        Assert.assertEquals(0, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
     }
 
     @Test
     public void testRunFailShift() {
-        List<Segment> segments = Lists.newArrayList();
+        SegmentStorageSystem storage = CompactorTests.getStorageSystem();
         for (int i = 0; i < 10; ++i) {
-            segments.add(createTestSegment());
+            storage.segments().add(createTestSegment());
         }
-        List<Segment> garbage = Lists.newArrayList();
-        Compactor compactor = Compactor.builder().type(FailCompactor.class)
-                .environment("test").segments(segments).garbage(garbage)
-                .lock(new ReentrantLock())
-                .fileProvider(() -> Paths.get(TestData.getTemporaryTestFile()))
-                .build();
-        Shift shift;
-        shift = compactor.run(0, 6);
-        Assert.assertEquals(1, shift.index);
-        Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index, shift.count);
-        Assert.assertEquals(2, shift.index);
-        Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index, shift.count);
-        Assert.assertEquals(3, shift.index);
-        Assert.assertEquals(6, shift.count);
-        shift = compactor.run(shift.index, shift.count);
-        Assert.assertEquals(0, shift.index);
-        Assert.assertEquals(7, shift.count);
+        Compactor compactor = new FailCompactor(storage);
+        compactor.runShift(0, 6);
+        Assert.assertEquals(1, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
+        compactor.runShift(compactor.getShiftIndex(),
+                compactor.getShiftCount());
+        Assert.assertEquals(2, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
+        compactor.runShift(compactor.getShiftIndex(),
+                compactor.getShiftCount());
+        Assert.assertEquals(3, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
+        compactor.runShift(compactor.getShiftIndex(),
+                compactor.getShiftCount());
+        Assert.assertEquals(4, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
+        compactor.runShift(compactor.getShiftIndex(),
+                compactor.getShiftCount());
+        Assert.assertEquals(5, compactor.getShiftIndex());
+        Assert.assertEquals(6, compactor.getShiftCount());
+        compactor.runShift(compactor.getShiftIndex(),
+                compactor.getShiftCount());
+        Assert.assertEquals(0, compactor.getShiftIndex());
+        Assert.assertEquals(7, compactor.getShiftCount());
     }
 
     private final Segment createTestSegment() {
@@ -100,6 +94,7 @@ public class CompactorLogicTest {
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
             segment.acquire(TestData.getWriteAdd());
         }
+        segment.transfer(Paths.get(TestData.getTemporaryTestFile()));
         return segment;
     }
 
@@ -118,20 +113,12 @@ public class CompactorLogicTest {
          * @param majorInitialDelayInSeconds
          * @param majorRunFrequencyInSeconds
          */
-        protected FailCompactor(String environment, List<Segment> segments,
-                List<Segment> garbage, Lock lock, Supplier<Path> fileProvider,
-                long minorInitialDelayInSeconds,
-                long minorRunFrequencyInSeconds,
-                long majorInitialDelayInSeconds,
-                long majorRunFrequencyInSeconds) {
-            super(environment, segments, garbage, lock, fileProvider,
-                    minorInitialDelayInSeconds, minorRunFrequencyInSeconds,
-                    majorInitialDelayInSeconds, majorRunFrequencyInSeconds);
+        protected FailCompactor(SegmentStorageSystem storage) {
+            super(storage);
         }
 
         @Override
-        protected List<Segment> compact(StorageContext context,
-                Segment... segments) {
+        protected List<Segment> compact(Segment... segments) {
             return null;
         }
 
@@ -152,20 +139,12 @@ public class CompactorLogicTest {
          * @param majorInitialDelayInSeconds
          * @param majorRunFrequencyInSeconds
          */
-        protected MergeCompactor(String environment, List<Segment> segments,
-                List<Segment> garbage, Lock lock, Supplier<Path> fileProvider,
-                long minorInitialDelayInSeconds,
-                long minorRunFrequencyInSeconds,
-                long majorInitialDelayInSeconds,
-                long majorRunFrequencyInSeconds) {
-            super(environment, segments, garbage, lock, fileProvider,
-                    minorInitialDelayInSeconds, minorRunFrequencyInSeconds,
-                    majorInitialDelayInSeconds, majorRunFrequencyInSeconds);
+        protected MergeCompactor(SegmentStorageSystem storage) {
+            super(storage);
         }
 
         @Override
-        protected List<Segment> compact(StorageContext context,
-                Segment... segments) {
+        protected List<Segment> compact(Segment... segments) {
             if(segments.length >= 2) {
                 Segment merged = Segment.create();
                 for (Segment segment : segments) {
@@ -194,21 +173,12 @@ public class CompactorLogicTest {
          * @param majorInitialDelayInSeconds
          * @param majorRunFrequencyInSeconds
          */
-        protected SplitCompactor(String environment, List<Segment> segments,
-                List<Segment> garbage, Lock lock, Supplier<Path> fileProvider,
-                long minorInitialDelayInSeconds,
-                long minorRunFrequencyInSeconds,
-                long majorInitialDelayInSeconds,
-                long majorRunFrequencyInSeconds) {
-            super(environment, segments, garbage, lock, fileProvider,
-                    minorInitialDelayInSeconds, minorRunFrequencyInSeconds,
-                    majorInitialDelayInSeconds, majorRunFrequencyInSeconds);
+        protected SplitCompactor(SegmentStorageSystem storage) {
+            super(storage);
         }
 
         @Override
-        protected List<Segment> compact(StorageContext context,
-                Segment... segments) {
-            // TODO Auto-generated method stub
+        protected List<Segment> compact(Segment... segments) {
             return null;
         }
 

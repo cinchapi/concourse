@@ -328,6 +328,7 @@ public final class Engine extends BufferedStore implements
         buffer.setInventory(inventory);
         buffer.setThreadNamePrefix(environment + "-buffer");
         buffer.setEnvironment(environment);
+        database.tag(environment);
     }
 
     @Override
@@ -565,6 +566,13 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    @Override
+    @ManagedOperation
+    public void compact() {
+        durable.compact();
+        limbo.compact();
     }
 
     @Override

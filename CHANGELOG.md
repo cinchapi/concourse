@@ -34,12 +34,18 @@
 
 ##### Experimental Features
 
+###### Compaction
+* Concourse Server can now be configured to compact data files in an effort to optimize storage and improve read performance. When enabled, compaction automatically runs continuously in the background without disrupting data consistency or normal operations (although the impact on operational throughput has yet to be determined). The initial rollout of compaction is intentionally conservative (e.g. the built-in strategy will likely only make changes to a few data files). While this feature is experimental, there is no ability to tune it, but we plan to offer additional preferences to tailor the behaviour in future releases.
+* Additionally, if enabled, performing compaction can be **suggested** to Concourse Server on an adhoc basis using the new `concourse data compact` CLI.
+  * Compaction can be enabled by setting the `enable_compaction` preference to `true`. If this setting is `false`, Concourse Server will not perform compaction automatically or when suggested to do so.
+
 ###### Search Caching 
 * Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
-  * The search cache can be enabled by setting the `enable_search_cache` preference to `true`
+  * The search cache can be enabled by setting the `enable_search_cache` preference to `true`.
 
 ###### Verify by Lookup
 * Concourse Server can now be configured to use special **lookup records** when performing a `verify` within the `Database`. In theory, the Database can respond to verifies faster when generating a lookup record because fewer irrelevant revisions are read from disk and processed in memory. However, lookup records are not cached, so repeated attempts to verify data in the same field (e.g. a counter whose value is stored against a single locator/key) or record may be slower.
+  * Verify by Lookup can be enabled by setting the `enable_verify_by_lookup` preference to `true`.
 
 ##### API Breaks and Deprecations
 * Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.

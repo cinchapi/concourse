@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage.db;
 
 import static com.cinchapi.concourse.server.GlobalState.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +39,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +50,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
@@ -52,6 +58,7 @@ import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
+import com.cinchapi.concourse.server.concurrent.NoOpScheduledExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -64,6 +71,9 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.WriteStreamProfiler;
 import com.cinchapi.concourse.server.storage.cache.NoOpCache;
+import com.cinchapi.concourse.server.storage.db.compaction.Compactor;
+import com.cinchapi.concourse.server.storage.db.compaction.NoOpCompactor;
+import com.cinchapi.concourse.server.storage.db.compaction.similarity.SimilarityCompactor;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusArtifact;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
@@ -90,6 +100,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * The {@link Database} is the {@link Engine Engine's} {@link DurableStore}
@@ -132,6 +143,31 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * Return a {@link ThreadFactory} that produces threads to run compaction
+     * jobs.
+     * 
+     * @param environment
+     * @param compactionType
+     * @return the {@link ThreadFactory}
+     */
+    private static ThreadFactory createCompactionThreadFactory(
+            String environment, String compactionType) {
+        ThreadFactoryBuilder factory = new ThreadFactoryBuilder();
+        factory.setDaemon(true);
+        factory.setNameFormat(AnyStrings.format("{}Compaction [{}]",
+                compactionType, environment));
+        factory.setPriority(Thread.MIN_PRIORITY);
+        factory.setUncaughtExceptionHandler((thread, exception) -> {
+            Logger.error("Uncaught exception in {}:", thread.getName(),
+                    exception);
+            Logger.error(
+                    "{} has STOPPED WORKING due to an unexpected exception. {} compaction is paused until the error is resolved",
+                    thread.getName(), compactionType);
+        });
+        return factory.build();
+    }
+
+    /**
      * Return the {@link Segment} identified by {@code id} if it exists within
      * the collection of {@code segments}. If it doesn't return {@code null}.
      * 
@@ -151,10 +187,40 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * The number of seconds to wait in between full compactions.
+     */
+    private static long FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(7, TimeUnit.DAYS);
+
+    /**
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run a full compaction.
+     */
+    private static long FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(1, TimeUnit.DAYS);
+
+    /**
+     * The number of seconds to wait in between incremental compactions.
+     */
+    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = 2;
+
+    /**
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run an incremental compaction.
+     */
+    private static long INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS = 30;
+
+    /**
      * The subdirectory of {@link #directory} where the {@link Segment} files
      * are stored.
      */
     private static final String SEGMENTS_SUBDIRECTORY = "segments";
+
+    /**
+     * Global flag that indicates if compaction is enabled.
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_COMPACTION = GlobalState.ENABLE_COMPACTION;
 
     /**
      * Global flag that indicates if search data is cached.
@@ -173,12 +239,6 @@ public final class Database implements DurableStore {
      * Return if {@link #corpusCaches} does not contain a cache for a key.
      */
     private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
-
-    /**
-     * The full {@link Path} for the directory where the {@link #segments
-     * segment} files are stored.
-     */
-    private final transient Path $segments;
 
     /*
      * RECORD CACHES
@@ -209,9 +269,24 @@ public final class Database implements DurableStore {
             : ImmutableMap.of();
 
     /**
+     * The {@link Compactor} that performs compaction.
+     */
+    private transient Compactor compactor;
+
+    /**
      * The location where the Database stores data.
      */
     private final transient Path directory;
+
+    /**
+     * Runs full compaction in the background.
+     */
+    private transient ScheduledExecutorService fullCompaction;
+
+    /**
+     * Runs incremental compaction in the background.
+     */
+    private transient ScheduledExecutorService incrementalCompaction;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -252,6 +327,16 @@ public final class Database implements DurableStore {
     private final transient List<Segment> segments = Lists.newArrayList();
 
     /**
+     * The underlying {@link Storage}.
+     */
+    private final transient Storage storage;
+
+    /**
+     * A "tag" used to identify the Database's affiliations (e.g. environment).
+     */
+    private transient String tag = "";
+
+    /**
      * An {@link ExecutorService} that is passed to {@link #seg0} to handle
      * writing tasks asynchronously in the background.
      */
@@ -275,7 +360,8 @@ public final class Database implements DurableStore {
      */
     public Database(Path directory) {
         this.directory = directory;
-        this.$segments = directory.resolve(SEGMENTS_SUBDIRECTORY);
+        this.storage = new Storage(directory.resolve(SEGMENTS_SUBDIRECTORY),
+                segments, masterLock.writeLock());
     }
 
     /**
@@ -397,6 +483,11 @@ public final class Database implements DurableStore {
         Map<Long, Set<Value>> data = table.chronologize(K, start, end);
         return Transformers.transformMapSet(data, Functions.identity(),
                 Value::getTObject);
+    }
+
+    @Override
+    public void compact() {
+        compactor.tryIncrementalCompaction();
     }
 
     @Override
@@ -537,8 +628,8 @@ public final class Database implements DurableStore {
                     Segment segment = segments.get(i);
                     Segment clean = deduped.get(segment);
                     if(clean != null) {
-                        clean.transfer(
-                                $segments.resolve(UUID.randomUUID() + ".seg"));
+                        clean.transfer(storage.directory()
+                                .resolve(UUID.randomUUID() + ".seg"));
                         segments.set(i, clean);
                         segment.delete();
                     }
@@ -669,10 +760,9 @@ public final class Database implements DurableStore {
                             .namingThreadFactory("DatabaseWriter")));
             this.segments.clear();
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
-            FileSystem.mkdirs($segments);
             List<Segment> segments = Collections
                     .synchronizedList(this.segments);
-            Stream<Path> files = FileSystem.ls($segments);
+            Stream<Path> files = storage.files();
             files.forEach(file -> tasks.add(() -> {
                 try {
                     Segment segment = Segment.load(file);
@@ -690,7 +780,7 @@ public final class Database implements DurableStore {
                                 .namingThreadFactory("DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(
-                            "Unexpected error when trying to load Database Segmens: {}",
+                            "Unexpected error when trying to load Database Segments: {}",
                             error), tasks.build());
                 }
                 catch (InterruptedException e) {
@@ -718,14 +808,13 @@ public final class Database implements DurableStore {
                     Segment previous = lit.previous();
                     lit.next();
                     Segment current = lit.next();
-                    if(current.equals(previous)) {
+                    if(current.intersects(previous)) {
                         lit.previous();
                         lit.previous();
                         lit.remove();
                         Logger.warn(
                                 "Segment {} was not loaded because it contains duplicate data. It has been scheduled for garbage collection.",
                                 previous);
-                        lit.next();
                         // TODO: mark #previous for garbage collection
                     }
                 }
@@ -736,6 +825,44 @@ public final class Database implements DurableStore {
 
             rotate(false);
             memory = new CacheState();
+
+            /*
+             * If enabled, setup Compaction to run continuously in the
+             * background; trying to perform both "full" and "incremental"
+             * compaction. Incremental compaction is opportunistic; attempting
+             * frequently, but only occurring if no other conflicting work is
+             * happening and only trying to compact one "shift". On the other
+             * hand,full compaction runs less frequently, but is very
+             * aggressive: blocking until any other conflicting work is done
+             * and trying every possible shift.
+             */
+            // @formatter:off
+            compactor = ENABLE_COMPACTION
+                    ? new SimilarityCompactor(storage)
+                    : NoOpCompactor.instance();
+
+            fullCompaction = ENABLE_COMPACTION
+                    ? Executors.newScheduledThreadPool(1,
+                            createCompactionThreadFactory(tag, "Full"))
+                    : NoOpScheduledExecutorService.instance();
+            fullCompaction.scheduleWithFixedDelay(
+                    () -> compactor.executeFullCompaction(),
+                    FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS,
+                    FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS,
+                    TimeUnit.SECONDS);
+
+            incrementalCompaction = ENABLE_COMPACTION
+                    ? Executors.newScheduledThreadPool(1,
+                            createCompactionThreadFactory(tag, "Incremental"))
+                    : NoOpScheduledExecutorService.instance();
+            incrementalCompaction.scheduleWithFixedDelay(
+                    () -> compactor.tryIncrementalCompaction(),
+                    INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS,
+                    INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS,
+                    TimeUnit.SECONDS);
+            // @formatter:on
+            Logger.info("Database is running with compaction {}.",
+                    ENABLE_COMPACTION ? "ON" : "OFF");
         }
 
     }
@@ -759,12 +886,23 @@ public final class Database implements DurableStore {
                     throw CheckedExceptions.wrapAsRuntimeException(e);
                 }
             }
+            fullCompaction.shutdownNow();
+            incrementalCompaction.shutdownNow();
         }
     }
 
     @Override
     public void sync() {
         rotate(true);
+    }
+
+    /**
+     * Set the {@link Database Database's} tag.
+     * 
+     * @param tag
+     */
+    public void tag(String tag) {
+        this.tag = tag;
     }
 
     @Override
@@ -996,9 +1134,8 @@ public final class Database implements DurableStore {
         masterLock.writeLock().lock();
         try {
             if(flush) {
-                Path file = $segments.resolve(UUID.randomUUID() + ".seg");
                 String id = seg0.id();
-                seg0.transfer(file);
+                Path file = storage.save(seg0);
                 Logger.debug("Completed sync of {} to disk at {}", id, file);
             }
             segments.add((seg0 = Segment.create()));
@@ -1209,6 +1346,105 @@ public final class Database implements DurableStore {
                     || contains(record);
         }
 
+    }
+
+    /**
+     * The {@link SegmentStorageSystem} for a {@link Database}.
+     *
+     * @author Jeff Nelson
+     */
+    private static class Storage implements SegmentStorageSystem {
+
+        private static String FILESYSTEM_HOOK_FILE_NAME = ".fs";
+
+        /**
+         * Used to hook into disk space APIs needed for conformity with
+         * {@link SegmentStorageSystem} interface.
+         */
+        private final transient File fs;
+
+        /**
+         * The directory where .{@link Segment seg} files are stored.
+         */
+        private final Path directory;
+
+        /**
+         * Controls concurrent access to modify the {@link #segments()}.
+         */
+        private final Lock lock;
+
+        /**
+         * A live collection of the {@link Segments} in the {@link Database}.
+         */
+        private final List<Segment> segments;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param directory
+         * @param segments
+         */
+        private Storage(Path directory, List<Segment> segments, Lock lock) {
+            this.directory = directory;
+            FileSystem.mkdirs(directory);
+            this.segments = segments;
+            this.lock = lock;
+            this.fs = directory.resolve(FILESYSTEM_HOOK_FILE_NAME).toFile();
+            try {
+                fs.createNewFile(); // File must "exist" in order to
+                                    // hook into disk space APIs
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+        }
+
+        @Override
+        public long availableDiskSpace() {
+            return fs.getUsableSpace();
+        }
+
+        /**
+         * Return the full {@link Path} for the directory where the
+         * {@link #segments segment} files are stored.
+         * 
+         * @return the storage directory
+         */
+        public Path directory() {
+            return directory;
+        }
+
+        /**
+         * Return a {@link Stream} of all the storage files.
+         * 
+         * @return the storage files
+         */
+        public Stream<Path> files() {
+            return FileSystem.ls(directory).filter(file -> !file.getFileName()
+                    .toString().equals(FILESYSTEM_HOOK_FILE_NAME));
+        }
+
+        @Override
+        public Path save(Segment segment) {
+            Path file = directory.resolve(UUID.randomUUID() + ".seg");
+            segment.transfer(file);
+            return file;
+        }
+
+        @Override
+        public List<Segment> segments() {
+            return segments;
+        }
+
+        @Override
+        public long totalDiskSpace() {
+            return fs.getTotalSpace();
+        }
+
+        @Override
+        public Lock lock() {
+            return lock;
+        }
     }
 
 }

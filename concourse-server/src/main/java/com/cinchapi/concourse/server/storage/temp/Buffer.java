@@ -667,9 +667,8 @@ public final class Buffer extends Limbo {
 
     /**
      *
-     * Called by the parent {@link Engine} to set the environment that the
-     * Buffer
-     * associated to
+     * Called by the parent {@link Engine} to set the environment to which the
+     * Buffer is associated.
      *
      * @param environment
      */

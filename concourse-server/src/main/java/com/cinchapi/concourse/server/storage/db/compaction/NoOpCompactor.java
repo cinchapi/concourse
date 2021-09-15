@@ -15,26 +15,44 @@
  */
 package com.cinchapi.concourse.server.storage.db.compaction;
 
+import java.util.List;
+
+import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
+import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+
 /**
- * Provides context about the filesystem and database storage state to a
- * {@link Compactor}.
+ * A {@link Compactor} that doesn't do anything.
  *
  * @author Jeff Nelson
  */
-public interface StorageContext {
+public final class NoOpCompactor extends Compactor {
 
     /**
-     * Return the total disk space in bytes.
-     * 
-     * @return total disk space
+     * Singleton.
      */
-    public long totalDiskSpace();
+    private static NoOpCompactor INSTANCE;
 
     /**
-     * Return the total disk space available in bytes.
+     * Return a {@link NoOpCompactor}
      * 
-     * @return available disk space
+     * @return {@link NoOpCompactor}
      */
-    public long availableDiskSpace();
+    public static NoOpCompactor instance() {
+        return INSTANCE;
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param storage
+     */
+    private NoOpCompactor(SegmentStorageSystem storage) {
+        super(storage);
+    }
+
+    @Override
+    protected List<Segment> compact(Segment... segments) {
+        return null;
+    }
 
 }

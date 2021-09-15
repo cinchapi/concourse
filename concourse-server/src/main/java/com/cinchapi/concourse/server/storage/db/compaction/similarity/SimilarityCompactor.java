@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.db.compaction;
+package com.cinchapi.concourse.server.storage.db.compaction.similarity;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
 
+import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
+import com.cinchapi.concourse.server.storage.db.compaction.Compactor;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 
@@ -30,39 +30,32 @@ import com.google.common.collect.Streams;
  *
  * @author Jeff Nelson
  */
-class MergeSortCompactor extends Compactor {
+public class SimilarityCompactor extends Compactor {
+
+    /**
+     * The minimum {@link Segment#similarityWith(Segment) similarity} between
+     * two Segments that must be met in order for them to be merged.
+     */
+    // TODO: make configurable
+    private double minimumSimilarityThreshold = 0.5;
 
     /**
      * Construct a new instance.
      * 
-     * @param environment
-     * @param segments
-     * @param garbage
-     * @param lock
-     * @param fileProvider
-     * @param minorInitialDelayInSeconds
-     * @param minorRunFrequencyInSeconds
-     * @param majorInitialDelayInSeconds
-     * @param majorRunFrequencyInSeconds
+     * @param storage
      */
-    protected MergeSortCompactor(String environment, List<Segment> segments,
-            List<Segment> garbage, Lock lock, Supplier<Path> fileProvider,
-            long minorInitialDelayInSeconds, long minorRunFrequencyInSeconds,
-            long majorInitialDelayInSeconds, long majorRunFrequencyInSeconds) {
-        super(environment, segments, garbage, lock, fileProvider,
-                minorInitialDelayInSeconds, minorRunFrequencyInSeconds,
-                majorInitialDelayInSeconds, majorRunFrequencyInSeconds);
+    public SimilarityCompactor(SegmentStorageSystem storage) {
+        super(storage);
     }
 
     @Override
-    protected List<Segment> compact(StorageContext context,
-            Segment... segments) {
+    protected List<Segment> compact(Segment... segments) {
         if(segments.length == 2) {
             Segment a = segments[0];
             Segment b = segments[1];
             long requiredDiskSpace = a.length() + b.length();
-            if(context.availableDiskSpace() > requiredDiskSpace
-                    && a.similarityWith(b) > 50) { // TODO: make configurable
+            if(storage().availableDiskSpace() > requiredDiskSpace
+                    && a.similarityWith(b) > minimumSimilarityThreshold) {
                 Segment merged = Segment.create((int) (a.count() + b.count())); // TODO:
                                                                                 // create
                                                                                 // offheap
@@ -77,6 +70,17 @@ class MergeSortCompactor extends Compactor {
         else {
             return null;
         }
+    }
+
+    /**
+     * Set the {@link #minimumSimilarityThreshold}.
+     * 
+     * @param minimumSimilarityThreshold
+     */
+    @VisibleForTesting
+    protected void minimumSimilarityThreshold(
+            double minimumSimilarityThreshold) {
+        this.minimumSimilarityThreshold = minimumSimilarityThreshold;
     }
 
 }
