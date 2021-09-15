@@ -40,7 +40,7 @@
   * Compaction can be enabled by setting the `enable_compaction` preference to `true`. If this setting is `false`, Concourse Server will not perform compaction automatically or when suggested to do so.
 
 ###### Search Caching 
-* Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **XX.X%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
+* Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **200%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
   * The search cache can be enabled by setting the `enable_search_cache` preference to `true`.
 
 ###### Verify by Lookup
