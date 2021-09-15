@@ -19,12 +19,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -190,7 +190,7 @@ public abstract class Compactor {
      */
     @VisibleForTesting
     protected final void runShift(int index, int count) {
-        String id = UUID.randomUUID().toString();
+        String id = Long.toString(Time.now());
         List<Segment> segments = storage.segments();
         int limit = segments.size();
         if(segments.get(limit - 1).isMutable()) {
