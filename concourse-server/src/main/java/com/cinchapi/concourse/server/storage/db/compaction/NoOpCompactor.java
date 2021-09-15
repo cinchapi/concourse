@@ -25,16 +25,29 @@ import com.cinchapi.concourse.server.storage.db.kernel.Segment;
  *
  * @author Jeff Nelson
  */
-public class NoOpCompactor extends Compactor {
+public final class NoOpCompactor extends Compactor {
+
+    /**
+     * Singleton.
+     */
+    private static NoOpCompactor INSTANCE;
+
+    /**
+     * Return a {@link NoOpCompactor}
+     * 
+     * @return {@link NoOpCompactor}
+     */
+    public static NoOpCompactor instance() {
+        return INSTANCE;
+    }
 
     /**
      * Construct a new instance.
      * 
      * @param storage
      */
-    public NoOpCompactor(SegmentStorageSystem storage) {
+    private NoOpCompactor(SegmentStorageSystem storage) {
         super(storage);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

@@ -839,7 +839,7 @@ public final class Database implements DurableStore {
             // @formatter:off
             compactor = ENABLE_COMPACTION
                     ? new SimilarityCompactor(storage)
-                    : new NoOpCompactor(storage);
+                    : NoOpCompactor.instance();
 
             fullCompaction = ENABLE_COMPACTION
                     ? Executors.newScheduledThreadPool(1,
