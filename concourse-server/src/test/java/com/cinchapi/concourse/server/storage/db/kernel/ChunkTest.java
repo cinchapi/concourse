@@ -158,21 +158,24 @@ public abstract class ChunkTest<L extends Byteable & Comparable<L>, K extends By
         }
         Assert.assertEquals(revisions, stored);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public void testShiftExisting() {
         int count = TestData.getScaleCount();
-        for(int i = 0; i < count; ++i) {
-            chunk.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
+        for (int i = 0; i < count; ++i) {
+            chunk.insert(getLocator(), getKey(), getValue(), Time.now(),
+                    Action.ADD);
         }
-        Iterator<Revision<L,K,V>> expected = ((Iterable<Revision<L,K,V>>) Reflection.get("revisions", chunk)).iterator();
-        OffHeapMemory memory = OffHeapMemory.allocateDirect(count * 3 * Write.MINIMUM_SIZE);
+        Iterator<Revision<L, K, V>> expected = ((Iterable<Revision<L, K, V>>) Reflection
+                .get("revisions", chunk)).iterator();
+        OffHeapMemory memory = OffHeapMemory
+                .allocateDirect(count * 3 * Write.MINIMUM_SIZE);
         chunk.shift(memory);
-        Iterator<Revision<L,K,V>> actual = chunk.iterator();
-        while(expected.hasNext()) {
-            Revision<L,K,V> a = expected.next();
-            Revision<L,K,V> b = actual.next();
+        Iterator<Revision<L, K, V>> actual = chunk.iterator();
+        while (expected.hasNext()) {
+            Revision<L, K, V> a = expected.next();
+            Revision<L, K, V> b = actual.next();
             Assert.assertEquals(a, b);
         }
     }

@@ -372,7 +372,7 @@ public class SegmentTest extends ConcourseBaseTest {
         Assert.assertEquals(index, segment.index().filter());
         Assert.assertEquals(corpus, segment.corpus().filter());
     }
-    
+
     @Test
     public void testOffHeapSegmentEfficacy() {
         segment = Segment.createOffHeap(100);

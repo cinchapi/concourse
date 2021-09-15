@@ -562,7 +562,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         this.revisions = null;
         this.revisionCount = null;
         this.bytes = null;
-        for(Runnable cleaner : cleaners) {
+        for (Runnable cleaner : cleaners) {
             cleaner.run();
         }
     }
