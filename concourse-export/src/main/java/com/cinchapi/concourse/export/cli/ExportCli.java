@@ -114,7 +114,7 @@ public final class ExportCli extends CommandLineInterface {
         if(!Empty.ness().describes(opts.file)) {
             file = Paths.get(opts.file);
             File $file = file.toFile();
-            $file.mkdirs();
+            $file.getParentFile().mkdirs();
             try {
                 $file.createNewFile();
             }
