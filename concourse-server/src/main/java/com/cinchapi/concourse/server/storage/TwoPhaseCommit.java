@@ -23,10 +23,10 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
  * <a href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">Two-phase
  * Commit Protocol</a> for distributed operations.
  * <p>
- * Unlike a standard {@link AtomicOperation}, this does not
- * automatically {@link #releaseLocks() release locks} that are grabbed when it
- * is {@link #commit() committed}. To do so, it must be explicitly
- * {@link #finish() finished} (in adherence with its two-phase nature).
+ * Unlike a standard {@link AtomicOperation}, this does not apply operations
+ * when it is {@link #commit() committed}. Instead it only grabs locks. To apply
+ * the operations, it must be explicitly {@link #finish() finished} (in
+ * adherence with its two-phase nature).
  * </p>
  * <p>
  * Since there is no "rollback" for committed {@link AtomicOperation atomic
@@ -54,7 +54,10 @@ public class TwoPhaseCommit extends AtomicOperation {
     }
 
     @Override
-    protected void releaseLocks() {/* no-op */}
+    public void abort() {
+        super.abort();
+        super.releaseLocks();
+    }
 
     /**
      * Finish the {@link #commit()} and release all the locks that were grabbed.
@@ -64,8 +67,19 @@ public class TwoPhaseCommit extends AtomicOperation {
             throw new AtomicStateException();
         }
         else {
+            super.doCommit();
             super.releaseLocks();
         }
     }
+
+    @Override
+    protected void doCommit() {
+        // Don't actually perform the commit work. This ensures that the only
+        // thing that happens when #commit() is called is that the locks are
+        // grabbed. The actual commit work happens when #finish() is called.
+    }
+
+    @Override
+    protected void releaseLocks() {/* no-op */}
 
 }
