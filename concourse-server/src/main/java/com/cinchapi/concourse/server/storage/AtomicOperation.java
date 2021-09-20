@@ -679,7 +679,7 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if all expectations are met and all necessary locks
      *         are grabbed.
      */
-    private boolean grabLocks() {
+    protected boolean grabLocks() {
         if(isReadOnly()) {
             return true;
         }
@@ -782,7 +782,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Release all of the locks that are held by this operation.
      */
-    private void releaseLocks() {
+    protected void releaseLocks() {
         if(isReadOnly()) {
             return;
         }
