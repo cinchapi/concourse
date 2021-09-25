@@ -396,6 +396,19 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.audit(1);
     }
 
+    @Test
+    public void testWriteVersionsAfterCommit() {
+        AtomicOperation atomic = (AtomicOperation) store;
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            atomic.add("name", Convert.javaToThrift("jeff"), i + 1);
+        }
+        long ts = Time.now();
+        atomic.commit();
+        Set<Long> records = destination.find(ts, "name", Operator.EQUALS,
+                Convert.javaToThrift("jeff"));
+        Assert.assertTrue(records.isEmpty());
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         ((AtomicOperation) store).add(key, value, record);

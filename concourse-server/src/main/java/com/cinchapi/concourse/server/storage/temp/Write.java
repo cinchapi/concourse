@@ -320,6 +320,16 @@ public final class Write implements Byteable, Versioned {
         return type == other.type && equals(other);
     }
 
+    /**
+     * Return a new {@link Write} that contains the same elements, at a later
+     * {@code version}.
+     * 
+     * @return a redone {@link Write}
+     */
+    public Write redo() {
+        return new Write(type, key, value, record, Time.now());
+    }
+
     @Override
     public int size() {
         return CONSTANT_SIZE + key.size() + value.size();
