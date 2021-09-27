@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -676,6 +677,16 @@ public abstract class Limbo implements Store, Iterable<Write> {
      * this method is meaningless and returns immediately.
      */
     public void sync() {/* noop */}
+
+    /**
+     * If supported, eagerly apply a transformation {@link Function} to every
+     * contained {@link Write}.
+     * 
+     * @param transformer
+     */
+    public void transform(Function<Write, Write> transformer) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Transport the content of this store to {@code destination}.

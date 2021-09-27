@@ -372,11 +372,11 @@ public final class Engine extends BufferedStore implements
                 Value.wrap(value));
         boolean accepted;
         if(write.getType() == Action.ADD) {
-            accepted = addUnlocked(write.redo(), sync ? Sync.YES : Sync.NO,
+            accepted = addUnlocked(write, sync ? Sync.YES : Sync.NO,
                     sharedToken, writeToken, rangeToken);
         }
         else {
-            accepted = removeUnlocked(write.redo(), sync ? Sync.YES : Sync.NO,
+            accepted = removeUnlocked(write, sync ? Sync.YES : Sync.NO,
                     sharedToken, writeToken, rangeToken);
         }
         if(!accepted) {

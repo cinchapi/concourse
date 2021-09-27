@@ -300,6 +300,7 @@ public class AtomicOperation extends BufferedStore implements
         if(open.compareAndSet(true, false)) {
             if(grabLocks() && !notifiedAboutVersionChange
                     && finalizing.compareAndSet(false, true)) {
+                limbo.transform(Write::redo);
                 doCommit();
                 releaseLocks();
                 if(durable instanceof Transaction) {
