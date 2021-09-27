@@ -334,8 +334,8 @@ public abstract class BufferedStore implements Store {
         try {
             ensureWriteIntegrity(key, value, record);
             Set<TObject> values = select(key, record);
-            for (TObject val : values) {
-                limbo.insert(Write.remove(key, val, record));
+            for (TObject stored : values) {
+                limbo.insert(Write.remove(key, stored, record));
             }
             limbo.insert(Write.add(key, value, record));
         }
