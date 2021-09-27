@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.storage.temp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -80,7 +79,7 @@ public class Queue extends Limbo {
      * Revisions are stored as a sequential list of {@link Write} objects, which
      * means most reads are <em>at least</em> an O(n) scan.
      */
-    private List<Write> writes;
+    private final List<Write> writes;
 
     /**
      * Construct a Limbo with enough capacity for {@code initialSize}. If
@@ -145,7 +144,10 @@ public class Queue extends Limbo {
 
     @Override
     public void transform(Function<Write, Write> transformer) {
-        writes = writes.stream().map(transformer).collect(Collectors.toList());
+        for (int i = 0; i < writes.size(); ++i) {
+            Write write = writes.get(i);
+            writes.set(i, transformer.apply(write));
+        }
     }
 
     @Override

@@ -300,6 +300,7 @@ public class AtomicOperation extends BufferedStore implements
         if(open.compareAndSet(true, false)) {
             if(grabLocks() && !notifiedAboutVersionChange
                     && finalizing.compareAndSet(false, true)) {
+                limbo.transform(Write::redo);
                 doCommit();
                 releaseLocks();
                 if(durable instanceof Transaction) {
@@ -648,7 +649,6 @@ public class AtomicOperation extends BufferedStore implements
         // technically not a violation of "all or nothing" if the entire
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
-        limbo.transform(Write::redo);
         limbo.transport(durable, syncAndVerify);
         if(!syncAndVerify) {
             durable.sync();
