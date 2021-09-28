@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 /**
- * An storable object that is versioned by a {@link Long} (e.g. a timestamp).
+ * A storable object that is versioned by a {@link Long} (e.g. a timestamp).
  * <p>
  * The version is stored directly with the object so that it does not change
  * when the object's storage context changes (e.g. transport from a
