@@ -19,6 +19,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.time.Time;
 
 /**
  * A compact form of a {@link Revision} that is appropriate to store within a
@@ -36,6 +37,14 @@ import com.cinchapi.concourse.server.storage.Versioned;
 class CompactRevision<V extends Comparable<V>> implements Versioned {
 
     /**
+     * Tracks when the {@link CompactRevision} was
+     * {@link #CompactRevision(Comparable, long, Action)}. Helps to disambiguate
+     * and sequence {@link CompactRevision CompactRevision} with the same
+     * {@link #version version}.
+     */
+    private final transient long stamp;
+
+    /**
      * A field indicating the action performed to generate this Revision. This
      * information is recorded so that we can efficiently purge history while
      * maintaining consistent state.
@@ -49,8 +58,9 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
     private final V value;
 
     /**
-     * The unique version that identifies this Revision. Versions are assumed to
-     * be an atomically increasing values (i.e. timestamps).
+     * The version of this Revision. Revisions within the same
+     * commit may have the same version. Across commits, versions are
+     * assumed to be an atomically increasing value (e.g. timestamps).
      */
     private final long version;
 
@@ -65,6 +75,7 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
         this.value = value;
         this.version = version;
         this.type = type;
+        this.stamp = Time.now();
     }
 
     @SuppressWarnings("unchecked")
@@ -109,6 +120,11 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
     @Override
     public boolean isStorable() {
         return false;
+    }
+
+    @Override
+    public long stamp() {
+        return stamp;
     }
 
     @Override

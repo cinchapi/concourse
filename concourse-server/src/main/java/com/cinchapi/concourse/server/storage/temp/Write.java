@@ -33,33 +33,14 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 
 /**
- * A Write is a {@link Byteable} and {@link Versioned} container that serves as
- * a temporary representation of a revision before it is permanently stored and
+ * A {@link Write} is a temporary representation of data before it is
+ * {@link com.cinchapi.concourse.server.storage.DurableStore durably} stored and
  * indexed.
  * 
  * @author Jeff Nelson
  */
 @Immutable
 public final class Write implements Byteable, Versioned {
-
-    /**
-     * The minimum number of bytes needed to encode every Write.
-     */
-    private static final int CONSTANT_SIZE = Identifier.SIZE + 13; // type(1),
-                                                                   // version(8),
-                                                                   // keySize(4)
-
-    /**
-     * The minimum number of bytes needed to encode every Write.
-     */
-    // @formatter:off
-    public static final int MINIMUM_SIZE = 
-            CONSTANT_SIZE
-            + 1 // minimum key size since it cannot be empty
-            + 1 // value type
-            + 1 // minimum value size since it cannot be empty
-    ; 
-    // @formatter:on
 
     /**
      * Return a storable Write that represents a revision to ADD {@code key} as
@@ -126,21 +107,61 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    private static final int CONSTANT_SIZE = Identifier.SIZE + 13; // type(1),
+                                                                   // version(8),
+                                                                   // keySize(4)
+
+    /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    // @formatter:off
+    public static final int MINIMUM_SIZE = 
+            CONSTANT_SIZE
+            + 1 // minimum key size since it cannot be empty
+            + 1 // value type
+            + 1 // minimum value size since it cannot be empty
+    ; 
+    // @formatter:on
+
+    /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
     @Nullable
     private transient ByteBuffer bytes = null;
+
+    /**
+     * The {@link #getKey() key}.
+     */
     private final Text key;
+
+    /**
+     * The {@link #getRecord() record}.
+     */
     private final Identifier record;
+
+    /**
+     * Tracks when this {@link Write} was created or
+     * {@link #fromByteBuffer(ByteBuffer) loaded}.
+     */
+    private final transient long stamp;
     /**
      * Indicates the action that generated the Write. The type information is
      * recorded so that the Database knows how to apply the Write when accepting
      * it from a transport.
      */
     private final Action type;
+
+    /**
+     * The {@link #getValue() value}.
+     */
     private final Value value;
 
+    /**
+     * The {@link #getVersion() version}.
+     */
     private final long version;
 
     /**
@@ -175,6 +196,7 @@ public final class Write implements Byteable, Versioned {
         this.record = record;
         this.version = version;
         this.bytes = bytes;
+        this.stamp = Time.now();
     }
 
     /**
@@ -333,6 +355,11 @@ public final class Write implements Byteable, Versioned {
     @Override
     public int size() {
         return CONSTANT_SIZE + key.size() + value.size();
+    }
+
+    @Override
+    public long stamp() {
+        return stamp;
     }
 
     @Override
