@@ -221,7 +221,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewRecord(
+  map<i64, list<string>> reviewRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
@@ -254,7 +254,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewRecordStart(
+  map<i64, list<string>> reviewRecordStart(
     1: i64 record,
     2: i64 start,
     3: shared.AccessToken creds,
@@ -290,7 +290,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> reviewRecordStartstr(
+  map<i64, list<string>> reviewRecordStartstr(
     1: i64 record,
     2: string start,
     3: shared.AccessToken creds,
@@ -327,7 +327,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewRecordStartEnd(
+  map<i64, list<string>> reviewRecordStartEnd(
     1: i64 record,
     2: i64 start,
     3: i64 tend,
@@ -366,7 +366,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> reviewRecordStartstrEndstr(
+  map<i64, list<string>> reviewRecordStartstrEndstr(
     1: i64 record,
     2: string start,
     3: string tend,
@@ -400,7 +400,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewKeyRecord(
+  map<i64, list<string>> reviewKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -435,7 +435,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewKeyRecordStart(
+  map<i64, list<string>> reviewKeyRecordStart(
     1: string key,
     2: i64 record,
     3: i64 start,
@@ -473,7 +473,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> reviewKeyRecordStartstr(
+  map<i64, list<string>> reviewKeyRecordStartstr(
     1: string key,
     2: i64 record,
     3: string start,
@@ -512,7 +512,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> reviewKeyRecordStartEnd(
+  map<i64, list<string>> reviewKeyRecordStartEnd(
     1: string key,
     2: i64 record,
     3: i64 start,
@@ -553,7 +553,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> reviewKeyRecordStartstrEndstr(
+  map<i64, list<string>> reviewKeyRecordStartstrEndstr(
     1: string key,
     2: i64 record,
     3: string start,
