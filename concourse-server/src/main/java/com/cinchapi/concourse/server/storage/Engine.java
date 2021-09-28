@@ -454,56 +454,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
-        transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(Token.shareable(record));
-        read.lock();
-        try {
-            return super.audit(record);
-        }
-        finally {
-            read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
-        try {
-            return super.audit(key, record);
-        }
-        finally {
-            read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<Long, String> auditUnlocked(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.audit(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<Long, String> auditUnlocked(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.audit(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
         Lock range = rangeLockService.getReadLock(Text.wrapCached(key),
@@ -771,6 +721,56 @@ public final class Engine extends BufferedStore implements
         }
         finally {
             transportLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> review(long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(Token.shareable(record));
+        read.lock();
+        try {
+            return super.review(record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return super.review(key, record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> reviewUnlocked(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.review(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> reviewUnlocked(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.review(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
         }
     }
 

@@ -15,7 +15,9 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -169,20 +171,6 @@ public abstract class BufferedStore implements Store {
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
-        Map<Long, String> context = $audit(record);
-        context.putAll(limbo.audit(record));
-        return context;
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Map<Long, String> context = $audit(key, record);
-        context.putAll(limbo.audit(key, record));
-        return context;
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         Map<TObject, Set<Long>> context = $browse(key);
         return limbo.browse(key, context);
@@ -288,6 +276,36 @@ public abstract class BufferedStore implements Store {
     }
 
     @Override
+    public Map<Long, List<String>> review(long record) {
+        Map<Long, List<String>> context = $review(record);
+        for (Entry<Long, List<String>> entry : limbo.review(record)
+                .entrySet()) {
+            long version = entry.getKey();
+            List<String> descriptions = entry.getValue();
+            context.merge(version, descriptions, (existing, latest) -> {
+                existing.addAll(latest);
+                return existing;
+            });
+        }
+        return context;
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Map<Long, List<String>> context = $review(key, record);
+        for (Entry<Long, List<String>> entry : limbo.review(key, record)
+                .entrySet()) {
+            long version = entry.getKey();
+            List<String> descriptions = entry.getValue();
+            context.merge(version, descriptions, (existing, latest) -> {
+                existing.addAll(latest);
+                return existing;
+            });
+        }
+        return context;
+    }
+
+    @Override
     public Set<Long> search(String key, String query) {
         // FIXME: should this be implemented using a context instead?
         return Sets.symmetricDifference(limbo.search(key, query),
@@ -364,40 +382,6 @@ public abstract class BufferedStore implements Store {
         else {
             return truth.boolValue();
         }
-    }
-
-    /**
-     * Audit {@code record} within the {@link #durable} store.
-     * <p>
-     * By default, a call is made to {@link DurableStore#audit(long)},
-     * but the subclass can override this method to route differently if
-     * necessary (e.g. an {@link AtomicOperation} routing to lock free
-     * implementations).
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @return the revision log
-     */
-    protected Map<Long, String> $audit(long record) {
-        return durable.audit(record);
-    }
-
-    /**
-     * Audit {@code key} in {@code record} within the {@link #durable} store.
-     * <p>
-     * By default, a call is made to {@link DurableStore#audit(String, long)},
-     * but the subclass can override this method to route differently if
-     * necessary (e.g. an {@link AtomicOperation} routing to lock free
-     * implementations).
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @return the revision log
-     */
-    protected Map<Long, String> $audit(String key, long record) {
-        return durable.audit(key, record);
     }
 
     /**
@@ -484,6 +468,40 @@ public abstract class BufferedStore implements Store {
     }
 
     /**
+     * Audit {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#review(long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the log of changes
+     */
+    protected Map<Long, List<String>> $review(long record) {
+        return durable.review(record);
+    }
+
+    /**
+     * Audit {@code key} in {@code record} within the {@link #durable} store.
+     * <p>
+     * By default, a call is made to {@link DurableStore#audit(String, long)},
+     * but the subclass can override this method to route differently if
+     * necessary (e.g. an {@link AtomicOperation} routing to lock free
+     * implementations).
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @return the log of changes
+     */
+    protected Map<Long, List<String>> $review(String key, long record) {
+        return durable.review(key, record);
+    }
+
+    /**
      * Select all the data from {@code record} in the {@link #durable} store.
      * <p>
      * By default, a call is made to {@link DurableStore#select(long)},
@@ -555,7 +573,7 @@ public abstract class BufferedStore implements Store {
      * @param verify
      * @return {@code true} if the mapping is added
      */
-    protected final boolean add(Write write, Sync sync, Verify verify) {
+    protected boolean add(Write write, Sync sync, Verify verify) {
         try {
             String key = write.getKey().toString();
             TObject value = write.getValue().getTObject();
@@ -597,7 +615,7 @@ public abstract class BufferedStore implements Store {
      * @param verify
      * @return {@code true} if the mapping is removed
      */
-    protected final boolean remove(Write write, Sync sync, Verify verify) {
+    protected boolean remove(Write write, Sync sync, Verify verify) {
         try {
             String key = write.getKey().toString();
             TObject value = write.getValue().getTObject();

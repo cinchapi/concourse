@@ -442,18 +442,18 @@ public final class Database implements DurableStore {
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
+    public Map<Long, List<String>> review(long record) {
         Identifier L = Identifier.of(record);
         TableRecord table = getTableRecord(L);
-        return table.audit();
+        return table.review();
     }
 
     @Override
-    public Map<Long, String> audit(String key, long record) {
+    public Map<Long, List<String>> review(String key, long record) {
         Identifier L = Identifier.of(record);
         Text K = Text.wrapCached(key);
         TableRecord table = getTableRecord(L, K);
-        return table.audit(K);
+        return table.review(K);
     }
 
     @Override

@@ -489,9 +489,9 @@ public class EngineTest extends BufferedStoreTest {
             @Override
             public void run() {
                 go.set(true);
-                Map<Long, String> data = engine.audit(1);
+                Map<Long, List<String>> data = engine.review(1);
                 done.set(true);
-                Map<Long, String> data1 = engine.audit(1);
+                Map<Long, List<String>> data1 = engine.review(1);
                 Variables.register("data_size", data.size());
                 Variables.register("data1_size", data1.size());
                 succeeded.set(data.size() == data1.size()

@@ -343,13 +343,13 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
-     * Return a new {@link Write} that contains the same elements, at a later
-     * {@code version}.
+     * Return a new {@link Write} that contains the same elements, at the
+     * specified {@code version}.
      * 
      * @return a redone {@link Write}
      */
-    public Write redo() {
-        return new Write(type, key, value, record, Time.now());
+    public Write rewrite(long version) {
+        return new Write(type, key, value, record, version);
     }
 
     @Override

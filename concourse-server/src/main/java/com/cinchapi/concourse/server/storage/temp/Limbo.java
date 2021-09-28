@@ -15,9 +15,12 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -113,33 +116,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
         }
 
     };
-
-    @Override
-    public Map<Long, String> audit(long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            if(write.getRecord().longValue() == record) {
-                audit.put(write.getVersion(), write.toString());
-            }
-        }
-        return audit;
-
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            if(write.getKey().toString().equals(key)
-                    && write.getRecord().longValue() == record) {
-                audit.put(write.getVersion(), write.toString());
-            }
-        }
-        return audit;
-
-    }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
@@ -488,6 +464,35 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Memory memory() {
         return memory;
+    }
+
+    @Override
+    public Map<Long, List<String>> review(long record) {
+        Map<Long, List<String>> review = new LinkedHashMap<>();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record) {
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+        }
+        return review;
+
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Map<Long, List<String>> review = new LinkedHashMap<>();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            if(write.getKey().toString().equals(key)
+                    && write.getRecord().longValue() == record) {
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+        }
+        return review;
+
     }
 
     @Override

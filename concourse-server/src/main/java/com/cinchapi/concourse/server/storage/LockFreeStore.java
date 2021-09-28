@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,30 +33,6 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
  * @author Jeff Nelson
  */
 public interface LockFreeStore extends Store {
-
-    /**
-     * This method returns a log of revisions in {@code record} as
-     * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
-     * to call from the methods of {@link #AtomicOperation} class
-     * because in this case intermediate read {@link #Lock} is not required.
-     * 
-     * @param record
-     * @return {@code Map}
-     */
-    public Map<Long, String> auditUnlocked(long record);
-
-    /**
-     * Audit {@code key} in {@code record}. This method returns a log of
-     * revisions in {@code record} as a Map WITHOUT grabbing any locks.
-     * This method is ONLY appropriate to call from the methods of
-     * {@link #AtomicOperation} class because in this case intermediate
-     * read {@link #Lock} is not required.
-     * 
-     * @param key
-     * @param record
-     * @return {@code Map}
-     */
-    public Map<Long, String> auditUnlocked(String key, long record);
 
     /**
      * Browse {@code key}.
@@ -119,6 +96,30 @@ public interface LockFreeStore extends Store {
      * @return {@code Set}
      */
     public Set<TObject> gatherUnlocked(String key, long record);
+
+    /**
+     * This method returns a log of revisions in {@code record} as
+     * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
+     * to call from the methods of {@link #AtomicOperation} class
+     * because in this case intermediate read {@link #Lock} is not required.
+     * 
+     * @param record
+     * @return {@code Map}
+     */
+    public Map<Long, List<String>> reviewUnlocked(long record);
+
+    /**
+     * Audit {@code key} in {@code record}. This method returns a log of
+     * revisions in {@code record} as a Map WITHOUT grabbing any locks.
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate
+     * read {@link #Lock} is not required.
+     * 
+     * @param key
+     * @param record
+     * @return {@code Map}
+     */
+    public Map<Long, List<String>> reviewUnlocked(String key, long record);
 
     /**
      * This method returns a log of revisions in {@code record} as

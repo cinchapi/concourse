@@ -205,7 +205,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         destination.accept(Write.add(key0, Convert.javaToThrift("foo"), 0));
         ((AtomicOperation) store).commit();
         for (int i = 1; i < count; i++) {
-            Assert.assertTrue(destination.audit(i).isEmpty());
+            Assert.assertTrue(destination.review(i).isEmpty());
         }
     }
 
@@ -393,7 +393,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testCannotOperateOnClosedAtomicOperation() {
         AtomicOperation operation = (AtomicOperation) store;
         operation.commit();
-        operation.audit(1);
+        operation.review(1);
     }
 
     @Test
@@ -407,6 +407,23 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Set<Long> records = destination.find(ts, "name", Operator.EQUALS,
                 Convert.javaToThrift("jeff"));
         Assert.assertTrue(records.isEmpty());
+    }
+
+    @Test
+    public void testSameWriteVersions() {
+        AtomicOperation atomic = (AtomicOperation) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            atomic.add("name", Convert.javaToThrift("jeff"), i + 1);
+            atomic.remove("name", Convert.javaToThrift("jeff"), i + 1);
+            atomic.add("name", Convert.javaToThrift("jeff"), i + 1);
+        }
+        atomic.commit();
+        for (int i = 0; i < count; ++i) {
+            System.out.println(destination.review(i + 1));
+        }
+        // TODO: finish
+
     }
 
     @Override

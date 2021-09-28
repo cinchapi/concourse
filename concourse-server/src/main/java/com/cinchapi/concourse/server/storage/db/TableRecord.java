@@ -15,11 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage.db;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -83,57 +86,6 @@ public final class TableRecord extends Record<Identifier, Text, Value> {
     }
 
     /**
-     * Return a log of revision to the entire Record.
-     * 
-     * @return the revision log
-     */
-    public Map<Long, String> audit() {
-        read.lock();
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            for (Entry<Text, List<CompactRevision<Value>>> entry : history
-                    .entrySet()) {
-                String key = entry.getKey().toString();
-                for (CompactRevision<Value> revision : entry.getValue()) {
-                    audit.put(revision.getVersion(),
-                            revision.toString(locator, key));
-                }
-            }
-            return audit;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Return a log of revisions to the field mapped from {@code key}.
-     * 
-     * @param key
-     * @return the revision log
-     */
-    public Map<Long, String> audit(Text key) {
-        read.lock();
-        try {
-            Map<Long, String> audit = Maps.newLinkedHashMap();
-            List<CompactRevision<Value>> revisions = history
-                    .get(key); /* Authorized */
-            if(revisions != null) {
-                Iterator<CompactRevision<Value>> it = revisions.iterator();
-                while (it.hasNext()) {
-                    CompactRevision<Value> revision = it.next();
-                    audit.put(revision.getVersion(),
-                            revision.toString(locator, key));
-                }
-            }
-            return audit;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
      * Return a time series of values that holds the data stored for {@code key}
      * after each modification.
      * 
@@ -179,6 +131,59 @@ public final class TableRecord extends Record<Identifier, Text, Value> {
                 context.put(Time.NONE, snapshot);
             }
             return context;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return a log of changes made to the entire Record.
+     * 
+     * @return the revision log
+     */
+    public Map<Long, List<String>> review() {
+        read.lock();
+        try {
+            Map<Long, List<String>> review = new TreeMap<>();
+            for (Entry<Text, List<CompactRevision<Value>>> entry : history
+                    .entrySet()) {
+                String key = entry.getKey().toString();
+                for (CompactRevision<Value> revision : entry.getValue()) {
+                    review.computeIfAbsent(revision.getVersion(),
+                            $ -> new ArrayList<>())
+                            .add(revision.toString(locator, key));
+                }
+            }
+            return review;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return a log of changes made to the field mapped from {@code key}.
+     * 
+     * @param key
+     * @return the revision log
+     */
+    public Map<Long, List<String>> review(Text key) {
+        read.lock();
+        try {
+            Map<Long, List<String>> review = new LinkedHashMap<>();
+            List<CompactRevision<Value>> revisions = history
+                    .get(key); /* Authorized */
+            if(revisions != null) {
+                Iterator<CompactRevision<Value>> it = revisions.iterator();
+                while (it.hasNext()) {
+                    CompactRevision<Value> revision = it.next();
+                    review.computeIfAbsent(revision.getVersion(),
+                            $ -> new ArrayList<>())
+                            .add(revision.toString(locator, key));
+                }
+            }
+            return review;
         }
         finally {
             read.unlock();

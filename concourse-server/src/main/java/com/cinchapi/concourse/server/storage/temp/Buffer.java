@@ -25,8 +25,10 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -376,38 +378,6 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
-        Iterator<Write> it = iterator(record, Time.NONE);
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
-        }
-        finally {
-            Iterators.close(it);
-        }
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Iterator<Write> it = iterator(key, record, Time.NONE);
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
-        }
-        finally {
-            Iterators.close(it);
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
         Iterator<Write> it = iterator(key, timestamp);
@@ -614,6 +584,40 @@ public final class Buffer extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Time.NONE);
+    }
+
+    @Override
+    public Map<Long, List<String>> review(long record) {
+        Iterator<Write> it = iterator(record, Time.NONE);
+        try {
+            Map<Long, List<String>> review = new LinkedHashMap<>();
+            while (it.hasNext()) {
+                Write write = it.next();
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+            return review;
+        }
+        finally {
+            Iterators.close(it);
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Iterator<Write> it = iterator(key, record, Time.NONE);
+        try {
+            Map<Long, List<String>> review = new LinkedHashMap<>();
+            while (it.hasNext()) {
+                Write write = it.next();
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+            return review;
+        }
+        finally {
+            Iterators.close(it);
+        }
     }
 
     @Override
