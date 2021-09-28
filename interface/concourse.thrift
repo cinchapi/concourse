@@ -221,7 +221,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditRecord(
+  map<i64, string> reviewRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
@@ -239,7 +239,7 @@ service ConcourseService {
    *
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -254,7 +254,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditRecordStart(
+  map<i64, string> reviewRecordStart(
     1: i64 record,
     2: i64 start,
     3: shared.AccessToken creds,
@@ -273,7 +273,7 @@ service ConcourseService {
    *
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -290,7 +290,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> auditRecordStartstr(
+  map<i64, string> reviewRecordStartstr(
     1: i64 record,
     2: string start,
     3: shared.AccessToken creds,
@@ -310,9 +310,9 @@ service ConcourseService {
    *
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param end a non-inclusive timestamp that for the most recent recent
-   *              change that should possibly be included in the audit
+   *              change that should possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -327,7 +327,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditRecordStartEnd(
+  map<i64, string> reviewRecordStartEnd(
     1: i64 record,
     2: i64 start,
     3: i64 tend,
@@ -347,9 +347,9 @@ service ConcourseService {
    *
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param end a non-inclusive timestamp that for the most recent recent
-   *              change that should possibly be included in the audit
+   *              change that should possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -366,7 +366,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> auditRecordStartstrEndstr(
+  map<i64, string> reviewRecordStartstrEndstr(
     1: i64 record,
     2: string start,
     3: string tend,
@@ -400,7 +400,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditKeyRecord(
+  map<i64, string> reviewKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -420,7 +420,7 @@ service ConcourseService {
    * @param key the field name
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -435,7 +435,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditKeyRecordStart(
+  map<i64, string> reviewKeyRecordStart(
     1: string key,
     2: i64 record,
     3: i64 start,
@@ -456,7 +456,7 @@ service ConcourseService {
    * @param key the field name
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -473,7 +473,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> auditKeyRecordStartstr(
+  map<i64, string> reviewKeyRecordStartstr(
     1: string key,
     2: i64 record,
     3: string start,
@@ -495,9 +495,9 @@ service ConcourseService {
    * @param key the field name
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param end a non-inclusive timestamp that for the most recent change that
-   *              should possibly be included in the audit
+   *              should possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -512,7 +512,7 @@ service ConcourseService {
    *         transaction and an error occurred that caused the transaction
    *         to end itself
    */
-  map<i64, string> auditKeyRecordStartEnd(
+  map<i64, string> reviewKeyRecordStartEnd(
     1: string key,
     2: i64 record,
     3: i64 start,
@@ -534,9 +534,9 @@ service ConcourseService {
    * @param key the field name
    * @param record the record id
    * @param start an inclusive timestamp for the oldest change that should
-   *                possibly be included in the audit
+   *                possibly be included in the review
    * @param end a non-inclusive timestamp that for the most recent recent
-   *              change that should possibly be included in the audit
+   *              change that should possibly be included in the review
    * @param creds the {@link shared.AccessToken} that is used to authenticate
    *                the user on behalf of whom the client is connected
    * @param transaction the {@link shared.TransactionToken} that the
@@ -553,7 +553,7 @@ service ConcourseService {
    * @throws exceptions.ParseException if a string cannot be properly parsed
    *         into a timestamp
    */
-  map<i64, string> auditKeyRecordStartstrEndstr(
+  map<i64, string> reviewKeyRecordStartstrEndstr(
     1: string key,
     2: i64 record,
     3: string start,
