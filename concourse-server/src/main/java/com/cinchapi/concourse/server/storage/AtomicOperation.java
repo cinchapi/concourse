@@ -699,7 +699,7 @@ public class AtomicOperation extends BufferedStore implements
      */
     @VisibleForTesting
     final boolean commit() throws AtomicStateException {
-        return commit(Time.now());
+        return commit(CommitVersions.next());
     }
 
     /**

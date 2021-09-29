@@ -30,8 +30,8 @@ import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
-import com.cinchapi.concourse.time.Time;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
@@ -198,7 +198,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      */
     @DoNotInvoke
     public Revision(ByteBuffer bytes) {
-        this.stamp = Time.now();
+        this.stamp = CommitVersions.next();
         this.bytes = bytes;
         this.size = bytes.remaining();
         this.type = Action.values()[bytes.get()];
@@ -234,7 +234,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      */
     protected Revision(L locator, K key, V value, long version, Action type) {
         Preconditions.checkArgument(type != Action.COMPARE);
-        this.stamp = Time.now();
+        this.stamp = CommitVersions.next();
         this.type = type;
         this.locator = locator;
         this.key = key;

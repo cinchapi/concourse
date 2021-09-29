@@ -96,6 +96,7 @@ import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.BufferedStore;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
@@ -981,7 +982,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                     // 3. Clear the #source
                     Operations.clearRecordAtomic(source, atomic);
                 }
-                return atomic.commit(Time.now());
+                return atomic.commit(CommitVersions.next());
             }
             catch (TransactionStateException e) {
                 throw new TransactionException();
@@ -3594,7 +3595,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<DeferredWrite> deferred = Lists.newArrayList();
             return Operations.insertAtomic(data, record, atomic, deferred)
                     && Operations.insertDeferredAtomic(deferred, atomic)
-                    && atomic.commit(Time.now());
+                    && atomic.commit(CommitVersions.next());
         }
         catch (TransactionStateException e) {
             throw new TransactionException();
@@ -6916,7 +6917,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                     .startAtomicOperation();
             return atomic.remove(key, expected, record)
                     && atomic.add(key, replacement, record)
-                            ? atomic.commit(Time.now())
+                            ? atomic.commit(CommitVersions.next())
                             : false;
         }
         catch (TransactionStateException e) {

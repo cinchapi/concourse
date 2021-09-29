@@ -18,7 +18,7 @@ package com.cinchapi.concourse.server.ops;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 
 /**
  * A collection of wrapper functions for executing an {@link AtomicOperation}
@@ -59,7 +59,7 @@ public final class AtomicOperations {
             AtomicSupplier<T> supplier) {
         AtomicOperation atomic = null;
         T value = null;
-        while (atomic == null || !atomic.commit(Time.now())) {
+        while (atomic == null || !atomic.commit(CommitVersions.next())) {
             atomic = store.startAtomicOperation();
             try {
                 value = supplier.supply(atomic);

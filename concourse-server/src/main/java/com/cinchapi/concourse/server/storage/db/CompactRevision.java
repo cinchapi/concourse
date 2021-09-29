@@ -18,8 +18,8 @@ package com.cinchapi.concourse.server.storage.db;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
-import com.cinchapi.concourse.time.Time;
 
 /**
  * A compact form of a {@link Revision} that is appropriate to store within a
@@ -75,7 +75,7 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
         this.value = value;
         this.version = version;
         this.type = type;
-        this.stamp = Time.now();
+        this.stamp = CommitVersions.next();
     }
 
     @SuppressWarnings("unchecked")

@@ -28,6 +28,7 @@ import com.cinchapi.concourse.server.model.Position;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.IndexRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
@@ -65,17 +66,17 @@ public final class TestData extends Random {
 
     public static TableRevision getPrimaryRevision() {
         return Revision.createTableRevision(getIdentifier(), getText(),
-                getValue(), Time.now(), Action.ADD);
+                getValue(), CommitVersions.next(), Action.ADD);
     }
 
     public static CorpusRevision getSearchRevision() {
         return Revision.createCorpusRevision(getText(), getText(),
-                getPosition(), Time.now(), Action.ADD);
+                getPosition(), CommitVersions.next(), Action.ADD);
     }
 
     public static IndexRevision getSecondaryRevision() {
         return Revision.createIndexRevision(getText(), getValue(),
-                getIdentifier(), Time.now(), Action.ADD);
+                getIdentifier(), CommitVersions.next(), Action.ADD);
     }
 
     /**

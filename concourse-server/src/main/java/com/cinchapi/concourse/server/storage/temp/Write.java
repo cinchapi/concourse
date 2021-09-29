@@ -28,9 +28,9 @@ import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
 
 /**
  * A {@link Write} is a temporary representation of data before it is
@@ -53,7 +53,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write add(String key, TObject value, long record) {
         return new Write(Action.ADD, Text.wrapCached(key), Value.wrap(value),
-                Identifier.of(record), Time.now());
+                Identifier.of(record), CommitVersions.next());
     }
 
     /**
@@ -103,7 +103,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write remove(String key, TObject value, long record) {
         return new Write(Action.REMOVE, Text.wrapCached(key), Value.wrap(value),
-                Identifier.of(record), Time.now());
+                Identifier.of(record), CommitVersions.next());
     }
 
     /**
@@ -196,7 +196,7 @@ public final class Write implements Byteable, Versioned {
         this.record = record;
         this.version = version;
         this.bytes = bytes;
-        this.stamp = Time.now();
+        this.stamp = CommitVersions.next();
     }
 
     /**
@@ -315,10 +315,12 @@ public final class Write implements Byteable, Versioned {
      */
     public Write inverse() {
         if(type == Action.ADD) {
-            return new Write(Action.REMOVE, key, value, record, Time.now());
+            return new Write(Action.REMOVE, key, value, record,
+                    CommitVersions.next());
         }
         else if(type == Action.REMOVE) {
-            return new Write(Action.ADD, key, value, record, Time.now());
+            return new Write(Action.ADD, key, value, record,
+                    CommitVersions.next());
         }
         else {
             throw new UnsupportedOperationException(

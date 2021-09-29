@@ -50,6 +50,7 @@ import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.WriteStream;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.cache.BloomFilters;
@@ -630,10 +631,10 @@ public final class Segment extends TransferableByteSequence implements
      */
     public boolean intersects(Segment other) {
         Range<Long> r1 = count > 0 ? Range.closed(minTs, maxTs)
-                : Range.greaterThan(Time.now());
+                : Range.greaterThan(CommitVersions.next());
         Range<Long> r2 = other.count > 0
                 ? Range.closed(other.minTs, other.maxTs)
-                : Range.greaterThan(Time.now());
+                : Range.greaterThan(CommitVersions.next());
         return r1.isConnected(r2);
     }
 
